@@ -43,16 +43,27 @@ LLM_PROVIDER=claude
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-## 데모
+## 케이스 라이브러리 (5종)
 
-회원가입 후 **"Generate Demo Case"** 클릭:
+| 케이스 | 전문과 | 난이도 | 핵심 인지 함정 |
+|--------|--------|--------|----------------|
+| STEMI / ACS | Internal Medicine | Medium | 경계치 트로포닌이 ACS를 배제한다고 착각 |
+| Septic Shock (패혈성 쇼크) | Internal Medicine | Medium | AMS를 뇌졸중으로 앵커링 |
+| Pulmonary Embolism (폐색전증) | Emergency Medicine | Hard | 수술 후 항응고제로 PE 안심 |
+| DKA (당뇨병성 케톤산증) | Internal Medicine | Easy | 복통을 외과적 응급으로 오진 |
+| Ischemic Stroke (허혈성 뇌졸중) | Neurology | Medium | Last Known Normal 시간 계산 오류 |
 
-> _58세 남성, 급성 흉통 + 발한_
+회원가입 후 **"Generate Demo Case"** 클릭 → 5가지 케이스 중 랜덤 선택
 
-AI는 절대 "STEMI"를 말하지 않습니다. 소크라틱 질문만으로 유도합니다:
-- "활력징후에서 가장 우려되는 소견은 무엇인가요?"
-- "이 나이대에서 흉통의 생명을 위협하는 원인은 무엇인지 먼저 생각해보세요."
-- "Troponin이 경계치라는 것이 ACS를 배제할 수 있나요?"
+AI는 절대 진단명을 말하지 않습니다. 케이스별 전문 소크라틱 질문으로만 유도합니다:
+
+**패혈증 케이스 예시:**
+- "Lactate 수치가 조직 관류에 대해 무엇을 말해주나요?"
+- "항생제 투여 전에 반드시 먼저 해야 할 것은 무엇인가요?"
+
+**뇌졸중 케이스 예시:**
+- "Last Known Normal 시간과 증상 발견 시간의 차이가 왜 중요한가요?"
+- "이 환자의 tPA 투여 가능 시간은 언제까지인가요?"
 
 ## 아키텍처
 
@@ -101,7 +112,7 @@ PostgreSQL 16
 ## 개발
 
 ```bash
-# 백엔드 테스트 (17개)
+# 백엔드 테스트 (26개, 68% coverage)
 cd backend && pip install -r requirements.txt
 python -m pytest tests/ -v
 
@@ -114,10 +125,13 @@ cd frontend && npm install && npm test
 ```
 POST /api/auth/register
 POST /api/auth/token
-POST /api/cases/generate/demo   ← 58yo 흉통 케이스
+POST /api/cases/generate/demo   ← 5종 케이스 중 랜덤 선택
+POST /api/cases/generate        ← 전문과/난이도 지정 생성
 POST /api/sessions               ← 세션 시작
 POST /api/sessions/{id}/stream   ← SSE 소크라틱 스트림
-GET  /api/analytics/me           ← 편향 패턴 분석
+POST /api/sessions/{id}/complete ← 세션 완료 + 최종 점수 계산
+GET  /api/sessions/{id}          ← 세션 상태 + 추론 맵 조회
+GET  /api/analytics/me           ← 편향 패턴 + 전문과별 성적 분석
 ```
 
 API 문서: http://localhost:8000/docs

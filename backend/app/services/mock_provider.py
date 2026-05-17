@@ -84,6 +84,60 @@ QUESTIONS_BY_PHASE = {
     ],
 }
 
+# ─── Specialty-specific question banks ───────────────────────────────────────
+
+SPECIALTY_QUESTIONS: dict[str, list[str]] = {
+    "sepsis": [
+        "What criteria would you use to define sepsis versus septic shock in this patient?",
+        "What does the lactate level tell you about tissue perfusion, and what number is your threshold for action?",
+        "Before starting antibiotics — what should you do first, and why does the order matter?",
+        "What is the significance of the band count in the context of this WBC?",
+        "How does the organ dysfunction score change your management urgency?",
+        "What is your 1-hour Sepsis Bundle, and which element is most time-critical here?",
+        "The patient has CKD — how does that change your interpretation of the creatinine?",
+        "What source-control measure would you consider, and when?",
+        "Why might an elderly patient with sepsis have a blunted fever response?",
+        "How would you monitor whether your resuscitation is working?",
+    ],
+    "dka": [
+        "Walk me through how insulin deficiency leads to the acid-base disturbance you're seeing.",
+        "What is the anion gap telling you, and how do you calculate the corrected value here?",
+        "Why must potassium be checked — and possibly replaced — before starting insulin?",
+        "How do you interpret the sodium in a patient with marked hyperglycemia?",
+        "This patient has abdominal pain — how do you decide whether it's the DKA or a surgical emergency?",
+        "What is your endpoint for insulin therapy — what tells you DKA has resolved?",
+        "What is the difference between DKA and HHS, and which does this presentation fit?",
+        "Why do Kussmaul respirations occur, and what do they tell you about severity?",
+        "How would you replace the fluid deficit, and which fluid would you choose?",
+        "What triggered this DKA, and does that change your management?",
+    ],
+    "stroke": [
+        "What is the last known normal time — and why is that the critical number, not when symptoms were noticed?",
+        "Calculate the tPA eligibility window: what is the deadline in this case?",
+        "The NIHSS is 8 — what does that score mean for severity and treatment eligibility?",
+        "This patient has atrial fibrillation with a subtherapeutic INR — what does that tell you about the stroke mechanism?",
+        "The blood pressure is 178/104 — should you treat it now, and why or why not?",
+        "What imaging would you order first, and what are you specifically looking for?",
+        "Beyond tPA, what other time-sensitive intervention should you consider, and what criteria trigger it?",
+        "What contraindications to thrombolysis do you need to check in this patient?",
+        "How does the missed anticoagulation history affect your management decision?",
+        "What is your blood pressure target before tPA, and why does that threshold exist?",
+    ],
+    "pe": [
+        "What is this patient's Wells score? Walk me through each criterion.",
+        "The troponin is mildly elevated — what does that suggest about right ventricular involvement?",
+        "How do you interpret an SpO2 of 89% in the context of this presentation?",
+        "She is on anticoagulation post-operatively — does that change your suspicion for PE?",
+        "What is the significance of the loud P2 and elevated JVP you found on exam?",
+        "How would you risk-stratify this PE — massive, submassive, or low-risk — and why does that matter?",
+        "What is your diagnostic pathway: CT-PA, V/Q scan, or bedside echo first?",
+        "At what point would you consider systemic thrombolysis instead of anticoagulation alone?",
+        "The right calf finding — how does that change your pre-test probability?",
+        "What monitoring would tell you this patient is decompensating?",
+    ],
+}
+
+
 # Keywords that trigger specific question categories
 KEYWORD_TRIGGERS = {
     "anchoring_challenge": [
@@ -412,6 +466,19 @@ DEMO_CASE = _CASE_STEMI
 class MockProvider:
     """Rule-based Socratic coach. No API key needed."""
 
+    def _detect_specialty(self, system: str) -> str | None:
+        """Detect case specialty from the system prompt to pick targeted questions."""
+        lower = system.lower()
+        if any(k in lower for k in ["septic shock", "urosepsis", "bacteremia", "sirs", "sepsis-3"]):
+            return "sepsis"
+        if any(k in lower for k in ["ketoacidosis", "dka", "insulin deficiency", "anion gap acidosis"]):
+            return "dka"
+        if any(k in lower for k in ["ischemic stroke", "last known normal", "lkn", "nihss", "alteplase"]):
+            return "stroke"
+        if any(k in lower for k in ["pulmonary embolism", "right ventricular strain", "wells criteria", "massive pe"]):
+            return "pe"
+        return None  # cardiac / default
+
     def _detect_phase(self, student_text: str, turn_number: int) -> str:
         lower = student_text.lower()
 
@@ -435,13 +502,15 @@ class MockProvider:
         bank = QUESTIONS_BY_PHASE.get(phase, QUESTIONS_BY_PHASE["generic_deepening"])
         return random.choice(bank)
 
-    def _build_response(self, student_text: str, turn_number: int) -> str:
+    def _build_response(self, student_text: str, turn_number: int, specialty: str | None = None) -> str:
         phase = self._detect_phase(student_text, turn_number)
         q1 = self._pick_question(phase)
-        # Pick a second question from a different phase for depth
-        other_phases = [p for p in QUESTIONS_BY_PHASE if p != phase]
-        q2_phase = random.choice(other_phases)
-        q2 = self._pick_question(q2_phase)
+        # If a specialty is known, inject one specialty-specific question for depth
+        if specialty and specialty in SPECIALTY_QUESTIONS:
+            q2 = random.choice(SPECIALTY_QUESTIONS[specialty])
+        else:
+            other_phases = [p for p in QUESTIONS_BY_PHASE if p != phase]
+            q2 = self._pick_question(random.choice(other_phases))
         return f"{q1}\n\nAlso consider: {q2}"
 
     async def stream(
@@ -452,8 +521,9 @@ class MockProvider:
     ) -> AsyncGenerator[StreamChunk, None]:
         turn_number = sum(1 for m in messages if m.get("role") == "user")
         student_text = messages[-1].get("content", "") if messages else ""
+        specialty = self._detect_specialty(system)
 
-        response = self._build_response(student_text, turn_number)
+        response = self._build_response(student_text, turn_number, specialty)
 
         yield StreamChunk(type="thinking_start")
         await asyncio.sleep(0.3)  # simulate thinking

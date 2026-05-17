@@ -6,6 +6,7 @@ import pytest
 
 from app.services.mock_provider import (
     MockProvider,
+    SPECIALTY_QUESTIONS,
     _analyze_reasoning,
     _extract_hypothesis,
     _extract_student_response,
@@ -139,6 +140,67 @@ def test_no_premature_closure_when_antibiotics_mentioned_systematically():
     )
     bias_types = [b["type"] for b in result["biases_detected"]]
     assert "premature_closure" not in bias_types
+
+
+# ─── Specialty detection ──────────────────────────────────────────────────────
+
+def test_detect_specialty_sepsis():
+    provider = MockProvider()
+    system = "You are coaching a case involving septic shock and urosepsis."
+    assert provider._detect_specialty(system) == "sepsis"
+
+
+def test_detect_specialty_dka():
+    provider = MockProvider()
+    system = "Case involves diabetic ketoacidosis with anion gap acidosis."
+    assert provider._detect_specialty(system) == "dka"
+
+
+def test_detect_specialty_stroke():
+    provider = MockProvider()
+    system = "Ischemic stroke with last known normal and NIHSS score."
+    assert provider._detect_specialty(system) == "stroke"
+
+
+def test_detect_specialty_pe():
+    provider = MockProvider()
+    system = "Pulmonary embolism with right ventricular strain findings."
+    assert provider._detect_specialty(system) == "pe"
+
+
+def test_detect_specialty_returns_none_for_cardiac():
+    provider = MockProvider()
+    system = "ACS with chest pain and troponin elevation."
+    assert provider._detect_specialty(system) is None
+
+
+def test_specialty_questions_non_empty():
+    for specialty in ("sepsis", "dka", "stroke", "pe"):
+        assert len(SPECIALTY_QUESTIONS[specialty]) >= 5
+
+
+@pytest.mark.asyncio
+async def test_stream_uses_specialty_question_for_sepsis():
+    provider = MockProvider()
+    sepsis_system = (
+        "You are a Socratic coach. "
+        "Case: septic shock / urosepsis. Sepsis-3 criteria met. "
+        "Do not reveal the diagnosis."
+    )
+    chunks = []
+    async for chunk in provider.stream(
+        messages=[{"role": "user", "content": "Patient has fever and hypotension."}],
+        system=sepsis_system,
+    ):
+        if chunk.type == "text_delta":
+            chunks.append(chunk.content)
+    response_text = "".join(chunks)
+    # Any of these sepsis-specific keywords should appear somewhere
+    sepsis_hints = ["lactate", "bundle", "source", "potassium", "creatinine",
+                    "organ", "antibiotic", "cultures", "sepsis", "resuscitation"]
+    assert any(hint in response_text.lower() for hint in sepsis_hints), (
+        f"Expected specialty question but got: {response_text}"
+    )
 
 
 # ─── MockProvider.complete ────────────────────────────────────────────────────
