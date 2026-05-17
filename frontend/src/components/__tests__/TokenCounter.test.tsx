@@ -10,9 +10,9 @@ describe("TokenCounter", () => {
         thinking={false}
       />,
     );
-    expect(screen.getByText(/1,000/)).toBeTruthy();
-    expect(screen.getByText(/500/)).toBeTruthy();
-    expect(screen.getByText(/2,000/)).toBeTruthy();
+    expect(screen.getByText(/In: 1,000/)).toBeTruthy();
+    expect(screen.getByText(/Out: 500/)).toBeTruthy();
+    expect(screen.getByText(/Thinking: 2,000/)).toBeTruthy();
   });
 
   it("shows total token count", () => {
