@@ -1,0 +1,148 @@
+"""Tests for MockProvider — rule-based Socratic coach and reasoning analyzer."""
+from __future__ import annotations
+
+import json
+import pytest
+
+from app.services.mock_provider import (
+    MockProvider,
+    _analyze_reasoning,
+    _extract_hypothesis,
+    _extract_student_response,
+)
+
+
+# ─── _extract_student_response ────────────────────────────────────────────────
+
+def test_extract_student_response_finds_quoted_text():
+    prompt = (
+        'Case summary: ...\n\n'
+        'Turn 1 — Student response to analyze:\n"Give aspirin now."\n\nAnalyze...'
+    )
+    assert _extract_student_response(prompt) == "Give aspirin now."
+
+
+def test_extract_student_response_falls_back_to_full_text():
+    text = "No expected format here"
+    assert _extract_student_response(text) == text
+
+
+# ─── _extract_hypothesis ──────────────────────────────────────────────────────
+
+def test_extract_hypothesis_known_diagnosis():
+    # "mi" is checked before "stemi" in the list, and "mi" is a substring of "stemi"
+    assert _extract_hypothesis("I think this is STEMI") == "MI"
+    assert _extract_hypothesis("Pulmonary embolism is likely") == "PULMONARY EMBOLISM"
+    assert _extract_hypothesis("aortic dissection needs ruling out") == "AORTIC DISSECTION"
+
+
+def test_extract_hypothesis_unknown():
+    assert _extract_hypothesis("unclear presentation") == "Under investigation"
+
+
+# ─── _analyze_reasoning ───────────────────────────────────────────────────────
+
+def test_analyze_reasoning_premature_closure():
+    result = _analyze_reasoning("STEMI definitely. Give aspirin 300mg and heparin immediately.")
+    assert result["reasoning_score"] < 60
+    bias_types = [b["type"] for b in result["biases_detected"]]
+    assert "premature_closure" in bias_types
+
+
+def test_analyze_reasoning_anchoring_detected():
+    result = _analyze_reasoning("This is definitely ACS and nothing else.")
+    bias_types = [b["type"] for b in result["biases_detected"]]
+    assert "anchoring" in bias_types
+
+
+def test_analyze_reasoning_high_quality_scores_higher():
+    poor = _analyze_reasoning("STEMI. Give aspirin.")
+    good = _analyze_reasoning(
+        "Differential: ACS, aortic dissection, PE. Borderline troponin cannot rule out ACS. "
+        "BNP elevation with bibasilar crackles suggests early heart failure. "
+        "Serial troponin needed. Hypertension and smoking are life-threatening risk factors. "
+        "12-lead ECG immediately, then CXR and echo."
+    )
+    assert good["reasoning_score"] > poor["reasoning_score"]
+    assert good["reasoning_score"] >= 60
+
+
+def test_analyze_reasoning_score_bounded():
+    result = _analyze_reasoning(
+        "STEMI definitely clearly obviously must be. Give aspirin heparin tpa thrombolysis."
+    )
+    assert 0 <= result["reasoning_score"] <= 100
+
+
+def test_analyze_reasoning_returns_required_fields():
+    result = _analyze_reasoning("Chest pain, likely ACS.")
+    assert "reasoning_score" in result
+    assert "score_breakdown" in result
+    assert "biases_detected" in result
+    assert "reasoning_node" in result
+    assert "student_strengths" in result
+    assert "student_gaps" in result
+    assert isinstance(result["biases_detected"], list)
+
+
+def test_analyze_reasoning_score_breakdown_sums_to_total():
+    result = _analyze_reasoning("ACS with troponin elevation and bibasilar crackles.")
+    breakdown = result["score_breakdown"]
+    total = sum(breakdown.values())
+    assert total == result["reasoning_score"]
+
+
+def test_analyze_reasoning_no_biases_for_clean_reasoning():
+    # No bias triggers in this text
+    result = _analyze_reasoning(
+        "Considering ACS given risk factors and presentation. "
+        "Serial troponin and ECG needed before any treatment decisions."
+    )
+    bias_types = [b["type"] for b in result["biases_detected"]]
+    assert "premature_closure" not in bias_types
+    assert "anchoring" not in bias_types
+
+
+# ─── MockProvider.complete ────────────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_mock_provider_complete_case_generation():
+    provider = MockProvider()
+    response = await provider.complete(
+        messages=[{"role": "user", "content": "Generate a case"}],
+        system="You are a clinical case designer for medical education.",
+    )
+    data = json.loads(response.text)
+    assert "title" in data
+    assert "diagnosis" in data
+
+
+@pytest.mark.asyncio
+async def test_mock_provider_complete_reasoning_analysis():
+    provider = MockProvider()
+    prompt = (
+        "Case summary: Specialty: internal_medicine\n\n"
+        "Turn 1 — Student response to analyze:\n"
+        '"STEMI definitely. Give aspirin immediately."\n\n'
+        "Analyze this student's clinical reasoning carefully."
+    )
+    response = await provider.complete(
+        messages=[{"role": "user", "content": prompt}],
+        system="You are an expert cognitive psychologist analyzing clinical reasoning.",
+    )
+    data = json.loads(response.text)
+    assert "reasoning_score" in data
+    assert isinstance(data["biases_detected"], list)
+
+
+@pytest.mark.asyncio
+async def test_mock_provider_complete_returns_llm_response():
+    from app.services.provider import LLMResponse
+    provider = MockProvider()
+    response = await provider.complete(
+        messages=[{"role": "user", "content": "Analyze: STEMI."}],
+        system="Analyze clinical reasoning in a case.",
+    )
+    assert isinstance(response, LLMResponse)
+    assert response.input_tokens > 0
+    assert response.output_tokens > 0
