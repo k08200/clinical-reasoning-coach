@@ -1,0 +1,81 @@
+import Cookies from "js-cookie";
+import { API_URL } from "./api";
+import type { StreamEvent, TokenUsage } from "@/types";
+
+export interface StreamCallbacks {
+  onThinking?: () => void;
+  onText: (text: string) => void;
+  onUsage: (usage: Partial<TokenUsage>) => void;
+  onDone: () => void;
+  onError: (message: string) => void;
+}
+
+export async function streamMessage(
+  sessionId: string,
+  content: string,
+  callbacks: StreamCallbacks,
+): Promise<void> {
+  const token = Cookies.get("access_token");
+
+  const response = await fetch(`${API_URL}/api/sessions/${sessionId}/stream`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ content }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({ detail: "Stream failed" }));
+    callbacks.onError(body.detail || "Failed to connect");
+    return;
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) {
+    callbacks.onError("No response body");
+    return;
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const raw = line.slice(6).trim();
+      if (!raw) continue;
+
+      try {
+        const event = JSON.parse(raw) as StreamEvent;
+        switch (event.type) {
+          case "thinking":
+            callbacks.onThinking?.();
+            break;
+          case "text":
+            callbacks.onText(event.content);
+            break;
+          case "usage":
+            callbacks.onUsage(event.usage);
+            break;
+          case "done":
+            callbacks.onDone();
+            return;
+          case "error":
+            callbacks.onError(event.message);
+            return;
+        }
+      } catch {
+        // Malformed SSE line — skip
+      }
+    }
+  }
+}
