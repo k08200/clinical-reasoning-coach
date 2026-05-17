@@ -12,7 +12,8 @@ import re
 from app.config import get_settings
 from app.services.provider_factory import get_provider
 from app.schemas.case import ClinicalCaseCreate
-from app.services.mock_provider import DEMO_CASE
+import random as _random
+from app.services.mock_provider import CASE_POOL
 
 settings = get_settings()
 
@@ -80,9 +81,8 @@ async def generate_clinical_case(
 
 
 async def generate_demo_case() -> ClinicalCaseCreate:
-    """Return the canonical demo case (58yo male chest pain)."""
-    # Always return the pre-built demo case regardless of provider
-    return ClinicalCaseCreate(**DEMO_CASE)
+    """Return a randomly selected pre-built case from the case pool."""
+    return ClinicalCaseCreate(**_random.choice(CASE_POOL))
 
 
 def _extract_json(text: str) -> dict:

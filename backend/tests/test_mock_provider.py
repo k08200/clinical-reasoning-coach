@@ -30,10 +30,11 @@ def test_extract_student_response_falls_back_to_full_text():
 # ─── _extract_hypothesis ──────────────────────────────────────────────────────
 
 def test_extract_hypothesis_known_diagnosis():
-    # "mi" is checked before "stemi" in the list, and "mi" is a substring of "stemi"
-    assert _extract_hypothesis("I think this is STEMI") == "MI"
-    assert _extract_hypothesis("Pulmonary embolism is likely") == "PULMONARY EMBOLISM"
-    assert _extract_hypothesis("aortic dissection needs ruling out") == "AORTIC DISSECTION"
+    # Word-boundary matching: "stemi" is checked before "mi", and \bmi\b won't match inside "stemi"
+    assert _extract_hypothesis("I think this is STEMI") == "STEMI"
+    assert _extract_hypothesis("Pulmonary embolism is likely") == "Pulmonary Embolism"
+    assert _extract_hypothesis("aortic dissection needs ruling out") == "Aortic Dissection"
+    assert _extract_hypothesis("possible MI with ACS") == "ACS"  # ACS listed before MI
 
 
 def test_extract_hypothesis_unknown():

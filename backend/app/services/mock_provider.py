@@ -103,7 +103,7 @@ KEYWORD_TRIGGERS = {
     ],
 }
 
-DEMO_CASE = {
+_CASE_STEMI = {
     "title": "Acute Chest Pain in a Middle-Aged Male",
     "specialty": "internal_medicine",
     "difficulty": "medium",
@@ -158,6 +158,244 @@ DEMO_CASE = {
         "If student jumps to aspirin/heparin, ask about ECG first — time-sensitive diagnosis requires ECG within 10 minutes."
     ),
 }
+
+_CASE_SEPSIS = {
+    "title": "Fever and Altered Mental Status in an Elderly Patient",
+    "specialty": "internal_medicine",
+    "difficulty": "medium",
+    "chief_complaint": "Fever, confusion, and hypotension",
+    "patient_demographics": {"age": 74, "sex": "female", "weight_kg": 62, "ethnicity": "Korean"},
+    "history_of_present_illness": (
+        "74-year-old female brought by family for 2-day history of worsening confusion and fever. "
+        "Family reports she was complaining of dysuria and frequency 3 days ago. "
+        "She became progressively lethargic today. Denies chest pain, cough, or diarrhea. "
+        "Last voided 12 hours ago with dark, malodorous urine."
+    ),
+    "past_medical_history": "Type 2 diabetes mellitus (15 years), hypertension, CKD stage 3.",
+    "medications": ["Metformin 1000mg twice daily", "Amlodipine 5mg daily", "Lisinopril 10mg daily"],
+    "physical_exam": {
+        "vitals": {"bp": "88/56", "hr": 118, "rr": 22, "temp_c": 38.9, "spo2": 94},
+        "general": "Elderly female, lethargic, responds only to voice, appears ill",
+        "cardiovascular": "Tachycardic, faint peripheral pulses. Capillary refill 4 seconds.",
+        "pulmonary": "Clear to auscultation bilaterally",
+        "abdomen": "Mild suprapubic tenderness on deep palpation",
+        "neuro": "Confused, GCS 13 (E3V4M6), no focal deficits",
+        "other": "Dry mucous membranes, decreased skin turgor",
+    },
+    "initial_labs": {
+        "wbc": "22.4 (significantly elevated, 18% bands)",
+        "hgb": "11.2",
+        "platelets": "98 (low)",
+        "na": "132 (hyponatremia)",
+        "k": "5.2 (mildly elevated)",
+        "cr": "2.8 (elevated from baseline 1.4)",
+        "glucose": "318 (markedly elevated)",
+        "lactate": "4.1 mmol/L (severely elevated)",
+        "urinalysis": "Pyuria, bacteriuria, nitrite positive",
+        "procalcitonin": "Not yet resulted",
+    },
+    "diagnosis": "Septic Shock secondary to Urosepsis (UTI → urosepsis → septic shock)",
+    "key_teaching_points": [
+        "Septic shock = sepsis + vasopressor requirement to maintain MAP ≥65 mmHg + lactate >2 mmol/L",
+        "Source control (antibiotics within 1 hour) and fluid resuscitation are time-critical",
+        "Elevated lactate 4.1 indicates tissue hypoperfusion — immediate action required",
+        "Altered mental status in elderly is a sepsis red flag even without classic fever pattern",
+        "AKI and thrombocytopenia suggest early organ dysfunction (sepsis-3 criteria)",
+    ],
+    "cognitive_traps": [
+        "Students may anchor on AMS as primary neurological problem (stroke, delirium)",
+        "Glucose elevation may distract toward diabetic emergency as primary diagnosis",
+        "Low-grade fever might underestimate severity in elderly with blunted response",
+        "CKD baseline may mask degree of AKI",
+    ],
+    "coach_guidance": (
+        "Guide student toward: (1) recognizing SIRS criteria and sepsis-3, "
+        "(2) identifying source (urinary symptoms + UA), "
+        "(3) lactate as prognostic marker requiring immediate intervention, "
+        "(4) understanding organ dysfunction scoring. "
+        "Challenge anchoring on delirium or stroke. "
+        "Emphasize time-critical nature: antibiotics within 1 hour, 30mL/kg IV fluids."
+    ),
+}
+
+_CASE_PE = {
+    "title": "Sudden Dyspnea in a Post-Surgical Patient",
+    "specialty": "emergency_medicine",
+    "difficulty": "hard",
+    "chief_complaint": "Sudden-onset dyspnea and pleuritic chest pain",
+    "patient_demographics": {"age": 45, "sex": "female", "weight_kg": 72, "ethnicity": "Korean"},
+    "history_of_present_illness": (
+        "45-year-old female, post-op day 5 from right total knee replacement, "
+        "presents with sudden-onset dyspnea and sharp right-sided pleuritic chest pain. "
+        "Onset 1 hour ago at rest. Also reports right calf pain and swelling for 2 days. "
+        "Denies fever, hemoptysis, or prior similar episodes."
+    ),
+    "past_medical_history": "Obesity (BMI 34), oral contraceptive use, no prior DVT/PE.",
+    "medications": ["Rivaroxaban 10mg daily (started post-op, last dose yesterday)", "OCP"],
+    "physical_exam": {
+        "vitals": {"bp": "105/70", "hr": 114, "rr": 26, "temp_c": 37.2, "spo2": 89},
+        "general": "Anxious female in moderate respiratory distress",
+        "cardiovascular": "Tachycardic, loud P2 on auscultation. JVP elevated at 5cm above sternal angle.",
+        "pulmonary": "Decreased breath sounds at right base. No crackles.",
+        "abdomen": "Soft, non-tender",
+        "neuro": "Alert and oriented",
+        "other": "Right calf: warm, erythematous, 3cm circumference difference vs left",
+    },
+    "initial_labs": {
+        "wbc": "11.8",
+        "hgb": "13.1",
+        "platelets": "210",
+        "na": "139",
+        "k": "3.9",
+        "cr": "0.9",
+        "d_dimer": "5,840 ng/mL (markedly elevated, normal <500)",
+        "troponin_i": "0.08 (mildly elevated — RV strain)",
+        "bnp": "220 (mildly elevated)",
+        "abg": "pH 7.48, pO2 58, pCO2 30 (respiratory alkalosis + hypoxemia)",
+    },
+    "diagnosis": "Massive/Submassive Pulmonary Embolism with right ventricular strain",
+    "key_teaching_points": [
+        "Wells PE criteria: 3 points (DVT signs) + 3 (HR>100) + 1.5 (immobilization post-surgery) = high pre-test probability",
+        "RV strain signs: elevated troponin, BNP, loud P2, elevated JVP = submassive PE",
+        "SpO2 89% + HR 114 + hypotension = hemodynamic compromise requiring urgent intervention",
+        "CT-PA is gold standard but consider thrombolysis if hemodynamically unstable",
+        "Low-dose rivaroxaban post-op may have been insufficient prophylaxis",
+    ],
+    "cognitive_traps": [
+        "Pleuritic pain may be mistaken for musculoskeletal post-op pain",
+        "Recent anticoagulant use may falsely reassure students",
+        "Normal temperature may underestimate seriousness",
+        "SpO2 of 89% requires urgent intervention — not just supplemental O2",
+    ],
+    "coach_guidance": (
+        "Guide student toward Wells criteria scoring. "
+        "Challenge premature reassurance from recent anticoagulation. "
+        "Emphasize RV strain as a marker of severity. "
+        "Ask about thrombolysis decision criteria — when does PE require systemic thrombolysis?"
+    ),
+}
+
+_CASE_DKA = {
+    "title": "Young Diabetic with Nausea and Abdominal Pain",
+    "specialty": "internal_medicine",
+    "difficulty": "easy",
+    "chief_complaint": "Nausea, vomiting, and diffuse abdominal pain",
+    "patient_demographics": {"age": 22, "sex": "male", "weight_kg": 68, "ethnicity": "Korean"},
+    "history_of_present_illness": (
+        "22-year-old male with known Type 1 diabetes presents with 12-hour history of nausea, "
+        "vomiting (×5), and diffuse crampy abdominal pain. He ran out of insulin 2 days ago. "
+        "Reports increased thirst and urination for 3 days. "
+        "Denies fever, diarrhea, or recent illness. Last ate 8 hours ago."
+    ),
+    "past_medical_history": "Type 1 diabetes mellitus (diagnosed age 12), no prior DKA episodes.",
+    "medications": ["Insulin glargine 20 units nightly (ran out 2 days ago)", "Insulin lispro with meals (ran out 2 days ago)"],
+    "physical_exam": {
+        "vitals": {"bp": "102/68", "hr": 122, "rr": 28, "temp_c": 37.1, "spo2": 99},
+        "general": "Ill-appearing young male, Kussmaul respirations, fruity breath odor",
+        "cardiovascular": "Tachycardic, dry mucous membranes",
+        "pulmonary": "Clear, deep rapid breathing (Kussmaul)",
+        "abdomen": "Diffusely tender, no guarding or rigidity, no rebound",
+        "neuro": "Alert but fatigued, slightly confused",
+        "other": "Sunken eyes, decreased skin turgor, capillary refill 3 seconds",
+    },
+    "initial_labs": {
+        "glucose": "480 mg/dL (markedly elevated)",
+        "ph": "7.18 (severe acidosis)",
+        "bicarbonate": "8 mEq/L (low)",
+        "anion_gap": "28 (elevated, normal 8-12)",
+        "ketones": "Serum ketones 4+ positive",
+        "na": "128 (pseudohyponatremia — corrected Na = 135)",
+        "k": "5.8 (elevated — but total body K depleted)",
+        "cr": "1.6 (AKI from dehydration)",
+        "wbc": "14.2 (stress leukocytosis)",
+        "urinalysis": "Glucosuria 4+, ketonuria 4+",
+    },
+    "diagnosis": "Diabetic Ketoacidosis (DKA) — precipitated by insulin non-compliance",
+    "key_teaching_points": [
+        "DKA criteria: glucose >250, pH <7.3, bicarbonate <15, positive ketones",
+        "Corrected Na = measured Na + 1.6 × (glucose-100)/100 — do not treat apparent hyponatremia",
+        "Potassium must be replaced BEFORE insulin if K <3.5 — insulin drives K intracellularly",
+        "Abdominal pain in DKA is often the acidosis itself, not a surgical emergency",
+        "Never stop insulin infusion until anion gap closes and patient is eating",
+    ],
+    "cognitive_traps": [
+        "Abdominal pain may lead students toward surgical causes (appendicitis, bowel obstruction)",
+        "Pseudohyponatremia may prompt incorrect aggressive sodium replacement",
+        "Visible tachycardia may focus students on cardiac etiology",
+        "Normal temperature rules out infection as precipitant — but check anyway",
+    ],
+    "coach_guidance": (
+        "Guide student toward: (1) DKA diagnosis criteria, "
+        "(2) potassium management BEFORE insulin if K low, "
+        "(3) calculating corrected sodium, "
+        "(4) differentiating DKA from HHS (age, ketones, acidosis). "
+        "Challenge premature surgical referral for abdominal pain."
+    ),
+}
+
+_CASE_STROKE = {
+    "title": "Sudden Facial Droop and Speech Difficulty",
+    "specialty": "neurology",
+    "difficulty": "medium",
+    "chief_complaint": "Sudden facial droop, slurred speech, and right arm weakness",
+    "patient_demographics": {"age": 67, "sex": "male", "weight_kg": 82, "ethnicity": "Korean"},
+    "history_of_present_illness": (
+        "67-year-old male found by wife at 08:15 AM with sudden right-sided facial droop, "
+        "dysarthria, and right arm weakness. Wife reports he was normal at 07:00 AM when she woke up. "
+        "Onset was sudden with no preceding headache, trauma, or loss of consciousness. "
+        "Now 09:00 AM. No vomiting. No history of similar episodes."
+    ),
+    "past_medical_history": "Atrial fibrillation (on anticoagulation — missed doses for 5 days), hypertension.",
+    "medications": ["Apixaban 5mg twice daily (missed last 5 days)", "Amlodipine 5mg daily"],
+    "physical_exam": {
+        "vitals": {"bp": "178/104", "hr": 88, "rr": 16, "temp_c": 36.9, "spo2": 97},
+        "general": "Alert, cooperative, in moderate distress",
+        "cardiovascular": "Irregularly irregular rhythm (AFib), no murmurs",
+        "pulmonary": "Clear bilaterally",
+        "abdomen": "Soft, non-tender",
+        "neuro": "NIHSS 8: right facial droop, dysarthria, right arm drift (grade 4/5 strength), mild right leg weakness. No aphasia. Gaze deviation to left.",
+        "other": "No signs of trauma",
+    },
+    "initial_labs": {
+        "wbc": "9.8",
+        "hgb": "14.1",
+        "platelets": "188",
+        "na": "140",
+        "k": "4.0",
+        "cr": "1.0",
+        "glucose": "128",
+        "inr": "1.2 (subtherapeutic — missed doses)",
+        "inr_therapeutic_range": "Target 2.0-3.0",
+        "noncontrast_ct": "No hemorrhage, no early ischemic changes",
+    },
+    "diagnosis": "Acute Ischemic Stroke — cardioembolic (AFib + subtherapeutic anticoagulation)",
+    "key_teaching_points": [
+        "Time is brain: 1.9 million neurons die per minute in untreated stroke",
+        "tPA window: 3-4.5 hours from LAST KNOWN NORMAL, not symptom onset",
+        "Last known normal is 07:00 AM — tPA window: until 11:30 AM",
+        "Subtherapeutic INR 1.2 from missed apixaban doses suggests cardioembolic mechanism",
+        "NIHSS 8 = moderate stroke; LKN + non-contrast CT negative = tPA eligible",
+    ],
+    "cognitive_traps": [
+        "Using symptom recognition time (09:00 AM) instead of last known normal (07:00 AM) — wrong tPA window",
+        "AFib + anticoagulation may falsely reassure students that embolism is unlikely",
+        "Blood pressure 178/104 might prompt treatment — but BP should NOT be lowered before tPA",
+        "Students may skip mechanical thrombectomy consideration for large vessel occlusion",
+    ],
+    "coach_guidance": (
+        "Critical teaching point: LKN is 07:00 AM, not 09:00 AM. "
+        "Guide student to calculate correct tPA eligibility window. "
+        "Ask: 'What is the last known normal time and why does that matter?' "
+        "Challenge BP management instinct — pre-tPA, accept BP up to 185/110. "
+        "Ask about mechanical thrombectomy criteria (NIHSS ≥6, LVO on CTA)."
+    ),
+}
+
+# Pool of all pre-built cases — used by generate_demo_case()
+CASE_POOL = [_CASE_STEMI, _CASE_SEPSIS, _CASE_PE, _CASE_DKA, _CASE_STROKE]
+
+# Keep backward compatibility alias
+DEMO_CASE = _CASE_STEMI
 
 
 # ─── Mock provider ────────────────────────────────────────────────────────────
@@ -231,11 +469,11 @@ class MockProvider:
         system: str,
     ) -> LLMResponse:
         user_text = messages[-1].get("content", "") if messages else ""
-        # For case generation: return the pre-built demo case
+        # For case generation: return a randomly selected pre-built case
         if "case designer" in system.lower():
             return LLMResponse(
-                text=json.dumps(DEMO_CASE),
-                thinking="[mock] Returning pre-built demo case",
+                text=json.dumps(random.choice(CASE_POOL)),
+                thinking="[mock] Returning pre-built case from pool",
                 input_tokens=100,
                 output_tokens=300,
                 thinking_tokens=50,
@@ -254,16 +492,32 @@ class MockProvider:
 
 
 def _extract_hypothesis(text: str) -> str:
-    """Extract the main diagnostic hypothesis from student text."""
+    """Extract the main diagnostic hypothesis from student text using word boundaries."""
+    # Ordered longest-first so "stemi" matches before "mi" would as a substring
     diagnoses = [
-        "myocardial infarction", "mi", "stemi", "nstemi", "acs",
-        "pulmonary embolism", "pe", "aortic dissection", "pneumonia",
-        "heart failure", "angina", "gerd", "anxiety",
+        ("myocardial infarction", "Myocardial Infarction"),
+        ("pulmonary embolism", "Pulmonary Embolism"),
+        ("aortic dissection", "Aortic Dissection"),
+        ("heart failure", "Heart Failure"),
+        ("stemi", "STEMI"),
+        ("nstemi", "NSTEMI"),
+        ("acs", "ACS"),
+        ("septic shock", "Septic Shock"),
+        ("sepsis", "Sepsis"),
+        ("urosepsis", "Urosepsis"),
+        ("stroke", "Stroke"),
+        ("pneumonia", "Pneumonia"),
+        ("angina", "Angina"),
+        ("gerd", "GERD"),
+        ("dka", "DKA"),
+        ("mi", "MI"),
+        ("pe", "PE"),
     ]
     lower = text.lower()
-    for d in diagnoses:
-        if d in lower:
-            return d.upper()
+    for pattern, label in diagnoses:
+        # Use word boundary to avoid "mi" matching inside "stemi" etc.
+        if re.search(r"\b" + re.escape(pattern) + r"\b", lower):
+            return label
     return "Under investigation"
 
 
@@ -295,24 +549,45 @@ def _analyze_reasoning(text: str) -> dict:
         "stemi", "nstemi", "acs", "mi", "pe", "pulmonary embolism",
         "aortic dissection", "pneumonia", "heart failure", "angina",
         "gerd", "anxiety", "pericarditis", "pneumothorax",
+        "sepsis", "septic shock", "urosepsis", "bacteremia",
+        "stroke", "tia", "hemorrhage", "embolism",
+        "dka", "ketoacidosis", "hhs",
+        "appendicitis", "cholecystitis", "pancreatitis",
     ]
     diagnoses_mentioned = sum(1 for d in diagnosis_keywords if d in lower)
     systematic = min(25, 8 + diagnoses_mentioned * 4 + (3 if word_count > 80 else 0))
 
     # ── Dimension 2: Evidence integration (0-25) ─────────────────────────────
     evidence_terms = [
+        # Cardiac
         "troponin", "ecg", "bnp", "d-dimer", "spo2", "bp", "heart rate",
         "tachycardia", "diaphoresis", "radiation", "crackles", "bibasilar",
-        "risk factor", "history", "hypertension", "smoking", "hyperlipidemia",
+        "risk factor", "hypertension", "smoking", "hyperlipidemia",
+        # Sepsis
+        "lactate", "wbc", "bands", "procalcitonin", "blood culture",
+        "fever", "hypotension", "altered mental", "confusion",
+        "urinalysis", "pyuria", "bacteriuria",
+        # PE/DVT
+        "wells", "dvt", "calf", "immobility", "ocp", "oral contraceptive",
+        "d-dimer", "ct-pa", "v/q",
+        # DKA
+        "glucose", "ketone", "bicarbonate", "anion gap", "kussmaul",
+        "ph", "acidosis",
+        # Stroke
+        "nihss", "lkn", "last known normal", "tpa", "ct head",
+        "facial droop", "aphasia", "atrial fibrillation", "afib",
+        # General
+        "history", "medication", "allergy", "vital sign",
     ]
     evidence_used = sum(1 for e in evidence_terms if e in lower)
-    evidence = min(25, 5 + evidence_used * 3)
+    evidence = min(25, 5 + evidence_used * 2)
 
     # ── Dimension 3: Prioritization (0-25) ───────────────────────────────────
     priority_terms = [
         "life-threatening", "urgent", "immediately", "first", "priority",
         "rule out", "must exclude", "time-sensitive", "emergent", "stat",
         "dangerous", "critical", "most important",
+        "time is", "door-to", "within", "hour", "minutes",
     ]
     priority_used = sum(1 for p in priority_terms if p in lower)
     prioritization = min(25, 8 + priority_used * 4)
@@ -322,6 +597,10 @@ def _analyze_reasoning(text: str) -> dict:
         "because", "mechanism", "pathophysiology", "due to", "caused by",
         "results in", "explains", "consistent with", "suggests", "indicates",
         "ischemia", "infarction", "occlusion", "reperfusion", "preload",
+        "vasodilation", "vasoplegia", "endotoxin", "cytokine",
+        "embolic", "thrombotic", "clot", "obstruction",
+        "insulin deficiency", "ketogenesis", "acidosis",
+        "hypoperfusion", "organ dysfunction",
     ]
     mechanism_used = sum(1 for m in mechanism_terms if m in lower)
     mechanism = min(25, 5 + mechanism_used * 4)
