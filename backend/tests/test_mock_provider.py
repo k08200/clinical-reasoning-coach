@@ -104,6 +104,43 @@ def test_analyze_reasoning_no_biases_for_clean_reasoning():
     assert "anchoring" not in bias_types
 
 
+# ─── Premature closure — non-cardiac cases ───────────────────────────────────
+
+def test_premature_closure_sepsis_antibiotics():
+    result = _analyze_reasoning("Sepsis. Give antibiotics now and start vancomycin.")
+    bias_types = [b["type"] for b in result["biases_detected"]]
+    assert "premature_closure" in bias_types
+
+
+def test_premature_closure_dka_insulin():
+    result = _analyze_reasoning("DKA — start insulin drip immediately.")
+    bias_types = [b["type"] for b in result["biases_detected"]]
+    assert "premature_closure" in bias_types
+
+
+def test_premature_closure_stroke_tpa():
+    result = _analyze_reasoning("Ischemic stroke. Give tPA — give alteplase now.")
+    bias_types = [b["type"] for b in result["biases_detected"]]
+    assert "premature_closure" in bias_types
+
+
+def test_premature_closure_pe_anticoagulation():
+    result = _analyze_reasoning("PE — start anticoagulation with heparin drip.")
+    bias_types = [b["type"] for b in result["biases_detected"]]
+    assert "premature_closure" in bias_types
+
+
+def test_no_premature_closure_when_antibiotics_mentioned_systematically():
+    # Mentioning antibiotics in context of "need blood cultures before starting antibiotics"
+    # should not trigger premature closure — requires phrase "give antibiotics" not just "antibiotics"
+    result = _analyze_reasoning(
+        "Suspect sepsis. Blood cultures needed before any antibiotics are started. "
+        "Assess organ dysfunction with lactate, creatinine, and GCS."
+    )
+    bias_types = [b["type"] for b in result["biases_detected"]]
+    assert "premature_closure" not in bias_types
+
+
 # ─── MockProvider.complete ────────────────────────────────────────────────────
 
 @pytest.mark.asyncio

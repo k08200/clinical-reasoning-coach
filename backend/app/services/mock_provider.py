@@ -92,7 +92,16 @@ KEYWORD_TRIGGERS = {
     ],
     "premature_closure_challenge": [
         "give", "treat", "start", "order", "admit", "discharge",
+        # Cardiac
         "aspirin", "heparin", "tpa", "nitro", "morphine",
+        # Sepsis
+        "antibiotics", "vancomycin", "ceftriaxone", "piperacillin", "meropenem",
+        # DKA
+        "insulin", "potassium replacement",
+        # Stroke
+        "alteplase", "thrombectomy", "rtpa",
+        # PE
+        "anticoagulate", "anticoagulation",
     ],
     "mechanism": [
         "because", "mechanism", "pathophysiology", "why", "causes",
@@ -612,8 +621,20 @@ def _analyze_reasoning(text: str) -> dict:
 
     # Premature closure: jumping to treatment/specific diagnosis too early
     treatment_words = [
-        "give aspirin", "start heparin", "tpa", "thrombolysis", "admit",
+        # Cardiac
+        "give aspirin", "start heparin", "thrombolysis",
         "take aspirin", "administer", "treat with", "prescribe",
+        # Sepsis
+        "give antibiotics", "start antibiotics", "broad-spectrum antibiotics",
+        "vancomycin", "piperacillin", "ceftriaxone", "meropenem",
+        # DKA
+        "start insulin", "give insulin", "insulin drip", "insulin infusion",
+        # Stroke
+        "give tpa", "administer tpa", "give alteplase", "give rtpa",
+        "mechanical thrombectomy", "thrombectomy",
+        # PE
+        "heparin drip", "anticoagulate", "give heparin", "start anticoagulation",
+        "systemic thrombolysis",
     ]
     if any(t in lower for t in treatment_words):
         biases.append({

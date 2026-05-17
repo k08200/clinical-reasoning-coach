@@ -21,6 +21,7 @@ class UserAnalytics(BaseModel):
     user_id: uuid.UUID
     total_sessions: int
     completed_sessions: int
+    total_messages: int
     avg_reasoning_score: float
     bias_patterns: list[BiasPattern]
     reasoning_trend: list[ReasoningTrend]
