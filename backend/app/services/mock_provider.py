@@ -232,7 +232,7 @@ class MockProvider:
     ) -> LLMResponse:
         user_text = messages[-1].get("content", "") if messages else ""
         # For case generation: return the pre-built demo case
-        if "generate" in system.lower() or "case" in system.lower():
+        if "case designer" in system.lower():
             return LLMResponse(
                 text=json.dumps(DEMO_CASE),
                 thinking="[mock] Returning pre-built demo case",
@@ -240,26 +240,10 @@ class MockProvider:
                 output_tokens=300,
                 thinking_tokens=50,
             )
-        # For reasoning analysis: return a reasonable mock score
-        mock_analysis = {
-            "reasoning_score": 65,
-            "score_breakdown": {
-                "systematic_approach": 16,
-                "evidence_integration": 17,
-                "prioritization": 15,
-                "mechanism_understanding": 17,
-            },
-            "biases_detected": [],
-            "reasoning_node": {
-                "hypothesis": _extract_hypothesis(user_text),
-                "supporting_evidence": [],
-                "missing_evidence": ["Further clinical data needed"],
-                "reasoning_quality": "convergent",
-            },
-            "coach_insight": "Student is engaging with the case systematically.",
-            "student_strengths": ["Engaged with the presentation"],
-            "student_gaps": ["Continue developing differential"],
-        }
+        # For reasoning analysis: extract only the current student response to avoid
+        # false positives from conversation history
+        student_response = _extract_student_response(user_text)
+        mock_analysis = _analyze_reasoning(student_response)
         return LLMResponse(
             text=json.dumps(mock_analysis),
             thinking="[mock] Rule-based analysis",
@@ -281,3 +265,167 @@ def _extract_hypothesis(text: str) -> str:
         if d in lower:
             return d.upper()
     return "Under investigation"
+
+
+def _extract_student_response(prompt: str) -> str:
+    """
+    Extract the current student response from the full analysis prompt.
+    Falls back to the full text if the expected format is not found.
+    """
+    # Prompt format: 'Turn N — Student response to analyze:\n"<text>"\n\nAnalyze...'
+    import re as _re
+    match = _re.search(r'Student response to analyze:\s*"(.+?)"\s*\n', prompt, _re.DOTALL)
+    if match:
+        return match.group(1)
+    return prompt
+
+
+def _analyze_reasoning(text: str) -> dict:
+    """
+    Rule-based reasoning quality analysis.
+    Scores 4 dimensions and detects cognitive biases from student text.
+    """
+    lower = text.lower()
+    words = lower.split()
+    word_count = len(words)
+
+    # ── Dimension 1: Systematic approach (0-25) ──────────────────────────────
+    # Multiple diagnoses mentioned → systematic; single diagnosis → lower
+    diagnosis_keywords = [
+        "stemi", "nstemi", "acs", "mi", "pe", "pulmonary embolism",
+        "aortic dissection", "pneumonia", "heart failure", "angina",
+        "gerd", "anxiety", "pericarditis", "pneumothorax",
+    ]
+    diagnoses_mentioned = sum(1 for d in diagnosis_keywords if d in lower)
+    systematic = min(25, 8 + diagnoses_mentioned * 4 + (3 if word_count > 80 else 0))
+
+    # ── Dimension 2: Evidence integration (0-25) ─────────────────────────────
+    evidence_terms = [
+        "troponin", "ecg", "bnp", "d-dimer", "spo2", "bp", "heart rate",
+        "tachycardia", "diaphoresis", "radiation", "crackles", "bibasilar",
+        "risk factor", "history", "hypertension", "smoking", "hyperlipidemia",
+    ]
+    evidence_used = sum(1 for e in evidence_terms if e in lower)
+    evidence = min(25, 5 + evidence_used * 3)
+
+    # ── Dimension 3: Prioritization (0-25) ───────────────────────────────────
+    priority_terms = [
+        "life-threatening", "urgent", "immediately", "first", "priority",
+        "rule out", "must exclude", "time-sensitive", "emergent", "stat",
+        "dangerous", "critical", "most important",
+    ]
+    priority_used = sum(1 for p in priority_terms if p in lower)
+    prioritization = min(25, 8 + priority_used * 4)
+
+    # ── Dimension 4: Mechanism understanding (0-25) ───────────────────────────
+    mechanism_terms = [
+        "because", "mechanism", "pathophysiology", "due to", "caused by",
+        "results in", "explains", "consistent with", "suggests", "indicates",
+        "ischemia", "infarction", "occlusion", "reperfusion", "preload",
+    ]
+    mechanism_used = sum(1 for m in mechanism_terms if m in lower)
+    mechanism = min(25, 5 + mechanism_used * 4)
+
+    total_score = systematic + evidence + prioritization + mechanism
+
+    # ── Bias detection ────────────────────────────────────────────────────────
+    biases = []
+
+    # Premature closure: jumping to treatment/specific diagnosis too early
+    treatment_words = [
+        "give aspirin", "start heparin", "tpa", "thrombolysis", "admit",
+        "take aspirin", "administer", "treat with", "prescribe",
+    ]
+    if any(t in lower for t in treatment_words):
+        biases.append({
+            "type": "premature_closure",
+            "severity": "moderate",
+            "evidence": "Student proposed specific treatment before completing diagnostic workup",
+            "confidence": 0.75,
+        })
+
+    # Anchoring: certainty language around a single diagnosis
+    certainty_words = ["definitely", "clearly", "obviously", "must be", "has to be", "certain", "no doubt"]
+    if any(c in lower for c in certainty_words) and diagnoses_mentioned <= 1:
+        biases.append({
+            "type": "anchoring",
+            "severity": "mild",
+            "evidence": "Student using high-certainty language while considering only one diagnosis",
+            "confidence": 0.7,
+        })
+
+    # Availability bias: anchoring on an unusual/memorable diagnosis (PE without strong evidence)
+    if "pe" in lower or "pulmonary embolism" in lower:
+        if "d-dimer" not in lower and "wells" not in lower and "immobility" not in lower:
+            biases.append({
+                "type": "availability",
+                "severity": "mild",
+                "evidence": "Considering PE without citing supporting risk factors (immobility, Wells criteria)",
+                "confidence": 0.65,
+            })
+
+    # ── Strengths & gaps ──────────────────────────────────────────────────────
+    strengths = []
+    gaps = []
+
+    if diagnoses_mentioned >= 2:
+        strengths.append("Maintaining a broad differential diagnosis")
+    if evidence_used >= 4:
+        strengths.append("Actively integrating clinical evidence into reasoning")
+    if priority_used >= 1:
+        strengths.append("Recognizing urgency and prioritizing dangerous diagnoses")
+    if mechanism_used >= 2:
+        strengths.append("Demonstrating pathophysiological reasoning")
+
+    if diagnoses_mentioned < 2:
+        gaps.append("Differential diagnosis should be broader at this stage")
+    if evidence_used < 3:
+        gaps.append("More clinical data should be explicitly cited to support reasoning")
+    if priority_used == 0:
+        gaps.append("Life-threatening diagnoses should be explicitly prioritized")
+    if "serial" not in lower and "repeat" not in lower and "troponin" in lower:
+        gaps.append("Single troponin result insufficient — serial measurements needed")
+
+    # ── Reasoning quality label ───────────────────────────────────────────────
+    if diagnoses_mentioned >= 3 and evidence_used >= 4:
+        quality = "systematic"
+    elif diagnoses_mentioned >= 2:
+        quality = "divergent"
+    elif any(b["type"] == "anchoring" for b in biases):
+        quality = "anchored"
+    else:
+        quality = "convergent"
+
+    hypothesis = _extract_hypothesis(text)
+    supporting = [e for e in evidence_terms if e in lower][:3]
+    missing = []
+    if "ecg" not in lower and "ekg" not in lower:
+        missing.append("12-lead ECG not mentioned")
+    if "serial" not in lower and "repeat troponin" not in lower:
+        missing.append("Serial troponin for ACS rule-out")
+    if "d-dimer" not in lower:
+        missing.append("D-dimer if PE remains in differential")
+
+    return {
+        "reasoning_score": total_score,
+        "score_breakdown": {
+            "systematic_approach": systematic,
+            "evidence_integration": evidence,
+            "prioritization": prioritization,
+            "mechanism_understanding": mechanism,
+        },
+        "biases_detected": biases,
+        "reasoning_node": {
+            "hypothesis": hypothesis,
+            "supporting_evidence": supporting,
+            "missing_evidence": missing[:3],
+            "reasoning_quality": quality,
+        },
+        "coach_insight": (
+            f"Student at {quality} reasoning stage. "
+            f"{'Bias risk detected. ' if biases else ''}"
+            f"Strength: {strengths[0] if strengths else 'engagement with case'}."
+        ),
+        "student_strengths": strengths or ["Engaging with the case"],
+        "student_gaps": gaps or ["Continue developing systematic approach"],
+    }

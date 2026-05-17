@@ -265,7 +265,6 @@ async def _save_coach_turn(
                 conversation_history=claude_history,
                 turn_number=turn_number,
             )
-
             # Update student message with analysis
             await db.execute(
                 update(Message)
@@ -282,7 +281,6 @@ async def _save_coach_turn(
                     thinking_content=analysis.thinking_content,
                 )
             )
-
             # Save coach message
             coach_msg = Message(
                 session_id=session_id,
