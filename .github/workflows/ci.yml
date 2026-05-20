@@ -54,3 +54,54 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  api-smoke:
+    name: API smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Start backend
+        working-directory: backend
+        env:
+          DATABASE_URL: sqlite+aiosqlite:////tmp/clinical-reasoning-coach-smoke.db
+          LLM_PROVIDER: mock
+        run: |
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+          echo $! > /tmp/clinical-reasoning-coach-api.pid
+
+      - name: Wait for backend
+        run: |
+          for attempt in {1..30}; do
+            if curl -fsS http://127.0.0.1:8000/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Run API smoke
+        run: node scripts/smoke-api.mjs
+
+      - name: Stop backend
+        if: always()
+        run: |
+          if [ -f /tmp/clinical-reasoning-coach-api.pid ]; then
+            kill "$(cat /tmp/clinical-reasoning-coach-api.pid)" || true
+          fi
