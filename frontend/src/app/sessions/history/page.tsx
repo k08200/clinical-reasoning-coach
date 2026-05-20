@@ -29,6 +29,12 @@ export default function SessionHistoryPage() {
             ← Back to Cases
           </button>
           <h1 className="text-lg font-semibold text-white">Session History</h1>
+          <button
+            onClick={() => router.push("/analytics")}
+            className="text-slate-400 hover:text-white text-sm"
+          >
+            Analytics
+          </button>
         </div>
       </header>
 

@@ -29,6 +29,7 @@ async def get_my_analytics(
         select(CoachingSession)
         .options(selectinload(CoachingSession.case))
         .where(CoachingSession.user_id == uid)
+        .order_by(CoachingSession.started_at.asc())
     )
     sessions = list(sessions_result.scalars().all())
 

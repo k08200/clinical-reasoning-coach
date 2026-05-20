@@ -88,15 +88,17 @@ PostgreSQL 16
 | `backend/app/services/reasoning_analyzer.py` | 학생 추론 품질 분석 |
 | `backend/app/services/case_generator.py` | 동적 케이스 생성 |
 | `backend/app/routers/sessions.py` | SSE 스트림 엔드포인트 |
+| `frontend/src/app/analytics/page.tsx` | 개인별 추론 성과/편향 대시보드 |
 | `frontend/src/components/ReasoningMap.tsx` | ReactFlow 추론 여정 시각화 |
 | `frontend/src/components/TokenCounter.tsx` | 실시간 토큰 카운터 |
+| `scripts/smoke-api.mjs` | 회원가입→세션→SSE→완료 API smoke test |
 
 ### 매 턴 처리 흐름
 
 ```
 학생 메시지 입력
     → Claude/Ollama/Mock: 소크라틱 질문 스트리밍 (SSE)
-    → 백그라운드: 추론 품질 분석 + 인지 편향 감지
+    → 스트림 완료 전: 추론 품질 분석 + 인지 편향 감지
     → DB 저장: 점수, 추론 맵, 편향 이벤트
 ```
 
@@ -112,12 +114,15 @@ PostgreSQL 16
 ## 개발
 
 ```bash
-# 백엔드 테스트 (26개, 68% coverage)
-cd backend && pip install -r requirements.txt
-python -m pytest tests/ -v
+# 백엔드 테스트 (44개, 79% coverage)
+(cd backend && pip install -r requirements.txt)
+(cd backend && python -m pytest tests/ -v)
 
-# 프론트엔드 테스트
-cd frontend && npm install && npm test
+# 프론트엔드 테스트 (35개)
+(cd frontend && npm install && npm test)
+
+# API smoke test (백엔드가 localhost:8000에서 실행 중이어야 함)
+node scripts/smoke-api.mjs
 ```
 
 ## API
