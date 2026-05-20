@@ -6,7 +6,7 @@ from collections.abc import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import get_settings
+from app.config import get_settings, validate_runtime_settings
 from app.database import init_db
 from app.routers import auth, cases, sessions, analytics
 
@@ -15,6 +15,7 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    validate_runtime_settings(settings)
     await init_db()
     yield
 

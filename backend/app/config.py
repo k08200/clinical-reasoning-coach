@@ -1,16 +1,25 @@
 from __future__ import annotations
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
+DEFAULT_SECRET_KEY = "change-me-in-production"
+VALID_LLM_PROVIDERS = {"claude", "ollama", "mock"}
+
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        populate_by_name=True,
+    )
 
     # App
     app_name: str = "Clinical Reasoning Coach"
+    app_environment: str = Field(default="development", validation_alias="APP_ENV")
     debug: bool = False
-    secret_key: str = "change-me-in-production"
+    secret_key: str = DEFAULT_SECRET_KEY
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
     refresh_token_expire_days: int = 7
@@ -45,3 +54,21 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def validate_runtime_settings(settings: Settings | None = None) -> None:
+    settings = settings or get_settings()
+    provider = settings.llm_provider.lower()
+    environment = settings.app_environment.lower()
+
+    if provider not in VALID_LLM_PROVIDERS:
+        raise RuntimeError(
+            "LLM_PROVIDER must be one of: "
+            + ", ".join(sorted(VALID_LLM_PROVIDERS))
+        )
+
+    if provider == "claude" and not settings.anthropic_api_key:
+        raise RuntimeError("LLM_PROVIDER=claude requires ANTHROPIC_API_KEY")
+
+    if environment == "production" and settings.secret_key == DEFAULT_SECRET_KEY:
+        raise RuntimeError("APP_ENV=production requires a non-default SECRET_KEY")
