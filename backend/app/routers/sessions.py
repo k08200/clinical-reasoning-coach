@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import uuid
 import json
-import asyncio
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -148,6 +147,7 @@ async def stream_response(
     db.add(student_msg)
     await db.flush()
     student_msg_id = student_msg.id
+    await db.commit()
 
     async def event_generator():
         collected_text: list[str] = []
@@ -179,20 +179,18 @@ async def stream_response(
                     full_text = "".join(collected_text)
                     full_thinking = "".join(collected_thinking)
 
-                    asyncio.create_task(
-                        _save_coach_turn(
-                            session_id=session_id,
-                            user_id=uuid.UUID(user_id),
-                            case=case,
-                            student_msg_id=student_msg_id,
-                            student_content=body.content,
-                            coach_content=full_text,
-                            thinking_content=full_thinking,
-                            usage=usage_data,
-                            turn_number=turn_number,
-                            claude_history=claude_history,
-                            existing_map=session.reasoning_map,
-                        )
+                    await _save_coach_turn(
+                        session_id=session_id,
+                        user_id=uuid.UUID(user_id),
+                        case=case,
+                        student_msg_id=student_msg_id,
+                        student_content=body.content,
+                        coach_content=full_text,
+                        thinking_content=full_thinking,
+                        usage=usage_data,
+                        turn_number=turn_number,
+                        claude_history=claude_history,
+                        existing_map=session.reasoning_map,
                     )
 
                     yield f"data: {json.dumps({'type': 'done'})}\n\n"
@@ -253,8 +251,8 @@ async def _save_coach_turn(
     existing_map: dict,
 ) -> None:
     """
-    Background task: analyze reasoning, save coach message, update session stats.
-    Uses its own DB session since the request session may already be closed.
+    Analyze reasoning, save coach message, and update session stats.
+    Uses its own DB session so stream completion can mean all turn data is durable.
     """
     async with AsyncSessionLocal() as db:
         try:
@@ -343,4 +341,5 @@ async def _save_coach_turn(
 
         except Exception as e:
             await db.rollback()
-            print(f"[ERROR] Background save failed for session {session_id}: {e}")
+            print(f"[ERROR] Turn save failed for session {session_id}: {e}")
+            raise

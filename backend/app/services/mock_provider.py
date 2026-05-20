@@ -91,7 +91,7 @@ SPECIALTY_QUESTIONS: dict[str, list[str]] = {
         "What criteria would you use to define sepsis versus septic shock in this patient?",
         "What does the lactate level tell you about tissue perfusion, and what number is your threshold for action?",
         "Before starting antibiotics — what should you do first, and why does the order matter?",
-        "What is the significance of the band count in the context of this WBC?",
+        "What is the significance of the band count in the context of this WBC and possible sepsis?",
         "How does the organ dysfunction score change your management urgency?",
         "What is your 1-hour Sepsis Bundle, and which element is most time-critical here?",
         "The patient has CKD — how does that change your interpretation of the creatinine?",
