@@ -29,8 +29,9 @@ export default function CasesPage() {
   const [specialty, setSpecialty] = useState("All");
   const [generating, setGenerating] = useState(false);
   const [startingSession, setStartingSession] = useState<string | null>(null);
+  const [actionError, setActionError] = useState("");
 
-  const { data: cases, mutate } = useSWR<ClinicalCase[]>(
+  const { data: cases, error: casesError, mutate } = useSWR<ClinicalCase[]>(
     `/api/cases?${specialty !== "All" ? `specialty=${specialty}` : ""}`,
     () =>
       api.cases.list(specialty !== "All" ? { specialty } : undefined) as Promise<ClinicalCase[]>,
@@ -38,11 +39,13 @@ export default function CasesPage() {
 
   async function handleGenerateDemo() {
     setGenerating(true);
+    setActionError("");
     try {
       await api.cases.generateDemo();
       mutate();
     } catch (err) {
       console.error(err);
+      setActionError(err instanceof Error ? err.message : "Could not generate a case");
     } finally {
       setGenerating(false);
     }
@@ -50,11 +53,13 @@ export default function CasesPage() {
 
   async function handleStartSession(caseId: string) {
     setStartingSession(caseId);
+    setActionError("");
     try {
       const session = await api.sessions.create(caseId) as { id: string };
       router.push(`/sessions/${session.id}`);
     } catch (err) {
       console.error(err);
+      setActionError(err instanceof Error ? err.message : "Could not start the session");
       setStartingSession(null);
     }
   }
@@ -71,6 +76,9 @@ export default function CasesPage() {
           <div className="flex items-center gap-4">
             <a href="/sessions/history" className="text-sm text-slate-400 hover:text-white">
               My Sessions
+            </a>
+            <a href="/analytics" className="text-sm text-slate-400 hover:text-white">
+              Analytics
             </a>
             <button
               onClick={logout}
@@ -116,6 +124,12 @@ export default function CasesPage() {
             </button>
           ))}
         </div>
+
+        {(actionError || casesError) && (
+          <div className="mb-6 rounded-lg border border-red-700 bg-red-900/40 px-4 py-3 text-sm text-red-200">
+            {actionError || "Could not load cases. Please try again."}
+          </div>
+        )}
 
         {/* Cases grid */}
         {!cases ? (

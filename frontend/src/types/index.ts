@@ -113,3 +113,30 @@ export type StreamEvent =
   | { type: "usage"; usage: Partial<TokenUsage> }
   | { type: "done" }
   | { type: "error"; message: string };
+
+export interface BiasPattern {
+  bias_type: string;
+  count: number;
+  severity_distribution: Record<string, number>;
+  avg_confidence: number;
+}
+
+export interface ReasoningTrend {
+  session_number: number;
+  avg_score: number;
+  date: string;
+}
+
+export interface UserAnalytics {
+  user_id: string;
+  total_sessions: number;
+  completed_sessions: number;
+  total_messages: number;
+  avg_reasoning_score: number;
+  bias_patterns: BiasPattern[];
+  reasoning_trend: ReasoningTrend[];
+  total_tokens_used: number;
+  strongest_areas: string[];
+  weakest_areas: string[];
+  specialty_performance: Record<string, number>;
+}

@@ -28,6 +28,7 @@ export default function SessionPage() {
   const [liveTokens, setLiveTokens] = useState<Partial<TokenUsage>>({});
   const [showMap, setShowMap] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [error, setError] = useState("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -66,40 +67,57 @@ export default function SessionPage() {
     setStreaming(true);
     setThinking(false);
     setStreamingText("");
+    setError("");
 
-    await streamMessage(id, content, {
-      onThinking: () => setThinking(true),
-      onText: (text) => {
-        setThinking(false);
-        setStreamingText((prev) => prev + text);
-      },
-      onUsage: (usage) => {
-        setLiveTokens((prev) => ({
-          input_tokens: (prev.input_tokens ?? 0) + (usage.input_tokens ?? 0),
-          output_tokens: (prev.output_tokens ?? 0) + (usage.output_tokens ?? 0),
-          thinking_tokens: (prev.thinking_tokens ?? 0) + (usage.thinking_tokens ?? 0),
-        }));
-      },
-      onDone: async () => {
-        setStreaming(false);
-        setStreamingText("");
-        setThinking(false);
-        // Refresh session to get saved messages + analysis
-        await mutate();
-      },
-      onError: (message) => {
-        setStreaming(false);
-        setStreamingText(`Error: ${message}`);
-        setThinking(false);
-      },
-    });
+    try {
+      await streamMessage(id, content, {
+        onThinking: () => setThinking(true),
+        onText: (text) => {
+          setThinking(false);
+          setStreamingText((prev) => prev + text);
+        },
+        onUsage: (usage) => {
+          setLiveTokens((prev) => ({
+            input_tokens: (prev.input_tokens ?? 0) + (usage.input_tokens ?? 0),
+            output_tokens: (prev.output_tokens ?? 0) + (usage.output_tokens ?? 0),
+            thinking_tokens: (prev.thinking_tokens ?? 0) + (usage.thinking_tokens ?? 0),
+          }));
+        },
+        onDone: async () => {
+          // Refresh session to get saved messages + analysis
+          await mutate();
+          setLiveTokens({});
+          setStreaming(false);
+          setStreamingText("");
+          setThinking(false);
+        },
+        onError: (message) => {
+          setStreaming(false);
+          setStreamingText("");
+          setThinking(false);
+          setLiveTokens({});
+          setInput(content);
+          setError(message);
+        },
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send your response");
+      setLiveTokens({});
+      setStreaming(false);
+      setStreamingText("");
+      setThinking(false);
+      setInput(content);
+    }
   }, [input, streaming, session, id, mutate]);
 
   async function handleComplete() {
     setCompleting(true);
+    setError("");
     try {
       await api.sessions.complete(id);
       await mutate();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not finish the session");
     } finally {
       setCompleting(false);
     }
@@ -170,6 +188,12 @@ export default function SessionPage() {
           <div className="px-4 py-2 border-b border-slate-800">
             <TokenCounter usage={totalTokens} thinking={thinking} />
           </div>
+
+          {error && (
+            <div className="mx-4 mt-4 rounded-lg border border-red-700 bg-red-900/40 px-4 py-3 text-sm text-red-200">
+              {error}
+            </div>
+          )}
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
