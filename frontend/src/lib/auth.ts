@@ -1,21 +1,19 @@
 "use client";
 
-import Cookies from "js-cookie";
 import { api } from "./api";
+import {
+  clearAuthTokens,
+  getAccessToken,
+  setAuthTokens,
+} from "./session";
 import type { User, TokenResponse } from "@/types";
 
 export function setTokens(tokens: TokenResponse): void {
-  Cookies.set("access_token", tokens.access_token, { expires: 1 });
-  Cookies.set("refresh_token", tokens.refresh_token, { expires: 7 });
+  setAuthTokens(tokens);
 }
 
 export function clearTokens(): void {
-  Cookies.remove("access_token");
-  Cookies.remove("refresh_token");
-}
-
-export function getAccessToken(): string | undefined {
-  return Cookies.get("access_token");
+  clearAuthTokens();
 }
 
 export async function login(email: string, password: string): Promise<User> {

@@ -1,5 +1,5 @@
-import Cookies from "js-cookie";
 import { API_URL } from "./api";
+import { getAccessToken, handleUnauthorized } from "./session";
 import type { StreamEvent, TokenUsage } from "@/types";
 
 export interface StreamCallbacks {
@@ -15,7 +15,7 @@ export async function streamMessage(
   content: string,
   callbacks: StreamCallbacks,
 ): Promise<void> {
-  const token = Cookies.get("access_token");
+  const token = getAccessToken();
 
   const response = await fetch(`${API_URL}/api/sessions/${sessionId}/stream`, {
     method: "POST",
@@ -28,6 +28,9 @@ export async function streamMessage(
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({ detail: "Stream failed" }));
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
     callbacks.onError(body.detail || "Failed to connect");
     return;
   }

@@ -1,4 +1,4 @@
-import Cookies from "js-cookie";
+import { getAccessToken, handleUnauthorized } from "./session";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -16,7 +16,7 @@ async function request<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const token = Cookies.get("access_token");
+  const token = getAccessToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
@@ -29,6 +29,9 @@ async function request<T>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ detail: "Unknown error" }));
+    if (res.status === 401) {
+      handleUnauthorized();
+    }
     throw new ApiError(body.detail || res.statusText, res.status);
   }
 
