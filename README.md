@@ -43,6 +43,21 @@ LLM_PROVIDER=claude
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
+## Production 설정 체크리스트
+
+운영 환경에서는 기본 개발 설정으로 시작하지 않도록 앱 시작 시 guard가 동작합니다.
+
+```bash
+APP_ENV=production
+SECRET_KEY=<long-random-secret>
+CORS_ORIGINS=["https://your-frontend.example.com"]
+LLM_PROVIDER=ollama  # 또는 claude
+```
+
+- `APP_ENV=production`에서 기본 `SECRET_KEY=change-me-in-production`이면 백엔드가 시작되지 않습니다.
+- `LLM_PROVIDER=claude`를 선택하면 `ANTHROPIC_API_KEY`가 반드시 필요합니다.
+- Docker smoke가 실패하면 `docker compose ps`로 `db`, `redis`, `backend`, `frontend`가 모두 떠 있는지 먼저 확인하세요.
+
 ## 케이스 라이브러리 (5종)
 
 | 케이스 | 전문과 | 난이도 | 핵심 인지 함정 |
