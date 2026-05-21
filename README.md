@@ -50,13 +50,29 @@ ANTHROPIC_API_KEY=sk-ant-...
 ```bash
 APP_ENV=production
 SECRET_KEY=<long-random-secret>
+DATABASE_AUTO_CREATE_TABLES=false
 CORS_ORIGINS=["https://your-frontend.example.com"]
 LLM_PROVIDER=ollama  # 또는 claude
 ```
 
 - `APP_ENV=production`에서 기본 `SECRET_KEY=change-me-in-production`이면 백엔드가 시작되지 않습니다.
+- `APP_ENV=production`에서는 `DATABASE_AUTO_CREATE_TABLES=false`를 설정하고 Alembic migration을 적용해야 합니다.
 - `LLM_PROVIDER=claude`를 선택하면 `ANTHROPIC_API_KEY`가 반드시 필요합니다.
 - Docker smoke가 실패하면 `docker compose ps`로 `db`, `redis`, `backend`, `frontend`가 모두 떠 있는지 먼저 확인하세요.
+
+### DB migration
+
+운영 DB 스키마는 Alembic으로 관리합니다.
+
+```bash
+(cd backend && alembic -c alembic.ini upgrade head)
+```
+
+모델 변경 후 새 migration을 만들 때:
+
+```bash
+(cd backend && alembic -c alembic.ini revision --autogenerate -m "describe change")
+```
 
 ## 케이스 라이브러리 (5종)
 

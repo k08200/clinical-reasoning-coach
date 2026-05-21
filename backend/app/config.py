@@ -26,6 +26,10 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@db:5432/clinical_coach"
+    database_auto_create_tables: bool = Field(
+        default=True,
+        validation_alias="DATABASE_AUTO_CREATE_TABLES",
+    )
 
     # Redis
     redis_url: str = "redis://redis:6379/0"
@@ -72,3 +76,9 @@ def validate_runtime_settings(settings: Settings | None = None) -> None:
 
     if environment == "production" and settings.secret_key == DEFAULT_SECRET_KEY:
         raise RuntimeError("APP_ENV=production requires a non-default SECRET_KEY")
+
+    if environment == "production" and settings.database_auto_create_tables:
+        raise RuntimeError(
+            "APP_ENV=production requires DATABASE_AUTO_CREATE_TABLES=false "
+            "and Alembic migrations"
+        )
