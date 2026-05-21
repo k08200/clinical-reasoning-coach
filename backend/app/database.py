@@ -43,5 +43,8 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db() -> None:
+    if not settings.database_auto_create_tables:
+        return
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

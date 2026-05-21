@@ -28,6 +28,9 @@ jobs:
       - name: Run tests
         run: python -m pytest tests/ -q
 
+      - name: Verify Alembic migration SQL
+        run: python -m alembic -c alembic.ini upgrade head --sql >/tmp/clinical-coach-migration.sql
+
   frontend:
     name: Frontend tests and build
     runs-on: ubuntu-latest
