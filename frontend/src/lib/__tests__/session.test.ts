@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import {
   clearAuthTokens,
   getAccessToken,
+  getRefreshToken,
   handleUnauthorized,
   setAuthTokens,
 } from "@/lib/session";
@@ -24,7 +25,11 @@ describe("session helpers", () => {
   });
 
   it("sets and reads auth tokens", () => {
-    vi.mocked(Cookies.get).mockReturnValue("access-token");
+    vi.mocked(Cookies.get).mockImplementation((key) => {
+      if (key === "access_token") return "access-token";
+      if (key === "refresh_token") return "refresh-token";
+      return undefined;
+    });
 
     setAuthTokens({ access_token: "access-token", refresh_token: "refresh-token" });
 
@@ -35,6 +40,7 @@ describe("session helpers", () => {
       expires: 7,
     });
     expect(getAccessToken()).toBe("access-token");
+    expect(getRefreshToken()).toBe("refresh-token");
   });
 
   it("clears both auth tokens", () => {

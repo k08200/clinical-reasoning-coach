@@ -1,4 +1,10 @@
-import { getAccessToken, handleUnauthorized } from "./session";
+import {
+  getAccessToken,
+  getRefreshToken,
+  handleUnauthorized,
+  setAuthTokens,
+} from "./session";
+import type { TokenResponse } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -12,9 +18,28 @@ class ApiError extends Error {
   }
 }
 
+async function refreshAuthTokens(): Promise<boolean> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return false;
+
+  const res = await fetch(`${API_URL}/api/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  }).catch(() => null);
+
+  if (!res?.ok) return false;
+
+  const tokens = await res.json().catch(() => null) as TokenResponse | null;
+  if (!tokens) return false;
+  setAuthTokens(tokens);
+  return true;
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
+  hasRetried = false,
 ): Promise<T> {
   const token = getAccessToken();
   const headers: Record<string, string> = {
@@ -28,10 +53,15 @@ async function request<T>(
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
 
   if (!res.ok) {
-    const body = await res.json().catch(() => ({ detail: "Unknown error" }));
-    if (res.status === 401) {
+    if (res.status === 401 && !hasRetried) {
+      const didRefresh = await refreshAuthTokens();
+      if (didRefresh) {
+        return request<T>(path, options, true);
+      }
       handleUnauthorized();
     }
+
+    const body = await res.json().catch(() => ({ detail: "Unknown error" }));
     throw new ApiError(body.detail || res.statusText, res.status);
   }
 
@@ -93,4 +123,4 @@ export const api = {
   },
 };
 
-export { ApiError, API_URL };
+export { ApiError, API_URL, refreshAuthTokens };

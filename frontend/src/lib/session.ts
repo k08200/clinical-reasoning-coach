@@ -17,6 +17,10 @@ export function getAccessToken(): string | undefined {
   return Cookies.get("access_token");
 }
 
+export function getRefreshToken(): string | undefined {
+  return Cookies.get("refresh_token");
+}
+
 export function redirectToLogin(): void {
   if (typeof window === "undefined") return;
   if (window.location.pathname === "/login") return;

@@ -52,12 +52,18 @@ def decode_token(token: str) -> dict[str, Any]:
         ) from e
 
 
-async def get_current_user_id(token: str = Depends(oauth2_scheme)) -> str:
+def get_token_subject(token: str, expected_type: str) -> str:
     payload = decode_token(token)
     user_id = payload.get("sub")
-    if not user_id:
+    token_type = payload.get("type")
+    if not user_id or token_type != expected_type:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     return user_id
+
+
+async def get_current_user_id(token: str = Depends(oauth2_scheme)) -> str:
+    return get_token_subject(token, "access")
