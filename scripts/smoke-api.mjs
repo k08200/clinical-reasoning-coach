@@ -33,7 +33,12 @@ async function main() {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ username: email, password: PASSWORD }),
   });
-  const authHeaders = { Authorization: `Bearer ${tokens.access_token}` };
+  const refreshed = await request("/api/auth/refresh", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token: tokens.refresh_token }),
+  });
+  const authHeaders = { Authorization: `Bearer ${refreshed.access_token}` };
 
   const clinicalCase = await request("/api/cases/generate/demo", {
     method: "POST",

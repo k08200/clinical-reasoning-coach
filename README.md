@@ -122,7 +122,7 @@ PostgreSQL 16
 | `frontend/src/app/analytics/page.tsx` | 개인별 추론 성과/편향 대시보드 |
 | `frontend/src/components/ReasoningMap.tsx` | ReactFlow 추론 여정 시각화 |
 | `frontend/src/components/TokenCounter.tsx` | 실시간 토큰 카운터 |
-| `scripts/smoke-api.mjs` | 회원가입→세션→SSE→완료 API smoke test |
+| `scripts/smoke-api.mjs` | 회원가입→로그인/토큰 갱신→세션→SSE→완료 API smoke test |
 
 ### 매 턴 처리 흐름
 
@@ -145,11 +145,11 @@ PostgreSQL 16
 ## 개발
 
 ```bash
-# 백엔드 테스트 (44개, 79% coverage)
+# 백엔드 테스트
 (cd backend && pip install -r requirements.txt)
 (cd backend && python -m pytest tests/ -v)
 
-# 프론트엔드 테스트 (35개)
+# 프론트엔드 테스트
 (cd frontend && npm install && npm test)
 
 # API smoke test (백엔드가 localhost:8000에서 실행 중이어야 함)
@@ -161,6 +161,7 @@ node scripts/smoke-api.mjs
 ```
 POST /api/auth/register
 POST /api/auth/token
+POST /api/auth/refresh
 POST /api/cases/generate/demo   ← 5종 케이스 중 랜덤 선택
 POST /api/cases/generate        ← 전문과/난이도 지정 생성
 POST /api/sessions               ← 세션 시작

@@ -1,4 +1,4 @@
-import { API_URL } from "./api";
+import { API_URL, refreshAuthTokens } from "./api";
 import { getAccessToken, handleUnauthorized } from "./session";
 import type { StreamEvent, TokenUsage } from "@/types";
 
@@ -15,16 +15,14 @@ export async function streamMessage(
   content: string,
   callbacks: StreamCallbacks,
 ): Promise<void> {
-  const token = getAccessToken();
+  let response = await openStream(sessionId, content);
 
-  const response = await fetch(`${API_URL}/api/sessions/${sessionId}/stream`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ content }),
-  });
+  if (!response.ok && response.status === 401) {
+    const didRefresh = await refreshAuthTokens();
+    if (didRefresh) {
+      response = await openStream(sessionId, content);
+    }
+  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({ detail: "Stream failed" }));
@@ -77,8 +75,21 @@ export async function streamMessage(
             return;
         }
       } catch {
-        // Malformed SSE line — skip
+        // Malformed SSE line - skip
       }
     }
   }
+}
+
+async function openStream(sessionId: string, content: string): Promise<Response> {
+  const token = getAccessToken();
+
+  return fetch(`${API_URL}/api/sessions/${sessionId}/stream`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ content }),
+  });
 }

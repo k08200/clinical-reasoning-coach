@@ -7,12 +7,13 @@ from sqlalchemy import select
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.auth import UserRegister, TokenResponse, UserResponse
+from app.schemas.auth import RefreshTokenRequest, UserRegister, TokenResponse, UserResponse
 from app.utils.auth import (
     hash_password,
     verify_password,
     create_access_token,
     create_refresh_token,
+    get_token_subject,
     get_current_user_id,
 )
 
@@ -50,6 +51,30 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token_data = {"sub": str(user.id)}
+    return TokenResponse(
+        access_token=create_access_token(token_data),
+        refresh_token=create_refresh_token(token_data),
+    )
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(
+    data: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_db),
+) -> TokenResponse:
+    user_id = get_token_subject(data.refresh_token, "refresh")
+
+    import uuid as _uuid
+
+    user = await db.get(User, _uuid.UUID(user_id))
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
