@@ -38,13 +38,14 @@ export default function CasesPage() {
     () =>
       api.cases.list(specialty !== "All" ? { specialty } : undefined) as Promise<ClinicalCase[]>,
   );
+  const caseList = cases ?? [];
 
   async function handleGenerateDemo() {
     setGenerating(true);
     setActionError("");
     try {
       await api.cases.generateDemo();
-      mutate();
+      await mutate();
     } catch (err) {
       console.error(err);
       setActionError(err instanceof Error ? err.message : "Could not generate a case");
@@ -134,11 +135,21 @@ export default function CasesPage() {
         )}
 
         {/* Cases grid */}
-        {checkingAuth || !cases ? (
+        {checkingAuth || (!cases && !casesError) ? (
           <div className="flex items-center justify-center h-48">
             <div className="animate-spin w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full" />
           </div>
-        ) : cases.length === 0 ? (
+        ) : casesError ? (
+          <div className="text-center py-16">
+            <p className="text-slate-400 text-lg mb-4">Cases could not be loaded</p>
+            <button
+              onClick={() => mutate()}
+              className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : caseList.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-slate-400 text-lg mb-4">No cases yet</p>
             <button
@@ -150,7 +161,7 @@ export default function CasesPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {cases.map((c) => (
+            {caseList.map((c) => (
               <div
                 key={c.id}
                 className="bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-slate-600 transition-colors"
