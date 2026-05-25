@@ -10,6 +10,10 @@ vi.mock("next/navigation", () => ({
 vi.mock("swr", () => ({ default: vi.fn() }));
 import useSWR from "swr";
 
+vi.mock("@/lib/useAuthGate", () => ({
+  useRequireAuth: () => false,
+}));
+
 vi.mock("@/lib/api", () => ({
   api: {
     analytics: {

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
+import { useRequireAuth } from "@/lib/useAuthGate";
 import type { CoachingSession } from "@/types";
 
 const STATUS_BADGE = {
@@ -13,10 +14,12 @@ const STATUS_BADGE = {
 
 export default function SessionHistoryPage() {
   const router = useRouter();
-  const { data: sessions } = useSWR<CoachingSession[]>(
-    "/api/sessions",
+  const checkingAuth = useRequireAuth();
+  const { data: sessions, error } = useSWR<CoachingSession[]>(
+    checkingAuth ? null : "/api/sessions",
     () => api.sessions.list() as Promise<CoachingSession[]>,
   );
+  const sessionList = sessions ?? [];
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -39,17 +42,21 @@ export default function SessionHistoryPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-8">
-        {!sessions ? (
+        {checkingAuth || (!sessions && !error) ? (
           <div className="flex justify-center py-16">
             <div className="animate-spin w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full" />
           </div>
-        ) : sessions.length === 0 ? (
+        ) : error ? (
+          <div className="rounded-lg border border-red-700 bg-red-900/40 px-4 py-3 text-sm text-red-200">
+            Could not load sessions. Please try again.
+          </div>
+        ) : sessionList.length === 0 ? (
           <div className="text-center py-16 text-slate-400">
             No sessions yet. Start a case to begin!
           </div>
         ) : (
           <div className="space-y-3">
-            {sessions.map((s) => (
+            {sessionList.map((s) => (
               <div
                 key={s.id}
                 onClick={() => router.push(`/sessions/${s.id}`)}

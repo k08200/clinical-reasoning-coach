@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { login } from "@/lib/auth";
+import { useRedirectIfAuthenticated } from "@/lib/useAuthGate";
 
 const TRAINING_LEVELS = [
   { value: "medical_student", label: "Medical Student" },
@@ -15,6 +16,7 @@ const TRAINING_LEVELS = [
 
 export default function RegisterPage() {
   const router = useRouter();
+  const checkingAuth = useRedirectIfAuthenticated();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -41,6 +43,14 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="animate-spin w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full" />
+      </div>
+    );
   }
 
   return (
