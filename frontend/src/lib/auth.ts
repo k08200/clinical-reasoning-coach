@@ -4,6 +4,7 @@ import { api } from "./api";
 import {
   clearAuthTokens,
   getAccessToken,
+  getRefreshToken,
   setAuthTokens,
 } from "./session";
 import type { User, TokenResponse } from "@/types";
@@ -28,5 +29,9 @@ export function logout(): void {
 }
 
 export function isAuthenticated(): boolean {
-  return !!getAccessToken();
+  return hasStoredAuthToken();
+}
+
+export function hasStoredAuthToken(): boolean {
+  return !!(getAccessToken() || getRefreshToken());
 }

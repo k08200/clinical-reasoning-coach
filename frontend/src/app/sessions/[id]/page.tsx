@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import { streamMessage } from "@/lib/streaming";
+import { useRequireAuth } from "@/lib/useAuthGate";
 import type { CoachingSession, Message, TokenUsage } from "@/types";
 import TokenCounter from "@/components/TokenCounter";
 import ReasoningMap from "@/components/ReasoningMap";
@@ -14,9 +15,10 @@ import BiasAlert from "@/components/BiasAlert";
 export default function SessionPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const checkingAuth = useRequireAuth();
 
-  const { data: session, mutate } = useSWR<CoachingSession>(
-    id ? `/api/sessions/${id}` : null,
+  const { data: session, error: sessionError, mutate } = useSWR<CoachingSession>(
+    id && !checkingAuth ? `/api/sessions/${id}` : null,
     () => api.sessions.get(id) as Promise<CoachingSession>,
     { refreshInterval: 0 },
   );
@@ -134,10 +136,20 @@ export default function SessionPage() {
     .filter((m) => m.biases_detected.length > 0)
     .slice(-1)[0]?.biases_detected ?? [];
 
-  if (!session) {
+  if (checkingAuth || (!session && !sessionError)) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (sessionError || !session) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
+        <div className="max-w-md rounded-lg border border-red-700 bg-red-900/40 px-4 py-3 text-sm text-red-200">
+          Could not load this session. Please return to cases and try again.
+        </div>
       </div>
     );
   }

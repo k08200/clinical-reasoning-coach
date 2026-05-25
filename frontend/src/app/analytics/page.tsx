@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
+import { useRequireAuth } from "@/lib/useAuthGate";
 import type { UserAnalytics } from "@/types";
 
 function formatLabel(value: string): string {
@@ -30,8 +31,9 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 
 export default function AnalyticsPage() {
   const router = useRouter();
+  const checkingAuth = useRequireAuth();
   const { data, error } = useSWR<UserAnalytics>(
-    "/api/analytics/me",
+    checkingAuth ? null : "/api/analytics/me",
     () => api.analytics.me() as Promise<UserAnalytics>,
   );
 
@@ -59,7 +61,7 @@ export default function AnalyticsPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
-        {!data && !error && (
+        {(checkingAuth || (!data && !error)) && (
           <div className="flex justify-center py-16">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
           </div>

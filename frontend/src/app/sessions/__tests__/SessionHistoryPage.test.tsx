@@ -13,6 +13,10 @@ vi.mock("next/navigation", () => ({
 vi.mock("swr", () => ({ default: vi.fn() }));
 import useSWR from "swr";
 
+vi.mock("@/lib/useAuthGate", () => ({
+  useRequireAuth: () => false,
+}));
+
 // api is not called directly in the component (SWR handles it) — no need to mock
 
 // ── Fixtures ───────────────────────────────────────────────────────────────

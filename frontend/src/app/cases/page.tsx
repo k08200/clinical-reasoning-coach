@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import { logout } from "@/lib/auth";
+import { useRequireAuth } from "@/lib/useAuthGate";
 import type { ClinicalCase } from "@/types";
 
 const SPECIALTIES = [
@@ -26,13 +27,14 @@ const DIFFICULTY_COLORS = {
 
 export default function CasesPage() {
   const router = useRouter();
+  const checkingAuth = useRequireAuth();
   const [specialty, setSpecialty] = useState("All");
   const [generating, setGenerating] = useState(false);
   const [startingSession, setStartingSession] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
 
   const { data: cases, error: casesError, mutate } = useSWR<ClinicalCase[]>(
-    `/api/cases?${specialty !== "All" ? `specialty=${specialty}` : ""}`,
+    checkingAuth ? null : `/api/cases?${specialty !== "All" ? `specialty=${specialty}` : ""}`,
     () =>
       api.cases.list(specialty !== "All" ? { specialty } : undefined) as Promise<ClinicalCase[]>,
   );
@@ -132,7 +134,7 @@ export default function CasesPage() {
         )}
 
         {/* Cases grid */}
-        {!cases ? (
+        {checkingAuth || !cases ? (
           <div className="flex items-center justify-center h-48">
             <div className="animate-spin w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full" />
           </div>
