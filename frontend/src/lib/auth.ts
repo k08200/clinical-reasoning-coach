@@ -20,7 +20,12 @@ export function clearTokens(): void {
 export async function login(email: string, password: string): Promise<User> {
   const tokens = (await api.auth.login(email, password)) as TokenResponse;
   setTokens(tokens);
-  return api.auth.me() as Promise<User>;
+  try {
+    return await api.auth.me() as User;
+  } catch (err) {
+    clearTokens();
+    throw err;
+  }
 }
 
 export function logout(): void {
