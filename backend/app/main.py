@@ -43,4 +43,15 @@ app.include_router(analytics.router)
 
 @app.get("/health")
 async def health() -> dict:
-    return {"status": "ok", "model": settings.claude_model}
+    provider = settings.llm_provider.lower()
+    model_by_provider = {
+        "claude": settings.claude_model,
+        "ollama": settings.ollama_model,
+        "mock": "mock",
+    }
+    return {
+        "status": "ok",
+        "app": settings.app_name,
+        "provider": provider,
+        "model": model_by_provider.get(provider, "unknown"),
+    }

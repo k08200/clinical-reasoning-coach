@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import uuid
 import json
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -35,6 +36,7 @@ from app.services.reasoning_analyzer import (
 from app.utils.auth import get_current_user_id
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
+logger = logging.getLogger(__name__)
 
 
 def _build_claude_history(messages: list[Message]) -> list[dict]:
@@ -341,5 +343,5 @@ async def _save_coach_turn(
 
         except Exception as e:
             await db.rollback()
-            print(f"[ERROR] Turn save failed for session {session_id}: {e}")
+            logger.exception("Turn save failed for session %s", session_id)
             raise
