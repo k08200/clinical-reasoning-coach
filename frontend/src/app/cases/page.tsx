@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
@@ -77,12 +78,12 @@ export default function CasesPage() {
             <p className="text-xs text-slate-400">Socratic diagnostic training</p>
           </div>
           <div className="flex items-center gap-4">
-            <a href="/sessions/history" className="text-sm text-slate-400 hover:text-white">
+            <Link href="/sessions/history" className="text-sm text-slate-400 hover:text-white">
               My Sessions
-            </a>
-            <a href="/analytics" className="text-sm text-slate-400 hover:text-white">
+            </Link>
+            <Link href="/analytics" className="text-sm text-slate-400 hover:text-white">
               Analytics
-            </a>
+            </Link>
             <button
               onClick={logout}
               className="text-sm text-slate-400 hover:text-white"
