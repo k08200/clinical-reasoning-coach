@@ -58,6 +58,8 @@ describe("auth helpers", () => {
       email: "student@test.com",
       full_name: "Test Student",
       training_level: "resident",
+      accepted_educational_use: true,
+      accepted_educational_use_at: "2026-06-02T00:00:00Z",
     });
 
     await expect(login("student@test.com", "securepass123")).resolves.toMatchObject({

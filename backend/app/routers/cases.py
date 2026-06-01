@@ -9,7 +9,7 @@ from app.database import get_db
 from app.models.case import ClinicalCase
 from app.schemas.case import ClinicalCaseResponse, GenerateCaseRequest
 from app.services.case_generator import generate_clinical_case, generate_demo_case
-from app.utils.auth import get_current_user_id
+from app.utils.auth import require_educational_use_consent
 
 router = APIRouter(prefix="/api/cases", tags=["cases"])
 
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/cases", tags=["cases"])
 @router.post("/generate", response_model=ClinicalCaseResponse, status_code=status.HTTP_201_CREATED)
 async def generate_case(
     body: GenerateCaseRequest,
-    _user_id: str = Depends(get_current_user_id),
+    _user_id: str = Depends(require_educational_use_consent),
     db: AsyncSession = Depends(get_db),
 ) -> ClinicalCase:
     """Dynamically generate a new clinical case using Claude with extended thinking."""
@@ -36,7 +36,7 @@ async def generate_case(
 
 @router.post("/generate/demo", response_model=ClinicalCaseResponse, status_code=status.HTTP_201_CREATED)
 async def generate_demo(
-    _user_id: str = Depends(get_current_user_id),
+    _user_id: str = Depends(require_educational_use_consent),
     db: AsyncSession = Depends(get_db),
 ) -> ClinicalCase:
     """Generate the canonical demo case: 58yo male chest pain + diaphoresis."""
@@ -54,7 +54,7 @@ async def list_cases(
     difficulty: str | None = Query(None),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    _user_id: str = Depends(get_current_user_id),
+    _user_id: str = Depends(require_educational_use_consent),
     db: AsyncSession = Depends(get_db),
 ) -> list[ClinicalCase]:
     query = select(ClinicalCase)
@@ -70,7 +70,7 @@ async def list_cases(
 @router.get("/{case_id}", response_model=ClinicalCaseResponse)
 async def get_case(
     case_id: uuid.UUID,
-    _user_id: str = Depends(get_current_user_id),
+    _user_id: str = Depends(require_educational_use_consent),
     db: AsyncSession = Depends(get_db),
 ) -> ClinicalCase:
     case = await db.get(ClinicalCase, case_id)

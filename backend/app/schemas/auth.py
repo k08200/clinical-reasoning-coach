@@ -48,6 +48,24 @@ class UserLogin(BaseModel):
     password: str
 
 
+class EducationalUseConsentRequest(BaseModel):
+    accepted_educational_use: bool = Field(
+        default=False,
+        validate_default=True,
+        description="User confirms the product is educational only, not patient care.",
+    )
+
+    @field_validator("accepted_educational_use")
+    @classmethod
+    def require_educational_use_acceptance(cls, v: bool) -> bool:
+        if v is not True:
+            raise ValueError(
+                "You must confirm this product is for educational simulation only "
+                "and not for real patient care or emergencies."
+            )
+        return v
+
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str

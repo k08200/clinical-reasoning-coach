@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
+from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 import pytest
@@ -72,6 +73,8 @@ async def test_user(db: AsyncSession) -> User:
         hashed_password=hash_password("testpass123"),
         full_name="Test Student",
         training_level="medical_student",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
     )
     db.add(user)
     await db.commit()

@@ -9,7 +9,13 @@ from sqlalchemy import select
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.auth import RefreshTokenRequest, UserRegister, TokenResponse, UserResponse
+from app.schemas.auth import (
+    EducationalUseConsentRequest,
+    RefreshTokenRequest,
+    UserRegister,
+    TokenResponse,
+    UserResponse,
+)
 from app.utils.auth import (
     hash_password,
     verify_password,
@@ -40,6 +46,31 @@ async def register(data: UserRegister, db: AsyncSession = Depends(get_db)) -> Us
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
     db.add(user)
+    await db.flush()
+    await db.refresh(user)
+    return user
+
+
+@router.post("/educational-use-consent", response_model=UserResponse)
+async def accept_educational_use_consent(
+    data: EducationalUseConsentRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    import uuid as _uuid
+
+    user = await db.get(User, _uuid.UUID(user_id))
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    user.accepted_educational_use = data.accepted_educational_use
+    if user.accepted_educational_use_at is None:
+        user.accepted_educational_use_at = datetime.now(timezone.utc)
+
     await db.flush()
     await db.refresh(user)
     return user

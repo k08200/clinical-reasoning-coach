@@ -29,6 +29,8 @@ describe("LoginPage", () => {
       email: "student@test.com",
       full_name: "Test Student",
       training_level: "resident",
+      accepted_educational_use: true,
+      accepted_educational_use_at: "2026-06-02T00:00:00Z",
     });
 
     render(<LoginPage />);
@@ -44,6 +46,31 @@ describe("LoginPage", () => {
       expect(mockLogin).toHaveBeenCalledWith("student@test.com", "securepass123");
     });
     expect(mockReplace).toHaveBeenCalledWith("/cases");
+  });
+
+  it("sends existing users without consent to the consent page", async () => {
+    mockLogin.mockResolvedValue({
+      id: "user-1",
+      email: "student@test.com",
+      full_name: "Test Student",
+      training_level: "resident",
+      accepted_educational_use: false,
+      accepted_educational_use_at: null,
+    });
+
+    render(<LoginPage />);
+    fireEvent.change(screen.getByPlaceholderText("you@hospital.edu"), {
+      target: { value: "student@test.com" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("••••••••"), {
+      target: { value: "securepass123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+
+    await waitFor(() => {
+      expect(mockLogin).toHaveBeenCalledWith("student@test.com", "securepass123");
+    });
+    expect(mockReplace).toHaveBeenCalledWith("/consent");
   });
 
   it("shows login errors", async () => {

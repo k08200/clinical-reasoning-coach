@@ -39,7 +39,7 @@ from app.services.reasoning_analyzer import (
     analyze_student_response,
     build_reasoning_map,
 )
-from app.utils.auth import get_current_user_id
+from app.utils.auth import require_educational_use_consent
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ def _build_claude_history(messages: list[Message]) -> list[dict]:
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_session(
     body: SessionCreate,
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(require_educational_use_consent),
     db: AsyncSession = Depends(get_db),
 ) -> CoachingSession:
     """Create a coaching session and present the opening case."""
@@ -92,7 +92,7 @@ async def create_session(
 
 @router.get("", response_model=list[SessionSummary])
 async def list_sessions(
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(require_educational_use_consent),
     db: AsyncSession = Depends(get_db),
 ) -> list[CoachingSession]:
     result = await db.execute(
@@ -106,7 +106,7 @@ async def list_sessions(
 @router.get("/{session_id}", response_model=SessionResponse)
 async def get_session(
     session_id: uuid.UUID,
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(require_educational_use_consent),
     db: AsyncSession = Depends(get_db),
 ) -> CoachingSession:
     session = await db.get(CoachingSession, session_id)
@@ -119,7 +119,7 @@ async def get_session(
 async def stream_response(
     session_id: uuid.UUID,
     body: SendMessageRequest,
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(require_educational_use_consent),
     db: AsyncSession = Depends(get_db),
 ) -> StreamingResponse:
     """
@@ -260,7 +260,7 @@ async def _save_real_patient_safety_turn(
 @router.post("/{session_id}/complete", response_model=SessionResponse)
 async def complete_session(
     session_id: uuid.UUID,
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(require_educational_use_consent),
     db: AsyncSession = Depends(get_db),
 ) -> CoachingSession:
     """Complete session and compute final score."""

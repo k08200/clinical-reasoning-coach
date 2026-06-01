@@ -79,6 +79,12 @@ export const api = {
       accepted_educational_use: boolean;
     }) => request("/api/auth/register", { method: "POST", body: JSON.stringify(data) }),
 
+    acceptEducationalUseConsent: (data: { accepted_educational_use: boolean }) =>
+      request("/api/auth/educational-use-consent", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
     login: async (email: string, password: string) => {
       const form = new URLSearchParams({ username: email, password });
       const res = await fetch(`${API_URL}/api/auth/token`, {

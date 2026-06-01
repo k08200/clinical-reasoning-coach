@@ -12,14 +12,14 @@ from app.models.message import Message
 from app.models.bias_event import BiasEvent
 from app.models.token_usage import TokenUsage
 from app.schemas.analytics import UserAnalytics, BiasPattern, ReasoningTrend
-from app.utils.auth import get_current_user_id
+from app.utils.auth import require_educational_use_consent
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 
 @router.get("/me", response_model=UserAnalytics)
 async def get_my_analytics(
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(require_educational_use_consent),
     db: AsyncSession = Depends(get_db),
 ) -> UserAnalytics:
     uid = uuid.UUID(user_id)

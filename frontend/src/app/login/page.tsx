@@ -19,8 +19,8 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
-      router.replace("/cases");
+      const user = await login(email, password);
+      router.replace(user.accepted_educational_use ? "/cases" : "/consent");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

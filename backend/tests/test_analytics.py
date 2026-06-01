@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 
 import pytest
 from httpx import AsyncClient
@@ -26,6 +27,8 @@ async def create_user(db: AsyncSession) -> User:
         hashed_password=hash_password("analyticspass123"),
         full_name="Analytics Tester",
         training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
     )
     db.add(user)
     await db.flush()

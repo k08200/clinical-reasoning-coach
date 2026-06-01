@@ -7,8 +7,11 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
+from app.database import get_db
+from app.models.user import User
 
 settings = get_settings()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -67,3 +70,30 @@ def get_token_subject(token: str, expected_type: str) -> str:
 
 async def get_current_user_id(token: str = Depends(oauth2_scheme)) -> str:
     return get_token_subject(token, "access")
+
+
+async def get_current_user(
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    import uuid as _uuid
+
+    user = await db.get(User, _uuid.UUID(user_id))
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
+
+
+async def require_educational_use_consent(
+    user: User = Depends(get_current_user),
+) -> str:
+    if not user.accepted_educational_use:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Educational use consent required",
+        )
+    return str(user.id)
