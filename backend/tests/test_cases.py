@@ -5,6 +5,7 @@ import uuid
 from httpx import AsyncClient
 
 from app.services.mock_provider import CASE_POOL
+from app.services.case_quality import evaluate_case_quality
 
 
 def test_curated_cases_include_hidden_safety_metadata():
@@ -16,6 +17,7 @@ def test_curated_cases_include_hidden_safety_metadata():
         assert all(source.get("url") for source in case["clinical_sources"]), case["title"]
         assert case["review_status"] in {"educational_draft", "clinician_reviewed"}
         assert case["last_reviewed_at"], case["title"]
+        assert evaluate_case_quality(case).passed, case["title"]
 
 
 async def test_case_response_does_not_expose_answer_or_hidden_safety_metadata(

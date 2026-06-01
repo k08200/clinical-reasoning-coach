@@ -14,6 +14,7 @@ from app.services.provider_factory import get_provider
 from app.schemas.case import ClinicalCaseCreate
 import random as _random
 from app.services.mock_provider import CASE_POOL
+from app.services.case_quality import assert_case_quality
 
 settings = get_settings()
 
@@ -90,12 +91,16 @@ async def generate_clinical_case(
     raw.setdefault("specialty", chosen_specialty)
     raw.setdefault("difficulty", difficulty)
 
-    return ClinicalCaseCreate(**raw)
+    case = ClinicalCaseCreate(**raw)
+    assert_case_quality(case)
+    return case
 
 
 async def generate_demo_case() -> ClinicalCaseCreate:
     """Return a randomly selected pre-built case from the case pool."""
-    return ClinicalCaseCreate(**_random.choice(CASE_POOL))
+    case = ClinicalCaseCreate(**_random.choice(CASE_POOL))
+    assert_case_quality(case)
+    return case
 
 
 def _extract_json(text: str) -> dict:
