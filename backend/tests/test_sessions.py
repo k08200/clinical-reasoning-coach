@@ -8,6 +8,7 @@ from httpx import AsyncClient
 from sqlalchemy import select
 
 from app.routers import sessions as sessions_router
+from app.models.message import Message
 from app.models.safety_event import SafetyEvent
 from app.services.provider import StreamChunk
 from app.services.reasoning_analyzer import ReasoningAnalysis
@@ -234,3 +235,112 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
     assert len(safety_events) == 1
     assert safety_events[0].action_taken == "halted_coaching"
     assert "severe chest pain" in safety_events[0].detected_terms
+
+
+@pytest.mark.asyncio
+async def test_patient_identifier_signal_blocks_storage_and_records_safety_event(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+
+    async def fail_stream_coach_response(**_kwargs):
+        raise AssertionError("LLM coaching should not run when identifiers are present")
+        yield
+
+    async def fail_analyze_student_response(**_kwargs):
+        raise AssertionError("Reasoning analysis should not run when identifiers are present")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fail_analyze_student_response,
+    )
+
+    email = f"privacy-{uuid.uuid4()}@test.com"
+    register_response = await client.post(
+        "/api/auth/register",
+        json={
+            "email": email,
+            "password": "privacypass123",
+            "full_name": "Privacy Tester",
+            "training_level": "resident",
+            "accepted_educational_use": True,
+        },
+    )
+    assert register_response.status_code == 201
+    login_response = await client.post(
+        "/api/auth/token",
+        data={"username": email, "password": "privacypass123"},
+    )
+    auth_headers = {
+        "Authorization": f"Bearer {login_response.json()['access_token']}",
+    }
+
+    case_response = await client.post("/api/cases/generate/demo", headers=auth_headers)
+    session_response = await client.post(
+        "/api/sessions",
+        json={"case_id": case_response.json()["id"]},
+        headers=auth_headers,
+    )
+    session_id = session_response.json()["id"]
+
+    stream_response = await client.post(
+        f"/api/sessions/{session_id}/stream",
+        json={
+            "content": (
+                "Patient name is John Smith, DOB 01/02/1970, "
+                "MRN A123456, and phone 555-123-4567."
+            ),
+        },
+        headers=auth_headers,
+    )
+
+    assert stream_response.status_code == 200
+    assert "patient identifiers" in stream_response.text
+    assert '"type": "done"' in stream_response.text
+
+    saved_response = await client.get(
+        f"/api/sessions/{session_id}",
+        headers=auth_headers,
+    )
+    saved_session = saved_response.json()
+    assert [message["role"] for message in saved_session["messages"]] == [
+        "coach",
+        "coach",
+    ]
+    assert "John Smith" not in str(saved_session)
+    assert "A123456" not in str(saved_session)
+    assert "555-123-4567" not in str(saved_session)
+
+    async with TestSessionLocal() as db:
+        safety_events = (
+            await db.execute(
+                select(SafetyEvent).where(
+                    SafetyEvent.session_id == uuid.UUID(session_id)
+                )
+            )
+        ).scalars().all()
+        messages = (
+            await db.execute(
+                select(Message).where(Message.session_id == uuid.UUID(session_id))
+            )
+        ).scalars().all()
+
+    assert len(safety_events) == 1
+    assert safety_events[0].event_type == "possible_patient_identifier"
+    assert safety_events[0].action_taken == "blocked_storage_and_coaching"
+    assert safety_events[0].detected_terms == [
+        "phone_number",
+        "medical_record_number",
+        "date_of_birth",
+        "full_date",
+        "name_identifier",
+    ]
+    assert "John Smith" not in str(safety_events[0].detected_terms)
+    assert [message.role for message in messages] == ["coach", "coach"]

@@ -35,6 +35,10 @@ from app.services.socratic_coach import (
     stream_coach_response,
     get_opening_message,
 )
+from app.services.privacy_guard import (
+    PHI_SAFETY_RESPONSE,
+    detect_patient_identifiers,
+)
 from app.services.reasoning_analyzer import (
     analyze_student_response,
     build_reasoning_map,
@@ -142,9 +146,32 @@ async def stream_response(
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
 
-    # Snapshot history before adding student message
+    # Snapshot history before adding any new message
     claude_history = _build_claude_history(session.messages)
     turn_number = sum(1 for m in session.messages if m.role == "student") + 1
+
+    patient_identifiers = detect_patient_identifiers(body.content)
+    if patient_identifiers:
+        async def privacy_event_generator():
+            await _save_privacy_safety_turn(
+                session_id=session_id,
+                user_id=uuid.UUID(user_id),
+                detected_identifier_categories=patient_identifiers,
+                turn_number=turn_number,
+            )
+            yield f"data: {json.dumps({'type': 'text', 'content': PHI_SAFETY_RESPONSE})}\n\n"
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+        return StreamingResponse(
+            privacy_event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+            },
+        )
+
+    real_patient_signals = detect_real_patient_signals(body.content)
 
     # Save student message
     student_msg = Message(
@@ -156,8 +183,6 @@ async def stream_response(
     await db.flush()
     student_msg_id = student_msg.id
     await db.commit()
-
-    real_patient_signals = detect_real_patient_signals(body.content)
 
     async def event_generator():
         if real_patient_signals:
@@ -253,6 +278,34 @@ async def _save_real_patient_safety_turn(
             detected_terms=detected_terms,
             message_turn=turn_number,
             note="Coaching and reasoning analysis were skipped for a possible real patient or emergency scenario.",
+        ))
+        await db.commit()
+
+
+async def _save_privacy_safety_turn(
+    session_id: uuid.UUID,
+    user_id: uuid.UUID,
+    detected_identifier_categories: list[str],
+    turn_number: int,
+) -> None:
+    async with AsyncSessionLocal() as db:
+        db.add(Message(
+            session_id=session_id,
+            role="coach",
+            content=PHI_SAFETY_RESPONSE,
+        ))
+        db.add(SafetyEvent(
+            session_id=session_id,
+            user_id=user_id,
+            event_type="possible_patient_identifier",
+            severity="high",
+            action_taken="blocked_storage_and_coaching",
+            detected_terms=detected_identifier_categories,
+            message_turn=turn_number,
+            note=(
+                "Student message was not stored or sent to the model because it "
+                "appeared to contain patient identifiers."
+            ),
         ))
         await db.commit()
 

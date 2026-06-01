@@ -138,6 +138,24 @@ describe("SessionPage", () => {
     expect(mockMutate).toHaveBeenCalled();
   });
 
+  it("shows streamed privacy safety guidance", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession(),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockStreamMessage.mockImplementation(async (_id, _content, callbacks) => {
+      callbacks.onText("I can't process or store messages that appear to contain patient identifiers.");
+    });
+
+    render(<SessionPage />);
+    fireEvent.change(screen.getByPlaceholderText(/Share your clinical reasoning/), {
+      target: { value: "Patient name is John Smith, DOB 01/02/1970." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(await screen.findByText(/patient identifiers/)).toBeTruthy();
+  });
+
   it("shows stream errors to the learner", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession(),
