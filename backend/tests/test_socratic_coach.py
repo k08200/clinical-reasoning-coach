@@ -7,9 +7,11 @@ from unittest.mock import MagicMock
 from app.services.provider import StreamChunk
 from app.services.socratic_coach import (
     EDUCATIONAL_SAFETY_NOTICE,
+    SAFE_GUARDRAIL_RESPONSE,
     SOCRATIC_SYSTEM,
     _build_case_context,
     get_opening_message,
+    is_coach_response_safe,
     should_emit_real_patient_safety_notice,
     stream_coach_response,
 )
@@ -101,6 +103,15 @@ def test_real_patient_safety_notice_detection():
     assert not should_emit_real_patient_safety_notice("The simulated patient has chest pain")
 
 
+def test_coach_response_guardrail_detects_unsafe_clinical_content():
+    case = make_mock_case()
+
+    assert is_coach_response_safe(case, "What finding would most change your differential?")
+    assert not is_coach_response_safe(case, "This is STEMI.")
+    assert not is_coach_response_safe(case, "You're on the right track.")
+    assert not is_coach_response_safe(case, "You should give aspirin now.")
+
+
 @pytest.mark.asyncio
 async def test_stream_adds_safety_notice_for_real_patient_signal(monkeypatch: pytest.MonkeyPatch):
     class FakeProvider:
@@ -126,3 +137,32 @@ async def test_stream_adds_safety_notice_for_real_patient_signal(monkeypatch: py
     assert chunks[0].type == "text_delta"
     assert EDUCATIONAL_SAFETY_NOTICE in chunks[0].content
     assert chunks[1].content == "What data would you gather next?"
+
+
+@pytest.mark.asyncio
+async def test_stream_replaces_diagnosis_leak_with_safe_question(monkeypatch: pytest.MonkeyPatch):
+    class UnsafeProvider:
+        async def stream(self, **_kwargs):
+            yield StreamChunk(type="text_delta", content="This is STEMI. ")
+            yield StreamChunk(type="text_delta", content="You should activate the cath lab.")
+            yield StreamChunk(type="done")
+
+    monkeypatch.setattr(
+        "app.services.socratic_coach.get_provider",
+        lambda: UnsafeProvider(),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in stream_coach_response(
+            case=make_mock_case(),
+            conversation_history=[],
+            student_message="I think this is severe chest pain.",
+            turn_number=1,
+        )
+    ]
+
+    response_text = "".join(chunk.content for chunk in chunks if chunk.type == "text_delta")
+    assert response_text == SAFE_GUARDRAIL_RESPONSE
+    assert "STEMI" not in response_text
+    assert "cath lab" not in response_text

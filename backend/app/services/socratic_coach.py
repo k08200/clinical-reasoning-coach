@@ -46,6 +46,44 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "is this an emergency",
 ]
 
+DIRECT_CONFIRMATION_PATTERNS = [
+    r"\byou'?re right\b",
+    r"\byou are right\b",
+    r"\byou'?re correct\b",
+    r"\byou are correct\b",
+    r"\bright track\b",
+    r"\bthat is correct\b",
+    r"\bthe diagnosis is\b",
+    r"\bthis is (?:a |an )?\w+",
+]
+
+DIRECT_MANAGEMENT_PATTERNS = [
+    r"^\s*(give|start|administer|order|prescribe|discharge|admit|activate|treat)\b",
+    r"\b(you should|you need to|we should|the next step is to|i would)\s+"
+    r"(give|start|administer|order|prescribe|discharge|admit|activate|treat)\b",
+]
+
+DIAGNOSIS_LEAK_TERMS = {
+    "stemi": [
+        "stemi",
+        "st elevation",
+        "st-elevation",
+        "myocardial infarction",
+        "acute coronary syndrome",
+        "acs",
+    ],
+    "septic": ["septic shock", "urosepsis", "sepsis"],
+    "pulmonary embolism": ["pulmonary embolism", "embolism", "pe"],
+    "diabetic ketoacidosis": ["diabetic ketoacidosis", "ketoacidosis", "dka"],
+    "ischemic stroke": ["ischemic stroke", "cardioembolic stroke", "stroke"],
+}
+
+SAFE_GUARDRAIL_RESPONSE = (
+    "Let's keep this as a reasoning exercise. What findings make this presentation "
+    "time-sensitive, what dangerous alternatives must be ruled out, and what safety "
+    "checks would you complete before management?"
+)
+
 
 def _format_list(items: list[str] | None) -> str:
     return ", ".join(items or []) or "None documented"
@@ -58,6 +96,57 @@ def _format_sources(sources: list[dict] | None) -> str:
         f"{source.get('title', 'Untitled source')} ({source.get('url', 'no URL')})"
         for source in sources
     )
+
+
+def _normalize_for_guardrail(text: str) -> str:
+    return re.sub(r"\s+", " ", text.lower()).strip()
+
+
+def _diagnosis_leak_terms(case: ClinicalCase) -> list[str]:
+    diagnosis = _normalize_for_guardrail(case.diagnosis)
+    terms: list[str] = []
+    for trigger, candidates in DIAGNOSIS_LEAK_TERMS.items():
+        if trigger in diagnosis:
+            terms.extend(candidates)
+    return sorted(set(terms), key=len, reverse=True)
+
+
+def _contains_diagnosis_leak(case: ClinicalCase, text: str) -> bool:
+    normalized = _normalize_for_guardrail(text)
+    for term in _diagnosis_leak_terms(case):
+        if re.search(rf"\b{re.escape(term)}\b", normalized):
+            return True
+    return False
+
+
+def _contains_direct_confirmation(text: str) -> bool:
+    normalized = _normalize_for_guardrail(text)
+    return any(re.search(pattern, normalized) for pattern in DIRECT_CONFIRMATION_PATTERNS)
+
+
+def _contains_direct_management_order(text: str) -> bool:
+    normalized_sentences = [
+        _normalize_for_guardrail(sentence)
+        for sentence in re.split(r"[.!?\n]+", text)
+        if sentence.strip()
+    ]
+    return any(
+        re.search(pattern, sentence)
+        for sentence in normalized_sentences
+        for pattern in DIRECT_MANAGEMENT_PATTERNS
+    )
+
+
+def is_coach_response_safe(case: ClinicalCase, response_text: str) -> bool:
+    if "[ollama error:" in response_text.lower():
+        return True
+    if _contains_diagnosis_leak(case, response_text):
+        return False
+    if _contains_direct_confirmation(response_text):
+        return False
+    if _contains_direct_management_order(response_text):
+        return False
+    return True
 
 
 SOCRATIC_SYSTEM = """You are a Socratic clinical reasoning coach. Your identity and purpose:
@@ -171,12 +260,38 @@ async def stream_coach_response(
         )
 
     provider = get_provider()
+    response_text: list[str] = []
+    done_seen = False
     async for chunk in provider.stream(
         messages=messages,
         system=full_system,
         operation="socratic_turn",
     ):
+        if chunk.type == "text_delta":
+            response_text.append(chunk.content)
+            continue
+        if chunk.type == "done":
+            done_seen = True
+            full_response = "".join(response_text)
+            if full_response:
+                safe_response = (
+                    full_response
+                    if is_coach_response_safe(case, full_response)
+                    else SAFE_GUARDRAIL_RESPONSE
+                )
+                yield StreamChunk(type="text_delta", content=safe_response)
+            yield chunk
+            continue
         yield chunk
+
+    if response_text and not done_seen:
+        full_response = "".join(response_text)
+        safe_response = (
+            full_response
+            if is_coach_response_safe(case, full_response)
+            else SAFE_GUARDRAIL_RESPONSE
+        )
+        yield StreamChunk(type="text_delta", content=safe_response)
 
 
 def get_opening_message(case: ClinicalCase) -> str:
