@@ -6,7 +6,12 @@ from app.schemas.auth import (
     TokenResponse,
     UserResponse,
 )
-from app.schemas.case import ClinicalCaseCreate, ClinicalCaseResponse, ClinicalReviewRequest
+from app.schemas.case import (
+    ClinicalCaseCreate,
+    ClinicalCaseResponse,
+    ClinicalCaseReviewResponse,
+    ClinicalReviewRequest,
+)
 from app.schemas.session import (
     SessionCreate,
     SessionResponse,
@@ -23,6 +28,7 @@ __all__ = [
     "UserResponse",
     "ClinicalCaseCreate",
     "ClinicalCaseResponse",
+    "ClinicalCaseReviewResponse",
     "ClinicalReviewRequest",
     "SessionCreate",
     "SessionResponse",

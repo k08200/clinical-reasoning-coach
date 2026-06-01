@@ -59,6 +59,21 @@ export interface ClinicalCase {
   created_at: string;
 }
 
+export interface ClinicalCaseReview {
+  id: string;
+  case_id: string;
+  reviewer_user_id: string;
+  prior_review_status: string;
+  resulting_review_status: string;
+  confirmations: Record<string, boolean>;
+  source_snapshot: {
+    source_count: number;
+    organizations: string[];
+  };
+  review_notes: string | null;
+  created_at: string;
+}
+
 export interface Message {
   id: string;
   role: "student" | "coach";

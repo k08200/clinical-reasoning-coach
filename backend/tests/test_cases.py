@@ -4,9 +4,11 @@ import uuid
 from datetime import date, datetime, timezone
 
 from httpx import AsyncClient
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.case import ClinicalCase
+from app.models.case_review import ClinicalCaseReview
 from app.models.user import User
 from app.routers import cases as cases_router
 from app.schemas.case import ClinicalCaseCreate
@@ -215,3 +217,86 @@ async def test_clinician_reviewer_can_mark_case_reviewed(
     await db.refresh(case)
     assert case.reviewed_by_user_id == reviewer.id
     assert case.review_notes == "Reviewed against cited educational source."
+
+    history_response = await client.get(
+        f"/api/cases/{case.id}/clinical-review/history",
+        headers=reviewer_headers,
+    )
+    assert history_response.status_code == 200
+    history = history_response.json()
+    assert len(history) == 1
+    assert history[0]["case_id"] == str(case.id)
+    assert history[0]["reviewer_user_id"] == str(reviewer.id)
+    assert history[0]["prior_review_status"] == "educational_draft"
+    assert history[0]["resulting_review_status"] == "clinician_reviewed"
+    assert history[0]["confirmations"] == {
+        "clinical_accuracy_confirmed": True,
+        "source_alignment_confirmed": True,
+        "educational_safety_confirmed": True,
+    }
+    assert history[0]["source_snapshot"]["source_count"] == 1
+    assert history[0]["source_snapshot"]["organizations"]
+
+
+async def test_clinical_review_history_requires_reviewer_role(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner_headers = await _register_and_login(client)
+    case = ClinicalCase(**CASE_POOL[0])
+    db.add(case)
+    await db.commit()
+    await db.refresh(case)
+
+    response = await client.get(
+        f"/api/cases/{case.id}/clinical-review/history",
+        headers=learner_headers,
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Clinician reviewer role required"
+
+
+async def test_clinical_review_writes_audit_log(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"audit-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Audit Reviewer",
+        training_level="fellow",
+        role="admin",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = ClinicalCase(**CASE_POOL[0])
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "educational_safety_confirmed": True,
+            "review_notes": "Audit trail confirmation.",
+        },
+    )
+
+    assert response.status_code == 200
+    result = await db.execute(
+        select(ClinicalCaseReview).where(ClinicalCaseReview.case_id == case.id)
+    )
+    review = result.scalar_one()
+    assert review.reviewer_user_id == reviewer.id
+    assert review.prior_review_status == "educational_draft"
+    assert review.resulting_review_status == "clinician_reviewed"
+    assert review.review_notes == "Audit trail confirmation."
+    assert review.source_snapshot["source_count"] == 1

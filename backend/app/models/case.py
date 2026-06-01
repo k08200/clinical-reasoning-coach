@@ -64,6 +64,9 @@ class ClinicalCase(Base):
     sessions: Mapped[list["CoachingSession"]] = relationship(
         "CoachingSession", back_populates="case", lazy="selectin"
     )
+    clinical_reviews: Mapped[list["ClinicalCaseReview"]] = relationship(
+        "ClinicalCaseReview", back_populates="case", lazy="selectin"
+    )
 
     @property
     def source_provenance(self) -> dict:

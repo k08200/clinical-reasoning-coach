@@ -97,3 +97,17 @@ class ClinicalReviewRequest(BaseModel):
         if value is not True:
             raise ValueError("Clinician review requires all confirmations")
         return value
+
+
+class ClinicalCaseReviewResponse(BaseModel):
+    id: uuid.UUID
+    case_id: uuid.UUID
+    reviewer_user_id: uuid.UUID
+    prior_review_status: str
+    resulting_review_status: str
+    confirmations: dict
+    source_snapshot: dict
+    review_notes: str | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

@@ -48,3 +48,6 @@ class User(Base):
     safety_events: Mapped[list["SafetyEvent"]] = relationship(
         "SafetyEvent", back_populates="user", lazy="selectin"
     )
+    clinical_case_reviews: Mapped[list["ClinicalCaseReview"]] = relationship(
+        "ClinicalCaseReview", back_populates="reviewer", lazy="selectin"
+    )

@@ -128,6 +128,8 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+    clinicalReviewHistory: (id: string) =>
+      request(`/api/cases/${id}/clinical-review/history`),
   },
 
   sessions: {

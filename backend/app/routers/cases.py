@@ -8,9 +8,11 @@ from sqlalchemy import select
 
 from app.database import get_db
 from app.models.case import ClinicalCase
+from app.models.case_review import ClinicalCaseReview
 from app.models.user import User
 from app.schemas.case import (
     ClinicalCaseResponse,
+    ClinicalCaseReviewResponse,
     ClinicalReviewRequest,
     GenerateCaseRequest,
 )
@@ -101,14 +103,62 @@ async def complete_clinical_review(
             detail="Clinical review requires at least one supporting clinical source",
         )
 
+    prior_review_status = case.review_status
+    source_organizations = []
+    seen = set()
+    for source in case.clinical_sources:
+        organization = source.get("organization")
+        if organization and organization not in seen:
+            source_organizations.append(organization)
+            seen.add(organization)
+
     case.review_status = "clinician_reviewed"
     case.last_reviewed_at = date.today().isoformat()
     case.reviewed_by_user_id = reviewer.id
     case.review_notes = body.review_notes.strip() if body.review_notes else None
+    db.add(
+        ClinicalCaseReview(
+            case_id=case.id,
+            reviewer_user_id=reviewer.id,
+            prior_review_status=prior_review_status,
+            resulting_review_status="clinician_reviewed",
+            confirmations={
+                "clinical_accuracy_confirmed": body.clinical_accuracy_confirmed,
+                "source_alignment_confirmed": body.source_alignment_confirmed,
+                "educational_safety_confirmed": body.educational_safety_confirmed,
+            },
+            source_snapshot={
+                "source_count": len(case.clinical_sources),
+                "organizations": source_organizations,
+            },
+            review_notes=case.review_notes,
+        )
+    )
 
     await db.flush()
     await db.refresh(case)
     return case
+
+
+@router.get(
+    "/{case_id}/clinical-review/history",
+    response_model=list[ClinicalCaseReviewResponse],
+)
+async def list_clinical_review_history(
+    case_id: uuid.UUID,
+    _reviewer: User = Depends(require_clinical_reviewer),
+    db: AsyncSession = Depends(get_db),
+) -> list[ClinicalCaseReview]:
+    case = await db.get(ClinicalCase, case_id)
+    if not case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+
+    result = await db.execute(
+        select(ClinicalCaseReview)
+        .where(ClinicalCaseReview.case_id == case_id)
+        .order_by(ClinicalCaseReview.created_at.desc())
+    )
+    return list(result.scalars().all())
 
 
 @router.get("/{case_id}", response_model=ClinicalCaseResponse)
