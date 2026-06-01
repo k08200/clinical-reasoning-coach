@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from sqlalchemy import String, DateTime, func
+from typing import Optional
+
+from sqlalchemy import String, DateTime, Boolean, false, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -21,6 +23,12 @@ class User(Base):
     training_level: Mapped[str] = mapped_column(
         String(50), nullable=False, default="medical_student"
     )  # medical_student, intern, resident, fellow
+    accepted_educational_use: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
+    accepted_educational_use_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

@@ -22,12 +22,17 @@ export default function RegisterPage() {
     password: "",
     full_name: "",
     training_level: "medical_student",
+    accepted_educational_use: false,
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   function update(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function updateAcceptedEducationalUse(value: boolean) {
+    setForm((prev) => ({ ...prev, accepted_educational_use: value }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -120,11 +125,23 @@ export default function RegisterPage() {
                 ))}
               </select>
             </div>
+            <label className="flex gap-3 rounded-lg border border-amber-500/40 bg-amber-950/30 p-3 text-sm text-amber-100">
+              <input
+                type="checkbox"
+                checked={form.accepted_educational_use}
+                onChange={(e) => updateAcceptedEducationalUse(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-amber-500 bg-slate-900 text-brand-600 focus:ring-brand-500"
+              />
+              <span>
+                I understand this is an educational simulation, not patient care, and I
+                will not use it for real patients or emergencies.
+              </span>
+            </label>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !form.accepted_educational_use}
             className="mt-6 w-full py-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors"
           >
             {loading ? "Creating account..." : "Create Account"}

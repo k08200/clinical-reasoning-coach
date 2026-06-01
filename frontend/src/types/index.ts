@@ -3,6 +3,8 @@ export interface User {
   email: string;
   full_name: string;
   training_level: string;
+  accepted_educational_use: boolean;
+  accepted_educational_use_at: string | null;
 }
 
 export interface TokenResponse {

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import uuid
-from pydantic import BaseModel, EmailStr, field_validator
+from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class UserRegister(BaseModel):
@@ -9,6 +11,11 @@ class UserRegister(BaseModel):
     password: str
     full_name: str
     training_level: str = "medical_student"
+    accepted_educational_use: bool = Field(
+        default=False,
+        validate_default=True,
+        description="User confirms the product is educational only, not patient care.",
+    )
 
     @field_validator("password")
     @classmethod
@@ -23,6 +30,16 @@ class UserRegister(BaseModel):
         valid = {"medical_student", "intern", "resident", "fellow"}
         if v not in valid:
             raise ValueError(f"training_level must be one of {valid}")
+        return v
+
+    @field_validator("accepted_educational_use")
+    @classmethod
+    def require_educational_use_acceptance(cls, v: bool) -> bool:
+        if v is not True:
+            raise ValueError(
+                "You must confirm this product is for educational simulation only "
+                "and not for real patient care or emergencies."
+            )
         return v
 
 
@@ -46,5 +63,7 @@ class UserResponse(BaseModel):
     email: str
     full_name: str
     training_level: str
+    accepted_educational_use: bool
+    accepted_educational_use_at: datetime | None
 
     model_config = {"from_attributes": True}

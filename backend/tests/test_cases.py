@@ -31,6 +31,7 @@ async def test_case_response_does_not_expose_answer_or_hidden_safety_metadata(
             "password": "casespass123",
             "full_name": "Case Safety Tester",
             "training_level": "resident",
+            "accepted_educational_use": True,
         },
     )
     assert register_response.status_code == 201

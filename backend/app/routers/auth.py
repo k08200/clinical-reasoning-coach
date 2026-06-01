@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,6 +36,8 @@ async def register(data: UserRegister, db: AsyncSession = Depends(get_db)) -> Us
         hashed_password=hash_password(data.password),
         full_name=data.full_name,
         training_level=data.training_level,
+        accepted_educational_use=data.accepted_educational_use,
+        accepted_educational_use_at=datetime.now(timezone.utc),
     )
     db.add(user)
     await db.flush()

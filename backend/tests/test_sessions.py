@@ -82,6 +82,7 @@ async def test_stream_response_persists_turn_before_done(
             "password": "sessionpass123",
             "full_name": "Session Tester",
             "training_level": "resident",
+            "accepted_educational_use": True,
         },
     )
     assert register_response.status_code == 201
@@ -175,6 +176,7 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
             "password": "safetypass123",
             "full_name": "Safety Tester",
             "training_level": "resident",
+            "accepted_educational_use": True,
         },
     )
     assert register_response.status_code == 201

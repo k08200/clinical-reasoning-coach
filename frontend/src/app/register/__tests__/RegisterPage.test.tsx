@@ -55,6 +55,9 @@ describe("RegisterPage", () => {
     fireEvent.change(screen.getByRole("combobox"), {
       target: { value: "resident" },
     });
+    fireEvent.click(
+      screen.getByLabelText(/educational simulation, not patient care/i),
+    );
     fireEvent.click(screen.getByRole("button", { name: "Create Account" }));
 
     await waitFor(() => {
@@ -63,6 +66,7 @@ describe("RegisterPage", () => {
         password: "securepass123",
         full_name: "Test Student",
         training_level: "resident",
+        accepted_educational_use: true,
       });
     });
     expect(mockLogin).toHaveBeenCalledWith("student@test.com", "securepass123");
@@ -82,10 +86,25 @@ describe("RegisterPage", () => {
     fireEvent.change(screen.getByPlaceholderText("Min 8 characters"), {
       target: { value: "securepass123" },
     });
+    fireEvent.click(
+      screen.getByLabelText(/educational simulation, not patient care/i),
+    );
     fireEvent.click(screen.getByRole("button", { name: "Create Account" }));
 
     expect(await screen.findByText("Email already registered")).toBeTruthy();
     expect(mockLogin).not.toHaveBeenCalled();
     expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it("requires educational use confirmation before submitting", () => {
+    render(<RegisterPage />);
+
+    expect(screen.getByRole("button", { name: "Create Account" })).toBeDisabled();
+
+    fireEvent.click(
+      screen.getByLabelText(/educational simulation, not patient care/i),
+    );
+
+    expect(screen.getByRole("button", { name: "Create Account" })).not.toBeDisabled();
   });
 });

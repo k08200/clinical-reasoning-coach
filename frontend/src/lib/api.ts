@@ -76,6 +76,7 @@ export const api = {
       password: string;
       full_name: string;
       training_level?: string;
+      accepted_educational_use: boolean;
     }) => request("/api/auth/register", { method: "POST", body: JSON.stringify(data) }),
 
     login: async (email: string, password: string) => {
