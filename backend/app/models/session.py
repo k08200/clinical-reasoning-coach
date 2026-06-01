@@ -49,3 +49,6 @@ class CoachingSession(Base):
     token_usages: Mapped[list["TokenUsage"]] = relationship(
         "TokenUsage", back_populates="session", lazy="selectin"
     )
+    safety_events: Mapped[list["SafetyEvent"]] = relationship(
+        "SafetyEvent", back_populates="session", lazy="selectin"
+    )

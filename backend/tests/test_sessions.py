@@ -5,8 +5,10 @@ from collections.abc import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
 
 from app.routers import sessions as sessions_router
+from app.models.safety_event import SafetyEvent
 from app.services.provider import StreamChunk
 from app.services.reasoning_analyzer import ReasoningAnalysis
 from tests.conftest import TestSessionLocal
@@ -138,3 +140,95 @@ async def test_stream_response_persists_turn_before_done(
     assert saved_session["total_input_tokens"] == 19
     assert saved_session["total_output_tokens"] == 29
     assert saved_session["total_thinking_tokens"] == 7
+
+
+@pytest.mark.asyncio
+async def test_real_patient_signal_halts_coaching_and_records_safety_event(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+
+    async def fail_stream_coach_response(**_kwargs):
+        raise AssertionError("LLM coaching should not run for real-patient signals")
+        yield
+
+    async def fail_analyze_student_response(**_kwargs):
+        raise AssertionError("Reasoning analysis should not run for real-patient signals")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fail_analyze_student_response,
+    )
+
+    email = f"safety-{uuid.uuid4()}@test.com"
+    register_response = await client.post(
+        "/api/auth/register",
+        json={
+            "email": email,
+            "password": "safetypass123",
+            "full_name": "Safety Tester",
+            "training_level": "resident",
+        },
+    )
+    assert register_response.status_code == 201
+    login_response = await client.post(
+        "/api/auth/token",
+        data={"username": email, "password": "safetypass123"},
+    )
+    auth_headers = {
+        "Authorization": f"Bearer {login_response.json()['access_token']}",
+    }
+
+    case_response = await client.post("/api/cases/generate/demo", headers=auth_headers)
+    session_response = await client.post(
+        "/api/sessions",
+        json={"case_id": case_response.json()["id"]},
+        headers=auth_headers,
+    )
+    session_id = session_response.json()["id"]
+
+    stream_response = await client.post(
+        f"/api/sessions/{session_id}/stream",
+        json={"content": "My patient has severe chest pain right now and cannot breathe."},
+        headers=auth_headers,
+    )
+
+    assert stream_response.status_code == 200
+    assert "I cannot continue coaching" in stream_response.text
+    assert '"type": "done"' in stream_response.text
+
+    saved_response = await client.get(
+        f"/api/sessions/{session_id}",
+        headers=auth_headers,
+    )
+    saved_session = saved_response.json()
+    assert [message["role"] for message in saved_session["messages"]] == [
+        "coach",
+        "student",
+        "coach",
+    ]
+    assert saved_session["messages"][1]["reasoning_score"] is None
+    assert "I cannot continue coaching" in saved_session["messages"][2]["content"]
+    assert saved_session["reasoning_map"]["nodes"] == []
+    assert saved_session["total_input_tokens"] == 0
+    assert saved_session["total_output_tokens"] == 0
+    assert saved_session["total_thinking_tokens"] == 0
+
+    async with TestSessionLocal() as db:
+        safety_events = (
+            await db.execute(
+                select(SafetyEvent).where(
+                    SafetyEvent.session_id == uuid.UUID(session_id)
+                )
+            )
+        ).scalars().all()
+    assert len(safety_events) == 1
+    assert safety_events[0].action_taken == "halted_coaching"
+    assert "severe chest pain" in safety_events[0].detected_terms

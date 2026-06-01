@@ -22,13 +22,19 @@ from app.models.session import CoachingSession
 from app.models.message import Message
 from app.models.bias_event import BiasEvent
 from app.models.token_usage import TokenUsage
+from app.models.safety_event import SafetyEvent
 from app.schemas.session import (
     SessionCreate,
     SessionResponse,
     SessionSummary,
     SendMessageRequest,
 )
-from app.services.socratic_coach import stream_coach_response, get_opening_message
+from app.services.socratic_coach import (
+    REAL_PATIENT_SAFETY_RESPONSE,
+    detect_real_patient_signals,
+    stream_coach_response,
+    get_opening_message,
+)
 from app.services.reasoning_analyzer import (
     analyze_student_response,
     build_reasoning_map,
@@ -151,7 +157,21 @@ async def stream_response(
     student_msg_id = student_msg.id
     await db.commit()
 
+    real_patient_signals = detect_real_patient_signals(body.content)
+
     async def event_generator():
+        if real_patient_signals:
+            await _save_real_patient_safety_turn(
+                session_id=session_id,
+                user_id=uuid.UUID(user_id),
+                coach_content=REAL_PATIENT_SAFETY_RESPONSE,
+                detected_terms=real_patient_signals,
+                turn_number=turn_number,
+            )
+            yield f"data: {json.dumps({'type': 'text', 'content': REAL_PATIENT_SAFETY_RESPONSE})}\n\n"
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+            return
+
         collected_text: list[str] = []
         collected_thinking: list[str] = []
         usage_data: dict = {}
@@ -209,6 +229,32 @@ async def stream_response(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+async def _save_real_patient_safety_turn(
+    session_id: uuid.UUID,
+    user_id: uuid.UUID,
+    coach_content: str,
+    detected_terms: list[str],
+    turn_number: int,
+) -> None:
+    async with AsyncSessionLocal() as db:
+        db.add(Message(
+            session_id=session_id,
+            role="coach",
+            content=coach_content,
+        ))
+        db.add(SafetyEvent(
+            session_id=session_id,
+            user_id=user_id,
+            event_type="real_patient_or_emergency_signal",
+            severity="high",
+            action_taken="halted_coaching",
+            detected_terms=detected_terms,
+            message_turn=turn_number,
+            note="Coaching and reasoning analysis were skipped for a possible real patient or emergency scenario.",
+        ))
+        await db.commit()
 
 
 @router.post("/{session_id}/complete", response_model=SessionResponse)

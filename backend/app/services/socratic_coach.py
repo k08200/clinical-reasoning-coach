@@ -250,8 +250,16 @@ Before we go further — what are your initial thoughts? What findings stand out
 
 
 def should_emit_real_patient_safety_notice(student_message: str) -> bool:
+    return bool(detect_real_patient_signals(student_message))
+
+
+def detect_real_patient_signals(student_message: str) -> list[str]:
     normalized = re.sub(r"\s+", " ", student_message.lower()).strip()
-    return any(pattern in normalized for pattern in REAL_PATIENT_SIGNAL_PATTERNS)
+    return [
+        pattern
+        for pattern in REAL_PATIENT_SIGNAL_PATTERNS
+        if pattern in normalized
+    ]
 
 
 async def stream_coach_response(
