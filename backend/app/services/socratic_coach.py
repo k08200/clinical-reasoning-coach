@@ -21,6 +21,12 @@ EDUCATIONAL_SAFETY_NOTICE = (
     "supervising clinician or emergency services immediately."
 )
 
+REAL_PATIENT_SAFETY_RESPONSE = (
+    EDUCATIONAL_SAFETY_NOTICE
+    + "\n\nI cannot continue coaching on a real patient or emergency scenario. "
+    "Return only with a clearly simulated training case."
+)
+
 REAL_PATIENT_SIGNAL_PATTERNS = [
     "actual patient",
     "real patient",
@@ -44,6 +50,13 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "should i go to the er",
     "should i go to the emergency",
     "is this an emergency",
+    "can't breathe",
+    "cannot breathe",
+    "trouble breathing",
+    "severe chest pain",
+    "stroke symptoms",
+    "suicidal",
+    "overdose",
 ]
 
 DIRECT_CONFIRMATION_PATTERNS = [
@@ -254,10 +267,9 @@ async def stream_coach_response(
     messages.append({"role": "user", "content": student_message})
 
     if should_emit_real_patient_safety_notice(student_message):
-        yield StreamChunk(
-            type="text_delta",
-            content=EDUCATIONAL_SAFETY_NOTICE + "\n\nFor the simulation: ",
-        )
+        yield StreamChunk(type="text_delta", content=REAL_PATIENT_SAFETY_RESPONSE)
+        yield StreamChunk(type="done")
+        return
 
     provider = get_provider()
     response_text: list[str] = []

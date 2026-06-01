@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 from app.services.provider import StreamChunk
 from app.services.socratic_coach import (
     EDUCATIONAL_SAFETY_NOTICE,
+    REAL_PATIENT_SAFETY_RESPONSE,
     SAFE_GUARDRAIL_RESPONSE,
     SOCRATIC_SYSTEM,
     _build_case_context,
@@ -100,6 +101,7 @@ def test_socratic_system_prompt_lists_biases():
 def test_real_patient_safety_notice_detection():
     assert should_emit_real_patient_safety_notice("My patient is getting worse right now")
     assert should_emit_real_patient_safety_notice("Is this an emergency?")
+    assert should_emit_real_patient_safety_notice("I can't breathe and have severe chest pain")
     assert not should_emit_real_patient_safety_notice("The simulated patient has chest pain")
 
 
@@ -113,15 +115,14 @@ def test_coach_response_guardrail_detects_unsafe_clinical_content():
 
 
 @pytest.mark.asyncio
-async def test_stream_adds_safety_notice_for_real_patient_signal(monkeypatch: pytest.MonkeyPatch):
-    class FakeProvider:
+async def test_stream_halts_for_real_patient_signal(monkeypatch: pytest.MonkeyPatch):
+    class ProviderThatShouldNotBeCalled:
         async def stream(self, **_kwargs):
-            yield StreamChunk(type="text_delta", content="What data would you gather next?")
-            yield StreamChunk(type="done")
+            raise AssertionError("provider should not be called for real-patient signals")
 
     monkeypatch.setattr(
         "app.services.socratic_coach.get_provider",
-        lambda: FakeProvider(),
+        lambda: ProviderThatShouldNotBeCalled(),
     )
 
     chunks = [
@@ -135,8 +136,8 @@ async def test_stream_adds_safety_notice_for_real_patient_signal(monkeypatch: py
     ]
 
     assert chunks[0].type == "text_delta"
-    assert EDUCATIONAL_SAFETY_NOTICE in chunks[0].content
-    assert chunks[1].content == "What data would you gather next?"
+    assert chunks[0].content == REAL_PATIENT_SAFETY_RESPONSE
+    assert chunks[1].type == "done"
 
 
 @pytest.mark.asyncio
@@ -157,7 +158,7 @@ async def test_stream_replaces_diagnosis_leak_with_safe_question(monkeypatch: py
         async for chunk in stream_coach_response(
             case=make_mock_case(),
             conversation_history=[],
-            student_message="I think this is severe chest pain.",
+            student_message="In this simulated case, I am building a differential.",
             turn_number=1,
         )
     ]
