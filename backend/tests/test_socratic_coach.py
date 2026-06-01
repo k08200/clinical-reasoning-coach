@@ -2,9 +2,16 @@
 from __future__ import annotations
 
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock
 
-from app.services.socratic_coach import get_opening_message, SOCRATIC_SYSTEM
+from app.services.provider import StreamChunk
+from app.services.socratic_coach import (
+    EDUCATIONAL_SAFETY_NOTICE,
+    SOCRATIC_SYSTEM,
+    get_opening_message,
+    should_emit_real_patient_safety_notice,
+    stream_coach_response,
+)
 
 
 def make_mock_case():
@@ -37,6 +44,7 @@ def test_opening_message_contains_case_info():
     assert "male" in msg
     assert "Chest pain" in msg
     assert "lisinopril" in msg
+    assert EDUCATIONAL_SAFETY_NOTICE in msg
 
 
 def test_opening_message_does_not_reveal_diagnosis():
@@ -50,7 +58,9 @@ def test_opening_message_does_not_reveal_diagnosis():
 def test_socratic_system_prompt_contains_rules():
     """Verify the system prompt enforces Socratic method."""
     assert "NEVER state" in SOCRATIC_SYSTEM
-    assert "ALWAYS respond with questions" in SOCRATIC_SYSTEM
+    assert "respond with questions" in SOCRATIC_SYSTEM
+    assert "real patient" in SOCRATIC_SYSTEM
+    assert "emergency services" in SOCRATIC_SYSTEM
     assert "diagnosis" in SOCRATIC_SYSTEM.lower()
 
 
@@ -59,3 +69,36 @@ def test_socratic_system_prompt_lists_biases():
     # Prompt addresses bias via behavioral guidance (fixation, base rates)
     assert "fixates" in SOCRATIC_SYSTEM or "fixat" in SOCRATIC_SYSTEM
     assert "base rates" in SOCRATIC_SYSTEM.lower() or "alternative" in SOCRATIC_SYSTEM.lower()
+
+
+def test_real_patient_safety_notice_detection():
+    assert should_emit_real_patient_safety_notice("My patient is getting worse right now")
+    assert should_emit_real_patient_safety_notice("Is this an emergency?")
+    assert not should_emit_real_patient_safety_notice("The simulated patient has chest pain")
+
+
+@pytest.mark.asyncio
+async def test_stream_adds_safety_notice_for_real_patient_signal(monkeypatch: pytest.MonkeyPatch):
+    class FakeProvider:
+        async def stream(self, **_kwargs):
+            yield StreamChunk(type="text_delta", content="What data would you gather next?")
+            yield StreamChunk(type="done")
+
+    monkeypatch.setattr(
+        "app.services.socratic_coach.get_provider",
+        lambda: FakeProvider(),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in stream_coach_response(
+            case=make_mock_case(),
+            conversation_history=[],
+            student_message="My patient is deteriorating right now",
+            turn_number=1,
+        )
+    ]
+
+    assert chunks[0].type == "text_delta"
+    assert EDUCATIONAL_SAFETY_NOTICE in chunks[0].content
+    assert chunks[1].content == "What data would you gather next?"

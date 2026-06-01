@@ -6,6 +6,7 @@ Uses the configured LLM provider (claude / ollama / mock).
 """
 from __future__ import annotations
 
+import re
 from collections.abc import AsyncGenerator
 from typing import Any
 
@@ -13,14 +14,47 @@ from app.services.provider import StreamChunk
 from app.services.provider_factory import get_provider
 from app.models.case import ClinicalCase
 
+EDUCATIONAL_SAFETY_NOTICE = (
+    "Safety note: This is an educational simulation, not patient care. "
+    "If this involves a real patient, urgent deterioration, or a medical emergency, "
+    "stop using this simulator and follow local emergency protocols; contact the "
+    "supervising clinician or emergency services immediately."
+)
+
+REAL_PATIENT_SIGNAL_PATTERNS = [
+    "actual patient",
+    "real patient",
+    "my patient",
+    "my mom",
+    "my mother",
+    "my dad",
+    "my father",
+    "my child",
+    "my baby",
+    "my wife",
+    "my husband",
+    "i am having",
+    "i'm having",
+    "right now",
+    "in the er",
+    "in the ed",
+    "in clinic",
+    "on the ward",
+    "should i call 911",
+    "should i go to the er",
+    "should i go to the emergency",
+    "is this an emergency",
+]
+
 SOCRATIC_SYSTEM = """You are a Socratic clinical reasoning coach. Your identity and purpose:
 
 ABSOLUTE RULES (NEVER BREAK THESE):
 1. NEVER state, hint at, or confirm the diagnosis — not even indirectly
 2. NEVER say "You're on the right track" or "That's correct/incorrect"
 3. NEVER list differentials for the student — make them generate their own
-4. ALWAYS respond with questions, not statements
+4. In simulated training, respond with questions rather than answers or orders
 5. If a student directly asks "what is the diagnosis?", redirect with a question
+6. If the student indicates this involves a real patient, urgent deterioration, or an emergency, briefly state that this is educational only, tell them to follow local emergency protocols and contact a supervising clinician or emergency services immediately, and do not delay real care
 
 YOUR COACHING APPROACH:
 - Guide through systematic clinical reasoning: History → Physical Exam → Labs/Imaging → Differentials → Risk stratification → Management
@@ -89,7 +123,14 @@ def _build_opening_message(case: ClinicalCase) -> str:
 
 ---
 
+{EDUCATIONAL_SAFETY_NOTICE}
+
 Before we go further — what are your initial thoughts? What findings stand out to you, and what questions do you have?"""
+
+
+def should_emit_real_patient_safety_notice(student_message: str) -> bool:
+    normalized = re.sub(r"\s+", " ", student_message.lower()).strip()
+    return any(pattern in normalized for pattern in REAL_PATIENT_SIGNAL_PATTERNS)
 
 
 async def stream_coach_response(
@@ -103,6 +144,12 @@ async def stream_coach_response(
 
     messages = list(conversation_history)
     messages.append({"role": "user", "content": student_message})
+
+    if should_emit_real_patient_safety_notice(student_message):
+        yield StreamChunk(
+            type="text_delta",
+            content=EDUCATIONAL_SAFETY_NOTICE + "\n\nFor the simulation: ",
+        )
 
     provider = get_provider()
     async for chunk in provider.stream(

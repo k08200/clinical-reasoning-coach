@@ -201,6 +201,12 @@ export default function SessionPage() {
             <TokenCounter usage={totalTokens} thinking={thinking} />
           </div>
 
+          <div className="border-b border-amber-800/60 bg-amber-950/40 px-4 py-2 text-xs leading-relaxed text-amber-100">
+            Educational simulation only. For real patients, urgent deterioration, or emergencies,
+            follow local protocols and contact a supervising clinician or emergency services
+            immediately.
+          </div>
+
           {error && (
             <div className="mx-4 mt-4 rounded-lg border border-red-700 bg-red-900/40 px-4 py-3 text-sm text-red-200">
               {error}

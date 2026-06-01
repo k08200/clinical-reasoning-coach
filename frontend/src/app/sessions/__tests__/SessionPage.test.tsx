@@ -106,6 +106,7 @@ describe("SessionPage", () => {
     render(<SessionPage />);
     fireEvent.click(screen.getByRole("button", { name: "Reasoning Map" }));
 
+    expect(screen.getByText(/Educational simulation only/)).toBeTruthy();
     expect(screen.getByText("Opening case")).toBeTruthy();
     expect(screen.getByText("Reasoning Map Mock 1")).toBeTruthy();
   });
