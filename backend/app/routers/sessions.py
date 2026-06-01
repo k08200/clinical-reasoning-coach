@@ -25,6 +25,7 @@ from app.models.token_usage import TokenUsage
 from app.models.safety_event import SafetyEvent
 from app.schemas.session import (
     SessionCreate,
+    SessionReviewResponse,
     SessionResponse,
     SessionSummary,
     SendMessageRequest,
@@ -117,6 +118,37 @@ async def get_session(
     if not session or str(session.user_id) != user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     return session
+
+
+@router.get("/{session_id}/review", response_model=SessionReviewResponse)
+async def get_session_review(
+    session_id: uuid.UUID,
+    user_id: str = Depends(require_educational_use_consent),
+    db: AsyncSession = Depends(get_db),
+) -> SessionReviewResponse:
+    session = await db.get(CoachingSession, session_id)
+    if not session or str(session.user_id) != user_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    if session.status != "completed":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Session review is available only after completion",
+        )
+
+    case = await db.get(ClinicalCase, session.case_id)
+    if not case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+
+    return SessionReviewResponse(
+        session_id=session.id,
+        case_id=case.id,
+        diagnosis=case.diagnosis,
+        key_teaching_points=case.key_teaching_points,
+        cognitive_traps=case.cognitive_traps,
+        clinical_sources=case.clinical_sources,
+        review_status=case.review_status,
+        last_reviewed_at=case.last_reviewed_at,
+    )
 
 
 @router.post("/{session_id}/stream")

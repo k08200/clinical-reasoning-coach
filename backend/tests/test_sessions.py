@@ -2,16 +2,22 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.routers import sessions as sessions_router
+from app.models.case import ClinicalCase
 from app.models.message import Message
 from app.models.safety_event import SafetyEvent
+from app.models.session import CoachingSession
+from app.models.user import User
 from app.services.provider import StreamChunk
 from app.services.reasoning_analyzer import ReasoningAnalysis
+from app.utils.auth import create_access_token, hash_password
 from tests.conftest import TestSessionLocal
 
 
@@ -344,3 +350,96 @@ async def test_patient_identifier_signal_blocks_storage_and_records_safety_event
     ]
     assert "John Smith" not in str(safety_events[0].detected_terms)
     assert [message.role for message in messages] == ["coach", "coach"]
+
+
+@pytest.mark.asyncio
+async def test_session_review_available_only_after_completion(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"review-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Review Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    db.add(user)
+    await db.flush()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+    case = ClinicalCase(
+        title="Chest Pain Case",
+        specialty="internal_medicine",
+        difficulty="medium",
+        chief_complaint="Chest pain",
+        patient_demographics={"age": 58, "sex": "male"},
+        history_of_present_illness="Crushing chest pain with diaphoresis.",
+        past_medical_history="Hypertension",
+        medications=["lisinopril"],
+        physical_exam={
+            "vitals": {"bp": "150/90", "hr": 96, "rr": 18, "temp_c": 37.0, "spo2": 96},
+            "general": "Diaphoretic",
+            "cardiovascular": "Regular rhythm",
+            "pulmonary": "Clear",
+            "abdomen": "Soft",
+            "neuro": "Alert",
+        },
+        initial_labs={"troponin": "borderline"},
+        diagnosis="Acute coronary syndrome",
+        key_teaching_points=["Obtain ECG early in acute chest pain"],
+        cognitive_traps=["Anchoring"],
+        clinical_sources=[
+            {
+                "title": "Chest Pain Guideline",
+                "organization": "Cardiology Society",
+                "url": "https://example.org/chest-pain",
+                "supports": ["ECG timing", "risk stratification"],
+            }
+        ],
+        review_status="educational_draft",
+        last_reviewed_at="2026-06-01",
+        coach_guidance="Use Socratic questioning.",
+    )
+    db.add(case)
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.commit()
+
+    blocked_response = await client.get(
+        f"/api/sessions/{session.id}/review",
+        headers=auth_headers,
+    )
+    assert blocked_response.status_code == 403
+
+    session.status = "completed"
+    session.final_reasoning_score = 82
+    await db.commit()
+
+    review_response = await client.get(
+        f"/api/sessions/{session.id}/review",
+        headers=auth_headers,
+    )
+    assert review_response.status_code == 200
+    payload = review_response.json()
+    assert payload["diagnosis"] == "Acute coronary syndrome"
+    assert payload["key_teaching_points"] == ["Obtain ECG early in acute chest pain"]
+    assert payload["cognitive_traps"] == ["Anchoring"]
+    assert payload["clinical_sources"] == [
+        {
+            "title": "Chest Pain Guideline",
+            "organization": "Cardiology Society",
+            "url": "https://example.org/chest-pain",
+            "supports": ["ECG timing", "risk stratification"],
+        }
+    ]
+    assert payload["review_status"] == "educational_draft"
+    assert "coach_guidance" not in payload

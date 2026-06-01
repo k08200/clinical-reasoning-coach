@@ -6,7 +6,7 @@ import useSWR from "swr";
 import { api } from "@/lib/api";
 import { streamMessage } from "@/lib/streaming";
 import { useRequireAuth } from "@/lib/useAuthGate";
-import type { CoachingSession, Message, TokenUsage } from "@/types";
+import type { CoachingSession, Message, SessionReview, TokenUsage } from "@/types";
 import TokenCounter from "@/components/TokenCounter";
 import ReasoningMap from "@/components/ReasoningMap";
 import ChatMessage from "@/components/ChatMessage";
@@ -20,6 +20,11 @@ export default function SessionPage() {
   const { data: session, error: sessionError, mutate } = useSWR<CoachingSession>(
     id && !checkingAuth ? `/api/sessions/${id}` : null,
     () => api.sessions.get(id) as Promise<CoachingSession>,
+    { refreshInterval: 0 },
+  );
+  const { data: review, error: reviewError } = useSWR<SessionReview>(
+    session?.status === "completed" ? `/api/sessions/${id}/review` : null,
+    () => api.sessions.review(id) as Promise<SessionReview>,
     { refreshInterval: 0 },
   );
 
@@ -228,8 +233,8 @@ export default function SessionPage() {
 
           {/* Completed overlay */}
           {isCompleted && (
-            <div className="px-4 py-3 bg-slate-800 border-t border-slate-700">
-              <div className="max-w-2xl mx-auto text-center">
+            <div className="bg-slate-800 px-4 py-4 border-t border-slate-700">
+              <div className="max-w-4xl mx-auto">
                 <p className="text-slate-300 font-semibold mb-1">Session Complete</p>
                 <p className="text-slate-400 text-sm mb-2">
                   Final reasoning score:{" "}
@@ -245,6 +250,66 @@ export default function SessionPage() {
                     .map(([k, v]) => `${k} (×${v})`)
                     .join(", ") || "None detected"}
                 </p>
+                {reviewError && (
+                  <p className="mt-3 rounded-lg border border-red-700 bg-red-900/40 px-3 py-2 text-sm text-red-200">
+                    Could not load the learning review.
+                  </p>
+                )}
+                {review && (
+                  <div className="mt-4 grid gap-4 text-left lg:grid-cols-3">
+                    <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-3">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Final Diagnosis</p>
+                      <p className="mt-2 text-sm font-semibold text-white">{review.diagnosis}</p>
+                      <p className="mt-2 text-xs capitalize text-slate-500">
+                        {review.review_status.replace(/_/g, " ")}
+                        {review.last_reviewed_at ? ` · Reviewed ${review.last_reviewed_at}` : ""}
+                      </p>
+                    </section>
+
+                    <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-3">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Teaching Points</p>
+                      <ul className="mt-2 space-y-1 text-sm text-slate-300">
+                        {review.key_teaching_points.map((point) => (
+                          <li key={point}>• {point}</li>
+                        ))}
+                      </ul>
+                    </section>
+
+                    <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-3">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Cognitive Traps</p>
+                      <ul className="mt-2 space-y-1 text-sm text-slate-300">
+                        {review.cognitive_traps.map((trap) => (
+                          <li key={trap}>• {trap}</li>
+                        ))}
+                      </ul>
+                    </section>
+
+                    <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-3 lg:col-span-3">
+                      <p className="text-xs uppercase tracking-wide text-slate-500">Clinical Sources</p>
+                      <div className="mt-2 grid gap-3 md:grid-cols-2">
+                        {review.clinical_sources.map((source) => (
+                          <a
+                            key={`${source.organization}-${source.title}`}
+                            href={source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-lg border border-slate-700 bg-slate-800/80 p-3 text-sm text-slate-300 hover:border-slate-500"
+                          >
+                            <span className="block font-medium text-white">{source.title}</span>
+                            <span className="mt-1 block text-xs text-slate-400">
+                              {source.organization}
+                            </span>
+                            {source.supports.length > 0 && (
+                              <span className="mt-2 block text-xs text-slate-500">
+                                Supports: {source.supports.join(", ")}
+                              </span>
+                            )}
+                          </a>
+                        ))}
+                      </div>
+                    </section>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -101,6 +101,24 @@ export interface CoachingSession {
   completed_at: string | null;
 }
 
+export interface ReviewSource {
+  title: string;
+  organization: string;
+  url: string;
+  supports: string[];
+}
+
+export interface SessionReview {
+  session_id: string;
+  case_id: string;
+  diagnosis: string;
+  key_teaching_points: string[];
+  cognitive_traps: string[];
+  clinical_sources: ReviewSource[];
+  review_status: string;
+  last_reviewed_at: string | null;
+}
+
 export interface TokenUsage {
   input_tokens: number;
   output_tokens: number;

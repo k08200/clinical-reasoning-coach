@@ -121,6 +121,7 @@ export const api = {
       request("/api/sessions", { method: "POST", body: JSON.stringify({ case_id }) }),
     list: () => request("/api/sessions"),
     get: (id: string) => request(`/api/sessions/${id}`),
+    review: (id: string) => request(`/api/sessions/${id}/review`),
     complete: (id: string) =>
       request(`/api/sessions/${id}/complete`, { method: "POST" }),
   },

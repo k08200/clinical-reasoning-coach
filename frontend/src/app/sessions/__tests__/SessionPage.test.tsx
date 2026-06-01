@@ -16,11 +16,13 @@ vi.mock("@/lib/useAuthGate", () => ({
 }));
 
 const mockComplete = vi.fn();
+const mockReview = vi.fn();
 vi.mock("@/lib/api", () => ({
   api: {
     sessions: {
       get: vi.fn(),
       complete: (...args: unknown[]) => mockComplete(...args),
+      review: (...args: unknown[]) => mockReview(...args),
     },
   },
 }));
@@ -84,6 +86,7 @@ beforeEach(() => {
   mockMutate.mockResolvedValue(undefined);
   mockComplete.mockReset();
   mockComplete.mockResolvedValue({});
+  mockReview.mockReset();
   mockStreamMessage.mockReset();
   Element.prototype.scrollIntoView = vi.fn();
 });
@@ -109,6 +112,7 @@ describe("SessionPage", () => {
     expect(screen.getByText(/Educational simulation only/)).toBeTruthy();
     expect(screen.getByText("Opening case")).toBeTruthy();
     expect(screen.getByText("Reasoning Map Mock 1")).toBeTruthy();
+    expect(vi.mocked(useSWR).mock.calls.at(-1)?.[0]).toBe(null);
   });
 
   it("streams a learner response and refreshes the saved session", async () => {
@@ -185,5 +189,52 @@ describe("SessionPage", () => {
 
     await waitFor(() => expect(mockComplete).toHaveBeenCalledWith("session-1"));
     expect(mockMutate).toHaveBeenCalled();
+  });
+
+  it("shows the completed learning review with sources", () => {
+    vi.mocked(useSWR).mockImplementation((key) => {
+      if (key === "/api/sessions/session-1/review") {
+        return {
+          data: {
+            session_id: "session-1",
+            case_id: "case-1",
+            diagnosis: "Acute coronary syndrome",
+            key_teaching_points: ["Get an ECG early"],
+            cognitive_traps: ["Anchoring"],
+            clinical_sources: [
+              {
+                title: "Chest Pain Guideline",
+                organization: "Cardiology Society",
+                url: "https://example.org/chest-pain",
+                supports: ["ECG timing"],
+              },
+            ],
+            review_status: "educational_draft",
+            last_reviewed_at: "2026-06-01",
+          },
+        } as unknown as ReturnType<typeof useSWR>;
+      }
+
+      return {
+        data: makeSession({
+          status: "completed",
+          final_reasoning_score: 82,
+          completed_at: "2026-05-20T00:10:00Z",
+        }),
+        mutate: mockMutate,
+      } as unknown as ReturnType<typeof useSWR>;
+    });
+
+    render(<SessionPage />);
+
+    expect(screen.getByText("Acute coronary syndrome")).toBeTruthy();
+    expect(screen.getByText(/Get an ECG early/)).toBeTruthy();
+    expect(screen.getByText(/Anchoring/)).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Chest Pain Guideline/ })).toHaveAttribute(
+      "href",
+      "https://example.org/chest-pain",
+    );
+    expect(screen.getByText(/educational draft/)).toBeTruthy();
+    expect(screen.getByText(/Reviewed 2026-06-01/)).toBeTruthy();
   });
 });

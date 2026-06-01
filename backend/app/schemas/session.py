@@ -38,6 +38,24 @@ class SessionResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ReviewSource(BaseModel):
+    title: str
+    organization: str
+    url: str
+    supports: list[str]
+
+
+class SessionReviewResponse(BaseModel):
+    session_id: uuid.UUID
+    case_id: uuid.UUID
+    diagnosis: str
+    key_teaching_points: list[str]
+    cognitive_traps: list[str]
+    clinical_sources: list[ReviewSource]
+    review_status: str
+    last_reviewed_at: str | None
+
+
 class SessionSummary(BaseModel):
     id: uuid.UUID
     case_id: uuid.UUID
