@@ -108,10 +108,23 @@ export interface ReviewSource {
   supports: string[];
 }
 
+export interface ReviewBiasFeedback {
+  bias_type: string;
+  severity: string;
+  evidence: string;
+  confidence: number;
+  message_turn: number;
+}
+
 export interface SessionReview {
   session_id: string;
   case_id: string;
   diagnosis: string;
+  score_breakdown: Record<string, number>;
+  strengths: string[];
+  gaps: string[];
+  coach_insights: string[];
+  bias_feedback: ReviewBiasFeedback[];
   key_teaching_points: string[];
   cognitive_traps: string[];
   clinical_sources: ReviewSource[];

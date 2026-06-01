@@ -45,10 +45,23 @@ class ReviewSource(BaseModel):
     supports: list[str]
 
 
+class ReviewBiasFeedback(BaseModel):
+    bias_type: str
+    severity: str
+    evidence: str
+    confidence: float
+    message_turn: int
+
+
 class SessionReviewResponse(BaseModel):
     session_id: uuid.UUID
     case_id: uuid.UUID
     diagnosis: str
+    score_breakdown: dict[str, float]
+    strengths: list[str]
+    gaps: list[str]
+    coach_insights: list[str]
+    bias_feedback: list[ReviewBiasFeedback]
     key_teaching_points: list[str]
     cognitive_traps: list[str]
     clinical_sources: list[ReviewSource]

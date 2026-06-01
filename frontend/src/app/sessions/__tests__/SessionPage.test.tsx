@@ -199,6 +199,24 @@ describe("SessionPage", () => {
             session_id: "session-1",
             case_id: "case-1",
             diagnosis: "Acute coronary syndrome",
+            score_breakdown: {
+              systematic_approach: 21,
+              evidence_integration: 19,
+              prioritization: 23,
+              mechanism_understanding: 17,
+            },
+            strengths: ["Prioritized dangerous diagnoses"],
+            gaps: ["Needs more disconfirming evidence"],
+            coach_insights: ["Good initial safety framing."],
+            bias_feedback: [
+              {
+                bias_type: "anchoring",
+                severity: "mild",
+                evidence: "Focused on ACS before explicitly considering alternatives.",
+                confidence: 0.72,
+                message_turn: 1,
+              },
+            ],
             key_teaching_points: ["Get an ECG early"],
             cognitive_traps: ["Anchoring"],
             clinical_sources: [
@@ -228,6 +246,12 @@ describe("SessionPage", () => {
     render(<SessionPage />);
 
     expect(screen.getByText("Acute coronary syndrome")).toBeTruthy();
+    expect(screen.getByText("Reasoning Breakdown")).toBeTruthy();
+    expect(screen.getByText("systematic approach")).toBeTruthy();
+    expect(screen.getByText(/Prioritized dangerous diagnoses/)).toBeTruthy();
+    expect(screen.getByText(/Needs more disconfirming evidence/)).toBeTruthy();
+    expect(screen.getByText("Good initial safety framing.")).toBeTruthy();
+    expect(screen.getByText(/Focused on ACS/)).toBeTruthy();
     expect(screen.getByText(/Get an ECG early/)).toBeTruthy();
     expect(screen.getByText(/Anchoring/)).toBeTruthy();
     expect(screen.getByRole("link", { name: /Chest Pain Guideline/ })).toHaveAttribute(

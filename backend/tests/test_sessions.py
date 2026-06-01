@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.routers import sessions as sessions_router
+from app.models.bias_event import BiasEvent
 from app.models.case import ClinicalCase
 from app.models.message import Message
 from app.models.safety_event import SafetyEvent
@@ -412,6 +413,34 @@ async def test_session_review_available_only_after_completion(
         reasoning_map={"nodes": [], "edges": []},
     )
     db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content="I prioritized ACS and PE.",
+        reasoning_score=82,
+        reasoning_analysis={
+            "score_breakdown": {
+                "systematic_approach": 21,
+                "evidence_integration": 19,
+                "prioritization": 23,
+                "mechanism_understanding": 17,
+            },
+            "strengths": ["Prioritized dangerous diagnoses"],
+            "gaps": ["Needs more disconfirming evidence"],
+            "coach_insight": "Good initial safety framing.",
+        },
+        biases_detected=["anchoring"],
+    ))
+    db.add(BiasEvent(
+        session_id=session.id,
+        user_id=user.id,
+        bias_type="anchoring",
+        severity="mild",
+        evidence="Focused on ACS before explicitly considering alternatives.",
+        confidence=0.72,
+        message_turn=1,
+    ))
     await db.commit()
 
     blocked_response = await client.get(
@@ -431,6 +460,24 @@ async def test_session_review_available_only_after_completion(
     assert review_response.status_code == 200
     payload = review_response.json()
     assert payload["diagnosis"] == "Acute coronary syndrome"
+    assert payload["score_breakdown"] == {
+        "systematic_approach": 21.0,
+        "evidence_integration": 19.0,
+        "prioritization": 23.0,
+        "mechanism_understanding": 17.0,
+    }
+    assert payload["strengths"] == ["Prioritized dangerous diagnoses"]
+    assert payload["gaps"] == ["Needs more disconfirming evidence"]
+    assert payload["coach_insights"] == ["Good initial safety framing."]
+    assert payload["bias_feedback"] == [
+        {
+            "bias_type": "anchoring",
+            "severity": "mild",
+            "evidence": "Focused on ACS before explicitly considering alternatives.",
+            "confidence": 0.72,
+            "message_turn": 1,
+        }
+    ]
     assert payload["key_teaching_points"] == ["Obtain ECG early in acute chest pain"]
     assert payload["cognitive_traps"] == ["Anchoring"]
     assert payload["clinical_sources"] == [

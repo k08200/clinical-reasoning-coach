@@ -61,6 +61,56 @@ def _build_claude_history(messages: list[Message]) -> list[dict]:
     return history
 
 
+def _append_unique(target: list[str], values: list[str] | None) -> None:
+    for value in values or []:
+        if value and value not in target:
+            target.append(value)
+
+
+def _build_review_feedback(session: CoachingSession) -> dict:
+    score_totals: dict[str, float] = {}
+    score_counts: dict[str, int] = {}
+    strengths: list[str] = []
+    gaps: list[str] = []
+    coach_insights: list[str] = []
+
+    for message in session.messages:
+        if message.role != "student" or not message.reasoning_analysis:
+            continue
+
+        analysis = message.reasoning_analysis
+        for dimension, value in (analysis.get("score_breakdown") or {}).items():
+            score_totals[dimension] = score_totals.get(dimension, 0.0) + float(value)
+            score_counts[dimension] = score_counts.get(dimension, 0) + 1
+
+        _append_unique(strengths, analysis.get("strengths"))
+        _append_unique(gaps, analysis.get("gaps"))
+
+        insight = analysis.get("coach_insight")
+        if insight and insight not in coach_insights:
+            coach_insights.append(insight)
+
+    return {
+        "score_breakdown": {
+            dimension: round(total / score_counts[dimension], 1)
+            for dimension, total in score_totals.items()
+        },
+        "strengths": strengths,
+        "gaps": gaps,
+        "coach_insights": coach_insights,
+        "bias_feedback": [
+            {
+                "bias_type": event.bias_type,
+                "severity": event.severity,
+                "evidence": event.evidence,
+                "confidence": event.confidence,
+                "message_turn": event.message_turn,
+            }
+            for event in sorted(session.bias_events, key=lambda event: event.message_turn)
+        ],
+    }
+
+
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_session(
     body: SessionCreate,
@@ -139,10 +189,17 @@ async def get_session_review(
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
 
+    feedback = _build_review_feedback(session)
+
     return SessionReviewResponse(
         session_id=session.id,
         case_id=case.id,
         diagnosis=case.diagnosis,
+        score_breakdown=feedback["score_breakdown"],
+        strengths=feedback["strengths"],
+        gaps=feedback["gaps"],
+        coach_insights=feedback["coach_insights"],
+        bias_feedback=feedback["bias_feedback"],
         key_teaching_points=case.key_teaching_points,
         cognitive_traps=case.cognitive_traps,
         clinical_sources=case.clinical_sources,

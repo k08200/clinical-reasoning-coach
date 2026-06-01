@@ -284,6 +284,82 @@ export default function SessionPage() {
                       </ul>
                     </section>
 
+                    {Object.keys(review.score_breakdown).length > 0 && (
+                      <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-3 lg:col-span-3">
+                        <p className="text-xs uppercase tracking-wide text-slate-500">Reasoning Breakdown</p>
+                        <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                          {Object.entries(review.score_breakdown).map(([dimension, score]) => (
+                            <div key={dimension}>
+                              <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+                                <span className="capitalize text-slate-300">
+                                  {dimension.replace(/_/g, " ")}
+                                </span>
+                                <span className="font-semibold text-white">{score.toFixed(0)}</span>
+                              </div>
+                              <div className="h-2 rounded-full bg-slate-700">
+                                <div
+                                  className="h-2 rounded-full bg-brand-500"
+                                  style={{ width: `${Math.max(4, Math.min(100, score))}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+
+                    {(review.strengths.length > 0 || review.gaps.length > 0) && (
+                      <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-3 lg:col-span-2">
+                        <p className="text-xs uppercase tracking-wide text-slate-500">Feedback</p>
+                        {review.strengths.length > 0 && (
+                          <>
+                            <p className="mt-2 text-xs font-semibold text-emerald-300">Strengths</p>
+                            <ul className="mt-1 space-y-1 text-sm text-slate-300">
+                              {review.strengths.map((strength) => (
+                                <li key={strength}>• {strength}</li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                        {review.gaps.length > 0 && (
+                          <>
+                            <p className="mt-3 text-xs font-semibold text-amber-300">Growth Areas</p>
+                            <ul className="mt-1 space-y-1 text-sm text-slate-300">
+                              {review.gaps.map((gap) => (
+                                <li key={gap}>• {gap}</li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                      </section>
+                    )}
+
+                    {(review.coach_insights.length > 0 || review.bias_feedback.length > 0) && (
+                      <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-3 lg:col-span-1">
+                        <p className="text-xs uppercase tracking-wide text-slate-500">Coaching Notes</p>
+                        {review.coach_insights.map((insight) => (
+                          <p key={insight} className="mt-2 text-sm text-slate-300">
+                            {insight}
+                          </p>
+                        ))}
+                        {review.bias_feedback.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            {review.bias_feedback.map((bias) => (
+                              <div
+                                key={`${bias.message_turn}-${bias.bias_type}-${bias.evidence}`}
+                                className="rounded border border-slate-700 bg-slate-800/70 p-2"
+                              >
+                                <p className="text-xs font-semibold capitalize text-amber-200">
+                                  {bias.bias_type.replace(/_/g, " ")} · {bias.severity}
+                                </p>
+                                <p className="mt-1 text-xs text-slate-400">{bias.evidence}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </section>
+                    )}
+
                     <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-3 lg:col-span-3">
                       <p className="text-xs uppercase tracking-wide text-slate-500">Clinical Sources</p>
                       <div className="mt-2 grid gap-3 md:grid-cols-2">
