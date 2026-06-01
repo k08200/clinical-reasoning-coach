@@ -112,6 +112,7 @@ export const api = {
       specialty?: string;
       difficulty?: string;
       seed_scenario?: string;
+      acknowledge_unreviewed_generation?: boolean;
     }) => request("/api/cases/generate", { method: "POST", body: JSON.stringify(data) }),
     generateDemo: () => request("/api/cases/generate/demo", { method: "POST" }),
   },

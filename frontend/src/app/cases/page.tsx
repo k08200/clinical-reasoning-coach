@@ -26,10 +26,6 @@ const DIFFICULTY_COLORS = {
   hard: "text-red-400 bg-red-900/30",
 };
 
-function formatReviewStatus(status: string): string {
-  return status.replace(/_/g, " ");
-}
-
 export default function CasesPage() {
   const router = useRouter();
   const checkingAuth = useRequireAuth();
@@ -199,10 +195,21 @@ export default function CasesPage() {
                       {c.source_provenance.source_count} clinical source
                       {c.source_provenance.source_count === 1 ? "" : "s"}
                     </span>
-                    <span className="capitalize text-slate-500">
-                      {formatReviewStatus(c.source_provenance.review_status)}
+                    <span
+                      className={`rounded-full px-2 py-0.5 font-medium ${
+                        c.source_provenance.requires_caution
+                          ? "bg-amber-950/50 text-amber-300"
+                          : "bg-emerald-950/50 text-emerald-300"
+                      }`}
+                    >
+                      {c.source_provenance.review_label}
                     </span>
                   </div>
+                  {c.source_provenance.requires_caution && (
+                    <p className="mt-2 text-xs font-medium text-amber-300">
+                      Not clinician reviewed; use only for education.
+                    </p>
+                  )}
                   {c.source_provenance.organizations.length > 0 && (
                     <p className="mt-1 line-clamp-2 text-xs text-slate-400">
                       {c.source_provenance.organizations.join(", ")}

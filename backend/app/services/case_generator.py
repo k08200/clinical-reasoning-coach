@@ -90,6 +90,8 @@ async def generate_clinical_case(
     # Ensure required fields present
     raw.setdefault("specialty", chosen_specialty)
     raw.setdefault("difficulty", difficulty)
+    raw["review_status"] = "ai_generated_unreviewed"
+    raw["last_reviewed_at"] = None
 
     case = ClinicalCaseCreate(**raw)
     assert_case_quality(case)

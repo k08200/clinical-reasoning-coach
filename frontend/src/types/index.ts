@@ -50,6 +50,8 @@ export interface ClinicalCase {
     source_count: number;
     organizations: string[];
     review_status: string;
+    review_label: string;
+    requires_caution: boolean;
     last_reviewed_at: string | null;
   };
   times_used: number;

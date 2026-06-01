@@ -9,6 +9,21 @@ from sqlalchemy.dialects.postgresql import UUID
 
 from app.database import Base
 
+REVIEW_PROVENANCE = {
+    "clinician_reviewed": {
+        "label": "Clinician reviewed",
+        "requires_caution": False,
+    },
+    "educational_draft": {
+        "label": "Educational draft",
+        "requires_caution": True,
+    },
+    "ai_generated_unreviewed": {
+        "label": "AI-generated, unreviewed",
+        "requires_caution": True,
+    },
+}
+
 
 class ClinicalCase(Base):
     __tablename__ = "clinical_cases"
@@ -56,9 +71,19 @@ class ClinicalCase(Base):
                 organizations.append(organization)
                 seen.add(organization)
 
+        review = REVIEW_PROVENANCE.get(
+            self.review_status,
+            {
+                "label": "Review status unknown",
+                "requires_caution": True,
+            },
+        )
+
         return {
             "source_count": len(self.clinical_sources or []),
             "organizations": organizations,
             "review_status": self.review_status,
+            "review_label": review["label"],
+            "requires_caution": review["requires_caution"],
             "last_reviewed_at": self.last_reviewed_at,
         }

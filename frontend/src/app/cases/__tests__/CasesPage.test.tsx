@@ -71,6 +71,8 @@ const makeCase = (overrides: Partial<ClinicalCase> = {}): ClinicalCase => ({
     source_count: 1,
     organizations: ["American Heart Association / American College of Cardiology"],
     review_status: "educational_draft",
+    review_label: "Educational draft",
+    requires_caution: true,
     last_reviewed_at: "2026-06-01",
   },
   times_used: 2,
@@ -127,7 +129,8 @@ describe("CasesPage", () => {
     render(<CasesPage />);
 
     expect(screen.getByText("1 clinical source")).toBeTruthy();
-    expect(screen.getByText("educational draft")).toBeTruthy();
+    expect(screen.getByText("Educational draft")).toBeTruthy();
+    expect(screen.getByText("Not clinician reviewed; use only for education.")).toBeTruthy();
     expect(
       screen.getByText("American Heart Association / American College of Cardiology"),
     ).toBeTruthy();
@@ -136,6 +139,31 @@ describe("CasesPage", () => {
 
     await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1"));
     expect(mockPush).toHaveBeenCalledWith("/sessions/session-1");
+  });
+
+  it("highlights AI-generated unreviewed cases", () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [
+        makeCase({
+          source_provenance: {
+            source_count: 1,
+            organizations: ["American College of Physicians"],
+            review_status: "ai_generated_unreviewed",
+            review_label: "AI-generated, unreviewed",
+            requires_caution: true,
+            last_reviewed_at: null,
+          },
+        }),
+      ],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+
+    render(<CasesPage />);
+
+    expect(screen.getByText("AI-generated, unreviewed")).toBeTruthy();
+    expect(screen.getByText("Not clinician reviewed; use only for education.")).toBeTruthy();
+    expect(screen.queryByText(/Reviewed/)).toBeFalsy();
   });
 
   it("generates a demo case and refreshes the list", async () => {

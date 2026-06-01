@@ -32,6 +32,8 @@ class ClinicalSourceProvenance(BaseModel):
     source_count: int
     organizations: list[str] = Field(default_factory=list)
     review_status: str
+    review_label: str
+    requires_caution: bool
     last_reviewed_at: str | None = None
 
 
@@ -64,3 +66,4 @@ class GenerateCaseRequest(BaseModel):
     specialty: str | None = None
     difficulty: str = "medium"
     seed_scenario: str | None = None
+    acknowledge_unreviewed_generation: bool = False

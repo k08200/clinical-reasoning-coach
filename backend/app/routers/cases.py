@@ -21,13 +21,25 @@ async def generate_case(
     db: AsyncSession = Depends(get_db),
 ) -> ClinicalCase:
     """Dynamically generate a new clinical case using Claude with extended thinking."""
+    if not body.acknowledge_unreviewed_generation:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Dynamic AI-generated cases are unreviewed educational drafts. "
+                "Set acknowledge_unreviewed_generation=true to create one."
+            ),
+        )
+
     case_data = await generate_clinical_case(
         specialty=body.specialty,
         difficulty=body.difficulty,
         seed_scenario=body.seed_scenario,
     )
 
-    case = ClinicalCase(**case_data.model_dump())
+    case_payload = case_data.model_dump()
+    case_payload["review_status"] = "ai_generated_unreviewed"
+    case_payload["last_reviewed_at"] = None
+    case = ClinicalCase(**case_payload)
     db.add(case)
     await db.flush()
     await db.refresh(case)
