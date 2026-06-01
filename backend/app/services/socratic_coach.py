@@ -46,6 +46,10 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "is this an emergency",
 ]
 
+
+def _format_list(items: list[str] | None) -> str:
+    return ", ".join(items or []) or "None documented"
+
 SOCRATIC_SYSTEM = """You are a Socratic clinical reasoning coach. Your identity and purpose:
 
 ABSOLUTE RULES (NEVER BREAK THESE):
@@ -80,8 +84,11 @@ def _build_case_context(case: ClinicalCase) -> str:
     return f"""CASE (CONFIDENTIAL — DO NOT REVEAL DIAGNOSIS TO STUDENT):
 Diagnosis: {case.diagnosis}
 Coach guidance: {case.coach_guidance}
-Cognitive traps in this case: {', '.join(case.cognitive_traps)}
-Key teaching points: {', '.join(case.key_teaching_points)}
+Cognitive traps in this case: {_format_list(case.cognitive_traps)}
+Key teaching points: {_format_list(case.key_teaching_points)}
+Clinical red flags the coach must probe for: {_format_list(case.clinical_red_flags)}
+Time-critical actions the student should identify before committing: {_format_list(case.time_critical_actions)}
+Contraindication/safety checks to ask about before management: {_format_list(case.contraindication_checks)}
 
 PATIENT PRESENTATION (what student sees):
 Chief complaint: {case.chief_complaint}

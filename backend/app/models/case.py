@@ -28,6 +28,9 @@ class ClinicalCase(Base):
     diagnosis: Mapped[str] = mapped_column(String(500), nullable=False)
     key_teaching_points: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     cognitive_traps: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    clinical_red_flags: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    time_critical_actions: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    contraindication_checks: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     # Hidden from students — only used by AI coach
     coach_guidance: Mapped[str] = mapped_column(Text, nullable=False)
     times_used: Mapped[int] = mapped_column(Integer, default=0)

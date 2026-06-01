@@ -212,6 +212,21 @@ _CASE_STEMI = {
         "SpO2 of 95% might lead to anchoring on pulmonary embolism",
         "Mild glucose elevation might distract toward diabetic emergency",
     ],
+    "clinical_red_flags": [
+        "Crushing substernal chest pain radiating to the arm with diaphoresis",
+        "Bibasilar crackles suggesting early heart failure",
+        "Tachycardia with multiple coronary risk factors",
+    ],
+    "time_critical_actions": [
+        "Obtain and interpret a 12-lead ECG within 10 minutes of presentation",
+        "Activate local ACS/reperfusion pathway when STEMI criteria are met",
+        "Give antiplatelet/anticoagulation only after checking ECG context and major contraindications",
+    ],
+    "contraindication_checks": [
+        "Aortic dissection features before anticoagulation or thrombolysis",
+        "Active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+        "Hemodynamic instability or pulmonary edema requiring escalation",
+    ],
     "coach_guidance": (
         "Guide student toward: (1) identifying high-risk features (diaphoresis, radiation, risk factors), "
         "(2) not being falsely reassured by borderline troponin, "
@@ -270,6 +285,21 @@ _CASE_SEPSIS = {
         "Glucose elevation may distract toward diabetic emergency as primary diagnosis",
         "Low-grade fever might underestimate severity in elderly with blunted response",
         "CKD baseline may mask degree of AKI",
+    ],
+    "clinical_red_flags": [
+        "Hypotension with fever and altered mental status",
+        "Lactate 4.1 mmol/L suggesting tissue hypoperfusion",
+        "AKI, thrombocytopenia, delayed urination, and poor perfusion",
+    ],
+    "time_critical_actions": [
+        "Recognize suspected septic shock and escalate immediately",
+        "Obtain blood cultures promptly without delaying empiric antibiotics",
+        "Start sepsis bundle actions including fluids, antibiotics, lactate reassessment, and source control planning",
+    ],
+    "contraindication_checks": [
+        "Renal impairment and allergy history before antibiotic selection or dosing",
+        "Volume overload risk during fluid resuscitation in CKD or heart failure",
+        "Need for vasopressors if hypotension persists after initial resuscitation",
     ],
     "coach_guidance": (
         "Guide student toward: (1) recognizing SIRS criteria and sepsis-3, "
@@ -330,6 +360,21 @@ _CASE_PE = {
         "Normal temperature may underestimate seriousness",
         "SpO2 of 89% requires urgent intervention — not just supplemental O2",
     ],
+    "clinical_red_flags": [
+        "Sudden dyspnea with hypoxemia and pleuritic chest pain after surgery",
+        "Tachycardia with borderline blood pressure and signs of right heart strain",
+        "Unilateral calf swelling and markedly elevated D-dimer",
+    ],
+    "time_critical_actions": [
+        "Risk stratify for massive versus submassive PE before choosing disposition",
+        "Escalate urgently for worsening hypotension, syncope, or shock",
+        "Select imaging or bedside echo pathway based on hemodynamic stability",
+    ],
+    "contraindication_checks": [
+        "Bleeding risk, recent surgery, and neuraxial anesthesia before thrombolysis or anticoagulation",
+        "Renal function and contrast allergy before CT pulmonary angiography",
+        "Pregnancy status when selecting imaging and anticoagulation",
+    ],
     "coach_guidance": (
         "Guide student toward Wells criteria scoring. "
         "Challenge premature reassurance from recent anticoagulation. "
@@ -386,6 +431,21 @@ _CASE_DKA = {
         "Pseudohyponatremia may prompt incorrect aggressive sodium replacement",
         "Visible tachycardia may focus students on cardiac etiology",
         "Normal temperature rules out infection as precipitant — but check anyway",
+    ],
+    "clinical_red_flags": [
+        "Severe metabolic acidosis with Kussmaul respirations",
+        "Tachycardia, dehydration signs, AKI, and mild confusion",
+        "Hyperkalemia despite total body potassium depletion",
+    ],
+    "time_critical_actions": [
+        "Assess severity and initiate monitored DKA protocol with fluids and insulin planning",
+        "Check potassium before insulin and replace if low",
+        "Identify precipitating cause while closing the anion gap",
+    ],
+    "contraindication_checks": [
+        "Potassium below safe threshold before insulin infusion",
+        "Cerebral edema risk from overly rapid osmolar shifts",
+        "Need to exclude surgical abdomen if pain persists after metabolic correction",
     ],
     "coach_guidance": (
         "Guide student toward: (1) DKA diagnosis criteria, "
@@ -444,6 +504,21 @@ _CASE_STROKE = {
         "AFib + anticoagulation may falsely reassure students that embolism is unlikely",
         "Blood pressure 178/104 might prompt treatment — but BP should NOT be lowered before tPA",
         "Students may skip mechanical thrombectomy consideration for large vessel occlusion",
+    ],
+    "clinical_red_flags": [
+        "Sudden focal neurologic deficit with NIHSS 8",
+        "Potentially treatable stroke within thrombolysis window from last known normal",
+        "Atrial fibrillation with missed anticoagulation suggesting embolic risk",
+    ],
+    "time_critical_actions": [
+        "Establish last known normal and activate stroke pathway immediately",
+        "Obtain noncontrast head CT to exclude hemorrhage without delaying treatment decision",
+        "Assess thrombolysis and thrombectomy eligibility in parallel",
+    ],
+    "contraindication_checks": [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "Large vessel occlusion criteria and transfer needs for thrombectomy",
     ],
     "coach_guidance": (
         "Critical teaching point: LKN is 07:00 AM, not 09:00 AM. "

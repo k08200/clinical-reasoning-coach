@@ -8,6 +8,7 @@ from app.services.provider import StreamChunk
 from app.services.socratic_coach import (
     EDUCATIONAL_SAFETY_NOTICE,
     SOCRATIC_SYSTEM,
+    _build_case_context,
     get_opening_message,
     should_emit_real_patient_safety_notice,
     stream_coach_response,
@@ -20,6 +21,9 @@ def make_mock_case():
     case.coach_guidance = "Guide student to ECG and troponin"
     case.cognitive_traps = ["anchoring on GERD", "missing PE"]
     case.key_teaching_points = ["Always get ECG for chest pain", "Time is muscle"]
+    case.clinical_red_flags = ["Diaphoresis with crushing chest pain"]
+    case.time_critical_actions = ["12-lead ECG within 10 minutes"]
+    case.contraindication_checks = ["Aortic dissection features before anticoagulation"]
     case.chief_complaint = "Chest pain"
     case.patient_demographics = {"age": 58, "sex": "male"}
     case.history_of_present_illness = "58yo male with acute chest pain and diaphoresis"
@@ -53,6 +57,14 @@ def test_opening_message_does_not_reveal_diagnosis():
     # Should never mention the diagnosis
     assert "STEMI" not in msg
     assert "ST elevation" not in msg
+
+
+def test_case_context_includes_hidden_safety_metadata():
+    context = _build_case_context(make_mock_case())
+
+    assert "Diaphoresis with crushing chest pain" in context
+    assert "12-lead ECG within 10 minutes" in context
+    assert "Aortic dissection features before anticoagulation" in context
 
 
 def test_socratic_system_prompt_contains_rules():

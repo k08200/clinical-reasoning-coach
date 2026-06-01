@@ -26,6 +26,8 @@ Rules:
 - The diagnosis should be reachable through systematic reasoning
 - Do NOT make cases obscure or exotic — common presentations of common diseases
 - Include 2-3 cognitive biases that students commonly fall into with this case
+- Include safety metadata for clinician educators: red flags, time-critical actions,
+  and contraindication checks. These are hidden from students and used by the coach.
 
 Return ONLY valid JSON matching this exact schema:
 {
@@ -46,6 +48,9 @@ Return ONLY valid JSON matching this exact schema:
   "diagnosis": "...",
   "key_teaching_points": ["...", "..."],
   "cognitive_traps": ["...", "..."],
+  "clinical_red_flags": ["...", "..."],
+  "time_critical_actions": ["...", "..."],
+  "contraindication_checks": ["...", "..."],
   "coach_guidance": "..."
 }"""
 
