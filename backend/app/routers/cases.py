@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 import uuid
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database import get_db
 from app.models.case import ClinicalCase
-from app.schemas.case import ClinicalCaseResponse, GenerateCaseRequest
+from app.models.user import User
+from app.schemas.case import (
+    ClinicalCaseResponse,
+    ClinicalReviewRequest,
+    GenerateCaseRequest,
+)
 from app.services.case_generator import generate_clinical_case, generate_demo_case
-from app.utils.auth import require_educational_use_consent
+from app.utils.auth import require_clinical_reviewer, require_educational_use_consent
 
 router = APIRouter(prefix="/api/cases", tags=["cases"])
 
@@ -77,6 +83,32 @@ async def list_cases(
     query = query.order_by(ClinicalCase.created_at.desc()).limit(limit).offset(offset)
     result = await db.execute(query)
     return list(result.scalars().all())
+
+
+@router.post("/{case_id}/clinical-review", response_model=ClinicalCaseResponse)
+async def complete_clinical_review(
+    case_id: uuid.UUID,
+    body: ClinicalReviewRequest,
+    reviewer: User = Depends(require_clinical_reviewer),
+    db: AsyncSession = Depends(get_db),
+) -> ClinicalCase:
+    case = await db.get(ClinicalCase, case_id)
+    if not case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+    if not case.clinical_sources:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Clinical review requires at least one supporting clinical source",
+        )
+
+    case.review_status = "clinician_reviewed"
+    case.last_reviewed_at = date.today().isoformat()
+    case.reviewed_by_user_id = reviewer.id
+    case.review_notes = body.review_notes.strip() if body.review_notes else None
+
+    await db.flush()
+    await db.refresh(case)
+    return case
 
 
 @router.get("/{case_id}", response_model=ClinicalCaseResponse)

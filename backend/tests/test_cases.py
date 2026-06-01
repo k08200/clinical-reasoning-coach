@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 import uuid
+from datetime import date, datetime, timezone
 
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.case import ClinicalCase
+from app.models.user import User
 from app.routers import cases as cases_router
 from app.schemas.case import ClinicalCaseCreate
 from app.services.mock_provider import CASE_POOL
 from app.services.case_quality import evaluate_case_quality
+from app.utils.auth import create_access_token, hash_password
 
 
 async def _register_and_login(client: AsyncClient) -> dict[str, str]:
@@ -140,3 +145,73 @@ async def test_dynamic_generation_forces_unreviewed_provenance(
     assert provenance["review_label"] == "AI-generated, unreviewed"
     assert provenance["requires_caution"] is True
     assert provenance["last_reviewed_at"] is None
+
+
+async def test_learner_cannot_mark_case_clinician_reviewed(
+    client: AsyncClient,
+):
+    auth_headers = await _register_and_login(client)
+    case_response = await client.post(
+        "/api/cases/generate/demo",
+        headers=auth_headers,
+    )
+    assert case_response.status_code == 201
+
+    response = await client.post(
+        f"/api/cases/{case_response.json()['id']}/clinical-review",
+        headers=auth_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "educational_safety_confirmed": True,
+            "review_notes": "Looks clinically sound for education.",
+        },
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Clinician reviewer role required"
+
+
+async def test_clinician_reviewer_can_mark_case_reviewed(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Clinician Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = ClinicalCase(**CASE_POOL[0])
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "educational_safety_confirmed": True,
+            "review_notes": "Reviewed against cited educational source.",
+        },
+    )
+
+    assert response.status_code == 200
+    provenance = response.json()["source_provenance"]
+    assert provenance["review_status"] == "clinician_reviewed"
+    assert provenance["review_label"] == "Clinician reviewed"
+    assert provenance["requires_caution"] is False
+    assert provenance["last_reviewed_at"] == date.today().isoformat()
+
+    await db.refresh(case)
+    assert case.reviewed_by_user_id == reviewer.id
+    assert case.review_notes == "Reviewed against cited educational source."

@@ -23,6 +23,9 @@ class User(Base):
     training_level: Mapped[str] = mapped_column(
         String(50), nullable=False, default="medical_student"
     )  # medical_student, intern, resident, fellow
+    role: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="learner", server_default="learner"
+    )  # learner, clinician_reviewer, admin
     accepted_educational_use: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default=false()
     )

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class ClinicalCaseCreate(BaseModel):
@@ -67,3 +67,33 @@ class GenerateCaseRequest(BaseModel):
     difficulty: str = "medium"
     seed_scenario: str | None = None
     acknowledge_unreviewed_generation: bool = False
+
+
+class ClinicalReviewRequest(BaseModel):
+    clinical_accuracy_confirmed: bool = Field(
+        default=False,
+        validate_default=True,
+        description="Reviewer confirms the diagnosis, key findings, and teaching points are clinically accurate.",
+    )
+    source_alignment_confirmed: bool = Field(
+        default=False,
+        validate_default=True,
+        description="Reviewer confirms cited sources support the case content.",
+    )
+    educational_safety_confirmed: bool = Field(
+        default=False,
+        validate_default=True,
+        description="Reviewer confirms the case is safe for educational simulation and not patient care.",
+    )
+    review_notes: str | None = Field(default=None, max_length=2000)
+
+    @field_validator(
+        "clinical_accuracy_confirmed",
+        "source_alignment_confirmed",
+        "educational_safety_confirmed",
+    )
+    @classmethod
+    def require_confirmation(cls, value: bool) -> bool:
+        if value is not True:
+            raise ValueError("Clinician review requires all confirmations")
+        return value

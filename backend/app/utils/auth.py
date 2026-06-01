@@ -97,3 +97,19 @@ async def require_educational_use_consent(
             detail="Educational use consent required",
         )
     return str(user.id)
+
+
+async def require_clinical_reviewer(
+    user: User = Depends(get_current_user),
+) -> User:
+    if not user.accepted_educational_use:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Educational use consent required",
+        )
+    if user.role not in {"clinician_reviewer", "admin"}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Clinician reviewer role required",
+        )
+    return user

@@ -81,6 +81,7 @@ class UserResponse(BaseModel):
     email: str
     full_name: str
     training_level: str
+    role: str
     accepted_educational_use: bool
     accepted_educational_use_at: datetime | None
 

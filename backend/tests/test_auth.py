@@ -23,6 +23,7 @@ async def test_register_success(client: AsyncClient):
     data = response.json()
     assert data["email"] == "new@test.com"
     assert data["training_level"] == "resident"
+    assert data["role"] == "learner"
     assert data["accepted_educational_use"] is True
     assert data["accepted_educational_use_at"]
     assert "id" in data
@@ -240,6 +241,7 @@ async def test_get_me(client: AsyncClient, auth_headers: dict):
     assert response.status_code == 200
     data = response.json()
     assert data["email"] == "student@test.com"
+    assert data["role"] == "learner"
 
 
 @pytest.mark.asyncio

@@ -115,6 +115,19 @@ export const api = {
       acknowledge_unreviewed_generation?: boolean;
     }) => request("/api/cases/generate", { method: "POST", body: JSON.stringify(data) }),
     generateDemo: () => request("/api/cases/generate/demo", { method: "POST" }),
+    completeClinicalReview: (
+      id: string,
+      data: {
+        clinical_accuracy_confirmed: boolean;
+        source_alignment_confirmed: boolean;
+        educational_safety_confirmed: boolean;
+        review_notes?: string;
+      },
+    ) =>
+      request(`/api/cases/${id}/clinical-review`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   },
 
   sessions: {
