@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Optional
 from sqlalchemy import String, Text, DateTime, Integer, JSON, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
@@ -31,6 +32,9 @@ class ClinicalCase(Base):
     clinical_red_flags: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     time_critical_actions: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     contraindication_checks: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    clinical_sources: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    review_status: Mapped[str] = mapped_column(String(50), nullable=False, default="educational_draft")
+    last_reviewed_at: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     # Hidden from students — only used by AI coach
     coach_guidance: Mapped[str] = mapped_column(Text, nullable=False)
     times_used: Mapped[int] = mapped_column(Integer, default=0)

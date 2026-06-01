@@ -50,6 +50,16 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
 def _format_list(items: list[str] | None) -> str:
     return ", ".join(items or []) or "None documented"
 
+
+def _format_sources(sources: list[dict] | None) -> str:
+    if not sources:
+        return "None documented"
+    return "; ".join(
+        f"{source.get('title', 'Untitled source')} ({source.get('url', 'no URL')})"
+        for source in sources
+    )
+
+
 SOCRATIC_SYSTEM = """You are a Socratic clinical reasoning coach. Your identity and purpose:
 
 ABSOLUTE RULES (NEVER BREAK THESE):
@@ -89,6 +99,8 @@ Key teaching points: {_format_list(case.key_teaching_points)}
 Clinical red flags the coach must probe for: {_format_list(case.clinical_red_flags)}
 Time-critical actions the student should identify before committing: {_format_list(case.time_critical_actions)}
 Contraindication/safety checks to ask about before management: {_format_list(case.contraindication_checks)}
+Clinical source anchors for educator audit: {_format_sources(case.clinical_sources)}
+Clinical review status: {case.review_status}; last reviewed: {case.last_reviewed_at or 'not reviewed'}
 
 PATIENT PRESENTATION (what student sees):
 Chief complaint: {case.chief_complaint}

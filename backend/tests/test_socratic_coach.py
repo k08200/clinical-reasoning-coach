@@ -24,6 +24,16 @@ def make_mock_case():
     case.clinical_red_flags = ["Diaphoresis with crushing chest pain"]
     case.time_critical_actions = ["12-lead ECG within 10 minutes"]
     case.contraindication_checks = ["Aortic dissection features before anticoagulation"]
+    case.clinical_sources = [
+        {
+            "title": "Chest pain guideline",
+            "organization": "Test Society",
+            "url": "https://example.test/chest-pain",
+            "supports": ["ECG timing"],
+        }
+    ]
+    case.review_status = "educational_draft"
+    case.last_reviewed_at = "2026-06-01"
     case.chief_complaint = "Chest pain"
     case.patient_demographics = {"age": 58, "sex": "male"}
     case.history_of_present_illness = "58yo male with acute chest pain and diaphoresis"
@@ -65,6 +75,8 @@ def test_case_context_includes_hidden_safety_metadata():
     assert "Diaphoresis with crushing chest pain" in context
     assert "12-lead ECG within 10 minutes" in context
     assert "Aortic dissection features before anticoagulation" in context
+    assert "Chest pain guideline" in context
+    assert "educational_draft" in context
 
 
 def test_socratic_system_prompt_contains_rules():

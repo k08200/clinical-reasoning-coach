@@ -12,6 +12,10 @@ def test_curated_cases_include_hidden_safety_metadata():
         assert case["clinical_red_flags"], case["title"]
         assert case["time_critical_actions"], case["title"]
         assert case["contraindication_checks"], case["title"]
+        assert case["clinical_sources"], case["title"]
+        assert all(source.get("url") for source in case["clinical_sources"]), case["title"]
+        assert case["review_status"] in {"educational_draft", "clinician_reviewed"}
+        assert case["last_reviewed_at"], case["title"]
 
 
 async def test_case_response_does_not_expose_answer_or_hidden_safety_metadata(
@@ -46,3 +50,6 @@ async def test_case_response_does_not_expose_answer_or_hidden_safety_metadata(
     assert "clinical_red_flags" not in payload
     assert "time_critical_actions" not in payload
     assert "contraindication_checks" not in payload
+    assert "clinical_sources" not in payload
+    assert "review_status" not in payload
+    assert "last_reviewed_at" not in payload

@@ -166,6 +166,61 @@ KEYWORD_TRIGGERS = {
     ],
 }
 
+_SOURCE_CHEST_PAIN = {
+    "title": "2021 AHA/ACC Guideline for the Evaluation and Diagnosis of Chest Pain",
+    "organization": "American Heart Association / American College of Cardiology",
+    "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+    "supports": [
+        "ECG within 10 minutes for acute chest pain",
+        "life-threatening chest pain differential",
+        "ACS risk stratification",
+    ],
+}
+
+_SOURCE_SEPSIS = {
+    "title": "Surviving Sepsis Campaign Adult Guidelines",
+    "organization": "Society of Critical Care Medicine",
+    "url": "https://www.sccm.org/survivingsepsiscampaign/guidelines-and-resources/surviving-sepsis-campaign-adult-guidelines",
+    "supports": [
+        "lactate measurement and reassessment",
+        "blood cultures and antimicrobial timing",
+        "fluid reassessment and vasopressor escalation",
+    ],
+}
+
+_SOURCE_PE = {
+    "title": "2019 ESC Guidelines for the Diagnosis and Management of Acute Pulmonary Embolism",
+    "organization": "European Society of Cardiology",
+    "url": "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines/Acute-Pulmonary-Embolism-Diagnosis-and-Management-of",
+    "supports": [
+        "risk stratification by hemodynamic instability and RV strain",
+        "CTPA and alternative diagnostic pathways",
+        "thrombolysis reserved for high-risk or deteriorating PE",
+    ],
+}
+
+_SOURCE_DKA = {
+    "title": "Standards of Care in Diabetes",
+    "organization": "American Diabetes Association",
+    "url": "https://professional.diabetes.org/standards-of-care",
+    "supports": [
+        "DKA diagnostic pattern",
+        "potassium assessment before insulin therapy",
+        "anion-gap closure and transition planning",
+    ],
+}
+
+_SOURCE_STROKE = {
+    "title": "AHA/ASA Acute Ischemic Stroke Guidelines",
+    "organization": "American Heart Association / American Stroke Association",
+    "url": "https://www.heart.org/-/media/files/professional/quality-improvement/get-with-the-guidelines/get-with-the-guidelines-stroke/2019updateahaasaaisguidelineslidedeckrevisedadl12919.pdf",
+    "supports": [
+        "last-known-normal based reperfusion eligibility",
+        "blood pressure thresholds before alteplase",
+        "thrombectomy eligibility screening",
+    ],
+}
+
 _CASE_STEMI = {
     "title": "Acute Chest Pain in a Middle-Aged Male",
     "specialty": "internal_medicine",
@@ -227,6 +282,9 @@ _CASE_STEMI = {
         "Active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
         "Hemodynamic instability or pulmonary edema requiring escalation",
     ],
+    "clinical_sources": [_SOURCE_CHEST_PAIN],
+    "review_status": "educational_draft",
+    "last_reviewed_at": "2026-06-01",
     "coach_guidance": (
         "Guide student toward: (1) identifying high-risk features (diaphoresis, radiation, risk factors), "
         "(2) not being falsely reassured by borderline troponin, "
@@ -301,6 +359,9 @@ _CASE_SEPSIS = {
         "Volume overload risk during fluid resuscitation in CKD or heart failure",
         "Need for vasopressors if hypotension persists after initial resuscitation",
     ],
+    "clinical_sources": [_SOURCE_SEPSIS],
+    "review_status": "educational_draft",
+    "last_reviewed_at": "2026-06-01",
     "coach_guidance": (
         "Guide student toward: (1) recognizing SIRS criteria and sepsis-3, "
         "(2) identifying source (urinary symptoms + UA), "
@@ -375,6 +436,9 @@ _CASE_PE = {
         "Renal function and contrast allergy before CT pulmonary angiography",
         "Pregnancy status when selecting imaging and anticoagulation",
     ],
+    "clinical_sources": [_SOURCE_PE],
+    "review_status": "educational_draft",
+    "last_reviewed_at": "2026-06-01",
     "coach_guidance": (
         "Guide student toward Wells criteria scoring. "
         "Challenge premature reassurance from recent anticoagulation. "
@@ -447,6 +511,9 @@ _CASE_DKA = {
         "Cerebral edema risk from overly rapid osmolar shifts",
         "Need to exclude surgical abdomen if pain persists after metabolic correction",
     ],
+    "clinical_sources": [_SOURCE_DKA],
+    "review_status": "educational_draft",
+    "last_reviewed_at": "2026-06-01",
     "coach_guidance": (
         "Guide student toward: (1) DKA diagnosis criteria, "
         "(2) potassium management BEFORE insulin if K low, "
@@ -520,6 +587,9 @@ _CASE_STROKE = {
         "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
         "Large vessel occlusion criteria and transfer needs for thrombectomy",
     ],
+    "clinical_sources": [_SOURCE_STROKE],
+    "review_status": "educational_draft",
+    "last_reviewed_at": "2026-06-01",
     "coach_guidance": (
         "Critical teaching point: LKN is 07:00 AM, not 09:00 AM. "
         "Guide student to calculate correct tPA eligibility window. "

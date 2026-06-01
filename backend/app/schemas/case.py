@@ -22,6 +22,9 @@ class ClinicalCaseCreate(BaseModel):
     clinical_red_flags: list[str] = Field(default_factory=list)
     time_critical_actions: list[str] = Field(default_factory=list)
     contraindication_checks: list[str] = Field(default_factory=list)
+    clinical_sources: list[dict] = Field(default_factory=list)
+    review_status: str = "educational_draft"
+    last_reviewed_at: str | None = None
     coach_guidance: str
 
 
@@ -41,8 +44,9 @@ class ClinicalCaseResponse(BaseModel):
     cognitive_traps: list[str]
     times_used: int
     created_at: datetime
-    # NOTE: diagnosis, coach_guidance, and hidden safety metadata are NEVER
-    # included in this response schema because they can reveal the case answer.
+    # NOTE: diagnosis, coach_guidance, hidden safety metadata, clinical sources,
+    # and review status are NEVER included in this response schema because they
+    # can reveal the case answer or internal validation notes.
 
     model_config = {"from_attributes": True}
 
