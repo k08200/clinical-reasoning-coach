@@ -56,3 +56,10 @@ async def test_case_response_does_not_expose_answer_or_hidden_safety_metadata(
     assert "clinical_sources" not in payload
     assert "review_status" not in payload
     assert "last_reviewed_at" not in payload
+    assert payload["source_provenance"]["source_count"] == 1
+    assert payload["source_provenance"]["organizations"]
+    assert payload["source_provenance"]["review_status"] == "educational_draft"
+    assert payload["source_provenance"]["last_reviewed_at"] == "2026-06-01"
+    assert "url" not in payload["source_provenance"]
+    assert "title" not in payload["source_provenance"]
+    assert "supports" not in payload["source_provenance"]

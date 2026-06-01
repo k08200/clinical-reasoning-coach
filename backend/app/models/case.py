@@ -45,3 +45,20 @@ class ClinicalCase(Base):
     sessions: Mapped[list["CoachingSession"]] = relationship(
         "CoachingSession", back_populates="case", lazy="selectin"
     )
+
+    @property
+    def source_provenance(self) -> dict:
+        organizations = []
+        seen = set()
+        for source in self.clinical_sources or []:
+            organization = source.get("organization")
+            if organization and organization not in seen:
+                organizations.append(organization)
+                seen.add(organization)
+
+        return {
+            "source_count": len(self.clinical_sources or []),
+            "organizations": organizations,
+            "review_status": self.review_status,
+            "last_reviewed_at": self.last_reviewed_at,
+        }

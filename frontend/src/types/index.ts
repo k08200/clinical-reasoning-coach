@@ -46,6 +46,12 @@ export interface ClinicalCase {
   initial_labs: Record<string, string>;
   key_teaching_points: string[];
   cognitive_traps: string[];
+  source_provenance: {
+    source_count: number;
+    organizations: string[];
+    review_status: string;
+    last_reviewed_at: string | null;
+  };
   times_used: number;
   created_at: string;
 }

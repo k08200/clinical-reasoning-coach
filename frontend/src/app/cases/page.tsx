@@ -26,6 +26,10 @@ const DIFFICULTY_COLORS = {
   hard: "text-red-400 bg-red-900/30",
 };
 
+function formatReviewStatus(status: string): string {
+  return status.replace(/_/g, " ");
+}
+
 export default function CasesPage() {
   const router = useRouter();
   const checkingAuth = useRequireAuth();
@@ -188,6 +192,28 @@ export default function CasesPage() {
                 <p className="text-slate-400 text-sm mb-4">
                   {c.patient_demographics.age}yo {c.patient_demographics.sex}
                 </p>
+
+                <div className="mb-4 rounded-lg border border-slate-700 bg-slate-900/40 px-3 py-2">
+                  <div className="flex items-center justify-between gap-3 text-xs">
+                    <span className="font-medium text-slate-300">
+                      {c.source_provenance.source_count} clinical source
+                      {c.source_provenance.source_count === 1 ? "" : "s"}
+                    </span>
+                    <span className="capitalize text-slate-500">
+                      {formatReviewStatus(c.source_provenance.review_status)}
+                    </span>
+                  </div>
+                  {c.source_provenance.organizations.length > 0 && (
+                    <p className="mt-1 line-clamp-2 text-xs text-slate-400">
+                      {c.source_provenance.organizations.join(", ")}
+                    </p>
+                  )}
+                  {c.source_provenance.last_reviewed_at && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Reviewed {c.source_provenance.last_reviewed_at}
+                    </p>
+                  )}
+                </div>
 
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-500">{c.times_used} sessions</span>

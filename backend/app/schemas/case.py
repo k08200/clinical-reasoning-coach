@@ -28,6 +28,13 @@ class ClinicalCaseCreate(BaseModel):
     coach_guidance: str
 
 
+class ClinicalSourceProvenance(BaseModel):
+    source_count: int
+    organizations: list[str] = Field(default_factory=list)
+    review_status: str
+    last_reviewed_at: str | None = None
+
+
 class ClinicalCaseResponse(BaseModel):
     id: uuid.UUID
     title: str
@@ -42,11 +49,13 @@ class ClinicalCaseResponse(BaseModel):
     initial_labs: dict
     key_teaching_points: list[str]
     cognitive_traps: list[str]
+    source_provenance: ClinicalSourceProvenance
     times_used: int
     created_at: datetime
-    # NOTE: diagnosis, coach_guidance, hidden safety metadata, clinical sources,
-    # and review status are NEVER included in this response schema because they
-    # can reveal the case answer or internal validation notes.
+    # NOTE: diagnosis, coach_guidance, hidden safety metadata, raw clinical
+    # sources, source URLs/titles, and internal source support notes are NEVER
+    # included here because they can reveal the case answer or internal
+    # validation notes. source_provenance exposes only coarse trust metadata.
 
     model_config = {"from_attributes": True}
 

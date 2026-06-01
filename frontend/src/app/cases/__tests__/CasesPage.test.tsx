@@ -67,6 +67,12 @@ const makeCase = (overrides: Partial<ClinicalCase> = {}): ClinicalCase => ({
   initial_labs: { troponin: "0.03" },
   key_teaching_points: ["Risk stratification"],
   cognitive_traps: ["anchoring"],
+  source_provenance: {
+    source_count: 1,
+    organizations: ["American Heart Association / American College of Cardiology"],
+    review_status: "educational_draft",
+    last_reviewed_at: "2026-06-01",
+  },
   times_used: 2,
   created_at: "2026-05-25T00:00:00Z",
   ...overrides,
@@ -119,6 +125,13 @@ describe("CasesPage", () => {
     mockCreateSession.mockResolvedValue({ id: "session-1" });
 
     render(<CasesPage />);
+
+    expect(screen.getByText("1 clinical source")).toBeTruthy();
+    expect(screen.getByText("educational draft")).toBeTruthy();
+    expect(
+      screen.getByText("American Heart Association / American College of Cardiology"),
+    ).toBeTruthy();
+    expect(screen.getByText("Reviewed 2026-06-01")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Start Session" }));
 
     await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1"));
