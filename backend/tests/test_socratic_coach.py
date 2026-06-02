@@ -135,6 +135,37 @@ def test_coach_response_guardrail_detects_unsafe_clinical_content():
     assert not is_coach_response_safe(case, "You should give aspirin now.")
 
 
+def test_coach_response_guardrail_blocks_direct_management_variants():
+    case = make_mock_case()
+
+    unsafe_responses = [
+        "Obtain a 12-lead ECG now.",
+        "The next step would be to start heparin.",
+        "This patient needs broad-spectrum antibiotics and fluids.",
+        "Proceed with thrombolysis.",
+        "Call the cath lab and give aspirin.",
+        "Manage with insulin infusion after fluids.",
+    ]
+
+    for response in unsafe_responses:
+        assert not is_coach_response_safe(case, response), response
+
+
+def test_coach_response_guardrail_allows_socratic_safety_questions():
+    case = make_mock_case()
+
+    safe_responses = [
+        "Before starting insulin, what safety check matters most?",
+        "What contraindications to thrombolysis would you need to rule out?",
+        "What information would you need before ordering CT imaging?",
+        "Which finding would make this presentation time-sensitive?",
+        "How would you decide whether anticoagulation is safe in this scenario?",
+    ]
+
+    for response in safe_responses:
+        assert is_coach_response_safe(case, response), response
+
+
 @pytest.mark.asyncio
 async def test_stream_halts_for_real_patient_signal(monkeypatch: pytest.MonkeyPatch):
     class ProviderThatShouldNotBeCalled:
@@ -188,6 +219,40 @@ async def test_stream_replaces_diagnosis_leak_with_safe_question(monkeypatch: py
     assert response_text == SAFE_GUARDRAIL_RESPONSE
     assert "STEMI" not in response_text
     assert "cath lab" not in response_text
+
+
+@pytest.mark.asyncio
+async def test_stream_replaces_direct_management_advice_with_safe_question(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    class UnsafeManagementProvider:
+        async def stream(self, **_kwargs):
+            yield StreamChunk(type="text_delta", content="Obtain a 12-lead ECG now. ")
+            yield StreamChunk(
+                type="text_delta",
+                content="This patient needs broad-spectrum antibiotics.",
+            )
+            yield StreamChunk(type="done")
+
+    monkeypatch.setattr(
+        "app.services.socratic_coach.get_provider",
+        lambda: UnsafeManagementProvider(),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in stream_coach_response(
+            case=make_mock_case(),
+            conversation_history=[],
+            student_message="In this simulated case, I am thinking through management.",
+            turn_number=1,
+        )
+    ]
+
+    response_text = "".join(chunk.content for chunk in chunks if chunk.type == "text_delta")
+    assert response_text == SAFE_GUARDRAIL_RESPONSE
+    assert "Obtain a 12-lead ECG now" not in response_text
+    assert "broad-spectrum antibiotics" not in response_text
 
 
 @pytest.mark.asyncio

@@ -70,10 +70,48 @@ DIRECT_CONFIRMATION_PATTERNS = [
     r"\bthis is (?:a |an )?\w+",
 ]
 
+MANAGEMENT_ACTION_VERBS = (
+    "activate",
+    "administer",
+    "admit",
+    "anticoagulate",
+    "bolus",
+    "call",
+    "check",
+    "consult",
+    "discharge",
+    "draw",
+    "give",
+    "get",
+    "infuse",
+    "initiate",
+    "intubate",
+    "obtain",
+    "order",
+    "prescribe",
+    "proceed",
+    "send",
+    "start",
+    "transfuse",
+    "treat",
+)
+MANAGEMENT_ACTION_PATTERN = "|".join(MANAGEMENT_ACTION_VERBS)
+MANAGEMENT_TARGET_PATTERN = (
+    r"alteplase|antibiotics?|anticoagulation|anticoagulants?|aspirin|"
+    r"blood cultures?|bolus|cath lab|ct|ecg|ekg|fluids?|heparin|insulin|"
+    r"pressors?|thrombolysis|tpa|vasopressors?"
+)
+MANAGEMENT_TARGET_PHRASE_PATTERN = (
+    rf"(?:[a-z0-9-]+\s+){{0,4}}(?:{MANAGEMENT_TARGET_PATTERN})"
+)
 DIRECT_MANAGEMENT_PATTERNS = [
-    r"^\s*(give|start|administer|order|prescribe|discharge|admit|activate|treat)\b",
-    r"\b(you should|you need to|we should|the next step is to|i would)\s+"
-    r"(give|start|administer|order|prescribe|discharge|admit|activate|treat)\b",
+    rf"^\s*(?:{MANAGEMENT_ACTION_PATTERN})\b",
+    rf"\b(?:you|we)\s+(?:should|need to|must|have to)\s+(?:{MANAGEMENT_ACTION_PATTERN})\b",
+    rf"\b(?:the )?next step (?:is|would be)\s+to\s+(?:{MANAGEMENT_ACTION_PATTERN})\b",
+    rf"\bi (?:recommend|would)\s+(?:{MANAGEMENT_ACTION_PATTERN})\b",
+    rf"\b(?:proceed with|go ahead and|move to)\s+(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\b",
+    rf"\b(?:this patient|the patient)\s+(?:needs|requires)\s+(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\b",
+    rf"\b(?:treat|manage)\s+with\s+(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\b",
 ]
 
 DIAGNOSIS_LEAK_TERMS = {
@@ -168,7 +206,9 @@ ABSOLUTE RULES (NEVER BREAK THESE):
 1. NEVER state, hint at, or confirm the diagnosis — not even indirectly
 2. NEVER say "You're on the right track" or "That's correct/incorrect"
 3. NEVER list differentials for the student — make them generate their own
-4. In simulated training, respond with questions rather than answers or orders
+4. In simulated training, respond with questions rather than answers, orders, treatment
+   instructions, disposition instructions, medication choices, dosing, or "next step"
+   directives
 5. If a student directly asks "what is the diagnosis?", redirect with a question
 6. If the student indicates this involves a real patient, urgent deterioration, or an emergency, briefly state that this is educational only, tell them to follow local emergency protocols and contact a supervising clinician or emergency services immediately, and do not delay real care
 
