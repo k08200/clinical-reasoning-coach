@@ -84,6 +84,22 @@ SAFETY_COVERAGE_STOPWORDS = {
     "out",
 }
 
+SAFETY_COVERAGE_NEGATION_PATTERNS = [
+    r"\b(no|not|never)\b",
+    r"\bdidn'?t\b",
+    r"\bdid not\b",
+    r"\bhaven'?t\b",
+    r"\bhave not\b",
+    r"\bhasn'?t\b",
+    r"\bhas not\b",
+    r"\bwithout\b",
+    r"\bforgot\b",
+    r"\bmissed\b",
+    r"\bfailed to\b",
+    r"\bdid not assess\b",
+    r"\bdid not check\b",
+]
+
 
 def _build_claude_history(messages: list[Message]) -> list[dict]:
     """Convert stored messages to Claude API format, excluding the latest student message."""
@@ -168,9 +184,30 @@ def _tokens_for_safety_coverage(text: str) -> set[str]:
     return tokens
 
 
+def _normalize_for_safety_coverage(text: str) -> str:
+    return re.sub(r"\s+", " ", text.lower()).strip()
+
+
+def _is_negated_safety_mention(item_tokens: set[str], text: str) -> bool:
+    if not item_tokens:
+        return False
+
+    for sentence in re.split(r"[.!?\n;]+", text):
+        sentence_tokens = _tokens_for_safety_coverage(sentence)
+        if not sentence_tokens.intersection(item_tokens):
+            continue
+        normalized_sentence = _normalize_for_safety_coverage(sentence)
+        if any(
+            re.search(pattern, normalized_sentence)
+            for pattern in SAFETY_COVERAGE_NEGATION_PATTERNS
+        ):
+            return True
+    return False
+
+
 def _coverage_items_for_category(
     items: list[str],
-    student_turns: list[tuple[int, set[str]]],
+    student_turns: list[tuple[int, set[str], str]],
 ) -> list[ClinicalSafetyCoverageItem]:
     coverage_items: list[ClinicalSafetyCoverageItem] = []
     for item in items:
@@ -178,8 +215,9 @@ def _coverage_items_for_category(
         required_overlap = 1 if len(item_tokens) <= 1 else 2
         evidence_turns = [
             turn_number
-            for turn_number, turn_tokens in student_turns
+            for turn_number, turn_tokens, turn_text in student_turns
             if len(item_tokens.intersection(turn_tokens)) >= required_overlap
+            and not _is_negated_safety_mention(item_tokens, turn_text)
         ]
         coverage_items.append(
             ClinicalSafetyCoverageItem(
@@ -196,7 +234,7 @@ def _build_clinical_safety_coverage(
     session: CoachingSession,
 ) -> ClinicalSafetyCoverage:
     student_turns = [
-        (index, _tokens_for_safety_coverage(message.content))
+        (index, _tokens_for_safety_coverage(message.content), message.content)
         for index, message in enumerate(
             [message for message in session.messages if message.role == "student"],
             start=1,
