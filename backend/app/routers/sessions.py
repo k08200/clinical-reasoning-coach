@@ -147,6 +147,14 @@ def _bounded_confidence(value: object) -> float:
     return round(_clamp(_coerce_float(value, 0.0), 0.0, 1.0), 3)
 
 
+def _analyzed_student_scores(messages: list[Message]) -> list[float]:
+    return [
+        _bounded_reasoning_score(message.reasoning_score)
+        for message in messages
+        if message.role == "student" and message.reasoning_score is not None
+    ]
+
+
 def _build_review_feedback(session: CoachingSession) -> dict:
     score_totals: dict[str, float] = {}
     score_counts: dict[str, int] = {}
@@ -782,11 +790,7 @@ async def complete_session(
             detail="Session is not active",
         )
 
-    scores = [
-        _bounded_reasoning_score(m.reasoning_score)
-        for m in session.messages
-        if m.reasoning_score is not None
-    ]
+    scores = _analyzed_student_scores(session.messages)
     if not scores:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

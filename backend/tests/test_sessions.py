@@ -817,6 +817,140 @@ async def test_complete_session_bounds_final_score_from_stored_analysis_values(
 
 
 @pytest.mark.asyncio
+async def test_complete_session_ignores_coach_reasoning_scores_for_completion_gate(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"coach-score-guard-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Coach Score Guard",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=82,
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="What evidence would make you reconsider?",
+        reasoning_score=100,
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "minimum_reasoning_turns_incomplete",
+        "message": (
+            "Before finishing, complete at least two analyzed learner reasoning turns."
+        ),
+        "analyzed_turn_count": 1,
+        "minimum_turn_count": 2,
+        "remaining_turn_count": 1,
+    }
+    await db.refresh(session)
+    assert session.status == "active"
+    assert session.final_reasoning_score is None
+
+
+@pytest.mark.asyncio
+async def test_complete_session_ignores_coach_reasoning_scores_in_final_score(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"coach-final-score-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Coach Final Score",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=82,
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I would revisit the differential after the ECG and troponin trend and "
+            "state what evidence would lower my concern."
+        ),
+        reasoning_score=86,
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="Coach messages should not affect learner scoring.",
+        reasoning_score=0,
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "completed"
+    assert payload["final_reasoning_score"] == 84
+
+
+@pytest.mark.asyncio
 async def test_complete_session_requires_multiple_analyzed_reasoning_turns(
     client: AsyncClient,
     db: AsyncSession,
