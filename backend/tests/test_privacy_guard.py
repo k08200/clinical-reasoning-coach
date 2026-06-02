@@ -19,6 +19,21 @@ def test_detect_patient_identifiers_finds_common_phi_patterns():
     ]
 
 
+def test_detect_patient_identifiers_finds_korean_phi_patterns():
+    detected = detect_patient_identifiers(
+        "환자 이름은 홍길동, 생년월일 1970-01-02, "
+        "등록번호 A123456, 전화번호 010-1234-5678입니다."
+    )
+
+    assert detected == [
+        "phone_number",
+        "medical_record_number",
+        "date_of_birth",
+        "full_date",
+        "name_identifier",
+    ]
+
+
 def test_detect_patient_identifiers_allows_deidentified_reasoning():
     detected = detect_patient_identifiers(
         "The simulated patient is a 58-year-old man with chest pressure, "

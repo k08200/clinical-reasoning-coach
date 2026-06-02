@@ -138,6 +138,21 @@ def test_real_patient_safety_notice_detection():
     assert should_emit_real_patient_safety_notice(
         "My patient in clinic has severe chest pain right now."
     )
+    assert should_emit_real_patient_safety_notice(
+        "제 환자가 지금 숨을 못 쉬고 심한 가슴 통증이 있습니다."
+    )
+    assert should_emit_real_patient_safety_notice(
+        "응급실 가야 하나요? 119를 불러야 할까요?"
+    )
+    assert not should_emit_real_patient_safety_notice(
+        "이 시뮬레이션 케이스에서 환자가 지금 심한 가슴 통증을 호소합니다."
+    )
+    assert not should_emit_real_patient_safety_notice(
+        "교육용 증례에서 뇌졸중 증상을 보이는 환자를 평가하겠습니다."
+    )
+    assert should_emit_real_patient_safety_notice(
+        "시뮬레이션이 아니라 실제 환자가 지금 호흡 곤란이 있습니다."
+    )
 
 
 def test_management_safety_gap_detection_requires_missing_contraindication_checks():

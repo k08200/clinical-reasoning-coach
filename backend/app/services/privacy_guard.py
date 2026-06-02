@@ -30,6 +30,10 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
         ),
     ),
     IdentifierPattern(
+        "phone_number",
+        re.compile(r"(?<!\d)01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}(?!\d)"),
+    ),
+    IdentifierPattern(
         "social_security_number",
         re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
     ),
@@ -41,6 +45,10 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
         ),
     ),
     IdentifierPattern(
+        "medical_record_number",
+        re.compile(r"(?:등록번호|환자번호|차트번호)\s*[:#-]?\s*[A-Z0-9가-힣-]{4,}"),
+    ),
+    IdentifierPattern(
         "date_of_birth",
         re.compile(
             r"\b(?:DOB|date of birth|born)\s*[:#-]?\s*(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|[A-Z][a-z]+ \d{1,2},? \d{4})\b",
@@ -48,14 +56,28 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
         ),
     ),
     IdentifierPattern(
+        "date_of_birth",
+        re.compile(
+            r"(?:생년월일|출생일)\s*[:#-]?\s*(?:\d{2,4}[./-]\d{1,2}[./-]\d{1,2}|\d{2,4}년\s*\d{1,2}월\s*\d{1,2}일)"
+        ),
+    ),
+    IdentifierPattern(
         "full_date",
         re.compile(r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b"),
+    ),
+    IdentifierPattern(
+        "full_date",
+        re.compile(r"\b\d{2,4}[./-]\d{1,2}[./-]\d{1,2}\b"),
     ),
     IdentifierPattern(
         "name_identifier",
         re.compile(
             r"\b(?:patient(?:'s)? name|name|called)\s+(?:is|:)?\s*[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}\b"
         ),
+    ),
+    IdentifierPattern(
+        "name_identifier",
+        re.compile(r"(?:환자\s*)?(?:이름|성명)\s*(?:은|는|:)?\s*[가-힣]{2,5}"),
     ),
     IdentifierPattern(
         "street_address",
