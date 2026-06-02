@@ -47,8 +47,12 @@ from app.services.privacy_guard import (
     detect_patient_identifiers,
 )
 from app.services.reasoning_analyzer import (
+    SCORE_DIMENSIONS,
+    VALID_BIAS_SEVERITIES,
     analyze_student_response,
     build_reasoning_map,
+    _clamp,
+    _coerce_float,
 )
 from app.utils.auth import require_educational_use_consent
 
@@ -135,6 +139,14 @@ def _bounded_reasoning_score(value: float) -> float:
     return max(0.0, min(100.0, score))
 
 
+def _bounded_breakdown_value(value: object) -> float:
+    return round(_clamp(_coerce_float(value, 0.0), 0.0, 25.0), 1)
+
+
+def _bounded_confidence(value: object) -> float:
+    return round(_clamp(_coerce_float(value, 0.0), 0.0, 1.0), 3)
+
+
 def _build_review_feedback(session: CoachingSession) -> dict:
     score_totals: dict[str, float] = {}
     score_counts: dict[str, int] = {}
@@ -147,8 +159,12 @@ def _build_review_feedback(session: CoachingSession) -> dict:
             continue
 
         analysis = message.reasoning_analysis
-        for dimension, value in (analysis.get("score_breakdown") or {}).items():
-            score_totals[dimension] = score_totals.get(dimension, 0.0) + float(value)
+        raw_breakdown = analysis.get("score_breakdown") or {}
+        for dimension in SCORE_DIMENSIONS:
+            if dimension not in raw_breakdown:
+                continue
+            value = _bounded_breakdown_value(raw_breakdown[dimension])
+            score_totals[dimension] = score_totals.get(dimension, 0.0) + value
             score_counts[dimension] = score_counts.get(dimension, 0) + 1
 
         _append_unique(strengths, analysis.get("strengths"))
@@ -169,9 +185,13 @@ def _build_review_feedback(session: CoachingSession) -> dict:
         "bias_feedback": [
             {
                 "bias_type": event.bias_type,
-                "severity": event.severity,
+                "severity": (
+                    event.severity
+                    if event.severity in VALID_BIAS_SEVERITIES
+                    else "mild"
+                ),
                 "evidence": event.evidence,
-                "confidence": event.confidence,
+                "confidence": _bounded_confidence(event.confidence),
                 "message_turn": event.message_turn,
             }
             for event in sorted(session.bias_events, key=lambda event: event.message_turn)

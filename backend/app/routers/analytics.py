@@ -12,9 +12,27 @@ from app.models.message import Message
 from app.models.bias_event import BiasEvent
 from app.models.token_usage import TokenUsage
 from app.schemas.analytics import UserAnalytics, BiasPattern, ReasoningTrend
+from app.services.reasoning_analyzer import (
+    SCORE_DIMENSIONS,
+    VALID_BIAS_SEVERITIES,
+    _clamp,
+    _coerce_float,
+)
 from app.utils.auth import require_educational_use_consent
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
+
+
+def _bounded_reasoning_score(value: object) -> float:
+    return round(_clamp(_coerce_float(value, 0.0), 0.0, 100.0), 1)
+
+
+def _bounded_breakdown_value(value: object) -> float:
+    return round(_clamp(_coerce_float(value, 0.0), 0.0, 25.0), 1)
+
+
+def _bounded_confidence(value: object) -> float:
+    return round(_clamp(_coerce_float(value, 0.0), 0.0, 1.0), 3)
 
 
 @router.get("/me", response_model=UserAnalytics)
@@ -34,7 +52,11 @@ async def get_my_analytics(
     sessions = list(sessions_result.scalars().all())
 
     completed = [s for s in sessions if s.status == "completed"]
-    scores = [s.final_reasoning_score for s in completed if s.final_reasoning_score is not None]
+    scores = [
+        _bounded_reasoning_score(s.final_reasoning_score)
+        for s in completed
+        if s.final_reasoning_score is not None
+    ]
     avg_score = sum(scores) / len(scores) if scores else 0.0
 
     # Bias patterns
@@ -48,18 +70,18 @@ async def get_my_analytics(
         if b.bias_type not in bias_map:
             bias_map[b.bias_type] = {"count": 0, "severity_distribution": {}, "confidences": []}
         bias_map[b.bias_type]["count"] += 1
-        severity = b.severity
+        severity = b.severity if b.severity in VALID_BIAS_SEVERITIES else "mild"
         bias_map[b.bias_type]["severity_distribution"][severity] = (
             bias_map[b.bias_type]["severity_distribution"].get(severity, 0) + 1
         )
-        bias_map[b.bias_type]["confidences"].append(b.confidence)
+        bias_map[b.bias_type]["confidences"].append(_bounded_confidence(b.confidence))
 
     bias_patterns = [
         BiasPattern(
             bias_type=bt,
             count=data["count"],
             severity_distribution=data["severity_distribution"],
-            avg_confidence=sum(data["confidences"]) / len(data["confidences"]),
+            avg_confidence=round(sum(data["confidences"]) / len(data["confidences"]), 3),
         )
         for bt, data in bias_map.items()
     ]
@@ -69,7 +91,7 @@ async def get_my_analytics(
     trend = [
         ReasoningTrend(
             session_number=i + 1,
-            avg_score=s.final_reasoning_score or 0.0,
+            avg_score=_bounded_reasoning_score(s.final_reasoning_score),
             date=s.started_at.isoformat(),
         )
         for i, s in enumerate(completed[-10:])
@@ -87,7 +109,9 @@ async def get_my_analytics(
     for s in completed:
         if s.final_reasoning_score is not None:
             sp = s.case.specialty if s.case else "unknown"
-            specialty_scores.setdefault(sp, []).append(s.final_reasoning_score)
+            specialty_scores.setdefault(sp, []).append(
+                _bounded_reasoning_score(s.final_reasoning_score)
+            )
 
     specialty_performance = {
         sp: round(sum(sc) / len(sc), 1) for sp, sc in specialty_scores.items()
@@ -100,8 +124,12 @@ async def get_my_analytics(
         for m in s.messages:
             total_messages += 1
             if m.role == "student" and m.reasoning_analysis:
-                for dim, val in (m.reasoning_analysis.get("score_breakdown") or {}).items():
-                    breakdown_totals.setdefault(dim, []).append(val)
+                raw_breakdown = m.reasoning_analysis.get("score_breakdown") or {}
+                for dim in SCORE_DIMENSIONS:
+                    if dim in raw_breakdown:
+                        breakdown_totals.setdefault(dim, []).append(
+                            _bounded_breakdown_value(raw_breakdown[dim])
+                        )
 
     _DIMENSION_LABELS = {
         "systematic_approach": "Systematic approach",

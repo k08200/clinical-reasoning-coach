@@ -197,3 +197,69 @@ async def test_get_my_analytics_aggregates_completed_sessions(
     ]
     assert data["strongest_areas"] == ["Systematic approach", "Prioritization"]
     assert data["weakest_areas"] == ["Evidence integration", "Mechanism understanding"]
+
+
+@pytest.mark.asyncio
+async def test_get_my_analytics_bounds_legacy_stored_scores_and_confidence(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = await create_user(db)
+    clinical_case = make_case(specialty="emergency_medicine")
+    db.add(clinical_case)
+    await db.flush()
+
+    completed_session = CoachingSession(
+        user_id=user.id,
+        case_id=clinical_case.id,
+        status="completed",
+        final_reasoning_score=145,
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(completed_session)
+    await db.flush()
+    db.add_all([
+        Message(
+            session_id=completed_session.id,
+            role="student",
+            content="I would consider dangerous causes first.",
+            reasoning_score=145,
+            reasoning_analysis={
+                "score_breakdown": {
+                    "systematic_approach": 40,
+                    "evidence_integration": -2,
+                    "prioritization": "17",
+                    "mechanism_understanding": "bad",
+                    "unsupported_dimension": 99,
+                }
+            },
+        ),
+        BiasEvent(
+            session_id=completed_session.id,
+            user_id=user.id,
+            bias_type="anchoring",
+            severity="catastrophic",
+            evidence="Legacy invalid severity and confidence.",
+            confidence=2.5,
+            message_turn=1,
+        ),
+    ])
+    await db.commit()
+
+    response = await client.get("/api/analytics/me", headers=make_auth_headers(user.id))
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["avg_reasoning_score"] == 100
+    assert data["specialty_performance"] == {"emergency_medicine": 100.0}
+    assert data["reasoning_trend"][0]["avg_score"] == 100
+    assert data["bias_patterns"] == [
+        {
+            "bias_type": "anchoring",
+            "count": 1,
+            "severity_distribution": {"mild": 1},
+            "avg_confidence": 1.0,
+        }
+    ]
+    assert data["strongest_areas"] == ["Systematic approach", "Prioritization"]
+    assert data["weakest_areas"] == ["Evidence integration", "Mechanism understanding"]

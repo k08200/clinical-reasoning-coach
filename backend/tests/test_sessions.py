@@ -1543,3 +1543,91 @@ async def test_session_review_available_only_after_completion(
     assert coverage["contraindication_checks"][1]["covered"] is False
     assert payload["review_status"] == "educational_draft"
     assert "coach_guidance" not in payload
+
+
+@pytest.mark.asyncio
+async def test_session_review_bounds_stored_breakdown_and_bias_confidence(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"review-bounds-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Review Bounds Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="completed",
+        final_reasoning_score=82,
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=82,
+        reasoning_analysis={
+            "score_breakdown": {
+                "systematic_approach": 40,
+                "evidence_integration": -5,
+                "prioritization": "18",
+                "mechanism_understanding": "not a number",
+                "unsupported_dimension": 99,
+            },
+            "strengths": ["Prioritized dangerous diagnoses"],
+            "gaps": ["Needs more disconfirming evidence"],
+            "coach_insight": "Good initial safety framing.",
+        },
+    ))
+    db.add(BiasEvent(
+        session_id=session.id,
+        user_id=user.id,
+        bias_type="anchoring",
+        severity="catastrophic",
+        evidence="Focused on ACS before explicitly considering alternatives.",
+        confidence=2.4,
+        message_turn=1,
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.get(
+        f"/api/sessions/{session.id}/review",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["score_breakdown"] == {
+        "systematic_approach": 25.0,
+        "evidence_integration": 0.0,
+        "prioritization": 18.0,
+        "mechanism_understanding": 0.0,
+    }
+    assert "unsupported_dimension" not in payload["score_breakdown"]
+    assert payload["bias_feedback"] == [
+        {
+            "bias_type": "anchoring",
+            "severity": "mild",
+            "evidence": "Focused on ACS before explicitly considering alternatives.",
+            "confidence": 1.0,
+            "message_turn": 1,
+        }
+    ]
