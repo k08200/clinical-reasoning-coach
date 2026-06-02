@@ -272,4 +272,23 @@ describe("ReviewPage", () => {
     expect(mockMutateCases).toHaveBeenCalledOnce();
     expect(mockMutateHistory).toHaveBeenCalledOnce();
   });
+
+  it("blocks clinical review submission when safety metadata is incomplete", () => {
+    mockReviewSwr({
+      detail: makeReviewDetail({
+        clinical_red_flags: [],
+      }),
+    });
+
+    render(<ReviewPage />);
+
+    for (const checkbox of screen.getAllByRole("checkbox")) {
+      fireEvent.click(checkbox);
+    }
+
+    expect(screen.getByText("Quality Gate")).toBeTruthy();
+    expect(screen.getByText("At least 2 clinical red flags are required.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
+    expect(mockCompleteClinicalReview).not.toHaveBeenCalled();
+  });
 });

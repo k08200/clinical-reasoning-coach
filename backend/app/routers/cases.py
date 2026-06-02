@@ -18,9 +18,38 @@ from app.schemas.case import (
     GenerateCaseRequest,
 )
 from app.services.case_generator import generate_clinical_case, generate_demo_case
+from app.services.case_quality import evaluate_case_quality
 from app.utils.auth import require_clinical_reviewer, require_educational_use_consent
 
 router = APIRouter(prefix="/api/cases", tags=["cases"])
+
+CASE_QUALITY_FIELDS = (
+    "title",
+    "specialty",
+    "difficulty",
+    "chief_complaint",
+    "patient_demographics",
+    "history_of_present_illness",
+    "past_medical_history",
+    "medications",
+    "physical_exam",
+    "initial_labs",
+    "diagnosis",
+    "key_teaching_points",
+    "cognitive_traps",
+    "clinical_red_flags",
+    "time_critical_actions",
+    "contraindication_checks",
+    "clinical_sources",
+    "coach_guidance",
+)
+
+
+def _quality_payload_for_clinical_review(case: ClinicalCase) -> dict:
+    payload = {field: getattr(case, field) for field in CASE_QUALITY_FIELDS}
+    payload["review_status"] = "clinician_reviewed"
+    payload["last_reviewed_at"] = date.today().isoformat()
+    return payload
 
 
 @router.post("/generate", response_model=ClinicalCaseResponse, status_code=status.HTTP_201_CREATED)
@@ -102,6 +131,15 @@ async def complete_clinical_review(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Clinical review requires at least one supporting clinical source",
+        )
+    quality_report = evaluate_case_quality(_quality_payload_for_clinical_review(case))
+    if not quality_report.passed:
+        details = "; ".join(
+            quality_report.critical_issues + quality_report.warnings
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Clinical review blocked by case quality gate: {details}",
         )
 
     prior_review_status = case.review_status

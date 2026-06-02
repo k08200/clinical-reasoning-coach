@@ -34,6 +34,33 @@ function statusClasses(requiresCaution: boolean): string {
     : "border-emerald-700 bg-emerald-950/30 text-emerald-200";
 }
 
+function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
+  if (!detail) return ["Reviewer-only case detail must load before review."];
+  const issues: string[] = [];
+  if (detail.key_teaching_points.length < 3) {
+    issues.push("At least 3 key teaching points are required.");
+  }
+  if (detail.cognitive_traps.length < 2) {
+    issues.push("At least 2 cognitive traps are required.");
+  }
+  if (detail.clinical_red_flags.length < 2) {
+    issues.push("At least 2 clinical red flags are required.");
+  }
+  if (detail.time_critical_actions.length < 2) {
+    issues.push("At least 2 time-critical actions are required.");
+  }
+  if (detail.contraindication_checks.length < 2) {
+    issues.push("At least 2 contraindication checks are required.");
+  }
+  if (detail.clinical_sources.length < 1) {
+    issues.push("At least 1 clinical source is required.");
+  }
+  if (detail.clinical_sources.some((source) => source.supports.length === 0)) {
+    issues.push("Every clinical source must describe what it supports.");
+  }
+  return issues;
+}
+
 export default function ReviewPage() {
   const checkingAuth = useRequireAuth();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
@@ -76,6 +103,8 @@ export default function ReviewPage() {
     (clinicalCase) => clinicalCase.source_provenance.requires_caution,
   );
   const allChecksConfirmed = Object.values(checks).every(Boolean);
+  const qualityIssues = useMemo(() => reviewQualityIssues(reviewDetail), [reviewDetail]);
+  const canSubmitReview = allChecksConfirmed && qualityIssues.length === 0;
 
   async function handleSubmitReview() {
     if (!selectedCase) return;
@@ -326,6 +355,19 @@ export default function ReviewPage() {
                     </div>
                   )}
 
+                  {qualityIssues.length > 0 && (
+                    <div className="mt-4 rounded-lg border border-amber-700 bg-amber-950/30 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">
+                        Quality Gate
+                      </p>
+                      <ul className="mt-2 space-y-1 text-sm text-amber-100">
+                        {qualityIssues.map((issue) => (
+                          <li key={issue}>{issue}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="mt-4 rounded-lg border border-slate-700 bg-slate-900/40 p-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                       Source Provenance
@@ -407,7 +449,7 @@ export default function ReviewPage() {
                   </label>
                   <button
                     onClick={handleSubmitReview}
-                    disabled={!allChecksConfirmed || submitting}
+                    disabled={!canSubmitReview || submitting}
                     className="mt-4 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {submitting ? "Recording..." : "Mark Clinician Reviewed"}
