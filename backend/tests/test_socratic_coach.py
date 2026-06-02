@@ -221,6 +221,11 @@ def test_coach_response_guardrail_blocks_direct_management_variants():
         "Proceed with thrombolysis.",
         "Call the cath lab and give aspirin.",
         "Manage with insulin infusion after fluids.",
+        "The patient should receive aspirin now.",
+        "Heparin is indicated in this case.",
+        "Antibiotics are warranted now.",
+        "A fluid bolus should be given.",
+        "A cath lab activation is required.",
     ]
 
     for response in unsafe_responses:
@@ -236,6 +241,8 @@ def test_coach_response_guardrail_allows_socratic_safety_questions():
         "What information would you need before ordering CT imaging?",
         "Which finding would make this presentation time-sensitive?",
         "How would you decide whether anticoagulation is safe in this scenario?",
+        "What would make heparin indicated or unsafe in this simulated case?",
+        "Which finding would make antibiotics time-critical?",
     ]
 
     for response in safe_responses:

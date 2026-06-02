@@ -193,7 +193,7 @@ MANAGEMENT_ACTION_VERBS = (
 MANAGEMENT_ACTION_PATTERN = "|".join(MANAGEMENT_ACTION_VERBS)
 MANAGEMENT_TARGET_PATTERN = (
     r"alteplase|antibiotics?|anticoagulation|anticoagulants?|aspirin|"
-    r"blood cultures?|bolus|cath lab|ct|ecg|ekg|fluids?|heparin|insulin|"
+    r"blood cultures?|bolus|cath lab activation|cath lab|ct|ecg|ekg|fluids?|heparin|insulin|"
     r"pressors?|thrombolysis|tpa|vasopressors?"
 )
 MANAGEMENT_TARGET_PHRASE_PATTERN = (
@@ -210,6 +210,9 @@ DIRECT_MANAGEMENT_PATTERNS = [
     rf"\bi (?:recommend|would)\s+(?:{MANAGEMENT_ACTION_PATTERN})\b",
     rf"\b(?:proceed with|go ahead and|move to)\s+(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\b",
     rf"\b(?:this patient|the patient)\s+(?:needs|requires)\s+(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\b",
+    rf"\b(?:this patient|the patient)\s+should\s+(?:receive|get)\s+(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\b",
+    rf"\b(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\s+(?:is|are)\s+(?:indicated|warranted|required|needed)\b",
+    rf"\b(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\s+should\s+be\s+(?:given|administered|started|initiated|ordered|obtained)\b",
     rf"\b(?:treat|manage)\s+with\s+(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\b",
 ]
 RISKY_DIRECT_MANAGEMENT_PATTERNS = [
