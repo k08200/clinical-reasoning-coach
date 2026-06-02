@@ -297,14 +297,19 @@ MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
 ]
 
 DIAGNOSIS_LEAK_TERMS = {
+    "acute coronary syndrome": ["acute coronary syndrome", "acs"],
+    "myocardial infarction": ["myocardial infarction", "heart attack", "mi"],
     "stemi": [
         "stemi",
         "st elevation",
         "st-elevation",
         "myocardial infarction",
+        "heart attack",
+        "mi",
         "acute coronary syndrome",
         "acs",
     ],
+    "nstemi": ["nstemi", "non st elevation", "non-st elevation", "myocardial infarction", "mi"],
     "septic": ["septic shock", "urosepsis", "sepsis"],
     "pulmonary embolism": ["pulmonary embolism", "embolism", "pe"],
     "diabetic ketoacidosis": ["diabetic ketoacidosis", "ketoacidosis", "dka"],
@@ -371,12 +376,16 @@ def _diagnosis_leak_terms(case: ClinicalCase) -> list[str]:
 
 
 def _generic_diagnosis_leak_terms(diagnosis: str) -> list[str]:
+    raw_tokens = re.findall(r"[a-z0-9]+", diagnosis)
     tokens = [
         token
-        for token in re.findall(r"[a-z0-9]+", diagnosis)
+        for token in raw_tokens
         if token not in DIAGNOSIS_LEAK_STOPWORDS
     ]
     terms: set[str] = set()
+    acronym = "".join(token[0] for token in raw_tokens if token not in {"and", "or", "of", "the"})
+    if 3 <= len(acronym) <= 6 or acronym in {"mi", "pe"}:
+        terms.add(acronym)
     for size in (3, 2):
         for index in range(0, max(0, len(tokens) - size + 1)):
             phrase_tokens = tokens[index:index + size]

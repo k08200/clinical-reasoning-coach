@@ -249,6 +249,34 @@ def test_coach_response_guardrail_blocks_dynamic_diagnosis_terms():
         case,
         "What finding would most change your differential?",
     )
+    assert is_coach_response_safe(
+        case,
+        "What would make you ask about alcohol-associated causes?",
+    )
+
+
+def test_coach_response_guardrail_blocks_common_diagnosis_acronyms():
+    case = make_mock_case()
+    case.diagnosis = "Acute coronary syndrome"
+
+    assert not is_coach_response_safe(
+        case,
+        "ACS should be your leading concern here.",
+    )
+    assert not is_coach_response_safe(
+        case,
+        "What findings would make acute coronary syndrome less likely?",
+    )
+
+    case.diagnosis = "Myocardial infarction"
+    assert not is_coach_response_safe(
+        case,
+        "What ECG findings would make MI more likely?",
+    )
+    assert not is_coach_response_safe(
+        case,
+        "This sounds like a heart attack.",
+    )
 
 
 def test_coach_response_guardrail_blocks_direct_management_variants():
