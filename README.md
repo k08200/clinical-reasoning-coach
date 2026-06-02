@@ -52,11 +52,14 @@ APP_ENV=production
 SECRET_KEY=<long-random-secret>
 DATABASE_AUTO_CREATE_TABLES=false
 CORS_ORIGINS=["https://your-frontend.example.com"]
+ADMIN_BOOTSTRAP_TOKEN=<one-time-random-setup-token>
 LLM_PROVIDER=ollama  # 또는 claude
 ```
 
 - `APP_ENV=production`에서 기본 `SECRET_KEY=change-me-in-production`이면 백엔드가 시작되지 않습니다.
 - `APP_ENV=production`에서는 `DATABASE_AUTO_CREATE_TABLES=false`를 설정하고 Alembic migration을 적용해야 합니다.
+- 첫 관리자 계정은 일반 회원가입/로그인 후 `/admin/bootstrap`에서 `ADMIN_BOOTSTRAP_TOKEN`을 입력해 생성합니다.
+- 첫 admin이 생성된 뒤에는 bootstrap endpoint가 닫히므로, 이후 reviewer/admin 권한은 `/admin/users`에서 관리합니다.
 - `LLM_PROVIDER=claude`를 선택하면 `ANTHROPIC_API_KEY`가 반드시 필요합니다.
 - Docker smoke가 실패하면 `docker compose ps`로 `db`, `redis`, `backend`, `frontend`가 모두 떠 있는지 먼저 확인하세요.
 
@@ -162,6 +165,9 @@ node scripts/smoke-api.mjs
 POST /api/auth/register
 POST /api/auth/token
 POST /api/auth/refresh
+POST /api/auth/admin/bootstrap  ← 첫 admin setup token 검증
+GET  /api/auth/users            ← admin 전용 사용자 목록
+PATCH /api/auth/users/{id}/role ← admin 전용 역할 변경
 POST /api/cases/generate/demo   ← 5종 케이스 중 랜덤 선택
 POST /api/cases/generate        ← 전문과/난이도 지정 생성
 POST /api/sessions               ← 세션 시작

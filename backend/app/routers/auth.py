@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hmac
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -7,9 +8,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from app.config import get_settings
 from app.database import get_db
 from app.models.user import User
 from app.schemas.auth import (
+    AdminBootstrapRequest,
     EducationalUseConsentRequest,
     RefreshTokenRequest,
     UserRegister,
@@ -23,6 +26,7 @@ from app.utils.auth import (
     create_access_token,
     create_refresh_token,
     get_token_subject,
+    get_current_user,
     get_current_user_id,
     require_admin,
 )
@@ -131,6 +135,45 @@ async def get_me(
     user = await db.get(User, _uuid.UUID(user_id))
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return user
+
+
+@router.post("/admin/bootstrap", response_model=UserResponse)
+async def bootstrap_first_admin(
+    data: AdminBootstrapRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    settings = get_settings()
+    expected_token = settings.admin_bootstrap_token.strip()
+    if not expected_token:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin bootstrap is not configured",
+        )
+
+    if not user.accepted_educational_use:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Educational use consent required",
+        )
+
+    if not hmac.compare_digest(data.setup_token, expected_token):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid admin bootstrap token",
+        )
+
+    existing_admin = await db.scalar(select(User).where(User.role == "admin").limit(1))
+    if existing_admin:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Admin user already exists",
+        )
+
+    user.role = "admin"
+    await db.flush()
+    await db.refresh(user)
     return user
 
 

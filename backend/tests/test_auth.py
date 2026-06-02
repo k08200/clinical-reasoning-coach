@@ -6,6 +6,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.models.user import User
 from app.utils.auth import create_access_token, create_refresh_token, hash_password
 
@@ -273,6 +274,95 @@ async def test_get_me(client: AsyncClient, auth_headers: dict):
 async def test_get_me_no_token(client: AsyncClient):
     response = await client.get("/api/auth/me")
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_admin_bootstrap_requires_configured_token(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    get_settings.cache_clear()
+    learner = await create_user(db, email="bootstrap-disabled@test.com")
+
+    response = await client.post(
+        "/api/auth/admin/bootstrap",
+        json={"setup_token": "anything"},
+        headers=headers_for(learner),
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Admin bootstrap is not configured"
+
+
+@pytest.mark.asyncio
+async def test_admin_bootstrap_rejects_invalid_token(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setenv("ADMIN_BOOTSTRAP_TOKEN", "correct-bootstrap-token")
+    get_settings.cache_clear()
+    learner = await create_user(db, email="bootstrap-invalid@test.com")
+
+    response = await client.post(
+        "/api/auth/admin/bootstrap",
+        json={"setup_token": "wrong-token"},
+        headers=headers_for(learner),
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Invalid admin bootstrap token"
+    assert (await client.get("/api/auth/me", headers=headers_for(learner))).json()["role"] == "learner"
+    get_settings.cache_clear()
+
+
+@pytest.mark.asyncio
+async def test_admin_bootstrap_promotes_first_admin(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setenv("ADMIN_BOOTSTRAP_TOKEN", "first-admin-token")
+    get_settings.cache_clear()
+    learner = await create_user(db, email="bootstrap-first@test.com")
+
+    response = await client.post(
+        "/api/auth/admin/bootstrap",
+        json={"setup_token": "first-admin-token"},
+        headers=headers_for(learner),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["role"] == "admin"
+
+    users_response = await client.get("/api/auth/users", headers=headers_for(learner))
+    assert users_response.status_code == 200
+    assert any(user["email"] == "bootstrap-first@test.com" for user in users_response.json())
+    get_settings.cache_clear()
+
+
+@pytest.mark.asyncio
+async def test_admin_bootstrap_closes_after_admin_exists(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setenv("ADMIN_BOOTSTRAP_TOKEN", "first-admin-token")
+    get_settings.cache_clear()
+    admin = await create_user(db, email="existing-admin@test.com", role="admin")
+    learner = await create_user(db, email="bootstrap-second@test.com")
+
+    response = await client.post(
+        "/api/auth/admin/bootstrap",
+        json={"setup_token": "first-admin-token"},
+        headers=headers_for(learner),
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Admin user already exists"
+    assert (await client.get("/api/auth/me", headers=headers_for(learner))).json()["role"] == "learner"
+    assert (await client.get("/api/auth/me", headers=headers_for(admin))).json()["role"] == "admin"
+    get_settings.cache_clear()
 
 
 @pytest.mark.asyncio

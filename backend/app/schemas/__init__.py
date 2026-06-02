@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.schemas.auth import (
+    AdminBootstrapRequest,
     UserRegister,
     UserLogin,
     TokenResponse,
@@ -24,6 +25,7 @@ from app.schemas.session import (
 from app.schemas.analytics import UserAnalytics, BiasPattern
 
 __all__ = [
+    "AdminBootstrapRequest",
     "UserRegister",
     "UserLogin",
     "TokenResponse",

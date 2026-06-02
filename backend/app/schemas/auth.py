@@ -78,6 +78,10 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
 
+class AdminBootstrapRequest(BaseModel):
+    setup_token: str = Field(min_length=1, max_length=500)
+
+
 class UserRoleUpdateRequest(BaseModel):
     role: str
 

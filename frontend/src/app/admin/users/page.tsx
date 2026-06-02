@@ -88,6 +88,12 @@ export default function AdminUsersPage() {
           <div className="rounded-lg border border-amber-700 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">
             Admin role required.
           </div>
+          <Link
+            href="/admin/bootstrap"
+            className="mt-4 inline-block text-sm font-medium text-sky-300 hover:text-sky-200"
+          >
+            Initial Admin Setup
+          </Link>
         </main>
       </div>
     );

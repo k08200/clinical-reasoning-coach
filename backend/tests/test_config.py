@@ -61,3 +61,11 @@ def test_settings_reads_database_auto_create_tables_alias(monkeypatch: pytest.Mo
     settings = Settings()
 
     assert settings.database_auto_create_tables is False
+
+
+def test_settings_reads_admin_bootstrap_token_alias(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("ADMIN_BOOTSTRAP_TOKEN", "setup-token")
+
+    settings = Settings()
+
+    assert settings.admin_bootstrap_token == "setup-token"

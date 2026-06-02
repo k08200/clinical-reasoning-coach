@@ -100,6 +100,11 @@ export const api = {
     },
 
     me: () => request("/api/auth/me"),
+    bootstrapAdmin: (data: { setup_token: string }) =>
+      request("/api/auth/admin/bootstrap", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
     listUsers: () => request("/api/auth/users"),
     updateUserRole: (id: string, data: { role: UserRole }) =>
       request(`/api/auth/users/${id}/role`, {

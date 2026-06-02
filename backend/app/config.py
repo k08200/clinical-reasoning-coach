@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
     refresh_token_expire_days: int = 7
+    admin_bootstrap_token: str = Field(
+        default="",
+        validation_alias="ADMIN_BOOTSTRAP_TOKEN",
+    )
 
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@db:5432/clinical_coach"
