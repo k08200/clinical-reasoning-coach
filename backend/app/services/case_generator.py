@@ -29,9 +29,12 @@ Rules:
 - Include 2-3 cognitive biases that students commonly fall into with this case
 - Include safety metadata for clinician educators: red flags, time-critical actions,
   and contraindication checks. These are hidden from students and used by the coach.
-- Include at least one reputable clinical source with title, organization, url,
-  and the case element it supports. Mark review_status as "ai_generated_unreviewed"
-  unless a human clinician has reviewed it.
+- Include at least one reputable clinical source with title, organization, a
+  real HTTPS url, and at least two specific case elements it supports.
+- Do not use placeholder or unverifiable source URLs such as example.com,
+  example.org, localhost, or non-HTTPS links.
+- Mark review_status as "ai_generated_unreviewed" unless a human clinician has
+  reviewed it.
 
 Return ONLY valid JSON matching this exact schema:
 {
@@ -56,7 +59,7 @@ Return ONLY valid JSON matching this exact schema:
   "time_critical_actions": ["...", "..."],
   "contraindication_checks": ["...", "..."],
   "clinical_sources": [
-    {"title": "...", "organization": "...", "url": "...", "supports": ["..."]}
+    {"title": "...", "organization": "...", "url": "https://...", "supports": ["...", "..."]}
   ],
   "review_status": "ai_generated_unreviewed",
   "last_reviewed_at": null,

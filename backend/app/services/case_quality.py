@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import urlparse
 
 from app.schemas.case import ClinicalCaseCreate
 
@@ -16,6 +17,15 @@ ALLOWED_REVIEW_STATUSES = {
     "ai_generated_unreviewed",
     "educational_draft",
     "clinician_reviewed",
+}
+PLACEHOLDER_SOURCE_HOSTS = {
+    "example.com",
+    "example.org",
+    "example.net",
+    "example.test",
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
 }
 
 
@@ -139,6 +149,9 @@ def _check_source_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
         report.add_critical("at least 1 clinical source is required")
         return
     for index, source in enumerate(sources):
+        if not isinstance(source, dict):
+            report.add_critical(f"clinical_sources[{index}] must be an object")
+            continue
         missing = [
             key
             for key in ("title", "organization", "url", "supports")
@@ -148,6 +161,36 @@ def _check_source_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
             report.add_critical(
                 f"clinical_sources[{index}] missing {', '.join(missing)}"
             )
+            continue
+        _check_source_url(index, str(source["url"]), report)
+        supports = source.get("supports")
+        if (
+            not isinstance(supports, list)
+            or len([
+                item
+                for item in supports
+                if isinstance(item, str) and item.strip()
+            ]) < 2
+        ):
+            report.add_critical(
+                f"clinical_sources[{index}] must list at least 2 supported case elements"
+            )
+
+
+def _check_source_url(index: int, url: str, report: CaseQualityReport) -> None:
+    parsed = urlparse(url)
+    hostname = (parsed.hostname or "").lower()
+    if parsed.scheme != "https" or not hostname:
+        report.add_critical(f"clinical_sources[{index}].url must be a valid HTTPS URL")
+        return
+    if (
+        hostname in PLACEHOLDER_SOURCE_HOSTS
+        or hostname.endswith(".example")
+        or any(hostname.endswith(f".{host}") for host in PLACEHOLDER_SOURCE_HOSTS)
+    ):
+        report.add_critical(
+            f"clinical_sources[{index}].url must not use a placeholder source domain"
+        )
 
 
 def _check_review_metadata(data: dict[str, Any], report: CaseQualityReport) -> None:

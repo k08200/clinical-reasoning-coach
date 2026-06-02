@@ -326,6 +326,56 @@ async def test_clinical_review_requires_complete_safety_metadata(
     assert case.reviewed_by_user_id is None
 
 
+async def test_clinical_review_rejects_placeholder_source_url(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"source-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Source Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case_payload = dict(CASE_POOL[0])
+    case_payload["clinical_sources"] = [
+        {
+            "title": "Placeholder Guideline",
+            "organization": "Placeholder Society",
+            "url": "https://example.org/guideline",
+            "supports": ["diagnosis", "safety checks"],
+        }
+    ]
+    case = ClinicalCase(**case_payload)
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "educational_safety_confirmed": True,
+            "review_notes": "Trying to approve placeholder evidence.",
+        },
+    )
+
+    assert response.status_code == 409
+    assert "case quality gate" in response.json()["detail"]
+    assert "placeholder source domain" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.review_status == case_payload["review_status"]
+    assert case.reviewed_by_user_id is None
+
+
 async def test_clinician_reviewer_can_access_hidden_review_detail(
     client: AsyncClient,
     db: AsyncSession,
