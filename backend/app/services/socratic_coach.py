@@ -214,6 +214,32 @@ Physical exam: {case.physical_exam}
 Labs: {case.initial_labs}"""
 
 
+def _build_safety_focus_context(
+    uncovered_safety_targets: dict[str, list[str]] | None,
+) -> str:
+    if not uncovered_safety_targets or not any(uncovered_safety_targets.values()):
+        return ""
+
+    category_labels = {
+        "red_flags": "red flags still needing learner consideration",
+        "time_critical_actions": "time-critical actions still needing learner planning",
+        "contraindication_checks": "safety checks still needed before management",
+    }
+    lines = [
+        "CURRENT TURN SAFETY FOCUS (hidden from student):",
+        (
+            "Use these uncovered targets only to choose your next Socratic question. "
+            "Do not quote, enumerate, or reveal this checklist. Ask about one missing "
+            "safety area at a time and make the learner reason it out."
+        ),
+    ]
+    for category, label in category_labels.items():
+        items = uncovered_safety_targets.get(category) or []
+        if items:
+            lines.append(f"- {label}: {_format_list(items)}")
+    return "\n".join(lines)
+
+
 def _build_opening_message(case: ClinicalCase) -> str:
     demographics = case.patient_demographics
     age = demographics.get("age", "unknown")
@@ -267,9 +293,13 @@ async def stream_coach_response(
     conversation_history: list[dict[str, Any]],
     student_message: str,
     turn_number: int,
+    uncovered_safety_targets: dict[str, list[str]] | None = None,
 ) -> AsyncGenerator[StreamChunk, None]:
     case_context = _build_case_context(case)
-    full_system = f"{SOCRATIC_SYSTEM}\n\n{case_context}"
+    safety_focus_context = _build_safety_focus_context(uncovered_safety_targets)
+    full_system = "\n\n".join(
+        section for section in [SOCRATIC_SYSTEM, case_context, safety_focus_context] if section
+    )
 
     messages = list(conversation_history)
     messages.append({"role": "user", "content": student_message})

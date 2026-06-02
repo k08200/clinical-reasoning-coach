@@ -313,6 +313,85 @@ async def test_stream_response_persists_turn_before_done(
 
 
 @pytest.mark.asyncio
+async def test_stream_response_passes_current_uncovered_safety_targets(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    captured: dict[str, dict[str, list[str]]] = {}
+
+    async def capture_stream_coach_response(**kwargs) -> AsyncGenerator[StreamChunk, None]:
+        captured["uncovered_safety_targets"] = kwargs["uncovered_safety_targets"]
+        yield StreamChunk(
+            type="text_delta",
+            content="What remaining safety issue would you actively look for?",
+        )
+        yield StreamChunk(type="done")
+
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        capture_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fake_analyze_student_response,
+    )
+
+    user = User(
+        email=f"safety-focus-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Safety Focus Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="Opening case",
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={
+            "content": (
+                "I am worried about diaphoresis with crushing chest pain and would "
+                "obtain a 12-lead ECG within 10 minutes."
+            )
+        },
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert captured["uncovered_safety_targets"] == {
+        "red_flags": ["Hypoxia or hemodynamic instability"],
+        "time_critical_actions": ["Serial troponin trend"],
+        "contraindication_checks": [
+            "Aortic dissection features before anticoagulation",
+            "Major bleeding risk before antiplatelet therapy",
+        ],
+    }
+
+
+@pytest.mark.asyncio
 async def test_complete_session_requires_analyzed_learner_response(
     client: AsyncClient,
     db: AsyncSession,

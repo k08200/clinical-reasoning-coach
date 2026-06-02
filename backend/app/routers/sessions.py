@@ -233,10 +233,17 @@ def _build_clinical_safety_coverage(
     case: ClinicalCase,
     session: CoachingSession,
 ) -> ClinicalSafetyCoverage:
+    return _build_clinical_safety_coverage_for_messages(case, session.messages)
+
+
+def _build_clinical_safety_coverage_for_messages(
+    case: ClinicalCase,
+    messages: list[Message],
+) -> ClinicalSafetyCoverage:
     student_turns = [
         (index, _tokens_for_safety_coverage(message.content), message.content)
         for index, message in enumerate(
-            [message for message in session.messages if message.role == "student"],
+            [message for message in messages if message.role == "student"],
             start=1,
         )
     ]
@@ -258,6 +265,34 @@ def _build_clinical_safety_coverage(
         covered_count=sum(1 for item in all_items if item.covered),
         total_count=len(all_items),
     )
+
+
+def _uncovered_safety_targets(
+    coverage: ClinicalSafetyCoverage,
+) -> dict[str, list[str]]:
+    return {
+        "red_flags": [
+            item.item for item in coverage.red_flags if not item.covered
+        ],
+        "time_critical_actions": [
+            item.item for item in coverage.time_critical_actions if not item.covered
+        ],
+        "contraindication_checks": [
+            item.item for item in coverage.contraindication_checks if not item.covered
+        ],
+    }
+
+
+def _messages_with_current_turn(
+    session: CoachingSession,
+    student_msg: Message,
+) -> list[Message]:
+    messages_by_id = {
+        message.id: message
+        for message in [*session.messages, student_msg]
+        if message.id is not None
+    }
+    return list(messages_by_id.values())
 
 
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
@@ -430,6 +465,11 @@ async def stream_response(
     db.add(student_msg)
     await db.flush()
     student_msg_id = student_msg.id
+    safety_coverage = _build_clinical_safety_coverage_for_messages(
+        case,
+        _messages_with_current_turn(session, student_msg),
+    )
+    uncovered_safety_targets = _uncovered_safety_targets(safety_coverage)
     await db.commit()
 
     async def event_generator():
@@ -455,6 +495,7 @@ async def stream_response(
                 conversation_history=claude_history,
                 student_message=body.content,
                 turn_number=turn_number,
+                uncovered_safety_targets=uncovered_safety_targets,
             ):
                 if chunk.type == "thinking_start":
                     yield f"data: {json.dumps({'type': 'thinking', 'content': '...'})}\n\n"

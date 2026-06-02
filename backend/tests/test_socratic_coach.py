@@ -10,6 +10,7 @@ from app.services.socratic_coach import (
     REAL_PATIENT_SAFETY_RESPONSE,
     SAFE_GUARDRAIL_RESPONSE,
     SOCRATIC_SYSTEM,
+    _build_safety_focus_context,
     _build_case_context,
     get_opening_message,
     is_coach_response_safe,
@@ -80,6 +81,26 @@ def test_case_context_includes_hidden_safety_metadata():
     assert "Aortic dissection features before anticoagulation" in context
     assert "Chest pain guideline" in context
     assert "educational_draft" in context
+
+
+def test_safety_focus_context_only_lists_uncovered_targets():
+    context = _build_safety_focus_context({
+        "red_flags": [],
+        "time_critical_actions": ["12-lead ECG within 10 minutes"],
+        "contraindication_checks": ["Aortic dissection features before anticoagulation"],
+    })
+
+    assert "CURRENT TURN SAFETY FOCUS" in context
+    assert "time-critical actions still needing learner planning" in context
+    assert "safety checks still needed before management" in context
+    assert "12-lead ECG within 10 minutes" in context
+    assert "Aortic dissection features before anticoagulation" in context
+    assert "red flags still needing learner consideration" not in context
+    assert _build_safety_focus_context({
+        "red_flags": [],
+        "time_critical_actions": [],
+        "contraindication_checks": [],
+    }) == ""
 
 
 def test_socratic_system_prompt_contains_rules():
@@ -167,3 +188,47 @@ async def test_stream_replaces_diagnosis_leak_with_safe_question(monkeypatch: py
     assert response_text == SAFE_GUARDRAIL_RESPONSE
     assert "STEMI" not in response_text
     assert "cath lab" not in response_text
+
+
+@pytest.mark.asyncio
+async def test_stream_includes_current_safety_focus_in_system_prompt(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    captured: dict[str, str] = {}
+
+    class CapturingProvider:
+        async def stream(self, **kwargs):
+            captured["system"] = kwargs["system"]
+            yield StreamChunk(
+                type="text_delta",
+                content="What safety check would you complete before acting?",
+            )
+            yield StreamChunk(type="done")
+
+    monkeypatch.setattr(
+        "app.services.socratic_coach.get_provider",
+        lambda: CapturingProvider(),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in stream_coach_response(
+            case=make_mock_case(),
+            conversation_history=[],
+            student_message="In this simulated case, I need to think before treatment.",
+            turn_number=1,
+            uncovered_safety_targets={
+                "red_flags": [],
+                "time_critical_actions": [],
+                "contraindication_checks": [
+                    "Aortic dissection features before anticoagulation",
+                ],
+            },
+        )
+    ]
+
+    response_text = "".join(chunk.content for chunk in chunks if chunk.type == "text_delta")
+    assert response_text == "What safety check would you complete before acting?"
+    assert "CURRENT TURN SAFETY FOCUS" in captured["system"]
+    assert "Aortic dissection features before anticoagulation" in captured["system"]
+    assert "Do not quote, enumerate, or reveal this checklist" in captured["system"]
