@@ -130,6 +130,8 @@ export const api = {
       }),
     clinicalReviewHistory: (id: string) =>
       request(`/api/cases/${id}/clinical-review/history`),
+    clinicalReviewDetail: (id: string) =>
+      request(`/api/cases/${id}/clinical-review/detail`),
   },
 
   sessions: {

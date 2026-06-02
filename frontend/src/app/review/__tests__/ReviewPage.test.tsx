@@ -1,6 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ClinicalCase, ClinicalCaseReview, User } from "@/types";
+import type {
+  ClinicalCase,
+  ClinicalCaseReview,
+  ClinicalCaseReviewDetail,
+  User,
+} from "@/types";
 
 vi.mock("@/lib/useAuthGate", () => ({
   useRequireAuth: () => false,
@@ -19,6 +24,7 @@ vi.mock("@/lib/api", () => ({
       list: vi.fn(),
       completeClinicalReview: (...args: unknown[]) => mockCompleteClinicalReview(...args),
       clinicalReviewHistory: vi.fn(),
+      clinicalReviewDetail: vi.fn(),
     },
   },
 }));
@@ -108,14 +114,38 @@ const reviewHistory: ClinicalCaseReview[] = [
   },
 ];
 
+const makeReviewDetail = (
+  overrides: Partial<ClinicalCaseReviewDetail> = {},
+): ClinicalCaseReviewDetail => ({
+  ...makeCase(),
+  diagnosis: "Sepsis from urinary source",
+  clinical_red_flags: ["Hypotension", "Altered mental status"],
+  time_critical_actions: ["Blood cultures", "Broad-spectrum antibiotics"],
+  contraindication_checks: ["Fluid overload risk", "Drug allergy review"],
+  clinical_sources: [
+    {
+      title: "Surviving Sepsis Campaign Guidelines",
+      organization: "Society of Critical Care Medicine",
+      url: "https://www.sccm.org/survivingsepsis",
+      supports: ["time-critical antibiotics", "lactate-guided resuscitation"],
+    },
+  ],
+  coach_guidance: "Probe for sepsis recognition without revealing the diagnosis.",
+  reviewed_by_user_id: null,
+  review_notes: null,
+  ...overrides,
+});
+
 function mockReviewSwr({
   user = reviewer,
   cases = [makeCase()],
   history = reviewHistory,
+  detail = makeReviewDetail(),
 }: {
   user?: User;
   cases?: ClinicalCase[];
   history?: ClinicalCaseReview[];
+  detail?: ClinicalCaseReviewDetail;
 } = {}) {
   vi.mocked(useSWR).mockImplementation((key: unknown) => {
     if (key === "/api/auth/me") {
@@ -134,6 +164,9 @@ function mockReviewSwr({
         error: undefined,
         mutate: mockMutateHistory,
       } as ReturnType<typeof useSWR>;
+    }
+    if (typeof key === "string" && key.includes("/clinical-review/detail")) {
+      return { data: detail, error: undefined } as ReturnType<typeof useSWR>;
     }
     return { data: undefined, error: undefined } as ReturnType<typeof useSWR>;
   });
@@ -165,6 +198,10 @@ describe("ReviewPage", () => {
     expect(screen.getByText("Review Queue")).toBeTruthy();
     expect(screen.getAllByText("Chest Pain With Borderline Troponin").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Educational draft").length).toBeGreaterThan(0);
+    expect(screen.getByText("Sepsis from urinary source")).toBeTruthy();
+    expect(screen.getByText("Hypotension")).toBeTruthy();
+    expect(screen.getByText("Broad-spectrum antibiotics")).toBeTruthy();
+    expect(screen.getByText("Surviving Sepsis Campaign Guidelines")).toBeTruthy();
     expect(screen.getByText("Reviewed against cited source.")).toBeTruthy();
     expect(screen.getByText("educational draft to clinician reviewed")).toBeTruthy();
   });

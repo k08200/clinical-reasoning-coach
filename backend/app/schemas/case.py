@@ -62,6 +62,20 @@ class ClinicalCaseResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ClinicalCaseReviewDetailResponse(ClinicalCaseResponse):
+    diagnosis: str
+    clinical_red_flags: list[str]
+    time_critical_actions: list[str]
+    contraindication_checks: list[str]
+    clinical_sources: list[dict]
+    coach_guidance: str
+    reviewed_by_user_id: uuid.UUID | None = None
+    review_notes: str | None = None
+    # Reviewer-only response. This intentionally includes answer keys, hidden
+    # safety metadata, and raw source evidence so clinician reviewers can audit
+    # the case before marking it reviewed.
+
+
 class GenerateCaseRequest(BaseModel):
     specialty: str | None = None
     difficulty: str = "medium"

@@ -9,6 +9,7 @@ from app.schemas.auth import (
 from app.schemas.case import (
     ClinicalCaseCreate,
     ClinicalCaseResponse,
+    ClinicalCaseReviewDetailResponse,
     ClinicalCaseReviewResponse,
     ClinicalReviewRequest,
 )
@@ -28,6 +29,7 @@ __all__ = [
     "UserResponse",
     "ClinicalCaseCreate",
     "ClinicalCaseResponse",
+    "ClinicalCaseReviewDetailResponse",
     "ClinicalCaseReviewResponse",
     "ClinicalReviewRequest",
     "SessionCreate",

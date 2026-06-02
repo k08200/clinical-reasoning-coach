@@ -74,6 +74,24 @@ export interface ClinicalCaseReview {
   created_at: string;
 }
 
+export interface ClinicalSource {
+  title: string;
+  organization: string;
+  url: string;
+  supports: string[];
+}
+
+export interface ClinicalCaseReviewDetail extends ClinicalCase {
+  diagnosis: string;
+  clinical_red_flags: string[];
+  time_critical_actions: string[];
+  contraindication_checks: string[];
+  clinical_sources: ClinicalSource[];
+  coach_guidance: string;
+  reviewed_by_user_id: string | null;
+  review_notes: string | null;
+}
+
 export interface Message {
   id: string;
   role: "student" | "coach";

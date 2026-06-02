@@ -12,6 +12,7 @@ from app.models.case_review import ClinicalCaseReview
 from app.models.user import User
 from app.schemas.case import (
     ClinicalCaseResponse,
+    ClinicalCaseReviewDetailResponse,
     ClinicalCaseReviewResponse,
     ClinicalReviewRequest,
     GenerateCaseRequest,
@@ -137,6 +138,21 @@ async def complete_clinical_review(
 
     await db.flush()
     await db.refresh(case)
+    return case
+
+
+@router.get(
+    "/{case_id}/clinical-review/detail",
+    response_model=ClinicalCaseReviewDetailResponse,
+)
+async def get_clinical_review_detail(
+    case_id: uuid.UUID,
+    _reviewer: User = Depends(require_clinical_reviewer),
+    db: AsyncSession = Depends(get_db),
+) -> ClinicalCase:
+    case = await db.get(ClinicalCase, case_id)
+    if not case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
     return case
 
 

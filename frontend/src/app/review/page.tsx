@@ -5,7 +5,12 @@ import Link from "next/link";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import { useRequireAuth } from "@/lib/useAuthGate";
-import type { ClinicalCase, ClinicalCaseReview, User } from "@/types";
+import type {
+  ClinicalCase,
+  ClinicalCaseReview,
+  ClinicalCaseReviewDetail,
+  User,
+} from "@/types";
 
 type ReviewChecks = {
   clinical_accuracy_confirmed: boolean;
@@ -54,6 +59,12 @@ export default function ReviewPage() {
     [cases, selectedCaseId],
   );
   const activeCaseId = selectedCase?.id ?? null;
+  const { data: reviewDetail } = useSWR<ClinicalCaseReviewDetail>(
+    activeCaseId && canLoadReviewData
+      ? `/api/cases/${activeCaseId}/clinical-review/detail`
+      : null,
+    () => api.cases.clinicalReviewDetail(activeCaseId as string) as Promise<ClinicalCaseReviewDetail>,
+  );
   const { data: history, mutate: mutateHistory } = useSWR<ClinicalCaseReview[]>(
     activeCaseId && canLoadReviewData
       ? `/api/cases/${activeCaseId}/clinical-review/history`
@@ -183,6 +194,8 @@ export default function ReviewPage() {
                   key={clinicalCase.id}
                   onClick={() => {
                     setSelectedCaseId(clinicalCase.id);
+                    setChecks(DEFAULT_CHECKS);
+                    setReviewNotes("");
                     setActionError("");
                     setActionMessage("");
                   }}
@@ -250,6 +263,66 @@ export default function ReviewPage() {
                     </div>
                   </div>
 
+                  {reviewDetail ? (
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <div className="rounded-lg border border-emerald-700 bg-emerald-950/20 p-3">
+                        <p className="text-xs font-medium uppercase tracking-wide text-emerald-400">
+                          Diagnosis
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-emerald-100">
+                          {reviewDetail.diagnosis}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-3">
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                          Coach Guidance
+                        </p>
+                        <p className="mt-2 text-sm text-slate-300">
+                          {reviewDetail.coach_guidance}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-4 rounded-lg border border-slate-700 bg-slate-900/40 p-3 text-sm text-slate-400">
+                      Loading reviewer-only case detail...
+                    </div>
+                  )}
+
+                  {reviewDetail && (
+                    <div className="mt-4 grid gap-4 md:grid-cols-3">
+                      <div className="rounded-lg border border-red-800 bg-red-950/20 p-3">
+                        <p className="text-xs font-medium uppercase tracking-wide text-red-300">
+                          Red Flags
+                        </p>
+                        <ul className="mt-2 space-y-2 text-sm text-red-100">
+                          {reviewDetail.clinical_red_flags.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-lg border border-amber-800 bg-amber-950/20 p-3">
+                        <p className="text-xs font-medium uppercase tracking-wide text-amber-300">
+                          Time-Critical Actions
+                        </p>
+                        <ul className="mt-2 space-y-2 text-sm text-amber-100">
+                          {reviewDetail.time_critical_actions.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-lg border border-sky-800 bg-sky-950/20 p-3">
+                        <p className="text-xs font-medium uppercase tracking-wide text-sky-300">
+                          Contraindication Checks
+                        </p>
+                        <ul className="mt-2 space-y-2 text-sm text-sky-100">
+                          {reviewDetail.contraindication_checks.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="mt-4 rounded-lg border border-slate-700 bg-slate-900/40 p-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                       Source Provenance
@@ -262,6 +335,32 @@ export default function ReviewPage() {
                       <p className="mt-1 text-sm text-slate-400">
                         {selectedCase.source_provenance.organizations.join(", ")}
                       </p>
+                    )}
+                    {reviewDetail && (
+                      <div className="mt-3 space-y-3">
+                        {reviewDetail.clinical_sources.map((source) => (
+                          <div
+                            key={`${source.organization}-${source.title}`}
+                            className="rounded border border-slate-700 bg-slate-950/50 p-3"
+                          >
+                            <p className="text-sm font-semibold text-white">{source.title}</p>
+                            <p className="text-xs text-slate-400">{source.organization}</p>
+                            <a
+                              href={source.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-1 block break-all text-xs text-sky-300 hover:text-sky-200"
+                            >
+                              {source.url}
+                            </a>
+                            {source.supports.length > 0 && (
+                              <p className="mt-2 text-xs text-slate-300">
+                                Supports: {source.supports.join(", ")}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>

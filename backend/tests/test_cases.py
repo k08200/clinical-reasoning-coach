@@ -174,6 +174,25 @@ async def test_learner_cannot_mark_case_clinician_reviewed(
     assert response.json()["detail"] == "Clinician reviewer role required"
 
 
+async def test_learner_cannot_access_clinical_review_detail(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner_headers = await _register_and_login(client)
+    case = ClinicalCase(**CASE_POOL[0])
+    db.add(case)
+    await db.commit()
+    await db.refresh(case)
+
+    response = await client.get(
+        f"/api/cases/{case.id}/clinical-review/detail",
+        headers=learner_headers,
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Clinician reviewer role required"
+
+
 async def test_clinician_reviewer_can_mark_case_reviewed(
     client: AsyncClient,
     db: AsyncSession,
@@ -236,6 +255,45 @@ async def test_clinician_reviewer_can_mark_case_reviewed(
     }
     assert history[0]["source_snapshot"]["source_count"] == 1
     assert history[0]["source_snapshot"]["organizations"]
+
+
+async def test_clinician_reviewer_can_access_hidden_review_detail(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"detail-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Detail Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = ClinicalCase(**CASE_POOL[0])
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.get(
+        f"/api/cases/{case.id}/clinical-review/detail",
+        headers=reviewer_headers,
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["diagnosis"] == case.diagnosis
+    assert payload["coach_guidance"] == case.coach_guidance
+    assert payload["clinical_red_flags"] == case.clinical_red_flags
+    assert payload["time_critical_actions"] == case.time_critical_actions
+    assert payload["contraindication_checks"] == case.contraindication_checks
+    assert payload["clinical_sources"] == case.clinical_sources
+    assert payload["clinical_sources"][0]["url"]
+    assert payload["clinical_sources"][0]["supports"]
 
 
 async def test_clinical_review_history_requires_reviewer_role(
