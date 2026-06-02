@@ -60,6 +60,7 @@ router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 logger = logging.getLogger(__name__)
 SAFETY_LOCKED_SESSION_STATUS = "safety_locked"
 MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION = 2
+MIN_REASONING_SCORE_FOR_COMPLETION = 60.0
 
 SAFETY_COVERAGE_STOPWORDS = {
     "the",
@@ -505,6 +506,19 @@ def _minimum_reasoning_turns_block_detail(analyzed_turn_count: int) -> dict:
             MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION - analyzed_turn_count,
             0,
         ),
+    }
+
+
+def _reasoning_quality_block_detail(final_score: float) -> dict:
+    return {
+        "code": "clinical_reasoning_quality_incomplete",
+        "message": (
+            "Before finishing, strengthen your clinical reasoning quality with "
+            "clearer differential diagnosis, evidence integration, prioritization, "
+            "and mechanism explanation."
+        ),
+        "current_score": round(final_score, 1),
+        "minimum_score": MIN_REASONING_SCORE_FOR_COMPLETION,
     }
 
 
@@ -960,6 +974,11 @@ async def complete_session(
         )
 
     final_score = sum(scores) / len(scores)
+    if final_score < MIN_REASONING_SCORE_FOR_COMPLETION:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=_reasoning_quality_block_detail(final_score),
+        )
 
     bias_counts: dict[str, int] = {}
     for event in session.bias_events:

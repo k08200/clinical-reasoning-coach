@@ -311,6 +311,43 @@ describe("SessionPage", () => {
     expect(screen.getByText(/checklist stays hidden/)).toBeTruthy();
   });
 
+  it("shows reasoning quality guidance when completion score is too low", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+          secondAnalyzedStudentMessage,
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockComplete.mockRejectedValueOnce({
+      message: "Before finishing, strengthen your clinical reasoning quality.",
+      detail: {
+        code: "clinical_reasoning_quality_incomplete",
+        message: "Before finishing, strengthen your clinical reasoning quality.",
+        current_score: 52.5,
+        minimum_score: 60,
+      },
+    });
+
+    render(<SessionPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish Session" }));
+
+    expect(await screen.findByText("Clinical reasoning quality still needs work")).toBeTruthy();
+    expect(screen.getByText(/Current analyzed score: 52\.5\/100/)).toBeTruthy();
+    expect(screen.getByText(/Minimum to finish: 60\/100/)).toBeTruthy();
+    expect(screen.getByText(/differential, supporting evidence/)).toBeTruthy();
+  });
+
   it("locks the composer and completion controls for safety-locked sessions", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession({

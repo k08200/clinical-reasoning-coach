@@ -34,6 +34,13 @@ type CompletionReasoningTurnsDetail = {
   remaining_turn_count: number;
 };
 
+type CompletionReasoningQualityDetail = {
+  code: "clinical_reasoning_quality_incomplete";
+  message: string;
+  current_score: number;
+  minimum_score: number;
+};
+
 function safetyCoverageLabel(category: string): string {
   if (category === "red_flags") return "Red Flags";
   if (category === "time_critical_actions") return "Time-Critical Actions";
@@ -76,6 +83,23 @@ function isCompletionReasoningTurnsDetail(
   );
 }
 
+function isCompletionReasoningQualityDetail(
+  value: unknown,
+): value is CompletionReasoningQualityDetail {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "code" in value &&
+    value.code === "clinical_reasoning_quality_incomplete" &&
+    "message" in value &&
+    typeof value.message === "string" &&
+    "current_score" in value &&
+    typeof value.current_score === "number" &&
+    "minimum_score" in value &&
+    typeof value.minimum_score === "number"
+  );
+}
+
 function errorDetail(error: unknown): unknown {
   if (!error || typeof error !== "object" || !("detail" in error)) return null;
   return error.detail;
@@ -109,6 +133,8 @@ export default function SessionPage() {
     useState<CompletionSafetyDetail | null>(null);
   const [completionReasoningTurnsDetail, setCompletionReasoningTurnsDetail] =
     useState<CompletionReasoningTurnsDetail | null>(null);
+  const [completionReasoningQualityDetail, setCompletionReasoningQualityDetail] =
+    useState<CompletionReasoningQualityDetail | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -154,6 +180,7 @@ export default function SessionPage() {
     setError("");
     setCompletionSafetyDetail(null);
     setCompletionReasoningTurnsDetail(null);
+    setCompletionReasoningQualityDetail(null);
 
     try {
       await streamMessage(id, content, {
@@ -201,6 +228,7 @@ export default function SessionPage() {
     setError("");
     setCompletionSafetyDetail(null);
     setCompletionReasoningTurnsDetail(null);
+    setCompletionReasoningQualityDetail(null);
     try {
       await api.sessions.complete(id);
       await mutate();
@@ -211,6 +239,9 @@ export default function SessionPage() {
         setError("");
       } else if (isCompletionReasoningTurnsDetail(detail)) {
         setCompletionReasoningTurnsDetail(detail);
+        setError("");
+      } else if (isCompletionReasoningQualityDetail(detail)) {
+        setCompletionReasoningQualityDetail(detail);
         setError("");
       } else {
         setError(err instanceof Error ? err.message : "Could not finish the session");
@@ -391,6 +422,33 @@ export default function SessionPage() {
               <p className="mt-3 text-xs text-amber-300">
                 A usable review needs at least two analyzed reasoning turns so the coach can assess
                 how your differential, evidence, and safety plan evolve.
+              </p>
+            </div>
+          )}
+
+          {completionReasoningQualityDetail && (
+            <div className="mx-4 mt-4 rounded-lg border border-amber-700 bg-amber-950/45 px-4 py-3 text-sm leading-relaxed text-amber-100">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">Clinical reasoning quality still needs work</p>
+                  <p className="mt-1 text-amber-200">
+                    Current analyzed score:{" "}
+                    {completionReasoningQualityDetail.current_score.toFixed(1)}/100.
+                    Minimum to finish:{" "}
+                    {completionReasoningQualityDetail.minimum_score.toFixed(0)}/100.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => textareaRef.current?.focus()}
+                  className="rounded-lg border border-amber-600 px-3 py-1.5 text-xs font-semibold text-amber-100 hover:bg-amber-900/60"
+                >
+                  Continue Reasoning
+                </button>
+              </div>
+              <p className="mt-3 text-xs text-amber-300">
+                Continue the case and make the differential, supporting evidence,
+                prioritization, and mechanism explicit before finishing.
               </p>
             </div>
           )}

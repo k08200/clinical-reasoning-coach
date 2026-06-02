@@ -906,7 +906,7 @@ async def test_complete_session_accepts_korean_clinical_safety_coverage(
 
 
 @pytest.mark.asyncio
-async def test_complete_session_bounds_final_score_from_stored_analysis_values(
+async def test_complete_session_blocks_low_bounded_reasoning_score(
     client: AsyncClient,
     db: AsyncSession,
 ):
@@ -960,10 +960,21 @@ async def test_complete_session_bounds_final_score_from_stored_analysis_values(
         headers=auth_headers,
     )
 
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["status"] == "completed"
-    assert payload["final_reasoning_score"] == 50
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "clinical_reasoning_quality_incomplete",
+        "message": (
+            "Before finishing, strengthen your clinical reasoning quality with "
+            "clearer differential diagnosis, evidence integration, prioritization, "
+            "and mechanism explanation."
+        ),
+        "current_score": 50.0,
+        "minimum_score": 60.0,
+    }
+    await db.refresh(session)
+    assert session.status == "active"
+    assert session.final_reasoning_score is None
+    assert session.completed_at is None
 
 
 @pytest.mark.asyncio
