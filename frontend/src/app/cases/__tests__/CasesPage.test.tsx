@@ -213,7 +213,7 @@ describe("CasesPage", () => {
     expect(screen.queryByText(/Reviewed/)).toBeFalsy();
   });
 
-  it("requires acknowledgement before starting a stale reviewed case", async () => {
+  it("blocks starting a stale reviewed case until re-review", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: [
         makeCase({
@@ -233,29 +233,18 @@ describe("CasesPage", () => {
       error: undefined,
       mutate: mockMutate,
     } as unknown as ReturnType<typeof useSWR>);
-    mockCreateSession.mockResolvedValue({ id: "session-stale" });
-
     render(<CasesPage />);
 
     expect(screen.getByText("Clinician review stale")).toBeTruthy();
     expect(screen.getByText("Clinician review is stale; re-review required.")).toBeTruthy();
     expect(screen.getByText("Reviewed 2024-01-01 · Valid until 2024-12-31")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Start Session" }));
-
-    expect(
-      screen.getByText("This case has a stale clinician review. Start only as educational simulation."),
-    ).toBeTruthy();
+    const startButton = screen.getByRole("button", { name: "Re-review Required" });
+    expect(startButton).toHaveProperty("disabled", true);
     expect(mockCreateSession).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole("button", { name: "Acknowledge and Start" }));
-
-    await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1", {
-      acknowledge_unreviewed_case: true,
-    }));
-    expect(mockPush).toHaveBeenCalledWith("/sessions/session-stale");
+    expect(screen.queryByText(/Start only as educational simulation/)).toBeFalsy();
   });
 
-  it("requires acknowledgement before starting a case changed after review", async () => {
+  it("blocks starting a case changed after review until re-review", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: [
         makeCase({
@@ -275,27 +264,14 @@ describe("CasesPage", () => {
       error: undefined,
       mutate: mockMutate,
     } as unknown as ReturnType<typeof useSWR>);
-    mockCreateSession.mockResolvedValue({ id: "session-changed" });
-
     render(<CasesPage />);
 
     expect(screen.getByText("Clinician review content changed")).toBeTruthy();
     expect(screen.getByText("Case changed after clinician review; re-review required.")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Start Session" }));
-
-    expect(
-      screen.getByText(
-        "This case changed after clinician review. Start only as educational simulation.",
-      ),
-    ).toBeTruthy();
+    const startButton = screen.getByRole("button", { name: "Re-review Required" });
+    expect(startButton).toHaveProperty("disabled", true);
     expect(mockCreateSession).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole("button", { name: "Acknowledge and Start" }));
-
-    await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1", {
-      acknowledge_unreviewed_case: true,
-    }));
-    expect(mockPush).toHaveBeenCalledWith("/sessions/session-changed");
+    expect(screen.queryByText(/Start only as educational simulation/)).toBeFalsy();
   });
 
   it("generates a demo case and refreshes the list", async () => {

@@ -541,7 +541,7 @@ async def test_clinical_review_writes_audit_log(
     assert review.source_snapshot["supported_elements"][0]["title"]
 
 
-async def test_post_review_case_content_change_requires_caution_and_session_ack(
+async def test_post_review_case_content_change_blocks_sessions_until_re_review(
     client: AsyncClient,
     db: AsyncSession,
 ):
@@ -599,12 +599,15 @@ async def test_post_review_case_content_change_requires_caution_and_session_ack(
         json={"case_id": str(case.id)},
         headers=reviewer_headers,
     )
-    assert blocked_session_response.status_code == 400
-    assert "not currently clinician reviewed" in blocked_session_response.json()["detail"]
+    assert blocked_session_response.status_code == 409
+    assert "changed after clinician review" in blocked_session_response.json()["detail"]
 
     acknowledged_session_response = await client.post(
         "/api/sessions",
         json={"case_id": str(case.id), "acknowledge_unreviewed_case": True},
         headers=reviewer_headers,
     )
-    assert acknowledged_session_response.status_code == 201
+    assert acknowledged_session_response.status_code == 409
+    assert "changed after clinician review" in acknowledged_session_response.json()["detail"]
+    await db.refresh(case)
+    assert case.times_used == 0

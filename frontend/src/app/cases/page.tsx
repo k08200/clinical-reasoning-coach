@@ -47,6 +47,9 @@ export default function CasesPage() {
   const caseList = cases ?? [];
   const canReview =
     currentUser?.role === "clinician_reviewer" || currentUser?.role === "admin";
+  const requiresReReview = (clinicalCase: ClinicalCase): boolean =>
+    clinicalCase.source_provenance.review_stale ||
+    clinicalCase.source_provenance.review_content_changed;
 
   async function handleGenerateDemo() {
     setGenerating(true);
@@ -63,6 +66,11 @@ export default function CasesPage() {
   }
 
   async function handleStartSession(clinicalCase: ClinicalCase, acknowledged = false) {
+    if (requiresReReview(clinicalCase)) {
+      setAcknowledgingCase(null);
+      setActionError("This case requires clinician re-review before sessions can start.");
+      return;
+    }
     if (clinicalCase.source_provenance.requires_caution && !acknowledged) {
       setAcknowledgingCase(clinicalCase.id);
       setActionError("");
@@ -212,102 +220,109 @@ export default function CasesPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {caseList.map((c) => (
-              <div
-                key={c.id}
-                className="bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-slate-600 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <span className="text-xs text-brand-400 font-medium uppercase tracking-wide">
-                    {c.specialty.replace(/_/g, " ")}
-                  </span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      DIFFICULTY_COLORS[c.difficulty]
-                    }`}
-                  >
-                    {c.difficulty}
-                  </span>
-                </div>
-
-                <h3 className="text-white font-semibold mb-2 line-clamp-2">{c.title}</h3>
-
-                <p className="text-slate-400 text-sm mb-1">
-                  <strong className="text-slate-300">CC:</strong> {c.chief_complaint}
-                </p>
-                <p className="text-slate-400 text-sm mb-4">
-                  {c.patient_demographics.age}yo {c.patient_demographics.sex}
-                </p>
-
-                <div className="mb-4 rounded-lg border border-slate-700 bg-slate-900/40 px-3 py-2">
-                  <div className="flex items-center justify-between gap-3 text-xs">
-                    <span className="font-medium text-slate-300">
-                      {c.source_provenance.source_count} clinical source
-                      {c.source_provenance.source_count === 1 ? "" : "s"}
+            {caseList.map((c) => {
+              const reReviewRequired = requiresReReview(c);
+              return (
+                <div
+                  key={c.id}
+                  className="bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-slate-600 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <span className="text-xs text-brand-400 font-medium uppercase tracking-wide">
+                      {c.specialty.replace(/_/g, " ")}
                     </span>
                     <span
-                      className={`rounded-full px-2 py-0.5 font-medium ${
-                        c.source_provenance.requires_caution
-                          ? "bg-amber-950/50 text-amber-300"
-                          : "bg-emerald-950/50 text-emerald-300"
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        DIFFICULTY_COLORS[c.difficulty]
                       }`}
                     >
-                      {c.source_provenance.review_label}
+                      {c.difficulty}
                     </span>
                   </div>
-                  {c.source_provenance.requires_caution && (
-                    <p className="mt-2 text-xs font-medium text-amber-300">
-                      {cautionText(c)}
-                    </p>
-                  )}
-                  {c.source_provenance.organizations.length > 0 && (
-                    <p className="mt-1 line-clamp-2 text-xs text-slate-400">
-                      {c.source_provenance.organizations.join(", ")}
-                    </p>
-                  )}
-                  {c.source_provenance.last_reviewed_at && (
-                    <p className="mt-1 text-xs text-slate-500">
-                      Reviewed {c.source_provenance.last_reviewed_at}
-                      {c.source_provenance.review_valid_until
-                        ? ` · Valid until ${c.source_provenance.review_valid_until}`
-                        : ""}
-                    </p>
-                  )}
-                </div>
 
-                {acknowledgingCase === c.id && (
-                  <div className="mb-4 border-l-2 border-amber-500 bg-amber-950/20 px-3 py-2 text-xs text-amber-100">
-                    {acknowledgementText(c)}
-                    <div className="mt-2 flex gap-2">
-                      <button
-                        onClick={() => handleStartSession(c, true)}
-                        disabled={startingSession === c.id}
-                        className="rounded bg-amber-600 px-3 py-1 font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+                  <h3 className="text-white font-semibold mb-2 line-clamp-2">{c.title}</h3>
+
+                  <p className="text-slate-400 text-sm mb-1">
+                    <strong className="text-slate-300">CC:</strong> {c.chief_complaint}
+                  </p>
+                  <p className="text-slate-400 text-sm mb-4">
+                    {c.patient_demographics.age}yo {c.patient_demographics.sex}
+                  </p>
+
+                  <div className="mb-4 rounded-lg border border-slate-700 bg-slate-900/40 px-3 py-2">
+                    <div className="flex items-center justify-between gap-3 text-xs">
+                      <span className="font-medium text-slate-300">
+                        {c.source_provenance.source_count} clinical source
+                        {c.source_provenance.source_count === 1 ? "" : "s"}
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 font-medium ${
+                          c.source_provenance.requires_caution
+                            ? "bg-amber-950/50 text-amber-300"
+                            : "bg-emerald-950/50 text-emerald-300"
+                        }`}
                       >
-                        Acknowledge and Start
-                      </button>
-                      <button
-                        onClick={() => setAcknowledgingCase(null)}
-                        className="rounded border border-amber-700 px-3 py-1 font-semibold text-amber-100 hover:bg-amber-950/50"
-                      >
-                        Cancel
-                      </button>
+                        {c.source_provenance.review_label}
+                      </span>
                     </div>
+                    {c.source_provenance.requires_caution && (
+                      <p className="mt-2 text-xs font-medium text-amber-300">
+                        {cautionText(c)}
+                      </p>
+                    )}
+                    {c.source_provenance.organizations.length > 0 && (
+                      <p className="mt-1 line-clamp-2 text-xs text-slate-400">
+                        {c.source_provenance.organizations.join(", ")}
+                      </p>
+                    )}
+                    {c.source_provenance.last_reviewed_at && (
+                      <p className="mt-1 text-xs text-slate-500">
+                        Reviewed {c.source_provenance.last_reviewed_at}
+                        {c.source_provenance.review_valid_until
+                          ? ` · Valid until ${c.source_provenance.review_valid_until}`
+                          : ""}
+                      </p>
+                    )}
                   </div>
-                )}
 
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">{c.times_used} sessions</span>
-                  <button
-                    onClick={() => handleStartSession(c)}
-                    disabled={startingSession === c.id}
-                    className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm rounded-lg font-medium transition-colors"
-                  >
-                    {startingSession === c.id ? "Starting..." : "Start Session"}
-                  </button>
+                  {acknowledgingCase === c.id && !reReviewRequired && (
+                    <div className="mb-4 border-l-2 border-amber-500 bg-amber-950/20 px-3 py-2 text-xs text-amber-100">
+                      {acknowledgementText(c)}
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          onClick={() => handleStartSession(c, true)}
+                          disabled={startingSession === c.id}
+                          className="rounded bg-amber-600 px-3 py-1 font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+                        >
+                          Acknowledge and Start
+                        </button>
+                        <button
+                          onClick={() => setAcknowledgingCase(null)}
+                          className="rounded border border-amber-700 px-3 py-1 font-semibold text-amber-100 hover:bg-amber-950/50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-500">{c.times_used} sessions</span>
+                    <button
+                      onClick={() => handleStartSession(c)}
+                      disabled={startingSession === c.id || reReviewRequired}
+                      className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm rounded-lg font-medium transition-colors"
+                    >
+                      {reReviewRequired
+                        ? "Re-review Required"
+                        : startingSession === c.id
+                          ? "Starting..."
+                          : "Start Session"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>

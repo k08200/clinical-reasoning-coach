@@ -620,6 +620,22 @@ async def create_session(
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
     source_provenance = case.source_provenance
+    if source_provenance["review_content_changed"]:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This case changed after clinician review and requires re-review "
+                "before learner sessions can start."
+            ),
+        )
+    if source_provenance["review_stale"]:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This case has a stale clinician review and requires updated "
+                "clinical review before learner sessions can start."
+            ),
+        )
     if source_provenance["requires_caution"] and not body.acknowledge_unreviewed_case:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

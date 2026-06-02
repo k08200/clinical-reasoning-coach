@@ -183,7 +183,7 @@ async def test_create_session_allows_clinician_reviewed_case_without_acknowledge
 
 
 @pytest.mark.asyncio
-async def test_create_session_requires_acknowledgement_for_stale_reviewed_case(
+async def test_create_session_blocks_stale_reviewed_case_even_with_acknowledgement(
     client: AsyncClient,
     db: AsyncSession,
 ):
@@ -205,14 +205,14 @@ async def test_create_session_requires_acknowledgement_for_stale_reviewed_case(
         "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
     }
 
-    blocked_response = await client.post(
+    response = await client.post(
         "/api/sessions",
         json={"case_id": str(case.id)},
         headers=auth_headers,
     )
 
-    assert blocked_response.status_code == 400
-    assert "not currently clinician reviewed" in blocked_response.json()["detail"]
+    assert response.status_code == 409
+    assert "stale clinician review" in response.json()["detail"]
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -222,9 +222,10 @@ async def test_create_session_requires_acknowledgement_for_stale_reviewed_case(
         headers=auth_headers,
     )
 
-    assert acknowledged_response.status_code == 201
+    assert acknowledged_response.status_code == 409
+    assert "stale clinician review" in acknowledged_response.json()["detail"]
     await db.refresh(case)
-    assert case.times_used == 1
+    assert case.times_used == 0
 
 
 @pytest.mark.asyncio
