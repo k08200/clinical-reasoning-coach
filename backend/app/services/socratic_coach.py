@@ -249,6 +249,25 @@ DIAGNOSIS_LEAK_TERMS = {
     "diabetic ketoacidosis": ["diabetic ketoacidosis", "ketoacidosis", "dka"],
     "ischemic stroke": ["ischemic stroke", "cardioembolic stroke", "stroke"],
 }
+DIAGNOSIS_LEAK_STOPWORDS = {
+    "acute",
+    "and",
+    "associated",
+    "chronic",
+    "due",
+    "from",
+    "likely",
+    "mild",
+    "moderate",
+    "secondary",
+    "severe",
+    "suspected",
+    "the",
+    "to",
+    "type",
+    "with",
+    "without",
+}
 
 SAFE_GUARDRAIL_RESPONSE = (
     "Let's keep this as a reasoning exercise. What findings make this presentation "
@@ -286,7 +305,26 @@ def _diagnosis_leak_terms(case: ClinicalCase) -> list[str]:
     for trigger, candidates in DIAGNOSIS_LEAK_TERMS.items():
         if trigger in diagnosis:
             terms.extend(candidates)
+    terms.extend(_generic_diagnosis_leak_terms(diagnosis))
     return sorted(set(terms), key=len, reverse=True)
+
+
+def _generic_diagnosis_leak_terms(diagnosis: str) -> list[str]:
+    tokens = [
+        token
+        for token in re.findall(r"[a-z0-9]+", diagnosis)
+        if token not in DIAGNOSIS_LEAK_STOPWORDS
+    ]
+    terms: set[str] = set()
+    for size in (3, 2):
+        for index in range(0, max(0, len(tokens) - size + 1)):
+            phrase_tokens = tokens[index:index + size]
+            if any(len(token) >= 4 for token in phrase_tokens):
+                terms.add(" ".join(phrase_tokens))
+    for token in tokens:
+        if len(token) >= 5 or token in {"acs", "copd", "dka", "nstemi", "stemi"}:
+            terms.add(token)
+    return list(terms)
 
 
 def _contains_diagnosis_leak(case: ClinicalCase, text: str) -> bool:

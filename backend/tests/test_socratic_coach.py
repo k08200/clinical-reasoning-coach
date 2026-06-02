@@ -211,6 +211,24 @@ def test_coach_response_guardrail_detects_unsafe_clinical_content():
     assert not is_coach_response_safe(case, "You should give aspirin now.")
 
 
+def test_coach_response_guardrail_blocks_dynamic_diagnosis_terms():
+    case = make_mock_case()
+    case.diagnosis = "Acute appendicitis"
+
+    assert not is_coach_response_safe(
+        case,
+        "The most likely explanation is appendicitis.",
+    )
+    assert not is_coach_response_safe(
+        case,
+        "What would make appendicitis less likely in this simulated case?",
+    )
+    assert is_coach_response_safe(
+        case,
+        "What finding would most change your differential?",
+    )
+
+
 def test_coach_response_guardrail_blocks_direct_management_variants():
     case = make_mock_case()
 
