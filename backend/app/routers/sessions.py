@@ -531,7 +531,13 @@ async def complete_session(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
 
     scores = [m.reasoning_score for m in session.messages if m.reasoning_score is not None]
-    final_score = sum(scores) / len(scores) if scores else 0.0
+    if not scores:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one analyzed learner response is required before completion",
+        )
+
+    final_score = sum(scores) / len(scores)
 
     bias_counts: dict[str, int] = {}
     for event in session.bias_events:

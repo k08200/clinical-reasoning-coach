@@ -80,6 +80,15 @@ const makeSession = (overrides: Partial<CoachingSession> = {}): CoachingSession 
   ...overrides,
 });
 
+const analyzedStudentMessage = {
+  id: "m2",
+  role: "student" as const,
+  content: "I am prioritizing dangerous causes and want an ECG.",
+  reasoning_score: 82,
+  biases_detected: [],
+  created_at: "2026-05-20T00:01:00Z",
+};
+
 beforeEach(() => {
   mockPush.mockClear();
   mockMutate.mockReset();
@@ -178,9 +187,35 @@ describe("SessionPage", () => {
     expect(await screen.findByText("Stream failed")).toBeTruthy();
   });
 
-  it("completes the session", async () => {
+  it("disables completion until a learner response has been analyzed", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession(),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+
+    render(<SessionPage />);
+
+    expect(screen.getByRole("button", { name: "Finish Session" })).toBeDisabled();
+    expect(
+      screen.getByText("Add at least one analyzed learner response before finishing the session."),
+    ).toBeTruthy();
+  });
+
+  it("completes the session after analyzed learner reasoning exists", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+        ],
+      }),
       mutate: mockMutate,
     } as unknown as ReturnType<typeof useSWR>);
 

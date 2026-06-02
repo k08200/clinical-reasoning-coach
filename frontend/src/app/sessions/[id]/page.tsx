@@ -166,6 +166,11 @@ export default function SessionPage() {
   }
 
   const isCompleted = session.status === "completed";
+  const canCompleteSession = session.messages.some(
+    (message) => message.role === "student" && message.reasoning_score !== null,
+  );
+  const completionBlockedMessage =
+    "Add at least one analyzed learner response before finishing the session.";
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
@@ -193,13 +198,21 @@ export default function SessionPage() {
           </button>
 
           {!isCompleted && (
-            <button
-              onClick={handleComplete}
-              disabled={completing}
-              className="text-sm px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg disabled:opacity-50 transition-colors"
-            >
-              {completing ? "Finishing..." : "Finish Session"}
-            </button>
+            <div className="text-right">
+              <button
+                onClick={handleComplete}
+                disabled={completing || !canCompleteSession}
+                title={canCompleteSession ? "Finish Session" : completionBlockedMessage}
+                className="text-sm px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+              >
+                {completing ? "Finishing..." : "Finish Session"}
+              </button>
+              {!canCompleteSession && (
+                <p className="mt-1 max-w-56 text-xs text-slate-500">
+                  {completionBlockedMessage}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </header>

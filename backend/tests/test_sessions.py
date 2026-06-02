@@ -313,6 +313,54 @@ async def test_stream_response_persists_turn_before_done(
 
 
 @pytest.mark.asyncio
+async def test_complete_session_requires_analyzed_learner_response(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"complete-guard-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("completepass123"),
+        full_name="Complete Guard Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="Opening case",
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == (
+        "At least one analyzed learner response is required before completion"
+    )
+    await db.refresh(session)
+    assert session.status == "active"
+    assert session.final_reasoning_score is None
+
+
+@pytest.mark.asyncio
 async def test_real_patient_signal_halts_coaching_and_records_safety_event(
     client: AsyncClient,
     monkeypatch: pytest.MonkeyPatch,
