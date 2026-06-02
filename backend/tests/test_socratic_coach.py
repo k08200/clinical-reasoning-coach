@@ -7,12 +7,14 @@ from unittest.mock import MagicMock
 from app.services.provider import StreamChunk
 from app.services.socratic_coach import (
     EDUCATIONAL_SAFETY_NOTICE,
+    MANAGEMENT_SAFETY_REDIRECT_RESPONSE,
     REAL_PATIENT_SAFETY_RESPONSE,
     SAFE_GUARDRAIL_RESPONSE,
     SOCRATIC_SYSTEM,
     _build_safety_focus_context,
     _build_case_context,
     get_opening_message,
+    detect_management_safety_gap,
     is_coach_response_safe,
     should_emit_real_patient_safety_notice,
     stream_coach_response,
@@ -124,6 +126,38 @@ def test_real_patient_safety_notice_detection():
     assert should_emit_real_patient_safety_notice("Is this an emergency?")
     assert should_emit_real_patient_safety_notice("I can't breathe and have severe chest pain")
     assert not should_emit_real_patient_safety_notice("The simulated patient has chest pain")
+
+
+def test_management_safety_gap_detection_requires_missing_contraindication_checks():
+    uncovered = {
+        "red_flags": [],
+        "time_critical_actions": [],
+        "contraindication_checks": [
+            "Aortic dissection features before anticoagulation",
+            "Major bleeding risk before antiplatelet therapy",
+        ],
+    }
+
+    assert detect_management_safety_gap(
+        "I would start heparin now.",
+        uncovered,
+    ) == ["heparin"]
+    assert detect_management_safety_gap(
+        "Give aspirin without checking bleeding risk.",
+        uncovered,
+    ) == ["aspirin"]
+    assert detect_management_safety_gap(
+        "I would start heparin after checking for aortic dissection.",
+        uncovered,
+    ) == []
+    assert detect_management_safety_gap(
+        "I would order an ECG now.",
+        uncovered,
+    ) == []
+    assert detect_management_safety_gap(
+        "I would start heparin now.",
+        {"red_flags": [], "time_critical_actions": [], "contraindication_checks": []},
+    ) == []
 
 
 def test_coach_response_guardrail_detects_unsafe_clinical_content():
@@ -253,6 +287,11 @@ async def test_stream_replaces_direct_management_advice_with_safe_question(
     assert response_text == SAFE_GUARDRAIL_RESPONSE
     assert "Obtain a 12-lead ECG now" not in response_text
     assert "broad-spectrum antibiotics" not in response_text
+
+
+def test_management_safety_redirect_response_is_socratic():
+    assert "what contraindications or safety checks" in MANAGEMENT_SAFETY_REDIRECT_RESPONSE
+    assert "simulated case" in MANAGEMENT_SAFETY_REDIRECT_RESPONSE
 
 
 @pytest.mark.asyncio

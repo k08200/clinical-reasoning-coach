@@ -104,6 +104,10 @@ MANAGEMENT_TARGET_PATTERN = (
 MANAGEMENT_TARGET_PHRASE_PATTERN = (
     rf"(?:[a-z0-9-]+\s+){{0,4}}(?:{MANAGEMENT_TARGET_PATTERN})"
 )
+RISKY_MANAGEMENT_TARGET_PATTERN = (
+    r"alteplase|anticoagulation|anticoagulants?|antiplatelets?|aspirin|"
+    r"heparin|insulin|pressors?|thrombolysis|tpa|vasopressors?"
+)
 DIRECT_MANAGEMENT_PATTERNS = [
     rf"^\s*(?:{MANAGEMENT_ACTION_PATTERN})\b",
     rf"\b(?:you|we)\s+(?:should|need to|must|have to)\s+(?:{MANAGEMENT_ACTION_PATTERN})\b",
@@ -112,6 +116,25 @@ DIRECT_MANAGEMENT_PATTERNS = [
     rf"\b(?:proceed with|go ahead and|move to)\s+(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\b",
     rf"\b(?:this patient|the patient)\s+(?:needs|requires)\s+(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\b",
     rf"\b(?:treat|manage)\s+with\s+(?:{MANAGEMENT_TARGET_PHRASE_PATTERN})\b",
+]
+RISKY_DIRECT_MANAGEMENT_PATTERNS = [
+    rf"^\s*(?:{MANAGEMENT_ACTION_PATTERN})\b.*\b(?:{RISKY_MANAGEMENT_TARGET_PATTERN})\b",
+    rf"\b(?:i|we|you)\s+(?:will|would|should|need to|must|have to)\s+(?:{MANAGEMENT_ACTION_PATTERN})\b.*\b(?:{RISKY_MANAGEMENT_TARGET_PATTERN})\b",
+    rf"\b(?:start|give|administer|initiate|proceed with|treat with|manage with)\b.*\b(?:{RISKY_MANAGEMENT_TARGET_PATTERN})\b",
+]
+MANAGEMENT_SAFETY_CHECK_PATTERNS = [
+    r"\b(?:after|before)\s+(?:checking|ruling out|assessing)\b",
+    r"\bcontraindications?\b",
+    r"\ballerg(?:y|ies)\b",
+    r"\bbleed(?:ing)?\b",
+    r"\baortic dissection\b",
+    r"\bpotassium\b",
+    r"\brenal\b",
+    r"\bkidney\b",
+]
+MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
+    r"\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b.{0,80}\b(?:check|rule out|contraindications?|allerg(?:y|ies)|bleed(?:ing)?|aortic dissection|potassium|renal|kidney)\b",
+    r"\b(?:check|rule out|contraindications?|allerg(?:y|ies)|bleed(?:ing)?|aortic dissection|potassium|renal|kidney)\b.{0,80}\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b",
 ]
 
 DIAGNOSIS_LEAK_TERMS = {
@@ -133,6 +156,12 @@ SAFE_GUARDRAIL_RESPONSE = (
     "Let's keep this as a reasoning exercise. What findings make this presentation "
     "time-sensitive, what dangerous alternatives must be ruled out, and what safety "
     "checks would you complete before management?"
+)
+
+MANAGEMENT_SAFETY_REDIRECT_RESPONSE = (
+    "Pause the management plan for this simulated case. Before giving treatment, "
+    "what contraindications or safety checks could make that plan unsafe, and what "
+    "finding would change your next step?"
 )
 
 
@@ -186,6 +215,44 @@ def _contains_direct_management_order(text: str) -> bool:
         for sentence in normalized_sentences
         for pattern in DIRECT_MANAGEMENT_PATTERNS
     )
+
+
+def detect_management_safety_gap(
+    student_message: str,
+    uncovered_safety_targets: dict[str, list[str]] | None,
+) -> list[str]:
+    uncovered_checks = (uncovered_safety_targets or {}).get("contraindication_checks") or []
+    if not uncovered_checks:
+        return []
+
+    normalized = _normalize_for_guardrail(student_message)
+    risky_terms = sorted(
+        set(re.findall(rf"\b(?:{RISKY_MANAGEMENT_TARGET_PATTERN})\b", normalized)),
+        key=len,
+        reverse=True,
+    )
+    if not risky_terms:
+        return []
+
+    has_risky_commitment = any(
+        re.search(pattern, normalized)
+        for pattern in RISKY_DIRECT_MANAGEMENT_PATTERNS
+    )
+    if not has_risky_commitment:
+        return []
+
+    bypasses_safety_check = any(
+        re.search(pattern, normalized)
+        for pattern in MANAGEMENT_SAFETY_BYPASS_PATTERNS
+    )
+    mentions_safety_check = any(
+        re.search(pattern, normalized)
+        for pattern in MANAGEMENT_SAFETY_CHECK_PATTERNS
+    )
+    if mentions_safety_check and not bypasses_safety_check:
+        return []
+
+    return risky_terms
 
 
 def is_coach_response_safe(case: ClinicalCase, response_text: str) -> bool:

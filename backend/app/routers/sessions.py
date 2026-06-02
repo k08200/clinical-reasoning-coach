@@ -34,7 +34,9 @@ from app.schemas.session import (
     SendMessageRequest,
 )
 from app.services.socratic_coach import (
+    MANAGEMENT_SAFETY_REDIRECT_RESPONSE,
     REAL_PATIENT_SAFETY_RESPONSE,
+    detect_management_safety_gap,
     detect_real_patient_signals,
     stream_coach_response,
     get_opening_message,
@@ -498,6 +500,10 @@ async def stream_response(
         _messages_with_current_turn(session, student_msg),
     )
     uncovered_safety_targets = _uncovered_safety_targets(safety_coverage)
+    management_safety_gap_terms = detect_management_safety_gap(
+        body.content,
+        uncovered_safety_targets,
+    )
     await db.commit()
 
     async def event_generator():
@@ -510,6 +516,18 @@ async def stream_response(
                 turn_number=turn_number,
             )
             yield f"data: {json.dumps({'type': 'text', 'content': REAL_PATIENT_SAFETY_RESPONSE})}\n\n"
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+            return
+
+        if management_safety_gap_terms:
+            await _save_management_safety_redirect_turn(
+                session_id=session_id,
+                user_id=uuid.UUID(user_id),
+                detected_terms=management_safety_gap_terms,
+                uncovered_checks=uncovered_safety_targets["contraindication_checks"],
+                turn_number=turn_number,
+            )
+            yield f"data: {json.dumps({'type': 'text', 'content': MANAGEMENT_SAFETY_REDIRECT_RESPONSE})}\n\n"
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
             return
 
@@ -635,6 +653,35 @@ async def _save_privacy_safety_turn(
             note=(
                 "Session was locked; student message was not stored or sent to the "
                 "model because it appeared to contain patient identifiers."
+            ),
+        ))
+        await db.commit()
+
+
+async def _save_management_safety_redirect_turn(
+    session_id: uuid.UUID,
+    user_id: uuid.UUID,
+    detected_terms: list[str],
+    uncovered_checks: list[str],
+    turn_number: int,
+) -> None:
+    async with AsyncSessionLocal() as db:
+        db.add(Message(
+            session_id=session_id,
+            role="coach",
+            content=MANAGEMENT_SAFETY_REDIRECT_RESPONSE,
+        ))
+        db.add(SafetyEvent(
+            session_id=session_id,
+            user_id=user_id,
+            event_type="management_before_safety_checks",
+            severity="medium",
+            action_taken="coach_redirected_to_safety_checks",
+            detected_terms=detected_terms,
+            message_turn=turn_number,
+            note=(
+                "Learner committed to simulated management before addressing "
+                f"contraindication checks: {', '.join(uncovered_checks)}"
             ),
         ))
         await db.commit()

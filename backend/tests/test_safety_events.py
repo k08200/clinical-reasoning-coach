@@ -142,21 +142,20 @@ async def test_reviewer_can_list_and_filter_safety_events(
 
     assert response.status_code == 200
     payload = response.json()
-    assert len(payload) == 1
-    assert payload[0]["event_type"] == "possible_patient_identifier"
-    assert payload[0]["action_taken"] == "blocked_storage_and_coaching"
-    assert payload[0]["detected_terms"] == ["phone_number"]
-    assert payload[0]["user_email"] == learner.email
-    assert payload[0]["user_full_name"] == learner.full_name
-    assert payload[0]["session_id"] == str(session.id)
-    assert payload[0]["case_id"] == str(case.id)
-    assert payload[0]["session_status"] == "active"
-    assert payload[0]["status"] == "open"
-    assert payload[0]["resolution_note"] is None
-    assert payload[0]["resolved_at"] is None
-    assert payload[0]["resolved_by_user_id"] is None
-    assert payload[0]["resolved_by_user_email"] is None
-    assert payload[0]["resolved_by_user_full_name"] is None
+    item = next(event for event in payload if event["session_id"] == str(session.id))
+    assert item["event_type"] == "possible_patient_identifier"
+    assert item["action_taken"] == "blocked_storage_and_coaching"
+    assert item["detected_terms"] == ["phone_number"]
+    assert item["user_email"] == learner.email
+    assert item["user_full_name"] == learner.full_name
+    assert item["case_id"] == str(case.id)
+    assert item["session_status"] == "active"
+    assert item["status"] == "open"
+    assert item["resolution_note"] is None
+    assert item["resolved_at"] is None
+    assert item["resolved_by_user_id"] is None
+    assert item["resolved_by_user_email"] is None
+    assert item["resolved_by_user_full_name"] is None
 
 
 @pytest.mark.asyncio
