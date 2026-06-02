@@ -4,7 +4,7 @@ import {
   handleUnauthorized,
   setAuthTokens,
 } from "./session";
-import type { TokenResponse, UserRole } from "@/types";
+import type { SourceAlignmentChecks, TokenResponse, UserRole } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -142,6 +142,7 @@ export const api = {
       data: {
         clinical_accuracy_confirmed: boolean;
         source_alignment_confirmed: boolean;
+        source_alignment_checks: SourceAlignmentChecks;
         educational_safety_confirmed: boolean;
         review_notes?: string;
       },

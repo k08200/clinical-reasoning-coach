@@ -169,6 +169,15 @@ async def complete_clinical_review(
             source_snapshot={
                 "source_count": len(case.clinical_sources),
                 "organizations": source_organizations,
+                "alignment_checklist": body.source_alignment_checks.model_dump(),
+                "supported_elements": [
+                    {
+                        "title": source.get("title"),
+                        "organization": source.get("organization"),
+                        "supports": source.get("supports") or [],
+                    }
+                    for source in case.clinical_sources
+                ],
             },
             review_notes=case.review_notes,
         )

@@ -9,6 +9,7 @@ import type {
   ClinicalCase,
   ClinicalCaseReview,
   ClinicalCaseReviewDetail,
+  SourceAlignmentChecks,
   User,
 } from "@/types";
 
@@ -23,6 +24,50 @@ const DEFAULT_CHECKS: ReviewChecks = {
   source_alignment_confirmed: false,
   educational_safety_confirmed: false,
 };
+
+const DEFAULT_SOURCE_ALIGNMENT_CHECKS: SourceAlignmentChecks = {
+  teaching_points_supported: false,
+  red_flags_supported: false,
+  time_critical_actions_supported: false,
+  contraindication_checks_supported: false,
+};
+
+const SOURCE_ALIGNMENT_ITEMS: Array<{
+  key: keyof SourceAlignmentChecks;
+  label: string;
+  description: string;
+}> = [
+  {
+    key: "teaching_points_supported",
+    label: "Teaching points",
+    description: "Each key teaching point is supported by at least one cited source.",
+  },
+  {
+    key: "red_flags_supported",
+    label: "Red flags",
+    description: "Clinical red flags are consistent with the cited evidence.",
+  },
+  {
+    key: "time_critical_actions_supported",
+    label: "Time-critical actions",
+    description: "Urgent actions and timing expectations align with cited guidance.",
+  },
+  {
+    key: "contraindication_checks_supported",
+    label: "Contraindication checks",
+    description: "Safety checks before treatment are supported by cited sources.",
+  },
+];
+
+const PLACEHOLDER_SOURCE_HOSTS = new Set([
+  "example.com",
+  "example.org",
+  "example.net",
+  "example.test",
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+]);
 
 function isReviewer(user: User | undefined): boolean {
   return user?.role === "clinician_reviewer" || user?.role === "admin";
@@ -55,9 +100,27 @@ function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): stri
   if (detail.clinical_sources.length < 1) {
     issues.push("At least 1 clinical source is required.");
   }
-  if (detail.clinical_sources.some((source) => source.supports.length === 0)) {
-    issues.push("Every clinical source must describe what it supports.");
-  }
+  detail.clinical_sources.forEach((source, index) => {
+    if (source.supports.filter((item) => item.trim()).length < 2) {
+      issues.push(`Clinical source ${index + 1} must describe at least 2 supported case elements.`);
+    }
+    try {
+      const url = new URL(source.url);
+      const hostname = url.hostname.toLowerCase();
+      const isPlaceholder =
+        PLACEHOLDER_SOURCE_HOSTS.has(hostname) ||
+        hostname.endsWith(".example") ||
+        Array.from(PLACEHOLDER_SOURCE_HOSTS).some((host) => hostname.endsWith(`.${host}`));
+      if (url.protocol !== "https:") {
+        issues.push(`Clinical source ${index + 1} must use a valid HTTPS URL.`);
+      }
+      if (isPlaceholder) {
+        issues.push(`Clinical source ${index + 1} must not use a placeholder source domain.`);
+      }
+    } catch {
+      issues.push(`Clinical source ${index + 1} must use a valid HTTPS URL.`);
+    }
+  });
   return issues;
 }
 
@@ -65,6 +128,8 @@ export default function ReviewPage() {
   const checkingAuth = useRequireAuth();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [checks, setChecks] = useState<ReviewChecks>(DEFAULT_CHECKS);
+  const [sourceAlignmentChecks, setSourceAlignmentChecks] =
+    useState<SourceAlignmentChecks>(DEFAULT_SOURCE_ALIGNMENT_CHECKS);
   const [reviewNotes, setReviewNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState("");
@@ -103,8 +168,10 @@ export default function ReviewPage() {
     (clinicalCase) => clinicalCase.source_provenance.requires_caution,
   );
   const allChecksConfirmed = Object.values(checks).every(Boolean);
+  const allSourceAlignmentConfirmed = Object.values(sourceAlignmentChecks).every(Boolean);
   const qualityIssues = useMemo(() => reviewQualityIssues(reviewDetail), [reviewDetail]);
-  const canSubmitReview = allChecksConfirmed && qualityIssues.length === 0;
+  const canSubmitReview =
+    allChecksConfirmed && allSourceAlignmentConfirmed && qualityIssues.length === 0;
 
   async function handleSubmitReview() {
     if (!selectedCase) return;
@@ -114,11 +181,13 @@ export default function ReviewPage() {
     try {
       await api.cases.completeClinicalReview(selectedCase.id, {
         ...checks,
+        source_alignment_checks: sourceAlignmentChecks,
         review_notes: reviewNotes.trim() || undefined,
       });
       await mutateCases();
       await mutateHistory();
       setChecks(DEFAULT_CHECKS);
+      setSourceAlignmentChecks(DEFAULT_SOURCE_ALIGNMENT_CHECKS);
       setReviewNotes("");
       setActionMessage("Clinical review recorded.");
     } catch (err) {
@@ -227,6 +296,7 @@ export default function ReviewPage() {
                   onClick={() => {
                     setSelectedCaseId(clinicalCase.id);
                     setChecks(DEFAULT_CHECKS);
+                    setSourceAlignmentChecks(DEFAULT_SOURCE_ALIGNMENT_CHECKS);
                     setReviewNotes("");
                     setActionError("");
                     setActionMessage("");
@@ -412,10 +482,48 @@ export default function ReviewPage() {
 
                 <div className="rounded-lg border border-slate-700 bg-slate-800 p-5">
                   <h3 className="mb-4 font-semibold text-white">Review Checklist</h3>
+                  <div className="mb-4 rounded-lg border border-slate-700 bg-slate-900/40 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Source Alignment Evidence
+                    </p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      Confirm that cited sources support each reviewed content area before marking
+                      source alignment complete.
+                    </p>
+                    <div className="mt-3 grid gap-2 md:grid-cols-2">
+                      {SOURCE_ALIGNMENT_ITEMS.map((item) => (
+                        <label
+                          key={item.key}
+                          className="flex items-start gap-3 rounded-lg border border-slate-700 bg-slate-950/50 p-3 text-sm text-slate-300"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={sourceAlignmentChecks[item.key]}
+                            onChange={(event) =>
+                              setSourceAlignmentChecks((current) => ({
+                                ...current,
+                                [item.key]: event.target.checked,
+                              }))
+                            }
+                            className="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-800"
+                          />
+                          <span>
+                            <span className="block font-medium text-slate-100">{item.label}</span>
+                            <span className="mt-0.5 block text-xs text-slate-400">
+                              {item.description}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                   <div className="space-y-3">
                     {[
                       ["clinical_accuracy_confirmed", "Diagnosis, findings, and teaching points are clinically accurate."],
-                      ["source_alignment_confirmed", "Cited sources support the educational content."],
+                      [
+                        "source_alignment_confirmed",
+                        "Cited sources support all checked educational and safety content areas.",
+                      ],
                       ["educational_safety_confirmed", "Case is appropriate for simulation, not patient care."],
                     ].map(([key, label]) => (
                       <label
@@ -485,6 +593,20 @@ export default function ReviewPage() {
                             {review.source_snapshot.source_count} source
                             {review.source_snapshot.source_count === 1 ? "" : "s"} checked
                           </p>
+                          {review.source_snapshot.alignment_checklist && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {SOURCE_ALIGNMENT_ITEMS.filter(
+                                (item) => review.source_snapshot.alignment_checklist?.[item.key],
+                              ).map((item) => (
+                                <span
+                                  key={item.key}
+                                  className="rounded-full border border-slate-700 px-2 py-0.5 text-xs text-slate-300"
+                                >
+                                  {item.label}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

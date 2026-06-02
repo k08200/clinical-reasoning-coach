@@ -110,6 +110,19 @@ const reviewHistory: ClinicalCaseReview[] = [
     source_snapshot: {
       source_count: 1,
       organizations: ["American Heart Association"],
+      alignment_checklist: {
+        teaching_points_supported: true,
+        red_flags_supported: true,
+        time_critical_actions_supported: true,
+        contraindication_checks_supported: true,
+      },
+      supported_elements: [
+        {
+          title: "Surviving Sepsis Campaign Guidelines",
+          organization: "Society of Critical Care Medicine",
+          supports: ["time-critical antibiotics", "lactate-guided resuscitation"],
+        },
+      ],
     },
     review_notes: "Reviewed against cited source.",
     created_at: "2026-06-02T00:00:00Z",
@@ -204,6 +217,7 @@ describe("ReviewPage", () => {
     expect(screen.getByText("Hypotension")).toBeTruthy();
     expect(screen.getByText("Broad-spectrum antibiotics")).toBeTruthy();
     expect(screen.getByText("Surviving Sepsis Campaign Guidelines")).toBeTruthy();
+    expect(screen.getByText("Source Alignment Evidence")).toBeTruthy();
     expect(screen.getByText("Reviewed against cited source.")).toBeTruthy();
     expect(screen.getByText("educational draft to clinician reviewed")).toBeTruthy();
   });
@@ -265,12 +279,39 @@ describe("ReviewPage", () => {
       expect(mockCompleteClinicalReview).toHaveBeenCalledWith("case-1", {
         clinical_accuracy_confirmed: true,
         source_alignment_confirmed: true,
+        source_alignment_checks: {
+          teaching_points_supported: true,
+          red_flags_supported: true,
+          time_critical_actions_supported: true,
+          contraindication_checks_supported: true,
+        },
         educational_safety_confirmed: true,
         review_notes: "Clinically appropriate for simulation.",
       }),
     );
     expect(mockMutateCases).toHaveBeenCalledOnce();
     expect(mockMutateHistory).toHaveBeenCalledOnce();
+  });
+
+  it("requires source alignment checks before review submission", () => {
+    mockReviewSwr();
+
+    render(<ReviewPage />);
+
+    fireEvent.click(
+      screen.getByLabelText("Diagnosis, findings, and teaching points are clinically accurate."),
+    );
+    fireEvent.click(
+      screen.getByLabelText(
+        "Cited sources support all checked educational and safety content areas.",
+      ),
+    );
+    fireEvent.click(
+      screen.getByLabelText("Case is appropriate for simulation, not patient care."),
+    );
+
+    expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
+    expect(mockCompleteClinicalReview).not.toHaveBeenCalled();
   });
 
   it("blocks clinical review submission when safety metadata is incomplete", () => {

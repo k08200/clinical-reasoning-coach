@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import uuid
 from datetime import datetime
-from pydantic import BaseModel, Field, field_validator
+import uuid
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class ClinicalCaseCreate(BaseModel):
@@ -85,6 +86,22 @@ class GenerateCaseRequest(BaseModel):
     acknowledge_unreviewed_generation: bool = False
 
 
+class ClinicalSourceAlignmentChecks(BaseModel):
+    teaching_points_supported: bool = False
+    red_flags_supported: bool = False
+    time_critical_actions_supported: bool = False
+    contraindication_checks_supported: bool = False
+
+    @property
+    def all_confirmed(self) -> bool:
+        return all((
+            self.teaching_points_supported,
+            self.red_flags_supported,
+            self.time_critical_actions_supported,
+            self.contraindication_checks_supported,
+        ))
+
+
 class ClinicalReviewRequest(BaseModel):
     clinical_accuracy_confirmed: bool = Field(
         default=False,
@@ -101,6 +118,12 @@ class ClinicalReviewRequest(BaseModel):
         validate_default=True,
         description="Reviewer confirms the case is safe for educational simulation and not patient care.",
     )
+    source_alignment_checks: ClinicalSourceAlignmentChecks = Field(
+        default_factory=ClinicalSourceAlignmentChecks,
+        description=(
+            "Reviewer confirms cited sources support teaching points and hidden safety metadata."
+        ),
+    )
     review_notes: str | None = Field(default=None, max_length=2000)
 
     @field_validator(
@@ -113,6 +136,14 @@ class ClinicalReviewRequest(BaseModel):
         if value is not True:
             raise ValueError("Clinician review requires all confirmations")
         return value
+
+    @model_validator(mode="after")
+    def require_source_alignment_checklist(self) -> "ClinicalReviewRequest":
+        if self.source_alignment_confirmed and not self.source_alignment_checks.all_confirmed:
+            raise ValueError(
+                "Source alignment confirmation requires all source alignment checks"
+            )
+        return self
 
 
 class ClinicalCaseReviewResponse(BaseModel):

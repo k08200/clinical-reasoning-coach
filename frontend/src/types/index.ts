@@ -73,9 +73,22 @@ export interface ClinicalCaseReview {
   source_snapshot: {
     source_count: number;
     organizations: string[];
+    alignment_checklist?: SourceAlignmentChecks;
+    supported_elements?: Array<{
+      title?: string;
+      organization?: string;
+      supports: string[];
+    }>;
   };
   review_notes: string | null;
   created_at: string;
+}
+
+export interface SourceAlignmentChecks {
+  teaching_points_supported: boolean;
+  red_flags_supported: boolean;
+  time_critical_actions_supported: boolean;
+  contraindication_checks_supported: boolean;
 }
 
 export interface ClinicalSource {
