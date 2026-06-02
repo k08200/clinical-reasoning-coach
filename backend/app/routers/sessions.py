@@ -405,17 +405,27 @@ def _build_clinical_safety_coverage(
     case: ClinicalCase,
     session: CoachingSession,
 ) -> ClinicalSafetyCoverage:
-    return _build_clinical_safety_coverage_for_messages(case, session.messages)
+    return _build_clinical_safety_coverage_for_messages(
+        case,
+        session.messages,
+        analyzed_only=True,
+    )
 
 
 def _build_clinical_safety_coverage_for_messages(
     case: ClinicalCase,
     messages: list[Message],
+    analyzed_only: bool = False,
 ) -> ClinicalSafetyCoverage:
     student_turns = [
         (index, _tokens_for_safety_coverage(message.content), message.content)
         for index, message in enumerate(
-            [message for message in messages if message.role == "student"],
+            [
+                message
+                for message in messages
+                if message.role == "student"
+                and (not analyzed_only or message.reasoning_score is not None)
+            ],
             start=1,
         )
     ]

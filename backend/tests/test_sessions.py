@@ -757,6 +757,91 @@ async def test_complete_session_succeeds_after_all_clinical_safety_targets_cover
 
 
 @pytest.mark.asyncio
+async def test_complete_session_ignores_unanalyzed_turns_for_safety_coverage(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"unanalyzed-safety-coverage-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Unanalyzed Safety Coverage",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=None,
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content="I would keep a broad differential and explain my uncertainty.",
+        reasoning_score=82,
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content="I would revisit the differential as new information arrives.",
+        reasoning_score=86,
+    ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "clinical_safety_coverage_incomplete",
+        "message": (
+            "Before finishing, address red flags, time-critical actions, and "
+            "contraindication checks in your reasoning."
+        ),
+        "covered_count": 0,
+        "total_count": 6,
+        "uncovered_categories": [
+            {"category": "red_flags", "label": "Red flags", "missing_count": 2},
+            {
+                "category": "time_critical_actions",
+                "label": "Time-critical actions",
+                "missing_count": 2,
+            },
+            {
+                "category": "contraindication_checks",
+                "label": "Contraindication checks",
+                "missing_count": 2,
+            },
+        ],
+    }
+
+
+@pytest.mark.asyncio
 async def test_complete_session_accepts_korean_clinical_safety_coverage(
     client: AsyncClient,
     db: AsyncSession,
