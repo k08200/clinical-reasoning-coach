@@ -1085,6 +1085,84 @@ async def test_negated_safety_mentions_do_not_satisfy_completion_coverage(
 
 
 @pytest.mark.asyncio
+async def test_passive_contraindication_mentions_do_not_satisfy_completion_coverage(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"safety-coverage-passive-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Coverage Passive",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes and trend serial troponin. Aortic dissection features "
+            "are unlikely before anticoagulation, and major bleeding risk is low "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=82,
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I would keep refining the differential after the initial safety pass."
+        ),
+        reasoning_score=86,
+    ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "clinical_safety_coverage_incomplete",
+        "message": (
+            "Before finishing, address red flags, time-critical actions, and "
+            "contraindication checks in your reasoning."
+        ),
+        "covered_count": 4,
+        "total_count": 6,
+        "uncovered_categories": [
+            {
+                "category": "contraindication_checks",
+                "label": "Contraindication checks",
+                "missing_count": 2,
+            },
+        ],
+    }
+    await db.refresh(session)
+    assert session.status == "active"
+    assert session.completed_at is None
+
+
+@pytest.mark.asyncio
 async def test_real_patient_signal_halts_coaching_and_records_safety_event(
     client: AsyncClient,
     monkeypatch: pytest.MonkeyPatch,

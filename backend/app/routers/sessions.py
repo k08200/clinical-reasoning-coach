@@ -108,6 +108,22 @@ SAFETY_COVERAGE_NEGATION_PATTERNS = [
     r"\bdid not check\b",
 ]
 
+CONTRAINDICATION_CHECK_INTENT_PATTERNS = [
+    r"\baddress(?:ed|ing)?\b",
+    r"\bassess(?:ed|ing)?\b",
+    r"\bask(?:ed|ing)?\b",
+    r"\bcheck(?:ed|ing)?\b",
+    r"\bconfirm(?:ed|ing)?\b",
+    r"\bconsider(?:ed|ing)?\b",
+    r"\bevaluat(?:e|ed|ing|ion)\b",
+    r"\bexclud(?:e|ed|ing)\b",
+    r"\blook(?:ed|ing)? for\b",
+    r"\breview(?:ed|ing)?\b",
+    r"\brule(?:d)? out\b",
+    r"\bscreen(?:ed|ing)?\b",
+    r"\bverif(?:y|ied|ying)\b",
+]
+
 SAFETY_COVERAGE_CATEGORY_LABELS = {
     "red_flags": "Red flags",
     "time_critical_actions": "Time-critical actions",
@@ -250,7 +266,25 @@ def _is_negated_safety_mention(item_tokens: set[str], text: str) -> bool:
     return False
 
 
+def _has_contraindication_check_intent(item_tokens: set[str], text: str) -> bool:
+    if not item_tokens:
+        return False
+
+    for sentence in re.split(r"[.!?\n;]+", text):
+        sentence_tokens = _tokens_for_safety_coverage(sentence)
+        if not sentence_tokens.intersection(item_tokens):
+            continue
+        normalized_sentence = _normalize_for_safety_coverage(sentence)
+        if any(
+            re.search(pattern, normalized_sentence)
+            for pattern in CONTRAINDICATION_CHECK_INTENT_PATTERNS
+        ):
+            return True
+    return False
+
+
 def _coverage_items_for_category(
+    category: str,
     items: list[str],
     student_turns: list[tuple[int, set[str], str]],
 ) -> list[ClinicalSafetyCoverageItem]:
@@ -263,6 +297,10 @@ def _coverage_items_for_category(
             for turn_number, turn_tokens, turn_text in student_turns
             if len(item_tokens.intersection(turn_tokens)) >= required_overlap
             and not _is_negated_safety_mention(item_tokens, turn_text)
+            and (
+                category != "contraindication_checks"
+                or _has_contraindication_check_intent(item_tokens, turn_text)
+            )
         ]
         coverage_items.append(
             ClinicalSafetyCoverageItem(
@@ -292,12 +330,18 @@ def _build_clinical_safety_coverage_for_messages(
             start=1,
         )
     ]
-    red_flags = _coverage_items_for_category(case.clinical_red_flags or [], student_turns)
+    red_flags = _coverage_items_for_category(
+        "red_flags",
+        case.clinical_red_flags or [],
+        student_turns,
+    )
     time_critical_actions = _coverage_items_for_category(
+        "time_critical_actions",
         case.time_critical_actions or [],
         student_turns,
     )
     contraindication_checks = _coverage_items_for_category(
+        "contraindication_checks",
         case.contraindication_checks or [],
         student_turns,
     )
