@@ -97,6 +97,19 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "극단적 선택",
     "과다복용",
 ]
+REAL_PATIENT_CONTEXTUAL_SIGNAL_PATTERNS = {
+    "right now",
+    "in the er",
+    "in the ed",
+    "in clinic",
+    "on the ward",
+    "severe chest pain",
+    "stroke symptoms",
+    "호흡 곤란",
+    "심한 가슴",
+    "가슴 통증이 심",
+    "뇌졸중 증상",
+}
 SIMULATION_CONTEXT_PATTERNS = [
     "simulated patient",
     "simulated case",
@@ -152,6 +165,21 @@ REAL_PATIENT_OVERRIDE_PATTERNS = [
     "응급실 가야",
     "숨이 안 쉬",
     "숨을 못 쉬",
+]
+REAL_PATIENT_HIGH_CONFIDENCE_PATTERNS = [
+    pattern
+    for pattern in REAL_PATIENT_SIGNAL_PATTERNS
+    if pattern not in REAL_PATIENT_CONTEXTUAL_SIGNAL_PATTERNS
+]
+REAL_PATIENT_PERSONAL_URGENCY_PATTERNS = [
+    re.compile(
+        r"\b(?:i|me|myself)\b.{0,48}\b(?:severe chest pain|stroke symptoms|trouble breathing)\b"
+    ),
+    re.compile(
+        r"\b(?:severe chest pain|stroke symptoms|trouble breathing)\b.{0,48}\b(?:i|me|myself)\b"
+    ),
+    re.compile(r"(?:제가|저는|나는|내가).{0,24}(?:호흡 곤란|심한 가슴|가슴 통증이 심|뇌졸중 증상)"),
+    re.compile(r"(?:호흡 곤란|심한 가슴|가슴 통증이 심|뇌졸중 증상).{0,24}(?:제가|저는|나는|내가)"),
 ]
 
 DIRECT_CONFIRMATION_PATTERNS = [
@@ -610,6 +638,17 @@ def detect_real_patient_signals(student_message: str) -> list[str]:
         for pattern in REAL_PATIENT_OVERRIDE_PATTERNS
     )
     if has_simulation_context and not has_real_patient_override:
+        return []
+
+    has_high_confidence_signal = any(
+        pattern in normalized
+        for pattern in REAL_PATIENT_HIGH_CONFIDENCE_PATTERNS
+    )
+    has_personal_urgent_context = any(
+        pattern.search(normalized)
+        for pattern in REAL_PATIENT_PERSONAL_URGENCY_PATTERNS
+    )
+    if not has_high_confidence_signal and not has_personal_urgent_context:
         return []
 
     return detected
