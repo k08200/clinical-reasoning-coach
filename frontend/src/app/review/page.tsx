@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { api } from "@/lib/api";
@@ -126,6 +126,7 @@ function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): stri
 
 export default function ReviewPage() {
   const checkingAuth = useRequireAuth();
+  const [linkedCaseId, setLinkedCaseId] = useState<string | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [checks, setChecks] = useState<ReviewChecks>(DEFAULT_CHECKS);
   const [sourceAlignmentChecks, setSourceAlignmentChecks] =
@@ -172,6 +173,17 @@ export default function ReviewPage() {
   const qualityIssues = useMemo(() => reviewQualityIssues(reviewDetail), [reviewDetail]);
   const canSubmitReview =
     allChecksConfirmed && allSourceAlignmentConfirmed && qualityIssues.length === 0;
+
+  useEffect(() => {
+    setLinkedCaseId(new URLSearchParams(window.location.search).get("case"));
+  }, []);
+
+  useEffect(() => {
+    if (!linkedCaseId || !cases?.some((clinicalCase) => clinicalCase.id === linkedCaseId)) {
+      return;
+    }
+    setSelectedCaseId(linkedCaseId);
+  }, [cases, linkedCaseId]);
 
   async function handleSubmitReview() {
     if (!selectedCase) return;

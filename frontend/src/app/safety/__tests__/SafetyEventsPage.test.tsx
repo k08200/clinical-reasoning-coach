@@ -53,7 +53,7 @@ const safetyEvents: SafetyEvent[] = [
     user_full_name: "Learner User",
     event_type: "possible_patient_identifier",
     severity: "high",
-    action_taken: "blocked_storage_and_coaching",
+    action_taken: "locked_session_blocked_storage_and_coaching",
     detected_terms: ["phone_number", "medical_record_number"],
     message_turn: 2,
     note: "Student message was not stored.",
@@ -75,7 +75,7 @@ const safetyEvents: SafetyEvent[] = [
     user_full_name: "Learner User",
     event_type: "real_patient_or_emergency_signal",
     severity: "high",
-    action_taken: "halted_coaching",
+    action_taken: "locked_session_blocked_storage_and_coaching",
     detected_terms: ["severe chest pain"],
     message_turn: 1,
     note: "Coaching halted for possible real patient or emergency scenario.",
@@ -164,11 +164,21 @@ describe("SafetyEventsPage", () => {
     expect(screen.getByText("phone number")).toBeTruthy();
     expect(screen.getByText("medical record number")).toBeTruthy();
     expect(screen.getByText("heparin")).toBeTruthy();
-    expect(screen.getByText("halted coaching")).toBeTruthy();
+    expect(screen.getAllByText("locked session blocked storage and coaching").length).toBe(2);
     expect(screen.getByText("coach redirected to safety checks")).toBeTruthy();
     expect(screen.getByText("Reviewed and documented.")).toBeTruthy();
     expect(screen.getAllByText("Session safety locked").length).toBe(2);
     expect(screen.getByText("Session active")).toBeTruthy();
+    expect(screen.getAllByRole("link", { name: "Open locked session context" })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "Open case review" })).toHaveLength(3);
+    expect(screen.getAllByRole("link", { name: "Open locked session context" })[0]).toHaveAttribute(
+      "href",
+      "/sessions/11111111-1111-1111-1111-111111111111",
+    );
+    expect(screen.getAllByRole("link", { name: "Open case review" })[0]).toHaveAttribute(
+      "href",
+      "/review?case=22222222-2222-2222-2222-222222222222",
+    );
     expect(screen.getByText("Session remains safety locked.")).toBeTruthy();
     expect(
       screen.getAllByText("Resolving audits the event only; safety-locked sessions remain locked.")

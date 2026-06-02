@@ -24,6 +24,7 @@ from app.models.message import Message
 from app.models.bias_event import BiasEvent
 from app.models.token_usage import TokenUsage
 from app.models.safety_event import SafetyEvent
+from app.models.user import User
 from app.schemas.session import (
     ClinicalSafetyCoverage,
     ClinicalSafetyCoverageItem,
@@ -341,6 +342,26 @@ def _messages_with_current_turn(
     return list(messages_by_id.values())
 
 
+async def _can_reviewer_read_safety_locked_session(
+    session: CoachingSession,
+    user_id: str,
+    db: AsyncSession,
+) -> bool:
+    if session.status != SAFETY_LOCKED_SESSION_STATUS:
+        return False
+
+    user = await db.get(User, uuid.UUID(user_id))
+    if not user or user.role not in {"clinician_reviewer", "admin"}:
+        return False
+
+    safety_event_id = await db.scalar(
+        select(SafetyEvent.id)
+        .where(SafetyEvent.session_id == session.id)
+        .limit(1)
+    )
+    return bool(safety_event_id)
+
+
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_session(
     body: SessionCreate,
@@ -404,7 +425,13 @@ async def get_session(
     db: AsyncSession = Depends(get_db),
 ) -> CoachingSession:
     session = await db.get(CoachingSession, session_id)
-    if not session or str(session.user_id) != user_id:
+    if not session:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    if str(session.user_id) != user_id and not await _can_reviewer_read_safety_locked_session(
+        session,
+        user_id,
+        db,
+    ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     return session
 

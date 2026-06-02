@@ -348,6 +348,22 @@ export default function SafetyEventsPage() {
                     >
                       {sessionStatusLabel(event.session_status)}
                     </span>
+                    <div className="mt-3 flex flex-col items-start gap-1.5">
+                      {event.session_status === "safety_locked" && (
+                        <Link
+                          href={`/sessions/${event.session_id}`}
+                          className="text-xs font-semibold text-sky-300 hover:text-sky-200"
+                        >
+                          Open locked session context
+                        </Link>
+                      )}
+                      <Link
+                        href={`/review?case=${event.case_id}`}
+                        className="text-xs font-semibold text-slate-300 hover:text-white"
+                      >
+                        Open case review
+                      </Link>
+                    </div>
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-white">

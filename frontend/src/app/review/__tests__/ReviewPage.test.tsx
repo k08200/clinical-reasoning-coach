@@ -189,6 +189,7 @@ function mockReviewSwr({
 }
 
 beforeEach(() => {
+  window.history.pushState(null, "", "/review");
   mockCompleteClinicalReview.mockReset();
   mockMutateCases.mockReset();
   mockMutateHistory.mockReset();
@@ -221,6 +222,36 @@ describe("ReviewPage", () => {
     expect(screen.getByText("Source Alignment Evidence")).toBeTruthy();
     expect(screen.getByText("Reviewed against cited source.")).toBeTruthy();
     expect(screen.getByText("educational draft to clinician reviewed")).toBeTruthy();
+  });
+
+  it("opens a linked case from safety event context", async () => {
+    window.history.pushState(null, "", "/review?case=case-2");
+    mockReviewSwr({
+      cases: [
+        makeCase(),
+        makeCase({
+          id: "case-2",
+          title: "Safety Event Linked Case",
+          chief_complaint: "Confusion",
+        }),
+      ],
+      detail: makeReviewDetail({
+        id: "case-2",
+        title: "Safety Event Linked Case",
+        diagnosis: "Sepsis from urinary source",
+      }),
+    });
+
+    render(<ReviewPage />);
+
+    await waitFor(() =>
+      expect(
+        vi.mocked(useSWR).mock.calls.some(
+          ([key]) => key === "/api/cases/case-2/clinical-review/detail",
+        ),
+      ).toBe(true),
+    );
+    expect(screen.getAllByText("Safety Event Linked Case").length).toBeGreaterThan(0);
   });
 
   it("includes stale reviewed cases in the pending queue", () => {

@@ -497,6 +497,130 @@ async def test_safety_locked_session_cannot_be_completed(
 
 
 @pytest.mark.asyncio
+async def test_reviewer_can_read_safety_locked_session_with_safety_event(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner = User(
+        email=f"safety-context-learner-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Context Learner",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    reviewer = User(
+        email=f"safety-context-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Context Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([learner, reviewer, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=learner.id,
+        case_id=case.id,
+        status="safety_locked",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add_all([
+        Message(
+            session_id=session.id,
+            role="coach",
+            content="Opening case",
+        ),
+        Message(
+            session_id=session.id,
+            role="coach",
+            content="I cannot continue coaching on a real patient or emergency scenario.",
+        ),
+        SafetyEvent(
+            session_id=session.id,
+            user_id=learner.id,
+            event_type="real_patient_or_emergency_signal",
+            severity="high",
+            action_taken="locked_session_blocked_storage_and_coaching",
+            detected_terms=["right now"],
+            message_turn=1,
+            note="Session was locked for reviewer audit.",
+        ),
+    ])
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.get(f"/api/sessions/{session.id}", headers=auth_headers)
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["id"] == str(session.id)
+    assert payload["status"] == "safety_locked"
+    assert [message["role"] for message in payload["messages"]] == ["coach", "coach"]
+    assert "I cannot continue coaching" in payload["messages"][1]["content"]
+
+
+@pytest.mark.asyncio
+async def test_reviewer_cannot_read_active_session_without_safety_lock(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner = User(
+        email=f"active-context-learner-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Active Context Learner",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    reviewer = User(
+        email=f"active-context-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Active Context Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([learner, reviewer, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=learner.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(SafetyEvent(
+        session_id=session.id,
+        user_id=learner.id,
+        event_type="management_before_safety_checks",
+        severity="medium",
+        action_taken="coach_redirected_to_safety_checks",
+        detected_terms=["heparin"],
+        message_turn=1,
+        note="Active learner session remains learner-owned.",
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.get(f"/api/sessions/{session.id}", headers=auth_headers)
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Session not found"
+
+
+@pytest.mark.asyncio
 async def test_complete_session_requires_full_clinical_safety_coverage(
     client: AsyncClient,
     db: AsyncSession,
