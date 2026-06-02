@@ -1,9 +1,11 @@
+export type UserRole = "learner" | "clinician_reviewer" | "admin";
+
 export interface User {
   id: string;
   email: string;
   full_name: string;
   training_level: string;
-  role: string;
+  role: UserRole;
   accepted_educational_use: boolean;
   accepted_educational_use_at: string | null;
 }

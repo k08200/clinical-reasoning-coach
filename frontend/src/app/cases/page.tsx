@@ -104,6 +104,11 @@ export default function CasesPage() {
                 Clinical Review
               </Link>
             )}
+            {currentUser?.role === "admin" && (
+              <Link href="/admin/users" className="text-sm text-slate-400 hover:text-white">
+                User Admin
+              </Link>
+            )}
             <button
               onClick={logout}
               className="text-sm text-slate-400 hover:text-white"

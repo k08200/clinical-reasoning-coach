@@ -13,6 +13,7 @@ from app.schemas.auth import (
     EducationalUseConsentRequest,
     RefreshTokenRequest,
     UserRegister,
+    UserRoleUpdateRequest,
     TokenResponse,
     UserResponse,
 )
@@ -23,6 +24,7 @@ from app.utils.auth import (
     create_refresh_token,
     get_token_subject,
     get_current_user_id,
+    require_admin,
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -130,3 +132,45 @@ async def get_me(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
+
+
+@router.get("/users", response_model=list[UserResponse])
+async def list_users(
+    _admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> list[User]:
+    result = await db.scalars(select(User).order_by(User.created_at.desc(), User.email.asc()))
+    return list(result)
+
+
+@router.patch("/users/{user_id}/role", response_model=UserResponse)
+async def update_user_role(
+    user_id: str,
+    data: UserRoleUpdateRequest,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    import uuid as _uuid
+
+    try:
+        target_id = _uuid.UUID(user_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        ) from e
+
+    target = await db.get(User, target_id)
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    if target.id == admin.id and data.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot remove your own admin role",
+        )
+
+    target.role = data.role
+    await db.flush()
+    await db.refresh(target)
+    return target

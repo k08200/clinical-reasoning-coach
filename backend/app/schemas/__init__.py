@@ -5,6 +5,7 @@ from app.schemas.auth import (
     UserLogin,
     TokenResponse,
     UserResponse,
+    UserRoleUpdateRequest,
 )
 from app.schemas.case import (
     ClinicalCaseCreate,
@@ -27,6 +28,7 @@ __all__ = [
     "UserLogin",
     "TokenResponse",
     "UserResponse",
+    "UserRoleUpdateRequest",
     "ClinicalCaseCreate",
     "ClinicalCaseResponse",
     "ClinicalCaseReviewDetailResponse",

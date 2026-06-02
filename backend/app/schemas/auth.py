@@ -5,6 +5,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+VALID_USER_ROLES = {"learner", "clinician_reviewer", "admin"}
+
 
 class UserRegister(BaseModel):
     email: EmailStr
@@ -74,6 +76,17 @@ class TokenResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+
+class UserRoleUpdateRequest(BaseModel):
+    role: str
+
+    @field_validator("role")
+    @classmethod
+    def valid_role(cls, v: str) -> str:
+        if v not in VALID_USER_ROLES:
+            raise ValueError(f"role must be one of {VALID_USER_ROLES}")
+        return v
 
 
 class UserResponse(BaseModel):

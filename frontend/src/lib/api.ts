@@ -4,7 +4,7 @@ import {
   handleUnauthorized,
   setAuthTokens,
 } from "./session";
-import type { TokenResponse } from "@/types";
+import type { TokenResponse, UserRole } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -100,6 +100,12 @@ export const api = {
     },
 
     me: () => request("/api/auth/me"),
+    listUsers: () => request("/api/auth/users"),
+    updateUserRole: (id: string, data: { role: UserRole }) =>
+      request(`/api/auth/users/${id}/role`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
   },
 
   cases: {

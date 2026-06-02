@@ -10,6 +10,31 @@ from app.models.user import User
 from app.utils.auth import create_access_token, create_refresh_token, hash_password
 
 
+async def create_user(
+    db: AsyncSession,
+    *,
+    email: str,
+    role: str = "learner",
+    accepted_educational_use: bool = True,
+) -> User:
+    user = User(
+        email=email,
+        hashed_password=hash_password("securepass123"),
+        full_name=email.split("@")[0].replace("-", " ").title(),
+        training_level="resident",
+        role=role,
+        accepted_educational_use=accepted_educational_use,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+def headers_for(user: User) -> dict[str, str]:
+    return {"Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}"}
+
+
 @pytest.mark.asyncio
 async def test_register_success(client: AsyncClient):
     response = await client.post("/api/auth/register", json={
@@ -248,3 +273,92 @@ async def test_get_me(client: AsyncClient, auth_headers: dict):
 async def test_get_me_no_token(client: AsyncClient):
     response = await client.get("/api/auth/me")
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_learner_cannot_list_users(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner = await create_user(db, email="list-blocked-learner@test.com")
+
+    response = await client.get("/api/auth/users", headers=headers_for(learner))
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Admin role required"
+
+
+@pytest.mark.asyncio
+async def test_admin_can_list_users(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    admin = await create_user(db, email="admin-list@test.com", role="admin")
+    learner = await create_user(db, email="learner-list@test.com")
+
+    response = await client.get("/api/auth/users", headers=headers_for(admin))
+
+    assert response.status_code == 200
+    emails = {user["email"] for user in response.json()}
+    assert "admin-list@test.com" in emails
+    assert "learner-list@test.com" in emails
+    listed_learner = next(user for user in response.json() if user["id"] == str(learner.id))
+    assert listed_learner["role"] == "learner"
+    assert "hashed_password" not in listed_learner
+
+
+@pytest.mark.asyncio
+async def test_admin_can_promote_clinician_reviewer(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    admin = await create_user(db, email="admin-promote@test.com", role="admin")
+    learner = await create_user(db, email="reviewer-promote@test.com")
+
+    response = await client.patch(
+        f"/api/auth/users/{learner.id}/role",
+        json={"role": "clinician_reviewer"},
+        headers=headers_for(admin),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["role"] == "clinician_reviewer"
+
+    me_response = await client.get("/api/auth/me", headers=headers_for(learner))
+    assert me_response.status_code == 200
+    assert me_response.json()["role"] == "clinician_reviewer"
+
+
+@pytest.mark.asyncio
+async def test_admin_cannot_remove_own_admin_role(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    admin = await create_user(db, email="self-demote-admin@test.com", role="admin")
+
+    response = await client.patch(
+        f"/api/auth/users/{admin.id}/role",
+        json={"role": "learner"},
+        headers=headers_for(admin),
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Cannot remove your own admin role"
+
+
+@pytest.mark.asyncio
+async def test_admin_role_update_rejects_invalid_role(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    admin = await create_user(db, email="invalid-role-admin@test.com", role="admin")
+    learner = await create_user(db, email="invalid-role-target@test.com")
+
+    response = await client.patch(
+        f"/api/auth/users/{learner.id}/role",
+        json={"role": "doctor"},
+        headers=headers_for(admin),
+    )
+
+    assert response.status_code == 422
+    assert "role must be one of" in response.text

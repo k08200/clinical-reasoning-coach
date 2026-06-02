@@ -113,3 +113,19 @@ async def require_clinical_reviewer(
             detail="Clinician reviewer role required",
         )
     return user
+
+
+async def require_admin(
+    user: User = Depends(get_current_user),
+) -> User:
+    if not user.accepted_educational_use:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Educational use consent required",
+        )
+    if user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin role required",
+        )
+    return user
