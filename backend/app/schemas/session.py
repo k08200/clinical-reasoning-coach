@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SessionCreate(BaseModel):
@@ -54,10 +54,16 @@ class ReviewBiasFeedback(BaseModel):
     message_turn: int
 
 
+class ClinicalSafetyEvidence(BaseModel):
+    turn: int
+    excerpt: str
+
+
 class ClinicalSafetyCoverageItem(BaseModel):
     item: str
     covered: bool
     evidence_turns: list[int]
+    evidence: list[ClinicalSafetyEvidence] = Field(default_factory=list)
 
 
 class ClinicalSafetyCoverage(BaseModel):

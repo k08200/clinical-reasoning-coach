@@ -512,11 +512,18 @@ describe("SessionPage", () => {
                   item: "Diaphoresis with crushing chest pain",
                   covered: true,
                   evidence_turns: [1],
+                  evidence: [
+                    {
+                      turn: 1,
+                      excerpt: "I prioritized diaphoresis with crushing chest pain.",
+                    },
+                  ],
                 },
                 {
                   item: "Hypoxia or hemodynamic instability",
                   covered: false,
                   evidence_turns: [],
+                  evidence: [],
                 },
               ],
               time_critical_actions: [
@@ -524,6 +531,12 @@ describe("SessionPage", () => {
                   item: "12-lead ECG within 10 minutes",
                   covered: true,
                   evidence_turns: [1],
+                  evidence: [
+                    {
+                      turn: 1,
+                      excerpt: "I would obtain an ECG within 10 minutes.",
+                    },
+                  ],
                 },
               ],
               contraindication_checks: [
@@ -531,6 +544,7 @@ describe("SessionPage", () => {
                   item: "Aortic dissection features before anticoagulation",
                   covered: false,
                   evidence_turns: [],
+                  evidence: [],
                 },
               ],
               covered_count: 2,
@@ -566,6 +580,9 @@ describe("SessionPage", () => {
     expect(screen.getByText("Clinical Safety Coverage")).toBeTruthy();
     expect(screen.getByText(/2 of 4 hidden safety targets addressed/)).toBeTruthy();
     expect(screen.getByText("Diaphoresis with crushing chest pain")).toBeTruthy();
+    expect(
+      screen.getByText("Turn 1: I prioritized diaphoresis with crushing chest pain."),
+    ).toBeTruthy();
     expect(screen.getByText("Hypoxia or hemodynamic instability")).toBeTruthy();
     expect(screen.getAllByText("Covered").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Missed").length).toBeGreaterThan(0);

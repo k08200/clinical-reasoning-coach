@@ -794,6 +794,18 @@ export default function SessionPage() {
                                             Turn {item.evidence_turns.join(", ")}
                                           </p>
                                         )}
+                                        {item.evidence.length > 0 && (
+                                          <div className="mt-2 space-y-1">
+                                            {item.evidence.map((evidence) => (
+                                              <p
+                                                key={`${item.item}-${evidence.turn}-${evidence.excerpt}`}
+                                                className="rounded border border-slate-700 bg-slate-900/70 px-2 py-1 text-xs text-slate-400"
+                                              >
+                                                Turn {evidence.turn}: {evidence.excerpt}
+                                              </p>
+                                            ))}
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                   </li>

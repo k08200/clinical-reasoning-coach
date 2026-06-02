@@ -175,6 +175,10 @@ export interface ClinicalSafetyCoverageItem {
   item: string;
   covered: boolean;
   evidence_turns: number[];
+  evidence: Array<{
+    turn: number;
+    excerpt: string;
+  }>;
 }
 
 export interface ClinicalSafetyCoverage {

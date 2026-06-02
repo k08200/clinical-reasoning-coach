@@ -2417,15 +2417,33 @@ async def test_session_review_available_only_after_completion(
         "item": "Diaphoresis with crushing chest pain",
         "covered": True,
         "evidence_turns": [1],
+        "evidence": [
+            {
+                "turn": 1,
+                "excerpt": (
+                    "I prioritized diaphoresis with crushing chest pain, want an ECG "
+                    "within 10 minutes, and would check for aortic dissection before "
+                    "anticoagulation."
+                ),
+            }
+        ],
     }
     assert coverage["red_flags"][1] == {
         "item": "Hypoxia or hemodynamic instability",
         "covered": False,
         "evidence_turns": [],
+        "evidence": [],
     }
     assert coverage["time_critical_actions"][0]["covered"] is True
+    assert coverage["time_critical_actions"][0]["evidence"][0]["turn"] == 1
+    assert "want an ECG within 10 minutes" in (
+        coverage["time_critical_actions"][0]["evidence"][0]["excerpt"]
+    )
     assert coverage["time_critical_actions"][1]["covered"] is False
     assert coverage["contraindication_checks"][0]["covered"] is True
+    assert "would check for aortic dissection" in (
+        coverage["contraindication_checks"][0]["evidence"][0]["excerpt"]
+    )
     assert coverage["contraindication_checks"][1]["covered"] is False
     assert payload["review_status"] == "educational_draft"
     assert "coach_guidance" not in payload

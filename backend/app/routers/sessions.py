@@ -27,6 +27,7 @@ from app.models.safety_event import SafetyEvent
 from app.models.user import User
 from app.schemas.session import (
     ClinicalSafetyCoverage,
+    ClinicalSafetyEvidence,
     ClinicalSafetyCoverageItem,
     SessionCreate,
     SessionReviewResponse,
@@ -63,6 +64,7 @@ MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION = 2
 MIN_REASONING_SCORE_FOR_COMPLETION = 60.0
 MIN_REASONING_DIMENSION_SCORE_FOR_COMPLETION = 12.0
 HIGH_CONFIDENCE_BIAS_THRESHOLD = 0.7
+SAFETY_EVIDENCE_EXCERPT_MAX_LENGTH = 220
 
 SAFETY_COVERAGE_STOPWORDS = {
     "the",
@@ -410,14 +412,30 @@ def _coverage_items_for_category(
                 or _has_contraindication_check_intent(item_tokens, turn_text)
             )
         ]
+        evidence = [
+            ClinicalSafetyEvidence(
+                turn=turn_number,
+                excerpt=_safety_evidence_excerpt(turn_text),
+            )
+            for turn_number, _turn_tokens, turn_text in student_turns
+            if turn_number in evidence_turns
+        ]
         coverage_items.append(
             ClinicalSafetyCoverageItem(
                 item=item,
                 covered=bool(evidence_turns),
                 evidence_turns=evidence_turns,
+                evidence=evidence,
             )
         )
     return coverage_items
+
+
+def _safety_evidence_excerpt(text: str) -> str:
+    normalized = re.sub(r"\s+", " ", text).strip()
+    if len(normalized) <= SAFETY_EVIDENCE_EXCERPT_MAX_LENGTH:
+        return normalized
+    return normalized[: SAFETY_EVIDENCE_EXCERPT_MAX_LENGTH - 1].rstrip() + "..."
 
 
 def _build_clinical_safety_coverage(
