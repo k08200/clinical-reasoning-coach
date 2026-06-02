@@ -978,6 +978,164 @@ async def test_complete_session_blocks_low_bounded_reasoning_score(
 
 
 @pytest.mark.asyncio
+async def test_complete_session_blocks_active_severe_cognitive_bias(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"active-severe-bias-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("biaspass123"),
+        full_name="Active Severe Bias",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=82,
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I am still closing on ACS and would ignore alternatives despite the "
+            "coach asking what evidence could disconfirm it."
+        ),
+        reasoning_score=88,
+    ))
+    db.add(BiasEvent(
+        session_id=session.id,
+        user_id=user.id,
+        bias_type="premature_closure",
+        severity="severe",
+        evidence="Student explicitly ignored alternatives.",
+        confidence=0.91,
+        message_turn=2,
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "active_severe_cognitive_bias",
+        "message": (
+            "Before finishing, revisit the severe cognitive bias detected in your "
+            "latest reasoning turn and explain how you would test or correct it."
+        ),
+        "biases": [
+            {
+                "bias_type": "premature_closure",
+                "label": "Premature closure",
+                "severity": "severe",
+                "confidence": 0.91,
+                "message_turn": 2,
+            }
+        ],
+    }
+    await db.refresh(session)
+    assert session.status == "active"
+    assert session.final_reasoning_score is None
+    assert session.completed_at is None
+
+
+@pytest.mark.asyncio
+async def test_complete_session_allows_earlier_severe_bias_after_later_correction(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"corrected-severe-bias-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("biaspass123"),
+        full_name="Corrected Severe Bias",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=82,
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I corrected my anchoring by stating what ECG, troponin, dissection, "
+            "and bleeding findings would change my differential and management."
+        ),
+        reasoning_score=88,
+    ))
+    db.add(BiasEvent(
+        session_id=session.id,
+        user_id=user.id,
+        bias_type="anchoring",
+        severity="severe",
+        evidence="Early turn fixated on ACS.",
+        confidence=0.9,
+        message_turn=1,
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "completed"
+    assert payload["final_reasoning_score"] == 85
+    assert payload["bias_summary"] == {"anchoring": 1}
+
+
+@pytest.mark.asyncio
 async def test_complete_session_ignores_coach_reasoning_scores_for_completion_gate(
     client: AsyncClient,
     db: AsyncSession,

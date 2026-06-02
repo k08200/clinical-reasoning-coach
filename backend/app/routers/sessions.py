@@ -61,6 +61,7 @@ logger = logging.getLogger(__name__)
 SAFETY_LOCKED_SESSION_STATUS = "safety_locked"
 MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION = 2
 MIN_REASONING_SCORE_FOR_COMPLETION = 60.0
+HIGH_CONFIDENCE_BIAS_THRESHOLD = 0.7
 
 SAFETY_COVERAGE_STOPWORDS = {
     "the",
@@ -207,6 +208,15 @@ SAFETY_COVERAGE_CATEGORY_LABELS = {
     "red_flags": "Red flags",
     "time_critical_actions": "Time-critical actions",
     "contraindication_checks": "Contraindication checks",
+}
+
+COGNITIVE_BIAS_LABELS = {
+    "anchoring": "Anchoring",
+    "premature_closure": "Premature closure",
+    "availability": "Availability",
+    "framing": "Framing",
+    "search_satisficing": "Search satisficing",
+    "commission": "Commission bias",
 }
 
 
@@ -519,6 +529,51 @@ def _reasoning_quality_block_detail(final_score: float) -> dict:
         ),
         "current_score": round(final_score, 1),
         "minimum_score": MIN_REASONING_SCORE_FOR_COMPLETION,
+    }
+
+
+def _latest_analyzed_learner_turn_number(messages: list[Message]) -> int | None:
+    latest_turn_number = None
+    for turn_number, message in enumerate(
+        [message for message in messages if message.role == "student"],
+        start=1,
+    ):
+        if message.reasoning_score is not None:
+            latest_turn_number = turn_number
+    return latest_turn_number
+
+
+def _active_severe_bias_events(session: CoachingSession) -> list[BiasEvent]:
+    latest_turn_number = _latest_analyzed_learner_turn_number(session.messages)
+    if latest_turn_number is None:
+        return []
+
+    return [
+        event
+        for event in session.bias_events
+        if event.message_turn == latest_turn_number
+        and event.severity == "severe"
+        and event.confidence >= HIGH_CONFIDENCE_BIAS_THRESHOLD
+    ]
+
+
+def _active_bias_block_detail(bias_events: list[BiasEvent]) -> dict:
+    return {
+        "code": "active_severe_cognitive_bias",
+        "message": (
+            "Before finishing, revisit the severe cognitive bias detected in your "
+            "latest reasoning turn and explain how you would test or correct it."
+        ),
+        "biases": [
+            {
+                "bias_type": event.bias_type,
+                "label": COGNITIVE_BIAS_LABELS.get(event.bias_type, event.bias_type),
+                "severity": event.severity,
+                "confidence": _bounded_confidence(event.confidence),
+                "message_turn": event.message_turn,
+            }
+            for event in bias_events
+        ],
     }
 
 
@@ -978,6 +1033,12 @@ async def complete_session(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=_reasoning_quality_block_detail(final_score),
+        )
+    active_bias_events = _active_severe_bias_events(session)
+    if active_bias_events:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=_active_bias_block_detail(active_bias_events),
         )
 
     bias_counts: dict[str, int] = {}

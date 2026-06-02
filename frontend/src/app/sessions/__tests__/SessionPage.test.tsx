@@ -348,6 +348,50 @@ describe("SessionPage", () => {
     expect(screen.getByText(/differential, supporting evidence/)).toBeTruthy();
   });
 
+  it("shows cognitive bias guidance when completion is blocked by active severe bias", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+          secondAnalyzedStudentMessage,
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockComplete.mockRejectedValueOnce({
+      message: "Before finishing, revisit the severe cognitive bias.",
+      detail: {
+        code: "active_severe_cognitive_bias",
+        message: "Before finishing, revisit the severe cognitive bias.",
+        biases: [
+          {
+            bias_type: "premature_closure",
+            label: "Premature closure",
+            severity: "severe",
+            confidence: 0.91,
+            message_turn: 2,
+          },
+        ],
+      },
+    });
+
+    render(<SessionPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish Session" }));
+
+    expect(await screen.findByText("Severe cognitive bias still needs work")).toBeTruthy();
+    expect(screen.getByText(/test, disconfirm, or correct the bias/)).toBeTruthy();
+    expect(screen.getByText("Premature closure: 91% confidence")).toBeTruthy();
+    expect(screen.getByText(/dangerous closure, fixation, or action bias/)).toBeTruthy();
+  });
+
   it("locks the composer and completion controls for safety-locked sessions", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession({

@@ -41,6 +41,18 @@ type CompletionReasoningQualityDetail = {
   minimum_score: number;
 };
 
+type CompletionActiveBiasDetail = {
+  code: "active_severe_cognitive_bias";
+  message: string;
+  biases: {
+    bias_type: string;
+    label: string;
+    severity: string;
+    confidence: number;
+    message_turn: number;
+  }[];
+};
+
 function safetyCoverageLabel(category: string): string {
   if (category === "red_flags") return "Red Flags";
   if (category === "time_critical_actions") return "Time-Critical Actions";
@@ -100,6 +112,19 @@ function isCompletionReasoningQualityDetail(
   );
 }
 
+function isCompletionActiveBiasDetail(value: unknown): value is CompletionActiveBiasDetail {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "code" in value &&
+    value.code === "active_severe_cognitive_bias" &&
+    "message" in value &&
+    typeof value.message === "string" &&
+    "biases" in value &&
+    Array.isArray(value.biases)
+  );
+}
+
 function errorDetail(error: unknown): unknown {
   if (!error || typeof error !== "object" || !("detail" in error)) return null;
   return error.detail;
@@ -135,6 +160,8 @@ export default function SessionPage() {
     useState<CompletionReasoningTurnsDetail | null>(null);
   const [completionReasoningQualityDetail, setCompletionReasoningQualityDetail] =
     useState<CompletionReasoningQualityDetail | null>(null);
+  const [completionActiveBiasDetail, setCompletionActiveBiasDetail] =
+    useState<CompletionActiveBiasDetail | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -181,6 +208,7 @@ export default function SessionPage() {
     setCompletionSafetyDetail(null);
     setCompletionReasoningTurnsDetail(null);
     setCompletionReasoningQualityDetail(null);
+    setCompletionActiveBiasDetail(null);
 
     try {
       await streamMessage(id, content, {
@@ -229,6 +257,7 @@ export default function SessionPage() {
     setCompletionSafetyDetail(null);
     setCompletionReasoningTurnsDetail(null);
     setCompletionReasoningQualityDetail(null);
+    setCompletionActiveBiasDetail(null);
     try {
       await api.sessions.complete(id);
       await mutate();
@@ -242,6 +271,9 @@ export default function SessionPage() {
         setError("");
       } else if (isCompletionReasoningQualityDetail(detail)) {
         setCompletionReasoningQualityDetail(detail);
+        setError("");
+      } else if (isCompletionActiveBiasDetail(detail)) {
+        setCompletionActiveBiasDetail(detail);
         setError("");
       } else {
         setError(err instanceof Error ? err.message : "Could not finish the session");
@@ -449,6 +481,41 @@ export default function SessionPage() {
               <p className="mt-3 text-xs text-amber-300">
                 Continue the case and make the differential, supporting evidence,
                 prioritization, and mechanism explicit before finishing.
+              </p>
+            </div>
+          )}
+
+          {completionActiveBiasDetail && (
+            <div className="mx-4 mt-4 rounded-lg border border-amber-700 bg-amber-950/45 px-4 py-3 text-sm leading-relaxed text-amber-100">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">Severe cognitive bias still needs work</p>
+                  <p className="mt-1 text-amber-200">
+                    Revisit the latest reasoning turn and explain how you would test,
+                    disconfirm, or correct the bias before finishing.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => textareaRef.current?.focus()}
+                  className="rounded-lg border border-amber-600 px-3 py-1.5 text-xs font-semibold text-amber-100 hover:bg-amber-900/60"
+                >
+                  Continue Reasoning
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {completionActiveBiasDetail.biases.map((bias) => (
+                  <span
+                    key={`${bias.bias_type}-${bias.message_turn}`}
+                    className="rounded-full border border-amber-700 bg-slate-900/50 px-3 py-1 text-xs text-amber-100"
+                  >
+                    {bias.label}: {(bias.confidence * 100).toFixed(0)}% confidence
+                  </span>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-amber-300">
+                A completed review should show that dangerous closure, fixation, or action bias
+                has been actively challenged.
               </p>
             </div>
           )}
