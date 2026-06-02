@@ -76,4 +76,24 @@ describe("api client", () => {
     expect(mockSetAuthTokens).not.toHaveBeenCalled();
     expect(mockHandleUnauthorized).toHaveBeenCalledOnce();
   });
+
+  it("preserves structured error detail from the API", async () => {
+    mockGetAccessToken.mockReturnValue("access-token");
+    const detail = {
+      code: "clinical_safety_coverage_incomplete",
+      message: "Before finishing, address red flags in your reasoning.",
+      covered_count: 1,
+      total_count: 6,
+      uncovered_categories: [
+        { category: "red_flags", label: "Red flags", missing_count: 1 },
+      ],
+    };
+    fetchMock.mockResolvedValueOnce(jsonResponse({ detail }, 400));
+
+    await expect(api.sessions.complete("session-1")).rejects.toMatchObject({
+      message: detail.message,
+      status: 400,
+      detail,
+    });
+  });
 });

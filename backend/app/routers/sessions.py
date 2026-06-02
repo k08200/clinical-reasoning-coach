@@ -100,6 +100,12 @@ SAFETY_COVERAGE_NEGATION_PATTERNS = [
     r"\bdid not check\b",
 ]
 
+SAFETY_COVERAGE_CATEGORY_LABELS = {
+    "red_flags": "Red flags",
+    "time_critical_actions": "Time-critical actions",
+    "contraindication_checks": "Contraindication checks",
+}
+
 
 def _build_claude_history(messages: list[Message]) -> list[dict]:
     """Convert stored messages to Claude API format, excluding the latest student message."""
@@ -279,6 +285,28 @@ def _uncovered_safety_targets(
         ],
         "contraindication_checks": [
             item.item for item in coverage.contraindication_checks if not item.covered
+        ],
+    }
+
+
+def _safety_completion_block_detail(coverage: ClinicalSafetyCoverage) -> dict:
+    uncovered_targets = _uncovered_safety_targets(coverage)
+    return {
+        "code": "clinical_safety_coverage_incomplete",
+        "message": (
+            "Before finishing, address red flags, time-critical actions, and "
+            "contraindication checks in your reasoning."
+        ),
+        "covered_count": coverage.covered_count,
+        "total_count": coverage.total_count,
+        "uncovered_categories": [
+            {
+                "category": category,
+                "label": SAFETY_COVERAGE_CATEGORY_LABELS[category],
+                "missing_count": len(items),
+            }
+            for category, items in uncovered_targets.items()
+            if items
         ],
     }
 
@@ -644,12 +672,7 @@ async def complete_session(
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Address all red flags, time-critical actions, and contraindication "
-                "checks before finishing the session "
-                f"({safety_coverage.covered_count} of "
-                f"{safety_coverage.total_count} safety targets covered)."
-            ),
+            detail=_safety_completion_block_detail(safety_coverage),
         )
 
     final_score = sum(scores) / len(scores)

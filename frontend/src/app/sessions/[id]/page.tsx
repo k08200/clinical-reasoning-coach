@@ -12,10 +12,46 @@ import ReasoningMap from "@/components/ReasoningMap";
 import ChatMessage from "@/components/ChatMessage";
 import BiasAlert from "@/components/BiasAlert";
 
+type CompletionSafetyCategory = {
+  category: string;
+  label: string;
+  missing_count: number;
+};
+
+type CompletionSafetyDetail = {
+  code: "clinical_safety_coverage_incomplete";
+  message: string;
+  covered_count: number;
+  total_count: number;
+  uncovered_categories: CompletionSafetyCategory[];
+};
+
 function safetyCoverageLabel(category: string): string {
   if (category === "red_flags") return "Red Flags";
   if (category === "time_critical_actions") return "Time-Critical Actions";
   return "Contraindication Checks";
+}
+
+function isCompletionSafetyDetail(value: unknown): value is CompletionSafetyDetail {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "code" in value &&
+    value.code === "clinical_safety_coverage_incomplete" &&
+    "message" in value &&
+    typeof value.message === "string" &&
+    "covered_count" in value &&
+    typeof value.covered_count === "number" &&
+    "total_count" in value &&
+    typeof value.total_count === "number" &&
+    "uncovered_categories" in value &&
+    Array.isArray(value.uncovered_categories)
+  );
+}
+
+function errorDetail(error: unknown): unknown {
+  if (!error || typeof error !== "object" || !("detail" in error)) return null;
+  return error.detail;
 }
 
 export default function SessionPage() {
@@ -42,6 +78,8 @@ export default function SessionPage() {
   const [showMap, setShowMap] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState("");
+  const [completionSafetyDetail, setCompletionSafetyDetail] =
+    useState<CompletionSafetyDetail | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -85,6 +123,7 @@ export default function SessionPage() {
     setThinking(false);
     setStreamingText("");
     setError("");
+    setCompletionSafetyDetail(null);
 
     try {
       await streamMessage(id, content, {
@@ -130,11 +169,18 @@ export default function SessionPage() {
   async function handleComplete() {
     setCompleting(true);
     setError("");
+    setCompletionSafetyDetail(null);
     try {
       await api.sessions.complete(id);
       await mutate();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not finish the session");
+      const detail = errorDetail(err);
+      if (isCompletionSafetyDetail(detail)) {
+        setCompletionSafetyDetail(detail);
+        setError("");
+      } else {
+        setError(err instanceof Error ? err.message : "Could not finish the session");
+      }
     } finally {
       setCompleting(false);
     }
@@ -245,6 +291,43 @@ export default function SessionPage() {
           {error && (
             <div className="mx-4 mt-4 rounded-lg border border-red-700 bg-red-900/40 px-4 py-3 text-sm text-red-200">
               {error}
+            </div>
+          )}
+
+          {completionSafetyDetail && (
+            <div className="mx-4 mt-4 rounded-lg border border-amber-700 bg-amber-950/45 px-4 py-3 text-sm leading-relaxed text-amber-100">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">Clinical safety reasoning still needs work</p>
+                  <p className="mt-1 text-amber-200">
+                    {completionSafetyDetail.covered_count} of{" "}
+                    {completionSafetyDetail.total_count} hidden safety targets are covered.
+                    Continue the case and make your reasoning explicit before finishing.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => textareaRef.current?.focus()}
+                  className="rounded-lg border border-amber-600 px-3 py-1.5 text-xs font-semibold text-amber-100 hover:bg-amber-900/60"
+                >
+                  Continue Reasoning
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {completionSafetyDetail.uncovered_categories.map((category) => (
+                  <span
+                    key={category.category}
+                    className="rounded-full border border-amber-700 bg-slate-900/50 px-3 py-1 text-xs text-amber-100"
+                  >
+                    {category.label}: {category.missing_count} remaining
+                  </span>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-amber-300">
+                The checklist stays hidden for assessment integrity. In your next response,
+                discuss the dangerous findings, urgent actions, and treatment safety checks you
+                would actively consider.
+              </p>
             </div>
           )}
 

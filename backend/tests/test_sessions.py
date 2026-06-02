@@ -539,10 +539,28 @@ async def test_complete_session_requires_full_clinical_safety_coverage(
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == (
-        "Address all red flags, time-critical actions, and contraindication checks "
-        "before finishing the session (1 of 6 safety targets covered)."
-    )
+    assert response.json()["detail"] == {
+        "code": "clinical_safety_coverage_incomplete",
+        "message": (
+            "Before finishing, address red flags, time-critical actions, and "
+            "contraindication checks in your reasoning."
+        ),
+        "covered_count": 1,
+        "total_count": 6,
+        "uncovered_categories": [
+            {"category": "red_flags", "label": "Red flags", "missing_count": 1},
+            {
+                "category": "time_critical_actions",
+                "label": "Time-critical actions",
+                "missing_count": 2,
+            },
+            {
+                "category": "contraindication_checks",
+                "label": "Contraindication checks",
+                "missing_count": 2,
+            },
+        ],
+    }
     await db.refresh(session)
     assert session.status == "active"
     assert session.final_reasoning_score is None
@@ -653,10 +671,22 @@ async def test_negated_safety_mentions_do_not_satisfy_completion_coverage(
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == (
-        "Address all red flags, time-critical actions, and contraindication checks "
-        "before finishing the session (5 of 6 safety targets covered)."
-    )
+    assert response.json()["detail"] == {
+        "code": "clinical_safety_coverage_incomplete",
+        "message": (
+            "Before finishing, address red flags, time-critical actions, and "
+            "contraindication checks in your reasoning."
+        ),
+        "covered_count": 5,
+        "total_count": 6,
+        "uncovered_categories": [
+            {
+                "category": "contraindication_checks",
+                "label": "Contraindication checks",
+                "missing_count": 1,
+            },
+        ],
+    }
     await db.refresh(session)
     assert session.status == "active"
     assert session.completed_at is None

@@ -227,6 +227,52 @@ describe("SessionPage", () => {
     expect(mockMutate).toHaveBeenCalled();
   });
 
+  it("shows category-level safety guidance when completion is blocked", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockComplete.mockRejectedValueOnce({
+      message: "Before finishing, address red flags in your reasoning.",
+      detail: {
+        code: "clinical_safety_coverage_incomplete",
+        message: "Before finishing, address red flags in your reasoning.",
+        covered_count: 2,
+        total_count: 6,
+        uncovered_categories: [
+          { category: "red_flags", label: "Red flags", missing_count: 1 },
+          {
+            category: "time_critical_actions",
+            label: "Time-critical actions",
+            missing_count: 2,
+          },
+        ],
+      },
+    });
+
+    render(<SessionPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish Session" }));
+
+    expect(await screen.findByText("Clinical safety reasoning still needs work")).toBeTruthy();
+    expect(screen.getByText(/2 of 6 hidden safety targets are covered/)).toBeTruthy();
+    expect(screen.getByText("Red flags: 1 remaining")).toBeTruthy();
+    expect(screen.getByText("Time-critical actions: 2 remaining")).toBeTruthy();
+    expect(screen.queryByText("Aortic dissection features before anticoagulation")).toBeFalsy();
+    expect(screen.getByText(/checklist stays hidden/)).toBeTruthy();
+  });
+
   it("locks the composer and completion controls for safety-locked sessions", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession({

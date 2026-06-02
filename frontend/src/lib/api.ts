@@ -12,6 +12,7 @@ class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
+    public detail?: unknown,
   ) {
     super(message);
     this.name = "ApiError";
@@ -62,7 +63,17 @@ async function request<T>(
     }
 
     const body = await res.json().catch(() => ({ detail: "Unknown error" }));
-    throw new ApiError(body.detail || res.statusText, res.status);
+    const detail = body.detail ?? "Unknown error";
+    const message =
+      typeof detail === "string"
+        ? detail
+        : detail &&
+            typeof detail === "object" &&
+            "message" in detail &&
+            typeof detail.message === "string"
+          ? detail.message
+          : res.statusText;
+    throw new ApiError(message, res.status, detail);
   }
 
   if (res.status === 204) return undefined as T;
