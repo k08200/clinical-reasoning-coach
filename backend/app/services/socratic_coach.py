@@ -203,6 +203,39 @@ RISKY_MANAGEMENT_TARGET_PATTERN = (
     r"alteplase|anticoagulation|anticoagulants?|antiplatelets?|aspirin|"
     r"heparin|insulin|pressors?|thrombolysis|tpa|vasopressors?"
 )
+KOREAN_RISKY_MANAGEMENT_TARGETS = {
+    "알테플라제": "alteplase",
+    "혈전용해": "thrombolysis",
+    "tpa": "tpa",
+    "항응고": "anticoagulation",
+    "항혈소판": "antiplatelet",
+    "아스피린": "aspirin",
+    "헤파린": "heparin",
+    "인슐린": "insulin",
+    "승압제": "vasopressors",
+    "바소프레서": "vasopressors",
+}
+KOREAN_RISKY_MANAGEMENT_COMMITMENT_PATTERNS = [
+    r"(?:시작|투여|주겠|쓰겠|사용|진행|시행|처치|치료|넣겠|올리겠|걸겠|처방)",
+]
+KOREAN_MANAGEMENT_SAFETY_CHECK_PATTERNS = [
+    r"확인",
+    r"평가",
+    r"검토",
+    r"배제",
+    r"금기",
+    r"출혈",
+    r"알레르기",
+    r"대동맥\s*박리",
+    r"칼륨",
+    r"포타슘",
+    r"신장",
+    r"콩팥",
+]
+KOREAN_MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
+    r"(?:확인|평가|검토|배제|금기|출혈|알레르기|대동맥\s*박리|칼륨|포타슘|신장|콩팥).{0,40}(?:없이|안\s*하고|하지\s*않고|필요\s*없)",
+    r"(?:없이|안\s*하고|하지\s*않고|필요\s*없).{0,40}(?:확인|평가|검토|배제|금기|출혈|알레르기|대동맥\s*박리|칼륨|포타슘|신장|콩팥)",
+]
 DIRECT_MANAGEMENT_PATTERNS = [
     rf"^\s*(?:{MANAGEMENT_ACTION_PATTERN})\b",
     rf"\b(?:you|we)\s+(?:should|need to|must|have to)\s+(?:{MANAGEMENT_ACTION_PATTERN})\b",
@@ -362,33 +395,63 @@ def detect_management_safety_gap(
         return []
 
     normalized = _normalize_for_guardrail(student_message)
-    risky_terms = sorted(
-        set(re.findall(rf"\b(?:{RISKY_MANAGEMENT_TARGET_PATTERN})\b", normalized)),
-        key=len,
-        reverse=True,
-    )
+    risky_terms = _risky_management_terms(normalized)
     if not risky_terms:
         return []
 
-    has_risky_commitment = any(
-        re.search(pattern, normalized)
-        for pattern in RISKY_DIRECT_MANAGEMENT_PATTERNS
-    )
+    has_risky_commitment = _has_risky_management_commitment(normalized)
     if not has_risky_commitment:
         return []
 
-    bypasses_safety_check = any(
-        re.search(pattern, normalized)
-        for pattern in MANAGEMENT_SAFETY_BYPASS_PATTERNS
-    )
-    mentions_safety_check = any(
-        re.search(pattern, normalized)
-        for pattern in MANAGEMENT_SAFETY_CHECK_PATTERNS
-    )
+    bypasses_safety_check = _bypasses_management_safety_check(normalized)
+    mentions_safety_check = _mentions_management_safety_check(normalized)
     if mentions_safety_check and not bypasses_safety_check:
         return []
 
     return risky_terms
+
+
+def _risky_management_terms(normalized: str) -> list[str]:
+    terms = set(re.findall(rf"\b(?:{RISKY_MANAGEMENT_TARGET_PATTERN})\b", normalized))
+    for phrase, canonical in KOREAN_RISKY_MANAGEMENT_TARGETS.items():
+        if phrase.lower() in normalized:
+            terms.add(canonical)
+    return sorted(terms, key=len, reverse=True)
+
+
+def _has_risky_management_commitment(normalized: str) -> bool:
+    if any(re.search(pattern, normalized) for pattern in RISKY_DIRECT_MANAGEMENT_PATTERNS):
+        return True
+    has_korean_target = any(
+        phrase.lower() in normalized
+        for phrase in KOREAN_RISKY_MANAGEMENT_TARGETS
+    )
+    if not has_korean_target:
+        return False
+    return any(
+        re.search(pattern, normalized)
+        for pattern in KOREAN_RISKY_MANAGEMENT_COMMITMENT_PATTERNS
+    )
+
+
+def _mentions_management_safety_check(normalized: str) -> bool:
+    return any(
+        re.search(pattern, normalized)
+        for pattern in MANAGEMENT_SAFETY_CHECK_PATTERNS
+    ) or any(
+        re.search(pattern, normalized)
+        for pattern in KOREAN_MANAGEMENT_SAFETY_CHECK_PATTERNS
+    )
+
+
+def _bypasses_management_safety_check(normalized: str) -> bool:
+    return any(
+        re.search(pattern, normalized)
+        for pattern in MANAGEMENT_SAFETY_BYPASS_PATTERNS
+    ) or any(
+        re.search(pattern, normalized)
+        for pattern in KOREAN_MANAGEMENT_SAFETY_BYPASS_PATTERNS
+    )
 
 
 def is_coach_response_safe(case: ClinicalCase, response_text: str) -> bool:

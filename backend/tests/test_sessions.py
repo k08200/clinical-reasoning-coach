@@ -1697,6 +1697,99 @@ async def test_management_before_safety_checks_redirects_and_records_safety_even
 
 
 @pytest.mark.asyncio
+async def test_korean_management_before_safety_checks_redirects_and_records_safety_event(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+
+    async def fail_stream_coach_response(**_kwargs):
+        raise AssertionError("LLM coaching should not run before safety redirect")
+        yield
+
+    async def fail_analyze_student_response(**_kwargs):
+        raise AssertionError("Reasoning analysis should not run before safety redirect")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fail_analyze_student_response,
+    )
+
+    user = User(
+        email=f"korean-management-safety-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Korean Management Safety Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="Opening case presentation.",
+    ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    stream_response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "이 시뮬레이션에서는 헤파린을 바로 시작하겠습니다."},
+        headers=auth_headers,
+    )
+
+    assert stream_response.status_code == 200
+    assert "Pause the management plan" in stream_response.text
+    assert '"type": "done"' in stream_response.text
+
+    saved_response = await client.get(
+        f"/api/sessions/{session.id}",
+        headers=auth_headers,
+    )
+    assert saved_response.status_code == 200
+    saved_session = saved_response.json()
+    assert [message["role"] for message in saved_session["messages"]] == [
+        "coach",
+        "student",
+        "coach",
+    ]
+    assert saved_session["messages"][1]["reasoning_score"] is None
+    assert "Pause the management plan" in saved_session["messages"][2]["content"]
+    assert saved_session["reasoning_map"]["nodes"] == []
+
+    async with TestSessionLocal() as safety_db:
+        safety_events = (
+            await safety_db.execute(
+                select(SafetyEvent).where(SafetyEvent.session_id == session.id)
+            )
+        ).scalars().all()
+    assert len(safety_events) == 1
+    assert safety_events[0].event_type == "management_before_safety_checks"
+    assert safety_events[0].detected_terms == ["heparin"]
+
+
+@pytest.mark.asyncio
 async def test_patient_identifier_signal_blocks_storage_and_records_safety_event(
     client: AsyncClient,
     monkeypatch: pytest.MonkeyPatch,

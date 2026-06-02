@@ -193,6 +193,18 @@ def test_management_safety_gap_detection_requires_missing_contraindication_check
         uncovered,
     ) == []
     assert detect_management_safety_gap(
+        "헤파린을 바로 시작하겠습니다.",
+        uncovered,
+    ) == ["heparin"]
+    assert detect_management_safety_gap(
+        "출혈 위험 확인 없이 아스피린을 투여하겠습니다.",
+        uncovered,
+    ) == ["aspirin"]
+    assert detect_management_safety_gap(
+        "대동맥 박리 소견과 출혈 위험을 확인한 뒤 헤파린을 시작하겠습니다.",
+        uncovered,
+    ) == []
+    assert detect_management_safety_gap(
         "I would order an ECG now.",
         uncovered,
     ) == []
