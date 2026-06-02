@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from typing import Optional
 from sqlalchemy import ForeignKey, String, Text, DateTime, Integer, JSON, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.database import Base
+
+CLINICAL_REVIEW_VALID_DAYS = 365
 
 REVIEW_PROVENANCE = {
     "clinician_reviewed": {
@@ -23,6 +25,15 @@ REVIEW_PROVENANCE = {
         "requires_caution": True,
     },
 }
+
+
+def _parse_review_date(value: str | None) -> date | None:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value[:10])
+    except ValueError:
+        return None
 
 
 class ClinicalCase(Base):
@@ -85,12 +96,32 @@ class ClinicalCase(Base):
                 "requires_caution": True,
             },
         )
+        reviewed_on = _parse_review_date(self.last_reviewed_at)
+        review_valid_until = (
+            (reviewed_on + timedelta(days=CLINICAL_REVIEW_VALID_DAYS)).isoformat()
+            if reviewed_on
+            else None
+        )
+        review_stale = (
+            self.review_status == "clinician_reviewed"
+            and (
+                reviewed_on is None
+                or date.today() > reviewed_on + timedelta(days=CLINICAL_REVIEW_VALID_DAYS)
+            )
+        )
+        review_label = review["label"]
+        requires_caution = review["requires_caution"]
+        if review_stale:
+            review_label = "Clinician review stale"
+            requires_caution = True
 
         return {
             "source_count": len(self.clinical_sources or []),
             "organizations": organizations,
             "review_status": self.review_status,
-            "review_label": review["label"],
-            "requires_caution": review["requires_caution"],
+            "review_label": review_label,
+            "requires_caution": requires_caution,
             "last_reviewed_at": self.last_reviewed_at,
+            "review_valid_until": review_valid_until,
+            "review_stale": review_stale,
         }

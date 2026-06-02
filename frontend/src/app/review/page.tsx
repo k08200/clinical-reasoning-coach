@@ -73,7 +73,7 @@ export default function ReviewPage() {
   );
 
   const pendingCases = (cases ?? []).filter(
-    (clinicalCase) => clinicalCase.source_provenance.review_status !== "clinician_reviewed",
+    (clinicalCase) => clinicalCase.source_provenance.requires_caution,
   );
   const allChecksConfirmed = Object.values(checks).every(Boolean);
 

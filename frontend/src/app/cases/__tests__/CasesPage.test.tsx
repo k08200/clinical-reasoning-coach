@@ -74,6 +74,8 @@ const makeCase = (overrides: Partial<ClinicalCase> = {}): ClinicalCase => ({
     review_label: "Educational draft",
     requires_caution: true,
     last_reviewed_at: "2026-06-01",
+    review_valid_until: "2027-06-01",
+    review_stale: false,
   },
   times_used: 2,
   created_at: "2026-05-25T00:00:00Z",
@@ -134,7 +136,7 @@ describe("CasesPage", () => {
     expect(
       screen.getByText("American Heart Association / American College of Cardiology"),
     ).toBeTruthy();
-    expect(screen.getByText("Reviewed 2026-06-01")).toBeTruthy();
+    expect(screen.getByText("Reviewed 2026-06-01 · Valid until 2027-06-01")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Start Session" }));
 
     expect(
@@ -161,6 +163,8 @@ describe("CasesPage", () => {
             review_label: "Clinician reviewed",
             requires_caution: false,
             last_reviewed_at: "2026-06-02",
+            review_valid_until: "2027-06-02",
+            review_stale: false,
           },
         }),
       ],
@@ -190,6 +194,8 @@ describe("CasesPage", () => {
             review_label: "AI-generated, unreviewed",
             requires_caution: true,
             last_reviewed_at: null,
+            review_valid_until: null,
+            review_stale: false,
           },
         }),
       ],
@@ -202,6 +208,47 @@ describe("CasesPage", () => {
     expect(screen.getByText("AI-generated, unreviewed")).toBeTruthy();
     expect(screen.getByText("Not clinician reviewed; use only for education.")).toBeTruthy();
     expect(screen.queryByText(/Reviewed/)).toBeFalsy();
+  });
+
+  it("requires acknowledgement before starting a stale reviewed case", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [
+        makeCase({
+          source_provenance: {
+            source_count: 1,
+            organizations: ["American Heart Association"],
+            review_status: "clinician_reviewed",
+            review_label: "Clinician review stale",
+            requires_caution: true,
+            last_reviewed_at: "2024-01-01",
+            review_valid_until: "2024-12-31",
+            review_stale: true,
+          },
+        }),
+      ],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockCreateSession.mockResolvedValue({ id: "session-stale" });
+
+    render(<CasesPage />);
+
+    expect(screen.getByText("Clinician review stale")).toBeTruthy();
+    expect(screen.getByText("Clinician review is stale; re-review required.")).toBeTruthy();
+    expect(screen.getByText("Reviewed 2024-01-01 · Valid until 2024-12-31")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Start Session" }));
+
+    expect(
+      screen.getByText("This case has a stale clinician review. Start only as educational simulation."),
+    ).toBeTruthy();
+    expect(mockCreateSession).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Acknowledge and Start" }));
+
+    await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1", {
+      acknowledge_unreviewed_case: true,
+    }));
+    expect(mockPush).toHaveBeenCalledWith("/sessions/session-stale");
   });
 
   it("generates a demo case and refreshes the list", async () => {

@@ -83,6 +83,18 @@ export default function CasesPage() {
     }
   }
 
+  function cautionText(clinicalCase: ClinicalCase): string {
+    return clinicalCase.source_provenance.review_stale
+      ? "Clinician review is stale; re-review required."
+      : "Not clinician reviewed; use only for education.";
+  }
+
+  function acknowledgementText(clinicalCase: ClinicalCase): string {
+    return clinicalCase.source_provenance.review_stale
+      ? "This case has a stale clinician review. Start only as educational simulation."
+      : "This case is not clinician reviewed. Start only as educational simulation.";
+  }
+
   return (
     <div className="min-h-screen bg-slate-900">
       {/* Header */}
@@ -232,7 +244,7 @@ export default function CasesPage() {
                   </div>
                   {c.source_provenance.requires_caution && (
                     <p className="mt-2 text-xs font-medium text-amber-300">
-                      Not clinician reviewed; use only for education.
+                      {cautionText(c)}
                     </p>
                   )}
                   {c.source_provenance.organizations.length > 0 && (
@@ -243,13 +255,16 @@ export default function CasesPage() {
                   {c.source_provenance.last_reviewed_at && (
                     <p className="mt-1 text-xs text-slate-500">
                       Reviewed {c.source_provenance.last_reviewed_at}
+                      {c.source_provenance.review_valid_until
+                        ? ` · Valid until ${c.source_provenance.review_valid_until}`
+                        : ""}
                     </p>
                   )}
                 </div>
 
                 {acknowledgingCase === c.id && (
                   <div className="mb-4 border-l-2 border-amber-500 bg-amber-950/20 px-3 py-2 text-xs text-amber-100">
-                    This case is not clinician reviewed. Start only as educational simulation.
+                    {acknowledgementText(c)}
                     <div className="mt-2 flex gap-2">
                       <button
                         onClick={() => handleStartSession(c, true)}

@@ -130,7 +130,7 @@ async def test_create_session_requires_acknowledgement_for_unreviewed_case(
     )
 
     assert response.status_code == 400
-    assert "not clinician reviewed" in response.json()["detail"]
+    assert "not currently clinician reviewed" in response.json()["detail"]
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -165,6 +165,51 @@ async def test_create_session_allows_clinician_reviewed_case_without_acknowledge
 
     assert response.status_code == 201
     assert response.json()["case_id"] == str(case.id)
+    await db.refresh(case)
+    assert case.times_used == 1
+
+
+@pytest.mark.asyncio
+async def test_create_session_requires_acknowledgement_for_stale_reviewed_case(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"stale-reviewed-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Stale Reviewed Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    case.last_reviewed_at = "2024-01-01"
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    blocked_response = await client.post(
+        "/api/sessions",
+        json={"case_id": str(case.id)},
+        headers=auth_headers,
+    )
+
+    assert blocked_response.status_code == 400
+    assert "not currently clinician reviewed" in blocked_response.json()["detail"]
+    await db.refresh(case)
+    assert case.times_used == 0
+
+    acknowledged_response = await client.post(
+        "/api/sessions",
+        json={"case_id": str(case.id), "acknowledge_unreviewed_case": True},
+        headers=auth_headers,
+    )
+
+    assert acknowledged_response.status_code == 201
     await db.refresh(case)
     assert case.times_used == 1
 

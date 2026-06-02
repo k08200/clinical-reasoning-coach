@@ -35,6 +35,8 @@ class ClinicalSourceProvenance(BaseModel):
     review_label: str
     requires_caution: bool
     last_reviewed_at: str | None = None
+    review_valid_until: str | None = None
+    review_stale: bool = False
 
 
 class ClinicalCaseResponse(BaseModel):
