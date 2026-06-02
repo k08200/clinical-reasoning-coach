@@ -27,6 +27,20 @@ REAL_PATIENT_SAFETY_RESPONSE = (
     "Return only with a clearly simulated training case."
 )
 
+KOREAN_EDUCATIONAL_SAFETY_NOTICE = (
+    "안전 안내: 이 도구는 교육용 시뮬레이션이며 실제 진료가 아닙니다. "
+    "실제 환자, 급성 악화, 또는 응급 상황이라면 이 시뮬레이터 사용을 중단하고 "
+    "소속 기관의 응급 프로토콜을 따르며 즉시 지도/담당 임상의 또는 119/응급의료체계에 연락하세요."
+)
+
+KOREAN_REAL_PATIENT_SAFETY_RESPONSE = (
+    KOREAN_EDUCATIONAL_SAFETY_NOTICE
+    + "\n\n실제 환자나 응급 상황에 대해서는 코칭을 계속할 수 없습니다. "
+    "명확히 비식별화된 교육용 시뮬레이션 케이스로만 다시 시작하세요."
+)
+
+HANGUL_PATTERN = re.compile(r"[가-힣]")
+
 REAL_PATIENT_SIGNAL_PATTERNS = [
     "actual patient",
     "real patient",
@@ -467,6 +481,12 @@ def should_emit_real_patient_safety_notice(student_message: str) -> bool:
     return bool(detect_real_patient_signals(student_message))
 
 
+def real_patient_safety_response_for(student_message: str) -> str:
+    if HANGUL_PATTERN.search(student_message):
+        return KOREAN_REAL_PATIENT_SAFETY_RESPONSE
+    return REAL_PATIENT_SAFETY_RESPONSE
+
+
 def detect_real_patient_signals(student_message: str) -> list[str]:
     normalized = re.sub(r"\s+", " ", student_message.lower()).strip()
     detected = [
@@ -508,7 +528,10 @@ async def stream_coach_response(
     messages.append({"role": "user", "content": student_message})
 
     if should_emit_real_patient_safety_notice(student_message):
-        yield StreamChunk(type="text_delta", content=REAL_PATIENT_SAFETY_RESPONSE)
+        yield StreamChunk(
+            type="text_delta",
+            content=real_patient_safety_response_for(student_message),
+        )
         yield StreamChunk(type="done")
         return
 

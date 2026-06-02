@@ -36,9 +36,9 @@ from app.schemas.session import (
 )
 from app.services.socratic_coach import (
     MANAGEMENT_SAFETY_REDIRECT_RESPONSE,
-    REAL_PATIENT_SAFETY_RESPONSE,
     detect_management_safety_gap,
     detect_real_patient_signals,
+    real_patient_safety_response_for,
     stream_coach_response,
     get_opening_message,
 )
@@ -564,15 +564,17 @@ async def stream_response(
 
     real_patient_signals = detect_real_patient_signals(body.content)
     if real_patient_signals:
+        safety_response = real_patient_safety_response_for(body.content)
+
         async def real_patient_event_generator():
             await _save_real_patient_safety_turn(
                 session_id=session_id,
                 user_id=uuid.UUID(user_id),
-                coach_content=REAL_PATIENT_SAFETY_RESPONSE,
+                coach_content=safety_response,
                 detected_terms=real_patient_signals,
                 turn_number=turn_number,
             )
-            yield f"data: {json.dumps({'type': 'text', 'content': REAL_PATIENT_SAFETY_RESPONSE})}\n\n"
+            yield f"data: {json.dumps({'type': 'text', 'content': safety_response})}\n\n"
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
         return StreamingResponse(

@@ -18,6 +18,7 @@ from app.models.session import CoachingSession
 from app.models.user import User
 from app.services.provider import StreamChunk
 from app.services.reasoning_analyzer import ReasoningAnalysis
+from app.services.socratic_coach import KOREAN_REAL_PATIENT_SAFETY_RESPONSE
 from app.utils.auth import create_access_token, hash_password
 from tests.conftest import TestSessionLocal
 
@@ -1197,6 +1198,98 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
     )
     assert repeat_response.status_code == 400
     assert repeat_response.json()["detail"] == "Session is not active"
+
+
+@pytest.mark.asyncio
+async def test_korean_real_patient_signal_uses_korean_safety_response(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+
+    async def fail_stream_coach_response(**_kwargs):
+        raise AssertionError("LLM coaching should not run for real-patient signals")
+        yield
+
+    async def fail_analyze_student_response(**_kwargs):
+        raise AssertionError("Reasoning analysis should not run for real-patient signals")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fail_analyze_student_response,
+    )
+
+    email = f"korean-safety-{uuid.uuid4()}@test.com"
+    register_response = await client.post(
+        "/api/auth/register",
+        json={
+            "email": email,
+            "password": "safetypass123",
+            "full_name": "Korean Safety Tester",
+            "training_level": "resident",
+            "accepted_educational_use": True,
+        },
+    )
+    assert register_response.status_code == 201
+    login_response = await client.post(
+        "/api/auth/token",
+        data={"username": email, "password": "safetypass123"},
+    )
+    auth_headers = {
+        "Authorization": f"Bearer {login_response.json()['access_token']}",
+    }
+
+    case_response = await client.post("/api/cases/generate/demo", headers=auth_headers)
+    session_response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": case_response.json()["id"],
+            "acknowledge_unreviewed_case": True,
+        },
+        headers=auth_headers,
+    )
+    session_id = session_response.json()["id"]
+
+    stream_response = await client.post(
+        f"/api/sessions/{session_id}/stream",
+        json={"content": "제 환자가 지금 숨을 못 쉬고 있습니다."},
+        headers=auth_headers,
+    )
+
+    assert stream_response.status_code == 200
+    assert "119" in stream_response.text
+    assert '"type": "done"' in stream_response.text
+
+    saved_response = await client.get(
+        f"/api/sessions/{session_id}",
+        headers=auth_headers,
+    )
+    saved_session = saved_response.json()
+    assert saved_session["status"] == "safety_locked"
+    assert [message["role"] for message in saved_session["messages"]] == [
+        "coach",
+        "coach",
+    ]
+    assert saved_session["messages"][1]["content"] == KOREAN_REAL_PATIENT_SAFETY_RESPONSE
+    assert "제 환자가" not in str(saved_session)
+
+    async with TestSessionLocal() as db:
+        safety_events = (
+            await db.execute(
+                select(SafetyEvent).where(
+                    SafetyEvent.session_id == uuid.UUID(session_id)
+                )
+            )
+        ).scalars().all()
+    assert len(safety_events) == 1
+    assert "제 환자" in safety_events[0].detected_terms
+    assert "숨을 못 쉬" in safety_events[0].detected_terms
 
 
 @pytest.mark.asyncio

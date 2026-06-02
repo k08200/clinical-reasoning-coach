@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 from app.services.provider import StreamChunk
 from app.services.socratic_coach import (
     EDUCATIONAL_SAFETY_NOTICE,
+    KOREAN_REAL_PATIENT_SAFETY_RESPONSE,
     MANAGEMENT_SAFETY_REDIRECT_RESPONSE,
     REAL_PATIENT_SAFETY_RESPONSE,
     SAFE_GUARDRAIL_RESPONSE,
@@ -16,6 +17,7 @@ from app.services.socratic_coach import (
     get_opening_message,
     detect_management_safety_gap,
     is_coach_response_safe,
+    real_patient_safety_response_for,
     should_emit_real_patient_safety_notice,
     stream_coach_response,
 )
@@ -155,6 +157,19 @@ def test_real_patient_safety_notice_detection():
     )
 
 
+def test_real_patient_safety_response_matches_message_language():
+    assert (
+        real_patient_safety_response_for("제 환자가 지금 숨을 못 쉬고 있습니다.")
+        == KOREAN_REAL_PATIENT_SAFETY_RESPONSE
+    )
+    assert "119" in KOREAN_REAL_PATIENT_SAFETY_RESPONSE
+    assert "교육용 시뮬레이션" in KOREAN_REAL_PATIENT_SAFETY_RESPONSE
+    assert (
+        real_patient_safety_response_for("My patient is deteriorating right now")
+        == REAL_PATIENT_SAFETY_RESPONSE
+    )
+
+
 def test_management_safety_gap_detection_requires_missing_contraindication_checks():
     uncovered = {
         "red_flags": [],
@@ -250,6 +265,32 @@ async def test_stream_halts_for_real_patient_signal(monkeypatch: pytest.MonkeyPa
 
     assert chunks[0].type == "text_delta"
     assert chunks[0].content == REAL_PATIENT_SAFETY_RESPONSE
+    assert chunks[1].type == "done"
+
+
+@pytest.mark.asyncio
+async def test_stream_halts_for_korean_real_patient_signal(monkeypatch: pytest.MonkeyPatch):
+    class ProviderThatShouldNotBeCalled:
+        async def stream(self, **_kwargs):
+            raise AssertionError("provider should not be called for real-patient signals")
+
+    monkeypatch.setattr(
+        "app.services.socratic_coach.get_provider",
+        lambda: ProviderThatShouldNotBeCalled(),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in stream_coach_response(
+            case=make_mock_case(),
+            conversation_history=[],
+            student_message="제 환자가 지금 숨을 못 쉬고 있습니다.",
+            turn_number=1,
+        )
+    ]
+
+    assert chunks[0].type == "text_delta"
+    assert chunks[0].content == KOREAN_REAL_PATIENT_SAFETY_RESPONSE
     assert chunks[1].type == "done"
 
 
