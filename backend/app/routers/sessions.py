@@ -501,6 +501,26 @@ async def stream_response(
         )
 
     real_patient_signals = detect_real_patient_signals(body.content)
+    if real_patient_signals:
+        async def real_patient_event_generator():
+            await _save_real_patient_safety_turn(
+                session_id=session_id,
+                user_id=uuid.UUID(user_id),
+                coach_content=REAL_PATIENT_SAFETY_RESPONSE,
+                detected_terms=real_patient_signals,
+                turn_number=turn_number,
+            )
+            yield f"data: {json.dumps({'type': 'text', 'content': REAL_PATIENT_SAFETY_RESPONSE})}\n\n"
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+        return StreamingResponse(
+            real_patient_event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+            },
+        )
 
     # Save student message
     student_msg = Message(
@@ -523,18 +543,6 @@ async def stream_response(
     await db.commit()
 
     async def event_generator():
-        if real_patient_signals:
-            await _save_real_patient_safety_turn(
-                session_id=session_id,
-                user_id=uuid.UUID(user_id),
-                coach_content=REAL_PATIENT_SAFETY_RESPONSE,
-                detected_terms=real_patient_signals,
-                turn_number=turn_number,
-            )
-            yield f"data: {json.dumps({'type': 'text', 'content': REAL_PATIENT_SAFETY_RESPONSE})}\n\n"
-            yield f"data: {json.dumps({'type': 'done'})}\n\n"
-            return
-
         if management_safety_gap_terms:
             await _save_management_safety_redirect_turn(
                 session_id=session_id,
@@ -630,12 +638,13 @@ async def _save_real_patient_safety_turn(
             user_id=user_id,
             event_type="real_patient_or_emergency_signal",
             severity="high",
-            action_taken="locked_session_and_halted_coaching",
+            action_taken="locked_session_blocked_storage_and_coaching",
             detected_terms=detected_terms,
             message_turn=turn_number,
             note=(
-                "Session was locked; coaching and reasoning analysis were skipped "
-                "for a possible real patient or emergency scenario."
+                "Session was locked; student message storage, coaching, and "
+                "reasoning analysis were skipped for a possible real patient or "
+                "emergency scenario."
             ),
         ))
         await db.commit()
