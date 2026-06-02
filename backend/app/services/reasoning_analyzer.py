@@ -144,26 +144,45 @@ def build_reasoning_map(
     new_node: dict,
     turn_number: int,
 ) -> dict:
-    nodes = list(existing_map.get("nodes", []))
-    edges = list(existing_map.get("edges", []))
+    map_data = existing_map if isinstance(existing_map, dict) else {}
+    nodes = _list_of_dicts(map_data.get("nodes"))
+    edges = _list_of_dicts(map_data.get("edges"))
+    sanitized_node = _sanitize_reasoning_node(new_node)
 
     node_id = f"turn_{turn_number}"
+    previous_node_ids = {
+        node.get("id")
+        for node in nodes
+        if isinstance(node.get("id"), str)
+    }
+    nodes = [
+        node
+        for node in nodes
+        if node.get("id") != node_id
+    ]
     nodes.append({
         "id": node_id,
         "turn": turn_number,
-        "hypothesis": new_node.get("hypothesis", ""),
-        "quality": new_node.get("reasoning_quality", "unknown"),
-        "supporting_evidence": new_node.get("supporting_evidence", []),
-        "missing_evidence": new_node.get("missing_evidence", []),
+        "hypothesis": sanitized_node["hypothesis"],
+        "quality": sanitized_node["reasoning_quality"],
+        "supporting_evidence": sanitized_node["supporting_evidence"],
+        "missing_evidence": sanitized_node["missing_evidence"],
     })
 
     if turn_number > 1:
         prev_id = f"turn_{turn_number - 1}"
-        edges.append({
-            "id": f"edge_{prev_id}_{node_id}",
-            "source": prev_id,
-            "target": node_id,
-        })
+        edge_id = f"edge_{prev_id}_{node_id}"
+        edges = [
+            edge
+            for edge in edges
+            if edge.get("id") != edge_id and edge.get("target") != node_id
+        ]
+        if prev_id in previous_node_ids:
+            edges.append({
+                "id": edge_id,
+                "source": prev_id,
+                "target": node_id,
+            })
 
     return {"nodes": nodes, "edges": edges}
 
@@ -199,6 +218,16 @@ def _list_of_strings(value: Any, *, limit: int = 8) -> list[str]:
         item.strip()
         for item in value[:limit]
         if isinstance(item, str) and item.strip()
+    ]
+
+
+def _list_of_dicts(value: Any, *, limit: int = 100) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    return [
+        dict(item)
+        for item in value[:limit]
+        if isinstance(item, dict)
     ]
 
 

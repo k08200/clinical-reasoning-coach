@@ -214,6 +214,69 @@ def test_build_reasoning_map_subsequent_turn():
     assert result["edges"][0]["target"] == "turn_2"
 
 
+def test_build_reasoning_map_sanitizes_corrupt_existing_map_and_node():
+    existing = {
+        "nodes": [
+            {"id": "turn_1", "hypothesis": "MI"},
+            "not a node",
+            {"id": "turn_2", "hypothesis": "stale duplicate"},
+        ],
+        "edges": [
+            {"id": "edge_turn_1_turn_2", "source": "turn_1", "target": "turn_2"},
+            "not an edge",
+        ],
+    }
+    node = {
+        "hypothesis": "  PE or ACS  ",
+        "supporting_evidence": ["dyspnea", 42, "tachycardia"],
+        "missing_evidence": ["ECG", None],
+        "reasoning_quality": "unsupported_quality",
+    }
+
+    result = build_reasoning_map(
+        existing_map=existing,
+        new_node=node,
+        turn_number=2,
+    )
+
+    assert result["nodes"] == [
+        {"id": "turn_1", "hypothesis": "MI"},
+        {
+            "id": "turn_2",
+            "turn": 2,
+            "hypothesis": "PE or ACS",
+            "quality": "systematic",
+            "supporting_evidence": ["dyspnea", "tachycardia"],
+            "missing_evidence": ["ECG"],
+        },
+    ]
+    assert result["edges"] == [
+        {"id": "edge_turn_1_turn_2", "source": "turn_1", "target": "turn_2"}
+    ]
+
+
+def test_build_reasoning_map_tolerates_non_dict_existing_map():
+    result = build_reasoning_map(
+        existing_map="corrupt",
+        new_node={"hypothesis": "ACS", "reasoning_quality": "anchored"},
+        turn_number=3,
+    )
+
+    assert result == {
+        "nodes": [
+            {
+                "id": "turn_3",
+                "turn": 3,
+                "hypothesis": "ACS",
+                "quality": "anchored",
+                "supporting_evidence": [],
+                "missing_evidence": [],
+            }
+        ],
+        "edges": [],
+    }
+
+
 def test_extract_json_from_code_block():
     text = '```json\n{"key": "value"}\n```'
     result = _extract_json(text)
