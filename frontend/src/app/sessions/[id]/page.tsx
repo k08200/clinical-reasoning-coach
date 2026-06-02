@@ -12,6 +12,12 @@ import ReasoningMap from "@/components/ReasoningMap";
 import ChatMessage from "@/components/ChatMessage";
 import BiasAlert from "@/components/BiasAlert";
 
+function safetyCoverageLabel(category: string): string {
+  if (category === "red_flags") return "Red Flags";
+  if (category === "time_critical_actions") return "Time-Critical Actions";
+  return "Contraindication Checks";
+}
+
 export default function SessionPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -357,6 +363,71 @@ export default function SessionPage() {
                             ))}
                           </div>
                         )}
+                      </section>
+                    )}
+
+                    {review.clinical_safety_coverage.total_count > 0 && (
+                      <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-3 lg:col-span-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-500">
+                              Clinical Safety Coverage
+                            </p>
+                            <p className="mt-1 text-sm text-slate-300">
+                              {review.clinical_safety_coverage.covered_count} of{" "}
+                              {review.clinical_safety_coverage.total_count} hidden safety targets
+                              addressed
+                            </p>
+                          </div>
+                          <span className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-200">
+                            {Math.round(
+                              (review.clinical_safety_coverage.covered_count /
+                                review.clinical_safety_coverage.total_count) *
+                                100,
+                            )}
+                            %
+                          </span>
+                        </div>
+                        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                          {(
+                            [
+                              "red_flags",
+                              "time_critical_actions",
+                              "contraindication_checks",
+                            ] as const
+                          ).map((category) => (
+                            <div key={category} className="rounded-lg border border-slate-700 bg-slate-800/70 p-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                {safetyCoverageLabel(category)}
+                              </p>
+                              <ul className="mt-2 space-y-2">
+                                {review.clinical_safety_coverage[category].map((item) => (
+                                  <li key={item.item} className="text-sm">
+                                    <div className="flex items-start gap-2">
+                                      <span
+                                        className={
+                                          item.covered
+                                            ? "mt-0.5 text-emerald-300"
+                                            : "mt-0.5 text-amber-300"
+                                        }
+                                      >
+                                        {item.covered ? "Covered" : "Missed"}
+                                      </span>
+                                      <div>
+                                        <p className="text-slate-200">{item.item}</p>
+                                        {item.evidence_turns.length > 0 && (
+                                          <p className="mt-0.5 text-xs text-slate-500">
+                                            Turn {item.evidence_turns.join(", ")}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
                       </section>
                     )}
 

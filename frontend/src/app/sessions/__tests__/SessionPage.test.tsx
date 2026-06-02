@@ -227,6 +227,36 @@ describe("SessionPage", () => {
                 supports: ["ECG timing"],
               },
             ],
+            clinical_safety_coverage: {
+              red_flags: [
+                {
+                  item: "Diaphoresis with crushing chest pain",
+                  covered: true,
+                  evidence_turns: [1],
+                },
+                {
+                  item: "Hypoxia or hemodynamic instability",
+                  covered: false,
+                  evidence_turns: [],
+                },
+              ],
+              time_critical_actions: [
+                {
+                  item: "12-lead ECG within 10 minutes",
+                  covered: true,
+                  evidence_turns: [1],
+                },
+              ],
+              contraindication_checks: [
+                {
+                  item: "Aortic dissection features before anticoagulation",
+                  covered: false,
+                  evidence_turns: [],
+                },
+              ],
+              covered_count: 2,
+              total_count: 4,
+            },
             review_status: "educational_draft",
             last_reviewed_at: "2026-06-01",
           },
@@ -254,6 +284,12 @@ describe("SessionPage", () => {
     expect(screen.getByText(/Focused on ACS/)).toBeTruthy();
     expect(screen.getByText(/Get an ECG early/)).toBeTruthy();
     expect(screen.getByText(/Anchoring/)).toBeTruthy();
+    expect(screen.getByText("Clinical Safety Coverage")).toBeTruthy();
+    expect(screen.getByText(/2 of 4 hidden safety targets addressed/)).toBeTruthy();
+    expect(screen.getByText("Diaphoresis with crushing chest pain")).toBeTruthy();
+    expect(screen.getByText("Hypoxia or hemodynamic instability")).toBeTruthy();
+    expect(screen.getAllByText("Covered").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Missed").length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: /Chest Pain Guideline/ })).toHaveAttribute(
       "href",
       "https://example.org/chest-pain",

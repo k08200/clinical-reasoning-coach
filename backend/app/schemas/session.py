@@ -54,6 +54,20 @@ class ReviewBiasFeedback(BaseModel):
     message_turn: int
 
 
+class ClinicalSafetyCoverageItem(BaseModel):
+    item: str
+    covered: bool
+    evidence_turns: list[int]
+
+
+class ClinicalSafetyCoverage(BaseModel):
+    red_flags: list[ClinicalSafetyCoverageItem]
+    time_critical_actions: list[ClinicalSafetyCoverageItem]
+    contraindication_checks: list[ClinicalSafetyCoverageItem]
+    covered_count: int
+    total_count: int
+
+
 class SessionReviewResponse(BaseModel):
     session_id: uuid.UUID
     case_id: uuid.UUID
@@ -66,6 +80,7 @@ class SessionReviewResponse(BaseModel):
     key_teaching_points: list[str]
     cognitive_traps: list[str]
     clinical_sources: list[ReviewSource]
+    clinical_safety_coverage: ClinicalSafetyCoverage
     review_status: str
     last_reviewed_at: str | None
 

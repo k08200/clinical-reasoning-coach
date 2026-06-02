@@ -9,6 +9,7 @@ from __future__ import annotations
 import uuid
 import json
 import logging
+import re
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -24,6 +25,8 @@ from app.models.bias_event import BiasEvent
 from app.models.token_usage import TokenUsage
 from app.models.safety_event import SafetyEvent
 from app.schemas.session import (
+    ClinicalSafetyCoverage,
+    ClinicalSafetyCoverageItem,
     SessionCreate,
     SessionReviewResponse,
     SessionResponse,
@@ -48,6 +51,37 @@ from app.utils.auth import require_educational_use_consent
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 logger = logging.getLogger(__name__)
+
+SAFETY_COVERAGE_STOPWORDS = {
+    "the",
+    "and",
+    "for",
+    "with",
+    "before",
+    "after",
+    "from",
+    "that",
+    "this",
+    "patient",
+    "patients",
+    "clinical",
+    "features",
+    "feature",
+    "checks",
+    "check",
+    "action",
+    "actions",
+    "risk",
+    "risks",
+    "need",
+    "needs",
+    "should",
+    "would",
+    "could",
+    "must",
+    "rule",
+    "out",
+}
 
 
 def _build_claude_history(messages: list[Message]) -> list[dict]:
@@ -109,6 +143,82 @@ def _build_review_feedback(session: CoachingSession) -> dict:
             for event in sorted(session.bias_events, key=lambda event: event.message_turn)
         ],
     }
+
+
+def _tokens_for_safety_coverage(text: str) -> set[str]:
+    normalized = text.lower()
+    token_aliases = {
+        "electrocardiogram": "ecg",
+        "ekg": "ecg",
+        "anticoagulation": "anticoagulant",
+        "anticoagulated": "anticoagulant",
+        "antiplatelets": "antiplatelet",
+        "antibiotics": "antibiotic",
+        "cultures": "culture",
+        "allergies": "allergy",
+    }
+    tokens = set()
+    for token in re.findall(r"[a-z0-9]+", normalized):
+        if len(token) < 3 and token not in {"ecg", "pe", "ct"}:
+            continue
+        token = token_aliases.get(token, token)
+        if token not in SAFETY_COVERAGE_STOPWORDS:
+            tokens.add(token)
+    return tokens
+
+
+def _coverage_items_for_category(
+    items: list[str],
+    student_turns: list[tuple[int, set[str]]],
+) -> list[ClinicalSafetyCoverageItem]:
+    coverage_items: list[ClinicalSafetyCoverageItem] = []
+    for item in items:
+        item_tokens = _tokens_for_safety_coverage(item)
+        required_overlap = 1 if len(item_tokens) <= 1 else 2
+        evidence_turns = [
+            turn_number
+            for turn_number, turn_tokens in student_turns
+            if len(item_tokens.intersection(turn_tokens)) >= required_overlap
+        ]
+        coverage_items.append(
+            ClinicalSafetyCoverageItem(
+                item=item,
+                covered=bool(evidence_turns),
+                evidence_turns=evidence_turns,
+            )
+        )
+    return coverage_items
+
+
+def _build_clinical_safety_coverage(
+    case: ClinicalCase,
+    session: CoachingSession,
+) -> ClinicalSafetyCoverage:
+    student_turns = [
+        (index, _tokens_for_safety_coverage(message.content))
+        for index, message in enumerate(
+            [message for message in session.messages if message.role == "student"],
+            start=1,
+        )
+    ]
+    red_flags = _coverage_items_for_category(case.clinical_red_flags or [], student_turns)
+    time_critical_actions = _coverage_items_for_category(
+        case.time_critical_actions or [],
+        student_turns,
+    )
+    contraindication_checks = _coverage_items_for_category(
+        case.contraindication_checks or [],
+        student_turns,
+    )
+    all_items = red_flags + time_critical_actions + contraindication_checks
+
+    return ClinicalSafetyCoverage(
+        red_flags=red_flags,
+        time_critical_actions=time_critical_actions,
+        contraindication_checks=contraindication_checks,
+        covered_count=sum(1 for item in all_items if item.covered),
+        total_count=len(all_items),
+    )
 
 
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
@@ -212,6 +322,7 @@ async def get_session_review(
         key_teaching_points=case.key_teaching_points,
         cognitive_traps=case.cognitive_traps,
         clinical_sources=case.clinical_sources,
+        clinical_safety_coverage=_build_clinical_safety_coverage(case, session),
         review_status=case.review_status,
         last_reviewed_at=case.last_reviewed_at,
     )

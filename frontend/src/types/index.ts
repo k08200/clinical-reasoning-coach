@@ -156,6 +156,20 @@ export interface ReviewBiasFeedback {
   message_turn: number;
 }
 
+export interface ClinicalSafetyCoverageItem {
+  item: string;
+  covered: boolean;
+  evidence_turns: number[];
+}
+
+export interface ClinicalSafetyCoverage {
+  red_flags: ClinicalSafetyCoverageItem[];
+  time_critical_actions: ClinicalSafetyCoverageItem[];
+  contraindication_checks: ClinicalSafetyCoverageItem[];
+  covered_count: number;
+  total_count: number;
+}
+
 export interface SessionReview {
   session_id: string;
   case_id: string;
@@ -168,6 +182,7 @@ export interface SessionReview {
   key_teaching_points: string[];
   cognitive_traps: string[];
   clinical_sources: ReviewSource[];
+  clinical_safety_coverage: ClinicalSafetyCoverage;
   review_status: string;
   last_reviewed_at: string | null;
 }

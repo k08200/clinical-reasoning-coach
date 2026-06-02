@@ -87,6 +87,18 @@ def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
         diagnosis="Acute coronary syndrome",
         key_teaching_points=["Obtain ECG early in acute chest pain"],
         cognitive_traps=["Anchoring"],
+        clinical_red_flags=[
+            "Diaphoresis with crushing chest pain",
+            "Hypoxia or hemodynamic instability",
+        ],
+        time_critical_actions=[
+            "12-lead ECG within 10 minutes",
+            "Serial troponin trend",
+        ],
+        contraindication_checks=[
+            "Aortic dissection features before anticoagulation",
+            "Major bleeding risk before antiplatelet therapy",
+        ],
         clinical_sources=[
             {
                 "title": "Chest Pain Guideline",
@@ -547,6 +559,18 @@ async def test_session_review_available_only_after_completion(
         diagnosis="Acute coronary syndrome",
         key_teaching_points=["Obtain ECG early in acute chest pain"],
         cognitive_traps=["Anchoring"],
+        clinical_red_flags=[
+            "Diaphoresis with crushing chest pain",
+            "Hypoxia or hemodynamic instability",
+        ],
+        time_critical_actions=[
+            "12-lead ECG within 10 minutes",
+            "Serial troponin trend",
+        ],
+        contraindication_checks=[
+            "Aortic dissection features before anticoagulation",
+            "Major bleeding risk before antiplatelet therapy",
+        ],
         clinical_sources=[
             {
                 "title": "Chest Pain Guideline",
@@ -572,7 +596,10 @@ async def test_session_review_available_only_after_completion(
     db.add(Message(
         session_id=session.id,
         role="student",
-        content="I prioritized ACS and PE.",
+        content=(
+            "I prioritized diaphoresis with crushing chest pain, want an ECG within "
+            "10 minutes, and would check for aortic dissection before anticoagulation."
+        ),
         reasoning_score=82,
         reasoning_analysis={
             "score_breakdown": {
@@ -643,5 +670,22 @@ async def test_session_review_available_only_after_completion(
             "supports": ["ECG timing", "risk stratification"],
         }
     ]
+    coverage = payload["clinical_safety_coverage"]
+    assert coverage["covered_count"] == 3
+    assert coverage["total_count"] == 6
+    assert coverage["red_flags"][0] == {
+        "item": "Diaphoresis with crushing chest pain",
+        "covered": True,
+        "evidence_turns": [1],
+    }
+    assert coverage["red_flags"][1] == {
+        "item": "Hypoxia or hemodynamic instability",
+        "covered": False,
+        "evidence_turns": [],
+    }
+    assert coverage["time_critical_actions"][0]["covered"] is True
+    assert coverage["time_critical_actions"][1]["covered"] is False
+    assert coverage["contraindication_checks"][0]["covered"] is True
+    assert coverage["contraindication_checks"][1]["covered"] is False
     assert payload["review_status"] == "educational_draft"
     assert "coach_guidance" not in payload
