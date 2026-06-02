@@ -8,6 +8,7 @@ from app.services.reasoning_analyzer import (
     analyze_student_response,
     build_reasoning_map,
     _extract_json,
+    _sanitize_analysis_payload,
 )
 
 
@@ -70,6 +71,108 @@ async def test_analyze_student_response():
     assert result.biases_detected[0]["type"] == "anchoring"
     assert result.input_tokens == 500
     assert result.thinking_tokens == 1200
+
+
+@pytest.mark.asyncio
+async def test_analyze_student_response_sanitizes_out_of_range_scores_and_biases():
+    from app.services.provider import LLMResponse
+
+    unsafe_analysis_json = """{
+      "reasoning_score": 150,
+      "score_breakdown": {
+        "systematic_approach": 30,
+        "evidence_integration": -4,
+        "prioritization": "18",
+        "mechanism_understanding": 500
+      },
+      "biases_detected": [
+        {
+          "type": "anchoring",
+          "severity": "catastrophic",
+          "evidence": "Overconfident single diagnosis",
+          "confidence": 2.5
+        },
+        {
+          "type": "unsupported_bias",
+          "severity": "severe",
+          "evidence": "Should be ignored",
+          "confidence": 0.9
+        }
+      ],
+      "reasoning_node": {
+        "hypothesis": "  ACS  ",
+        "supporting_evidence": ["chest pain", 42],
+        "missing_evidence": ["ECG"],
+        "reasoning_quality": "heroic"
+      },
+      "coach_insight": "  Ask for disconfirming evidence.  ",
+      "student_strengths": ["Prioritized risk", 7],
+      "student_gaps": ["Needs safety checks"]
+    }"""
+
+    mock_response = LLMResponse(
+        text=unsafe_analysis_json,
+        thinking="",
+        input_tokens=5,
+        output_tokens=6,
+        thinking_tokens=7,
+    )
+    mock_provider = MagicMock()
+    mock_provider.complete = AsyncMock(return_value=mock_response)
+
+    with patch(
+        "app.services.reasoning_analyzer.get_provider",
+        return_value=mock_provider,
+    ):
+        result = await analyze_student_response(
+            student_response="I think this is ACS.",
+            case_summary="Chest pain",
+            conversation_history=[],
+            turn_number=1,
+        )
+
+    assert result.score_breakdown == {
+        "systematic_approach": 25,
+        "evidence_integration": 0,
+        "prioritization": 18,
+        "mechanism_understanding": 25,
+    }
+    assert result.reasoning_score == 68
+    assert result.biases_detected == [
+        {
+            "type": "anchoring",
+            "severity": "mild",
+            "evidence": "Overconfident single diagnosis",
+            "confidence": 1.0,
+        }
+    ]
+    assert result.reasoning_node == {
+        "hypothesis": "ACS",
+        "supporting_evidence": ["chest pain"],
+        "missing_evidence": ["ECG"],
+        "reasoning_quality": "systematic",
+    }
+    assert result.coach_insight == "Ask for disconfirming evidence."
+    assert result.student_strengths == ["Prioritized risk"]
+    assert result.student_gaps == ["Needs safety checks"]
+
+
+def test_sanitize_analysis_payload_balances_missing_breakdown_from_score():
+    result = _sanitize_analysis_payload({
+        "reasoning_score": 73,
+        "biases_detected": "not a list",
+        "reasoning_node": None,
+    })
+
+    assert result["reasoning_score"] == 73
+    assert result["score_breakdown"] == {
+        "systematic_approach": 18.2,
+        "evidence_integration": 18.2,
+        "prioritization": 18.2,
+        "mechanism_understanding": 18.4,
+    }
+    assert result["biases_detected"] == []
+    assert result["reasoning_node"]["reasoning_quality"] == "systematic"
 
 
 def test_build_reasoning_map_first_turn():

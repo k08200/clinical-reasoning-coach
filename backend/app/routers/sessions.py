@@ -128,6 +128,13 @@ def _append_unique(target: list[str], values: list[str] | None) -> None:
             target.append(value)
 
 
+def _bounded_reasoning_score(value: float) -> float:
+    score = float(value)
+    if score != score:
+        return 0.0
+    return max(0.0, min(100.0, score))
+
+
 def _build_review_feedback(session: CoachingSession) -> dict:
     score_totals: dict[str, float] = {}
     score_counts: dict[str, int] = {}
@@ -755,7 +762,11 @@ async def complete_session(
             detail="Session is not active",
         )
 
-    scores = [m.reasoning_score for m in session.messages if m.reasoning_score is not None]
+    scores = [
+        _bounded_reasoning_score(m.reasoning_score)
+        for m in session.messages
+        if m.reasoning_score is not None
+    ]
     if not scores:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

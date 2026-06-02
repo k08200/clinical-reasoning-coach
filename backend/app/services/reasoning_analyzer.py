@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
+from typing import Any
 
 from app.services.provider_factory import get_provider
 
@@ -58,6 +59,23 @@ Return ONLY valid JSON:
   "student_gaps": ["..."]
 }"""
 
+SCORE_DIMENSIONS = (
+    "systematic_approach",
+    "evidence_integration",
+    "prioritization",
+    "mechanism_understanding",
+)
+VALID_BIAS_TYPES = {
+    "anchoring",
+    "premature_closure",
+    "availability",
+    "framing",
+    "search_satisficing",
+    "commission",
+}
+VALID_BIAS_SEVERITIES = {"mild", "moderate", "severe"}
+VALID_REASONING_QUALITIES = {"convergent", "divergent", "anchored", "systematic"}
+
 
 @dataclass
 class ReasoningAnalysis:
@@ -104,14 +122,16 @@ Analyze this student's clinical reasoning carefully."""
 
     raw = _extract_json(response.text)
 
+    sanitized = _sanitize_analysis_payload(raw)
+
     return ReasoningAnalysis(
-        reasoning_score=float(raw.get("reasoning_score", 50)),
-        score_breakdown=raw.get("score_breakdown", {}),
-        biases_detected=raw.get("biases_detected", []),
-        reasoning_node=raw.get("reasoning_node", {}),
-        coach_insight=raw.get("coach_insight", ""),
-        student_strengths=raw.get("student_strengths", []),
-        student_gaps=raw.get("student_gaps", []),
+        reasoning_score=sanitized["reasoning_score"],
+        score_breakdown=sanitized["score_breakdown"],
+        biases_detected=sanitized["biases_detected"],
+        reasoning_node=sanitized["reasoning_node"],
+        coach_insight=sanitized["coach_insight"],
+        student_strengths=sanitized["student_strengths"],
+        student_gaps=sanitized["student_gaps"],
         thinking_content=response.thinking,
         input_tokens=response.input_tokens,
         output_tokens=response.output_tokens,
@@ -156,3 +176,117 @@ def _extract_json(text: str) -> dict:
     if match:
         return json.loads(match.group(0))
     raise ValueError(f"No JSON in response: {text[:200]}")
+
+
+def _coerce_float(value: Any, default: float) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return default
+    if number != number:
+        return default
+    return number
+
+
+def _clamp(value: float, lower: float, upper: float) -> float:
+    return max(lower, min(upper, value))
+
+
+def _list_of_strings(value: Any, *, limit: int = 8) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [
+        item.strip()
+        for item in value[:limit]
+        if isinstance(item, str) and item.strip()
+    ]
+
+
+def _balanced_breakdown_from_score(score: float) -> dict[str, float]:
+    bounded_score = _clamp(score, 0, 100)
+    base = round(bounded_score / len(SCORE_DIMENSIONS), 1)
+    breakdown = {dimension: base for dimension in SCORE_DIMENSIONS}
+    rounding_gap = round(bounded_score - sum(breakdown.values()), 1)
+    if rounding_gap:
+        last_dimension = SCORE_DIMENSIONS[-1]
+        breakdown[last_dimension] = round(
+            _clamp(breakdown[last_dimension] + rounding_gap, 0, 25),
+            1,
+        )
+    return breakdown
+
+
+def _sanitize_score_breakdown(raw_breakdown: Any, raw_score: Any) -> tuple[float, dict[str, float]]:
+    fallback_score = _clamp(_coerce_float(raw_score, 50), 0, 100)
+    if not isinstance(raw_breakdown, dict):
+        breakdown = _balanced_breakdown_from_score(fallback_score)
+        return round(sum(breakdown.values()), 1), breakdown
+
+    breakdown = {
+        dimension: round(
+            _clamp(_coerce_float(raw_breakdown.get(dimension), 0), 0, 25),
+            1,
+        )
+        for dimension in SCORE_DIMENSIONS
+    }
+    score = round(sum(breakdown.values()), 1)
+    return score, breakdown
+
+
+def _sanitize_biases(raw_biases: Any) -> list[dict[str, Any]]:
+    if not isinstance(raw_biases, list):
+        return []
+
+    biases: list[dict[str, Any]] = []
+    for raw_bias in raw_biases[:8]:
+        if not isinstance(raw_bias, dict):
+            continue
+        bias_type = raw_bias.get("type")
+        if bias_type not in VALID_BIAS_TYPES:
+            continue
+        severity = raw_bias.get("severity")
+        if severity not in VALID_BIAS_SEVERITIES:
+            severity = "mild"
+        evidence = raw_bias.get("evidence")
+        confidence = _clamp(_coerce_float(raw_bias.get("confidence"), 0.0), 0.0, 1.0)
+        biases.append({
+            "type": bias_type,
+            "severity": severity,
+            "evidence": evidence.strip() if isinstance(evidence, str) else "",
+            "confidence": round(confidence, 3),
+        })
+    return biases
+
+
+def _sanitize_reasoning_node(raw_node: Any) -> dict[str, Any]:
+    if not isinstance(raw_node, dict):
+        raw_node = {}
+
+    quality = raw_node.get("reasoning_quality")
+    if quality not in VALID_REASONING_QUALITIES:
+        quality = "systematic"
+
+    hypothesis = raw_node.get("hypothesis")
+    return {
+        "hypothesis": hypothesis.strip() if isinstance(hypothesis, str) else "",
+        "supporting_evidence": _list_of_strings(raw_node.get("supporting_evidence")),
+        "missing_evidence": _list_of_strings(raw_node.get("missing_evidence")),
+        "reasoning_quality": quality,
+    }
+
+
+def _sanitize_analysis_payload(raw: dict[str, Any]) -> dict[str, Any]:
+    score, breakdown = _sanitize_score_breakdown(
+        raw.get("score_breakdown"),
+        raw.get("reasoning_score"),
+    )
+    coach_insight = raw.get("coach_insight")
+    return {
+        "reasoning_score": score,
+        "score_breakdown": breakdown,
+        "biases_detected": _sanitize_biases(raw.get("biases_detected")),
+        "reasoning_node": _sanitize_reasoning_node(raw.get("reasoning_node")),
+        "coach_insight": coach_insight.strip() if isinstance(coach_insight, str) else "",
+        "student_strengths": _list_of_strings(raw.get("student_strengths")),
+        "student_gaps": _list_of_strings(raw.get("student_gaps")),
+    }
