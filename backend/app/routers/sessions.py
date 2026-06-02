@@ -106,6 +106,14 @@ SAFETY_COVERAGE_NEGATION_PATTERNS = [
     r"\bfailed to\b",
     r"\bdid not assess\b",
     r"\bdid not check\b",
+    r"확인하지\s*않",
+    r"평가하지\s*않",
+    r"검토하지\s*않",
+    r"배제하지\s*않",
+    r"확인\s*안\s*했",
+    r"평가\s*안\s*했",
+    r"놓쳤",
+    r"빠뜨렸",
 ]
 
 CONTRAINDICATION_CHECK_INTENT_PATTERNS = [
@@ -122,6 +130,76 @@ CONTRAINDICATION_CHECK_INTENT_PATTERNS = [
     r"\brule(?:d)? out\b",
     r"\bscreen(?:ed|ing)?\b",
     r"\bverif(?:y|ied|ying)\b",
+    r"확인",
+    r"평가",
+    r"검토",
+    r"배제",
+    r"감별",
+    r"스크리닝",
+    r"문진",
+    r"물어",
+    r"고려",
+    r"확인하",
+    r"평가하",
+    r"검토하",
+    r"배제하",
+]
+
+KOREAN_SAFETY_COVERAGE_ALIASES = [
+    ("식은땀", ("diaphoresis",)),
+    ("발한", ("diaphoresis",)),
+    ("쥐어짜", ("crushing",)),
+    ("압박감", ("crushing",)),
+    ("흉통", ("chest", "pain")),
+    ("가슴 통증", ("chest", "pain")),
+    ("저산소", ("hypoxia",)),
+    ("산소포화도", ("spo2", "hypoxia")),
+    ("혈역학", ("hemodynamic",)),
+    ("불안정", ("instability",)),
+    ("심전도", ("ecg",)),
+    ("12유도", ("12", "lead", "ecg")),
+    ("트로포닌", ("troponin",)),
+    ("연속", ("serial",)),
+    ("반복", ("serial",)),
+    ("추적", ("trend",)),
+    ("대동맥 박리", ("aortic", "dissection")),
+    ("박리", ("dissection",)),
+    ("항응고", ("anticoagulant",)),
+    ("항혈소판", ("antiplatelet",)),
+    ("출혈", ("bleeding",)),
+    ("주요 출혈", ("major", "bleeding")),
+    ("심한 출혈", ("major", "bleeding")),
+    ("폐색전", ("pe",)),
+    ("폐색전증", ("pe",)),
+    ("우심실", ("right", "ventricular", "rv")),
+    ("우심장", ("right", "ventricular", "rv")),
+    ("혈전용해", ("thrombolysis",)),
+    ("임신", ("pregnancy",)),
+    ("조영제", ("contrast",)),
+    ("뇌졸중", ("stroke",)),
+    ("마지막 정상", ("last", "known", "normal")),
+    ("최종 정상", ("last", "known", "normal")),
+    ("혈압", ("blood", "pressure", "bp")),
+    ("혈당", ("glucose",)),
+    ("혈소판", ("platelet",)),
+    ("알테플라제", ("alteplase",)),
+    ("혈전제거술", ("thrombectomy",)),
+    ("패혈증", ("sepsis",)),
+    ("젖산", ("lactate",)),
+    ("락테이트", ("lactate",)),
+    ("혈액배양", ("blood", "culture")),
+    ("배양", ("culture",)),
+    ("항생제", ("antibiotic",)),
+    ("수액", ("fluid",)),
+    ("승압제", ("vasopressor",)),
+    ("감염원", ("source", "infection")),
+    ("케톤산증", ("dka",)),
+    ("인슐린", ("insulin",)),
+    ("칼륨", ("potassium",)),
+    ("포타슘", ("potassium",)),
+    ("나트륨", ("sodium",)),
+    ("음이온차", ("anion", "gap")),
+    ("산증", ("acidosis",)),
 ]
 
 SAFETY_COVERAGE_CATEGORY_LABELS = {
@@ -236,6 +314,9 @@ def _tokens_for_safety_coverage(text: str) -> set[str]:
         "allergies": "allergy",
     }
     tokens = set()
+    for phrase, aliases in KOREAN_SAFETY_COVERAGE_ALIASES:
+        if phrase in normalized:
+            tokens.update(aliases)
     for token in re.findall(r"[a-z0-9]+", normalized):
         if len(token) < 3 and token not in {"ecg", "pe", "ct"}:
             continue
@@ -249,15 +330,23 @@ def _normalize_for_safety_coverage(text: str) -> str:
     return re.sub(r"\s+", " ", text.lower()).strip()
 
 
+def _safety_coverage_clauses(text: str) -> list[str]:
+    return [
+        clause
+        for clause in re.split(r"[.!?\n;,]+", text)
+        if clause.strip()
+    ]
+
+
 def _is_negated_safety_mention(item_tokens: set[str], text: str) -> bool:
     if not item_tokens:
         return False
 
-    for sentence in re.split(r"[.!?\n;]+", text):
-        sentence_tokens = _tokens_for_safety_coverage(sentence)
-        if not sentence_tokens.intersection(item_tokens):
+    for clause in _safety_coverage_clauses(text):
+        clause_tokens = _tokens_for_safety_coverage(clause)
+        if not clause_tokens.intersection(item_tokens):
             continue
-        normalized_sentence = _normalize_for_safety_coverage(sentence)
+        normalized_sentence = _normalize_for_safety_coverage(clause)
         if any(
             re.search(pattern, normalized_sentence)
             for pattern in SAFETY_COVERAGE_NEGATION_PATTERNS
@@ -270,11 +359,11 @@ def _has_contraindication_check_intent(item_tokens: set[str], text: str) -> bool
     if not item_tokens:
         return False
 
-    for sentence in re.split(r"[.!?\n;]+", text):
-        sentence_tokens = _tokens_for_safety_coverage(sentence)
-        if not sentence_tokens.intersection(item_tokens):
+    for clause in _safety_coverage_clauses(text):
+        clause_tokens = _tokens_for_safety_coverage(clause)
+        if not clause_tokens.intersection(item_tokens):
             continue
-        normalized_sentence = _normalize_for_safety_coverage(sentence)
+        normalized_sentence = _normalize_for_safety_coverage(clause)
         if any(
             re.search(pattern, normalized_sentence)
             for pattern in CONTRAINDICATION_CHECK_INTENT_PATTERNS

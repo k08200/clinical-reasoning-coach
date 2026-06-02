@@ -757,6 +757,70 @@ async def test_complete_session_succeeds_after_all_clinical_safety_targets_cover
 
 
 @pytest.mark.asyncio
+async def test_complete_session_accepts_korean_clinical_safety_coverage(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"korean-safety-coverage-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Korean Safety Coverage",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "식은땀을 동반한 쥐어짜는 흉통과 저산소증 또는 혈역학적 "
+            "불안정을 위험 신호로 보겠습니다. 10분 이내 12유도 심전도를 "
+            "확인하고 트로포닌을 반복 추적하겠습니다. 항응고 전에는 "
+            "대동맥 박리 소견을 배제하고, 항혈소판 치료 전 주요 출혈 "
+            "위험을 평가하겠습니다."
+        ),
+        reasoning_score=82,
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "그 다음 심전도와 트로포닌 추이를 바탕으로 위험도와 감별진단을 "
+            "다시 정리하겠습니다."
+        ),
+        reasoning_score=86,
+    ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "completed"
+    assert payload["final_reasoning_score"] == 84
+    assert payload["completed_at"] is not None
+
+
+@pytest.mark.asyncio
 async def test_complete_session_bounds_final_score_from_stored_analysis_values(
     client: AsyncClient,
     db: AsyncSession,
@@ -1049,6 +1113,81 @@ async def test_negated_safety_mentions_do_not_satisfy_completion_coverage(
             "risk before antiplatelet therapy."
         ),
         reasoning_score=82,
+    ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "clinical_safety_coverage_incomplete",
+        "message": (
+            "Before finishing, address red flags, time-critical actions, and "
+            "contraindication checks in your reasoning."
+        ),
+        "covered_count": 5,
+        "total_count": 6,
+        "uncovered_categories": [
+            {
+                "category": "contraindication_checks",
+                "label": "Contraindication checks",
+                "missing_count": 1,
+            },
+        ],
+    }
+    await db.refresh(session)
+    assert session.status == "active"
+    assert session.completed_at is None
+
+
+@pytest.mark.asyncio
+async def test_korean_negated_safety_mentions_do_not_satisfy_completion_coverage(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"korean-safety-coverage-negated-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Korean Safety Coverage Negated",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "식은땀을 동반한 쥐어짜는 흉통과 저산소증 또는 혈역학적 "
+            "불안정을 위험 신호로 보고, 10분 이내 12유도 심전도와 "
+            "반복 트로포닌 추적을 하겠습니다. 항응고 전 대동맥 박리는 "
+            "확인하지 않았고, 항혈소판 치료 전 주요 출혈 위험은 평가했습니다."
+        ),
+        reasoning_score=82,
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content="심전도와 트로포닌 추이를 바탕으로 감별진단을 정리하겠습니다.",
+        reasoning_score=86,
     ))
     await db.commit()
     await db.refresh(user)
