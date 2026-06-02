@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import uuid
 from datetime import date, datetime, timedelta
 from typing import Optional
@@ -10,6 +12,26 @@ from sqlalchemy.dialects.postgresql import UUID
 from app.database import Base
 
 CLINICAL_REVIEW_VALID_DAYS = 365
+CLINICAL_REVIEW_CONTENT_FIELDS = (
+    "title",
+    "specialty",
+    "difficulty",
+    "chief_complaint",
+    "patient_demographics",
+    "history_of_present_illness",
+    "past_medical_history",
+    "medications",
+    "physical_exam",
+    "initial_labs",
+    "diagnosis",
+    "key_teaching_points",
+    "cognitive_traps",
+    "clinical_red_flags",
+    "time_critical_actions",
+    "contraindication_checks",
+    "clinical_sources",
+    "coach_guidance",
+)
 
 REVIEW_PROVENANCE = {
     "clinician_reviewed": {
@@ -34,6 +56,15 @@ def _parse_review_date(value: str | None) -> date | None:
         return date.fromisoformat(value[:10])
     except ValueError:
         return None
+
+
+def clinical_case_content_fingerprint(case: "ClinicalCase") -> str:
+    payload = {
+        field: getattr(case, field)
+        for field in CLINICAL_REVIEW_CONTENT_FIELDS
+    }
+    serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
 class ClinicalCase(Base):
@@ -111,8 +142,26 @@ class ClinicalCase(Base):
         )
         review_label = review["label"]
         requires_caution = review["requires_caution"]
+        latest_review = max(
+            self.clinical_reviews or [],
+            key=lambda item: item.created_at or datetime.min,
+            default=None,
+        )
+        review_fingerprint = (
+            latest_review.source_snapshot.get("case_content_fingerprint")
+            if latest_review and isinstance(latest_review.source_snapshot, dict)
+            else None
+        )
+        review_content_changed = (
+            self.review_status == "clinician_reviewed"
+            and bool(review_fingerprint)
+            and review_fingerprint != clinical_case_content_fingerprint(self)
+        )
         if review_stale:
             review_label = "Clinician review stale"
+            requires_caution = True
+        if review_content_changed:
+            review_label = "Clinician review content changed"
             requires_caution = True
 
         return {
@@ -124,4 +173,5 @@ class ClinicalCase(Base):
             "last_reviewed_at": self.last_reviewed_at,
             "review_valid_until": review_valid_until,
             "review_stale": review_stale,
+            "review_content_changed": review_content_changed,
         }

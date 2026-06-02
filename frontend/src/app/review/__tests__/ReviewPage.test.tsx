@@ -89,6 +89,7 @@ const makeCase = (overrides: Partial<ClinicalCase> = {}): ClinicalCase => ({
     last_reviewed_at: "2026-06-01",
     review_valid_until: "2027-06-01",
     review_stale: false,
+    review_content_changed: false,
   },
   times_used: 2,
   created_at: "2026-05-25T00:00:00Z",
@@ -235,6 +236,7 @@ describe("ReviewPage", () => {
             last_reviewed_at: "2024-01-01",
             review_valid_until: "2024-12-31",
             review_stale: true,
+            review_content_changed: false,
           },
         }),
       ],
@@ -245,6 +247,32 @@ describe("ReviewPage", () => {
     expect(screen.getByText("Pending")).toBeTruthy();
     expect(screen.getAllByText("1").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Clinician review stale").length).toBeGreaterThan(0);
+  });
+
+  it("includes cases changed after review in the pending queue", () => {
+    mockReviewSwr({
+      cases: [
+        makeCase({
+          source_provenance: {
+            source_count: 1,
+            organizations: ["American Heart Association"],
+            review_status: "clinician_reviewed",
+            review_label: "Clinician review content changed",
+            requires_caution: true,
+            last_reviewed_at: "2026-06-01",
+            review_valid_until: "2027-06-01",
+            review_stale: false,
+            review_content_changed: true,
+          },
+        }),
+      ],
+    });
+
+    render(<ReviewPage />);
+
+    expect(screen.getByText("Pending")).toBeTruthy();
+    expect(screen.getAllByText("1").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Clinician review content changed").length).toBeGreaterThan(0);
   });
 
   it("records a clinical review after all confirmations are checked", async () => {
@@ -259,6 +287,7 @@ describe("ReviewPage", () => {
         last_reviewed_at: "2026-06-02",
         review_valid_until: "2027-06-02",
         review_stale: false,
+        review_content_changed: false,
       },
     }));
 

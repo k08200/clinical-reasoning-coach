@@ -84,15 +84,23 @@ export default function CasesPage() {
   }
 
   function cautionText(clinicalCase: ClinicalCase): string {
-    return clinicalCase.source_provenance.review_stale
-      ? "Clinician review is stale; re-review required."
-      : "Not clinician reviewed; use only for education.";
+    if (clinicalCase.source_provenance.review_content_changed) {
+      return "Case changed after clinician review; re-review required.";
+    }
+    if (clinicalCase.source_provenance.review_stale) {
+      return "Clinician review is stale; re-review required.";
+    }
+    return "Not clinician reviewed; use only for education.";
   }
 
   function acknowledgementText(clinicalCase: ClinicalCase): string {
-    return clinicalCase.source_provenance.review_stale
-      ? "This case has a stale clinician review. Start only as educational simulation."
-      : "This case is not clinician reviewed. Start only as educational simulation.";
+    if (clinicalCase.source_provenance.review_content_changed) {
+      return "This case changed after clinician review. Start only as educational simulation.";
+    }
+    if (clinicalCase.source_provenance.review_stale) {
+      return "This case has a stale clinician review. Start only as educational simulation.";
+    }
+    return "This case is not clinician reviewed. Start only as educational simulation.";
   }
 
   return (

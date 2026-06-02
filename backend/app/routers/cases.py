@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database import get_db
-from app.models.case import ClinicalCase
+from app.models.case import ClinicalCase, clinical_case_content_fingerprint
 from app.models.case_review import ClinicalCaseReview
 from app.models.user import User
 from app.schemas.case import (
@@ -169,6 +169,7 @@ async def complete_clinical_review(
             source_snapshot={
                 "source_count": len(case.clinical_sources),
                 "organizations": source_organizations,
+                "case_content_fingerprint": clinical_case_content_fingerprint(case),
                 "alignment_checklist": body.source_alignment_checks.model_dump(),
                 "supported_elements": [
                     {

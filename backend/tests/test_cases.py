@@ -178,6 +178,7 @@ async def test_stale_clinician_review_provenance_requires_caution(
     assert provenance["review_label"] == "Clinician review stale"
     assert provenance["requires_caution"] is True
     assert provenance["review_stale"] is True
+    assert provenance["review_content_changed"] is False
     assert provenance["last_reviewed_at"] == "2024-01-01"
     assert provenance["review_valid_until"] == "2024-12-31"
 
@@ -290,6 +291,7 @@ async def test_clinician_reviewer_can_mark_case_reviewed(
     }
     assert history[0]["source_snapshot"]["source_count"] == 1
     assert history[0]["source_snapshot"]["organizations"]
+    assert history[0]["source_snapshot"]["case_content_fingerprint"]
     assert history[0]["source_snapshot"]["alignment_checklist"] == SOURCE_ALIGNMENT_CHECKS
     assert history[0]["source_snapshot"]["supported_elements"][0]["supports"]
 
@@ -534,5 +536,75 @@ async def test_clinical_review_writes_audit_log(
     assert review.resulting_review_status == "clinician_reviewed"
     assert review.review_notes == "Audit trail confirmation."
     assert review.source_snapshot["source_count"] == 1
+    assert review.source_snapshot["case_content_fingerprint"]
     assert review.source_snapshot["alignment_checklist"] == SOURCE_ALIGNMENT_CHECKS
     assert review.source_snapshot["supported_elements"][0]["title"]
+
+
+async def test_post_review_case_content_change_requires_caution_and_session_ack(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"content-change-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Content Change Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = ClinicalCase(**CASE_POOL[0])
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    review_response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "educational_safety_confirmed": True,
+            "review_notes": "Content fingerprint baseline.",
+        },
+    )
+    assert review_response.status_code == 200
+    assert review_response.json()["source_provenance"]["requires_caution"] is False
+
+    await db.refresh(case)
+    case.key_teaching_points = [
+        *case.key_teaching_points,
+        "Post-review teaching point that was not clinician reviewed.",
+    ]
+    await db.commit()
+
+    case_response = await client.get(f"/api/cases/{case.id}", headers=reviewer_headers)
+
+    assert case_response.status_code == 200
+    provenance = case_response.json()["source_provenance"]
+    assert provenance["review_status"] == "clinician_reviewed"
+    assert provenance["review_label"] == "Clinician review content changed"
+    assert provenance["requires_caution"] is True
+    assert provenance["review_stale"] is False
+    assert provenance["review_content_changed"] is True
+
+    blocked_session_response = await client.post(
+        "/api/sessions",
+        json={"case_id": str(case.id)},
+        headers=reviewer_headers,
+    )
+    assert blocked_session_response.status_code == 400
+    assert "not currently clinician reviewed" in blocked_session_response.json()["detail"]
+
+    acknowledged_session_response = await client.post(
+        "/api/sessions",
+        json={"case_id": str(case.id), "acknowledge_unreviewed_case": True},
+        headers=reviewer_headers,
+    )
+    assert acknowledged_session_response.status_code == 201

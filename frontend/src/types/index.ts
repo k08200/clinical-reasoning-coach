@@ -58,6 +58,7 @@ export interface ClinicalCase {
     last_reviewed_at: string | null;
     review_valid_until: string | null;
     review_stale: boolean;
+    review_content_changed: boolean;
   };
   times_used: number;
   created_at: string;
@@ -73,6 +74,7 @@ export interface ClinicalCaseReview {
   source_snapshot: {
     source_count: number;
     organizations: string[];
+    case_content_fingerprint?: string;
     alignment_checklist?: SourceAlignmentChecks;
     supported_elements?: Array<{
       title?: string;
