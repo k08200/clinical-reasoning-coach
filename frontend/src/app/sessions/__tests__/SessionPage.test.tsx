@@ -89,6 +89,15 @@ const analyzedStudentMessage = {
   created_at: "2026-05-20T00:01:00Z",
 };
 
+const secondAnalyzedStudentMessage = {
+  id: "m3",
+  role: "student" as const,
+  content: "I would update my differential after the ECG and troponin trend.",
+  reasoning_score: 84,
+  biases_detected: [],
+  created_at: "2026-05-20T00:02:00Z",
+};
+
 beforeEach(() => {
   mockPush.mockClear();
   mockMutate.mockReset();
@@ -201,7 +210,7 @@ describe("SessionPage", () => {
     ).toBeTruthy();
   });
 
-  it("completes the session after analyzed learner reasoning exists", async () => {
+  it("requires at least two analyzed learner turns before completion", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession({
         messages: [
@@ -214,6 +223,34 @@ describe("SessionPage", () => {
             created_at: "2026-05-20T00:00:00Z",
           },
           analyzedStudentMessage,
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+
+    render(<SessionPage />);
+
+    expect(screen.getByRole("button", { name: "Finish Session" })).toBeDisabled();
+    expect(
+      screen.getByText("Complete one more analyzed reasoning turn before finishing the session."),
+    ).toBeTruthy();
+    expect(mockComplete).not.toHaveBeenCalled();
+  });
+
+  it("completes the session after enough analyzed learner reasoning exists", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+          secondAnalyzedStudentMessage,
         ],
       }),
       mutate: mockMutate,
@@ -240,6 +277,7 @@ describe("SessionPage", () => {
             created_at: "2026-05-20T00:00:00Z",
           },
           analyzedStudentMessage,
+          secondAnalyzedStudentMessage,
         ],
       }),
       mutate: mockMutate,

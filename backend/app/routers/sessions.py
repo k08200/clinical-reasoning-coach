@@ -54,6 +54,7 @@ from app.utils.auth import require_educational_use_consent
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 logger = logging.getLogger(__name__)
 SAFETY_LOCKED_SESSION_STATUS = "safety_locked"
+MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION = 2
 
 SAFETY_COVERAGE_STOPWORDS = {
     "the",
@@ -310,6 +311,21 @@ def _safety_completion_block_detail(coverage: ClinicalSafetyCoverage) -> dict:
             for category, items in uncovered_targets.items()
             if items
         ],
+    }
+
+
+def _minimum_reasoning_turns_block_detail(analyzed_turn_count: int) -> dict:
+    return {
+        "code": "minimum_reasoning_turns_incomplete",
+        "message": (
+            "Before finishing, complete at least two analyzed learner reasoning turns."
+        ),
+        "analyzed_turn_count": analyzed_turn_count,
+        "minimum_turn_count": MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION,
+        "remaining_turn_count": max(
+            MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION - analyzed_turn_count,
+            0,
+        ),
     }
 
 
@@ -720,6 +736,11 @@ async def complete_session(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=_safety_completion_block_detail(safety_coverage),
+        )
+    if len(scores) < MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=_minimum_reasoning_turns_block_detail(len(scores)),
         )
 
     final_score = sum(scores) / len(scores)

@@ -26,6 +26,14 @@ type CompletionSafetyDetail = {
   uncovered_categories: CompletionSafetyCategory[];
 };
 
+type CompletionReasoningTurnsDetail = {
+  code: "minimum_reasoning_turns_incomplete";
+  message: string;
+  analyzed_turn_count: number;
+  minimum_turn_count: number;
+  remaining_turn_count: number;
+};
+
 function safetyCoverageLabel(category: string): string {
   if (category === "red_flags") return "Red Flags";
   if (category === "time_critical_actions") return "Time-Critical Actions";
@@ -46,6 +54,25 @@ function isCompletionSafetyDetail(value: unknown): value is CompletionSafetyDeta
     typeof value.total_count === "number" &&
     "uncovered_categories" in value &&
     Array.isArray(value.uncovered_categories)
+  );
+}
+
+function isCompletionReasoningTurnsDetail(
+  value: unknown,
+): value is CompletionReasoningTurnsDetail {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "code" in value &&
+    value.code === "minimum_reasoning_turns_incomplete" &&
+    "message" in value &&
+    typeof value.message === "string" &&
+    "analyzed_turn_count" in value &&
+    typeof value.analyzed_turn_count === "number" &&
+    "minimum_turn_count" in value &&
+    typeof value.minimum_turn_count === "number" &&
+    "remaining_turn_count" in value &&
+    typeof value.remaining_turn_count === "number"
   );
 }
 
@@ -80,6 +107,8 @@ export default function SessionPage() {
   const [error, setError] = useState("");
   const [completionSafetyDetail, setCompletionSafetyDetail] =
     useState<CompletionSafetyDetail | null>(null);
+  const [completionReasoningTurnsDetail, setCompletionReasoningTurnsDetail] =
+    useState<CompletionReasoningTurnsDetail | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -124,6 +153,7 @@ export default function SessionPage() {
     setStreamingText("");
     setError("");
     setCompletionSafetyDetail(null);
+    setCompletionReasoningTurnsDetail(null);
 
     try {
       await streamMessage(id, content, {
@@ -170,6 +200,7 @@ export default function SessionPage() {
     setCompleting(true);
     setError("");
     setCompletionSafetyDetail(null);
+    setCompletionReasoningTurnsDetail(null);
     try {
       await api.sessions.complete(id);
       await mutate();
@@ -177,6 +208,9 @@ export default function SessionPage() {
       const detail = errorDetail(err);
       if (isCompletionSafetyDetail(detail)) {
         setCompletionSafetyDetail(detail);
+        setError("");
+      } else if (isCompletionReasoningTurnsDetail(detail)) {
+        setCompletionReasoningTurnsDetail(detail);
         setError("");
       } else {
         setError(err instanceof Error ? err.message : "Could not finish the session");
@@ -218,11 +252,15 @@ export default function SessionPage() {
   const isCompleted = session.status === "completed";
   const isSafetyLocked = session.status === "safety_locked";
   const isInteractive = session.status === "active";
-  const canCompleteSession = session.messages.some(
+  const analyzedLearnerTurnCount = session.messages.filter(
     (message) => message.role === "student" && message.reasoning_score !== null,
-  );
+  ).length;
+  const minimumLearnerTurnsForCompletion = 2;
+  const canCompleteSession = analyzedLearnerTurnCount >= minimumLearnerTurnsForCompletion;
   const completionBlockedMessage =
-    "Add at least one analyzed learner response before finishing the session.";
+    analyzedLearnerTurnCount === 0
+      ? "Add at least one analyzed learner response before finishing the session."
+      : "Complete one more analyzed reasoning turn before finishing the session.";
   const completionSafetyMessage =
     "Before finishing, address red flags, time-critical actions, and contraindication checks.";
 
@@ -327,6 +365,32 @@ export default function SessionPage() {
                 The checklist stays hidden for assessment integrity. In your next response,
                 discuss the dangerous findings, urgent actions, and treatment safety checks you
                 would actively consider.
+              </p>
+            </div>
+          )}
+
+          {completionReasoningTurnsDetail && (
+            <div className="mx-4 mt-4 rounded-lg border border-amber-700 bg-amber-950/45 px-4 py-3 text-sm leading-relaxed text-amber-100">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">More clinical reasoning is needed</p>
+                  <p className="mt-1 text-amber-200">
+                    {completionReasoningTurnsDetail.analyzed_turn_count} of{" "}
+                    {completionReasoningTurnsDetail.minimum_turn_count} analyzed learner turns are
+                    complete. Answer one more coach question before finishing.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => textareaRef.current?.focus()}
+                  className="rounded-lg border border-amber-600 px-3 py-1.5 text-xs font-semibold text-amber-100 hover:bg-amber-900/60"
+                >
+                  Continue Reasoning
+                </button>
+              </div>
+              <p className="mt-3 text-xs text-amber-300">
+                A usable review needs at least two analyzed reasoning turns so the coach can assess
+                how your differential, evidence, and safety plan evolve.
               </p>
             </div>
           )}
