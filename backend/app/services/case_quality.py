@@ -28,6 +28,56 @@ PLACEHOLDER_SOURCE_HOSTS = {
     "127.0.0.1",
     "0.0.0.0",
 }
+SOURCE_SUPPORT_SCOPE_PATTERNS = {
+    "diagnosis or diagnostic reasoning": [
+        r"\bdiagnos",
+        r"\bdifferential\b",
+        r"\bcriteria\b",
+        r"\brisk stratification\b",
+        r"\bpathway\b",
+    ],
+    "red flags or severity markers": [
+        r"\bred flags?\b",
+        r"\bhigh[- ]risk\b",
+        r"\blife[- ]threatening\b",
+        r"\bseverity\b",
+        r"\bshock\b",
+        r"\bhypoperfusion\b",
+        r"\bhemodynamic\b",
+        r"\binstability\b",
+        r"\borgan dysfunction\b",
+        r"\brv strain\b",
+        r"\bacidosis\b",
+    ],
+    "time-critical actions": [
+        r"\btime[- ]critical\b",
+        r"\btiming\b",
+        r"\bwithin\b",
+        r"\bimmediate",
+        r"\burgent",
+        r"\bactivation\b",
+        r"\bbundle\b",
+        r"\breperfusion\b",
+        r"\bthrombolysis\b",
+        r"\bthrombectomy\b",
+        r"\bescalation\b",
+    ],
+    "contraindication or safety checks": [
+        r"\bcontraindication",
+        r"\bsafety checks?\b",
+        r"\ballerg",
+        r"\bbleeding\b",
+        r"\brenal\b",
+        r"\bpregnancy\b",
+        r"\bblood pressure\b",
+        r"\bpotassium\b",
+        r"\bsurgery\b",
+        r"\banticoag",
+        r"\bcontrast\b",
+        r"\bthreshold",
+        r"\bbefore\b",
+    ],
+}
 
 
 @dataclass
@@ -169,6 +219,7 @@ def _check_source_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
     if not sources:
         report.add_critical("at least 1 clinical source is required")
         return
+    support_texts: list[str] = []
     for index, source in enumerate(sources):
         if not isinstance(source, dict):
             report.add_critical(f"clinical_sources[{index}] must be an object")
@@ -185,17 +236,31 @@ def _check_source_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
             continue
         _check_source_url(index, str(source["url"]), report)
         supports = source.get("supports")
-        if (
-            not isinstance(supports, list)
-            or len([
-                item
-                for item in supports
-                if isinstance(item, str) and item.strip()
-            ]) < 2
-        ):
+        valid_supports = [
+            item
+            for item in supports or []
+            if isinstance(item, str) and item.strip()
+        ] if isinstance(supports, list) else []
+        if len(valid_supports) < 2:
             report.add_critical(
                 f"clinical_sources[{index}] must list at least 2 supported case elements"
             )
+            continue
+        support_texts.extend(valid_supports)
+    _check_source_support_scope(support_texts, report)
+
+
+def _check_source_support_scope(
+    support_texts: list[str],
+    report: CaseQualityReport,
+) -> None:
+    support_blob = " ".join(support_texts).lower()
+    for scope, patterns in SOURCE_SUPPORT_SCOPE_PATTERNS.items():
+        if any(re.search(pattern, support_blob) for pattern in patterns):
+            continue
+        report.add_critical(
+            f"clinical_sources.supports must include support for {scope}"
+        )
 
 
 def _check_source_url(index: int, url: str, report: CaseQualityReport) -> None:

@@ -174,6 +174,7 @@ _SOURCE_CHEST_PAIN = {
         "ECG within 10 minutes for acute chest pain",
         "life-threatening chest pain differential",
         "ACS risk stratification",
+        "major contraindications and safety checks before antithrombotic therapy",
     ],
 }
 
@@ -185,6 +186,8 @@ _SOURCE_SEPSIS = {
         "lactate measurement and reassessment",
         "blood cultures and antimicrobial timing",
         "fluid reassessment and vasopressor escalation",
+        "shock severity markers and organ dysfunction in sepsis diagnosis",
+        "renal impairment and allergy safety checks before antimicrobial dosing",
     ],
 }
 
@@ -196,6 +199,7 @@ _SOURCE_PE = {
         "risk stratification by hemodynamic instability and RV strain",
         "CTPA and alternative diagnostic pathways",
         "thrombolysis reserved for high-risk or deteriorating PE",
+        "bleeding risk, recent surgery, renal function, contrast allergy, and pregnancy safety checks",
     ],
 }
 
@@ -205,8 +209,9 @@ _SOURCE_DKA = {
     "url": "https://professional.diabetes.org/standards-of-care",
     "supports": [
         "DKA diagnostic pattern",
+        "acidosis, dehydration, and mental status severity markers",
         "potassium assessment before insulin therapy",
-        "anion-gap closure and transition planning",
+        "time-critical monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
     ],
 }
 
@@ -218,6 +223,7 @@ _SOURCE_STROKE = {
         "last-known-normal based reperfusion eligibility",
         "blood pressure thresholds before alteplase",
         "thrombectomy eligibility screening",
+        "acute stroke diagnosis, severity, and contraindication checks before reperfusion",
     ],
 }
 

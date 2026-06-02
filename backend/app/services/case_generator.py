@@ -31,6 +31,9 @@ Rules:
   and contraindication checks. These are hidden from students and used by the coach.
 - Include at least one reputable clinical source with title, organization, a
   real HTTPS url, and at least two specific case elements it supports.
+- Across clinical_sources.supports, explicitly cover diagnosis/diagnostic
+  reasoning, red flags or severity markers, time-critical actions, and
+  contraindication/safety checks.
 - Do not use placeholder or unverifiable source URLs such as example.com,
   example.org, localhost, or non-HTTPS links.
 - Mark review_status as "ai_generated_unreviewed" unless a human clinician has

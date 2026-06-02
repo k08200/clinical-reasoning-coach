@@ -136,7 +136,26 @@ def test_quality_gate_requires_text_source_supports():
     assert any("supported case elements" in issue for issue in report.critical_issues)
 
 
+def test_quality_gate_requires_source_supports_for_all_clinical_safety_scopes():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["clinical_sources"][0]["supports"] = [
+        "diagnosis and differential reasoning for acute chest pain",
+        "red flags and severity markers for life-threatening chest pain",
+        "time-critical ECG within 10 minutes",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "contraindication or safety checks" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_case_generation_prompt_requires_verifiable_sources():
     assert "real HTTPS url" in CASE_GENERATION_SYSTEM
     assert "at least two specific case elements" in CASE_GENERATION_SYSTEM
+    assert "diagnosis/diagnostic" in CASE_GENERATION_SYSTEM
+    assert "contraindication/safety checks" in CASE_GENERATION_SYSTEM
     assert "Do not use placeholder" in CASE_GENERATION_SYSTEM
