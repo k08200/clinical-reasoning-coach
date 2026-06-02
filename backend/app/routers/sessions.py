@@ -51,6 +51,7 @@ from app.utils.auth import require_educational_use_consent
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 logger = logging.getLogger(__name__)
+SAFETY_LOCKED_SESSION_STATUS = "safety_locked"
 
 SAFETY_COVERAGE_STOPWORDS = {
     "the",
@@ -473,6 +474,11 @@ async def _save_real_patient_safety_turn(
     turn_number: int,
 ) -> None:
     async with AsyncSessionLocal() as db:
+        await db.execute(
+            update(CoachingSession)
+            .where(CoachingSession.id == session_id)
+            .values(status=SAFETY_LOCKED_SESSION_STATUS)
+        )
         db.add(Message(
             session_id=session_id,
             role="coach",
@@ -483,10 +489,13 @@ async def _save_real_patient_safety_turn(
             user_id=user_id,
             event_type="real_patient_or_emergency_signal",
             severity="high",
-            action_taken="halted_coaching",
+            action_taken="locked_session_and_halted_coaching",
             detected_terms=detected_terms,
             message_turn=turn_number,
-            note="Coaching and reasoning analysis were skipped for a possible real patient or emergency scenario.",
+            note=(
+                "Session was locked; coaching and reasoning analysis were skipped "
+                "for a possible real patient or emergency scenario."
+            ),
         ))
         await db.commit()
 
@@ -498,6 +507,11 @@ async def _save_privacy_safety_turn(
     turn_number: int,
 ) -> None:
     async with AsyncSessionLocal() as db:
+        await db.execute(
+            update(CoachingSession)
+            .where(CoachingSession.id == session_id)
+            .values(status=SAFETY_LOCKED_SESSION_STATUS)
+        )
         db.add(Message(
             session_id=session_id,
             role="coach",
@@ -508,12 +522,12 @@ async def _save_privacy_safety_turn(
             user_id=user_id,
             event_type="possible_patient_identifier",
             severity="high",
-            action_taken="blocked_storage_and_coaching",
+            action_taken="locked_session_blocked_storage_and_coaching",
             detected_terms=detected_identifier_categories,
             message_turn=turn_number,
             note=(
-                "Student message was not stored or sent to the model because it "
-                "appeared to contain patient identifiers."
+                "Session was locked; student message was not stored or sent to the "
+                "model because it appeared to contain patient identifiers."
             ),
         ))
         await db.commit()
@@ -529,6 +543,11 @@ async def complete_session(
     session = await db.get(CoachingSession, session_id)
     if not session or str(session.user_id) != user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    if session.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Session is not active",
+        )
 
     scores = [m.reasoning_score for m in session.messages if m.reasoning_score is not None]
     if not scores:

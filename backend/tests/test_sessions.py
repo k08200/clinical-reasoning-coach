@@ -361,6 +361,63 @@ async def test_complete_session_requires_analyzed_learner_response(
 
 
 @pytest.mark.asyncio
+async def test_safety_locked_session_cannot_be_completed(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"safety-complete-lock-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Complete Lock",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="safety_locked",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add_all([
+        Message(
+            session_id=session.id,
+            role="coach",
+            content="Opening case",
+        ),
+        Message(
+            session_id=session.id,
+            role="student",
+            content="I considered ACS and got an ECG.",
+            reasoning_score=82,
+        ),
+    ])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Session is not active"
+    await db.refresh(session)
+    assert session.status == "safety_locked"
+    assert session.final_reasoning_score is None
+    assert session.completed_at is None
+
+
+@pytest.mark.asyncio
 async def test_real_patient_signal_halts_coaching_and_records_safety_event(
     client: AsyncClient,
     monkeypatch: pytest.MonkeyPatch,
@@ -431,6 +488,8 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
         headers=auth_headers,
     )
     saved_session = saved_response.json()
+    assert saved_session["status"] == "safety_locked"
+    assert saved_session["completed_at"] is None
     assert [message["role"] for message in saved_session["messages"]] == [
         "coach",
         "student",
@@ -452,8 +511,16 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
             )
         ).scalars().all()
     assert len(safety_events) == 1
-    assert safety_events[0].action_taken == "halted_coaching"
+    assert safety_events[0].action_taken == "locked_session_and_halted_coaching"
     assert "severe chest pain" in safety_events[0].detected_terms
+
+    repeat_response = await client.post(
+        f"/api/sessions/{session_id}/stream",
+        json={"content": "Can we keep going with the simulation?"},
+        headers=auth_headers,
+    )
+    assert repeat_response.status_code == 400
+    assert repeat_response.json()["detail"] == "Session is not active"
 
 
 @pytest.mark.asyncio
@@ -532,6 +599,8 @@ async def test_patient_identifier_signal_blocks_storage_and_records_safety_event
         headers=auth_headers,
     )
     saved_session = saved_response.json()
+    assert saved_session["status"] == "safety_locked"
+    assert saved_session["completed_at"] is None
     assert [message["role"] for message in saved_session["messages"]] == [
         "coach",
         "coach",
@@ -556,7 +625,7 @@ async def test_patient_identifier_signal_blocks_storage_and_records_safety_event
 
     assert len(safety_events) == 1
     assert safety_events[0].event_type == "possible_patient_identifier"
-    assert safety_events[0].action_taken == "blocked_storage_and_coaching"
+    assert safety_events[0].action_taken == "locked_session_blocked_storage_and_coaching"
     assert safety_events[0].detected_terms == [
         "phone_number",
         "medical_record_number",
@@ -566,6 +635,14 @@ async def test_patient_identifier_signal_blocks_storage_and_records_safety_event
     ]
     assert "John Smith" not in str(safety_events[0].detected_terms)
     assert [message.role for message in messages] == ["coach", "coach"]
+
+    repeat_response = await client.post(
+        f"/api/sessions/{session_id}/stream",
+        json={"content": "Can I continue this session now?"},
+        headers=auth_headers,
+    )
+    assert repeat_response.status_code == 400
+    assert repeat_response.json()["detail"] == "Session is not active"
 
 
 @pytest.mark.asyncio

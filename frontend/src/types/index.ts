@@ -129,7 +129,7 @@ export interface CoachingSession {
   id: string;
   user_id: string;
   case_id: string;
-  status: "active" | "completed" | "abandoned";
+  status: "active" | "completed" | "abandoned" | "safety_locked";
   final_reasoning_score: number | null;
   reasoning_map: ReasoningMap;
   bias_summary: Record<string, number>;

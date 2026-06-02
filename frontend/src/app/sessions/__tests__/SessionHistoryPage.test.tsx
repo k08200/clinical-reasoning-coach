@@ -121,6 +121,19 @@ describe("SessionHistoryPage — active session", () => {
   });
 });
 
+describe("SessionHistoryPage — safety-locked session", () => {
+  beforeEach(() => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [makeSession({ status: "safety_locked", final_reasoning_score: null })],
+    } as ReturnType<typeof useSWR>);
+  });
+
+  it("shows safety-locked status", () => {
+    render(<SessionHistoryPage />);
+    expect(screen.getByText("safety locked")).toBeTruthy();
+  });
+});
+
 describe("SessionHistoryPage — no biases session", () => {
   beforeEach(() => {
     vi.mocked(useSWR).mockReturnValue({

@@ -10,6 +10,7 @@ const STATUS_BADGE = {
   active: "text-green-400 bg-green-900/30",
   completed: "text-blue-400 bg-blue-900/30",
   abandoned: "text-slate-400 bg-slate-800",
+  safety_locked: "text-red-300 bg-red-950/40",
 };
 
 export default function SessionHistoryPage() {
@@ -68,7 +69,7 @@ export default function SessionHistoryPage() {
                       STATUS_BADGE[s.status]
                     }`}
                   >
-                    {s.status}
+                    {s.status.replace(/_/g, " ")}
                   </span>
                   <span className="text-xs text-slate-500">
                     {new Date(s.started_at).toLocaleDateString()}

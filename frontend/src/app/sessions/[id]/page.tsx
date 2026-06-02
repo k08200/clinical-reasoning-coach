@@ -74,6 +74,10 @@ export default function SessionPage() {
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || streaming || !session) return;
+    if (session.status !== "active") {
+      setError("This session is not active.");
+      return;
+    }
 
     const content = input.trim();
     setInput("");
@@ -166,6 +170,8 @@ export default function SessionPage() {
   }
 
   const isCompleted = session.status === "completed";
+  const isSafetyLocked = session.status === "safety_locked";
+  const isInteractive = session.status === "active";
   const canCompleteSession = session.messages.some(
     (message) => message.role === "student" && message.reasoning_score !== null,
   );
@@ -197,7 +203,7 @@ export default function SessionPage() {
             Reasoning Map
           </button>
 
-          {!isCompleted && (
+          {isInteractive && (
             <div className="text-right">
               <button
                 onClick={handleComplete}
@@ -213,6 +219,11 @@ export default function SessionPage() {
                 </p>
               )}
             </div>
+          )}
+          {isSafetyLocked && (
+            <span className="rounded-full border border-red-800 bg-red-950/50 px-3 py-1.5 text-xs font-semibold text-red-200">
+              Safety Locked
+            </span>
           )}
         </div>
       </header>
@@ -234,6 +245,17 @@ export default function SessionPage() {
           {error && (
             <div className="mx-4 mt-4 rounded-lg border border-red-700 bg-red-900/40 px-4 py-3 text-sm text-red-200">
               {error}
+            </div>
+          )}
+
+          {isSafetyLocked && (
+            <div className="mx-4 mt-4 rounded-lg border border-red-700 bg-red-950/50 px-4 py-3 text-sm leading-relaxed text-red-100">
+              <p className="font-semibold">This session has been locked for safety review.</p>
+              <p className="mt-1 text-red-200">
+                Coaching is stopped because the session included a possible real-patient,
+                emergency, or patient-identifier signal. Do not continue this scenario here;
+                follow local clinical or privacy protocols and contact the appropriate supervisor.
+              </p>
             </div>
           )}
 
@@ -475,7 +497,13 @@ export default function SessionPage() {
           )}
 
           {/* Input */}
-          {!isCompleted && (
+          {isSafetyLocked && (
+            <div className="border-t border-red-900 bg-red-950/40 px-4 py-4 text-sm text-red-100">
+              Message entry is disabled for this locked session.
+            </div>
+          )}
+
+          {isInteractive && (
             <div className="px-4 py-3 border-t border-slate-700 shrink-0">
               <div className="flex gap-2 items-end">
                 <textarea

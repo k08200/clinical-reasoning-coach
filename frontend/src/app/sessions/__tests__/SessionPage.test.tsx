@@ -226,6 +226,42 @@ describe("SessionPage", () => {
     expect(mockMutate).toHaveBeenCalled();
   });
 
+  it("locks the composer and completion controls for safety-locked sessions", () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        status: "safety_locked",
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          {
+            id: "m2",
+            role: "coach",
+            content: "I cannot continue coaching on a real patient or emergency scenario.",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:01:00Z",
+          },
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+
+    render(<SessionPage />);
+
+    expect(screen.getByText("Safety Locked")).toBeTruthy();
+    expect(screen.getByText("This session has been locked for safety review.")).toBeTruthy();
+    expect(screen.getByText("Message entry is disabled for this locked session.")).toBeTruthy();
+    expect(screen.queryByPlaceholderText(/Share your clinical reasoning/)).toBeFalsy();
+    expect(screen.queryByRole("button", { name: "Finish Session" })).toBeFalsy();
+    expect(mockStreamMessage).not.toHaveBeenCalled();
+  });
+
   it("shows the completed learning review with sources", () => {
     vi.mocked(useSWR).mockImplementation((key) => {
       if (key === "/api/sessions/session-1/review") {
