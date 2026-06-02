@@ -61,6 +61,7 @@ logger = logging.getLogger(__name__)
 SAFETY_LOCKED_SESSION_STATUS = "safety_locked"
 MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION = 2
 MIN_REASONING_SCORE_FOR_COMPLETION = 60.0
+MIN_REASONING_DIMENSION_SCORE_FOR_COMPLETION = 12.0
 HIGH_CONFIDENCE_BIAS_THRESHOLD = 0.7
 
 SAFETY_COVERAGE_STOPWORDS = {
@@ -217,6 +218,13 @@ COGNITIVE_BIAS_LABELS = {
     "framing": "Framing",
     "search_satisficing": "Search satisficing",
     "commission": "Commission bias",
+}
+
+SCORE_DIMENSION_LABELS = {
+    "systematic_approach": "Systematic approach",
+    "evidence_integration": "Evidence integration",
+    "prioritization": "Clinical prioritization",
+    "mechanism_understanding": "Mechanism understanding",
 }
 
 
@@ -529,6 +537,58 @@ def _reasoning_quality_block_detail(final_score: float) -> dict:
         ),
         "current_score": round(final_score, 1),
         "minimum_score": MIN_REASONING_SCORE_FOR_COMPLETION,
+    }
+
+
+def _reasoning_dimension_averages(messages: list[Message]) -> dict[str, float]:
+    score_totals: dict[str, float] = {}
+    score_counts: dict[str, int] = {}
+
+    for message in messages:
+        if (
+            message.role != "student"
+            or message.reasoning_score is None
+            or not message.reasoning_analysis
+        ):
+            continue
+        raw_breakdown = message.reasoning_analysis.get("score_breakdown") or {}
+        if not isinstance(raw_breakdown, dict):
+            continue
+
+        for dimension in SCORE_DIMENSIONS:
+            if dimension not in raw_breakdown:
+                continue
+            score_totals[dimension] = score_totals.get(dimension, 0.0) + (
+                _bounded_breakdown_value(raw_breakdown[dimension])
+            )
+            score_counts[dimension] = score_counts.get(dimension, 0) + 1
+
+    return {
+        dimension: round(score_totals[dimension] / score_counts[dimension], 1)
+        for dimension in score_totals
+        if score_counts.get(dimension)
+    }
+
+
+def _reasoning_dimension_block_detail(dimension_averages: dict[str, float]) -> dict:
+    deficient_dimensions = [
+        {
+            "dimension": dimension,
+            "label": SCORE_DIMENSION_LABELS.get(dimension, dimension),
+            "current_score": score,
+            "minimum_score": MIN_REASONING_DIMENSION_SCORE_FOR_COMPLETION,
+        }
+        for dimension, score in dimension_averages.items()
+        if score < MIN_REASONING_DIMENSION_SCORE_FOR_COMPLETION
+    ]
+    return {
+        "code": "clinical_reasoning_dimension_incomplete",
+        "message": (
+            "Before finishing, strengthen each core clinical reasoning dimension, "
+            "especially prioritization, evidence integration, systematic approach, "
+            "and mechanism understanding."
+        ),
+        "deficient_dimensions": deficient_dimensions,
     }
 
 
@@ -1049,6 +1109,15 @@ async def complete_session(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=_reasoning_quality_block_detail(final_score),
+        )
+    dimension_averages = _reasoning_dimension_averages(session.messages)
+    if any(
+        score < MIN_REASONING_DIMENSION_SCORE_FOR_COMPLETION
+        for score in dimension_averages.values()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=_reasoning_dimension_block_detail(dimension_averages),
         )
     active_bias_events = _active_severe_bias_events(session)
     if active_bias_events:

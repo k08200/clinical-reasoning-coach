@@ -392,6 +392,48 @@ describe("SessionPage", () => {
     expect(screen.getByText(/dangerous closure, fixation, or action bias/)).toBeTruthy();
   });
 
+  it("shows dimension-level reasoning guidance when completion dimension score is too low", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+          secondAnalyzedStudentMessage,
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockComplete.mockRejectedValueOnce({
+      message: "Before finishing, strengthen each core reasoning dimension.",
+      detail: {
+        code: "clinical_reasoning_dimension_incomplete",
+        message: "Before finishing, strengthen each core reasoning dimension.",
+        deficient_dimensions: [
+          {
+            dimension: "prioritization",
+            label: "Clinical prioritization",
+            current_score: 7,
+            minimum_score: 12,
+          },
+        ],
+      },
+    });
+
+    render(<SessionPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish Session" }));
+
+    expect(await screen.findByText("Core reasoning dimension still needs work")).toBeTruthy();
+    expect(screen.getByText("Clinical prioritization: 7.0/25")).toBeTruthy();
+    expect(screen.getByText(/prioritization, evidence integration/)).toBeTruthy();
+  });
+
   it("locks the composer and completion controls for safety-locked sessions", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession({

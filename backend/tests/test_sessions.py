@@ -1066,6 +1066,100 @@ async def test_complete_session_blocks_active_severe_cognitive_bias(
 
 
 @pytest.mark.asyncio
+async def test_complete_session_blocks_low_core_reasoning_dimension(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"dimension-guard-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("dimensionpass123"),
+        full_name="Dimension Guard",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=84,
+        reasoning_analysis={
+            "score_breakdown": {
+                "systematic_approach": 24,
+                "evidence_integration": 24,
+                "prioritization": 6,
+                "mechanism_understanding": 24,
+            },
+        },
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I would revisit the differential after the ECG and troponin trend and "
+            "state what evidence would lower my concern."
+        ),
+        reasoning_score=86,
+        reasoning_analysis={
+            "score_breakdown": {
+                "systematic_approach": 24,
+                "evidence_integration": 24,
+                "prioritization": 8,
+                "mechanism_understanding": 24,
+            },
+        },
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "clinical_reasoning_dimension_incomplete",
+        "message": (
+            "Before finishing, strengthen each core clinical reasoning dimension, "
+            "especially prioritization, evidence integration, systematic approach, "
+            "and mechanism understanding."
+        ),
+        "deficient_dimensions": [
+            {
+                "dimension": "prioritization",
+                "label": "Clinical prioritization",
+                "current_score": 7.0,
+                "minimum_score": 12.0,
+            }
+        ],
+    }
+    await db.refresh(session)
+    assert session.status == "active"
+    assert session.final_reasoning_score is None
+    assert session.completed_at is None
+
+
+@pytest.mark.asyncio
 async def test_complete_session_allows_earlier_severe_bias_after_later_correction(
     client: AsyncClient,
     db: AsyncSession,
