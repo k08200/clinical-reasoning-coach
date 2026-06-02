@@ -52,6 +52,20 @@ def _quality_payload_for_clinical_review(case: ClinicalCase) -> dict:
     return payload
 
 
+def _assert_generated_case_quality(case_payload: dict) -> None:
+    quality_report = evaluate_case_quality(case_payload)
+    if quality_report.passed:
+        return
+
+    details = "; ".join(
+        quality_report.critical_issues + quality_report.warnings
+    )
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail=f"Generated case blocked by case quality gate: {details}",
+    )
+
+
 @router.post("/generate", response_model=ClinicalCaseResponse, status_code=status.HTTP_201_CREATED)
 async def generate_case(
     body: GenerateCaseRequest,
@@ -77,6 +91,7 @@ async def generate_case(
     case_payload = case_data.model_dump()
     case_payload["review_status"] = "ai_generated_unreviewed"
     case_payload["last_reviewed_at"] = None
+    _assert_generated_case_quality(case_payload)
     case = ClinicalCase(**case_payload)
     db.add(case)
     await db.flush()
@@ -91,7 +106,9 @@ async def generate_demo(
 ) -> ClinicalCase:
     """Generate the canonical demo case: 58yo male chest pain + diaphoresis."""
     case_data = await generate_demo_case()
-    case = ClinicalCase(**case_data.model_dump())
+    case_payload = case_data.model_dump()
+    _assert_generated_case_quality(case_payload)
+    case = ClinicalCase(**case_payload)
     db.add(case)
     await db.flush()
     await db.refresh(case)

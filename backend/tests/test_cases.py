@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import copy
 import uuid
 from datetime import date, datetime, timezone
 
 from httpx import AsyncClient
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.case import ClinicalCase
@@ -154,6 +155,70 @@ async def test_dynamic_generation_forces_unreviewed_provenance(
     assert provenance["review_label"] == "AI-generated, unreviewed"
     assert provenance["requires_caution"] is True
     assert provenance["last_reviewed_at"] is None
+
+
+async def test_dynamic_generation_quality_gate_blocks_storage(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch,
+):
+    auth_headers = await _register_and_login(client)
+    before_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+
+    async def fake_generate_clinical_case(**_kwargs) -> ClinicalCaseCreate:
+        raw_case = copy.deepcopy(CASE_POOL[0])
+        raw_case["clinical_red_flags"] = []
+        return ClinicalCaseCreate(**raw_case)
+
+    monkeypatch.setattr(
+        cases_router,
+        "generate_clinical_case",
+        fake_generate_clinical_case,
+    )
+
+    response = await client.post(
+        "/api/cases/generate",
+        headers=auth_headers,
+        json={
+            "specialty": "internal_medicine",
+            "difficulty": "medium",
+            "acknowledge_unreviewed_generation": True,
+        },
+    )
+
+    assert response.status_code == 422
+    assert "Generated case blocked by case quality gate" in response.json()["detail"]
+    assert "clinical red flags" in response.json()["detail"]
+    after_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+    assert after_count == before_count
+
+
+async def test_demo_generation_quality_gate_blocks_storage(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch,
+):
+    auth_headers = await _register_and_login(client)
+    before_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+
+    async def fake_generate_demo_case() -> ClinicalCaseCreate:
+        raw_case = copy.deepcopy(CASE_POOL[0])
+        raw_case["physical_exam"]["vitals"]["bp"] = "normal"
+        return ClinicalCaseCreate(**raw_case)
+
+    monkeypatch.setattr(
+        cases_router,
+        "generate_demo_case",
+        fake_generate_demo_case,
+    )
+
+    response = await client.post("/api/cases/generate/demo", headers=auth_headers)
+
+    assert response.status_code == 422
+    assert "Generated case blocked by case quality gate" in response.json()["detail"]
+    assert "vitals.bp" in response.json()["detail"]
+    after_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+    assert after_count == before_count
 
 
 async def test_stale_clinician_review_provenance_requires_caution(
