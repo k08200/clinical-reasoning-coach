@@ -169,17 +169,27 @@ export const api = {
     list: (params?: {
       event_type?: string;
       severity?: string;
+      event_status?: string;
       limit?: number;
       offset?: number;
     }) => {
       const q = new URLSearchParams();
       if (params?.event_type) q.set("event_type", params.event_type);
       if (params?.severity) q.set("severity", params.severity);
+      if (params?.event_status) q.set("event_status", params.event_status);
       if (params?.limit) q.set("limit", String(params.limit));
       if (params?.offset) q.set("offset", String(params.offset));
       const query = q.toString();
       return request(`/api/safety-events${query ? `?${query}` : ""}`);
     },
+    updateResolution: (
+      id: string,
+      data: { status: "open" | "resolved"; resolution_note?: string },
+    ) =>
+      request(`/api/safety-events/${id}/resolution`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
   },
 };
 

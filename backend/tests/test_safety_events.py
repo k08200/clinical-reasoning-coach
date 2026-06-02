@@ -150,3 +150,196 @@ async def test_reviewer_can_list_and_filter_safety_events(
     assert payload[0]["user_full_name"] == learner.full_name
     assert payload[0]["session_id"] == str(session.id)
     assert payload[0]["case_id"] == str(case.id)
+    assert payload[0]["status"] == "open"
+    assert payload[0]["resolution_note"] is None
+    assert payload[0]["resolved_at"] is None
+    assert payload[0]["resolved_by_user_id"] is None
+    assert payload[0]["resolved_by_user_email"] is None
+    assert payload[0]["resolved_by_user_full_name"] is None
+
+
+@pytest.mark.asyncio
+async def test_reviewer_can_resolve_safety_event(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner = User(
+        email=f"safety-resolve-learner-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Resolve Learner",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    reviewer = User(
+        email=f"safety-resolver-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Resolver",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case()
+    db.add_all([learner, reviewer, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=learner.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    event = SafetyEvent(
+        session_id=session.id,
+        user_id=learner.id,
+        event_type="real_patient_or_emergency_signal",
+        severity="high",
+        action_taken="halted_coaching",
+        detected_terms=["right now"],
+        message_turn=1,
+        note="Coaching halted.",
+    )
+    db.add(event)
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(event)
+
+    response = await client.patch(
+        f"/api/safety-events/{event.id}/resolution",
+        headers=_auth_headers(reviewer),
+        json={
+            "status": "resolved",
+            "resolution_note": "Reviewed and escalated to program director.",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "resolved"
+    assert payload["resolution_note"] == "Reviewed and escalated to program director."
+    assert payload["resolved_at"] is not None
+    assert payload["resolved_by_user_id"] == str(reviewer.id)
+    assert payload["resolved_by_user_email"] == reviewer.email
+    assert payload["resolved_by_user_full_name"] == reviewer.full_name
+
+    list_response = await client.get(
+        "/api/safety-events?event_status=resolved",
+        headers=_auth_headers(reviewer),
+    )
+    assert list_response.status_code == 200
+    assert [item["id"] for item in list_response.json()] == [str(event.id)]
+
+    open_response = await client.get(
+        "/api/safety-events?event_status=open",
+        headers=_auth_headers(reviewer),
+    )
+    assert open_response.status_code == 200
+    assert str(event.id) not in [item["id"] for item in open_response.json()]
+
+
+@pytest.mark.asyncio
+async def test_reviewer_must_document_resolution_note(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner = User(
+        email=f"safety-note-learner-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Note Learner",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    reviewer = User(
+        email=f"safety-note-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Note Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case()
+    db.add_all([learner, reviewer, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=learner.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    event = SafetyEvent(
+        session_id=session.id,
+        user_id=learner.id,
+        event_type="real_patient_or_emergency_signal",
+        severity="high",
+        action_taken="halted_coaching",
+        detected_terms=["right now"],
+        message_turn=1,
+        note="Coaching halted.",
+    )
+    db.add(event)
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(event)
+
+    response = await client.patch(
+        f"/api/safety-events/{event.id}/resolution",
+        headers=_auth_headers(reviewer),
+        json={"status": "resolved", "resolution_note": "   "},
+    )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_learner_cannot_resolve_safety_event(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner = User(
+        email=f"safety-resolve-blocked-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Resolve Blocked",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case()
+    db.add_all([learner, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=learner.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    event = SafetyEvent(
+        session_id=session.id,
+        user_id=learner.id,
+        event_type="possible_patient_identifier",
+        severity="high",
+        action_taken="blocked_storage_and_coaching",
+        detected_terms=["phone_number"],
+        message_turn=1,
+        note="Student message was not stored.",
+    )
+    db.add(event)
+    await db.commit()
+    await db.refresh(learner)
+    await db.refresh(event)
+
+    response = await client.patch(
+        f"/api/safety-events/{event.id}/resolution",
+        headers=_auth_headers(learner),
+        json={"status": "resolved", "resolution_note": "Learner cannot resolve."},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Clinician reviewer role required"

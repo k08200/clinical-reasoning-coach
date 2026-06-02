@@ -20,6 +20,12 @@ const SEVERITY_OPTIONS = [
   { value: "low", label: "Low" },
 ];
 
+const STATUS_OPTIONS = [
+  { value: "open", label: "Open" },
+  { value: "all", label: "All status" },
+  { value: "resolved", label: "Resolved" },
+];
+
 function isReviewer(user: User | undefined): boolean {
   return user?.role === "clinician_reviewer" || user?.role === "admin";
 }
@@ -39,6 +45,11 @@ function badgeClasses(value: string): string {
   return "border-slate-700 bg-slate-900/60 text-slate-300";
 }
 
+function statusBadgeClasses(value: SafetyEvent["status"]): string {
+  if (value === "resolved") return "border-emerald-700 bg-emerald-950/40 text-emerald-200";
+  return "border-amber-700 bg-amber-950/40 text-amber-200";
+}
+
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en", {
     dateStyle: "medium",
@@ -50,6 +61,11 @@ export default function SafetyEventsPage() {
   const checkingAuth = useRequireAuth();
   const [eventType, setEventType] = useState("all");
   const [severity, setSeverity] = useState("all");
+  const [eventStatus, setEventStatus] = useState("open");
+  const [resolutionDrafts, setResolutionDrafts] = useState<Record<string, string>>({});
+  const [updatingEventId, setUpdatingEventId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const { data: user, error: userError } = useSWR<User>(
     checkingAuth ? null : "/api/auth/me",
@@ -60,12 +76,13 @@ export default function SafetyEventsPage() {
   const safetyParams = {
     event_type: eventType === "all" ? undefined : eventType,
     severity: severity === "all" ? undefined : severity,
+    event_status: eventStatus === "all" ? undefined : eventStatus,
     limit: 100,
   };
 
   const { data: safetyEvents, error: safetyError, mutate } = useSWR<SafetyEvent[]>(
     canLoadSafetyEvents
-      ? `/api/safety-events?event_type=${eventType}&severity=${severity}`
+      ? `/api/safety-events?event_type=${eventType}&severity=${severity}&event_status=${eventStatus}`
       : null,
     () => api.safetyEvents.list(safetyParams) as Promise<SafetyEvent[]>,
   );
@@ -75,14 +92,55 @@ export default function SafetyEventsPage() {
     return {
       total: events.length,
       high: events.filter((event) => event.severity === "high").length,
-      patientIdentifiers: events.filter(
-        (event) => event.event_type === "possible_patient_identifier",
-      ).length,
-      realPatientSignals: events.filter(
-        (event) => event.event_type === "real_patient_or_emergency_signal",
-      ).length,
+      open: events.filter((event) => event.status === "open").length,
+      resolved: events.filter((event) => event.status === "resolved").length,
     };
   }, [safetyEvents]);
+
+  async function handleResolve(event: SafetyEvent) {
+    const resolutionNote = (resolutionDrafts[event.id] ?? "").trim();
+    if (!resolutionNote) {
+      setActionError("Resolution note is required before marking an event resolved.");
+      setActionMessage(null);
+      return;
+    }
+
+    setUpdatingEventId(event.id);
+    setActionError(null);
+    setActionMessage(null);
+    try {
+      await api.safetyEvents.updateResolution(event.id, {
+        status: "resolved",
+        resolution_note: resolutionNote,
+      });
+      setResolutionDrafts((drafts) => {
+        const next = { ...drafts };
+        delete next[event.id];
+        return next;
+      });
+      await mutate();
+      setActionMessage("Safety event marked resolved.");
+    } catch {
+      setActionError("Could not update safety event resolution.");
+    } finally {
+      setUpdatingEventId(null);
+    }
+  }
+
+  async function handleReopen(event: SafetyEvent) {
+    setUpdatingEventId(event.id);
+    setActionError(null);
+    setActionMessage(null);
+    try {
+      await api.safetyEvents.updateResolution(event.id, { status: "open" });
+      await mutate();
+      setActionMessage("Safety event reopened.");
+    } catch {
+      setActionError("Could not reopen safety event.");
+    } finally {
+      setUpdatingEventId(null);
+    }
+  }
 
   if (checkingAuth || (!user && !userError)) {
     return (
@@ -143,20 +201,16 @@ export default function SafetyEventsPage() {
             <p className="mt-2 text-3xl font-bold text-white">{summary.total}</p>
           </div>
           <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Open</p>
+            <p className="mt-2 text-3xl font-bold text-amber-200">{summary.open}</p>
+          </div>
+          <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Resolved</p>
+            <p className="mt-2 text-3xl font-bold text-emerald-200">{summary.resolved}</p>
+          </div>
+          <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
             <p className="text-xs uppercase tracking-wide text-slate-500">High Severity</p>
             <p className="mt-2 text-3xl font-bold text-red-200">{summary.high}</p>
-          </div>
-          <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Patient Identifiers</p>
-            <p className="mt-2 text-3xl font-bold text-amber-200">
-              {summary.patientIdentifiers}
-            </p>
-          </div>
-          <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Real Patient Signals</p>
-            <p className="mt-2 text-3xl font-bold text-sky-200">
-              {summary.realPatientSignals}
-            </p>
           </div>
         </div>
 
@@ -193,6 +247,22 @@ export default function SafetyEventsPage() {
               ))}
             </select>
           </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
+              Status
+            </span>
+            <select
+              value={eventStatus}
+              onChange={(event) => setEventStatus(event.target.value)}
+              className="w-44 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white outline-none focus:border-brand-500"
+            >
+              {STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             onClick={() => mutate()}
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
@@ -207,6 +277,18 @@ export default function SafetyEventsPage() {
           </div>
         )}
 
+        {actionError && (
+          <div className="mb-6 rounded-lg border border-red-700 bg-red-900/40 px-4 py-3 text-sm text-red-200">
+            {actionError}
+          </div>
+        )}
+
+        {actionMessage && (
+          <div className="mb-6 rounded-lg border border-emerald-700 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-200">
+            {actionMessage}
+          </div>
+        )}
+
         {!safetyEvents && !safetyError ? (
           <div className="flex justify-center py-16">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
@@ -217,18 +299,19 @@ export default function SafetyEventsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-slate-700 bg-slate-800">
-            <div className="grid min-w-[64rem] grid-cols-[minmax(10rem,0.8fr)_minmax(12rem,1fr)_minmax(10rem,0.9fr)_minmax(12rem,1.1fr)_minmax(12rem,1fr)] gap-4 border-b border-slate-700 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div className="grid min-w-[82rem] grid-cols-[minmax(10rem,0.8fr)_minmax(12rem,1fr)_minmax(10rem,0.9fr)_minmax(12rem,1.1fr)_minmax(12rem,1fr)_minmax(18rem,1.3fr)] gap-4 border-b border-slate-700 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               <span>Time</span>
               <span>Learner</span>
               <span>Event</span>
               <span>Detected</span>
               <span>Action</span>
+              <span>Resolution</span>
             </div>
             <div className="divide-y divide-slate-700">
               {safetyEvents?.map((event) => (
                 <div
                   key={event.id}
-                  className="grid min-w-[64rem] grid-cols-[minmax(10rem,0.8fr)_minmax(12rem,1fr)_minmax(10rem,0.9fr)_minmax(12rem,1.1fr)_minmax(12rem,1fr)] gap-4 px-4 py-4"
+                  className="grid min-w-[82rem] grid-cols-[minmax(10rem,0.8fr)_minmax(12rem,1fr)_minmax(10rem,0.9fr)_minmax(12rem,1.1fr)_minmax(12rem,1fr)_minmax(18rem,1.3fr)] gap-4 px-4 py-4"
                 >
                   <div>
                     <p className="text-sm font-medium text-white">
@@ -274,6 +357,57 @@ export default function SafetyEventsPage() {
                       {event.action_taken.replace(/_/g, " ")}
                     </p>
                     <p className="mt-1 text-xs leading-5 text-slate-400">{event.note}</p>
+                  </div>
+                  <div>
+                    <span
+                      className={`inline-block rounded-full border px-2 py-1 text-xs font-medium ${statusBadgeClasses(
+                        event.status,
+                      )}`}
+                    >
+                      {event.status}
+                    </span>
+                    {event.status === "resolved" ? (
+                      <div className="mt-3 space-y-2">
+                        <p className="text-xs leading-5 text-slate-300">
+                          {event.resolution_note}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {event.resolved_by_user_full_name ?? "Reviewer"}
+                          {event.resolved_at ? `, ${formatDate(event.resolved_at)}` : ""}
+                        </p>
+                        <button
+                          onClick={() => void handleReopen(event)}
+                          disabled={updatingEventId === event.id}
+                          className="rounded-lg border border-slate-600 px-3 py-2 text-xs font-semibold text-slate-100 transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Reopen
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-3 space-y-2">
+                        <textarea
+                          aria-label={`Resolution note for ${event.id}`}
+                          value={resolutionDrafts[event.id] ?? ""}
+                          onChange={(changeEvent) =>
+                            setResolutionDrafts((drafts) => ({
+                              ...drafts,
+                              [event.id]: changeEvent.target.value,
+                            }))
+                          }
+                          rows={3}
+                          maxLength={2000}
+                          placeholder="Resolution note"
+                          className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white outline-none transition-colors placeholder:text-slate-600 focus:border-brand-500"
+                        />
+                        <button
+                          onClick={() => void handleResolve(event)}
+                          disabled={updatingEventId === event.id}
+                          className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Mark Resolved
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

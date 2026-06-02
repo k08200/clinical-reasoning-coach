@@ -200,6 +200,12 @@ export interface SafetyEvent {
   detected_terms: string[];
   message_turn: number;
   note: string;
+  status: "open" | "resolved";
+  resolution_note: string | null;
+  resolved_at: string | null;
+  resolved_by_user_id: string | null;
+  resolved_by_user_email: string | null;
+  resolved_by_user_full_name: string | null;
   created_at: string;
 }
 

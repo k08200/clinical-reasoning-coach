@@ -16,11 +16,13 @@ vi.mock("@/lib/api", () => ({
     },
     safetyEvents: {
       list: vi.fn(),
+      updateResolution: vi.fn(),
     },
   },
 }));
 
 import SafetyEventsPage from "@/app/safety/page";
+import { api } from "@/lib/api";
 
 const mockMutateSafetyEvents = vi.fn();
 
@@ -54,6 +56,12 @@ const safetyEvents: SafetyEvent[] = [
     detected_terms: ["phone_number", "medical_record_number"],
     message_turn: 2,
     note: "Student message was not stored.",
+    status: "open",
+    resolution_note: null,
+    resolved_at: null,
+    resolved_by_user_id: null,
+    resolved_by_user_email: null,
+    resolved_by_user_full_name: null,
     created_at: "2026-06-02T06:30:00Z",
   },
   {
@@ -69,6 +77,12 @@ const safetyEvents: SafetyEvent[] = [
     detected_terms: ["severe chest pain"],
     message_turn: 1,
     note: "Coaching halted for possible real patient or emergency scenario.",
+    status: "resolved",
+    resolution_note: "Reviewed and documented.",
+    resolved_at: "2026-06-02T07:00:00Z",
+    resolved_by_user_id: "reviewer-1",
+    resolved_by_user_email: "reviewer@test.com",
+    resolved_by_user_full_name: "Dr Reviewer",
     created_at: "2026-06-02T06:00:00Z",
   },
 ];
@@ -98,6 +112,8 @@ function mockSafetySwr({
 beforeEach(() => {
   mockMutateSafetyEvents.mockReset();
   mockMutateSafetyEvents.mockResolvedValue(undefined);
+  vi.mocked(api.safetyEvents.updateResolution).mockReset();
+  vi.mocked(api.safetyEvents.updateResolution).mockResolvedValue(undefined);
 });
 
 describe("SafetyEventsPage", () => {
@@ -123,6 +139,8 @@ describe("SafetyEventsPage", () => {
     expect(screen.getByText("phone number")).toBeTruthy();
     expect(screen.getByText("medical record number")).toBeTruthy();
     expect(screen.getByText("halted coaching")).toBeTruthy();
+    expect(screen.getByText("Reviewed and documented.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Reopen" })).toBeTruthy();
   });
 
   it("refreshes the safety event list on demand", async () => {
@@ -132,5 +150,51 @@ describe("SafetyEventsPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
 
     await waitFor(() => expect(mockMutateSafetyEvents).toHaveBeenCalledOnce());
+  });
+
+  it("requires a resolution note before marking an event resolved", async () => {
+    mockSafetySwr({ events: [safetyEvents[0]] });
+
+    render(<SafetyEventsPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Mark Resolved" }));
+
+    expect(
+      await screen.findByText("Resolution note is required before marking an event resolved."),
+    ).toBeTruthy();
+    expect(api.safetyEvents.updateResolution).not.toHaveBeenCalled();
+  });
+
+  it("marks an open safety event resolved", async () => {
+    mockSafetySwr({ events: [safetyEvents[0]] });
+
+    render(<SafetyEventsPage />);
+    fireEvent.change(screen.getByLabelText("Resolution note for event-1"), {
+      target: { value: "Reviewed and documented with supervising clinician." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Mark Resolved" }));
+
+    await waitFor(() =>
+      expect(api.safetyEvents.updateResolution).toHaveBeenCalledWith("event-1", {
+        status: "resolved",
+        resolution_note: "Reviewed and documented with supervising clinician.",
+      }),
+    );
+    expect(mockMutateSafetyEvents).toHaveBeenCalledOnce();
+    expect(await screen.findByText("Safety event marked resolved.")).toBeTruthy();
+  });
+
+  it("reopens a resolved safety event", async () => {
+    mockSafetySwr({ events: [safetyEvents[1]] });
+
+    render(<SafetyEventsPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Reopen" }));
+
+    await waitFor(() =>
+      expect(api.safetyEvents.updateResolution).toHaveBeenCalledWith("event-2", {
+        status: "open",
+      }),
+    );
+    expect(mockMutateSafetyEvents).toHaveBeenCalledOnce();
+    expect(await screen.findByText("Safety event reopened.")).toBeTruthy();
   });
 });
