@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings, validate_runtime_settings
 from app.database import init_db
-from app.routers import auth, cases, sessions, analytics
+from app.routers import analytics, auth, cases, safety, sessions
 
 settings = get_settings()
 
@@ -39,6 +39,7 @@ app.include_router(auth.router)
 app.include_router(cases.router)
 app.include_router(sessions.router)
 app.include_router(analytics.router)
+app.include_router(safety.router)
 
 
 @app.get("/health")

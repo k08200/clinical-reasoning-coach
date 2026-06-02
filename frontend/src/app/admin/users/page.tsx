@@ -114,6 +114,9 @@ export default function AdminUsersPage() {
             <Link href="/review" className="text-sm text-slate-400 hover:text-white">
               Clinical Review
             </Link>
+            <Link href="/safety" className="text-sm text-slate-400 hover:text-white">
+              Safety Events
+            </Link>
           </div>
         </div>
       </header>

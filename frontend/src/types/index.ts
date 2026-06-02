@@ -172,6 +172,22 @@ export interface SessionReview {
   last_reviewed_at: string | null;
 }
 
+export interface SafetyEvent {
+  id: string;
+  session_id: string;
+  case_id: string;
+  user_id: string;
+  user_email: string;
+  user_full_name: string;
+  event_type: string;
+  severity: string;
+  action_taken: string;
+  detected_terms: string[];
+  message_turn: number;
+  note: string;
+  created_at: string;
+}
+
 export interface TokenUsage {
   input_tokens: number;
   output_tokens: number;

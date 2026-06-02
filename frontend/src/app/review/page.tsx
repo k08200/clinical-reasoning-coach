@@ -143,6 +143,9 @@ export default function ReviewPage() {
             <Link href="/analytics" className="text-sm text-slate-400 hover:text-white">
               Analytics
             </Link>
+            <Link href="/safety" className="text-sm text-slate-400 hover:text-white">
+              Safety Events
+            </Link>
           </div>
         </div>
       </header>

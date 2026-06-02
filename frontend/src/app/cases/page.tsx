@@ -112,9 +112,14 @@ export default function CasesPage() {
               Analytics
             </Link>
             {canReview && (
-              <Link href="/review" className="text-sm text-slate-400 hover:text-white">
-                Clinical Review
-              </Link>
+              <>
+                <Link href="/review" className="text-sm text-slate-400 hover:text-white">
+                  Clinical Review
+                </Link>
+                <Link href="/safety" className="text-sm text-slate-400 hover:text-white">
+                  Safety Events
+                </Link>
+              </>
             )}
             {currentUser?.role === "admin" && (
               <Link href="/admin/users" className="text-sm text-slate-400 hover:text-white">
