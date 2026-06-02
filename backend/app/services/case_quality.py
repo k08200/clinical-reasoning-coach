@@ -6,6 +6,7 @@ unsafe educational cases from entering the coaching flow without clinician revie
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import urlparse
@@ -101,12 +102,32 @@ def _check_demographics(data: dict[str, Any], report: CaseQualityReport) -> None
 
 def _check_vitals(data: dict[str, Any], report: CaseQualityReport) -> None:
     vitals = (data.get("physical_exam") or {}).get("vitals") or {}
-    if not str(vitals.get("bp", "")).strip():
-        report.add_critical("vitals.bp is required")
+    _check_blood_pressure(vitals.get("bp"), report)
     _check_range(vitals.get("hr"), 20, 250, "vitals.hr", report)
     _check_range(vitals.get("rr"), 4, 80, "vitals.rr", report)
     _check_range(vitals.get("temp_c"), 25, 45, "vitals.temp_c", report)
     _check_range(vitals.get("spo2"), 40, 100, "vitals.spo2", report)
+
+
+def _check_blood_pressure(value: Any, report: CaseQualityReport) -> None:
+    bp_text = str(value or "").strip()
+    if not bp_text:
+        report.add_critical("vitals.bp is required")
+        return
+
+    match = re.search(r"(?<!\d)(\d{2,3})\s*/\s*(\d{2,3})(?!\d)", bp_text)
+    if not match:
+        report.add_critical("vitals.bp must use systolic/diastolic numeric format")
+        return
+
+    systolic = int(match.group(1))
+    diastolic = int(match.group(2))
+    if not 50 <= systolic <= 260:
+        report.add_critical("vitals.bp systolic must be between 50 and 260")
+    if not 20 <= diastolic <= 160:
+        report.add_critical("vitals.bp diastolic must be between 20 and 160")
+    if systolic <= diastolic:
+        report.add_critical("vitals.bp systolic must be greater than diastolic")
 
 
 def _check_range(

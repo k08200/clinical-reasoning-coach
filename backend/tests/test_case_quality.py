@@ -36,6 +36,38 @@ def test_quality_gate_rejects_unrealistic_vitals():
         assert_case_quality(ClinicalCaseCreate(**case))
 
 
+def test_quality_gate_rejects_non_numeric_blood_pressure():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["physical_exam"]["vitals"]["bp"] = "normal"
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("vitals.bp must use" in issue for issue in report.critical_issues)
+
+
+def test_quality_gate_rejects_inverted_blood_pressure():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["physical_exam"]["vitals"]["bp"] = "80/120"
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "systolic must be greater than diastolic" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_accepts_blood_pressure_with_units():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["physical_exam"]["vitals"]["bp"] = "120/80 mmHg"
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
 def test_quality_gate_rejects_source_without_supports():
     case = copy.deepcopy(CASE_POOL[0])
     case["clinical_sources"] = [
