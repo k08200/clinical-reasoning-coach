@@ -58,6 +58,38 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "suicidal",
     "overdose",
 ]
+SIMULATION_CONTEXT_PATTERNS = [
+    "simulated patient",
+    "simulated case",
+    "simulation",
+    "training case",
+    "practice case",
+    "mock patient",
+    "case scenario",
+    "this case",
+    "the case",
+    "vignette",
+]
+REAL_PATIENT_OVERRIDE_PATTERNS = [
+    "actual patient",
+    "real patient",
+    "my patient",
+    "my mom",
+    "my mother",
+    "my dad",
+    "my father",
+    "my child",
+    "my baby",
+    "my wife",
+    "my husband",
+    "i am having",
+    "i'm having",
+    "i can't breathe",
+    "i cannot breathe",
+    "should i call 911",
+    "should i go to the er",
+    "should i go to the emergency",
+]
 
 DIRECT_CONFIRMATION_PATTERNS = [
     r"\byou'?re right\b",
@@ -388,11 +420,26 @@ def should_emit_real_patient_safety_notice(student_message: str) -> bool:
 
 def detect_real_patient_signals(student_message: str) -> list[str]:
     normalized = re.sub(r"\s+", " ", student_message.lower()).strip()
-    return [
+    detected = [
         pattern
         for pattern in REAL_PATIENT_SIGNAL_PATTERNS
         if pattern in normalized
     ]
+    if not detected:
+        return []
+
+    has_simulation_context = any(
+        pattern in normalized
+        for pattern in SIMULATION_CONTEXT_PATTERNS
+    )
+    has_real_patient_override = any(
+        pattern in normalized
+        for pattern in REAL_PATIENT_OVERRIDE_PATTERNS
+    )
+    if has_simulation_context and not has_real_patient_override:
+        return []
+
+    return detected
 
 
 async def stream_coach_response(

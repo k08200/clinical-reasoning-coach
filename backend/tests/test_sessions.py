@@ -799,6 +799,94 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
 
 
 @pytest.mark.asyncio
+async def test_simulated_urgent_symptoms_do_not_trigger_real_patient_lock(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fake_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fake_analyze_student_response,
+    )
+
+    user = User(
+        email=f"simulated-urgent-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Simulated Urgent Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="Opening case presentation.",
+    ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    stream_response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={
+            "content": (
+                "In this simulated case, the patient has severe chest pain right now "
+                "and I want to prioritize dangerous causes."
+            ),
+        },
+        headers=auth_headers,
+    )
+
+    assert stream_response.status_code == 200
+    assert "I cannot continue coaching" not in stream_response.text
+    assert "What finding would most change your differential?" in stream_response.text
+
+    saved_response = await client.get(
+        f"/api/sessions/{session.id}",
+        headers=auth_headers,
+    )
+    assert saved_response.status_code == 200
+    saved_session = saved_response.json()
+    assert saved_session["status"] == "active"
+    assert [message["role"] for message in saved_session["messages"]] == [
+        "coach",
+        "student",
+        "coach",
+    ]
+    assert saved_session["messages"][1]["reasoning_score"] == 82
+    assert saved_session["reasoning_map"]["nodes"]
+
+    async with TestSessionLocal() as safety_db:
+        safety_events = (
+            await safety_db.execute(
+                select(SafetyEvent).where(SafetyEvent.session_id == session.id)
+            )
+        ).scalars().all()
+    assert safety_events == []
+
+
+@pytest.mark.asyncio
 async def test_management_before_safety_checks_redirects_and_records_safety_event(
     client: AsyncClient,
     db: AsyncSession,

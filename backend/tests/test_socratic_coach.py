@@ -126,6 +126,18 @@ def test_real_patient_safety_notice_detection():
     assert should_emit_real_patient_safety_notice("Is this an emergency?")
     assert should_emit_real_patient_safety_notice("I can't breathe and have severe chest pain")
     assert not should_emit_real_patient_safety_notice("The simulated patient has chest pain")
+    assert not should_emit_real_patient_safety_notice(
+        "In this simulated case, the patient has severe chest pain right now."
+    )
+    assert not should_emit_real_patient_safety_notice(
+        "For this training case, the patient is in the ER and has stroke symptoms."
+    )
+    assert should_emit_real_patient_safety_notice(
+        "This is a simulation, but my patient is deteriorating right now."
+    )
+    assert should_emit_real_patient_safety_notice(
+        "My patient in clinic has severe chest pain right now."
+    )
 
 
 def test_management_safety_gap_detection_requires_missing_contraindication_checks():
