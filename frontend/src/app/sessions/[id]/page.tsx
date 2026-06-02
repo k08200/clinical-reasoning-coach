@@ -177,6 +177,8 @@ export default function SessionPage() {
   );
   const completionBlockedMessage =
     "Add at least one analyzed learner response before finishing the session.";
+  const completionSafetyMessage =
+    "Before finishing, address red flags, time-critical actions, and contraindication checks.";
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
@@ -208,16 +210,14 @@ export default function SessionPage() {
               <button
                 onClick={handleComplete}
                 disabled={completing || !canCompleteSession}
-                title={canCompleteSession ? "Finish Session" : completionBlockedMessage}
+                title={canCompleteSession ? completionSafetyMessage : completionBlockedMessage}
                 className="text-sm px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
               >
                 {completing ? "Finishing..." : "Finish Session"}
               </button>
-              {!canCompleteSession && (
-                <p className="mt-1 max-w-56 text-xs text-slate-500">
-                  {completionBlockedMessage}
-                </p>
-              )}
+              <p className="mt-1 max-w-64 text-xs text-slate-500">
+                {canCompleteSession ? completionSafetyMessage : completionBlockedMessage}
+              </p>
             </div>
           )}
           {isSafetyLocked && (

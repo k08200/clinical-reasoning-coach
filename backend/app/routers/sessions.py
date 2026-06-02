@@ -556,6 +556,23 @@ async def complete_session(
             detail="At least one analyzed learner response is required before completion",
         )
 
+    case = await db.get(ClinicalCase, session.case_id)
+    if not case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+    safety_coverage = _build_clinical_safety_coverage(case, session)
+    if safety_coverage.total_count and (
+        safety_coverage.covered_count < safety_coverage.total_count
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Address all red flags, time-critical actions, and contraindication "
+                "checks before finishing the session "
+                f"({safety_coverage.covered_count} of "
+                f"{safety_coverage.total_count} safety targets covered)."
+            ),
+        )
+
     final_score = sum(scores) / len(scores)
 
     bias_counts: dict[str, int] = {}

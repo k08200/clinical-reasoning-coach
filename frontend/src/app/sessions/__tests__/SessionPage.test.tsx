@@ -222,6 +222,7 @@ describe("SessionPage", () => {
     render(<SessionPage />);
     fireEvent.click(screen.getByRole("button", { name: "Finish Session" }));
 
+    expect(screen.getByText(/Before finishing, address red flags/)).toBeTruthy();
     await waitFor(() => expect(mockComplete).toHaveBeenCalledWith("session-1"));
     expect(mockMutate).toHaveBeenCalled();
   });
