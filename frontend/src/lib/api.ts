@@ -135,8 +135,14 @@ export const api = {
   },
 
   sessions: {
-    create: (case_id: string) =>
-      request("/api/sessions", { method: "POST", body: JSON.stringify({ case_id }) }),
+    create: (
+      case_id: string,
+      options: { acknowledge_unreviewed_case?: boolean } = {},
+    ) =>
+      request("/api/sessions", {
+        method: "POST",
+        body: JSON.stringify({ case_id, ...options }),
+      }),
     list: () => request("/api/sessions"),
     get: (id: string) => request(`/api/sessions/${id}`),
     review: (id: string) => request(`/api/sessions/${id}/review`),

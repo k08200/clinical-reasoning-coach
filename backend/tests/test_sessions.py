@@ -65,6 +65,110 @@ async def fake_analyze_student_response(**_kwargs) -> ReasoningAnalysis:
     )
 
 
+def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
+    return ClinicalCase(
+        title="Chest Pain Case",
+        specialty="internal_medicine",
+        difficulty="medium",
+        chief_complaint="Chest pain",
+        patient_demographics={"age": 58, "sex": "male"},
+        history_of_present_illness="Crushing chest pain with diaphoresis.",
+        past_medical_history="Hypertension",
+        medications=["lisinopril"],
+        physical_exam={
+            "vitals": {"bp": "150/90", "hr": 96, "rr": 18, "temp_c": 37.0, "spo2": 96},
+            "general": "Diaphoretic",
+            "cardiovascular": "Regular rhythm",
+            "pulmonary": "Clear",
+            "abdomen": "Soft",
+            "neuro": "Alert",
+        },
+        initial_labs={"troponin": "borderline"},
+        diagnosis="Acute coronary syndrome",
+        key_teaching_points=["Obtain ECG early in acute chest pain"],
+        cognitive_traps=["Anchoring"],
+        clinical_sources=[
+            {
+                "title": "Chest Pain Guideline",
+                "organization": "Cardiology Society",
+                "url": "https://example.org/chest-pain",
+                "supports": ["ECG timing", "risk stratification"],
+            }
+        ],
+        review_status=review_status,
+        last_reviewed_at="2026-06-01" if review_status != "ai_generated_unreviewed" else None,
+        coach_guidance="Use Socratic questioning.",
+    )
+
+
+@pytest.mark.asyncio
+async def test_create_session_requires_acknowledgement_for_unreviewed_case(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"unreviewed-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Unreviewed Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="educational_draft")
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        "/api/sessions",
+        json={"case_id": str(case.id)},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert "not clinician reviewed" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.times_used == 0
+
+
+@pytest.mark.asyncio
+async def test_create_session_allows_clinician_reviewed_case_without_acknowledgement(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"reviewed-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Reviewed Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        "/api/sessions",
+        json={"case_id": str(case.id)},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 201
+    assert response.json()["case_id"] == str(case.id)
+    await db.refresh(case)
+    assert case.times_used == 1
+
+
 @pytest.mark.asyncio
 async def test_stream_response_persists_turn_before_done(
     client: AsyncClient,
@@ -110,7 +214,7 @@ async def test_stream_response_persists_turn_before_done(
 
     session_response = await client.post(
         "/api/sessions",
-        json={"case_id": case_id},
+        json={"case_id": case_id, "acknowledge_unreviewed_case": True},
         headers=auth_headers,
     )
     assert session_response.status_code == 201
@@ -199,7 +303,10 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
     case_response = await client.post("/api/cases/generate/demo", headers=auth_headers)
     session_response = await client.post(
         "/api/sessions",
-        json={"case_id": case_response.json()["id"]},
+        json={
+            "case_id": case_response.json()["id"],
+            "acknowledge_unreviewed_case": True,
+        },
         headers=auth_headers,
     )
     session_id = session_response.json()["id"]
@@ -292,7 +399,10 @@ async def test_patient_identifier_signal_blocks_storage_and_records_safety_event
     case_response = await client.post("/api/cases/generate/demo", headers=auth_headers)
     session_response = await client.post(
         "/api/sessions",
-        json={"case_id": case_response.json()["id"]},
+        json={
+            "case_id": case_response.json()["id"],
+            "acknowledge_unreviewed_case": True,
+        },
         headers=auth_headers,
     )
     session_id = session_response.json()["id"]

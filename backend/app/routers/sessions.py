@@ -121,6 +121,14 @@ async def create_session(
     case = await db.get(ClinicalCase, body.case_id)
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+    if case.review_status != "clinician_reviewed" and not body.acknowledge_unreviewed_case:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "This case is not clinician reviewed. Set "
+                "acknowledge_unreviewed_case=true to use it for educational simulation."
+            ),
+        )
 
     session = CoachingSession(
         user_id=uuid.UUID(user_id),

@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 class SessionCreate(BaseModel):
     case_id: uuid.UUID
+    acknowledge_unreviewed_case: bool = False
 
 
 class MessageResponse(BaseModel):

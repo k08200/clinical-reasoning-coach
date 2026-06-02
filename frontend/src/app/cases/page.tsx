@@ -32,6 +32,7 @@ export default function CasesPage() {
   const [specialty, setSpecialty] = useState("All");
   const [generating, setGenerating] = useState(false);
   const [startingSession, setStartingSession] = useState<string | null>(null);
+  const [acknowledgingCase, setAcknowledgingCase] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
 
   const { data: cases, error: casesError, mutate } = useSWR<ClinicalCase[]>(
@@ -61,11 +62,19 @@ export default function CasesPage() {
     }
   }
 
-  async function handleStartSession(caseId: string) {
-    setStartingSession(caseId);
+  async function handleStartSession(clinicalCase: ClinicalCase, acknowledged = false) {
+    if (clinicalCase.source_provenance.requires_caution && !acknowledged) {
+      setAcknowledgingCase(clinicalCase.id);
+      setActionError("");
+      return;
+    }
+
+    setStartingSession(clinicalCase.id);
     setActionError("");
     try {
-      const session = await api.sessions.create(caseId) as { id: string };
+      const session = await api.sessions.create(clinicalCase.id, {
+        acknowledge_unreviewed_case: clinicalCase.source_provenance.requires_caution,
+      }) as { id: string };
       router.push(`/sessions/${session.id}`);
     } catch (err) {
       console.error(err);
@@ -233,10 +242,31 @@ export default function CasesPage() {
                   )}
                 </div>
 
+                {acknowledgingCase === c.id && (
+                  <div className="mb-4 border-l-2 border-amber-500 bg-amber-950/20 px-3 py-2 text-xs text-amber-100">
+                    This case is not clinician reviewed. Start only as educational simulation.
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        onClick={() => handleStartSession(c, true)}
+                        disabled={startingSession === c.id}
+                        className="rounded bg-amber-600 px-3 py-1 font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+                      >
+                        Acknowledge and Start
+                      </button>
+                      <button
+                        onClick={() => setAcknowledgingCase(null)}
+                        className="rounded border border-amber-700 px-3 py-1 font-semibold text-amber-100 hover:bg-amber-950/50"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-500">{c.times_used} sessions</span>
                   <button
-                    onClick={() => handleStartSession(c.id)}
+                    onClick={() => handleStartSession(c)}
                     disabled={startingSession === c.id}
                     className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm rounded-lg font-medium transition-colors"
                   >

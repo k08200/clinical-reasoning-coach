@@ -118,7 +118,7 @@ describe("CasesPage", () => {
     expect(mockMutate).toHaveBeenCalledOnce();
   });
 
-  it("renders cases and starts a session", async () => {
+  it("requires acknowledgement before starting an unreviewed case", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: [makeCase()],
       error: undefined,
@@ -137,8 +137,46 @@ describe("CasesPage", () => {
     expect(screen.getByText("Reviewed 2026-06-01")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Start Session" }));
 
-    await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1"));
+    expect(
+      screen.getByText("This case is not clinician reviewed. Start only as educational simulation."),
+    ).toBeTruthy();
+    expect(mockCreateSession).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Acknowledge and Start" }));
+
+    await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1", {
+      acknowledge_unreviewed_case: true,
+    }));
     expect(mockPush).toHaveBeenCalledWith("/sessions/session-1");
+  });
+
+  it("starts a clinician-reviewed case without extra acknowledgement", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [
+        makeCase({
+          source_provenance: {
+            source_count: 1,
+            organizations: ["American Heart Association"],
+            review_status: "clinician_reviewed",
+            review_label: "Clinician reviewed",
+            requires_caution: false,
+            last_reviewed_at: "2026-06-02",
+          },
+        }),
+      ],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockCreateSession.mockResolvedValue({ id: "session-reviewed" });
+
+    render(<CasesPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Start Session" }));
+
+    await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1", {
+      acknowledge_unreviewed_case: false,
+    }));
+    expect(screen.queryByText(/not clinician reviewed/i)).toBeFalsy();
+    expect(mockPush).toHaveBeenCalledWith("/sessions/session-reviewed");
   });
 
   it("highlights AI-generated unreviewed cases", () => {
