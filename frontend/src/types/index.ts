@@ -204,6 +204,7 @@ export interface SafetyEvent {
   id: string;
   session_id: string;
   case_id: string;
+  session_status: string;
   user_id: string;
   user_email: string;
   user_full_name: string;

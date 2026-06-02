@@ -47,6 +47,7 @@ const safetyEvents: SafetyEvent[] = [
     id: "event-1",
     session_id: "11111111-1111-1111-1111-111111111111",
     case_id: "22222222-2222-2222-2222-222222222222",
+    session_status: "safety_locked",
     user_id: "learner-1",
     user_email: "learner@test.com",
     user_full_name: "Learner User",
@@ -68,6 +69,7 @@ const safetyEvents: SafetyEvent[] = [
     id: "event-2",
     session_id: "33333333-3333-3333-3333-333333333333",
     case_id: "44444444-4444-4444-4444-444444444444",
+    session_status: "safety_locked",
     user_id: "learner-1",
     user_email: "learner@test.com",
     user_full_name: "Learner User",
@@ -140,6 +142,11 @@ describe("SafetyEventsPage", () => {
     expect(screen.getByText("medical record number")).toBeTruthy();
     expect(screen.getByText("halted coaching")).toBeTruthy();
     expect(screen.getByText("Reviewed and documented.")).toBeTruthy();
+    expect(screen.getAllByText("Session safety locked").length).toBe(2);
+    expect(screen.getByText("Session remains safety locked.")).toBeTruthy();
+    expect(
+      screen.getByText("Resolving audits the event only; safety-locked sessions remain locked."),
+    ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Reopen" })).toBeTruthy();
   });
 

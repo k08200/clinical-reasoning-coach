@@ -12,6 +12,7 @@ class SafetyEventResponse(BaseModel):
     id: uuid.UUID
     session_id: uuid.UUID
     case_id: uuid.UUID
+    session_status: str
     user_id: uuid.UUID
     user_email: str
     user_full_name: str

@@ -23,6 +23,7 @@ def _safety_event_response(
     user_email: str,
     user_full_name: str,
     case_id: uuid.UUID,
+    session_status: str,
     resolved_by_email: str | None = None,
     resolved_by_full_name: str | None = None,
 ) -> SafetyEventResponse:
@@ -30,6 +31,7 @@ def _safety_event_response(
         id=event.id,
         session_id=event.session_id,
         case_id=case_id,
+        session_status=session_status,
         user_id=event.user_id,
         user_email=user_email,
         user_full_name=user_full_name,
@@ -66,6 +68,7 @@ async def list_safety_events(
             User.email,
             User.full_name,
             CoachingSession.case_id,
+            CoachingSession.status,
             resolved_by_user.email,
             resolved_by_user.full_name,
         )
@@ -93,10 +96,19 @@ async def list_safety_events(
             email,
             full_name,
             case_id,
+            session_status,
             resolved_by_email,
             resolved_by_full_name,
         )
-        for event, email, full_name, case_id, resolved_by_email, resolved_by_full_name in rows.all()
+        for (
+            event,
+            email,
+            full_name,
+            case_id,
+            session_status,
+            resolved_by_email,
+            resolved_by_full_name,
+        ) in rows.all()
     ]
 
 
@@ -131,12 +143,13 @@ async def update_safety_event_resolution(
             User.email,
             User.full_name,
             CoachingSession.case_id,
+            CoachingSession.status,
         )
         .join(User, SafetyEvent.user_id == User.id)
         .join(CoachingSession, SafetyEvent.session_id == CoachingSession.id)
         .where(SafetyEvent.id == event.id)
     )
-    saved_event, user_email, user_full_name, case_id = result.one()
+    saved_event, user_email, user_full_name, case_id, session_status = result.one()
     resolved_by_email = reviewer.email if saved_event.resolved_by_user_id else None
     resolved_by_full_name = reviewer.full_name if saved_event.resolved_by_user_id else None
 
@@ -145,6 +158,7 @@ async def update_safety_event_resolution(
         user_email,
         user_full_name,
         case_id,
+        session_status,
         resolved_by_email,
         resolved_by_full_name,
     )

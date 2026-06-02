@@ -150,6 +150,7 @@ async def test_reviewer_can_list_and_filter_safety_events(
     assert payload[0]["user_full_name"] == learner.full_name
     assert payload[0]["session_id"] == str(session.id)
     assert payload[0]["case_id"] == str(case.id)
+    assert payload[0]["session_status"] == "active"
     assert payload[0]["status"] == "open"
     assert payload[0]["resolution_note"] is None
     assert payload[0]["resolved_at"] is None
@@ -218,6 +219,7 @@ async def test_reviewer_can_resolve_safety_event(
     assert response.status_code == 200
     payload = response.json()
     assert payload["status"] == "resolved"
+    assert payload["session_status"] == "active"
     assert payload["resolution_note"] == "Reviewed and escalated to program director."
     assert payload["resolved_at"] is not None
     assert payload["resolved_by_user_id"] == str(reviewer.id)
@@ -237,6 +239,71 @@ async def test_reviewer_can_resolve_safety_event(
     )
     assert open_response.status_code == 200
     assert str(event.id) not in [item["id"] for item in open_response.json()]
+
+
+@pytest.mark.asyncio
+async def test_resolving_safety_event_does_not_unlock_session(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner = User(
+        email=f"safety-lock-learner-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Lock Learner",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    reviewer = User(
+        email=f"safety-lock-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Lock Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case()
+    db.add_all([learner, reviewer, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=learner.id,
+        case_id=case.id,
+        status="safety_locked",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    event = SafetyEvent(
+        session_id=session.id,
+        user_id=learner.id,
+        event_type="real_patient_or_emergency_signal",
+        severity="high",
+        action_taken="locked_session_and_halted_coaching",
+        detected_terms=["right now"],
+        message_turn=1,
+        note="Session was locked and coaching halted.",
+    )
+    db.add(event)
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(event)
+
+    response = await client.patch(
+        f"/api/safety-events/{event.id}/resolution",
+        headers=_auth_headers(reviewer),
+        json={
+            "status": "resolved",
+            "resolution_note": "Reviewed audit trail and escalated outside the app.",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "resolved"
+    assert payload["session_status"] == "safety_locked"
+    await db.refresh(session)
+    assert session.status == "safety_locked"
 
 
 @pytest.mark.asyncio

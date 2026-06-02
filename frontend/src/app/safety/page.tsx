@@ -50,6 +50,16 @@ function statusBadgeClasses(value: SafetyEvent["status"]): string {
   return "border-amber-700 bg-amber-950/40 text-amber-200";
 }
 
+function sessionStatusBadgeClasses(value: string): string {
+  if (value === "safety_locked") return "border-red-700 bg-red-950/40 text-red-200";
+  return "border-slate-700 bg-slate-900/60 text-slate-300";
+}
+
+function sessionStatusLabel(value: string): string {
+  if (value === "safety_locked") return "Session safety locked";
+  return `Session ${value.replace(/_/g, " ")}`;
+}
+
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en", {
     dateStyle: "medium",
@@ -327,6 +337,13 @@ export default function SafetyEventsPage() {
                     <p className="mt-1 truncate text-xs text-slate-500">
                       Session {event.session_id.slice(0, 8)}
                     </p>
+                    <span
+                      className={`mt-2 inline-block rounded-full border px-2 py-1 text-xs font-medium ${sessionStatusBadgeClasses(
+                        event.session_status,
+                      )}`}
+                    >
+                      {sessionStatusLabel(event.session_status)}
+                    </span>
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-white">
@@ -375,6 +392,11 @@ export default function SafetyEventsPage() {
                           {event.resolved_by_user_full_name ?? "Reviewer"}
                           {event.resolved_at ? `, ${formatDate(event.resolved_at)}` : ""}
                         </p>
+                        {event.session_status === "safety_locked" && (
+                          <p className="text-xs leading-5 text-red-200">
+                            Session remains safety locked.
+                          </p>
+                        )}
                         <button
                           onClick={() => void handleReopen(event)}
                           disabled={updatingEventId === event.id}
@@ -396,9 +418,12 @@ export default function SafetyEventsPage() {
                           }
                           rows={3}
                           maxLength={2000}
-                          placeholder="Resolution note"
+                          placeholder="Document escalation, privacy review, or false-positive rationale"
                           className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white outline-none transition-colors placeholder:text-slate-600 focus:border-brand-500"
                         />
+                        <p className="text-xs leading-5 text-slate-400">
+                          Resolving audits the event only; safety-locked sessions remain locked.
+                        </p>
                         <button
                           onClick={() => void handleResolve(event)}
                           disabled={updatingEventId === event.id}
