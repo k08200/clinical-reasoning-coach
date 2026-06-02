@@ -12,6 +12,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from app.schemas.case import ClinicalCaseCreate
+from app.services.privacy_guard import detect_patient_identifiers
 
 MIN_PASSING_SCORE = 85
 ALLOWED_REVIEW_STATUSES = {
@@ -107,6 +108,7 @@ def evaluate_case_quality(case: ClinicalCaseCreate | dict[str, Any]) -> CaseQual
     _check_demographics(data, report)
     _check_vitals(data, report)
     _check_exam_sections(data, report)
+    _check_deidentified_case_content(data, report)
     _check_education_metadata(data, report)
     _check_safety_metadata(data, report)
     _check_source_metadata(data, report)
@@ -196,6 +198,63 @@ def _check_exam_sections(data: dict[str, Any], report: CaseQualityReport) -> Non
     for section in ("general", "cardiovascular", "pulmonary", "abdomen", "neuro"):
         if not str(exam.get(section, "")).strip():
             report.add_critical(f"physical_exam.{section} is required")
+
+
+def _check_deidentified_case_content(
+    data: dict[str, Any],
+    report: CaseQualityReport,
+) -> None:
+    case_text = "\n".join(_case_content_strings(data))
+    detected_identifiers = detect_patient_identifiers(case_text)
+    if detected_identifiers:
+        report.add_critical(
+            "case content must be de-identified; detected possible "
+            f"patient identifiers: {', '.join(detected_identifiers)}"
+        )
+
+
+def _case_content_strings(data: dict[str, Any]) -> list[str]:
+    text_fields = [
+        "title",
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    strings = [
+        str(data.get(field_name))
+        for field_name in text_fields
+        if data.get(field_name)
+    ]
+    for field_name in (
+        "medications",
+        "key_teaching_points",
+        "cognitive_traps",
+        "clinical_red_flags",
+        "time_critical_actions",
+        "contraindication_checks",
+    ):
+        strings.extend(_nested_strings(data.get(field_name)))
+    for field_name in ("physical_exam", "initial_labs"):
+        strings.extend(_nested_strings(data.get(field_name)))
+    return strings
+
+
+def _nested_strings(value: Any) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list):
+        strings: list[str] = []
+        for item in value:
+            strings.extend(_nested_strings(item))
+        return strings
+    if isinstance(value, dict):
+        strings: list[str] = []
+        for item in value.values():
+            strings.extend(_nested_strings(item))
+        return strings
+    return []
 
 
 def _check_education_metadata(data: dict[str, Any], report: CaseQualityReport) -> None:

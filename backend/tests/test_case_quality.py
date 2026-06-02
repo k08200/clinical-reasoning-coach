@@ -68,6 +68,38 @@ def test_quality_gate_accepts_blood_pressure_with_units():
     assert report.passed
 
 
+def test_quality_gate_rejects_patient_identifiers_in_case_content():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["history_of_present_illness"] = (
+        "Patient name is John Smith, DOB 01/02/1970, MRN A123456. "
+        "He presents with chest pressure and diaphoresis."
+    )
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "case content must be de-identified" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_rejects_korean_patient_identifiers_in_case_content():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["history_of_present_illness"] = (
+        "환자 이름은 홍길동, 생년월일 1970-01-02, 등록번호 A123456입니다. "
+        "흉통과 식은땀으로 내원했습니다."
+    )
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "case content must be de-identified" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_rejects_source_without_supports():
     case = copy.deepcopy(CASE_POOL[0])
     case["clinical_sources"] = [
@@ -158,4 +190,5 @@ def test_case_generation_prompt_requires_verifiable_sources():
     assert "at least two specific case elements" in CASE_GENERATION_SYSTEM
     assert "diagnosis/diagnostic" in CASE_GENERATION_SYSTEM
     assert "contraindication/safety checks" in CASE_GENERATION_SYSTEM
+    assert "real patient identifiers" in CASE_GENERATION_SYSTEM
     assert "Do not use placeholder" in CASE_GENERATION_SYSTEM
