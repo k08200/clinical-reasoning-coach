@@ -192,9 +192,9 @@ describe("CasesPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "neurology" }));
 
     await waitFor(() => {
-      expect(vi.mocked(useSWR).mock.calls.at(-1)?.[0]).toBe(
-        "/api/cases?specialty=neurology",
-      );
+      expect(vi.mocked(useSWR).mock.calls.some(([key]) => (
+        key === "/api/cases?specialty=neurology"
+      ))).toBe(true);
     });
   });
 });

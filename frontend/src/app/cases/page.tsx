@@ -7,7 +7,7 @@ import useSWR from "swr";
 import { api } from "@/lib/api";
 import { logout } from "@/lib/auth";
 import { useRequireAuth } from "@/lib/useAuthGate";
-import type { ClinicalCase } from "@/types";
+import type { ClinicalCase, User } from "@/types";
 
 const SPECIALTIES = [
   "All",
@@ -39,7 +39,13 @@ export default function CasesPage() {
     () =>
       api.cases.list(specialty !== "All" ? { specialty } : undefined) as Promise<ClinicalCase[]>,
   );
+  const { data: currentUser } = useSWR<User>(
+    checkingAuth ? null : "/api/auth/me",
+    () => api.auth.me() as Promise<User>,
+  );
   const caseList = cases ?? [];
+  const canReview =
+    currentUser?.role === "clinician_reviewer" || currentUser?.role === "admin";
 
   async function handleGenerateDemo() {
     setGenerating(true);
@@ -84,6 +90,11 @@ export default function CasesPage() {
             <Link href="/analytics" className="text-sm text-slate-400 hover:text-white">
               Analytics
             </Link>
+            {canReview && (
+              <Link href="/review" className="text-sm text-slate-400 hover:text-white">
+                Clinical Review
+              </Link>
+            )}
             <button
               onClick={logout}
               className="text-sm text-slate-400 hover:text-white"
