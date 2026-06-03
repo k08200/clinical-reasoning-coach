@@ -121,6 +121,95 @@ async def test_dynamic_generation_requires_unreviewed_acknowledgement(
     assert "unreviewed" in response.json()["detail"].lower()
 
 
+async def test_dynamic_generation_blocks_phi_seed_before_provider_call(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch,
+):
+    auth_headers = await _register_and_login(client)
+    before_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+
+    async def fail_generate_clinical_case(**_kwargs) -> ClinicalCaseCreate:
+        raise AssertionError("PHI seed scenarios must not be sent to generation")
+
+    monkeypatch.setattr(
+        cases_router,
+        "generate_clinical_case",
+        fail_generate_clinical_case,
+    )
+
+    response = await client.post(
+        "/api/cases/generate",
+        headers=auth_headers,
+        json={
+            "specialty": "internal_medicine",
+            "difficulty": "medium",
+            "seed_scenario": (
+                "Patient name is John Smith, DOB 01/02/1970, MRN A123456, "
+                "with chest pain."
+            ),
+            "acknowledge_unreviewed_generation": True,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "seed_scenario_contains_patient_identifiers",
+        "message": (
+            "Seed scenarios must be de-identified educational prompts. "
+            "Remove patient identifiers before generating a case."
+        ),
+        "detected_identifier_categories": [
+            "medical_record_number",
+            "date_of_birth",
+            "full_date",
+            "name_identifier",
+        ],
+    }
+    after_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+    assert after_count == before_count
+
+
+async def test_dynamic_generation_blocks_real_patient_seed_before_provider_call(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch,
+):
+    auth_headers = await _register_and_login(client)
+    before_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+
+    async def fail_generate_clinical_case(**_kwargs) -> ClinicalCaseCreate:
+        raise AssertionError("Real patient seed scenarios must not be sent to generation")
+
+    monkeypatch.setattr(
+        cases_router,
+        "generate_clinical_case",
+        fail_generate_clinical_case,
+    )
+
+    response = await client.post(
+        "/api/cases/generate",
+        headers=auth_headers,
+        json={
+            "specialty": "emergency_medicine",
+            "difficulty": "medium",
+            "seed_scenario": "My patient is deteriorating right now in clinic.",
+            "acknowledge_unreviewed_generation": True,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "seed_scenario_real_patient_or_emergency",
+        "message": (
+            "Seed scenarios must not describe an active real patient or emergency. "
+            "Use only clearly simulated educational prompts."
+        ),
+    }
+    after_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+    assert after_count == before_count
+
+
 async def test_dynamic_generation_forces_unreviewed_provenance(
     client: AsyncClient,
     monkeypatch,

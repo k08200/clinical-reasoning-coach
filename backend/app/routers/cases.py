@@ -19,6 +19,8 @@ from app.schemas.case import (
 )
 from app.services.case_generator import generate_clinical_case, generate_demo_case
 from app.services.case_quality import evaluate_case_quality
+from app.services.privacy_guard import detect_patient_identifiers
+from app.services.socratic_coach import detect_real_patient_signals
 from app.utils.auth import require_clinical_reviewer, require_educational_use_consent
 
 router = APIRouter(prefix="/api/cases", tags=["cases"])
@@ -66,6 +68,37 @@ def _assert_generated_case_quality(case_payload: dict) -> None:
     )
 
 
+def _assert_seed_scenario_safe(seed_scenario: str | None) -> None:
+    if not seed_scenario:
+        return
+
+    patient_identifiers = detect_patient_identifiers(seed_scenario)
+    if patient_identifiers:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "code": "seed_scenario_contains_patient_identifiers",
+                "message": (
+                    "Seed scenarios must be de-identified educational prompts. "
+                    "Remove patient identifiers before generating a case."
+                ),
+                "detected_identifier_categories": patient_identifiers,
+            },
+        )
+
+    if detect_real_patient_signals(seed_scenario):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "code": "seed_scenario_real_patient_or_emergency",
+                "message": (
+                    "Seed scenarios must not describe an active real patient or "
+                    "emergency. Use only clearly simulated educational prompts."
+                ),
+            },
+        )
+
+
 @router.post("/generate", response_model=ClinicalCaseResponse, status_code=status.HTTP_201_CREATED)
 async def generate_case(
     body: GenerateCaseRequest,
@@ -81,6 +114,8 @@ async def generate_case(
                 "Set acknowledge_unreviewed_generation=true to create one."
             ),
         )
+
+    _assert_seed_scenario_safe(body.seed_scenario)
 
     case_data = await generate_clinical_case(
         specialty=body.specialty,
