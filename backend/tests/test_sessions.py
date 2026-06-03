@@ -66,6 +66,17 @@ async def fake_analyze_student_response(**_kwargs) -> ReasoningAnalysis:
     )
 
 
+def _passing_reasoning_analysis() -> dict:
+    return {
+        "score_breakdown": {
+            "systematic_approach": 21,
+            "evidence_integration": 20,
+            "prioritization": 22,
+            "mechanism_understanding": 19,
+        },
+    }
+
+
 def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
     return ClinicalCase(
         title="Chest Pain Case",
@@ -728,6 +739,7 @@ async def test_complete_session_succeeds_after_all_clinical_safety_targets_cover
             "before antiplatelet therapy."
         ),
         reasoning_score=82,
+        reasoning_analysis=_passing_reasoning_analysis(),
     ))
     db.add(Message(
         session_id=session.id,
@@ -737,6 +749,7 @@ async def test_complete_session_succeeds_after_all_clinical_safety_targets_cover
             "new ECG or troponin findings would change my management plan."
         ),
         reasoning_score=86,
+        reasoning_analysis=_passing_reasoning_analysis(),
     ))
     await db.commit()
     await db.refresh(user)
@@ -877,6 +890,7 @@ async def test_complete_session_accepts_korean_clinical_safety_coverage(
             "위험을 평가하겠습니다."
         ),
         reasoning_score=82,
+        reasoning_analysis=_passing_reasoning_analysis(),
     ))
     db.add(Message(
         session_id=session.id,
@@ -886,6 +900,7 @@ async def test_complete_session_accepts_korean_clinical_safety_coverage(
             "다시 정리하겠습니다."
         ),
         reasoning_score=86,
+        reasoning_analysis=_passing_reasoning_analysis(),
     ))
     await db.commit()
     await db.refresh(user)
@@ -1013,6 +1028,7 @@ async def test_complete_session_blocks_active_severe_cognitive_bias(
             "before antiplatelet therapy."
         ),
         reasoning_score=82,
+        reasoning_analysis=_passing_reasoning_analysis(),
     ))
     db.add(Message(
         session_id=session.id,
@@ -1022,6 +1038,7 @@ async def test_complete_session_blocks_active_severe_cognitive_bias(
             "coach asking what evidence could disconfirm it."
         ),
         reasoning_score=88,
+        reasoning_analysis=_passing_reasoning_analysis(),
     ))
     db.add(BiasEvent(
         session_id=session.id,
@@ -1056,6 +1073,99 @@ async def test_complete_session_blocks_active_severe_cognitive_bias(
                 "severity": "severe",
                 "confidence": 0.91,
                 "message_turn": 2,
+            }
+        ],
+    }
+    await db.refresh(session)
+    assert session.status == "active"
+    assert session.final_reasoning_score is None
+    assert session.completed_at is None
+
+
+@pytest.mark.asyncio
+async def test_complete_session_requires_core_reasoning_dimensions_to_be_available(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"missing-dimensions-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("dimensionpass123"),
+        full_name="Missing Dimensions",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=84,
+        reasoning_analysis=_passing_reasoning_analysis(),
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I would revisit the differential after the ECG and troponin trend and "
+            "state what evidence would lower my concern."
+        ),
+        reasoning_score=86,
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "clinical_reasoning_dimensions_unavailable",
+        "message": (
+            "Before finishing, complete analyzed learner turns with all core "
+            "clinical reasoning dimension scores."
+        ),
+        "missing_turns": [
+            {
+                "turn": 2,
+                "missing_dimensions": [
+                    {
+                        "dimension": "systematic_approach",
+                        "label": "Systematic approach",
+                    },
+                    {
+                        "dimension": "evidence_integration",
+                        "label": "Evidence integration",
+                    },
+                    {
+                        "dimension": "prioritization",
+                        "label": "Clinical prioritization",
+                    },
+                    {
+                        "dimension": "mechanism_understanding",
+                        "label": "Mechanism understanding",
+                    },
+                ],
             }
         ],
     }
@@ -1194,6 +1304,7 @@ async def test_complete_session_allows_earlier_severe_bias_after_later_correctio
             "before antiplatelet therapy."
         ),
         reasoning_score=82,
+        reasoning_analysis=_passing_reasoning_analysis(),
     ))
     db.add(Message(
         session_id=session.id,
@@ -1203,6 +1314,7 @@ async def test_complete_session_allows_earlier_severe_bias_after_later_correctio
             "and bleeding findings would change my differential and management."
         ),
         reasoning_score=88,
+        reasoning_analysis=_passing_reasoning_analysis(),
     ))
     db.add(BiasEvent(
         session_id=session.id,
@@ -1332,6 +1444,7 @@ async def test_complete_session_ignores_coach_reasoning_scores_in_final_score(
             "before antiplatelet therapy."
         ),
         reasoning_score=82,
+        reasoning_analysis=_passing_reasoning_analysis(),
     ))
     db.add(Message(
         session_id=session.id,
@@ -1341,6 +1454,7 @@ async def test_complete_session_ignores_coach_reasoning_scores_in_final_score(
             "state what evidence would lower my concern."
         ),
         reasoning_score=86,
+        reasoning_analysis=_passing_reasoning_analysis(),
     ))
     db.add(Message(
         session_id=session.id,

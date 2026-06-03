@@ -270,6 +270,38 @@ def _analyzed_student_scores(messages: list[Message]) -> list[float]:
     ]
 
 
+def _missing_reasoning_dimension_turns(messages: list[Message]) -> list[dict]:
+    missing_turns: list[dict] = []
+    for turn_number, message in enumerate(
+        [message for message in messages if message.role == "student"],
+        start=1,
+    ):
+        if message.reasoning_score is None:
+            continue
+
+        raw_breakdown = (
+            message.reasoning_analysis.get("score_breakdown")
+            if message.reasoning_analysis
+            else None
+        )
+        if not isinstance(raw_breakdown, dict):
+            raw_breakdown = {}
+
+        missing_dimensions = [
+            dimension
+            for dimension in SCORE_DIMENSIONS
+            if dimension not in raw_breakdown
+        ]
+        if missing_dimensions:
+            missing_turns.append(
+                {
+                    "turn": turn_number,
+                    "missing_dimensions": missing_dimensions,
+                }
+            )
+    return missing_turns
+
+
 def _build_review_feedback(session: CoachingSession) -> dict:
     score_totals: dict[str, float] = {}
     score_counts: dict[str, int] = {}
@@ -607,6 +639,29 @@ def _reasoning_dimension_block_detail(dimension_averages: dict[str, float]) -> d
             "and mechanism understanding."
         ),
         "deficient_dimensions": deficient_dimensions,
+    }
+
+
+def _missing_reasoning_dimensions_block_detail(missing_turns: list[dict]) -> dict:
+    return {
+        "code": "clinical_reasoning_dimensions_unavailable",
+        "message": (
+            "Before finishing, complete analyzed learner turns with all core "
+            "clinical reasoning dimension scores."
+        ),
+        "missing_turns": [
+            {
+                "turn": item["turn"],
+                "missing_dimensions": [
+                    {
+                        "dimension": dimension,
+                        "label": SCORE_DIMENSION_LABELS.get(dimension, dimension),
+                    }
+                    for dimension in item["missing_dimensions"]
+                ],
+            }
+            for item in missing_turns
+        ],
     }
 
 
@@ -1127,6 +1182,12 @@ async def complete_session(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=_reasoning_quality_block_detail(final_score),
+        )
+    missing_dimension_turns = _missing_reasoning_dimension_turns(session.messages)
+    if missing_dimension_turns:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=_missing_reasoning_dimensions_block_detail(missing_dimension_turns),
         )
     dimension_averages = _reasoning_dimension_averages(session.messages)
     if any(
