@@ -23,7 +23,7 @@ export interface ClinicalCase {
   difficulty: "easy" | "medium" | "hard";
   chief_complaint: string;
   patient_demographics: {
-    age: number;
+    age: number | string;
     sex: string;
     weight_kg?: number;
     ethnicity?: string;

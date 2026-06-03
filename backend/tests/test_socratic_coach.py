@@ -69,6 +69,16 @@ def test_opening_message_contains_case_info():
     assert EDUCATIONAL_SAFETY_NOTICE in msg
 
 
+def test_opening_message_handles_older_adult_age_bucket():
+    case = make_mock_case()
+    case.patient_demographics = {"age": "90 or older", "sex": "female"}
+
+    msg = get_opening_message(case)
+
+    assert "**Patient:** 90 or older female" in msg
+    assert "90 or older-year-old" not in msg
+
+
 def test_opening_message_does_not_reveal_diagnosis():
     case = make_mock_case()
     msg = get_opening_message(case)

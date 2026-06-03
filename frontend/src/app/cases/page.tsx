@@ -26,6 +26,10 @@ const DIFFICULTY_COLORS = {
   hard: "text-red-400 bg-red-900/30",
 };
 
+function formatAge(age: number | string): string {
+  return typeof age === "number" ? `${age}yo` : age;
+}
+
 export default function CasesPage() {
   const router = useRouter();
   const checkingAuth = useRequireAuth();
@@ -246,7 +250,7 @@ export default function CasesPage() {
                     <strong className="text-slate-300">CC:</strong> {c.chief_complaint}
                   </p>
                   <p className="text-slate-400 text-sm mb-4">
-                    {c.patient_demographics.age}yo {c.patient_demographics.sex}
+                    {formatAge(c.patient_demographics.age)} {c.patient_demographics.sex}
                   </p>
 
                   <div className="mb-4 rounded-lg border border-slate-700 bg-slate-900/40 px-3 py-2">

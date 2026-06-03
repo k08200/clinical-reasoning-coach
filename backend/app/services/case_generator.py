@@ -28,6 +28,8 @@ Rules:
 - Do NOT make cases obscure or exotic — common presentations of common diseases
 - Do NOT include real patient identifiers: names, contact details, record
   numbers, exact dates, addresses, URLs in patient text, or other PHI.
+- Do NOT use exact ages above 89. For older adults, set
+  patient_demographics.age to "90 or older".
 - Include 2-3 cognitive biases that students commonly fall into with this case
 - Include safety metadata for clinician educators: red flags, time-critical actions,
   and contraindication checks. These are hidden from students and used by the coach.
@@ -47,7 +49,7 @@ Return ONLY valid JSON matching this exact schema:
   "specialty": "...",
   "difficulty": "easy|medium|hard",
   "chief_complaint": "...",
-  "patient_demographics": {"age": 0, "sex": "male|female", "weight_kg": 0, "ethnicity": "..."},
+  "patient_demographics": {"age": 58, "sex": "male|female", "weight_kg": 0, "ethnicity": "..."},
   "history_of_present_illness": "...",
   "past_medical_history": "...",
   "medications": ["..."],

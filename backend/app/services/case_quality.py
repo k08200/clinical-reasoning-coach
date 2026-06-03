@@ -146,10 +146,30 @@ def _check_demographics(data: dict[str, Any], report: CaseQualityReport) -> None
     demographics = data.get("patient_demographics") or {}
     age = demographics.get("age")
     sex = str(demographics.get("sex", "")).lower()
-    if not isinstance(age, int) or not 0 < age < 120:
-        report.add_critical("patient_demographics.age must be a realistic integer")
+    if isinstance(age, int):
+        if not 0 < age < 90:
+            report.add_critical(
+                "patient_demographics.age must be 1-89 or a 90+ age bucket"
+            )
+    elif not _is_older_adult_age_bucket(age):
+        report.add_critical(
+            "patient_demographics.age must be 1-89 or a 90+ age bucket"
+        )
     if sex not in {"male", "female"}:
         report.add_critical("patient_demographics.sex must be male or female")
+
+
+def _is_older_adult_age_bucket(age: Any) -> bool:
+    if not isinstance(age, str):
+        return False
+    normalized = re.sub(r"\s+", " ", age.strip().lower())
+    return normalized in {
+        "90+",
+        "90 or older",
+        "90 years or older",
+        "over 89",
+        "older than 89",
+    }
 
 
 def _check_vitals(data: dict[str, Any], report: CaseQualityReport) -> None:

@@ -588,12 +588,15 @@ def _build_opening_message(case: ClinicalCase) -> str:
     age = demographics.get("age", "unknown")
     sex = demographics.get("sex", "patient")
     vitals = case.physical_exam.get("vitals", {})
+    patient_label = (
+        f"{age}-year-old {sex}" if isinstance(age, int) else f"{age} {sex}"
+    )
 
     return f"""Let me present you with a case.
 
 **Chief Complaint:** {case.chief_complaint}
 
-**Patient:** {age}-year-old {sex}
+**Patient:** {patient_label}
 
 **History of Present Illness:** {case.history_of_present_illness}
 

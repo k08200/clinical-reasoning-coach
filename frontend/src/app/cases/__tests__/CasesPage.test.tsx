@@ -153,6 +153,19 @@ describe("CasesPage", () => {
     expect(mockPush).toHaveBeenCalledWith("/sessions/session-1");
   });
 
+  it("renders older adult age buckets without appending yo", () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [makeCase({ patient_demographics: { age: "90 or older", sex: "female" } })],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+
+    render(<CasesPage />);
+
+    expect(screen.getByText("90 or older female")).toBeTruthy();
+    expect(screen.queryByText("90 or olderyo female")).toBeFalsy();
+  });
+
   it("starts a clinician-reviewed case without extra acknowledgement", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: [

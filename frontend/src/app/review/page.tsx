@@ -79,6 +79,10 @@ function statusClasses(requiresCaution: boolean): string {
     : "border-emerald-700 bg-emerald-950/30 text-emerald-200";
 }
 
+function formatAge(age: number | string): string {
+  return typeof age === "number" ? `${age}yo` : age;
+}
+
 function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
@@ -345,7 +349,7 @@ export default function ReviewPage() {
                     <div>
                       <h2 className="text-xl font-bold text-white">{selectedCase.title}</h2>
                       <p className="mt-1 text-sm text-slate-400">
-                        {selectedCase.patient_demographics.age}yo{" "}
+                        {formatAge(selectedCase.patient_demographics.age)}{" "}
                         {selectedCase.patient_demographics.sex} · {selectedCase.chief_complaint}
                       </p>
                     </div>

@@ -224,6 +224,21 @@ describe("ReviewPage", () => {
     expect(screen.getByText("educational draft to clinician reviewed")).toBeTruthy();
   });
 
+  it("renders older adult age buckets without appending yo in review detail", () => {
+    const olderAdultCase = {
+      patient_demographics: { age: "90 or older", sex: "female" },
+    };
+    mockReviewSwr({
+      cases: [makeCase(olderAdultCase)],
+      detail: makeReviewDetail(olderAdultCase),
+    });
+
+    render(<ReviewPage />);
+
+    expect(screen.getByText("90 or older female · Chest pain")).toBeTruthy();
+    expect(screen.queryByText("90 or olderyo female · Chest pain")).toBeFalsy();
+  });
+
   it("opens a linked case from safety event context", async () => {
     window.history.pushState(null, "", "/review?case=case-2");
     mockReviewSwr({

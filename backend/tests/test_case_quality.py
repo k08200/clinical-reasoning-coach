@@ -36,6 +36,25 @@ def test_quality_gate_rejects_unrealistic_vitals():
         assert_case_quality(ClinicalCaseCreate(**case))
 
 
+def test_quality_gate_rejects_exact_ages_90_or_older():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["patient_demographics"]["age"] = 92
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("90+ age bucket" in issue for issue in report.critical_issues)
+
+
+def test_quality_gate_allows_90_or_older_age_bucket():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["patient_demographics"]["age"] = "90 or older"
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
 def test_quality_gate_rejects_non_numeric_blood_pressure():
     case = copy.deepcopy(CASE_POOL[0])
     case["physical_exam"]["vitals"]["bp"] = "normal"
@@ -191,4 +210,5 @@ def test_case_generation_prompt_requires_verifiable_sources():
     assert "diagnosis/diagnostic" in CASE_GENERATION_SYSTEM
     assert "contraindication/safety checks" in CASE_GENERATION_SYSTEM
     assert "real patient identifiers" in CASE_GENERATION_SYSTEM
+    assert "Do NOT use exact ages above 89" in CASE_GENERATION_SYSTEM
     assert "Do not use placeholder" in CASE_GENERATION_SYSTEM
