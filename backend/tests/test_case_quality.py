@@ -87,6 +87,46 @@ def test_quality_gate_allows_90_or_older_age_bucket():
     assert report.passed
 
 
+def test_quality_gate_requires_pregnancy_check_for_reproductive_age_female_cases():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["patient_demographics"] = {
+        "age": 32,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean",
+    }
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "pregnancy status safety check is required" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_allows_reproductive_age_female_case_with_pregnancy_check():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["patient_demographics"] = {
+        "age": 32,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean",
+    }
+    case["contraindication_checks"] = [
+        *case["contraindication_checks"],
+        "Pregnancy status before antithrombotic therapy or radiation-based imaging",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        *case["clinical_sources"][0]["supports"],
+        "pregnancy status before antithrombotic therapy or radiation-based imaging",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
 def test_quality_gate_rejects_non_numeric_blood_pressure():
     case = copy.deepcopy(CASE_POOL[0])
     case["physical_exam"]["vitals"]["bp"] = "normal"

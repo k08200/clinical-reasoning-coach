@@ -143,7 +143,11 @@ const makeReviewDetail = (
   cognitive_traps: ["anchoring", "premature closure"],
   clinical_red_flags: ["Hypotension", "Altered mental status"],
   time_critical_actions: ["Blood cultures", "Broad-spectrum antibiotics"],
-  contraindication_checks: ["Fluid overload risk", "Drug allergy review"],
+  contraindication_checks: [
+    "Fluid overload risk",
+    "Drug allergy review",
+    "Pregnancy status before antibiotic or imaging decisions",
+  ],
   clinical_sources: [
     {
       title: "Surviving Sepsis Campaign Guidelines",
@@ -154,6 +158,7 @@ const makeReviewDetail = (
         "hypotension and altered mental status as red flags",
         "time-critical blood cultures and broad-spectrum antibiotics",
         "fluid overload risk and drug allergy safety checks before treatment",
+        "pregnancy status before antibiotic or imaging decisions",
       ],
     },
   ],

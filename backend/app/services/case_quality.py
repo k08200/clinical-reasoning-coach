@@ -214,6 +214,16 @@ SOURCE_SUPPORT_TOKEN_ALIASES = {
     "thrombolysis": "thrombolytic",
     "vasopressors": "vasopressor",
 }
+PREGNANCY_SAFETY_TERMS = (
+    "pregnancy",
+    "pregnant",
+    "gestation",
+    "gestational",
+    "hcg",
+    "beta hcg",
+    "beta-hcg",
+    "임신",
+)
 
 
 @dataclass
@@ -502,6 +512,25 @@ def _check_safety_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
         report.add_critical("at least 2 time-critical actions are required")
     if len(data.get("contraindication_checks") or []) < 2:
         report.add_critical("at least 2 contraindication checks are required")
+    if (
+        _requires_pregnancy_safety_check(data)
+        and not _has_pregnancy_safety_check(data.get("contraindication_checks") or [])
+    ):
+        report.add_critical(
+            "pregnancy status safety check is required for reproductive-age female cases"
+        )
+
+
+def _requires_pregnancy_safety_check(data: dict[str, Any]) -> bool:
+    demographics = data.get("patient_demographics") or {}
+    age = demographics.get("age")
+    sex = str(demographics.get("sex", "")).strip().lower()
+    return sex == "female" and isinstance(age, int) and 12 <= age <= 55
+
+
+def _has_pregnancy_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    return any(term in normalized_checks for term in PREGNANCY_SAFETY_TERMS)
 
 
 def _check_source_metadata(data: dict[str, Any], report: CaseQualityReport) -> None:

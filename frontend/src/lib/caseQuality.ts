@@ -162,6 +162,17 @@ const SOURCE_SUPPORT_TOKEN_ALIASES: Record<string, string> = {
   vasopressors: "vasopressor",
 };
 
+const PREGNANCY_SAFETY_TERMS = [
+  "pregnancy",
+  "pregnant",
+  "gestation",
+  "gestational",
+  "hcg",
+  "beta hcg",
+  "beta-hcg",
+  "임신",
+];
+
 type SourceAnchoredSafetyField =
   | "clinical_red_flags"
   | "time_critical_actions"
@@ -246,6 +257,17 @@ function sourceSupportAnchorIssues(
   return issues;
 }
 
+function requiresPregnancySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const age = detail.patient_demographics.age;
+  const sex = String(detail.patient_demographics.sex ?? "").trim().toLowerCase();
+  return sex === "female" && typeof age === "number" && age >= 12 && age <= 55;
+}
+
+function hasPregnancySafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  return PREGNANCY_SAFETY_TERMS.some((term) => normalizedChecks.includes(term));
+}
+
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
@@ -263,6 +285,12 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
   }
   if (detail.contraindication_checks.length < 2) {
     issues.push("At least 2 contraindication checks are required.");
+  }
+  if (
+    requiresPregnancySafetyCheck(detail) &&
+    !hasPregnancySafetyCheck(detail.contraindication_checks)
+  ) {
+    issues.push("pregnancy status safety check is required for reproductive-age female cases");
   }
   if (detail.clinical_sources.length < 1) {
     issues.push("At least 1 clinical source is required.");
