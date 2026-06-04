@@ -26,6 +26,16 @@ const STATUS_OPTIONS = [
   { value: "all", label: "All status" },
   { value: "resolved", label: "Resolved" },
 ];
+const MIN_RESOLUTION_NOTE_LENGTH = 20;
+const RESOLUTION_NOTE_REVIEW_TERMS = [
+  "addressed",
+  "audit",
+  "discussed",
+  "escalated",
+  "review",
+  "reviewed",
+  "supervisor",
+];
 
 function isReviewer(user: User | undefined): boolean {
   return user?.role === "clinician_reviewer" || user?.role === "admin";
@@ -71,6 +81,20 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
+function resolutionNoteError(note: string): string | null {
+  const trimmed = note.trim();
+  if (!trimmed) {
+    return "Resolution note is required before marking an event resolved.";
+  }
+  if (trimmed.length < MIN_RESOLUTION_NOTE_LENGTH) {
+    return "Resolution note must summarize the safety review or escalation.";
+  }
+  if (!RESOLUTION_NOTE_REVIEW_TERMS.some((term) => trimmed.toLowerCase().includes(term))) {
+    return "Resolution note must mention review, escalation, or how the issue was addressed.";
+  }
+  return null;
+}
+
 export default function SafetyEventsPage() {
   const checkingAuth = useRequireAuth();
   const [eventType, setEventType] = useState("all");
@@ -113,8 +137,9 @@ export default function SafetyEventsPage() {
 
   async function handleResolve(event: SafetyEvent) {
     const resolutionNote = (resolutionDrafts[event.id] ?? "").trim();
-    if (!resolutionNote) {
-      setActionError("Resolution note is required before marking an event resolved.");
+    const noteError = resolutionNoteError(resolutionNote);
+    if (noteError) {
+      setActionError(noteError);
       setActionMessage(null);
       return;
     }
@@ -453,7 +478,9 @@ export default function SafetyEventsPage() {
                           className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white outline-none transition-colors placeholder:text-slate-600 focus:border-brand-500"
                         />
                         <p className="text-xs leading-5 text-slate-400">
-                          Resolving audits the event only; safety-locked sessions remain locked.
+                          Use at least 20 characters and mention review, audit, escalation,
+                          supervision, or how the safety issue was addressed. Resolving audits
+                          the event only; safety-locked sessions remain locked.
                         </p>
                         <button
                           onClick={() => void handleResolve(event)}

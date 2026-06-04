@@ -183,7 +183,7 @@ describe("SafetyEventsPage", () => {
     );
     expect(screen.getByText("Session remains safety locked.")).toBeTruthy();
     expect(
-      screen.getAllByText("Resolving audits the event only; safety-locked sessions remain locked.")
+      screen.getAllByText(/Use at least 20 characters and mention review/)
         .length,
     ).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Reopen" })).toBeTruthy();
@@ -206,6 +206,31 @@ describe("SafetyEventsPage", () => {
 
     expect(
       await screen.findByText("Resolution note is required before marking an event resolved."),
+    ).toBeTruthy();
+    expect(api.safetyEvents.updateResolution).not.toHaveBeenCalled();
+  });
+
+  it("requires a substantive resolution note before marking an event resolved", async () => {
+    mockSafetySwr({ events: [safetyEvents[0]] });
+
+    render(<SafetyEventsPage />);
+    const noteInput = screen.getByLabelText("Resolution note for event-1");
+
+    fireEvent.change(noteInput, { target: { value: "done" } });
+    fireEvent.click(screen.getByRole("button", { name: "Mark Resolved" }));
+    expect(
+      await screen.findByText("Resolution note must summarize the safety review or escalation."),
+    ).toBeTruthy();
+    expect(api.safetyEvents.updateResolution).not.toHaveBeenCalled();
+
+    fireEvent.change(noteInput, {
+      target: { value: "Learner finished the session successfully." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Mark Resolved" }));
+    expect(
+      await screen.findByText(
+        "Resolution note must mention review, escalation, or how the issue was addressed.",
+      ),
     ).toBeTruthy();
     expect(api.safetyEvents.updateResolution).not.toHaveBeenCalled();
   });
