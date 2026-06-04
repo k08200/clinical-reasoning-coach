@@ -140,6 +140,13 @@ def test_real_patient_safety_notice_detection():
     assert should_emit_real_patient_safety_notice("I have severe chest pain right now.")
     assert should_emit_real_patient_safety_notice("My friend just collapsed and is not waking up.")
     assert should_emit_real_patient_safety_notice("Someone here is unconscious after a seizure.")
+    assert should_emit_real_patient_safety_notice("My son just collapsed and is not waking up.")
+    assert should_emit_real_patient_safety_notice(
+        "Should I call an ambulance for my daughter? She cannot breathe."
+    )
+    assert should_emit_real_patient_safety_notice(
+        "Our patient is in clinic with severe chest pain right now."
+    )
     assert not should_emit_real_patient_safety_notice("The simulated patient has chest pain")
     assert not should_emit_real_patient_safety_notice(
         "The simulated patient had a seizure and is not waking up in this case."
@@ -155,6 +162,9 @@ def test_real_patient_safety_notice_detection():
     )
     assert not should_emit_real_patient_safety_notice(
         "The patient is in clinic with severe chest pain in this educational discussion."
+    )
+    assert not should_emit_real_patient_safety_notice(
+        "In this simulated case, our patient has severe chest pain right now."
     )
     assert should_emit_real_patient_safety_notice(
         "This is a simulation, but my patient is deteriorating right now."
@@ -173,6 +183,12 @@ def test_real_patient_safety_notice_detection():
     )
     assert should_emit_real_patient_safety_notice(
         "응급실 가야 하나요? 119를 불러야 할까요?"
+    )
+    assert should_emit_real_patient_safety_notice(
+        "우리 딸이 지금 발작하고 의식이 없어요. 119 불러야 하나요?"
+    )
+    assert should_emit_real_patient_safety_notice(
+        "제 남편이 숨을 못 쉬는데 구급차를 불러야 하나요?"
     )
     assert not should_emit_real_patient_safety_notice(
         "이 시뮬레이션 케이스에서 환자가 지금 심한 가슴 통증을 호소합니다."

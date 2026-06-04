@@ -3563,6 +3563,89 @@ async def test_korean_real_patient_signal_uses_korean_safety_response(
 
 
 @pytest.mark.asyncio
+async def test_family_emergency_signal_halts_before_model_call(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+
+    async def fail_stream_coach_response(**_kwargs):
+        raise AssertionError("LLM coaching should not run for family emergency signals")
+        yield
+
+    async def fail_analyze_student_response(**_kwargs):
+        raise AssertionError("Reasoning analysis should not run for family emergency signals")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fail_analyze_student_response,
+    )
+
+    user = User(
+        email=f"family-emergency-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Family Emergency Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+    session_response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers=auth_headers,
+    )
+    assert session_response.status_code == 201
+    session_id = session_response.json()["id"]
+
+    stream_response = await client.post(
+        f"/api/sessions/{session_id}/stream",
+        json={"content": "My daughter cannot breathe. Should I call an ambulance?"},
+        headers=auth_headers,
+    )
+
+    assert stream_response.status_code == 200
+    assert "I cannot continue coaching" in stream_response.text
+    saved_response = await client.get(
+        f"/api/sessions/{session_id}",
+        headers=auth_headers,
+    )
+    saved_session = saved_response.json()
+    assert saved_session["status"] == "safety_locked"
+    assert "My daughter" not in str(saved_session)
+
+    async with TestSessionLocal() as db:
+        safety_events = (
+            await db.execute(
+                select(SafetyEvent).where(
+                    SafetyEvent.session_id == uuid.UUID(session_id)
+                )
+            )
+        ).scalars().all()
+    assert len(safety_events) == 1
+    assert safety_events[0].event_type == "real_patient_or_emergency_signal"
+    assert "my daughter" in safety_events[0].detected_terms
+    assert "call an ambulance" in safety_events[0].detected_terms
+
+
+@pytest.mark.asyncio
 async def test_simulated_urgent_symptoms_do_not_trigger_real_patient_lock(
     client: AsyncClient,
     db: AsyncSession,
