@@ -838,38 +838,7 @@ def _quality_payload_for_session_start(case: ClinicalCase) -> dict:
     return payload
 
 
-def _assert_case_quality_for_session_start(case: ClinicalCase) -> None:
-    quality_report = evaluate_case_quality(_quality_payload_for_session_start(case))
-    if quality_report.passed:
-        return
-
-    details = "; ".join(
-        quality_report.critical_issues + quality_report.warnings
-    )
-    raise HTTPException(
-        status_code=status.HTTP_409_CONFLICT,
-        detail=f"Case quality gate blocks learner sessions: {details}",
-    )
-
-
-@router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
-async def create_session(
-    body: SessionCreate,
-    user_id: str = Depends(require_educational_use_consent),
-    db: AsyncSession = Depends(get_db),
-) -> CoachingSession:
-    """Create a coaching session and present the opening case."""
-    case = await db.get(ClinicalCase, body.case_id)
-    if not case:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
-    if not body.acknowledge_educational_simulation:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Acknowledge that this is an educational simulation, not patient "
-                "care or medical advice, before starting a session."
-            ),
-        )
+def _assert_case_provenance_allows_learner_session(case: ClinicalCase) -> None:
     source_provenance = case.source_provenance
     if source_provenance["source_count"] < 1:
         raise HTTPException(
@@ -903,6 +872,42 @@ async def create_session(
                 "clinical review before learner sessions can start."
             ),
         )
+
+
+def _assert_case_quality_for_learner_session(case: ClinicalCase) -> None:
+    quality_report = evaluate_case_quality(_quality_payload_for_session_start(case))
+    if quality_report.passed:
+        return
+
+    details = "; ".join(
+        quality_report.critical_issues + quality_report.warnings
+    )
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail=f"Case quality gate blocks learner sessions: {details}",
+    )
+
+
+@router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
+async def create_session(
+    body: SessionCreate,
+    user_id: str = Depends(require_educational_use_consent),
+    db: AsyncSession = Depends(get_db),
+) -> CoachingSession:
+    """Create a coaching session and present the opening case."""
+    case = await db.get(ClinicalCase, body.case_id)
+    if not case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+    if not body.acknowledge_educational_simulation:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Acknowledge that this is an educational simulation, not patient "
+                "care or medical advice, before starting a session."
+            ),
+        )
+    source_provenance = case.source_provenance
+    _assert_case_provenance_allows_learner_session(case)
     if source_provenance["requires_caution"] and not body.acknowledge_unreviewed_case:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -911,7 +916,7 @@ async def create_session(
                 "acknowledge_unreviewed_case=true to use it for educational simulation."
             ),
         )
-    _assert_case_quality_for_session_start(case)
+    _assert_case_quality_for_learner_session(case)
 
     session = CoachingSession(
         user_id=uuid.UUID(user_id),
@@ -1038,6 +1043,8 @@ async def stream_response(
     case = await db.get(ClinicalCase, session.case_id)
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+    _assert_case_provenance_allows_learner_session(case)
+    _assert_case_quality_for_learner_session(case)
 
     # Snapshot history before adding any new message
     claude_history = _build_claude_history(session.messages)

@@ -521,6 +521,69 @@ async def test_stream_response_persists_turn_before_done(
 
 
 @pytest.mark.asyncio
+async def test_stream_response_blocks_if_case_quality_fails_after_session_start(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def fail_stream_coach_response(**_kwargs):
+        if False:
+            yield StreamChunk(type="done")
+        raise AssertionError("Case quality failures must not reach the provider")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    user = User(
+        email=f"stream-quality-gate-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Stream Quality Gate Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    case.clinical_sources = [
+        {
+            **case.clinical_sources[0],
+            "url": "https://wellness-blog.com/chest-pain",
+        }
+    ]
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "I am considering ACS and would get an ECG."},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert "Case quality gate blocks learner sessions" in response.json()["detail"]
+    assert "reputable clinical source domain" in response.json()["detail"]
+    messages = await db.execute(
+        select(Message).where(Message.session_id == session.id)
+    )
+    assert list(messages.scalars().all()) == []
+
+
+@pytest.mark.asyncio
 async def test_stream_response_hides_internal_provider_errors(
     client: AsyncClient,
     db: AsyncSession,
