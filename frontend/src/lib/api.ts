@@ -160,7 +160,10 @@ export const api = {
   sessions: {
     create: (
       case_id: string,
-      options: { acknowledge_unreviewed_case?: boolean } = {},
+      options: {
+        acknowledge_educational_simulation?: boolean;
+        acknowledge_unreviewed_case?: boolean;
+      } = {},
     ) =>
       request("/api/sessions", {
         method: "POST",

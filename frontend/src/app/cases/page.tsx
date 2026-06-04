@@ -76,7 +76,7 @@ export default function CasesPage() {
       setActionError("This case requires clinician re-review before sessions can start.");
       return;
     }
-    if (clinicalCase.source_provenance.requires_caution && !acknowledged) {
+    if (!acknowledged) {
       setAcknowledgingCase(clinicalCase.id);
       setActionError("");
       return;
@@ -86,6 +86,7 @@ export default function CasesPage() {
     setActionError("");
     try {
       const session = await api.sessions.create(clinicalCase.id, {
+        acknowledge_educational_simulation: true,
         acknowledge_unreviewed_case: clinicalCase.source_provenance.requires_caution,
       }) as { id: string };
       router.push(`/sessions/${session.id}`);
@@ -111,15 +112,18 @@ export default function CasesPage() {
 
   function acknowledgementText(clinicalCase: ClinicalCase): string {
     if (clinicalCase.source_provenance.review_content_changed) {
-      return "This case changed after clinician review. Start only as educational simulation.";
+      return "This case changed after clinician review. This is an educational simulation only, not patient care or medical advice.";
     }
     if (clinicalCase.source_provenance.review_stale) {
-      return "This case has a stale clinician review. Start only as educational simulation.";
+      return "This case has a stale clinician review. This is an educational simulation only, not patient care or medical advice.";
     }
     if (clinicalCase.source_provenance.review_date_invalid) {
-      return "This case has an invalid clinician review date. Start only as educational simulation.";
+      return "This case has an invalid clinician review date. This is an educational simulation only, not patient care or medical advice.";
     }
-    return "This case is not clinician reviewed. Start only as educational simulation.";
+    if (clinicalCase.source_provenance.requires_caution) {
+      return "This case is not clinician reviewed. This is an educational simulation only, not patient care or medical advice.";
+    }
+    return "This is an educational simulation only, not patient care or medical advice. For real patients, follow local clinical protocols and contact a supervising clinician or emergency services.";
   }
 
   return (

@@ -780,7 +780,10 @@ async def test_post_review_case_content_change_blocks_sessions_until_re_review(
 
     blocked_session_response = await client.post(
         "/api/sessions",
-        json={"case_id": str(case.id)},
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
         headers=reviewer_headers,
     )
     assert blocked_session_response.status_code == 409
@@ -788,7 +791,11 @@ async def test_post_review_case_content_change_blocks_sessions_until_re_review(
 
     acknowledged_session_response = await client.post(
         "/api/sessions",
-        json={"case_id": str(case.id), "acknowledge_unreviewed_case": True},
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+            "acknowledge_unreviewed_case": True,
+        },
         headers=reviewer_headers,
     )
     assert acknowledged_session_response.status_code == 409

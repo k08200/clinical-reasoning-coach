@@ -756,6 +756,14 @@ async def create_session(
     case = await db.get(ClinicalCase, body.case_id)
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+    if not body.acknowledge_educational_simulation:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Acknowledge that this is an educational simulation, not patient "
+                "care or medical advice, before starting a session."
+            ),
+        )
     source_provenance = case.source_provenance
     if source_provenance["review_content_changed"]:
         raise HTTPException(

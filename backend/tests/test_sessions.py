@@ -149,7 +149,10 @@ async def test_create_session_requires_acknowledgement_for_unreviewed_case(
 
     response = await client.post(
         "/api/sessions",
-        json={"case_id": str(case.id)},
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
         headers=auth_headers,
     )
 
@@ -160,7 +163,7 @@ async def test_create_session_requires_acknowledgement_for_unreviewed_case(
 
 
 @pytest.mark.asyncio
-async def test_create_session_allows_clinician_reviewed_case_without_acknowledgement(
+async def test_create_session_requires_educational_simulation_acknowledgement(
     client: AsyncClient,
     db: AsyncSession,
 ):
@@ -184,6 +187,43 @@ async def test_create_session_allows_clinician_reviewed_case_without_acknowledge
     response = await client.post(
         "/api/sessions",
         json={"case_id": str(case.id)},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert "educational simulation" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.times_used == 0
+
+
+@pytest.mark.asyncio
+async def test_create_session_allows_clinician_reviewed_case_with_simulation_acknowledgement(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"reviewed-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Reviewed Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
         headers=auth_headers,
     )
 
@@ -218,7 +258,10 @@ async def test_create_session_blocks_stale_reviewed_case_even_with_acknowledgeme
 
     response = await client.post(
         "/api/sessions",
-        json={"case_id": str(case.id)},
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
         headers=auth_headers,
     )
 
@@ -229,7 +272,11 @@ async def test_create_session_blocks_stale_reviewed_case_even_with_acknowledgeme
 
     acknowledged_response = await client.post(
         "/api/sessions",
-        json={"case_id": str(case.id), "acknowledge_unreviewed_case": True},
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+            "acknowledge_unreviewed_case": True,
+        },
         headers=auth_headers,
     )
 
@@ -264,7 +311,10 @@ async def test_create_session_blocks_future_reviewed_case_even_with_acknowledgem
 
     response = await client.post(
         "/api/sessions",
-        json={"case_id": str(case.id)},
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
         headers=auth_headers,
     )
 
@@ -275,7 +325,11 @@ async def test_create_session_blocks_future_reviewed_case_even_with_acknowledgem
 
     acknowledged_response = await client.post(
         "/api/sessions",
-        json={"case_id": str(case.id), "acknowledge_unreviewed_case": True},
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+            "acknowledge_unreviewed_case": True,
+        },
         headers=auth_headers,
     )
 
@@ -330,7 +384,11 @@ async def test_stream_response_persists_turn_before_done(
 
     session_response = await client.post(
         "/api/sessions",
-        json={"case_id": case_id, "acknowledge_unreviewed_case": True},
+        json={
+            "case_id": case_id,
+            "acknowledge_educational_simulation": True,
+            "acknowledge_unreviewed_case": True,
+        },
         headers=auth_headers,
     )
     assert session_response.status_code == 201
@@ -2085,6 +2143,7 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
         "/api/sessions",
         json={
             "case_id": case_response.json()["id"],
+            "acknowledge_educational_simulation": True,
             "acknowledge_unreviewed_case": True,
         },
         headers=auth_headers,
@@ -2201,6 +2260,7 @@ async def test_korean_real_patient_signal_uses_korean_safety_response(
         "/api/sessions",
         json={
             "case_id": case_response.json()["id"],
+            "acknowledge_educational_simulation": True,
             "acknowledge_unreviewed_case": True,
         },
         headers=auth_headers,
@@ -2573,6 +2633,7 @@ async def test_patient_identifier_signal_blocks_storage_and_records_safety_event
         "/api/sessions",
         json={
             "case_id": case_response.json()["id"],
+            "acknowledge_educational_simulation": True,
             "acknowledge_unreviewed_case": True,
         },
         headers=auth_headers,

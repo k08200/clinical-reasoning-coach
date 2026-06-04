@@ -140,13 +140,16 @@ describe("CasesPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Start Session" }));
 
     expect(
-      screen.getByText("This case is not clinician reviewed. Start only as educational simulation."),
+      screen.getByText(
+        "This case is not clinician reviewed. This is an educational simulation only, not patient care or medical advice.",
+      ),
     ).toBeTruthy();
     expect(mockCreateSession).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: "Acknowledge and Start" }));
 
     await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1", {
+      acknowledge_educational_simulation: true,
       acknowledge_unreviewed_case: true,
     }));
     expect(mockPush).toHaveBeenCalledWith("/sessions/session-1");
@@ -165,7 +168,7 @@ describe("CasesPage", () => {
     expect(screen.queryByText("90 or olderyo female")).toBeFalsy();
   });
 
-  it("starts a clinician-reviewed case without extra acknowledgement", async () => {
+  it("requires simulation acknowledgement before starting a clinician-reviewed case", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: [
         makeCase({
@@ -191,7 +194,17 @@ describe("CasesPage", () => {
     render(<CasesPage />);
     fireEvent.click(screen.getByRole("button", { name: "Start Session" }));
 
+    expect(
+      screen.getByText(
+        "This is an educational simulation only, not patient care or medical advice. For real patients, follow local clinical protocols and contact a supervising clinician or emergency services.",
+      ),
+    ).toBeTruthy();
+    expect(mockCreateSession).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Acknowledge and Start" }));
+
     await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1", {
+      acknowledge_educational_simulation: true,
       acknowledge_unreviewed_case: false,
     }));
     expect(screen.queryByText(/not clinician reviewed/i)).toBeFalsy();
