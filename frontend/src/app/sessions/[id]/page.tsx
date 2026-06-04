@@ -12,6 +12,8 @@ import ReasoningMap from "@/components/ReasoningMap";
 import ChatMessage from "@/components/ChatMessage";
 import BiasAlert from "@/components/BiasAlert";
 
+const MAX_STUDENT_MESSAGE_LENGTH = 4000;
+
 type CompletionSafetyCategory = {
   category: string;
   label: string;
@@ -278,6 +280,12 @@ export default function SessionPage() {
     }
 
     const content = input.trim();
+    if (content.length > MAX_STUDENT_MESSAGE_LENGTH) {
+      setError(
+        `Keep each response under ${MAX_STUDENT_MESSAGE_LENGTH.toLocaleString()} characters. Avoid pasting clinical notes or patient records into this simulator.`,
+      );
+      return;
+    }
     setInput("");
     setStreaming(true);
     setThinking(false);
@@ -416,6 +424,8 @@ export default function SessionPage() {
   const isCompleted = session.status === "completed";
   const isSafetyLocked = session.status === "safety_locked";
   const isInteractive = session.status === "active";
+  const trimmedInputLength = input.trim().length;
+  const inputTooLong = trimmedInputLength > MAX_STUDENT_MESSAGE_LENGTH;
   const analyzedLearnerTurnCount = session.messages.filter(
     (message) => message.role === "student" && message.reasoning_score !== null,
   ).length;
@@ -1034,16 +1044,32 @@ export default function SessionPage() {
                   onKeyDown={handleKeyDown}
                   disabled={streaming}
                   rows={2}
+                  maxLength={MAX_STUDENT_MESSAGE_LENGTH + 500}
                   placeholder="Share your clinical reasoning... (Enter to send, Shift+Enter for newline)"
-                  className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 resize-none focus:outline-none focus:border-brand-500 disabled:opacity-50"
+                  className={`flex-1 px-3 py-2 bg-slate-700 border rounded-lg text-white placeholder-slate-500 resize-none focus:outline-none disabled:opacity-50 ${
+                    inputTooLong
+                      ? "border-red-500 focus:border-red-400"
+                      : "border-slate-600 focus:border-brand-500"
+                  }`}
                 />
                 <button
                   onClick={sendMessage}
-                  disabled={streaming || !input.trim()}
+                  disabled={streaming || !input.trim() || inputTooLong}
                   className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors shrink-0"
                 >
                   {streaming ? "..." : "Send"}
                 </button>
+              </div>
+              <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <p className={inputTooLong ? "text-red-300" : "text-slate-500"}>
+                  {trimmedInputLength.toLocaleString()}/
+                  {MAX_STUDENT_MESSAGE_LENGTH.toLocaleString()} characters
+                </p>
+                {inputTooLong && (
+                  <p className="text-red-300">
+                    Shorten this response and do not paste clinical notes or patient records.
+                  </p>
+                )}
               </div>
             </div>
           )}

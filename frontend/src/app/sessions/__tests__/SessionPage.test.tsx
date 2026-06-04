@@ -160,6 +160,23 @@ describe("SessionPage", () => {
     expect(mockMutate).toHaveBeenCalled();
   });
 
+  it("blocks oversized learner responses before streaming", () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession(),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+
+    render(<SessionPage />);
+    fireEvent.change(screen.getByPlaceholderText(/Share your clinical reasoning/), {
+      target: { value: "a".repeat(4001) },
+    });
+
+    expect(screen.getByRole("button", { name: "Send" })).toBeDisabled();
+    expect(screen.getByText(/4,001\/4,000 characters/)).toBeTruthy();
+    expect(screen.getByText(/do not paste clinical notes or patient records/)).toBeTruthy();
+    expect(mockStreamMessage).not.toHaveBeenCalled();
+  });
+
   it("shows streamed privacy safety guidance", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession(),

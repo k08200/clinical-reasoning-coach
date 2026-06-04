@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, Field
+from typing import Annotated
+
+from pydantic import BaseModel, Field, StringConstraints
 
 from app.schemas.case import ClinicalSourceProvenance
+
+MAX_STUDENT_MESSAGE_LENGTH = 4000
 
 
 class SessionCreate(BaseModel):
@@ -125,7 +129,14 @@ class SessionSummary(BaseModel):
 
 
 class SendMessageRequest(BaseModel):
-    content: str
+    content: Annotated[
+        str,
+        StringConstraints(
+            strip_whitespace=True,
+            min_length=1,
+            max_length=MAX_STUDENT_MESSAGE_LENGTH,
+        ),
+    ]
 
 
 class CompleteSessionRequest(BaseModel):

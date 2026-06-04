@@ -17,6 +17,7 @@ from app.models.message import Message
 from app.models.safety_event import SafetyEvent
 from app.models.session import CoachingSession
 from app.models.user import User
+from app.schemas.session import MAX_STUDENT_MESSAGE_LENGTH
 from app.services.provider import StreamChunk
 from app.services.reasoning_analyzer import ReasoningAnalysis
 from app.services.socratic_coach import KOREAN_REAL_PATIENT_SAFETY_RESPONSE
@@ -836,6 +837,76 @@ async def test_stream_response_blocks_legacy_active_session_without_case_snapsho
     assert response.status_code == 409
     assert "no starting case version snapshot" in response.json()["detail"]
     assert "Start a new session" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_stream_response_rejects_blank_or_oversized_student_message(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def fail_stream_coach_response(**_kwargs):
+        raise AssertionError("Invalid student messages must not reach the provider")
+        yield
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    user = User(
+        email=f"stream-input-validation-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Stream Input Validation Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.flush()
+    opening_message = Message(
+        session_id=session.id,
+        role="coach",
+        content="Opening case.",
+    )
+    db.add(opening_message)
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    blank_response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "   \n\t   "},
+        headers=auth_headers,
+    )
+    oversized_response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "a" * (MAX_STUDENT_MESSAGE_LENGTH + 1)},
+        headers=auth_headers,
+    )
+
+    assert blank_response.status_code == 422
+    assert oversized_response.status_code == 422
+    messages = (
+        await db.execute(
+            select(Message).where(Message.session_id == session.id)
+        )
+    ).scalars().all()
+    assert [message.role for message in messages] == ["coach"]
+    assert messages[0].content == "Opening case."
 
 
 @pytest.mark.asyncio
