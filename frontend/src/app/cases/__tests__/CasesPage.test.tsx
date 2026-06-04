@@ -11,11 +11,13 @@ vi.mock("swr", () => ({ default: vi.fn() }));
 import useSWR from "swr";
 
 const mockGenerateDemo = vi.fn();
+const mockGenerate = vi.fn();
 const mockCreateSession = vi.fn();
 vi.mock("@/lib/api", () => ({
   api: {
     cases: {
       list: vi.fn(),
+      generate: (...args: unknown[]) => mockGenerate(...args),
       generateDemo: (...args: unknown[]) => mockGenerateDemo(...args),
     },
     sessions: {
@@ -84,6 +86,7 @@ const makeCase = (overrides: Partial<ClinicalCase> = {}): ClinicalCase => ({
 
 beforeEach(() => {
   mockPush.mockClear();
+  mockGenerate.mockReset();
   mockGenerateDemo.mockReset();
   mockCreateSession.mockReset();
   mockLogout.mockReset();
@@ -348,6 +351,100 @@ describe("CasesPage", () => {
 
     await waitFor(() => expect(mockGenerateDemo).toHaveBeenCalledOnce());
     expect(mockMutate).toHaveBeenCalledOnce();
+  });
+
+  it("generates a custom unreviewed educational draft after acknowledgement", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockGenerate.mockResolvedValue(makeCase());
+
+    render(<CasesPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Custom Case" }));
+    fireEvent.change(screen.getByLabelText("Specialty"), {
+      target: { value: "emergency_medicine" },
+    });
+    fireEvent.change(screen.getByLabelText("Difficulty"), {
+      target: { value: "hard" },
+    });
+    fireEvent.change(screen.getByLabelText("Seed Scenario"), {
+      target: { value: "Simulated elderly patient with fever and hypotension." },
+    });
+
+    expect(screen.getByRole("button", { name: "Generate Custom Case" })).toHaveProperty(
+      "disabled",
+      true,
+    );
+    fireEvent.click(screen.getByLabelText("Unreviewed educational draft"));
+    fireEvent.click(screen.getByRole("button", { name: "Generate Custom Case" }));
+
+    await waitFor(() => expect(mockGenerate).toHaveBeenCalledWith({
+      specialty: "emergency_medicine",
+      difficulty: "hard",
+      seed_scenario: "Simulated elderly patient with fever and hypotension.",
+      acknowledge_unreviewed_generation: true,
+    }));
+    expect(mockMutate).toHaveBeenCalledOnce();
+  });
+
+  it("shows structured PHI feedback when custom generation seed is blocked", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockGenerate.mockRejectedValueOnce({
+      message: "Seed scenarios must be de-identified educational prompts.",
+      detail: {
+        code: "seed_scenario_contains_patient_identifiers",
+        message:
+          "Seed scenarios must be de-identified educational prompts. Remove patient identifiers before generating a case.",
+        detected_identifier_categories: ["medical_record_number", "date_of_birth"],
+      },
+    });
+
+    render(<CasesPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Custom Case" }));
+    fireEvent.change(screen.getByLabelText("Seed Scenario"), {
+      target: { value: "Patient name is John Smith, DOB 01/02/1970, MRN A123456." },
+    });
+    fireEvent.click(screen.getByLabelText("Unreviewed educational draft"));
+    fireEvent.click(screen.getByRole("button", { name: "Generate Custom Case" }));
+
+    expect(await screen.findByText("Seed scenario blocked")).toBeTruthy();
+    expect(screen.getByText(/Remove patient identifiers/)).toBeTruthy();
+    expect(screen.getByText(/medical record number, date of birth/)).toBeTruthy();
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
+  it("shows structured real-patient feedback when custom generation seed is blocked", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockGenerate.mockRejectedValueOnce({
+      message: "Seed scenarios must not describe an active real patient or emergency.",
+      detail: {
+        code: "seed_scenario_real_patient_or_emergency",
+        message:
+          "Seed scenarios must not describe an active real patient or emergency. Use only clearly simulated educational prompts.",
+      },
+    });
+
+    render(<CasesPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Custom Case" }));
+    fireEvent.change(screen.getByLabelText("Seed Scenario"), {
+      target: { value: "My patient is deteriorating right now in clinic." },
+    });
+    fireEvent.click(screen.getByLabelText("Unreviewed educational draft"));
+    fireEvent.click(screen.getByRole("button", { name: "Generate Custom Case" }));
+
+    expect(await screen.findByText("Seed scenario blocked")).toBeTruthy();
+    expect(screen.getByText(/active real patient or emergency/)).toBeTruthy();
+    expect(mockMutate).not.toHaveBeenCalled();
   });
 
   it("updates the SWR key when a specialty filter changes", async () => {

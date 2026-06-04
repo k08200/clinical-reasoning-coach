@@ -27,8 +27,31 @@ const DIFFICULTY_COLORS = {
   hard: "text-red-400 bg-red-900/30",
 };
 
+type SeedScenarioSafetyDetail = {
+  code: "seed_scenario_contains_patient_identifiers" | "seed_scenario_real_patient_or_emergency";
+  message: string;
+  detected_identifier_categories?: string[];
+};
+
 function formatAge(age: number | string): string {
   return typeof age === "number" ? `${age}yo` : age;
+}
+
+function errorDetail(error: unknown): unknown {
+  if (!error || typeof error !== "object" || !("detail" in error)) return null;
+  return error.detail;
+}
+
+function isSeedScenarioSafetyDetail(value: unknown): value is SeedScenarioSafetyDetail {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "code" in value &&
+    (value.code === "seed_scenario_contains_patient_identifiers" ||
+      value.code === "seed_scenario_real_patient_or_emergency") &&
+    "message" in value &&
+    typeof value.message === "string"
+  );
 }
 
 export default function CasesPage() {
@@ -36,6 +59,14 @@ export default function CasesPage() {
   const checkingAuth = useRequireAuth();
   const [specialty, setSpecialty] = useState("All");
   const [generating, setGenerating] = useState(false);
+  const [showCustomGenerator, setShowCustomGenerator] = useState(false);
+  const [customSpecialty, setCustomSpecialty] = useState("internal_medicine");
+  const [customDifficulty, setCustomDifficulty] = useState("medium");
+  const [seedScenario, setSeedScenario] = useState("");
+  const [acknowledgeUnreviewedGeneration, setAcknowledgeUnreviewedGeneration] =
+    useState(false);
+  const [seedScenarioSafetyDetail, setSeedScenarioSafetyDetail] =
+    useState<SeedScenarioSafetyDetail | null>(null);
   const [startingSession, setStartingSession] = useState<string | null>(null);
   const [acknowledgingCase, setAcknowledgingCase] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
@@ -56,12 +87,42 @@ export default function CasesPage() {
   async function handleGenerateDemo() {
     setGenerating(true);
     setActionError("");
+    setSeedScenarioSafetyDetail(null);
     try {
       await api.cases.generateDemo();
       await mutate();
     } catch (err) {
       console.error(err);
       setActionError(err instanceof Error ? err.message : "Could not generate a case");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function handleGenerateCustom() {
+    setGenerating(true);
+    setActionError("");
+    setSeedScenarioSafetyDetail(null);
+    try {
+      await api.cases.generate({
+        specialty: customSpecialty,
+        difficulty: customDifficulty,
+        seed_scenario: seedScenario.trim() || undefined,
+        acknowledge_unreviewed_generation: acknowledgeUnreviewedGeneration,
+      });
+      setSeedScenario("");
+      setAcknowledgeUnreviewedGeneration(false);
+      setShowCustomGenerator(false);
+      await mutate();
+    } catch (err) {
+      const detail = errorDetail(err);
+      if (isSeedScenarioSafetyDetail(detail)) {
+        setSeedScenarioSafetyDetail(detail);
+        setActionError("");
+      } else {
+        console.error(err);
+        setActionError(err instanceof Error ? err.message : "Could not generate a case");
+      }
     } finally {
       setGenerating(false);
     }
@@ -152,7 +213,103 @@ export default function CasesPage() {
           >
             {generating ? "Generating..." : "+ Generate Demo Case"}
           </button>
+          <button
+            onClick={() => {
+              setShowCustomGenerator((value) => !value);
+              setActionError("");
+              setSeedScenarioSafetyDetail(null);
+            }}
+            className="ml-3 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+          >
+            Custom Case
+          </button>
         </div>
+
+        {showCustomGenerator && (
+          <section className="mb-6 rounded-lg border border-slate-700 bg-slate-800 p-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              <label className="text-sm text-slate-300">
+                Specialty
+                <select
+                  value={customSpecialty}
+                  onChange={(event) => setCustomSpecialty(event.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+                >
+                  {SPECIALTIES.filter((item) => item !== "All").map((item) => (
+                    <option key={item} value={item}>
+                      {item.replace(/_/g, " ")}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm text-slate-300">
+                Difficulty
+                <select
+                  value={customDifficulty}
+                  onChange={(event) => setCustomDifficulty(event.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+                >
+                  {(["easy", "medium", "hard"] as const).map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex items-end gap-2 text-sm text-amber-100">
+                <input
+                  type="checkbox"
+                  checked={acknowledgeUnreviewedGeneration}
+                  onChange={(event) => setAcknowledgeUnreviewedGeneration(event.target.checked)}
+                  className="mb-2"
+                />
+                <span className="pb-1">Unreviewed educational draft</span>
+              </label>
+            </div>
+            <label className="mt-4 block text-sm text-slate-300">
+              Seed Scenario
+              <textarea
+                value={seedScenario}
+                onChange={(event) => setSeedScenario(event.target.value)}
+                rows={4}
+                placeholder="De-identified simulated prompt only"
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500"
+              />
+            </label>
+            {seedScenarioSafetyDetail && (
+              <div className="mt-3 rounded-lg border border-red-700 bg-red-950/45 px-3 py-2 text-sm text-red-100">
+                <p className="font-semibold">Seed scenario blocked</p>
+                <p className="mt-1">{seedScenarioSafetyDetail.message}</p>
+                {seedScenarioSafetyDetail.detected_identifier_categories &&
+                  seedScenarioSafetyDetail.detected_identifier_categories.length > 0 && (
+                    <p className="mt-2 text-xs text-red-200">
+                      Detected:{" "}
+                      {seedScenarioSafetyDetail.detected_identifier_categories
+                        .map((item) => item.replace(/_/g, " "))
+                        .join(", ")}
+                    </p>
+                  )}
+              </div>
+            )}
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowCustomGenerator(false)}
+                className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleGenerateCustom}
+                disabled={generating || !acknowledgeUnreviewedGeneration}
+                className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {generating ? "Generating..." : "Generate Custom Case"}
+              </button>
+            </div>
+          </section>
+        )}
 
         {/* Specialty filter */}
         <div className="flex gap-2 mb-6 flex-wrap">
