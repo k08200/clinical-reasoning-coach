@@ -36,6 +36,11 @@ type SeedScenarioSafetyDetail = {
   detected_identifier_categories?: string[];
 };
 
+type CaseQualityGateDetail = {
+  message: string;
+  issues: string[];
+};
+
 function formatAge(age: number | string): string {
   return typeof age === "number" ? `${age}yo` : age;
 }
@@ -70,6 +75,21 @@ function isSeedScenarioSafetyDetail(value: unknown): value is SeedScenarioSafety
   );
 }
 
+function parseCaseQualityGateDetail(value: unknown): CaseQualityGateDetail | null {
+  if (typeof value !== "string" || !value.toLowerCase().includes("case quality gate")) {
+    return null;
+  }
+  const [message, issueText] = value.split(/:\s(.+)/s);
+  const issues = (issueText ?? "")
+    .split(";")
+    .map((issue) => issue.trim())
+    .filter(Boolean);
+  return {
+    message: message || "Generated case blocked by case quality gate",
+    issues,
+  };
+}
+
 export default function CasesPage() {
   const router = useRouter();
   const checkingAuth = useRequireAuth();
@@ -83,6 +103,8 @@ export default function CasesPage() {
     useState(false);
   const [seedScenarioSafetyDetail, setSeedScenarioSafetyDetail] =
     useState<SeedScenarioSafetyDetail | null>(null);
+  const [caseQualityGateDetail, setCaseQualityGateDetail] =
+    useState<CaseQualityGateDetail | null>(null);
   const [startingSession, setStartingSession] = useState<string | null>(null);
   const [acknowledgingCase, setAcknowledgingCase] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
@@ -106,12 +128,19 @@ export default function CasesPage() {
     setGenerating(true);
     setActionError("");
     setSeedScenarioSafetyDetail(null);
+    setCaseQualityGateDetail(null);
     try {
       await api.cases.generateDemo();
       await mutate();
     } catch (err) {
-      console.error(err);
-      setActionError(err instanceof Error ? err.message : "Could not generate a case");
+      const qualityDetail = parseCaseQualityGateDetail(errorDetail(err));
+      if (qualityDetail) {
+        setCaseQualityGateDetail(qualityDetail);
+        setActionError("");
+      } else {
+        console.error(err);
+        setActionError(err instanceof Error ? err.message : "Could not generate a case");
+      }
     } finally {
       setGenerating(false);
     }
@@ -127,6 +156,7 @@ export default function CasesPage() {
     setGenerating(true);
     setActionError("");
     setSeedScenarioSafetyDetail(null);
+    setCaseQualityGateDetail(null);
     try {
       await api.cases.generate({
         specialty: customSpecialty,
@@ -140,8 +170,12 @@ export default function CasesPage() {
       await mutate();
     } catch (err) {
       const detail = errorDetail(err);
+      const qualityDetail = parseCaseQualityGateDetail(detail);
       if (isSeedScenarioSafetyDetail(detail)) {
         setSeedScenarioSafetyDetail(detail);
+        setActionError("");
+      } else if (qualityDetail) {
+        setCaseQualityGateDetail(qualityDetail);
         setActionError("");
       } else {
         console.error(err);
@@ -241,6 +275,7 @@ export default function CasesPage() {
               setShowCustomGenerator((value) => !value);
               setActionError("");
               setSeedScenarioSafetyDetail(null);
+              setCaseQualityGateDetail(null);
             }}
             className="ml-3 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
           >
@@ -370,6 +405,20 @@ export default function CasesPage() {
         {(actionError || casesError) && (
           <div className="mb-6 rounded-lg border border-red-700 bg-red-900/40 px-4 py-3 text-sm text-red-200">
             {actionError || "Could not load cases. Please try again."}
+          </div>
+        )}
+
+        {caseQualityGateDetail && (
+          <div className="mb-6 rounded-lg border border-amber-700 bg-amber-950/35 px-4 py-3 text-sm text-amber-100">
+            <p className="font-semibold">Case quality gate blocked generation</p>
+            <p className="mt-1 text-amber-200">{caseQualityGateDetail.message}</p>
+            {caseQualityGateDetail.issues.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {caseQualityGateDetail.issues.map((issue) => (
+                  <li key={issue}>{issue}</li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 

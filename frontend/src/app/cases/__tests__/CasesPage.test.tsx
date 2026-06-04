@@ -574,6 +574,59 @@ describe("CasesPage", () => {
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
+  it("shows structured quality gate feedback when custom generation is blocked", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockGenerate.mockRejectedValueOnce({
+      message:
+        "Generated case blocked by case quality gate: At least 2 clinical red flags are required.; Clinical source 1 must use a reputable clinical source domain.",
+      detail:
+        "Generated case blocked by case quality gate: At least 2 clinical red flags are required.; Clinical source 1 must use a reputable clinical source domain.",
+    });
+
+    render(<CasesPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Custom Case" }));
+    fireEvent.change(screen.getByLabelText("Seed Scenario"), {
+      target: { value: "Simulated patient with chest pain." },
+    });
+    fireEvent.click(screen.getByLabelText("Unreviewed educational draft"));
+    fireEvent.click(screen.getByRole("button", { name: "Generate Custom Case" }));
+
+    expect(await screen.findByText("Case quality gate blocked generation")).toBeTruthy();
+    expect(screen.getByText("Generated case blocked by case quality gate")).toBeTruthy();
+    expect(screen.getByText("At least 2 clinical red flags are required.")).toBeTruthy();
+    expect(
+      screen.getByText("Clinical source 1 must use a reputable clinical source domain."),
+    ).toBeTruthy();
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
+  it("shows structured quality gate feedback when demo generation is blocked", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockGenerateDemo.mockRejectedValueOnce({
+      message:
+        "Generated case blocked by case quality gate: contraindication checks are required before risky therapy.",
+      detail:
+        "Generated case blocked by case quality gate: contraindication checks are required before risky therapy.",
+    });
+
+    render(<CasesPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Generate Your First Case" }));
+
+    expect(await screen.findByText("Case quality gate blocked generation")).toBeTruthy();
+    expect(
+      screen.getByText("contraindication checks are required before risky therapy."),
+    ).toBeTruthy();
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
   it("updates the SWR key when a specialty filter changes", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: [makeCase()],
