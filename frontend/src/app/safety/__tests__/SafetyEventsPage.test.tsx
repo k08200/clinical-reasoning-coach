@@ -147,7 +147,7 @@ describe("SafetyEventsPage", () => {
     render(<SafetyEventsPage />);
 
     expect(screen.getByText("Clinician reviewer role required.")).toBeTruthy();
-    expect(screen.queryByText("High Severity")).toBeFalsy();
+    expect(screen.queryByText("Matching High Severity")).toBeFalsy();
   });
 
   it("renders safety event summaries and event rows for reviewers", () => {
@@ -155,7 +155,9 @@ describe("SafetyEventsPage", () => {
 
     render(<SafetyEventsPage />);
 
-    expect(screen.getByText("High Severity")).toBeTruthy();
+    expect(screen.getByText("Filtered audit summary")).toBeTruthy();
+    expect(screen.getByText(/current event type, severity, and status filters/)).toBeTruthy();
+    expect(screen.getByText("Matching High Severity")).toBeTruthy();
     expect(screen.getAllByText("2").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Patient identifier").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Real patient or emergency").length).toBeGreaterThan(0);

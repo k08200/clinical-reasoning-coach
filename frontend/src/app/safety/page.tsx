@@ -209,21 +209,32 @@ export default function SafetyEventsPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-white">Filtered audit summary</p>
+            <p className="mt-1 text-xs text-slate-400">
+              Counts below reflect the current event type, severity, and status filters.
+            </p>
+          </div>
+        </div>
+
         <div className="mb-6 grid gap-4 sm:grid-cols-4">
           <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Events</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">Matching Events</p>
             <p className="mt-2 text-3xl font-bold text-white">{summary.total}</p>
           </div>
           <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Open</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">Matching Open</p>
             <p className="mt-2 text-3xl font-bold text-amber-200">{summary.open}</p>
           </div>
           <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Resolved</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">Matching Resolved</p>
             <p className="mt-2 text-3xl font-bold text-emerald-200">{summary.resolved}</p>
           </div>
           <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">High Severity</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">
+              Matching High Severity
+            </p>
             <p className="mt-2 text-3xl font-bold text-red-200">{summary.high}</p>
           </div>
         </div>
