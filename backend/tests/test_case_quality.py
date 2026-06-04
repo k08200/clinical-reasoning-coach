@@ -779,6 +779,46 @@ def test_quality_gate_rejects_diagnosis_acronym_in_learner_visible_history():
     )
 
 
+def test_quality_gate_rejects_single_token_diagnosis_in_learner_visible_title():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute appendicitis"
+    case["title"] = "Appendicitis in a Young Adult"
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "title must not reveal the diagnosis term 'appendicitis'" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_rejects_single_token_diagnosis_in_visible_labs():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Community-acquired pneumonia"
+    case["initial_labs"]["chest_xray"] = "Right lower lobe pneumonia."
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "initial_labs must not reveal the diagnosis term 'pneumonia'" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_allows_non_answer_clinical_risk_terms_in_visible_history():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute coronary syndrome"
+    case["history_of_present_illness"] = (
+        f"{case['history_of_present_illness']} He has multiple coronary risk factors."
+    )
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed, report
+
+
 def test_quality_gate_allows_diagnosis_terms_in_hidden_teaching_metadata():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Diabetic Ketoacidosis"

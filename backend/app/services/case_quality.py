@@ -67,15 +67,61 @@ DIAGNOSIS_LEAK_STOPWORDS = {
     "an",
     "and",
     "by",
+    "acute",
+    "chronic",
+    "class",
     "due",
+    "exacerbation",
     "from",
     "in",
+    "likely",
+    "mild",
+    "moderate",
     "of",
     "or",
+    "probable",
     "secondary",
+    "severe",
+    "stage",
+    "suspected",
+    "syndrome",
     "the",
     "to",
+    "type",
     "with",
+}
+DIAGNOSIS_SINGLE_TOKEN_LEAK_TERMS = {
+    "anaphylaxis",
+    "appendicitis",
+    "bacteremia",
+    "bronchiolitis",
+    "cellulitis",
+    "cholangitis",
+    "cholecystitis",
+    "colitis",
+    "diverticulitis",
+    "eclampsia",
+    "embolism",
+    "endocarditis",
+    "hemorrhage",
+    "infarction",
+    "ischemia",
+    "ketoacidosis",
+    "meningitis",
+    "myocarditis",
+    "nephrolithiasis",
+    "osteomyelitis",
+    "pancreatitis",
+    "pericarditis",
+    "peritonitis",
+    "pneumonia",
+    "pneumothorax",
+    "preeclampsia",
+    "pyelonephritis",
+    "sepsis",
+    "stroke",
+    "thrombosis",
+    "urosepsis",
 }
 DIAGNOSIS_LEAK_ALIASES = {
     "acute coronary syndrome": ["acute coronary syndrome", "acs"],
@@ -95,7 +141,7 @@ DIAGNOSIS_LEAK_ALIASES = {
         "non-st elevation",
         "myocardial infarction",
     ],
-    "septic shock": ["septic shock", "urosepsis"],
+    "septic shock": ["septic shock", "sepsis", "urosepsis"],
     "pulmonary embolism": ["pulmonary embolism", "embolism"],
     "diabetic ketoacidosis": ["diabetic ketoacidosis", "ketoacidosis", "dka"],
     "acute ischemic stroke": ["acute ischemic stroke", "ischemic stroke"],
@@ -887,6 +933,10 @@ def _diagnosis_leak_terms(diagnosis: str) -> list[str]:
             phrase_tokens = tokens[index:index + size]
             if all(len(token) >= 3 for token in phrase_tokens):
                 terms.add(" ".join(phrase_tokens))
+
+    for token in tokens:
+        if token in DIAGNOSIS_SINGLE_TOKEN_LEAK_TERMS:
+            terms.add(token)
 
     return sorted(terms, key=len, reverse=True)
 
