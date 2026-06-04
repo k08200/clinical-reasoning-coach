@@ -457,6 +457,26 @@ KOREAN_MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
     r"(?:확인|평가|검토|배제|금기|출혈|알레르기|기도|대동맥\s*박리|칼륨|포타슘|신장|콩팥|혈액형|교차\s*시험|교차\s*적합|동의|수혈\s*반응|산소화|흡인|혈역학|혈압|어려운\s*기도|백업).{0,40}(?:없이|안\s*하고|하지\s*않고|필요\s*없)",
     r"(?:없이|안\s*하고|하지\s*않고|필요\s*없).{0,40}(?:확인|평가|검토|배제|금기|출혈|알레르기|기도|대동맥\s*박리|칼륨|포타슘|신장|콩팥|혈액형|교차\s*시험|교차\s*적합|동의|수혈\s*반응|산소화|흡인|혈역학|혈압|어려운\s*기도|백업)",
 ]
+DOSING_UNIT_PATTERN = (
+    r"mg|mcg|micrograms?|g|grams?|ml|milliliters?|l|liters?|"
+    r"units?|iu|meq|mmol"
+)
+DOSING_FREQUENCY_PATTERN = (
+    r"q\d{1,2}h|q\d{1,2}\s*hours?|every\s+\d{1,2}\s+hours?|"
+    r"once\s+daily|twice\s+daily|three\s+times\s+daily|daily|bid|tid|qid|"
+    r"per\s+hour|/hr|/hour"
+)
+CONCRETE_DOSING_PATTERNS = [
+    rf"\b\d+(?:\.\d+)?\s*(?:{DOSING_UNIT_PATTERN})(?:\s*/\s*(?:kg|hr|hour|min|minute))?\b",
+    rf"\b\d+(?:\.\d+)?\s*(?:{DOSING_UNIT_PATTERN})\s+(?:{DOSING_FREQUENCY_PATTERN})\b",
+    rf"\b(?:{DOSING_FREQUENCY_PATTERN})\b.{0,32}\b\d+(?:\.\d+)?\s*(?:{DOSING_UNIT_PATTERN})\b",
+    r"\b\d+(?:\.\d+)?\s*(?:tabs?|tablets?|caps?|capsules?|puffs?|drops?)\b",
+]
+KOREAN_CONCRETE_DOSING_PATTERNS = [
+    rf"\d+(?:\.\d+)?\s*(?:{DOSING_UNIT_PATTERN})(?:\s*/\s*(?:kg|hr|hour|min|minute))?",
+    r"\d+(?:\.\d+)?\s*(?:정|알|캡슐|앰플|바이알|방울|퍼프)",
+    r"(?:하루|매일|매\s*\d+\s*시간|q\d{1,2}h|bid|tid|qid).{0,24}\d+(?:\.\d+)?\s*(?:mg|mcg|g|ml|units?|iu|meq|mmol|정|알)",
+]
 DIRECT_MANAGEMENT_PATTERNS = [
     rf"^\s*(?:{MANAGEMENT_ACTION_PATTERN})\b",
     rf"\b(?:you|we)\s+(?:should|need to|must|have to)\s+(?:{MANAGEMENT_ACTION_PATTERN})\b",
@@ -651,6 +671,17 @@ def _contains_direct_management_order(text: str) -> bool:
     ) or _contains_korean_direct_management_order(text)
 
 
+def _contains_concrete_dosing_directive(text: str) -> bool:
+    normalized = _normalize_for_guardrail(text)
+    return any(
+        re.search(pattern, normalized)
+        for pattern in CONCRETE_DOSING_PATTERNS
+    ) or any(
+        re.search(pattern, normalized)
+        for pattern in KOREAN_CONCRETE_DOSING_PATTERNS
+    )
+
+
 def _contains_premature_closure_directive(text: str) -> bool:
     normalized_sentences = [
         _normalize_for_guardrail(sentence)
@@ -816,6 +847,8 @@ def is_coach_response_safe(case: ClinicalCase, response_text: str) -> bool:
     if _contains_direct_confirmation(response_text):
         return False
     if _contains_direct_management_order(response_text):
+        return False
+    if _contains_concrete_dosing_directive(response_text):
         return False
     if _contains_premature_closure_directive(response_text):
         return False

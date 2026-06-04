@@ -425,6 +425,24 @@ def test_coach_response_guardrail_blocks_direct_management_variants():
         assert not is_coach_response_safe(case, response), response
 
 
+def test_coach_response_guardrail_blocks_concrete_dosing_variants():
+    case = make_mock_case()
+
+    unsafe_responses = [
+        "Aspirin 325 mg is a typical loading dose here.",
+        "Use alteplase 0.9 mg/kg for this patient.",
+        "Start insulin at 0.1 units/kg/hr.",
+        "Ceftriaxone 1 g every 24 hours would be appropriate.",
+        "Give two tablets twice daily.",
+        "아스피린 300mg을 투여하면 됩니다.",
+        "인슐린은 0.1 units/kg/hr로 시작합니다.",
+        "하루 2정 복용하면 됩니다.",
+    ]
+
+    for response in unsafe_responses:
+        assert not is_coach_response_safe(case, response), response
+
+
 def test_coach_response_guardrail_blocks_korean_direct_management_variants():
     case = make_mock_case()
 
@@ -579,6 +597,37 @@ async def test_stream_replaces_direct_management_advice_with_safe_question(
     assert response_text == SAFE_GUARDRAIL_RESPONSE
     assert "Obtain a 12-lead ECG now" not in response_text
     assert "broad-spectrum antibiotics" not in response_text
+
+
+@pytest.mark.asyncio
+async def test_stream_replaces_concrete_dosing_advice_with_safe_question(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    class UnsafeDosingProvider:
+        async def stream(self, **_kwargs):
+            yield StreamChunk(type="text_delta", content="Aspirin 325 mg is reasonable. ")
+            yield StreamChunk(type="text_delta", content="Heparin can be 60 units/kg.")
+            yield StreamChunk(type="done")
+
+    monkeypatch.setattr(
+        "app.services.socratic_coach.get_provider",
+        lambda: UnsafeDosingProvider(),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in stream_coach_response(
+            case=make_mock_case(),
+            conversation_history=[],
+            student_message="In this simulated case, I am considering medication safety.",
+            turn_number=1,
+        )
+    ]
+
+    response_text = "".join(chunk.content for chunk in chunks if chunk.type == "text_delta")
+    assert response_text == SAFE_GUARDRAIL_RESPONSE
+    assert "325 mg" not in response_text
+    assert "60 units/kg" not in response_text
 
 
 def test_management_safety_redirect_response_is_socratic():
