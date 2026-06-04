@@ -12,7 +12,7 @@ from app.models.case import ClinicalCase
 from app.models.case_review import ClinicalCaseReview
 from app.models.user import User
 from app.routers import cases as cases_router
-from app.schemas.case import ClinicalCaseCreate
+from app.schemas.case import ClinicalCaseCreate, MAX_SEED_SCENARIO_LENGTH
 from app.services.mock_provider import CASE_POOL
 from app.services.case_quality import evaluate_case_quality
 from app.utils.auth import create_access_token, hash_password
@@ -208,6 +208,81 @@ async def test_dynamic_generation_blocks_real_patient_seed_before_provider_call(
             "Use only clearly simulated educational prompts."
         ),
     }
+    after_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+    assert after_count == before_count
+
+
+async def test_dynamic_generation_rejects_oversized_seed_before_provider_call(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch,
+):
+    auth_headers = await _register_and_login(client)
+    before_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+
+    async def fail_generate_clinical_case(**_kwargs) -> ClinicalCaseCreate:
+        raise AssertionError("Oversized seed scenarios must not be sent to generation")
+
+    monkeypatch.setattr(
+        cases_router,
+        "generate_clinical_case",
+        fail_generate_clinical_case,
+    )
+
+    response = await client.post(
+        "/api/cases/generate",
+        headers=auth_headers,
+        json={
+            "specialty": "internal_medicine",
+            "difficulty": "medium",
+            "seed_scenario": "a" * (MAX_SEED_SCENARIO_LENGTH + 1),
+            "acknowledge_unreviewed_generation": True,
+        },
+    )
+
+    assert response.status_code == 422
+    after_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+    assert after_count == before_count
+
+
+async def test_dynamic_generation_rejects_unsupported_specialty_and_difficulty(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch,
+):
+    auth_headers = await _register_and_login(client)
+    before_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+
+    async def fail_generate_clinical_case(**_kwargs) -> ClinicalCaseCreate:
+        raise AssertionError("Unsupported generation parameters must not reach provider")
+
+    monkeypatch.setattr(
+        cases_router,
+        "generate_clinical_case",
+        fail_generate_clinical_case,
+    )
+
+    specialty_response = await client.post(
+        "/api/cases/generate",
+        headers=auth_headers,
+        json={
+            "specialty": "oncology",
+            "difficulty": "medium",
+            "acknowledge_unreviewed_generation": True,
+        },
+    )
+    difficulty_response = await client.post(
+        "/api/cases/generate",
+        headers=auth_headers,
+        json={
+            "specialty": "internal_medicine",
+            "difficulty": "critical",
+            "acknowledge_unreviewed_generation": True,
+        },
+    )
+
+    assert specialty_response.status_code == 422
+    assert difficulty_response.status_code == 422
     after_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
     assert after_count == before_count
 

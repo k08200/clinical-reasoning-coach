@@ -442,6 +442,26 @@ describe("CasesPage", () => {
     expect(mockMutate).toHaveBeenCalledOnce();
   });
 
+  it("blocks oversized custom seed scenarios before generation", () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+
+    render(<CasesPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Custom Case" }));
+    fireEvent.change(screen.getByLabelText("Seed Scenario"), {
+      target: { value: "a".repeat(2001) },
+    });
+    fireEvent.click(screen.getByLabelText("Unreviewed educational draft"));
+
+    expect(screen.getByRole("button", { name: "Generate Custom Case" })).toBeDisabled();
+    expect(screen.getByText(/2,001\/2,000 characters/)).toBeTruthy();
+    expect(screen.getByText(/not pasted clinical notes/)).toBeTruthy();
+    expect(mockGenerate).not.toHaveBeenCalled();
+  });
+
   it("shows structured PHI feedback when custom generation seed is blocked", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: [],

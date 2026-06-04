@@ -21,6 +21,8 @@ const SPECIALTIES = [
   "cardiology",
 ];
 
+const MAX_SEED_SCENARIO_LENGTH = 2000;
+
 const DIFFICULTY_COLORS = {
   easy: "text-green-400 bg-green-900/30",
   medium: "text-yellow-400 bg-yellow-900/30",
@@ -81,6 +83,8 @@ export default function CasesPage() {
     () => api.auth.me() as Promise<User>,
   );
   const caseList = cases ?? [];
+  const trimmedSeedScenarioLength = seedScenario.trim().length;
+  const seedScenarioTooLong = trimmedSeedScenarioLength > MAX_SEED_SCENARIO_LENGTH;
   const canReview =
     currentUser?.role === "clinician_reviewer" || currentUser?.role === "admin";
 
@@ -100,6 +104,12 @@ export default function CasesPage() {
   }
 
   async function handleGenerateCustom() {
+    if (seedScenarioTooLong) {
+      setActionError(
+        `Keep seed scenarios under ${MAX_SEED_SCENARIO_LENGTH.toLocaleString()} characters. Use a short de-identified simulated prompt, not clinical notes.`,
+      );
+      return;
+    }
     setGenerating(true);
     setActionError("");
     setSeedScenarioSafetyDetail(null);
@@ -271,10 +281,24 @@ export default function CasesPage() {
                 value={seedScenario}
                 onChange={(event) => setSeedScenario(event.target.value)}
                 rows={4}
+                maxLength={MAX_SEED_SCENARIO_LENGTH + 500}
                 placeholder="De-identified simulated prompt only"
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500"
+                className={`mt-1 w-full rounded-lg border bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 ${
+                  seedScenarioTooLong ? "border-red-500" : "border-slate-700"
+                }`}
               />
             </label>
+            <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <p className={seedScenarioTooLong ? "text-red-300" : "text-slate-500"}>
+                {trimmedSeedScenarioLength.toLocaleString()}/
+                {MAX_SEED_SCENARIO_LENGTH.toLocaleString()} characters
+              </p>
+              {seedScenarioTooLong && (
+                <p className="text-red-300">
+                  Shorten this to a de-identified simulated prompt, not pasted clinical notes.
+                </p>
+              )}
+            </div>
             {seedScenarioSafetyDetail && (
               <div className="mt-3 rounded-lg border border-red-700 bg-red-950/45 px-3 py-2 text-sm text-red-100">
                 <p className="font-semibold">Seed scenario blocked</p>
@@ -301,7 +325,9 @@ export default function CasesPage() {
               <button
                 type="button"
                 onClick={handleGenerateCustom}
-                disabled={generating || !acknowledgeUnreviewedGeneration}
+                disabled={
+                  generating || !acknowledgeUnreviewedGeneration || seedScenarioTooLong
+                }
                 className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {generating ? "Generating..." : "Generate Custom Case"}

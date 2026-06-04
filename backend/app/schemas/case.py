@@ -6,6 +6,17 @@ import uuid
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 MIN_CLINICAL_REVIEW_NOTES_LENGTH = 30
+MAX_SEED_SCENARIO_LENGTH = 2000
+VALID_GENERATION_SPECIALTIES = {
+    "cardiology",
+    "emergency_medicine",
+    "internal_medicine",
+    "neurology",
+    "pediatrics",
+    "psychiatry",
+    "surgery",
+}
+VALID_CASE_DIFFICULTIES = {"easy", "medium", "hard"}
 
 
 class ClinicalCaseCreate(BaseModel):
@@ -86,10 +97,36 @@ class ClinicalCaseReviewDetailResponse(ClinicalCaseResponse):
 
 
 class GenerateCaseRequest(BaseModel):
-    specialty: str | None = None
-    difficulty: str = "medium"
-    seed_scenario: str | None = None
+    specialty: str | None = Field(default=None, max_length=80)
+    difficulty: str = Field(default="medium", max_length=20)
+    seed_scenario: str | None = Field(default=None, max_length=MAX_SEED_SCENARIO_LENGTH)
     acknowledge_unreviewed_generation: bool = False
+
+    @field_validator("specialty", "difficulty", "seed_scenario", mode="before")
+    @classmethod
+    def strip_generation_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            return value
+        stripped = value.strip()
+        return stripped or None
+
+    @field_validator("specialty")
+    @classmethod
+    def validate_generation_specialty(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        if value not in VALID_GENERATION_SPECIALTIES:
+            raise ValueError("specialty is not supported for case generation")
+        return value
+
+    @field_validator("difficulty")
+    @classmethod
+    def validate_generation_difficulty(cls, value: str) -> str:
+        if value not in VALID_CASE_DIFFICULTIES:
+            raise ValueError("difficulty must be easy, medium, or hard")
+        return value
 
 
 class ClinicalSourceAlignmentChecks(BaseModel):
