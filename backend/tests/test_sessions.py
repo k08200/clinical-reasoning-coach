@@ -1384,6 +1384,76 @@ async def test_safety_locked_session_cannot_be_completed(
 
 
 @pytest.mark.asyncio
+async def test_complete_session_blocks_open_safety_events_before_completion(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"open-safety-complete-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Open Safety Complete Guard",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.flush()
+    db.add(SafetyEvent(
+        session_id=session.id,
+        user_id=user.id,
+        event_type="management_before_safety_checks",
+        severity="medium",
+        action_taken="coach_redirected_to_safety_checks",
+        detected_terms=["intubation"],
+        message_turn=1,
+        note="Learner committed to airway management before safety checks.",
+    ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "open_safety_events_unresolved",
+        "message": (
+            "Before finishing, resolve or review open safety events from this "
+            "session. Continue the simulation only after the safety issue has "
+            "been addressed."
+        ),
+        "open_safety_events": [
+            {
+                "event_type": "management_before_safety_checks",
+                "severity": "medium",
+                "message_turn": 1,
+                "detected_terms": ["intubation"],
+            }
+        ],
+    }
+    await db.refresh(session)
+    assert session.status == "active"
+    assert session.final_reasoning_score is None
+    assert session.completed_at is None
+
+
+@pytest.mark.asyncio
 async def test_reviewer_can_read_safety_locked_session_with_safety_event(
     client: AsyncClient,
     db: AsyncSession,

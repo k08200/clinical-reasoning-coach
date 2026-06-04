@@ -78,6 +78,17 @@ type CompletionManagementSafetyDetail = {
   }[];
 };
 
+type CompletionOpenSafetyEventsDetail = {
+  code: "open_safety_events_unresolved";
+  message: string;
+  open_safety_events: {
+    event_type: string;
+    severity: string;
+    message_turn: number;
+    detected_terms: string[];
+  }[];
+};
+
 function safetyCoverageLabel(category: string): string {
   if (category === "red_flags") return "Red Flags";
   if (category === "time_critical_actions") return "Time-Critical Actions";
@@ -180,6 +191,21 @@ function isCompletionManagementSafetyDetail(
   );
 }
 
+function isCompletionOpenSafetyEventsDetail(
+  value: unknown,
+): value is CompletionOpenSafetyEventsDetail {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "code" in value &&
+    value.code === "open_safety_events_unresolved" &&
+    "message" in value &&
+    typeof value.message === "string" &&
+    "open_safety_events" in value &&
+    Array.isArray(value.open_safety_events)
+  );
+}
+
 function errorDetail(error: unknown): unknown {
   if (!error || typeof error !== "object" || !("detail" in error)) return null;
   return error.detail;
@@ -244,6 +270,8 @@ export default function SessionPage() {
     useState<CompletionActiveBiasDetail | null>(null);
   const [completionManagementSafetyDetail, setCompletionManagementSafetyDetail] =
     useState<CompletionManagementSafetyDetail | null>(null);
+  const [completionOpenSafetyEventsDetail, setCompletionOpenSafetyEventsDetail] =
+    useState<CompletionOpenSafetyEventsDetail | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -300,6 +328,7 @@ export default function SessionPage() {
     setCompletionReasoningDimensionDetail(null);
     setCompletionActiveBiasDetail(null);
     setCompletionManagementSafetyDetail(null);
+    setCompletionOpenSafetyEventsDetail(null);
 
     try {
       await streamMessage(id, content, {
@@ -357,6 +386,7 @@ export default function SessionPage() {
     setCompletionReasoningDimensionDetail(null);
     setCompletionActiveBiasDetail(null);
     setCompletionManagementSafetyDetail(null);
+    setCompletionOpenSafetyEventsDetail(null);
     try {
       await api.sessions.complete(id);
       await mutate();
@@ -379,6 +409,9 @@ export default function SessionPage() {
         setError("");
       } else if (isCompletionManagementSafetyDetail(detail)) {
         setCompletionManagementSafetyDetail(detail);
+        setError("");
+      } else if (isCompletionOpenSafetyEventsDetail(detail)) {
+        setCompletionOpenSafetyEventsDetail(detail);
         setError("");
       } else {
         const message = errorMessage(err, "Could not finish the session");
@@ -733,6 +766,48 @@ export default function SessionPage() {
                 Completion requires red flags, time-critical actions, and safety checks to
                 come before simulated treatment or disposition decisions, not only somewhere
                 later in the transcript.
+              </p>
+            </div>
+          )}
+
+          {completionOpenSafetyEventsDetail && (
+            <div className="mx-4 mt-4 rounded-lg border border-amber-700 bg-amber-950/45 px-4 py-3 text-sm leading-relaxed text-amber-100">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">Open safety events need review</p>
+                  <p className="mt-1 text-amber-200">
+                    {completionOpenSafetyEventsDetail.message}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => textareaRef.current?.focus()}
+                  className="rounded-lg border border-amber-600 px-3 py-1.5 text-xs font-semibold text-amber-100 hover:bg-amber-900/60"
+                >
+                  Continue Reasoning
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {completionOpenSafetyEventsDetail.open_safety_events.map((event) => (
+                  <div
+                    key={`${event.event_type}-${event.message_turn}-${event.detected_terms.join("-")}`}
+                    className="rounded-lg border border-amber-700 bg-slate-900/50 px-3 py-2 text-xs text-amber-100"
+                  >
+                    <p className="font-semibold">
+                      Turn {event.message_turn}: {event.event_type}
+                    </p>
+                    <p className="mt-1 text-amber-200">Severity: {event.severity}</p>
+                    {event.detected_terms.length > 0 && (
+                      <p className="mt-1 text-amber-200">
+                        Detected: {event.detected_terms.join(", ")}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-amber-300">
+                Completion is blocked until the safety issue is addressed in the
+                simulation or reviewed in the safety audit workflow.
               </p>
             </div>
           )}

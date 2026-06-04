@@ -704,6 +704,46 @@ def _management_safety_completion_block_detail(gaps: list[dict]) -> dict:
     }
 
 
+async def _open_safety_event_completion_block_detail(
+    session_id: uuid.UUID,
+    db: AsyncSession,
+) -> dict | None:
+    result = await db.execute(
+        select(
+            SafetyEvent.event_type,
+            SafetyEvent.severity,
+            SafetyEvent.message_turn,
+            SafetyEvent.detected_terms,
+        )
+        .where(
+            SafetyEvent.session_id == session_id,
+            SafetyEvent.status == "open",
+        )
+        .order_by(SafetyEvent.created_at.asc(), SafetyEvent.message_turn.asc())
+    )
+    open_events = [
+        {
+            "event_type": event_type,
+            "severity": severity,
+            "message_turn": message_turn,
+            "detected_terms": detected_terms,
+        }
+        for event_type, severity, message_turn, detected_terms in result.all()
+    ]
+    if not open_events:
+        return None
+
+    return {
+        "code": "open_safety_events_unresolved",
+        "message": (
+            "Before finishing, resolve or review open safety events from this "
+            "session. Continue the simulation only after the safety issue has "
+            "been addressed."
+        ),
+        "open_safety_events": open_events,
+    }
+
+
 def _reasoning_dimension_averages(messages: list[Message]) -> dict[str, float]:
     score_totals: dict[str, float] = {}
     score_counts: dict[str, int] = {}
@@ -1415,6 +1455,16 @@ async def complete_session(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Session is not active",
+        )
+
+    open_safety_event_detail = await _open_safety_event_completion_block_detail(
+        session_id,
+        db,
+    )
+    if open_safety_event_detail:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=open_safety_event_detail,
         )
 
     scores = _analyzed_student_scores(session.messages)

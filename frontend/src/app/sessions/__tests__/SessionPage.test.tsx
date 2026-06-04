@@ -526,6 +526,51 @@ describe("SessionPage", () => {
     ).toBeTruthy();
   });
 
+  it("shows open safety event guidance when completion is blocked", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+          secondAnalyzedStudentMessage,
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockComplete.mockRejectedValueOnce({
+      message: "Before finishing, resolve or review open safety events.",
+      detail: {
+        code: "open_safety_events_unresolved",
+        message: "Before finishing, resolve or review open safety events from this session.",
+        open_safety_events: [
+          {
+            event_type: "management_before_safety_checks",
+            severity: "medium",
+            message_turn: 1,
+            detected_terms: ["intubation"],
+          },
+        ],
+      },
+    });
+
+    render(<SessionPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish Session" }));
+
+    expect(await screen.findByText("Open safety events need review")).toBeTruthy();
+    expect(screen.getByText(/resolve or review open safety events/)).toBeTruthy();
+    expect(screen.getByText("Turn 1: management_before_safety_checks")).toBeTruthy();
+    expect(screen.getByText("Severity: medium")).toBeTruthy();
+    expect(screen.getByText("Detected: intubation")).toBeTruthy();
+    expect(screen.getByText(/safety audit workflow/)).toBeTruthy();
+  });
+
   it("shows dimension-level reasoning guidance when completion dimension score is too low", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession({
