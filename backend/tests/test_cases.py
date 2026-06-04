@@ -256,6 +256,49 @@ async def test_dynamic_generation_blocks_exact_age_over_89_seed_before_provider_
     assert after_count == before_count
 
 
+async def test_dynamic_generation_blocks_korean_address_seed_before_provider_call(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch,
+):
+    auth_headers = await _register_and_login(client)
+    before_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+
+    async def fail_generate_clinical_case(**_kwargs) -> ClinicalCaseCreate:
+        raise AssertionError("Korean addresses must not be sent to generation")
+
+    monkeypatch.setattr(
+        cases_router,
+        "generate_clinical_case",
+        fail_generate_clinical_case,
+    )
+
+    response = await client.post(
+        "/api/cases/generate",
+        headers=auth_headers,
+        json={
+            "specialty": "internal_medicine",
+            "difficulty": "medium",
+            "seed_scenario": (
+                "주소는 서울특별시 강남구 테헤란로 123인 환자의 흉통 사례입니다."
+            ),
+            "acknowledge_unreviewed_generation": True,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "seed_scenario_contains_patient_identifiers",
+        "message": (
+            "Seed scenarios must be de-identified educational prompts. "
+            "Remove patient identifiers before generating a case."
+        ),
+        "detected_identifier_categories": ["street_address"],
+    }
+    after_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+    assert after_count == before_count
+
+
 async def test_dynamic_generation_blocks_real_patient_seed_before_provider_call(
     client: AsyncClient,
     db: AsyncSession,

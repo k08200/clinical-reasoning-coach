@@ -52,9 +52,28 @@ def test_detect_patient_identifiers_finds_exact_ages_over_89():
     assert detected == ["age_over_89"]
 
 
+def test_detect_patient_identifiers_finds_korean_street_addresses():
+    detected = detect_patient_identifiers(
+        "주소는 서울특별시 강남구 테헤란로 123입니다. "
+        "거주지는 부산광역시 해운대구 우동 123-45입니다. "
+        "경기도 성남시 분당구 판교역로 235로 이사했습니다."
+    )
+
+    assert detected == ["street_address"]
+
+
 def test_detect_patient_identifiers_allows_older_adult_age_bucket():
     detected = detect_patient_identifiers(
         "Use a 90 or older simulated patient, or 한국어로는 90세 이상 환자라고 표기합니다."
+    )
+
+    assert detected == []
+
+
+def test_detect_patient_identifiers_allows_generic_korean_location_context():
+    detected = detect_patient_identifiers(
+        "서울 지역 병원에서 흔한 흉통 시뮬레이션 케이스입니다. "
+        "강남구 응급실 내원 상황을 교육용으로 구성합니다."
     )
 
     assert detected == []

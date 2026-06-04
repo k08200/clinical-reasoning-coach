@@ -120,6 +120,23 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
         ),
     ),
     IdentifierPattern(
+        "street_address",
+        re.compile(
+            r"(?:주소|주소지|거주지|사는\s*곳|자택)\s*(?:은|는|:|=)?\s*"
+            r"(?:[가-힣]+(?:특별시|광역시|특별자치시|특별자치도|도|시)\s*)?"
+            r"(?:[가-힣]+(?:시|군|구)\s+)?"
+            r"[가-힣0-9]+(?:로|길|동|읍|면|리)\s*\d{1,5}(?:-\d{1,5})?"
+        ),
+    ),
+    IdentifierPattern(
+        "street_address",
+        re.compile(
+            r"(?:[가-힣]+(?:특별시|광역시|특별자치시|특별자치도|도)\s*)"
+            r"(?:[가-힣]+(?:시|군|구)\s+){1,2}"
+            r"[가-힣0-9]+(?:로|길|동|읍|면|리)\s*\d{1,5}(?:-\d{1,5})?"
+        ),
+    ),
+    IdentifierPattern(
         "url",
         re.compile(r"\bhttps?://[^\s]+|\bwww\.[^\s]+", re.IGNORECASE),
     ),
