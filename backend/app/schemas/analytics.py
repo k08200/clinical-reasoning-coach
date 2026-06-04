@@ -17,14 +17,27 @@ class ReasoningTrend(BaseModel):
     date: str
 
 
+class SafetyAnalyticsSummary(BaseModel):
+    total_events: int
+    open_events: int
+    high_severity_events: int
+    open_high_risk_events: int
+    safety_locked_sessions: int
+    real_patient_or_emergency_events: int
+    privacy_events: int
+    management_safety_events: int
+
+
 class UserAnalytics(BaseModel):
     user_id: uuid.UUID
     total_sessions: int
     completed_sessions: int
+    safety_locked_sessions: int
     total_messages: int
     avg_reasoning_score: float
     bias_patterns: list[BiasPattern]
     reasoning_trend: list[ReasoningTrend]
+    safety_summary: SafetyAnalyticsSummary
     total_tokens_used: int
     strongest_areas: list[str]
     weakest_areas: list[str]

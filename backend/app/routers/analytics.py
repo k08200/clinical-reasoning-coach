@@ -10,8 +10,14 @@ from app.database import get_db
 from app.models.session import CoachingSession
 from app.models.message import Message
 from app.models.bias_event import BiasEvent
+from app.models.safety_event import SafetyEvent
 from app.models.token_usage import TokenUsage
-from app.schemas.analytics import UserAnalytics, BiasPattern, ReasoningTrend
+from app.schemas.analytics import (
+    BiasPattern,
+    ReasoningTrend,
+    SafetyAnalyticsSummary,
+    UserAnalytics,
+)
 from app.services.reasoning_analyzer import (
     SCORE_DIMENSIONS,
     VALID_BIAS_SEVERITIES,
@@ -35,6 +41,12 @@ def _bounded_confidence(value: object) -> float:
     return round(_clamp(_coerce_float(value, 0.0), 0.0, 1.0), 3)
 
 
+HIGH_RISK_SAFETY_EVENT_TYPES = {
+    "possible_patient_identifier",
+    "real_patient_or_emergency_signal",
+}
+
+
 @router.get("/me", response_model=UserAnalytics)
 async def get_my_analytics(
     user_id: str = Depends(require_educational_use_consent),
@@ -52,6 +64,7 @@ async def get_my_analytics(
     sessions = list(sessions_result.scalars().all())
 
     completed = [s for s in sessions if s.status == "completed"]
+    safety_locked_sessions = [s for s in sessions if s.status == "safety_locked"]
     scores = [
         _bounded_reasoning_score(s.final_reasoning_score)
         for s in completed
@@ -64,6 +77,41 @@ async def get_my_analytics(
         select(BiasEvent).where(BiasEvent.user_id == uid)
     )
     all_biases = list(bias_result.scalars().all())
+
+    safety_result = await db.execute(
+        select(SafetyEvent).where(SafetyEvent.user_id == uid)
+    )
+    safety_events = list(safety_result.scalars().all())
+    safety_summary = SafetyAnalyticsSummary(
+        total_events=len(safety_events),
+        open_events=sum(1 for event in safety_events if event.status == "open"),
+        high_severity_events=sum(
+            1 for event in safety_events if event.severity == "high"
+        ),
+        open_high_risk_events=sum(
+            1
+            for event in safety_events
+            if event.status == "open"
+            and event.severity == "high"
+            and event.event_type in HIGH_RISK_SAFETY_EVENT_TYPES
+        ),
+        safety_locked_sessions=len(safety_locked_sessions),
+        real_patient_or_emergency_events=sum(
+            1
+            for event in safety_events
+            if event.event_type == "real_patient_or_emergency_signal"
+        ),
+        privacy_events=sum(
+            1
+            for event in safety_events
+            if event.event_type == "possible_patient_identifier"
+        ),
+        management_safety_events=sum(
+            1
+            for event in safety_events
+            if event.event_type == "management_before_safety_checks"
+        ),
+    )
 
     bias_map: dict[str, dict] = {}
     for b in all_biases:
@@ -153,10 +201,12 @@ async def get_my_analytics(
         user_id=uid,
         total_sessions=len(sessions),
         completed_sessions=len(completed),
+        safety_locked_sessions=len(safety_locked_sessions),
         total_messages=total_messages,
         avg_reasoning_score=avg_score,
         bias_patterns=bias_patterns,
         reasoning_trend=trend,
+        safety_summary=safety_summary,
         total_tokens_used=int(total_tokens),
         strongest_areas=strongest_areas,
         weakest_areas=weakest_areas or [b.bias_type for b in bias_patterns[:2]],

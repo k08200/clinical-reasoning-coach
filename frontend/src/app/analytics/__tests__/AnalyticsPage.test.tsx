@@ -28,6 +28,7 @@ const makeAnalytics = (overrides: Partial<UserAnalytics> = {}): UserAnalytics =>
   user_id: "user-1",
   total_sessions: 3,
   completed_sessions: 2,
+  safety_locked_sessions: 1,
   total_messages: 12,
   avg_reasoning_score: 74,
   bias_patterns: [
@@ -42,6 +43,16 @@ const makeAnalytics = (overrides: Partial<UserAnalytics> = {}): UserAnalytics =>
     { session_number: 1, avg_score: 68, date: "2026-05-20T00:00:00Z" },
     { session_number: 2, avg_score: 80, date: "2026-05-21T00:00:00Z" },
   ],
+  safety_summary: {
+    total_events: 3,
+    open_events: 1,
+    high_severity_events: 2,
+    open_high_risk_events: 1,
+    safety_locked_sessions: 1,
+    real_patient_or_emergency_events: 1,
+    privacy_events: 1,
+    management_safety_events: 1,
+  },
   total_tokens_used: 1500,
   strongest_areas: ["Prioritization"],
   weakest_areas: ["Evidence integration"],
@@ -87,6 +98,14 @@ describe("AnalyticsPage", () => {
     expect(screen.getByText(/educational simulation metrics only/)).toBeTruthy();
     expect(screen.getByText(/not a certification of clinical competence/)).toBeTruthy();
     expect(screen.getByText("Avg Simulation Score")).toBeTruthy();
+    expect(screen.getByText("Safety Flags")).toBeTruthy();
+    expect(screen.getByText("Safety Review Snapshot")).toBeTruthy();
+    expect(screen.getByText("High-risk review needed")).toBeTruthy();
+    expect(screen.getByText("Open High Risk")).toBeTruthy();
+    expect(screen.getByText("Privacy Events")).toBeTruthy();
+    expect(screen.getByText("Management Safety")).toBeTruthy();
+    expect(screen.getByText(/1 locked session/)).toBeTruthy();
+    expect(screen.getByText(/Safety events are tracked separately/)).toBeTruthy();
     expect(screen.getByText("Specialty Simulation Practice")).toBeTruthy();
     expect(screen.getByText("3")).toBeTruthy();
     expect(screen.getAllByText("74").length).toBeGreaterThan(0);

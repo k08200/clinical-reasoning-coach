@@ -29,6 +29,29 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
   );
 }
 
+function SafetyMetric({
+  label,
+  value,
+  tone = "slate",
+}: {
+  label: string;
+  value: number;
+  tone?: "slate" | "amber" | "red";
+}) {
+  const toneClasses = {
+    slate: "border-slate-700 bg-slate-900/50 text-slate-200",
+    amber: "border-amber-700 bg-amber-950/30 text-amber-100",
+    red: "border-red-700 bg-red-950/35 text-red-100",
+  };
+
+  return (
+    <div className={`rounded-lg border px-3 py-2 ${toneClasses[tone]}`}>
+      <p className="text-xs uppercase tracking-wide opacity-75">{label}</p>
+      <p className="mt-1 text-2xl font-bold">{value}</p>
+    </div>
+  );
+}
+
 export default function AnalyticsPage() {
   const router = useRouter();
   const checkingAuth = useRequireAuth();
@@ -87,11 +110,33 @@ export default function AnalyticsPage() {
               </p>
             </div>
 
-            <section className="grid gap-4 md:grid-cols-4">
+            <section className="grid gap-4 md:grid-cols-5">
               <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Sessions</p>
                 <p className="mt-2 text-3xl font-bold text-white">{data.total_sessions}</p>
                 <p className="text-sm text-slate-400">{data.completed_sessions} completed</p>
+              </div>
+              <div
+                className={`rounded-lg border p-4 ${
+                  data.safety_summary.open_high_risk_events > 0
+                    ? "border-red-700 bg-red-950/35"
+                    : "border-slate-700 bg-slate-800"
+                }`}
+              >
+                <p className="text-xs uppercase tracking-wide text-slate-500">Safety Flags</p>
+                <p
+                  className={`mt-2 text-3xl font-bold ${
+                    data.safety_summary.open_high_risk_events > 0
+                      ? "text-red-100"
+                      : "text-white"
+                  }`}
+                >
+                  {data.safety_summary.open_events}
+                </p>
+                <p className="text-sm text-slate-400">
+                  {data.safety_locked_sessions} locked session
+                  {data.safety_locked_sessions === 1 ? "" : "s"}
+                </p>
               </div>
               <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">
@@ -113,6 +158,54 @@ export default function AnalyticsPage() {
                   {data.total_tokens_used.toLocaleString()}
                 </p>
                 <p className="text-sm text-slate-400">total usage</p>
+              </div>
+            </section>
+
+            <section
+              className={`rounded-lg border p-5 ${
+                data.safety_summary.open_high_risk_events > 0
+                  ? "border-red-700 bg-red-950/25"
+                  : data.safety_summary.open_events > 0
+                    ? "border-amber-700 bg-amber-950/20"
+                    : "border-slate-700 bg-slate-800"
+              }`}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-semibold text-white">Safety Review Snapshot</h3>
+                  <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-300">
+                    Safety events are tracked separately from simulation scores. Open high-risk
+                    real-patient, emergency, or privacy events should be reviewed before using
+                    performance metrics for coaching decisions.
+                  </p>
+                </div>
+                {data.safety_summary.open_high_risk_events > 0 && (
+                  <span className="rounded-full border border-red-700 bg-red-950/50 px-3 py-1 text-xs font-semibold text-red-100">
+                    High-risk review needed
+                  </span>
+                )}
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <SafetyMetric
+                  label="Open Events"
+                  value={data.safety_summary.open_events}
+                  tone={data.safety_summary.open_events > 0 ? "amber" : "slate"}
+                />
+                <SafetyMetric
+                  label="Open High Risk"
+                  value={data.safety_summary.open_high_risk_events}
+                  tone={data.safety_summary.open_high_risk_events > 0 ? "red" : "slate"}
+                />
+                <SafetyMetric
+                  label="Privacy Events"
+                  value={data.safety_summary.privacy_events}
+                  tone={data.safety_summary.privacy_events > 0 ? "red" : "slate"}
+                />
+                <SafetyMetric
+                  label="Management Safety"
+                  value={data.safety_summary.management_safety_events}
+                  tone={data.safety_summary.management_safety_events > 0 ? "amber" : "slate"}
+                />
               </div>
             </section>
 

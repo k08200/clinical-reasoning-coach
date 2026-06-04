@@ -302,14 +302,27 @@ export interface ReasoningTrend {
   date: string;
 }
 
+export interface SafetyAnalyticsSummary {
+  total_events: number;
+  open_events: number;
+  high_severity_events: number;
+  open_high_risk_events: number;
+  safety_locked_sessions: number;
+  real_patient_or_emergency_events: number;
+  privacy_events: number;
+  management_safety_events: number;
+}
+
 export interface UserAnalytics {
   user_id: string;
   total_sessions: number;
   completed_sessions: number;
+  safety_locked_sessions: number;
   total_messages: number;
   avg_reasoning_score: number;
   bias_patterns: BiasPattern[];
   reasoning_trend: ReasoningTrend[];
+  safety_summary: SafetyAnalyticsSummary;
   total_tokens_used: number;
   strongest_areas: string[];
   weakest_areas: string[];

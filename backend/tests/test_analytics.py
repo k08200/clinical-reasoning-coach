@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.bias_event import BiasEvent
 from app.models.case import ClinicalCase
 from app.models.message import Message
+from app.models.safety_event import SafetyEvent
 from app.models.session import CoachingSession
 from app.models.token_usage import TokenUsage
 from app.models.user import User
@@ -77,10 +78,21 @@ async def test_get_my_analytics_empty_state(
     data = response.json()
     assert data["total_sessions"] == 0
     assert data["completed_sessions"] == 0
+    assert data["safety_locked_sessions"] == 0
     assert data["total_messages"] == 0
     assert data["avg_reasoning_score"] == 0.0
     assert data["bias_patterns"] == []
     assert data["reasoning_trend"] == []
+    assert data["safety_summary"] == {
+        "total_events": 0,
+        "open_events": 0,
+        "high_severity_events": 0,
+        "open_high_risk_events": 0,
+        "safety_locked_sessions": 0,
+        "real_patient_or_emergency_events": 0,
+        "privacy_events": 0,
+        "management_safety_events": 0,
+    }
     assert data["total_tokens_used"] == 0
     assert data["specialty_performance"] == {}
 
@@ -112,7 +124,13 @@ async def test_get_my_analytics_aggregates_completed_sessions(
         status="active",
         reasoning_map={"nodes": [], "edges": []},
     )
-    db.add_all([completed_session, active_session])
+    safety_locked_session = CoachingSession(
+        user_id=user.id,
+        case_id=clinical_case.id,
+        status="safety_locked",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add_all([completed_session, active_session, safety_locked_session])
     await db.flush()
 
     db.add_all([
@@ -167,6 +185,29 @@ async def test_get_my_analytics_aggregates_completed_sessions(
             output_tokens=30,
             thinking_tokens=20,
         ),
+        SafetyEvent(
+            session_id=safety_locked_session.id,
+            user_id=user.id,
+            event_type="possible_patient_identifier",
+            severity="high",
+            action_taken="locked_session_blocked_storage_and_coaching",
+            detected_terms=["medical_record_number"],
+            message_turn=1,
+            note="Session was locked and message storage was blocked.",
+        ),
+        SafetyEvent(
+            session_id=active_session.id,
+            user_id=user.id,
+            event_type="management_before_safety_checks",
+            severity="medium",
+            action_taken="coach_redirected_to_safety_checks",
+            detected_terms=["heparin"],
+            message_turn=2,
+            note="Learner committed to management before safety checks.",
+            status="resolved",
+            resolution_note="Reviewed and addressed in simulation debrief.",
+            resolved_at=datetime.now(timezone.utc),
+        ),
     ])
     await db.commit()
 
@@ -174,11 +215,22 @@ async def test_get_my_analytics_aggregates_completed_sessions(
 
     assert response.status_code == 200
     data = response.json()
-    assert data["total_sessions"] == 2
+    assert data["total_sessions"] == 3
     assert data["completed_sessions"] == 1
+    assert data["safety_locked_sessions"] == 1
     assert data["total_messages"] == 3
     assert data["avg_reasoning_score"] == 80
     assert data["total_tokens_used"] == 100
+    assert data["safety_summary"] == {
+        "total_events": 2,
+        "open_events": 1,
+        "high_severity_events": 1,
+        "open_high_risk_events": 1,
+        "safety_locked_sessions": 1,
+        "real_patient_or_emergency_events": 0,
+        "privacy_events": 1,
+        "management_safety_events": 1,
+    }
     assert data["specialty_performance"] == {"internal_medicine": 80.0}
     assert data["reasoning_trend"] == [
         {
