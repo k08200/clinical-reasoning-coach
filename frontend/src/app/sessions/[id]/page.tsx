@@ -887,6 +887,55 @@ export default function SessionPage() {
                       </section>
                     )}
 
+                    {review.safety_events.length > 0 && (
+                      <section className="rounded-lg border border-red-800/70 bg-red-950/25 p-3 lg:col-span-3">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-red-200">
+                              Safety Event History
+                            </p>
+                            <p className="mt-2 text-sm text-red-100">
+                              This completed session had safety events that were reviewed before
+                              completion.
+                            </p>
+                          </div>
+                          <span className="rounded-full border border-red-800 bg-slate-900/50 px-3 py-1 text-xs font-semibold text-red-100">
+                            {review.safety_events.length} reviewed
+                          </span>
+                        </div>
+                        <div className="mt-3 grid gap-2 md:grid-cols-2">
+                          {review.safety_events.map((event) => (
+                            <div
+                              key={`${event.message_turn}-${event.event_type}-${event.status}`}
+                              className="rounded border border-red-900/70 bg-slate-950/50 p-3"
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <p className="text-sm font-semibold text-red-50">
+                                  Turn {event.message_turn}: {event.event_type.replace(/_/g, " ")}
+                                </p>
+                                <span className="rounded-full border border-red-900 bg-red-950/40 px-2 py-0.5 text-xs capitalize text-red-100">
+                                  {event.status}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs capitalize text-red-200">
+                                Severity: {event.severity}
+                              </p>
+                              {event.detected_terms.length > 0 && (
+                                <p className="mt-2 text-xs text-slate-300">
+                                  Detected: {event.detected_terms.join(", ")}
+                                </p>
+                              )}
+                              {event.resolution_note && (
+                                <p className="mt-2 text-xs text-slate-300">
+                                  {event.resolution_note}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+
                     {!review.clinical_safety_completion.complete && (
                       <section className="rounded-lg border border-amber-700 bg-amber-950/35 p-3 lg:col-span-3">
                         <div className="flex flex-wrap items-start justify-between gap-3">

@@ -1766,6 +1766,22 @@ async def test_session_review_uses_completion_snapshot_after_case_changes(
         reasoning_score=86,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
+    db.add(SafetyEvent(
+        session_id=session.id,
+        user_id=user.id,
+        event_type="management_before_safety_checks",
+        severity="medium",
+        action_taken="coach_redirected_to_safety_checks",
+        detected_terms=["heparin"],
+        message_turn=1,
+        note="Learner committed to management before safety checks.",
+        status="resolved",
+        resolution_note=(
+            "Reviewed safety redirect and learner later addressed anticoagulation checks."
+        ),
+        resolved_at=datetime.now(timezone.utc),
+        resolved_by_user_id=user.id,
+    ))
     await db.commit()
     await db.refresh(user)
     await db.refresh(session)
@@ -1811,6 +1827,17 @@ async def test_session_review_uses_completion_snapshot_after_case_changes(
     assert payload["clinical_safety_coverage"]["red_flags"][0]["item"] == (
         "Diaphoresis with crushing chest pain"
     )
+    assert len(payload["safety_events"]) == 1
+    safety_event = payload["safety_events"][0]
+    assert safety_event["event_type"] == "management_before_safety_checks"
+    assert safety_event["severity"] == "medium"
+    assert safety_event["status"] == "resolved"
+    assert safety_event["message_turn"] == 1
+    assert safety_event["detected_terms"] == ["heparin"]
+    assert safety_event["resolution_note"] == (
+        "Reviewed safety redirect and learner later addressed anticoagulation checks."
+    )
+    assert safety_event["resolved_at"] is not None
     assert payload["source_provenance"]["review_content_changed"] is True
 
 

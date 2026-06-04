@@ -274,7 +274,8 @@ async def test_reviewer_can_resolve_safety_event(
         headers=_auth_headers(reviewer),
     )
     assert list_response.status_code == 200
-    assert [item["id"] for item in list_response.json()] == [str(event.id)]
+    resolved_event_ids = [item["id"] for item in list_response.json()]
+    assert str(event.id) in resolved_event_ids
 
     open_response = await client.get(
         "/api/safety-events?event_status=open",

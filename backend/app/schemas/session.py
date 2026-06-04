@@ -92,6 +92,16 @@ class ClinicalSafetyCompletionStatus(BaseModel):
     uncovered_categories: list[ClinicalSafetyCompletionCategory]
 
 
+class SessionSafetyEventSummary(BaseModel):
+    event_type: str
+    severity: str
+    status: str
+    message_turn: int
+    detected_terms: list[str]
+    resolution_note: str | None
+    resolved_at: datetime | None
+
+
 class SessionReviewResponse(BaseModel):
     session_id: uuid.UUID
     case_id: uuid.UUID
@@ -106,6 +116,7 @@ class SessionReviewResponse(BaseModel):
     key_teaching_points: list[str]
     cognitive_traps: list[str]
     clinical_sources: list[ReviewSource]
+    safety_events: list[SessionSafetyEventSummary]
     clinical_safety_coverage: ClinicalSafetyCoverage
     clinical_safety_completion: ClinicalSafetyCompletionStatus
     source_provenance: ClinicalSourceProvenance

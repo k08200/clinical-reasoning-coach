@@ -689,6 +689,18 @@ describe("SessionPage", () => {
                 supports: ["ECG timing"],
               },
             ],
+            safety_events: [
+              {
+                event_type: "management_before_safety_checks",
+                severity: "medium",
+                status: "resolved",
+                message_turn: 1,
+                detected_terms: ["heparin"],
+                resolution_note:
+                  "Reviewed safety redirect and learner later addressed anticoagulation checks.",
+                resolved_at: "2026-06-02T07:00:00Z",
+              },
+            ],
             clinical_safety_coverage: {
               red_flags: [
                 {
@@ -790,6 +802,10 @@ describe("SessionPage", () => {
     expect(screen.getByText("2/4 addressed")).toBeTruthy();
     expect(screen.getByText("Red flags: 1 missing")).toBeTruthy();
     expect(screen.getByText("Contraindication checks: 1 missing")).toBeTruthy();
+    expect(screen.getByText("Safety Event History")).toBeTruthy();
+    expect(screen.getByText("Turn 1: management before safety checks")).toBeTruthy();
+    expect(screen.getByText("Detected: heparin")).toBeTruthy();
+    expect(screen.getByText(/Reviewed safety redirect/)).toBeTruthy();
     expect(screen.getByText("Final Diagnosis (Simulation)")).toBeTruthy();
     expect(screen.getByText("Acute coronary syndrome")).toBeTruthy();
     expect(screen.getByText(/revealed only after simulation completion/)).toBeTruthy();

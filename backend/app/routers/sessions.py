@@ -744,6 +744,45 @@ async def _open_safety_event_completion_block_detail(
     }
 
 
+async def _session_safety_event_summaries(
+    session_id: uuid.UUID,
+    db: AsyncSession,
+) -> list[dict]:
+    result = await db.execute(
+        select(
+            SafetyEvent.event_type,
+            SafetyEvent.severity,
+            SafetyEvent.status,
+            SafetyEvent.message_turn,
+            SafetyEvent.detected_terms,
+            SafetyEvent.resolution_note,
+            SafetyEvent.resolved_at,
+        )
+        .where(SafetyEvent.session_id == session_id)
+        .order_by(SafetyEvent.created_at.asc(), SafetyEvent.message_turn.asc())
+    )
+    return [
+        {
+            "event_type": event_type,
+            "severity": severity,
+            "status": event_status,
+            "message_turn": message_turn,
+            "detected_terms": detected_terms,
+            "resolution_note": resolution_note,
+            "resolved_at": resolved_at,
+        }
+        for (
+            event_type,
+            severity,
+            event_status,
+            message_turn,
+            detected_terms,
+            resolution_note,
+            resolved_at,
+        ) in result.all()
+    ]
+
+
 def _reasoning_dimension_averages(messages: list[Message]) -> dict[str, float]:
     score_totals: dict[str, float] = {}
     score_counts: dict[str, int] = {}
@@ -1135,6 +1174,7 @@ async def get_session_review(
         messages=session.messages,
         analyzed_only=True,
     )
+    safety_events = await _session_safety_event_summaries(session.id, db)
 
     return SessionReviewResponse(
         session_id=session.id,
@@ -1150,6 +1190,7 @@ async def get_session_review(
         key_teaching_points=review_snapshot.get("key_teaching_points") or [],
         cognitive_traps=review_snapshot.get("cognitive_traps") or [],
         clinical_sources=review_snapshot.get("clinical_sources") or [],
+        safety_events=safety_events,
         clinical_safety_coverage=clinical_safety_coverage,
         clinical_safety_completion=_safety_review_completion_status(
             clinical_safety_coverage

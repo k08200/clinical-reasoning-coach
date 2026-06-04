@@ -205,6 +205,16 @@ export interface ClinicalSafetyCompletionStatus {
   uncovered_categories: ClinicalSafetyCompletionCategory[];
 }
 
+export interface SessionSafetyEventSummary {
+  event_type: string;
+  severity: string;
+  status: "open" | "resolved";
+  message_turn: number;
+  detected_terms: string[];
+  resolution_note: string | null;
+  resolved_at: string | null;
+}
+
 export interface SessionReview {
   session_id: string;
   case_id: string;
@@ -219,6 +229,7 @@ export interface SessionReview {
   key_teaching_points: string[];
   cognitive_traps: string[];
   clinical_sources: ReviewSource[];
+  safety_events: SessionSafetyEventSummary[];
   clinical_safety_coverage: ClinicalSafetyCoverage;
   clinical_safety_completion: ClinicalSafetyCompletionStatus;
   source_provenance: ClinicalSourceProvenance;
