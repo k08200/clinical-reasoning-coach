@@ -425,5 +425,103 @@
         }
       ]
     }
+  },
+  {
+    "name": "stroke_requires_last_known_normal_and_imaging_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "stroke time-critical actions must include last-known-normal timing"
+    ],
+    "overrides": {
+      "diagnosis": "Acute Ischemic Stroke",
+      "key_teaching_points": [
+        "Time-sensitive stroke reperfusion eligibility depends on last known normal",
+        "Noncontrast head CT is required before thrombolysis decisions",
+        "NIHSS and large vessel occlusion screening guide thrombectomy planning"
+      ],
+      "clinical_red_flags": [
+        "Sudden focal neurologic deficit with NIHSS 8",
+        "Potentially treatable stroke within thrombolysis window",
+        "Atrial fibrillation with missed anticoagulation suggesting embolic risk"
+      ],
+      "time_critical_actions": [
+        "Activate stroke pathway immediately",
+        "Obtain noncontrast head CT to exclude hemorrhage without delaying treatment decision",
+        "Assess thrombolysis and thrombectomy eligibility in parallel"
+      ],
+      "contraindication_checks": [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "Large vessel occlusion criteria and transfer needs for thrombectomy"
+      ],
+      "clinical_sources": [
+        {
+          "title": "AHA/ASA Acute Ischemic Stroke Guidelines",
+          "organization": "American Heart Association / American Stroke Association",
+          "url": "https://www.heart.org/en/professional/quality-improvement/get-with-the-guidelines/get-with-the-guidelines-stroke",
+          "supports": [
+            "acute stroke diagnosis and severity assessment",
+            "sudden focal neurologic deficit and NIHSS severity assessment",
+            "potentially treatable stroke within thrombolysis window",
+            "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+            "activate stroke pathway immediately",
+            "noncontrast head CT to exclude hemorrhage before treatment decision",
+            "thrombolysis and thrombectomy eligibility in parallel",
+            "intracranial hemorrhage or early extensive ischemic change on imaging",
+            "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+            "large vessel occlusion criteria and transfer needs for thrombectomy"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "stroke_requires_reperfusion_contraindication_thresholds",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "stroke reperfusion safety checks must include hemorrhage exclusion"
+    ],
+    "overrides": {
+      "diagnosis": "Acute Ischemic Stroke",
+      "key_teaching_points": [
+        "Time-sensitive stroke reperfusion eligibility depends on last known normal",
+        "Noncontrast head CT is required before thrombolysis decisions",
+        "NIHSS and large vessel occlusion screening guide thrombectomy planning"
+      ],
+      "clinical_red_flags": [
+        "Sudden focal neurologic deficit with NIHSS 8",
+        "Potentially treatable stroke within thrombolysis window from last known normal",
+        "Atrial fibrillation with missed anticoagulation suggesting embolic risk"
+      ],
+      "time_critical_actions": [
+        "Establish last known normal and activate stroke pathway immediately",
+        "Obtain noncontrast head CT to exclude hemorrhage without delaying treatment decision",
+        "Assess thrombolysis and thrombectomy eligibility in parallel"
+      ],
+      "contraindication_checks": [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Large vessel occlusion criteria and transfer needs for thrombectomy",
+        "Recent bleeding history before thrombolysis"
+      ],
+      "clinical_sources": [
+        {
+          "title": "AHA/ASA Acute Ischemic Stroke Guidelines",
+          "organization": "American Heart Association / American Stroke Association",
+          "url": "https://www.heart.org/en/professional/quality-improvement/get-with-the-guidelines/get-with-the-guidelines-stroke",
+          "supports": [
+            "last-known-normal based reperfusion eligibility",
+            "sudden focal neurologic deficit and NIHSS severity assessment",
+            "potentially treatable stroke within thrombolysis window from last known normal",
+            "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+            "noncontrast head CT to exclude hemorrhage before treatment decision",
+            "establish last known normal and activate stroke pathway immediately",
+            "assess thrombolysis and thrombectomy eligibility in parallel",
+            "intracranial hemorrhage or early extensive ischemic change on imaging",
+            "large vessel occlusion criteria and transfer needs for thrombectomy",
+            "recent bleeding history before thrombolysis"
+          ]
+        }
+      ]
+    }
   }
 ]

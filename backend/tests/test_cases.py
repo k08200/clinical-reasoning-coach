@@ -1260,6 +1260,75 @@ async def test_clinical_review_requires_dka_insulin_safety_checks(
     assert case.reviewed_by_user_id is None
 
 
+async def test_clinical_review_requires_stroke_reperfusion_safety_checks(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"stroke-safety-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Stroke Safety Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case_payload = copy.deepcopy(CASE_POOL[4])
+    case_payload["contraindication_checks"] = [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Large vessel occlusion criteria and transfer needs for thrombectomy",
+        "Recent bleeding history before thrombolysis",
+    ]
+    case_payload["clinical_sources"] = [
+        {
+            "title": "AHA/ASA Acute Ischemic Stroke Guidelines",
+            "organization": "American Heart Association / American Stroke Association",
+            "url": "https://www.heart.org/en/professional/quality-improvement/get-with-the-guidelines/get-with-the-guidelines-stroke",
+            "supports": [
+                "last-known-normal based reperfusion eligibility",
+                "sudden focal neurologic deficit and NIHSS severity assessment",
+                "potentially treatable stroke within thrombolysis window from last known normal",
+                "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+                "noncontrast head CT to exclude hemorrhage before treatment decision",
+                "establish last known normal and activate stroke pathway immediately",
+                "assess thrombolysis and thrombectomy eligibility in parallel",
+                "intracranial hemorrhage or early extensive ischemic change on imaging",
+                "large vessel occlusion criteria and transfer needs for thrombectomy",
+                "recent bleeding history before thrombolysis",
+            ],
+        }
+    ]
+    case = ClinicalCase(**case_payload)
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "educational_safety_confirmed": True,
+            "review_notes": (
+                "Trying to approve stroke reperfusion without threshold safety review."
+            ),
+        },
+    )
+
+    assert response.status_code == 409
+    assert "case quality gate" in response.json()["detail"]
+    assert "stroke reperfusion safety checks" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.review_status == case_payload["review_status"]
+    assert case.reviewed_by_user_id is None
+
+
 async def test_clinical_review_rejects_placeholder_source_url(
     client: AsyncClient,
     db: AsyncSession,

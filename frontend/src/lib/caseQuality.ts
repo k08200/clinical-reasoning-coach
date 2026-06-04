@@ -378,6 +378,100 @@ const DKA_OSMOLAR_SAFETY_TERMS = [
   "수액",
 ];
 
+const STROKE_CONTEXT_TERMS = [
+  "acute ischemic stroke",
+  "brain attack",
+  "cerebrovascular accident",
+  "ischemic stroke",
+  "large vessel occlusion",
+  "nihss",
+  "stroke",
+  "stroke pathway",
+  "뇌경색",
+  "뇌졸중",
+];
+
+const STROKE_REPERFUSION_TRIGGER_TERMS = [
+  "alteplase",
+  "last known normal",
+  "last known well",
+  "lkn",
+  "lkw",
+  "reperfusion",
+  "thrombectomy",
+  "thrombolysis",
+  "thrombolytic",
+  "tpa",
+  "혈전용해",
+  "혈전제거",
+  "재관류",
+];
+
+const STROKE_LAST_KNOWN_NORMAL_TERMS = [
+  "last known normal",
+  "last known well",
+  "lkn",
+  "lkw",
+  "symptom onset",
+  "최종 정상",
+  "마지막 정상",
+];
+
+const STROKE_BRAIN_IMAGING_TERMS = [
+  "brain imaging",
+  "ct",
+  "head ct",
+  "mri",
+  "neuroimaging",
+  "noncontrast",
+  "non-contrast",
+  "뇌영상",
+  "비조영",
+];
+
+const STROKE_REPERFUSION_ACTION_TERMS = [
+  "alteplase",
+  "eligibility",
+  "reperfusion",
+  "thrombectomy",
+  "thrombolysis",
+  "tpa",
+  "혈전용해",
+  "혈전제거",
+  "재관류",
+];
+
+const STROKE_HEMORRHAGE_EXCLUSION_TERMS = [
+  "bleeding",
+  "ct",
+  "haemorrhage",
+  "hemorrhage",
+  "imaging",
+  "intracranial hemorrhage",
+  "noncontrast",
+  "non-contrast",
+  "출혈",
+  "두개내출혈",
+  "비조영",
+];
+
+const STROKE_ANTICOAGULANT_SAFETY_TERMS = [
+  "anticoagulant",
+  "anticoagulation",
+  "apixaban",
+  "bleeding history",
+  "doac",
+  "inr",
+  "warfarin",
+  "항응고",
+];
+
+const STROKE_PLATELET_TERMS = ["platelet", "platelets", "혈소판"];
+
+const STROKE_GLUCOSE_TERMS = ["glucose", "hypoglycemia", "혈당"];
+
+const STROKE_BP_TERMS = ["blood pressure", "bp", "hypertension", "혈압"];
+
 type SourceAnchoredSafetyField =
   | "clinical_red_flags"
   | "time_critical_actions"
@@ -639,6 +733,67 @@ function hasDkaContraindicationSafetyCheck(checks: string[]): boolean {
   return hasPotassiumSafety && hasOsmolarSafety;
 }
 
+function requiresStrokeReperfusionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasStrokeContext = STROKE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasReperfusionContext = STROKE_REPERFUSION_TRIGGER_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasStrokeContext && hasReperfusionContext;
+}
+
+function hasStrokeTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasLastKnownNormal = STROKE_LAST_KNOWN_NORMAL_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBrainImaging = STROKE_BRAIN_IMAGING_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasReperfusionPlanning = STROKE_REPERFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasLastKnownNormal && hasBrainImaging && hasReperfusionPlanning;
+}
+
+function hasStrokeContraindicationSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasHemorrhageExclusion = STROKE_HEMORRHAGE_EXCLUSION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAnticoagulantStatus = STROKE_ANTICOAGULANT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPlateletThreshold = STROKE_PLATELET_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasGlucoseThreshold = STROKE_GLUCOSE_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBpThreshold = STROKE_BP_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasHemorrhageExclusion &&
+    hasAnticoagulantStatus &&
+    hasPlateletThreshold &&
+    hasGlucoseThreshold &&
+    hasBpThreshold
+  );
+}
+
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
@@ -706,6 +861,18 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
     if (!hasDkaContraindicationSafetyCheck(detail.contraindication_checks)) {
       issues.push(
         "DKA safety checks must include potassium threshold and osmolar-shift or cerebral-edema risk before insulin therapy",
+      );
+    }
+  }
+  if (requiresStrokeReperfusionSafetyCheck(detail)) {
+    if (!hasStrokeTimeCriticalActions(detail.time_critical_actions)) {
+      issues.push(
+        "stroke time-critical actions must include last-known-normal timing, brain imaging, and reperfusion eligibility planning",
+      );
+    }
+    if (!hasStrokeContraindicationSafetyCheck(detail.contraindication_checks)) {
+      issues.push(
+        "stroke reperfusion safety checks must include hemorrhage exclusion, anticoagulant status, platelet count, glucose, and blood pressure thresholds",
       );
     }
   }

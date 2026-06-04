@@ -423,6 +423,103 @@ DKA_OSMOLAR_SAFETY_TERMS = (
     "삼투",
     "수액",
 )
+STROKE_CONTEXT_TERMS = (
+    "acute ischemic stroke",
+    "brain attack",
+    "cerebrovascular accident",
+    "ischemic stroke",
+    "large vessel occlusion",
+    "nihss",
+    "stroke",
+    "stroke pathway",
+    "뇌경색",
+    "뇌졸중",
+)
+STROKE_REPERFUSION_TRIGGER_TERMS = (
+    "alteplase",
+    "last known normal",
+    "last known well",
+    "lkn",
+    "lkw",
+    "reperfusion",
+    "thrombectomy",
+    "thrombolysis",
+    "thrombolytic",
+    "tpa",
+    "혈전용해",
+    "혈전제거",
+    "재관류",
+)
+STROKE_LAST_KNOWN_NORMAL_TERMS = (
+    "last known normal",
+    "last known well",
+    "lkn",
+    "lkw",
+    "symptom onset",
+    "최종 정상",
+    "마지막 정상",
+)
+STROKE_BRAIN_IMAGING_TERMS = (
+    "brain imaging",
+    "ct",
+    "head ct",
+    "mri",
+    "neuroimaging",
+    "noncontrast",
+    "non-contrast",
+    "뇌영상",
+    "비조영",
+)
+STROKE_REPERFUSION_ACTION_TERMS = (
+    "alteplase",
+    "eligibility",
+    "reperfusion",
+    "thrombectomy",
+    "thrombolysis",
+    "tpa",
+    "혈전용해",
+    "혈전제거",
+    "재관류",
+)
+STROKE_HEMORRHAGE_EXCLUSION_TERMS = (
+    "bleeding",
+    "ct",
+    "haemorrhage",
+    "hemorrhage",
+    "imaging",
+    "intracranial hemorrhage",
+    "noncontrast",
+    "non-contrast",
+    "출혈",
+    "두개내출혈",
+    "비조영",
+)
+STROKE_ANTICOAGULANT_SAFETY_TERMS = (
+    "anticoagulant",
+    "anticoagulation",
+    "apixaban",
+    "bleeding history",
+    "doac",
+    "inr",
+    "warfarin",
+    "항응고",
+)
+STROKE_PLATELET_TERMS = (
+    "platelet",
+    "platelets",
+    "혈소판",
+)
+STROKE_GLUCOSE_TERMS = (
+    "glucose",
+    "hypoglycemia",
+    "혈당",
+)
+STROKE_BP_TERMS = (
+    "blood pressure",
+    "bp",
+    "hypertension",
+    "혈압",
+)
 
 
 @dataclass
@@ -767,6 +864,15 @@ def _check_safety_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
             report.add_critical(
                 "DKA safety checks must include potassium threshold and osmolar-shift or cerebral-edema risk before insulin therapy"
             )
+    if _requires_stroke_reperfusion_safety_check(data):
+        if not _has_stroke_time_critical_actions(data.get("time_critical_actions") or []):
+            report.add_critical(
+                "stroke time-critical actions must include last-known-normal timing, brain imaging, and reperfusion eligibility planning"
+            )
+        if not _has_stroke_contraindication_safety_check(data.get("contraindication_checks") or []):
+            report.add_critical(
+                "stroke reperfusion safety checks must include hemorrhage exclusion, anticoagulant status, platelet count, glucose, and blood pressure thresholds"
+            )
 
 
 def _requires_pregnancy_safety_check(data: dict[str, Any]) -> bool:
@@ -948,6 +1054,82 @@ def _has_dka_contraindication_safety_check(checks: list[Any]) -> bool:
         for term in DKA_OSMOLAR_SAFETY_TERMS
     )
     return has_potassium_safety and has_osmolar_safety
+
+
+def _requires_stroke_reperfusion_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_stroke_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in STROKE_CONTEXT_TERMS
+    )
+    has_reperfusion_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in STROKE_REPERFUSION_TRIGGER_TERMS
+    )
+    return has_stroke_context and has_reperfusion_context
+
+
+def _has_stroke_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_last_known_normal = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in STROKE_LAST_KNOWN_NORMAL_TERMS
+    )
+    has_brain_imaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in STROKE_BRAIN_IMAGING_TERMS
+    )
+    has_reperfusion_planning = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in STROKE_REPERFUSION_ACTION_TERMS
+    )
+    return has_last_known_normal and has_brain_imaging and has_reperfusion_planning
+
+
+def _has_stroke_contraindication_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_hemorrhage_exclusion = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_HEMORRHAGE_EXCLUSION_TERMS
+    )
+    has_anticoagulant_status = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_ANTICOAGULANT_SAFETY_TERMS
+    )
+    has_platelet_threshold = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_PLATELET_TERMS
+    )
+    has_glucose_threshold = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_GLUCOSE_TERMS
+    )
+    has_bp_threshold = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_BP_TERMS
+    )
+    return (
+        has_hemorrhage_exclusion
+        and has_anticoagulant_status
+        and has_platelet_threshold
+        and has_glucose_threshold
+        and has_bp_threshold
+    )
 
 
 def _contains_safety_term(text: str, term: str) -> bool:

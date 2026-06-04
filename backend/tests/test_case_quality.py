@@ -438,6 +438,72 @@ def test_quality_gate_allows_dka_therapy_with_insulin_safety_checks():
     assert report.passed
 
 
+def test_quality_gate_requires_stroke_last_known_normal_and_imaging_actions():
+    case = copy.deepcopy(CASE_POOL[4])
+    case["time_critical_actions"] = [
+        "Activate stroke pathway immediately",
+        "Obtain noncontrast head CT to exclude hemorrhage without delaying treatment decision",
+        "Assess thrombolysis and thrombectomy eligibility in parallel",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "acute stroke diagnosis and severity assessment",
+        "sudden focal neurologic deficit and NIHSS severity assessment",
+        "potentially treatable stroke within thrombolysis window",
+        "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+        "activate stroke pathway immediately",
+        "noncontrast head CT to exclude hemorrhage before treatment decision",
+        "thrombolysis and thrombectomy eligibility in parallel",
+        "intracranial hemorrhage or early extensive ischemic change on imaging",
+        "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "large vessel occlusion criteria and transfer needs for thrombectomy",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "stroke time-critical actions must include last-known-normal timing" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_stroke_reperfusion_contraindication_checks():
+    case = copy.deepcopy(CASE_POOL[4])
+    case["contraindication_checks"] = [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Large vessel occlusion criteria and transfer needs for thrombectomy",
+        "Recent bleeding history before thrombolysis",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "last-known-normal based reperfusion eligibility",
+        "sudden focal neurologic deficit and NIHSS severity assessment",
+        "potentially treatable stroke within thrombolysis window from last known normal",
+        "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+        "noncontrast head CT to exclude hemorrhage before treatment decision",
+        "establish last known normal and activate stroke pathway immediately",
+        "assess thrombolysis and thrombectomy eligibility in parallel",
+        "intracranial hemorrhage or early extensive ischemic change on imaging",
+        "large vessel occlusion criteria and transfer needs for thrombectomy",
+        "recent bleeding history before thrombolysis",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "stroke reperfusion safety checks must include hemorrhage exclusion" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_allows_stroke_reperfusion_with_required_safety_checks():
+    case = copy.deepcopy(CASE_POOL[4])
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
 def test_quality_gate_rejects_non_numeric_blood_pressure():
     case = copy.deepcopy(CASE_POOL[0])
     case["physical_exam"]["vitals"]["bp"] = "normal"
