@@ -43,6 +43,23 @@ def test_detect_patient_identifiers_finds_exact_visit_dates():
     assert detected == ["full_date"]
 
 
+def test_detect_patient_identifiers_finds_exact_ages_over_89():
+    detected = detect_patient_identifiers(
+        "The seed says a 92-year-old patient and another patient age: 94. "
+        "한국어 예시는 만 93세 환자입니다."
+    )
+
+    assert detected == ["age_over_89"]
+
+
+def test_detect_patient_identifiers_allows_older_adult_age_bucket():
+    detected = detect_patient_identifiers(
+        "Use a 90 or older simulated patient, or 한국어로는 90세 이상 환자라고 표기합니다."
+    )
+
+    assert detected == []
+
+
 def test_detect_patient_identifiers_allows_deidentified_reasoning():
     detected = detect_patient_identifiers(
         "The simulated patient is a 58-year-old man with chest pressure, "

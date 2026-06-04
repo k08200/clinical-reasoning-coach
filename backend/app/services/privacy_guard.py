@@ -83,6 +83,25 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
         re.compile(r"\b\d{2,4}년\s*\d{1,2}월\s*\d{1,2}일\b"),
     ),
     IdentifierPattern(
+        "age_over_89",
+        re.compile(
+            r"\b(?:age|aged)\s*[:#-]?\s*(?:9[0-9]|1[0-2][0-9])\b"
+            r"(?!\s*(?:or older|years?\s+or\s+older))",
+            re.IGNORECASE,
+        ),
+    ),
+    IdentifierPattern(
+        "age_over_89",
+        re.compile(
+            r"\b(?:9[0-9]|1[0-2][0-9])[-\s]?(?:year[-\s]?old|yo)\b",
+            re.IGNORECASE,
+        ),
+    ),
+    IdentifierPattern(
+        "age_over_89",
+        re.compile(r"(?:만\s*)?(?:9[0-9]|1[0-2][0-9])\s*세(?!\s*이상)"),
+    ),
+    IdentifierPattern(
         "name_identifier",
         re.compile(
             r"\b(?:patient(?:'s)? name|name|called)\s+(?:is|:)?\s*[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}\b"
