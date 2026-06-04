@@ -1116,6 +1116,14 @@ def _assert_case_provenance_allows_learner_session(case: ClinicalCase) -> None:
                 "confirms clinical accuracy, source alignment, and educational safety."
             ),
         )
+    if source_provenance["source_diversity_insufficient"]:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Clinician-reviewed cases require at least 2 independent clinical "
+                "source organizations before learner sessions can start."
+            ),
+        )
 
 
 def _assert_case_quality_for_learner_session(case: ClinicalCase) -> None:

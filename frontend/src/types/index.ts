@@ -28,6 +28,7 @@ export interface ClinicalSourceProvenance {
   review_date_invalid: boolean;
   review_audit_missing?: boolean;
   review_audit_incomplete?: boolean;
+  source_diversity_insufficient?: boolean;
   review_content_changed: boolean;
 }
 

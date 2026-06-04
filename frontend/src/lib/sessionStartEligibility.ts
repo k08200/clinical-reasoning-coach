@@ -82,6 +82,17 @@ export function evaluateSessionStartEligibility(
     };
   }
 
+  if (provenance.source_diversity_insufficient) {
+    return {
+      blocked: true,
+      requiresAcknowledgement: false,
+      buttonLabel: "Source Review Required",
+      cautionText: "Independent clinical source review required.",
+      acknowledgementText:
+        "Clinician-reviewed cases require at least 2 independent clinical source organizations before learner sessions can start.",
+    };
+  }
+
   if (provenance.review_status !== "clinician_reviewed" || provenance.requires_caution) {
     return {
       blocked: true,

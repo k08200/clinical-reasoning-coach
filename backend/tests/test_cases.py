@@ -613,6 +613,59 @@ async def test_future_clinician_review_provenance_requires_caution(
     assert provenance["review_valid_until"] is None
 
 
+async def test_insufficient_source_diversity_provenance_requires_caution(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    auth_headers = await _register_and_login(client)
+    case_payload = copy.deepcopy(CASE_POOL[0])
+    case_payload["review_status"] = "clinician_reviewed"
+    case_payload["last_reviewed_at"] = date.today().isoformat()
+    case_payload["clinical_sources"] = [
+        {
+            **case_payload["clinical_sources"][0],
+            "organization": "Same Clinical Society",
+        },
+        {
+            **case_payload["clinical_sources"][1],
+            "organization": "Same Clinical Society",
+        },
+    ]
+    case = ClinicalCase(**case_payload)
+    db.add(case)
+    await db.flush()
+    db.add(ClinicalCaseReview(
+        case_id=case.id,
+        reviewer_user_id=uuid.uuid4(),
+        prior_review_status="educational_draft",
+        resulting_review_status="clinician_reviewed",
+        confirmations={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "educational_safety_confirmed": True,
+        },
+        source_snapshot={
+            "case_content_fingerprint": clinical_case_content_fingerprint(case),
+            "alignment_checklist": SOURCE_ALIGNMENT_CHECKS,
+        },
+        review_notes="Sources, safety checks, and educational simulation limits reviewed.",
+    ))
+    await db.commit()
+    await db.refresh(case)
+
+    response = await client.get(f"/api/cases/{case.id}", headers=auth_headers)
+
+    assert response.status_code == 200
+    provenance = response.json()["source_provenance"]
+    assert provenance["review_status"] == "clinician_reviewed"
+    assert provenance["review_label"] == "Clinician review source diversity insufficient"
+    assert provenance["requires_caution"] is True
+    assert provenance["organizations"] == ["Same Clinical Society"]
+    assert provenance["source_diversity_insufficient"] is True
+    assert provenance["review_audit_missing"] is False
+    assert provenance["review_audit_incomplete"] is False
+
+
 async def test_missing_clinician_review_audit_provenance_requires_caution(
     client: AsyncClient,
     db: AsyncSession,

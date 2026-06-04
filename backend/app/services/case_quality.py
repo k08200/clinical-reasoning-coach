@@ -12,11 +12,11 @@ from datetime import date
 from typing import Any, Callable
 from urllib.parse import urlparse
 
+from app.models.case import MIN_REVIEWED_SOURCE_ORGANIZATIONS
 from app.schemas.case import ClinicalCaseCreate
 from app.services.privacy_guard import detect_patient_identifiers
 
 MIN_PASSING_SCORE = 85
-MIN_REVIEWED_SOURCE_ORGANIZATIONS = 2
 ALLOWED_REVIEW_STATUSES = {
     "ai_generated_unreviewed",
     "educational_draft",

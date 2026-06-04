@@ -12,6 +12,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from app.database import Base
 
 CLINICAL_REVIEW_VALID_DAYS = 365
+MIN_REVIEWED_SOURCE_ORGANIZATIONS = 2
 CLINICAL_REVIEW_CONTENT_FIELDS = (
     "title",
     "specialty",
@@ -194,6 +195,10 @@ class ClinicalCase(Base):
             and latest_review is not None
             and not _review_audit_confirms_required_items(latest_review)
         )
+        source_diversity_insufficient = (
+            self.review_status == "clinician_reviewed"
+            and len(organizations) < MIN_REVIEWED_SOURCE_ORGANIZATIONS
+        )
         review_content_changed = (
             self.review_status == "clinician_reviewed"
             and bool(review_fingerprint)
@@ -204,6 +209,9 @@ class ClinicalCase(Base):
             requires_caution = True
         if review_audit_incomplete:
             review_label = "Clinician review audit incomplete"
+            requires_caution = True
+        if source_diversity_insufficient:
+            review_label = "Clinician review source diversity insufficient"
             requires_caution = True
         if review_stale:
             review_label = "Clinician review stale"
@@ -227,5 +235,6 @@ class ClinicalCase(Base):
             "review_date_invalid": review_date_invalid,
             "review_audit_missing": review_audit_missing,
             "review_audit_incomplete": review_audit_incomplete,
+            "source_diversity_insufficient": source_diversity_insufficient,
             "review_content_changed": review_content_changed,
         }

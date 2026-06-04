@@ -453,6 +453,48 @@ async def test_create_session_blocks_case_without_clinical_sources(
 
 
 @pytest.mark.asyncio
+async def test_create_session_blocks_reviewed_case_without_independent_sources(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"source-diversity-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Source Diversity Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    for source in case.clinical_sources:
+        source["organization"] = "Same Clinical Society"
+    _refresh_review_fingerprint_for_test(case)
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert "at least 2 independent clinical source organizations" in (
+        response.json()["detail"]
+    )
+    await db.refresh(case)
+    assert case.times_used == 0
+
+
+@pytest.mark.asyncio
 async def test_create_session_blocks_case_failing_quality_gate(
     client: AsyncClient,
     db: AsyncSession,
@@ -466,7 +508,13 @@ async def test_create_session_blocks_case_failing_quality_gate(
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
     case = _make_case(review_status="clinician_reviewed")
-    case.clinical_sources[0]["url"] = "https://wellness-blog.com/chest-pain"
+    case.clinical_sources = [
+        {
+            **case.clinical_sources[0],
+            "url": "https://wellness-blog.com/chest-pain",
+        },
+        case.clinical_sources[1],
+    ]
     _refresh_review_fingerprint_for_test(case)
     db.add_all([user, case])
     await db.commit()
@@ -903,7 +951,8 @@ async def test_stream_response_blocks_if_case_quality_fails_after_session_start(
         {
             **case.clinical_sources[0],
             "url": "https://wellness-blog.com/chest-pain",
-        }
+        },
+        case.clinical_sources[1],
     ]
     _refresh_review_fingerprint_for_test(case)
     session.review_snapshot = _session_review_snapshot_for_case(case)
@@ -2660,7 +2709,8 @@ async def test_complete_session_blocks_if_case_quality_fails_after_session_start
         {
             **case.clinical_sources[0],
             "url": "https://wellness-blog.com/chest-pain",
-        }
+        },
+        case.clinical_sources[1],
     ]
     _refresh_review_fingerprint_for_test(case)
     session.review_snapshot = _session_review_snapshot_for_case(case)

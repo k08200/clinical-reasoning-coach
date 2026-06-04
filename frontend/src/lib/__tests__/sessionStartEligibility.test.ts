@@ -151,4 +151,32 @@ describe("evaluateSessionStartEligibility", () => {
       expect(eligibility.acknowledgementText).toContain("blocked until clinician re-review");
     },
   );
+
+  it("blocks clinician-reviewed cases without independent source organizations", () => {
+    const eligibility = evaluateSessionStartEligibility(makeCase({
+      source_provenance: {
+        source_count: 2,
+        organizations: ["Same Clinical Society"],
+        review_status: "clinician_reviewed",
+        review_label: "Clinician review source diversity insufficient",
+        requires_caution: true,
+        last_reviewed_at: "2026-06-01",
+        review_valid_until: "2027-06-01",
+        review_stale: false,
+        review_date_invalid: false,
+        review_content_changed: false,
+        source_diversity_insufficient: true,
+      },
+    }));
+
+    expect(eligibility.blocked).toBe(true);
+    expect(eligibility.requiresAcknowledgement).toBe(false);
+    expect(eligibility.buttonLabel).toBe("Source Review Required");
+    expect(eligibility.cautionText).toBe(
+      "Independent clinical source review required.",
+    );
+    expect(eligibility.acknowledgementText).toContain(
+      "at least 2 independent clinical source organizations",
+    );
+  });
 });

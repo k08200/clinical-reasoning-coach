@@ -81,6 +81,7 @@ class ClinicalSourceProvenance(BaseModel):
     review_date_invalid: bool = False
     review_audit_missing: bool = False
     review_audit_incomplete: bool = False
+    source_diversity_insufficient: bool = False
     review_content_changed: bool = False
 
 
