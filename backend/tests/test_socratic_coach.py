@@ -123,6 +123,8 @@ def test_socratic_system_prompt_contains_rules():
     assert "respond with questions" in SOCRATIC_SYSTEM
     assert "real patient" in SOCRATIC_SYSTEM
     assert "emergency services" in SOCRATIC_SYSTEM
+    assert "source URLs" in SOCRATIC_SYSTEM
+    assert "internal audit notes" in SOCRATIC_SYSTEM
     assert "diagnosis" in SOCRATIC_SYSTEM.lower()
 
 
@@ -400,6 +402,24 @@ def test_coach_response_guardrail_blocks_common_diagnosis_acronyms():
     )
 
 
+def test_coach_response_guardrail_blocks_source_anchor_leaks():
+    case = make_mock_case()
+
+    unsafe_responses = [
+        "According to the Chest pain guideline, what finding matters most?",
+        "You can review https://example.test/chest-pain for this case.",
+        "The source anchor is www.example.test/chest-pain.",
+    ]
+
+    for response in unsafe_responses:
+        assert not is_coach_response_safe(case, response), response
+
+    assert is_coach_response_safe(
+        case,
+        "What finding would most change your reasoning in this simulated case?",
+    )
+
+
 def test_coach_response_guardrail_blocks_direct_management_variants():
     case = make_mock_case()
 
@@ -563,6 +583,39 @@ async def test_stream_replaces_diagnosis_leak_with_safe_question(monkeypatch: py
     assert response_text == SAFE_GUARDRAIL_RESPONSE
     assert "STEMI" not in response_text
     assert "cath lab" not in response_text
+
+
+@pytest.mark.asyncio
+async def test_stream_replaces_source_anchor_leak_with_safe_question(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    class UnsafeProvider:
+        async def stream(self, **_kwargs):
+            yield StreamChunk(type="text_delta", content="According to the Chest pain guideline, ")
+            yield StreamChunk(type="text_delta", content="see https://example.test/chest-pain.")
+            yield StreamChunk(type="done")
+
+    monkeypatch.setattr(
+        "app.services.socratic_coach.get_provider",
+        lambda: UnsafeProvider(),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in stream_coach_response(
+            case=make_mock_case(),
+            conversation_history=[],
+            student_message="In this simulated case, I am building a differential.",
+            turn_number=1,
+        )
+    ]
+
+    response_text = "".join(chunk.content for chunk in chunks if chunk.type == "text_delta")
+    violation_text = ",".join(chunk.content for chunk in chunks if chunk.type == "safety_guardrail")
+    assert response_text == SAFE_GUARDRAIL_RESPONSE
+    assert "Chest pain guideline" not in response_text
+    assert "https://example.test/chest-pain" not in response_text
+    assert "source_anchor_leak" in violation_text
 
 
 @pytest.mark.asyncio

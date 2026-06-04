@@ -694,6 +694,27 @@ def _contains_premature_closure_directive(text: str) -> bool:
     )
 
 
+def _source_anchor_leak_terms(case: ClinicalCase) -> list[str]:
+    terms: set[str] = set()
+    for source in case.clinical_sources or []:
+        if not isinstance(source, dict):
+            continue
+        title = str(source.get("title") or "").strip().lower()
+        url = str(source.get("url") or "").strip().lower()
+        if len(title) >= 8:
+            terms.add(title)
+        if url:
+            terms.add(url)
+    return sorted(terms, key=len, reverse=True)
+
+
+def _contains_source_anchor_leak(case: ClinicalCase, text: str) -> bool:
+    normalized = _normalize_for_guardrail(text)
+    if re.search(r"https?://|www\.", normalized):
+        return True
+    return any(term in normalized for term in _source_anchor_leak_terms(case))
+
+
 def _contains_korean_direct_management_order(text: str) -> bool:
     if not HANGUL_PATTERN.search(text):
         return False
@@ -853,6 +874,8 @@ def coach_response_safety_violations(case: ClinicalCase, response_text: str) -> 
         violations.append("concrete_dosing_directive")
     if _contains_premature_closure_directive(response_text):
         violations.append("premature_closure_directive")
+    if _contains_source_anchor_leak(case, response_text):
+        violations.append("source_anchor_leak")
     return violations
 
 
@@ -871,6 +894,7 @@ ABSOLUTE RULES (NEVER BREAK THESE):
    directives
 5. If a student directly asks "what is the diagnosis?", redirect with a question
 6. If the student indicates this involves a real patient, urgent deterioration, or an emergency, briefly state that this is educational only, tell them to follow local emergency protocols and contact a supervising clinician or emergency services immediately, and do not delay real care
+7. NEVER cite, quote, link, name, or reveal hidden clinical source anchors, source URLs, guideline titles, review metadata, or internal audit notes during the simulation
 
 YOUR COACHING APPROACH:
 - Guide through systematic clinical reasoning: History → Physical Exam → Labs/Imaging → Differentials → Risk stratification → Management
