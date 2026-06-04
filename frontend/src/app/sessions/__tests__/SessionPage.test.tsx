@@ -649,6 +649,64 @@ describe("SessionPage", () => {
     expect(mockStreamMessage).not.toHaveBeenCalled();
   });
 
+  it("shows active safety event context as read-only for reviewers", () => {
+    vi.mocked(useSWR).mockImplementation((key) => {
+      if (key === "/api/auth/me") {
+        return {
+          data: {
+            id: "reviewer-1",
+            email: "reviewer@test.com",
+            full_name: "Dr Reviewer",
+            training_level: "fellow",
+            role: "clinician_reviewer",
+            accepted_educational_use: true,
+            accepted_educational_use_at: "2026-06-01T00:00:00Z",
+          },
+        } as unknown as ReturnType<typeof useSWR>;
+      }
+      if (key === "/api/sessions/session-1") {
+        return {
+          data: makeSession({
+            user_id: "learner-1",
+            status: "active",
+            messages: [
+              {
+                id: "m1",
+                role: "coach",
+                content: "Opening case",
+                reasoning_score: null,
+                biases_detected: [],
+                created_at: "2026-05-20T00:00:00Z",
+              },
+              {
+                id: "m2",
+                role: "student",
+                content: "I would give heparin now.",
+                reasoning_score: 66,
+                biases_detected: [],
+                created_at: "2026-05-20T00:01:00Z",
+              },
+            ],
+          }),
+          mutate: mockMutate,
+        } as unknown as ReturnType<typeof useSWR>;
+      }
+      return { data: undefined } as ReturnType<typeof useSWR>;
+    });
+
+    render(<SessionPage />);
+
+    expect(screen.getByText("Safety review read-only context")).toBeTruthy();
+    expect(screen.getByText(/Message entry and session completion remain limited/)).toBeTruthy();
+    expect(
+      screen.getByText("Message entry is disabled in read-only safety review context."),
+    ).toBeTruthy();
+    expect(screen.getByText("I would give heparin now.")).toBeTruthy();
+    expect(screen.queryByPlaceholderText(/Share your clinical reasoning/)).toBeFalsy();
+    expect(screen.queryByRole("button", { name: "Finish Session" })).toBeFalsy();
+    expect(mockStreamMessage).not.toHaveBeenCalled();
+  });
+
   it("shows the completed learning review with sources", () => {
     vi.mocked(useSWR).mockImplementation((key) => {
       if (key === "/api/sessions/session-1/review") {

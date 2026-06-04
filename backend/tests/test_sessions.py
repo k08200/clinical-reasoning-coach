@@ -1742,7 +1742,7 @@ async def test_reviewer_can_read_safety_locked_session_with_safety_event(
 
 
 @pytest.mark.asyncio
-async def test_reviewer_cannot_read_active_session_without_safety_lock(
+async def test_reviewer_can_read_active_session_with_safety_event_context(
     client: AsyncClient,
     db: AsyncSession,
 ):
@@ -1775,15 +1775,82 @@ async def test_reviewer_cannot_read_active_session_without_safety_lock(
     )
     db.add(session)
     await db.flush()
-    db.add(SafetyEvent(
-        session_id=session.id,
+    db.add_all([
+        Message(
+            session_id=session.id,
+            role="coach",
+            content="Opening case",
+        ),
+        Message(
+            session_id=session.id,
+            role="student",
+            content="I would give heparin now before checking contraindications.",
+            reasoning_score=65,
+        ),
+        SafetyEvent(
+            session_id=session.id,
+            user_id=learner.id,
+            event_type="management_before_safety_checks",
+            severity="medium",
+            action_taken="coach_redirected_to_safety_checks",
+            detected_terms=["heparin"],
+            message_turn=1,
+            note="Active learner session needs reviewer context.",
+        ),
+    ])
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.get(f"/api/sessions/{session.id}", headers=auth_headers)
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["id"] == str(session.id)
+    assert payload["status"] == "active"
+    assert [message["role"] for message in payload["messages"]] == ["coach", "student"]
+    assert "heparin now" in payload["messages"][1]["content"]
+
+
+@pytest.mark.asyncio
+async def test_reviewer_cannot_read_active_session_without_safety_event(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner = User(
+        email=f"active-private-learner-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Active Private Learner",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    reviewer = User(
+        email=f"active-private-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Active Private Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([learner, reviewer, case])
+    await db.flush()
+    session = CoachingSession(
         user_id=learner.id,
-        event_type="management_before_safety_checks",
-        severity="medium",
-        action_taken="coach_redirected_to_safety_checks",
-        detected_terms=["heparin"],
-        message_turn=1,
-        note="Active learner session remains learner-owned.",
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="Opening case",
     ))
     await db.commit()
     auth_headers = {

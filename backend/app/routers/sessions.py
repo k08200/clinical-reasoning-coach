@@ -915,14 +915,11 @@ def _messages_with_current_turn(
     return list(messages_by_id.values())
 
 
-async def _can_reviewer_read_safety_locked_session(
+async def _can_reviewer_read_safety_event_session_context(
     session: CoachingSession,
     user_id: str,
     db: AsyncSession,
 ) -> bool:
-    if session.status != SAFETY_LOCKED_SESSION_STATUS:
-        return False
-
     user = await db.get(User, uuid.UUID(user_id))
     if not user or user.role not in {"clinician_reviewer", "admin"}:
         return False
@@ -1177,7 +1174,7 @@ async def get_session(
     session = await db.get(CoachingSession, session_id)
     if not session:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
-    if str(session.user_id) != user_id and not await _can_reviewer_read_safety_locked_session(
+    if str(session.user_id) != user_id and not await _can_reviewer_read_safety_event_session_context(
         session,
         user_id,
         db,

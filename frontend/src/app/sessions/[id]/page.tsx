@@ -6,7 +6,7 @@ import useSWR from "swr";
 import { api } from "@/lib/api";
 import { streamMessage } from "@/lib/streaming";
 import { useRequireAuth } from "@/lib/useAuthGate";
-import type { CoachingSession, Message, SessionReview, TokenUsage } from "@/types";
+import type { CoachingSession, Message, SessionReview, TokenUsage, User } from "@/types";
 import TokenCounter from "@/components/TokenCounter";
 import ReasoningMap from "@/components/ReasoningMap";
 import ChatMessage from "@/components/ChatMessage";
@@ -247,11 +247,27 @@ function isCaseAccessBlockMessage(message: string): boolean {
   );
 }
 
+function isUser(value: unknown): value is User {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "id" in value &&
+    typeof value.id === "string" &&
+    "role" in value &&
+    typeof value.role === "string"
+  );
+}
+
 export default function SessionPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const checkingAuth = useRequireAuth();
 
+  const { data: currentUser, error: currentUserError } = useSWR<User>(
+    !checkingAuth ? "/api/auth/me" : null,
+    () => api.auth.me() as Promise<User>,
+    { refreshInterval: 0 },
+  );
   const { data: session, error: sessionError, mutate } = useSWR<CoachingSession>(
     id && !checkingAuth ? `/api/sessions/${id}` : null,
     () => api.sessions.get(id) as Promise<CoachingSession>,
@@ -452,7 +468,7 @@ export default function SessionPage() {
     .filter((m) => m.biases_detected.length > 0)
     .slice(-1)[0]?.biases_detected ?? [];
 
-  if (checkingAuth || (!session && !sessionError)) {
+  if (checkingAuth || (!session && !sessionError) || (!currentUser && !currentUserError)) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full" />
@@ -472,7 +488,10 @@ export default function SessionPage() {
 
   const isCompleted = session.status === "completed";
   const isSafetyLocked = session.status === "safety_locked";
-  const isInteractive = session.status === "active";
+  const hasCurrentUser = isUser(currentUser);
+  const isSessionOwner = !hasCurrentUser || currentUser.id === session.user_id;
+  const isReadOnlySessionContext = session.status === "active" && !isSessionOwner;
+  const isInteractive = session.status === "active" && isSessionOwner;
   const trimmedInputLength = input.trim().length;
   const inputTooLong = trimmedInputLength > MAX_STUDENT_MESSAGE_LENGTH;
   const analyzedLearnerTurnCount = session.messages.filter(
@@ -833,6 +852,16 @@ export default function SessionPage() {
                 Coaching is stopped because the session included a possible real-patient,
                 emergency, or patient-identifier signal. Do not continue this scenario here;
                 follow local clinical or privacy protocols and contact the appropriate supervisor.
+              </p>
+            </div>
+          )}
+
+          {isReadOnlySessionContext && (
+            <div className="mx-4 mt-4 rounded-lg border border-sky-800 bg-sky-950/35 px-4 py-3 text-sm leading-relaxed text-sky-100">
+              <p className="font-semibold">Safety review read-only context</p>
+              <p className="mt-1 text-sky-200">
+                This transcript is available for safety event review. Message entry and session
+                completion remain limited to the learner who owns the simulation.
               </p>
             </div>
           )}
@@ -1269,6 +1298,12 @@ export default function SessionPage() {
           {isSafetyLocked && (
             <div className="border-t border-red-900 bg-red-950/40 px-4 py-4 text-sm text-red-100">
               Message entry is disabled for this locked session.
+            </div>
+          )}
+
+          {isReadOnlySessionContext && (
+            <div className="border-t border-sky-900 bg-sky-950/30 px-4 py-4 text-sm text-sky-100">
+              Message entry is disabled in read-only safety review context.
             </div>
           )}
 

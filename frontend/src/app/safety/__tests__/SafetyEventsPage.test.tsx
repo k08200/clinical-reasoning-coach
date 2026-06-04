@@ -173,6 +173,10 @@ describe("SafetyEventsPage", () => {
     expect(screen.getAllByText("Session safety locked").length).toBe(2);
     expect(screen.getByText("Session active")).toBeTruthy();
     expect(screen.getAllByRole("link", { name: "Open locked session context" })).toHaveLength(2);
+    expect(screen.getByRole("link", { name: "Open session context" })).toHaveAttribute(
+      "href",
+      "/sessions/55555555-5555-5555-5555-555555555555",
+    );
     expect(screen.getAllByRole("link", { name: "Open case review" })).toHaveLength(3);
     expect(screen.getAllByRole("link", { name: "Open locked session context" })[0]).toHaveAttribute(
       "href",
