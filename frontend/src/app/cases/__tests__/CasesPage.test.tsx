@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ClinicalCase } from "@/types";
+import type { ClinicalCase, User } from "@/types";
 
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -38,6 +38,16 @@ vi.mock("@/lib/useAuthGate", () => ({
 import CasesPage from "@/app/cases/page";
 
 const mockMutate = vi.fn();
+
+const reviewer: User = {
+  id: "reviewer-1",
+  email: "reviewer@test.com",
+  full_name: "Dr Reviewer",
+  training_level: "fellow",
+  role: "clinician_reviewer",
+  accepted_educational_use: true,
+  accepted_educational_use_at: "2026-06-01T00:00:00Z",
+};
 
 const makeCase = (overrides: Partial<ClinicalCase> = {}): ClinicalCase => ({
   id: "case-1",
@@ -263,6 +273,50 @@ describe("CasesPage", () => {
     const startButton = screen.getByRole("button", { name: "Source Review Required" });
     expect(startButton).toHaveProperty("disabled", true);
     expect(mockCreateSession).not.toHaveBeenCalled();
+  });
+
+  it("shows source diversity status and reviewer shortcut for cases needing review", () => {
+    vi.mocked(useSWR).mockImplementation((key: unknown) => {
+      if (key === "/api/auth/me") {
+        return {
+          data: reviewer,
+          error: undefined,
+          mutate: vi.fn(),
+        } as unknown as ReturnType<typeof useSWR>;
+      }
+      return {
+        data: [
+          makeCase({
+            source_provenance: {
+              source_count: 2,
+              organizations: ["Same Clinical Society"],
+              review_status: "clinician_reviewed",
+              review_label: "Clinician review source diversity insufficient",
+              requires_caution: true,
+              last_reviewed_at: "2026-06-02",
+              review_valid_until: "2027-06-02",
+              review_stale: false,
+              review_date_invalid: false,
+              source_diversity_insufficient: true,
+              review_content_changed: false,
+            },
+          }),
+        ],
+        error: undefined,
+        mutate: mockMutate,
+      } as unknown as ReturnType<typeof useSWR>;
+    });
+
+    render(<CasesPage />);
+
+    expect(screen.getByText("Independent source organizations")).toBeTruthy();
+    expect(screen.getByText("1/2")).toBeTruthy();
+    expect(
+      screen.getByText("Review needs at least 2 independent clinical source organizations."),
+    ).toBeTruthy();
+    const reviewLink = screen.getByRole("link", { name: "Review" });
+    expect(reviewLink.getAttribute("href")).toBe("/review?case=case-1");
+    expect(screen.getByRole("button", { name: "Source Review Required" })).toBeDisabled();
   });
 
   it("blocks starting a stale reviewed case until re-review", () => {

@@ -22,6 +22,7 @@ const SPECIALTIES = [
 ];
 
 const MAX_SEED_SCENARIO_LENGTH = 2000;
+const MIN_REVIEWED_SOURCE_ORGANIZATIONS = 2;
 
 const DIFFICULTY_COLORS = {
   easy: "text-green-400 bg-green-900/30",
@@ -37,6 +38,19 @@ type SeedScenarioSafetyDetail = {
 
 function formatAge(age: number | string): string {
   return typeof age === "number" ? `${age}yo` : age;
+}
+
+function uniqueSourceOrganizations(organizations: string[]): string[] {
+  const seen = new Set<string>();
+  return organizations.reduce<string[]>((uniqueOrganizations, organization) => {
+    const normalized = organization.trim().toLowerCase();
+    if (!normalized || seen.has(normalized)) {
+      return uniqueOrganizations;
+    }
+    seen.add(normalized);
+    uniqueOrganizations.push(organization.trim());
+    return uniqueOrganizations;
+  }, []);
 }
 
 function errorDetail(error: unknown): unknown {
@@ -388,6 +402,12 @@ export default function CasesPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {caseList.map((c) => {
               const startEligibility = evaluateSessionStartEligibility(c);
+              const independentOrganizations = uniqueSourceOrganizations(
+                c.source_provenance.organizations,
+              );
+              const sourceDiversityReady =
+                independentOrganizations.length >= MIN_REVIEWED_SOURCE_ORGANIZATIONS;
+              const needsClinicalReview = c.source_provenance.requires_caution;
               return (
                 <div
                   key={c.id}
@@ -441,6 +461,25 @@ export default function CasesPage() {
                         {c.source_provenance.organizations.join(", ")}
                       </p>
                     )}
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-700 pt-2">
+                      <span className="text-xs text-slate-400">
+                        Independent source organizations
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          sourceDiversityReady
+                            ? "bg-emerald-950/50 text-emerald-300"
+                            : "bg-amber-950/50 text-amber-300"
+                        }`}
+                      >
+                        {independentOrganizations.length}/{MIN_REVIEWED_SOURCE_ORGANIZATIONS}
+                      </span>
+                    </div>
+                    {!sourceDiversityReady && (
+                      <p className="mt-2 text-xs text-amber-300">
+                        Review needs at least 2 independent clinical source organizations.
+                      </p>
+                    )}
                     {c.source_provenance.last_reviewed_at && (
                       <p className="mt-1 text-xs text-slate-500">
                         Reviewed {c.source_provenance.last_reviewed_at}
@@ -474,15 +513,25 @@ export default function CasesPage() {
 
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-slate-500">{c.times_used} sessions</span>
-                    <button
-                      onClick={() => handleStartSession(c)}
-                      disabled={startingSession === c.id || startEligibility.blocked}
-                      className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm rounded-lg font-medium transition-colors"
-                    >
-                      {startingSession === c.id
-                          ? "Starting..."
-                          : startEligibility.buttonLabel}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {canReview && needsClinicalReview && (
+                        <Link
+                          href={`/review?case=${c.id}`}
+                          className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-700"
+                        >
+                          Review
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => handleStartSession(c)}
+                        disabled={startingSession === c.id || startEligibility.blocked}
+                        className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm rounded-lg font-medium transition-colors"
+                      >
+                        {startingSession === c.id
+                            ? "Starting..."
+                            : startEligibility.buttonLabel}
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
