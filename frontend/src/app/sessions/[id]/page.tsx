@@ -741,10 +741,15 @@ export default function SessionPage() {
               <div className="max-w-4xl mx-auto">
                 <p className="text-slate-300 font-semibold mb-1">Session Complete</p>
                 <p className="text-slate-400 text-sm mb-2">
-                  Final reasoning score:{" "}
+                  Simulation reasoning score:{" "}
                   <strong className="text-brand-400">
                     {session.final_reasoning_score?.toFixed(0) ?? "N/A"}/100
                   </strong>
+                </p>
+                <p className="mb-2 text-xs leading-relaxed text-amber-200">
+                  This score reflects performance in this simulated educational case only. It is
+                  not a certification of clinical competence, independent practice readiness, or
+                  safe care for real patients.
                 </p>
                 <p className="text-slate-500 text-xs">
                   Top biases:{" "}

@@ -723,6 +723,9 @@ describe("SessionPage", () => {
 
     render(<SessionPage />);
 
+    expect(screen.getByText(/Simulation reasoning score/)).toBeTruthy();
+    expect(screen.getByText(/not a certification of clinical competence/)).toBeTruthy();
+    expect(screen.getByText(/safe care for real patients/)).toBeTruthy();
     expect(screen.getByText("Simulation Review Notice")).toBeTruthy();
     expect(screen.getByText(/simulated clinical reasoning practice only/)).toBeTruthy();
     expect(screen.getByText("Clinical Case Review Warning")).toBeTruthy();
