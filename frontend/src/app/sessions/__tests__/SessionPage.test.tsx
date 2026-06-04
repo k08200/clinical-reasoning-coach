@@ -477,6 +477,10 @@ describe("SessionPage", () => {
           data: {
             session_id: "session-1",
             case_id: "case-1",
+            educational_notice:
+              "This learning review is for simulated clinical reasoning practice only. It is not patient care, medical advice, or a substitute for local clinical protocols, supervision, emergency services, or clinician judgment.",
+            diagnosis_notice:
+              "The diagnosis is revealed only after simulation completion for education. Do not apply it to real patients without appropriate clinical evaluation.",
             diagnosis: "Acute coronary syndrome",
             score_breakdown: {
               systematic_approach: 21,
@@ -568,7 +572,11 @@ describe("SessionPage", () => {
 
     render(<SessionPage />);
 
+    expect(screen.getByText("Simulation Review Notice")).toBeTruthy();
+    expect(screen.getByText(/simulated clinical reasoning practice only/)).toBeTruthy();
+    expect(screen.getByText("Final Diagnosis (Simulation)")).toBeTruthy();
     expect(screen.getByText("Acute coronary syndrome")).toBeTruthy();
+    expect(screen.getByText(/revealed only after simulation completion/)).toBeTruthy();
     expect(screen.getByText("Reasoning Breakdown")).toBeTruthy();
     expect(screen.getByText("systematic approach")).toBeTruthy();
     expect(screen.getByText(/Prioritized dangerous diagnoses/)).toBeTruthy();

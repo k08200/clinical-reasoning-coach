@@ -64,6 +64,15 @@ STREAM_SAFE_ERROR_MESSAGE = (
     "Coaching is temporarily unavailable. Please try again with this simulated "
     "case in a moment."
 )
+SESSION_REVIEW_EDUCATIONAL_NOTICE = (
+    "This learning review is for simulated clinical reasoning practice only. "
+    "It is not patient care, medical advice, or a substitute for local clinical "
+    "protocols, supervision, emergency services, or clinician judgment."
+)
+SESSION_REVIEW_DIAGNOSIS_NOTICE = (
+    "The diagnosis is revealed only after simulation completion for education. "
+    "Do not apply it to real patients without appropriate clinical evaluation."
+)
 MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION = 2
 MIN_REASONING_SCORE_FOR_COMPLETION = 60.0
 MIN_REASONING_DIMENSION_SCORE_FOR_COMPLETION = 12.0
@@ -876,6 +885,8 @@ async def get_session_review(
     return SessionReviewResponse(
         session_id=session.id,
         case_id=case.id,
+        educational_notice=SESSION_REVIEW_EDUCATIONAL_NOTICE,
+        diagnosis_notice=SESSION_REVIEW_DIAGNOSIS_NOTICE,
         diagnosis=case.diagnosis,
         score_breakdown=feedback["score_breakdown"],
         strengths=feedback["strengths"],

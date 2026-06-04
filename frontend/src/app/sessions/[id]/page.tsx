@@ -637,9 +637,19 @@ export default function SessionPage() {
                 )}
                 {review && (
                   <div className="mt-4 grid gap-4 text-left lg:grid-cols-3">
+                    <section className="rounded-lg border border-amber-700/60 bg-amber-950/20 p-3 lg:col-span-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">
+                        Simulation Review Notice
+                      </p>
+                      <p className="mt-2 text-sm text-amber-100">{review.educational_notice}</p>
+                    </section>
+
                     <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-3">
-                      <p className="text-xs uppercase tracking-wide text-slate-500">Final Diagnosis</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-500">
+                        Final Diagnosis (Simulation)
+                      </p>
                       <p className="mt-2 text-sm font-semibold text-white">{review.diagnosis}</p>
+                      <p className="mt-2 text-xs text-slate-400">{review.diagnosis_notice}</p>
                       <p className="mt-2 text-xs capitalize text-slate-500">
                         {review.review_status.replace(/_/g, " ")}
                         {review.last_reviewed_at ? ` · Reviewed ${review.last_reviewed_at}` : ""}

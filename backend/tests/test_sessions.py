@@ -2827,6 +2827,10 @@ async def test_session_review_available_only_after_completion(
     )
     assert review_response.status_code == 200
     payload = review_response.json()
+    assert "simulated clinical reasoning practice only" in payload["educational_notice"]
+    assert "not patient care" in payload["educational_notice"]
+    assert "revealed only after simulation completion" in payload["diagnosis_notice"]
+    assert "real patients" in payload["diagnosis_notice"]
     assert payload["diagnosis"] == "Acute coronary syndrome"
     assert payload["score_breakdown"] == {
         "systematic_approach": 21.0,

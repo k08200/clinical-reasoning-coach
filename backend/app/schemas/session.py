@@ -78,6 +78,8 @@ class ClinicalSafetyCoverage(BaseModel):
 class SessionReviewResponse(BaseModel):
     session_id: uuid.UUID
     case_id: uuid.UUID
+    educational_notice: str
+    diagnosis_notice: str
     diagnosis: str
     score_breakdown: dict[str, float]
     strengths: list[str]

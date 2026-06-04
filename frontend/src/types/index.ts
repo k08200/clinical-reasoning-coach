@@ -193,6 +193,8 @@ export interface ClinicalSafetyCoverage {
 export interface SessionReview {
   session_id: string;
   case_id: string;
+  educational_notice: string;
+  diagnosis_notice: string;
   diagnosis: string;
   score_breakdown: Record<string, number>;
   strengths: string[];
