@@ -255,6 +255,66 @@ def test_build_reasoning_map_sanitizes_corrupt_existing_map_and_node():
     ]
 
 
+def test_build_reasoning_map_sanitizes_unsafe_actionable_text():
+    existing = {
+        "nodes": [
+            {
+                "id": "turn_1",
+                "turn": 1,
+                "hypothesis": "You should give aspirin now.",
+                "quality": "anchored",
+                "supporting_evidence": ["Heparin can be 60 units/kg.", "chest pain"],
+                "missing_evidence": ["The patient can go home with outpatient follow-up."],
+            }
+        ],
+        "edges": [],
+    }
+    node = {
+        "hypothesis": "Start heparin now after the ECG.",
+        "supporting_evidence": [
+            "Aspirin 325 mg is indicated.",
+            "diaphoresis",
+        ],
+        "missing_evidence": [
+            "The patient should receive tPA.",
+            "serial troponin",
+        ],
+        "reasoning_quality": "anchored",
+    }
+
+    result = build_reasoning_map(
+        existing_map=existing,
+        new_node=node,
+        turn_number=2,
+    )
+
+    withheld = (
+        "Reasoning detail withheld because it resembled actionable medical advice."
+    )
+    assert result["nodes"] == [
+        {
+            "id": "turn_1",
+            "turn": 1,
+            "hypothesis": withheld,
+            "quality": "anchored",
+            "supporting_evidence": [withheld, "chest pain"],
+            "missing_evidence": [withheld],
+        },
+        {
+            "id": "turn_2",
+            "turn": 2,
+            "hypothesis": withheld,
+            "quality": "anchored",
+            "supporting_evidence": [withheld, "diaphoresis"],
+            "missing_evidence": [withheld, "serial troponin"],
+        },
+    ]
+    assert "aspirin" not in str(result).lower()
+    assert "60 units/kg" not in str(result).lower()
+    assert "go home" not in str(result).lower()
+    assert "heparin" not in str(result).lower()
+
+
 def test_build_reasoning_map_tolerates_non_dict_existing_map():
     result = build_reasoning_map(
         existing_map="corrupt",

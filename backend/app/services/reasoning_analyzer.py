@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.services.provider_factory import get_provider
+from app.services.socratic_coach import review_feedback_safety_violations
 
 ANALYSIS_SYSTEM = """You are an expert cognitive psychologist specializing in medical education and clinical reasoning.
 Analyze a medical student's response during a clinical case discussion.
@@ -75,6 +76,9 @@ VALID_BIAS_TYPES = {
 }
 VALID_BIAS_SEVERITIES = {"mild", "moderate", "severe"}
 VALID_REASONING_QUALITIES = {"convergent", "divergent", "anchored", "systematic"}
+UNSAFE_REASONING_MAP_TEXT = (
+    "Reasoning detail withheld because it resembled actionable medical advice."
+)
 
 
 @dataclass
@@ -145,7 +149,10 @@ def build_reasoning_map(
     turn_number: int,
 ) -> dict:
     map_data = existing_map if isinstance(existing_map, dict) else {}
-    nodes = _list_of_dicts(map_data.get("nodes"))
+    nodes = [
+        _sanitize_reasoning_map_node(node)
+        for node in _list_of_dicts(map_data.get("nodes"))
+    ]
     edges = _list_of_dicts(map_data.get("edges"))
     sanitized_node = _sanitize_reasoning_node(new_node)
 
@@ -221,6 +228,28 @@ def _list_of_strings(value: Any, *, limit: int = 8) -> list[str]:
     ]
 
 
+def _safe_reasoning_map_text(value: Any) -> str:
+    if not isinstance(value, str):
+        return ""
+    text = value.strip()
+    if not text:
+        return ""
+    if review_feedback_safety_violations(text):
+        return UNSAFE_REASONING_MAP_TEXT
+    return text
+
+
+def _safe_reasoning_map_list(value: Any, *, limit: int = 8) -> list[str]:
+    return [
+        safe_text
+        for safe_text in (
+            _safe_reasoning_map_text(item)
+            for item in _list_of_strings(value, limit=limit)
+        )
+        if safe_text
+    ]
+
+
 def _list_of_dicts(value: Any, *, limit: int = 100) -> list[dict[str, Any]]:
     if not isinstance(value, list):
         return []
@@ -282,11 +311,34 @@ def _sanitize_reasoning_node(raw_node: Any) -> dict[str, Any]:
 
     hypothesis = raw_node.get("hypothesis")
     return {
-        "hypothesis": hypothesis.strip() if isinstance(hypothesis, str) else "",
-        "supporting_evidence": _list_of_strings(raw_node.get("supporting_evidence")),
-        "missing_evidence": _list_of_strings(raw_node.get("missing_evidence")),
+        "hypothesis": _safe_reasoning_map_text(hypothesis),
+        "supporting_evidence": _safe_reasoning_map_list(raw_node.get("supporting_evidence")),
+        "missing_evidence": _safe_reasoning_map_list(raw_node.get("missing_evidence")),
         "reasoning_quality": quality,
     }
+
+
+def _sanitize_reasoning_map_node(raw_node: dict[str, Any]) -> dict[str, Any]:
+    node: dict[str, Any] = {}
+    node_id = raw_node.get("id")
+    if isinstance(node_id, str) and node_id.strip():
+        node["id"] = node_id.strip()
+    turn = raw_node.get("turn")
+    if isinstance(turn, int):
+        node["turn"] = turn
+    node["hypothesis"] = _safe_reasoning_map_text(raw_node.get("hypothesis"))
+    quality = raw_node.get("quality")
+    if isinstance(quality, str) and quality in VALID_REASONING_QUALITIES:
+        node["quality"] = quality
+    if "supporting_evidence" in raw_node:
+        node["supporting_evidence"] = _safe_reasoning_map_list(
+            raw_node.get("supporting_evidence")
+        )
+    if "missing_evidence" in raw_node:
+        node["missing_evidence"] = _safe_reasoning_map_list(
+            raw_node.get("missing_evidence")
+        )
+    return node
 
 
 def _sanitize_analysis_payload(raw: dict[str, Any]) -> dict[str, Any]:
