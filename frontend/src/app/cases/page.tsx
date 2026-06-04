@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import { logout } from "@/lib/auth";
+import { evaluateSessionStartEligibility } from "@/lib/sessionStartEligibility";
 import { useRequireAuth } from "@/lib/useAuthGate";
 import type { ClinicalCase, User } from "@/types";
 
@@ -51,10 +52,6 @@ export default function CasesPage() {
   const caseList = cases ?? [];
   const canReview =
     currentUser?.role === "clinician_reviewer" || currentUser?.role === "admin";
-  const requiresReReview = (clinicalCase: ClinicalCase): boolean =>
-    clinicalCase.source_provenance.review_stale ||
-    clinicalCase.source_provenance.review_date_invalid ||
-    clinicalCase.source_provenance.review_content_changed;
 
   async function handleGenerateDemo() {
     setGenerating(true);
@@ -71,9 +68,10 @@ export default function CasesPage() {
   }
 
   async function handleStartSession(clinicalCase: ClinicalCase, acknowledged = false) {
-    if (requiresReReview(clinicalCase)) {
+    const startEligibility = evaluateSessionStartEligibility(clinicalCase);
+    if (startEligibility.blocked) {
       setAcknowledgingCase(null);
-      setActionError("This case requires clinician re-review before sessions can start.");
+      setActionError(startEligibility.acknowledgementText);
       return;
     }
     if (!acknowledged) {
@@ -95,35 +93,6 @@ export default function CasesPage() {
       setActionError(err instanceof Error ? err.message : "Could not start the session");
       setStartingSession(null);
     }
-  }
-
-  function cautionText(clinicalCase: ClinicalCase): string {
-    if (clinicalCase.source_provenance.review_content_changed) {
-      return "Case changed after clinician review; re-review required.";
-    }
-    if (clinicalCase.source_provenance.review_stale) {
-      return "Clinician review is stale; re-review required.";
-    }
-    if (clinicalCase.source_provenance.review_date_invalid) {
-      return "Clinician review date is invalid; re-review required.";
-    }
-    return "Not clinician reviewed; use only for education.";
-  }
-
-  function acknowledgementText(clinicalCase: ClinicalCase): string {
-    if (clinicalCase.source_provenance.review_content_changed) {
-      return "This case changed after clinician review. This is an educational simulation only, not patient care or medical advice.";
-    }
-    if (clinicalCase.source_provenance.review_stale) {
-      return "This case has a stale clinician review. This is an educational simulation only, not patient care or medical advice.";
-    }
-    if (clinicalCase.source_provenance.review_date_invalid) {
-      return "This case has an invalid clinician review date. This is an educational simulation only, not patient care or medical advice.";
-    }
-    if (clinicalCase.source_provenance.requires_caution) {
-      return "This case is not clinician reviewed. This is an educational simulation only, not patient care or medical advice.";
-    }
-    return "This is an educational simulation only, not patient care or medical advice. For real patients, follow local clinical protocols and contact a supervising clinician or emergency services.";
   }
 
   return (
@@ -236,7 +205,7 @@ export default function CasesPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {caseList.map((c) => {
-              const reReviewRequired = requiresReReview(c);
+              const startEligibility = evaluateSessionStartEligibility(c);
               return (
                 <div
                   key={c.id}
@@ -280,9 +249,9 @@ export default function CasesPage() {
                         {c.source_provenance.review_label}
                       </span>
                     </div>
-                    {c.source_provenance.requires_caution && (
+                    {startEligibility.cautionText && (
                       <p className="mt-2 text-xs font-medium text-amber-300">
-                        {cautionText(c)}
+                        {startEligibility.cautionText}
                       </p>
                     )}
                     {c.source_provenance.organizations.length > 0 && (
@@ -300,9 +269,9 @@ export default function CasesPage() {
                     )}
                   </div>
 
-                  {acknowledgingCase === c.id && !reReviewRequired && (
+                  {acknowledgingCase === c.id && !startEligibility.blocked && (
                     <div className="mb-4 border-l-2 border-amber-500 bg-amber-950/20 px-3 py-2 text-xs text-amber-100">
-                      {acknowledgementText(c)}
+                      {startEligibility.acknowledgementText}
                       <div className="mt-2 flex gap-2">
                         <button
                           onClick={() => handleStartSession(c, true)}
@@ -325,14 +294,12 @@ export default function CasesPage() {
                     <span className="text-xs text-slate-500">{c.times_used} sessions</span>
                     <button
                       onClick={() => handleStartSession(c)}
-                      disabled={startingSession === c.id || reReviewRequired}
+                      disabled={startingSession === c.id || startEligibility.blocked}
                       className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm rounded-lg font-medium transition-colors"
                     >
-                      {reReviewRequired
-                        ? "Re-review Required"
-                        : startingSession === c.id
+                      {startingSession === c.id
                           ? "Starting..."
-                          : "Start Session"}
+                          : startEligibility.buttonLabel}
                     </button>
                   </div>
                 </div>
