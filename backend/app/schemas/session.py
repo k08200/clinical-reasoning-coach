@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from app.schemas.case import ClinicalSourceProvenance
 
@@ -39,6 +39,7 @@ class SessionResponse(BaseModel):
     total_output_tokens: int
     total_thinking_tokens: int
     messages: list[MessageResponse]
+    safety_events: list["SessionSafetyEventSummary"] = Field(default_factory=list)
     started_at: datetime
     completed_at: datetime | None
 
@@ -100,6 +101,14 @@ class SessionSafetyEventSummary(BaseModel):
     detected_terms: list[str]
     resolution_note: str | None
     resolved_at: datetime | None
+
+    @model_validator(mode="after")
+    def redact_sensitive_detected_terms(self) -> "SessionSafetyEventSummary":
+        if self.event_type == "possible_patient_identifier":
+            self.detected_terms = ["patient identifier signal"]
+        elif self.event_type == "real_patient_or_emergency_signal":
+            self.detected_terms = ["real patient or emergency signal"]
+        return self
 
 
 class SessionReviewAuditSummary(BaseModel):

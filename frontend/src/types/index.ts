@@ -163,6 +163,7 @@ export interface CoachingSession {
   total_output_tokens: number;
   total_thinking_tokens: number;
   messages: Message[];
+  safety_events?: SessionSafetyEventSummary[];
   started_at: string;
   completed_at: string | null;
 }

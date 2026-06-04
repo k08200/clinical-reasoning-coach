@@ -1739,6 +1739,17 @@ async def test_reviewer_can_read_safety_locked_session_with_safety_event(
     assert payload["status"] == "safety_locked"
     assert [message["role"] for message in payload["messages"]] == ["coach", "coach"]
     assert "I cannot continue coaching" in payload["messages"][1]["content"]
+    assert payload["safety_events"] == [
+        {
+            "event_type": "real_patient_or_emergency_signal",
+            "severity": "high",
+            "status": "open",
+            "message_turn": 1,
+            "detected_terms": ["real patient or emergency signal"],
+            "resolution_note": None,
+            "resolved_at": None,
+        }
+    ]
 
 
 @pytest.mark.asyncio
@@ -1811,6 +1822,17 @@ async def test_reviewer_can_read_active_session_with_safety_event_context(
     assert payload["status"] == "active"
     assert [message["role"] for message in payload["messages"]] == ["coach", "student"]
     assert "heparin now" in payload["messages"][1]["content"]
+    assert payload["safety_events"] == [
+        {
+            "event_type": "management_before_safety_checks",
+            "severity": "medium",
+            "status": "open",
+            "message_turn": 1,
+            "detected_terms": ["heparin"],
+            "resolution_note": None,
+            "resolved_at": None,
+        }
+    ]
 
 
 @pytest.mark.asyncio

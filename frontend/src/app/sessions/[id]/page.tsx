@@ -95,6 +95,22 @@ function safetyCoverageLabel(category: string): string {
   return "Contraindication Checks";
 }
 
+function sessionSafetyEventLabel(eventType: string): string {
+  if (eventType === "management_before_safety_checks") {
+    return "Management before safety checks";
+  }
+  if (eventType === "unsafe_coach_output_guardrail") {
+    return "Coach output guardrail";
+  }
+  if (eventType === "possible_patient_identifier") {
+    return "Possible patient identifier";
+  }
+  if (eventType === "real_patient_or_emergency_signal") {
+    return "Real patient or emergency signal";
+  }
+  return eventType.replace(/_/g, " ");
+}
+
 const REVIEW_AUDIT_LABELS: Record<string, string> = {
   clinical_accuracy_confirmed: "Clinical accuracy",
   source_alignment_confirmed: "Source alignment",
@@ -492,6 +508,9 @@ export default function SessionPage() {
   const isSessionOwner = !hasCurrentUser || currentUser.id === session.user_id;
   const isReadOnlySessionContext = session.status === "active" && !isSessionOwner;
   const isInteractive = session.status === "active" && isSessionOwner;
+  const openSafetyEvents = (session.safety_events ?? []).filter(
+    (event) => event.status === "open",
+  );
   const trimmedInputLength = input.trim().length;
   const inputTooLong = trimmedInputLength > MAX_STUDENT_MESSAGE_LENGTH;
   const analyzedLearnerTurnCount = session.messages.filter(
@@ -842,6 +861,43 @@ export default function SessionPage() {
                 Completion is blocked until the safety issue is addressed in the
                 simulation or reviewed in the safety audit workflow.
               </p>
+            </div>
+          )}
+
+          {!isCompleted && !isSafetyLocked && openSafetyEvents.length > 0 && (
+            <div className="mx-4 mt-4 rounded-lg border border-amber-700 bg-amber-950/45 px-4 py-3 text-sm leading-relaxed text-amber-100">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold">Open safety event requires attention</p>
+                  <p className="mt-1 text-amber-200">
+                    Before finishing this simulation, address the safety issue in the reasoning
+                    flow or have it reviewed in the safety audit workflow.
+                  </p>
+                </div>
+                <span className="rounded-full border border-amber-700 bg-slate-900/50 px-3 py-1 text-xs font-semibold text-amber-100">
+                  {openSafetyEvents.length} open
+                </span>
+              </div>
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                {openSafetyEvents.map((event) => (
+                  <div
+                    key={`${event.event_type}-${event.message_turn}-${event.detected_terms.join("-")}`}
+                    className="rounded-lg border border-amber-700 bg-slate-900/50 px-3 py-2 text-xs text-amber-100"
+                  >
+                    <p className="font-semibold">
+                      Turn {event.message_turn}: {sessionSafetyEventLabel(event.event_type)}
+                    </p>
+                    <p className="mt-1 capitalize text-amber-200">
+                      Severity: {event.severity}
+                    </p>
+                    {event.detected_terms.length > 0 && (
+                      <p className="mt-1 text-amber-200">
+                        Detected: {event.detected_terms.join(", ")}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

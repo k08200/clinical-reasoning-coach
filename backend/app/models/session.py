@@ -51,5 +51,8 @@ class CoachingSession(Base):
         "TokenUsage", back_populates="session", lazy="selectin"
     )
     safety_events: Mapped[list["SafetyEvent"]] = relationship(
-        "SafetyEvent", back_populates="session", lazy="selectin"
+        "SafetyEvent",
+        back_populates="session",
+        order_by="SafetyEvent.created_at",
+        lazy="selectin",
     )

@@ -133,6 +133,33 @@ describe("SessionPage", () => {
     expect(vi.mocked(useSWR).mock.calls.at(-1)?.[0]).toBe(null);
   });
 
+  it("surfaces open safety events during an active session", () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        safety_events: [
+          {
+            event_type: "management_before_safety_checks",
+            severity: "medium",
+            status: "open",
+            message_turn: 2,
+            detected_terms: ["heparin"],
+            resolution_note: null,
+            resolved_at: null,
+          },
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+
+    render(<SessionPage />);
+
+    expect(screen.getByText("Open safety event requires attention")).toBeTruthy();
+    expect(screen.getByText(/Before finishing this simulation/)).toBeTruthy();
+    expect(screen.getByText("Turn 2: Management before safety checks")).toBeTruthy();
+    expect(screen.getByText("Severity: medium")).toBeTruthy();
+    expect(screen.getByText("Detected: heparin")).toBeTruthy();
+  });
+
   it("streams a learner response and refreshes the saved session", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession(),
