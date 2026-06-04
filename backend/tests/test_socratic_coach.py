@@ -236,6 +236,30 @@ def test_management_safety_gap_detection_requires_missing_contraindication_check
         uncovered,
     ) == []
     assert detect_management_safety_gap(
+        "I would transfuse packed RBCs now.",
+        uncovered,
+    ) == ["packed rbcs"]
+    assert detect_management_safety_gap(
+        "Give blood products without type and screen.",
+        uncovered,
+    ) == ["blood products"]
+    assert detect_management_safety_gap(
+        "I would transfuse after crossmatch and consent.",
+        uncovered,
+    ) == []
+    assert detect_management_safety_gap(
+        "수혈을 바로 시작하겠습니다.",
+        uncovered,
+    ) == ["transfusion"]
+    assert detect_management_safety_gap(
+        "혈액형 확인 없이 농축적혈구를 투여하겠습니다.",
+        uncovered,
+    ) == ["packed red blood cells"]
+    assert detect_management_safety_gap(
+        "혈액형과 교차시험 확인 후 수혈을 진행하겠습니다.",
+        uncovered,
+    ) == []
+    assert detect_management_safety_gap(
         "I would order an ECG now.",
         uncovered,
     ) == []

@@ -261,15 +261,17 @@ MANAGEMENT_ACTION_VERBS = (
 MANAGEMENT_ACTION_PATTERN = "|".join(MANAGEMENT_ACTION_VERBS)
 MANAGEMENT_TARGET_PATTERN = (
     r"alteplase|antibiotics?|anticoagulation|anticoagulants?|aspirin|"
-    r"blood cultures?|bolus|cath lab activation|cath lab|ct|ecg|ekg|fluids?|heparin|insulin|"
-    r"pressors?|thrombolysis|tpa|vasopressors?"
+    r"blood cultures?|blood products?|bolus|cath lab activation|cath lab|ct|ecg|ekg|"
+    r"fluids?|heparin|insulin|packed rbcs?|prbcs?|pressors?|red blood cells?|"
+    r"thrombolysis|transfusion|tpa|vasopressors?"
 )
 MANAGEMENT_TARGET_PHRASE_PATTERN = (
     rf"(?:[a-z0-9-]+\s+){{0,4}}(?:{MANAGEMENT_TARGET_PATTERN})"
 )
 RISKY_MANAGEMENT_TARGET_PATTERN = (
     r"alteplase|anticoagulation|anticoagulants?|antiplatelets?|aspirin|"
-    r"heparin|insulin|pressors?|thrombolysis|tpa|vasopressors?"
+    r"blood products?|heparin|insulin|packed rbcs?|prbcs?|pressors?|red blood cells?|"
+    r"thrombolysis|transfusion|tpa|vasopressors?"
 )
 KOREAN_RISKY_MANAGEMENT_TARGETS = {
     "알테플라제": "alteplase",
@@ -282,6 +284,9 @@ KOREAN_RISKY_MANAGEMENT_TARGETS = {
     "인슐린": "insulin",
     "승압제": "vasopressors",
     "바소프레서": "vasopressors",
+    "수혈": "transfusion",
+    "농축적혈구": "packed red blood cells",
+    "혈액제제": "blood products",
 }
 KOREAN_RISKY_MANAGEMENT_COMMITMENT_PATTERNS = [
     r"(?:시작|투여|주겠|쓰겠|사용|진행|시행|처치|치료|넣겠|올리겠|걸겠|처방)",
@@ -304,10 +309,15 @@ KOREAN_MANAGEMENT_SAFETY_CHECK_PATTERNS = [
     r"포타슘",
     r"신장",
     r"콩팥",
+    r"혈액형",
+    r"교차\s*시험",
+    r"교차\s*적합",
+    r"동의",
+    r"수혈\s*반응",
 ]
 KOREAN_MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
-    r"(?:확인|평가|검토|배제|금기|출혈|알레르기|대동맥\s*박리|칼륨|포타슘|신장|콩팥).{0,40}(?:없이|안\s*하고|하지\s*않고|필요\s*없)",
-    r"(?:없이|안\s*하고|하지\s*않고|필요\s*없).{0,40}(?:확인|평가|검토|배제|금기|출혈|알레르기|대동맥\s*박리|칼륨|포타슘|신장|콩팥)",
+    r"(?:확인|평가|검토|배제|금기|출혈|알레르기|대동맥\s*박리|칼륨|포타슘|신장|콩팥|혈액형|교차\s*시험|교차\s*적합|동의|수혈\s*반응).{0,40}(?:없이|안\s*하고|하지\s*않고|필요\s*없)",
+    r"(?:없이|안\s*하고|하지\s*않고|필요\s*없).{0,40}(?:확인|평가|검토|배제|금기|출혈|알레르기|대동맥\s*박리|칼륨|포타슘|신장|콩팥|혈액형|교차\s*시험|교차\s*적합|동의|수혈\s*반응)",
 ]
 DIRECT_MANAGEMENT_PATTERNS = [
     rf"^\s*(?:{MANAGEMENT_ACTION_PATTERN})\b",
@@ -331,14 +341,19 @@ MANAGEMENT_SAFETY_CHECK_PATTERNS = [
     r"\bcontraindications?\b",
     r"\ballerg(?:y|ies)\b",
     r"\bbleed(?:ing)?\b",
+    r"\bblood type\b",
     r"\baortic dissection\b",
+    r"\bconsent\b",
+    r"\bcross-?match\b",
     r"\bpotassium\b",
     r"\brenal\b",
     r"\bkidney\b",
+    r"\btype and screen\b",
+    r"\btransfusion reaction\b",
 ]
 MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
-    r"\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b.{0,80}\b(?:check|rule out|contraindications?|allerg(?:y|ies)|bleed(?:ing)?|aortic dissection|potassium|renal|kidney)\b",
-    r"\b(?:check|rule out|contraindications?|allerg(?:y|ies)|bleed(?:ing)?|aortic dissection|potassium|renal|kidney)\b.{0,80}\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b",
+    r"\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b.{0,80}\b(?:check|rule out|contraindications?|allerg(?:y|ies)|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|potassium|renal|kidney|type and screen|transfusion reaction)\b",
+    r"\b(?:check|rule out|contraindications?|allerg(?:y|ies)|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|potassium|renal|kidney|type and screen|transfusion reaction)\b.{0,80}\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b",
 ]
 
 DIAGNOSIS_LEAK_TERMS = {
