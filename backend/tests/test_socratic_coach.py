@@ -379,6 +379,10 @@ def test_coach_response_guardrail_blocks_direct_management_variants():
         "Antibiotics are warranted now.",
         "A fluid bolus should be given.",
         "A cath lab activation is required.",
+        "The patient can go home with outpatient follow-up.",
+        "Outpatient follow-up is enough.",
+        "You can reassure the patient.",
+        "No further testing is needed.",
     ]
 
     for response in unsafe_responses:
@@ -394,6 +398,10 @@ def test_coach_response_guardrail_blocks_korean_direct_management_variants():
         "인슐린 처방을 진행해야 합니다.",
         "승압제를 즉시 올리세요.",
         "혈전용해를 시행합니다.",
+        "퇴원시키면 됩니다.",
+        "외래 추적하면 충분합니다.",
+        "안심시켜도 됩니다.",
+        "추가 검사는 필요 없습니다.",
     ]
 
     for response in unsafe_responses:
@@ -411,8 +419,11 @@ def test_coach_response_guardrail_allows_socratic_safety_questions():
         "How would you decide whether anticoagulation is safe in this scenario?",
         "What would make heparin indicated or unsafe in this simulated case?",
         "Which finding would make antibiotics time-critical?",
+        "What red flags would you rule out before considering discharge?",
+        "What would make outpatient follow-up safe in this simulated case?",
         "헤파린을 시작하기 전에 어떤 안전 확인이 필요할까요?",
         "아스피린이 안전한지 판단하려면 무엇을 확인해야 할까요?",
+        "퇴원을 고려하기 전에 어떤 위험 징후를 확인해야 할까요?",
     ]
 
     for response in safe_responses:
@@ -536,6 +547,8 @@ async def test_stream_replaces_direct_management_advice_with_safe_question(
 
 def test_management_safety_redirect_response_is_socratic():
     assert "what contraindications or safety checks" in MANAGEMENT_SAFETY_REDIRECT_RESPONSE
+    assert "choosing disposition" in MANAGEMENT_SAFETY_REDIRECT_RESPONSE
+    assert "red flags" in MANAGEMENT_SAFETY_REDIRECT_RESPONSE
     assert "simulated case" in MANAGEMENT_SAFETY_REDIRECT_RESPONSE
 
 

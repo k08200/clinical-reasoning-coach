@@ -314,10 +314,12 @@ KOREAN_PREMATURE_CLOSURE_TARGETS = {
     "외래 추적": "outpatient follow-up",
     "외래추적": "outpatient follow-up",
     "추가 검사 필요 없": "no further testing",
+    "추가 검사는 필요 없": "no further testing",
     "추가검사 필요 없": "no further testing",
+    "추가검사는 필요 없": "no further testing",
 }
 KOREAN_PREMATURE_CLOSURE_COMMITMENT_PATTERNS = [
-    r"(?:퇴원|귀가|안심|외래\s*추적|외래추적).{0,20}(?:하겠|시키|합니다|하면|충분|가능)",
+    r"(?:퇴원|귀가|안심|외래\s*추적|외래추적).{0,20}(?:하겠|시키|합니다|하면|충분|가능|됩니다)",
     r"(?:추가\s*검사|추가검사).{0,20}(?:필요\s*없)",
 ]
 KOREAN_RISKY_MANAGEMENT_COMMITMENT_PATTERNS = [
@@ -461,9 +463,10 @@ SAFE_GUARDRAIL_RESPONSE = (
 )
 
 MANAGEMENT_SAFETY_REDIRECT_RESPONSE = (
-    "Pause the management plan for this simulated case. Before giving treatment, "
-    "what contraindications or safety checks could make that plan unsafe, and what "
-    "finding would change your next step?"
+    "Pause the management plan for this simulated case. Before giving treatment "
+    "or choosing disposition, what contraindications or safety checks could make "
+    "that plan unsafe, what red flags or time-critical actions must be addressed, "
+    "and what finding would change your next step?"
 )
 
 
@@ -546,6 +549,18 @@ def _contains_direct_management_order(text: str) -> bool:
         for sentence in normalized_sentences
         for pattern in DIRECT_MANAGEMENT_PATTERNS
     ) or _contains_korean_direct_management_order(text)
+
+
+def _contains_premature_closure_directive(text: str) -> bool:
+    normalized_sentences = [
+        _normalize_for_guardrail(sentence)
+        for sentence in re.split(r"[.!?\n]+", text)
+        if sentence.strip()
+    ]
+    return any(
+        _premature_closure_terms(sentence)
+        for sentence in normalized_sentences
+    )
 
 
 def _contains_korean_direct_management_order(text: str) -> bool:
@@ -690,6 +705,8 @@ def is_coach_response_safe(case: ClinicalCase, response_text: str) -> bool:
     if _contains_direct_confirmation(response_text):
         return False
     if _contains_direct_management_order(response_text):
+        return False
+    if _contains_premature_closure_directive(response_text):
         return False
     return True
 
