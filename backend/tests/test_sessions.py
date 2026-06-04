@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import uuid
 from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
@@ -1189,6 +1190,106 @@ async def test_patient_identifier_signal_halts_before_case_snapshot_gate(
     assert [message.role for message in messages] == ["coach"]
     assert all("John Smith" not in message.content for message in messages)
     assert all("A123456" not in message.content for message in messages)
+
+
+@pytest.mark.asyncio
+async def test_korean_hospital_identifier_signal_halts_before_storage(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+
+    async def fail_stream_coach_response(**_kwargs):
+        raise AssertionError("Korean identifier signals must not reach the provider")
+        yield
+
+    async def fail_analyze_student_response(**_kwargs):
+        raise AssertionError("Korean identifier signals must not reach analysis")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fail_analyze_student_response,
+    )
+    user = User(
+        email=f"stream-korean-privacy-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Stream Korean Privacy Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={
+            "content": (
+                "입원번호 ADM-12345, 접수번호 R20260605, "
+                "건강보험증번호 H123456789, 카카오톡 ID patient_lee입니다."
+            ),
+        },
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    text_payload = json.loads(response.text.splitlines()[0].removeprefix("data: "))
+    assert "환자 식별자" in text_payload["content"]
+    assert '"type": "done"' in response.text
+
+    saved_response = await client.get(
+        f"/api/sessions/{session.id}",
+        headers=auth_headers,
+    )
+    saved_session = saved_response.json()
+    assert saved_session["status"] == "safety_locked"
+    assert "ADM-12345" not in str(saved_session)
+    assert "patient_lee" not in str(saved_session)
+    assert saved_session["safety_events"][0]["detected_terms"] == [
+        "patient identifier signal"
+    ]
+
+    safety_events = (
+        await db.execute(
+            select(SafetyEvent).where(SafetyEvent.session_id == session.id)
+        )
+    ).scalars().all()
+    messages = (
+        await db.execute(
+            select(Message).where(Message.session_id == session.id)
+        )
+    ).scalars().all()
+    assert len(safety_events) == 1
+    assert safety_events[0].event_type == "possible_patient_identifier"
+    assert safety_events[0].detected_terms == [
+        "medical_record_number",
+        "license_or_account_number",
+        "messenger_handle",
+    ]
+    assert [message.role for message in messages] == ["coach"]
+    assert all("ADM-12345" not in message.content for message in messages)
+    assert all("patient_lee" not in message.content for message in messages)
 
 
 @pytest.mark.asyncio

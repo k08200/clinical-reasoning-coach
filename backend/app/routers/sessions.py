@@ -48,8 +48,8 @@ from app.services.socratic_coach import (
     get_opening_message,
 )
 from app.services.privacy_guard import (
-    PHI_SAFETY_RESPONSE,
     detect_patient_identifiers,
+    privacy_safety_response_for,
 )
 from app.services.case_quality import evaluate_case_quality
 from app.services.reasoning_analyzer import (
@@ -1266,14 +1266,17 @@ async def stream_response(
 
     patient_identifiers = detect_patient_identifiers(body.content)
     if patient_identifiers:
+        privacy_response = privacy_safety_response_for(body.content)
+
         async def privacy_event_generator():
             await _save_privacy_safety_turn(
                 session_id=session_id,
                 user_id=uuid.UUID(user_id),
                 detected_identifier_categories=patient_identifiers,
                 turn_number=turn_number,
+                response_content=privacy_response,
             )
-            yield f"data: {json.dumps({'type': 'text', 'content': PHI_SAFETY_RESPONSE})}\n\n"
+            yield f"data: {json.dumps({'type': 'text', 'content': privacy_response})}\n\n"
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
         return StreamingResponse(
@@ -1462,6 +1465,7 @@ async def _save_privacy_safety_turn(
     user_id: uuid.UUID,
     detected_identifier_categories: list[str],
     turn_number: int,
+    response_content: str,
 ) -> None:
     async with AsyncSessionLocal() as db:
         await db.execute(
@@ -1472,7 +1476,7 @@ async def _save_privacy_safety_turn(
         db.add(Message(
             session_id=session_id,
             role="coach",
-            content=PHI_SAFETY_RESPONSE,
+            content=response_content,
         ))
         db.add(SafetyEvent(
             session_id=session_id,

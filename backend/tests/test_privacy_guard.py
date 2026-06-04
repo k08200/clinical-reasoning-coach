@@ -43,6 +43,19 @@ def test_detect_patient_identifiers_finds_korean_resident_registration_numbers()
     assert detected == ["social_security_number"]
 
 
+def test_detect_patient_identifiers_finds_korean_visit_insurance_and_messenger_ids():
+    detected = detect_patient_identifiers(
+        "입원번호 ADM-12345, 접수번호 R20260605, "
+        "건강보험증번호 H123456789, 카카오톡 ID patient_lee로 연락했습니다."
+    )
+
+    assert detected == [
+        "medical_record_number",
+        "license_or_account_number",
+        "messenger_handle",
+    ]
+
+
 def test_detect_patient_identifiers_finds_exact_visit_dates():
     detected = detect_patient_identifiers(
         "The simulated note says the visit happened on June 4, 2026 "

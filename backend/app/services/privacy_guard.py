@@ -11,6 +11,14 @@ PHI_SAFETY_RESPONSE = (
     "educational simulation."
 )
 
+KOREAN_PHI_SAFETY_RESPONSE = (
+    "환자 식별자로 보이는 정보가 포함된 메시지는 처리하거나 저장할 수 없습니다. "
+    "이름, 연락처, 등록/입원/접수번호, 정확한 날짜, 주소, 메신저 ID 등 식별 가능 "
+    "정보를 제거한 뒤 비식별화된 교육용 시뮬레이션으로 다시 작성해 주세요."
+)
+
+HANGUL_PATTERN = re.compile(r"[가-힣]")
+
 
 @dataclass(frozen=True)
 class IdentifierPattern:
@@ -59,6 +67,13 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
         "medical_record_number",
         re.compile(
             r"(?<!주민)(?<!외국인)(?:등록번호|환자번호|차트번호)\s*[:#-]?\s*[A-Z0-9가-힣-]{4,}"
+        ),
+    ),
+    IdentifierPattern(
+        "medical_record_number",
+        re.compile(
+            r"(?:입원번호|외래번호|접수번호|수진자번호|병록번호|진료번호|진료카드번호)"
+            r"\s*(?:은|는|:|=|#)?\s*[A-Z0-9가-힣-]{4,}"
         ),
     ),
     IdentifierPattern(
@@ -164,6 +179,21 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
             re.IGNORECASE,
         ),
     ),
+    IdentifierPattern(
+        "license_or_account_number",
+        re.compile(
+            r"(?:건강보험증번호|보험증번호|보험자번호|증권번호|계약번호)"
+            r"\s*(?:은|는|:|=|#)?\s*[A-Z0-9가-힣-]{5,}"
+        ),
+    ),
+    IdentifierPattern(
+        "messenger_handle",
+        re.compile(
+            r"(?:카카오톡|카톡|라인|telegram|텔레그램)\s*(?:ID|아이디|계정|handle|핸들)"
+            r"\s*(?:은|는|:|=|#)?\s*@?[A-Z0-9._-]{3,}",
+            re.IGNORECASE,
+        ),
+    ),
 )
 
 
@@ -177,3 +207,9 @@ def detect_patient_identifiers(text: str) -> list[str]:
             seen.add(identifier.category)
 
     return detected
+
+
+def privacy_safety_response_for(text: str) -> str:
+    if HANGUL_PATTERN.search(text):
+        return KOREAN_PHI_SAFETY_RESPONSE
+    return PHI_SAFETY_RESPONSE
