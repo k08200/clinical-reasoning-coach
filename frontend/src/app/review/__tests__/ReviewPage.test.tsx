@@ -120,7 +120,12 @@ const reviewHistory: ClinicalCaseReview[] = [
         {
           title: "Surviving Sepsis Campaign Guidelines",
           organization: "Society of Critical Care Medicine",
-          supports: ["time-critical antibiotics", "lactate-guided resuscitation"],
+          supports: [
+            "sepsis diagnosis and risk stratification",
+            "hypotension and altered mental status as red flags",
+            "time-critical blood cultures and broad-spectrum antibiotics",
+            "fluid overload risk and drug allergy safety checks before treatment",
+          ],
         },
       ],
     },
@@ -144,7 +149,12 @@ const makeReviewDetail = (
       title: "Surviving Sepsis Campaign Guidelines",
       organization: "Society of Critical Care Medicine",
       url: "https://www.sccm.org/survivingsepsis",
-      supports: ["time-critical antibiotics", "lactate-guided resuscitation"],
+      supports: [
+        "sepsis diagnosis and risk stratification",
+        "hypotension and altered mental status as red flags",
+        "time-critical blood cultures and broad-spectrum antibiotics",
+        "fluid overload risk and drug allergy safety checks before treatment",
+      ],
     },
   ],
   coach_guidance: "Probe for sepsis recognition without revealing the diagnosis.",
@@ -452,5 +462,92 @@ describe("ReviewPage", () => {
     expect(screen.getByText("At least 2 clinical red flags are required.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
     expect(mockCompleteClinicalReview).not.toHaveBeenCalled();
+  });
+
+  it("blocks review submission when source domain is not reputable", () => {
+    mockReviewSwr({
+      detail: makeReviewDetail({
+        clinical_sources: [
+          {
+            title: "Wellness Blog",
+            organization: "Wellness Blog",
+            url: "https://wellness-blog.com/sepsis",
+            supports: [
+              "sepsis diagnosis and risk stratification",
+              "hypotension and altered mental status as red flags",
+              "time-critical blood cultures and broad-spectrum antibiotics",
+              "fluid overload risk and drug allergy safety checks before treatment",
+            ],
+          },
+        ],
+      }),
+    });
+
+    render(<ReviewPage />);
+
+    for (const checkbox of screen.getAllByRole("checkbox")) {
+      fireEvent.click(checkbox);
+    }
+    fireEvent.change(screen.getByLabelText("Review Notes"), {
+      target: { value: "Sources, safety checks, and simulation limits reviewed." },
+    });
+
+    expect(screen.getByText("Clinical source 1 must use a reputable clinical source domain.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
+    expect(mockCompleteClinicalReview).not.toHaveBeenCalled();
+  });
+
+  it("blocks review submission when source supports miss safety scopes", () => {
+    mockReviewSwr({
+      detail: makeReviewDetail({
+        clinical_sources: [
+          {
+            title: "Surviving Sepsis Campaign Guidelines",
+            organization: "Society of Critical Care Medicine",
+            url: "https://www.sccm.org/survivingsepsis",
+            supports: [
+              "sepsis diagnosis and risk stratification",
+              "hypotension and altered mental status as red flags",
+            ],
+          },
+        ],
+      }),
+    });
+
+    render(<ReviewPage />);
+
+    expect(screen.getByText("Clinical sources must include support for time-critical actions.")).toBeTruthy();
+    expect(screen.getByText("Clinical sources must include support for contraindication or safety checks.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
+  });
+
+  it("blocks review submission when source supports do not anchor safety items", () => {
+    mockReviewSwr({
+      detail: makeReviewDetail({
+        clinical_sources: [
+          {
+            title: "Surviving Sepsis Campaign Guidelines",
+            organization: "Society of Critical Care Medicine",
+            url: "https://www.sccm.org/survivingsepsis",
+            supports: [
+              "sepsis diagnosis and risk stratification",
+              "shock red flags and severity markers",
+              "time-critical antibiotics within 1 hour",
+              "renal impairment and allergy safety checks before dosing",
+            ],
+          },
+        ],
+      }),
+    });
+
+    render(<ReviewPage />);
+
+    expect(
+      screen.getByText("Clinical sources must specifically anchor clinical red flags: Hypotension"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Clinical sources must specifically anchor time-critical actions: Blood cultures"),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
   });
 });
