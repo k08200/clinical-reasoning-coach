@@ -157,19 +157,19 @@ async def test_analyze_student_response_sanitizes_out_of_range_scores_and_biases
     assert result.student_gaps == ["Needs safety checks"]
 
 
-def test_sanitize_analysis_payload_balances_missing_breakdown_from_score():
+def test_sanitize_analysis_payload_does_not_infer_missing_breakdown_from_score():
     result = _sanitize_analysis_payload({
         "reasoning_score": 73,
         "biases_detected": "not a list",
         "reasoning_node": None,
     })
 
-    assert result["reasoning_score"] == 73
+    assert result["reasoning_score"] == 0.0
     assert result["score_breakdown"] == {
-        "systematic_approach": 18.2,
-        "evidence_integration": 18.2,
-        "prioritization": 18.2,
-        "mechanism_understanding": 18.4,
+        "systematic_approach": 0.0,
+        "evidence_integration": 0.0,
+        "prioritization": 0.0,
+        "mechanism_understanding": 0.0,
     }
     assert result["biases_detected"] == []
     assert result["reasoning_node"]["reasoning_quality"] == "systematic"

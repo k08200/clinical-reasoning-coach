@@ -231,25 +231,10 @@ def _list_of_dicts(value: Any, *, limit: int = 100) -> list[dict[str, Any]]:
     ]
 
 
-def _balanced_breakdown_from_score(score: float) -> dict[str, float]:
-    bounded_score = _clamp(score, 0, 100)
-    base = round(bounded_score / len(SCORE_DIMENSIONS), 1)
-    breakdown = {dimension: base for dimension in SCORE_DIMENSIONS}
-    rounding_gap = round(bounded_score - sum(breakdown.values()), 1)
-    if rounding_gap:
-        last_dimension = SCORE_DIMENSIONS[-1]
-        breakdown[last_dimension] = round(
-            _clamp(breakdown[last_dimension] + rounding_gap, 0, 25),
-            1,
-        )
-    return breakdown
-
-
 def _sanitize_score_breakdown(raw_breakdown: Any, raw_score: Any) -> tuple[float, dict[str, float]]:
-    fallback_score = _clamp(_coerce_float(raw_score, 50), 0, 100)
     if not isinstance(raw_breakdown, dict):
-        breakdown = _balanced_breakdown_from_score(fallback_score)
-        return round(sum(breakdown.values()), 1), breakdown
+        breakdown = {dimension: 0.0 for dimension in SCORE_DIMENSIONS}
+        return 0.0, breakdown
 
     breakdown = {
         dimension: round(
