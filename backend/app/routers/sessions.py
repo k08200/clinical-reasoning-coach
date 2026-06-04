@@ -1221,7 +1221,7 @@ async def stream_response(
                 session_id=session_id,
                 user_id=uuid.UUID(user_id),
                 detected_terms=management_safety_gap_terms,
-                uncovered_checks=uncovered_safety_targets["contraindication_checks"],
+                uncovered_safety_targets=uncovered_safety_targets,
                 turn_number=turn_number,
             )
             yield f"data: {json.dumps({'type': 'text', 'content': MANAGEMENT_SAFETY_REDIRECT_RESPONSE})}\n\n"
@@ -1361,9 +1361,19 @@ async def _save_management_safety_redirect_turn(
     session_id: uuid.UUID,
     user_id: uuid.UUID,
     detected_terms: list[str],
-    uncovered_checks: list[str],
+    uncovered_safety_targets: dict[str, list[str]],
     turn_number: int,
 ) -> None:
+    missing_sections = [
+        f"{label}: {', '.join(uncovered_safety_targets.get(category) or [])}"
+        for category, label in [
+            ("red_flags", "red flags"),
+            ("time_critical_actions", "time-critical actions"),
+            ("contraindication_checks", "contraindication checks"),
+        ]
+        if uncovered_safety_targets.get(category)
+    ]
+    missing_summary = "; ".join(missing_sections) or "documented safety targets"
     async with AsyncSessionLocal() as db:
         db.add(Message(
             session_id=session_id,
@@ -1380,7 +1390,7 @@ async def _save_management_safety_redirect_turn(
             message_turn=turn_number,
             note=(
                 "Learner committed to simulated management before addressing "
-                f"contraindication checks: {', '.join(uncovered_checks)}"
+                f"{missing_summary}."
             ),
         ))
         await db.commit()

@@ -269,6 +269,45 @@ def test_management_safety_gap_detection_requires_missing_contraindication_check
     ) == []
 
 
+def test_management_safety_gap_detects_premature_disposition_before_red_flags():
+    uncovered = {
+        "red_flags": [
+            "Diaphoresis with crushing chest pain",
+            "Hypoxia or hemodynamic instability",
+        ],
+        "time_critical_actions": [
+            "12-lead ECG within 10 minutes",
+            "Serial troponin trend",
+        ],
+        "contraindication_checks": [],
+    }
+
+    assert detect_management_safety_gap(
+        "I would discharge him home now with outpatient follow-up.",
+        uncovered,
+    ) == ["discharge", "outpatient follow-up"]
+    assert detect_management_safety_gap(
+        "No further testing is needed; I would reassure the patient.",
+        uncovered,
+    ) == ["no further testing", "reassurance"]
+    assert detect_management_safety_gap(
+        "퇴원시키고 외래 추적하면 충분합니다.",
+        uncovered,
+    ) == ["discharge", "outpatient follow-up"]
+    assert detect_management_safety_gap(
+        "위험 징후와 심전도, 연속 트로포닌을 확인한 뒤 퇴원 가능 여부를 판단하겠습니다.",
+        uncovered,
+    ) == []
+    assert detect_management_safety_gap(
+        "What criteria would make discharge safe later?",
+        uncovered,
+    ) == []
+    assert detect_management_safety_gap(
+        "After ECG, serial troponin, and no red flags, outpatient follow-up may be reasonable.",
+        uncovered,
+    ) == []
+
+
 def test_coach_response_guardrail_detects_unsafe_clinical_content():
     case = make_mock_case()
 

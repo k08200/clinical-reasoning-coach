@@ -273,6 +273,25 @@ RISKY_MANAGEMENT_TARGET_PATTERN = (
     r"blood products?|heparin|insulin|packed rbcs?|prbcs?|pressors?|red blood cells?|"
     r"thrombolysis|transfusion|tpa|vasopressors?"
 )
+PREMATURE_CLOSURE_TARGETS = {
+    "discharge home": "discharge",
+    "discharge": "discharge",
+    "send home": "discharge",
+    "go home": "discharge",
+    "outpatient follow-up": "outpatient follow-up",
+    "outpatient follow up": "outpatient follow-up",
+    "reassure": "reassurance",
+    "reassurance": "reassurance",
+    "no further workup": "no further workup",
+    "no further testing": "no further testing",
+}
+PREMATURE_CLOSURE_COMMITMENT_PATTERNS = [
+    r"\b(?:i|we|you)\s+(?:will|would|should|can|could|plan to)\s+(?:discharge|send|reassure)\b",
+    r"\b(?:discharge|send)\s+(?:the patient|him|her|them|home)\b",
+    r"\b(?:the patient|he|she|they)\s+(?:can|could|should)\s+go home\b",
+    r"\bno further (?:workup|testing)\b",
+    r"\boutpatient follow[-\s]?up\b.{0,40}\b(?:is enough|is sufficient|only)\b",
+]
 KOREAN_RISKY_MANAGEMENT_TARGETS = {
     "알테플라제": "alteplase",
     "혈전용해": "thrombolysis",
@@ -288,6 +307,19 @@ KOREAN_RISKY_MANAGEMENT_TARGETS = {
     "농축적혈구": "packed red blood cells",
     "혈액제제": "blood products",
 }
+KOREAN_PREMATURE_CLOSURE_TARGETS = {
+    "퇴원": "discharge",
+    "귀가": "discharge",
+    "안심": "reassurance",
+    "외래 추적": "outpatient follow-up",
+    "외래추적": "outpatient follow-up",
+    "추가 검사 필요 없": "no further testing",
+    "추가검사 필요 없": "no further testing",
+}
+KOREAN_PREMATURE_CLOSURE_COMMITMENT_PATTERNS = [
+    r"(?:퇴원|귀가|안심|외래\s*추적|외래추적).{0,20}(?:하겠|시키|합니다|하면|충분|가능)",
+    r"(?:추가\s*검사|추가검사).{0,20}(?:필요\s*없)",
+]
 KOREAN_RISKY_MANAGEMENT_COMMITMENT_PATTERNS = [
     r"(?:시작|투여|주겠|쓰겠|사용|진행|시행|처치|치료|넣겠|올리겠|걸겠|처방)",
 ]
@@ -314,6 +346,19 @@ KOREAN_MANAGEMENT_SAFETY_CHECK_PATTERNS = [
     r"교차\s*적합",
     r"동의",
     r"수혈\s*반응",
+]
+KOREAN_DISPOSITION_SAFETY_CHECK_PATTERNS = [
+    r"위험\s*징후",
+    r"레드\s*플래그",
+    r"생명\s*위협",
+    r"불안정",
+    r"저산소",
+    r"심전도",
+    r"ecg",
+    r"ekg",
+    r"트로포닌",
+    r"연속",
+    r"재내원",
 ]
 KOREAN_MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
     r"(?:확인|평가|검토|배제|금기|출혈|알레르기|대동맥\s*박리|칼륨|포타슘|신장|콩팥|혈액형|교차\s*시험|교차\s*적합|동의|수혈\s*반응).{0,40}(?:없이|안\s*하고|하지\s*않고|필요\s*없)",
@@ -350,6 +395,20 @@ MANAGEMENT_SAFETY_CHECK_PATTERNS = [
     r"\bkidney\b",
     r"\btype and screen\b",
     r"\btransfusion reaction\b",
+]
+DISPOSITION_SAFETY_CHECK_PATTERNS = [
+    r"\bred flags?\b",
+    r"\blife[-\s]?threatening\b",
+    r"\bdangerous alternatives?\b",
+    r"\bunstable\b",
+    r"\binstability\b",
+    r"\bhypoxi(?:a|c)\b",
+    r"\becg\b",
+    r"\bekg\b",
+    r"\btroponin\b",
+    r"\bserial\b",
+    r"\breturn precautions?\b",
+    r"\bfollow[-\s]?up plan\b",
 ]
 MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
     r"\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b.{0,80}\b(?:check|rule out|contraindications?|allerg(?:y|ies)|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|potassium|renal|kidney|type and screen|transfusion reaction)\b",
@@ -511,11 +570,25 @@ def detect_management_safety_gap(
     student_message: str,
     uncovered_safety_targets: dict[str, list[str]] | None,
 ) -> list[str]:
-    uncovered_checks = (uncovered_safety_targets or {}).get("contraindication_checks") or []
+    uncovered_targets = uncovered_safety_targets or {}
+    uncovered_checks = uncovered_targets.get("contraindication_checks") or []
+    uncovered_disposition_safety = (
+        (uncovered_targets.get("red_flags") or [])
+        + (uncovered_targets.get("time_critical_actions") or [])
+    )
+
+    normalized = _normalize_for_guardrail(student_message)
+    premature_closure_terms = _premature_closure_terms(normalized)
+    if (
+        premature_closure_terms
+        and uncovered_disposition_safety
+        and not _mentions_disposition_safety_check(normalized)
+    ):
+        return premature_closure_terms
+
     if not uncovered_checks:
         return []
 
-    normalized = _normalize_for_guardrail(student_message)
     risky_terms = _risky_management_terms(normalized)
     if not risky_terms:
         return []
@@ -530,6 +603,30 @@ def detect_management_safety_gap(
         return []
 
     return risky_terms
+
+
+def _premature_closure_terms(normalized: str) -> list[str]:
+    if not _has_premature_closure_commitment(normalized):
+        return []
+    terms = {
+        canonical
+        for phrase, canonical in PREMATURE_CLOSURE_TARGETS.items()
+        if phrase in normalized
+    }
+    for phrase, canonical in KOREAN_PREMATURE_CLOSURE_TARGETS.items():
+        if phrase.lower() in normalized:
+            terms.add(canonical)
+    return sorted(terms)
+
+
+def _has_premature_closure_commitment(normalized: str) -> bool:
+    return any(
+        re.search(pattern, normalized)
+        for pattern in PREMATURE_CLOSURE_COMMITMENT_PATTERNS
+    ) or any(
+        re.search(pattern, normalized)
+        for pattern in KOREAN_PREMATURE_CLOSURE_COMMITMENT_PATTERNS
+    )
 
 
 def _risky_management_terms(normalized: str) -> list[str]:
@@ -572,6 +669,16 @@ def _bypasses_management_safety_check(normalized: str) -> bool:
     ) or any(
         re.search(pattern, normalized)
         for pattern in KOREAN_MANAGEMENT_SAFETY_BYPASS_PATTERNS
+    )
+
+
+def _mentions_disposition_safety_check(normalized: str) -> bool:
+    return any(
+        re.search(pattern, normalized)
+        for pattern in DISPOSITION_SAFETY_CHECK_PATTERNS
+    ) or any(
+        re.search(pattern, normalized)
+        for pattern in KOREAN_DISPOSITION_SAFETY_CHECK_PATTERNS
     )
 
 
