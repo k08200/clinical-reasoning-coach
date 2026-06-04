@@ -589,6 +589,67 @@ PE_PREGNANCY_SAFETY_TERMS = (
     "pregnant",
     "임신",
 )
+ACS_CONTEXT_TERMS = (
+    "acute coronary syndrome",
+    "acs",
+    "myocardial infarction",
+    "nstemi",
+    "st-elevation",
+    "stemi",
+    "심근경색",
+    "급성관상동맥",
+)
+ACS_ECG_ACTION_TERMS = (
+    "12-lead ecg",
+    "ecg",
+    "electrocardiogram",
+    "within 10 minutes",
+    "심전도",
+)
+ACS_REPERFUSION_ACTION_TERMS = (
+    "cath",
+    "door-to-balloon",
+    "door to balloon",
+    "pci",
+    "reperfusion",
+    "stemi",
+    "재관류",
+)
+ACS_ANTITHROMBOTIC_ACTION_TERMS = (
+    "anticoagulation",
+    "antiplatelet",
+    "antithrombotic",
+    "aspirin",
+    "heparin",
+    "항응고",
+    "항혈소판",
+)
+ACS_DISSECTION_SAFETY_TERMS = (
+    "aortic dissection",
+    "dissection",
+    "대동맥박리",
+    "대동맥 박리",
+)
+ACS_BLEEDING_SAFETY_TERMS = (
+    "active bleeding",
+    "bleeding",
+    "recent surgery",
+    "surgery",
+    "출혈",
+    "수술",
+)
+ACS_HEMODYNAMIC_SAFETY_TERMS = (
+    "cardiogenic shock",
+    "hemodynamic",
+    "heart failure",
+    "hypotension",
+    "instability",
+    "pulmonary edema",
+    "shock",
+    "혈역학",
+    "저혈압",
+    "폐부종",
+)
 
 
 @dataclass
@@ -951,6 +1012,15 @@ def _check_safety_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
             report.add_critical(
                 "PE safety checks must include bleeding or recent-surgery risk, renal/contrast safety, and pregnancy status when selecting imaging or anticoagulation"
             )
+    if _requires_acs_safety_check(data):
+        if not _has_acs_time_critical_actions(data.get("time_critical_actions") or []):
+            report.add_critical(
+                "ACS time-critical actions must include ECG within 10 minutes, reperfusion pathway, and antithrombotic planning"
+            )
+        if not _has_acs_contraindication_safety_check(data.get("contraindication_checks") or []):
+            report.add_critical(
+                "ACS safety checks must include aortic dissection exclusion, bleeding or recent-surgery risk, and hemodynamic or heart-failure escalation"
+            )
 
 
 def _requires_pregnancy_safety_check(data: dict[str, Any]) -> bool:
@@ -1265,6 +1335,65 @@ def _has_pe_contraindication_safety_check(checks: list[Any]) -> bool:
         for term in PE_PREGNANCY_SAFETY_TERMS
     )
     return has_bleeding_safety and has_renal_contrast_safety and has_pregnancy_safety
+
+
+def _requires_acs_safety_check(data: dict[str, Any]) -> bool:
+    if _requires_pe_safety_check(data) or _requires_stroke_reperfusion_safety_check(data):
+        return False
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(_contains_safety_term(risk_text, term) for term in ACS_CONTEXT_TERMS)
+
+
+def _has_acs_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_ecg = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACS_ECG_ACTION_TERMS
+    )
+    has_reperfusion = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACS_REPERFUSION_ACTION_TERMS
+    )
+    has_antithrombotic_planning = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACS_ANTITHROMBOTIC_ACTION_TERMS
+    )
+    return has_ecg and has_reperfusion and has_antithrombotic_planning
+
+
+def _has_acs_contraindication_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_dissection_exclusion = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_DISSECTION_SAFETY_TERMS
+    )
+    has_bleeding_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_BLEEDING_SAFETY_TERMS
+    )
+    has_hemodynamic_escalation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_HEMODYNAMIC_SAFETY_TERMS
+    )
+    return has_dissection_exclusion and has_bleeding_safety and has_hemodynamic_escalation
 
 
 def _contains_safety_term(text: str, term: str) -> bool:

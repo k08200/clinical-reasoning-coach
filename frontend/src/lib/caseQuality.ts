@@ -543,6 +543,74 @@ const PE_RENAL_CONTRAST_SAFETY_TERMS = [
 
 const PE_PREGNANCY_SAFETY_TERMS = ["hcg", "pregnancy", "pregnant", "임신"];
 
+const ACS_CONTEXT_TERMS = [
+  "acute coronary syndrome",
+  "acs",
+  "myocardial infarction",
+  "nstemi",
+  "st-elevation",
+  "stemi",
+  "심근경색",
+  "급성관상동맥",
+];
+
+const ACS_ECG_ACTION_TERMS = [
+  "12-lead ecg",
+  "ecg",
+  "electrocardiogram",
+  "within 10 minutes",
+  "심전도",
+];
+
+const ACS_REPERFUSION_ACTION_TERMS = [
+  "cath",
+  "door-to-balloon",
+  "door to balloon",
+  "pci",
+  "reperfusion",
+  "stemi",
+  "재관류",
+];
+
+const ACS_ANTITHROMBOTIC_ACTION_TERMS = [
+  "anticoagulation",
+  "antiplatelet",
+  "antithrombotic",
+  "aspirin",
+  "heparin",
+  "항응고",
+  "항혈소판",
+];
+
+const ACS_DISSECTION_SAFETY_TERMS = [
+  "aortic dissection",
+  "dissection",
+  "대동맥박리",
+  "대동맥 박리",
+];
+
+const ACS_BLEEDING_SAFETY_TERMS = [
+  "active bleeding",
+  "bleeding",
+  "recent surgery",
+  "surgery",
+  "출혈",
+  "수술",
+];
+
+const ACS_HEMODYNAMIC_SAFETY_TERMS = [
+  "cardiogenic shock",
+  "hemodynamic",
+  "heart failure",
+  "hypotension",
+  "instability",
+  "pulmonary edema",
+  "shock",
+  "혈역학",
+  "저혈압",
+  "폐부종",
+];
+
 type SourceAnchoredSafetyField =
   | "clinical_red_flags"
   | "time_critical_actions"
@@ -911,6 +979,55 @@ function hasPeContraindicationSafetyCheck(checks: string[]): boolean {
   return hasBleedingSafety && hasRenalContrastSafety && hasPregnancySafety;
 }
 
+function requiresAcsSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  if (requiresPeSafetyCheck(detail) || requiresStrokeReperfusionSafetyCheck(detail)) {
+    return false;
+  }
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return ACS_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasAcsTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasEcg = ACS_ECG_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasReperfusion = ACS_REPERFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntithromboticPlanning = ACS_ANTITHROMBOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasEcg && hasReperfusion && hasAntithromboticPlanning;
+}
+
+function hasAcsContraindicationSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDissectionExclusion = ACS_DISSECTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBleedingSafety = ACS_BLEEDING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHemodynamicEscalation = ACS_HEMODYNAMIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasDissectionExclusion && hasBleedingSafety && hasHemodynamicEscalation;
+}
+
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
@@ -1002,6 +1119,18 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
     if (!hasPeContraindicationSafetyCheck(detail.contraindication_checks)) {
       issues.push(
         "PE safety checks must include bleeding or recent-surgery risk, renal/contrast safety, and pregnancy status when selecting imaging or anticoagulation",
+      );
+    }
+  }
+  if (requiresAcsSafetyCheck(detail)) {
+    if (!hasAcsTimeCriticalActions(detail.time_critical_actions)) {
+      issues.push(
+        "ACS time-critical actions must include ECG within 10 minutes, reperfusion pathway, and antithrombotic planning",
+      );
+    }
+    if (!hasAcsContraindicationSafetyCheck(detail.contraindication_checks)) {
+      issues.push(
+        "ACS safety checks must include aortic dissection exclusion, bleeding or recent-surgery risk, and hemodynamic or heart-failure escalation",
       );
     }
   }

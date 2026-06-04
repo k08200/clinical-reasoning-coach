@@ -620,5 +620,70 @@
         }
       ]
     }
+  },
+  {
+    "name": "acs_requires_ecg_reperfusion_and_antithrombotic_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "ACS time-critical actions must include ECG within 10 minutes"
+    ],
+    "overrides": {
+      "time_critical_actions": [
+        "Activate local ACS pathway when STEMI criteria are met",
+        "Give antiplatelet and anticoagulation after checking major contraindications",
+        "Escalate for shock or pulmonary edema"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2025 ACC/AHA Guideline for the Management of Acute Coronary Syndromes",
+          "organization": "American College of Cardiology / American Heart Association",
+          "url": "https://www.acc.org/Guidelines",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "local ACS pathway activation when STEMI criteria are met",
+            "antiplatelet and anticoagulation after checking major contraindications",
+            "escalation for shock or pulmonary edema",
+            "crushing substernal chest pain radiating to the arm with diaphoresis",
+            "bibasilar crackles suggesting early heart failure",
+            "tachycardia with multiple coronary risk factors",
+            "aortic dissection features before anticoagulation or thrombolysis",
+            "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+            "hemodynamic instability or pulmonary edema requiring escalation"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "acs_requires_dissection_bleeding_and_hemodynamic_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "ACS safety checks must include aortic dissection exclusion"
+    ],
+    "overrides": {
+      "contraindication_checks": [
+        "Active bleeding or recent major surgery before antithrombotic therapy",
+        "Severe medication allergy before antithrombotic therapy"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2025 ACC/AHA Guideline for the Management of Acute Coronary Syndromes",
+          "organization": "American College of Cardiology / American Heart Association",
+          "url": "https://www.acc.org/Guidelines",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "ECG within 10 minutes and reperfusion pathway activation",
+            "antiplatelet and anticoagulation after checking major contraindications",
+            "crushing substernal chest pain radiating to the arm with diaphoresis",
+            "bibasilar crackles suggesting early heart failure",
+            "tachycardia with multiple coronary risk factors",
+            "active bleeding or recent major surgery before antithrombotic therapy",
+            "severe medication allergy before antithrombotic therapy"
+          ]
+        }
+      ]
+    }
   }
 ]

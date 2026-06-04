@@ -1398,6 +1398,73 @@ async def test_clinical_review_requires_pe_risk_and_safety_checks(
     assert case.reviewed_by_user_id is None
 
 
+async def test_clinical_review_requires_acs_safety_checks(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"acs-safety-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="ACS Safety Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case_payload = copy.deepcopy(CASE_POOL[0])
+    case_payload["contraindication_checks"] = [
+        "Active bleeding or recent major surgery before antithrombotic therapy",
+        "Severe medication allergy before antithrombotic therapy",
+    ]
+    case_payload["clinical_sources"] = [
+        {
+            "title": "2025 ACC/AHA Guideline for the Management of Acute Coronary Syndromes",
+            "organization": "American College of Cardiology / American Heart Association",
+            "url": "https://www.acc.org/Guidelines",
+            "supports": [
+                "ACS diagnosis and risk stratification for acute chest pain",
+                "life-threatening chest pain differential and severity markers",
+                "ECG within 10 minutes and reperfusion pathway activation",
+                "antiplatelet and anticoagulation after checking major contraindications",
+                "crushing substernal chest pain radiating to the arm with diaphoresis",
+                "bibasilar crackles suggesting early heart failure",
+                "tachycardia with multiple coronary risk factors",
+                "active bleeding or recent major surgery before antithrombotic therapy",
+                "severe medication allergy before antithrombotic therapy",
+            ],
+        }
+    ]
+    case = ClinicalCase(**case_payload)
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "educational_safety_confirmed": True,
+            "review_notes": (
+                "Trying to approve ACS case without dissection or hemodynamic safety review."
+            ),
+        },
+    )
+
+    assert response.status_code == 409
+    assert "case quality gate" in response.json()["detail"]
+    assert "ACS safety checks must include aortic dissection exclusion" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.review_status == case_payload["review_status"]
+    assert case.reviewed_by_user_id is None
+
+
 async def test_clinical_review_rejects_placeholder_source_url(
     client: AsyncClient,
     db: AsyncSession,

@@ -283,24 +283,32 @@ def test_quality_gate_requires_bleeding_safety_check_for_thrombolysis():
 def test_quality_gate_allows_thrombolysis_with_bleeding_safety_check():
     case = copy.deepcopy(CASE_POOL[0])
     case["time_critical_actions"] = [
+        "Obtain and interpret a 12-lead ECG within 10 minutes of presentation",
         "Start thrombolysis pathway immediately when criteria are met",
         "Activate reperfusion pathway for high-risk presentation",
+        "Give antiplatelet and anticoagulation only after checking major contraindications",
     ]
     case["contraindication_checks"] = [
         "Pregnancy status before thrombolysis",
         "Renal function before contrast imaging",
         "Active bleeding, recent surgery, anticoagulant use, platelet count, and blood pressure before thrombolysis",
+        "Aortic dissection features before anticoagulation or thrombolysis",
+        "Hemodynamic instability or pulmonary edema requiring escalation",
     ]
     case["clinical_sources"][0]["supports"] = [
         "ACS diagnosis and risk stratification for acute chest pain",
         "life-threatening chest pain differential and severity markers",
+        "ECG within 10 minutes for acute chest pain",
         "thrombolysis pathway activation and reperfusion timing for high-risk presentation",
+        "antiplatelet and anticoagulation after checking major contraindications",
         "crushing substernal chest pain radiating to the arm with diaphoresis",
         "bibasilar crackles suggesting early heart failure",
         "tachycardia with multiple coronary risk factors",
         "pregnancy status before thrombolysis",
         "renal function before contrast imaging",
         "active bleeding, recent surgery, anticoagulant use, platelet count, and blood pressure before thrombolysis",
+        "aortic dissection features before anticoagulation or thrombolysis",
+        "hemodynamic instability or pulmonary edema requiring escalation",
     ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
@@ -567,6 +575,71 @@ def test_quality_gate_requires_pe_bleeding_renal_and_pregnancy_safety():
 
 def test_quality_gate_allows_pe_with_required_risk_and_safety_checks():
     case = copy.deepcopy(CASE_POOL[2])
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
+def test_quality_gate_requires_acs_ecg_reperfusion_and_antithrombotic_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["time_critical_actions"] = [
+        "Activate local ACS pathway when STEMI criteria are met",
+        "Give antiplatelet and anticoagulation after checking major contraindications",
+        "Escalate for shock or pulmonary edema",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "ACS diagnosis and risk stratification for acute chest pain",
+        "life-threatening chest pain differential and severity markers",
+        "local ACS pathway activation when STEMI criteria are met",
+        "antiplatelet and anticoagulation after checking major contraindications",
+        "escalation for shock or pulmonary edema",
+        "crushing substernal chest pain radiating to the arm with diaphoresis",
+        "bibasilar crackles suggesting early heart failure",
+        "tachycardia with multiple coronary risk factors",
+        "aortic dissection features before anticoagulation or thrombolysis",
+        "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+        "hemodynamic instability or pulmonary edema requiring escalation",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ACS time-critical actions must include ECG within 10 minutes" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acs_dissection_bleeding_and_hemodynamic_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["contraindication_checks"] = [
+        "Active bleeding or recent major surgery before antithrombotic therapy",
+        "Severe medication allergy before antithrombotic therapy",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "ACS diagnosis and risk stratification for acute chest pain",
+        "life-threatening chest pain differential and severity markers",
+        "ECG within 10 minutes and reperfusion pathway activation",
+        "antiplatelet and anticoagulation after checking major contraindications",
+        "crushing substernal chest pain radiating to the arm with diaphoresis",
+        "bibasilar crackles suggesting early heart failure",
+        "tachycardia with multiple coronary risk factors",
+        "active bleeding or recent major surgery before antithrombotic therapy",
+        "severe medication allergy before antithrombotic therapy",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ACS safety checks must include aortic dissection exclusion" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_allows_acs_with_required_safety_checks():
+    case = copy.deepcopy(CASE_POOL[0])
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
 
