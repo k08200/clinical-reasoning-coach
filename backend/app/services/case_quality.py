@@ -520,6 +520,75 @@ STROKE_BP_TERMS = (
     "hypertension",
     "혈압",
 )
+PE_CONTEXT_TERMS = (
+    "ct pulmonary angiography",
+    "ctpa",
+    "d-dimer",
+    "dvt",
+    "pe",
+    "pulmonary embolism",
+    "rv strain",
+    "right ventricular strain",
+    "wells",
+    "폐색전",
+    "폐색전증",
+)
+PE_RISK_STRATIFICATION_TERMS = (
+    "massive",
+    "risk stratification",
+    "risk stratify",
+    "submassive",
+    "wells",
+    "위험도",
+)
+PE_HEMODYNAMIC_TERMS = (
+    "blood pressure",
+    "echo",
+    "hemodynamic",
+    "hypotension",
+    "instability",
+    "rv strain",
+    "right ventricular",
+    "shock",
+    "syncope",
+    "혈역학",
+    "저혈압",
+)
+PE_IMAGING_PATHWAY_TERMS = (
+    "bedside echo",
+    "ct pulmonary angiography",
+    "ctpa",
+    "echo",
+    "imaging",
+    "v/q",
+    "영상",
+    "심초음파",
+)
+PE_BLEEDING_SAFETY_TERMS = (
+    "bleeding",
+    "recent surgery",
+    "surgery",
+    "thrombolysis",
+    "출혈",
+    "수술",
+)
+PE_RENAL_CONTRAST_SAFETY_TERMS = (
+    "contrast",
+    "creatinine",
+    "egfr",
+    "kidney",
+    "renal",
+    "조영제",
+    "크레아티닌",
+    "신장",
+    "콩팥",
+)
+PE_PREGNANCY_SAFETY_TERMS = (
+    "hcg",
+    "pregnancy",
+    "pregnant",
+    "임신",
+)
 
 
 @dataclass
@@ -873,6 +942,15 @@ def _check_safety_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
             report.add_critical(
                 "stroke reperfusion safety checks must include hemorrhage exclusion, anticoagulant status, platelet count, glucose, and blood pressure thresholds"
             )
+    if _requires_pe_safety_check(data):
+        if not _has_pe_time_critical_actions(data.get("time_critical_actions") or []):
+            report.add_critical(
+                "PE time-critical actions must include risk stratification, hemodynamic or RV-strain assessment, and imaging or bedside-echo pathway"
+            )
+        if not _has_pe_contraindication_safety_check(data.get("contraindication_checks") or []):
+            report.add_critical(
+                "PE safety checks must include bleeding or recent-surgery risk, renal/contrast safety, and pregnancy status when selecting imaging or anticoagulation"
+            )
 
 
 def _requires_pregnancy_safety_check(data: dict[str, Any]) -> bool:
@@ -1130,6 +1208,63 @@ def _has_stroke_contraindication_safety_check(checks: list[Any]) -> bool:
         and has_glucose_threshold
         and has_bp_threshold
     )
+
+
+def _requires_pe_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(_contains_safety_term(risk_text, term) for term in PE_CONTEXT_TERMS)
+
+
+def _has_pe_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_risk_stratification = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PE_RISK_STRATIFICATION_TERMS
+    )
+    has_hemodynamic_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PE_HEMODYNAMIC_TERMS
+    )
+    has_imaging_pathway = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PE_IMAGING_PATHWAY_TERMS
+    )
+    return has_risk_stratification and has_hemodynamic_assessment and has_imaging_pathway
+
+
+def _has_pe_contraindication_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_bleeding_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_BLEEDING_SAFETY_TERMS
+    )
+    has_renal_contrast_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_RENAL_CONTRAST_SAFETY_TERMS
+    )
+    has_pregnancy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_PREGNANCY_SAFETY_TERMS
+    )
+    return has_bleeding_safety and has_renal_contrast_safety and has_pregnancy_safety
 
 
 def _contains_safety_term(text: str, term: str) -> bool:

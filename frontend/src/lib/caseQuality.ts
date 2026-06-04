@@ -472,6 +472,77 @@ const STROKE_GLUCOSE_TERMS = ["glucose", "hypoglycemia", "혈당"];
 
 const STROKE_BP_TERMS = ["blood pressure", "bp", "hypertension", "혈압"];
 
+const PE_CONTEXT_TERMS = [
+  "ct pulmonary angiography",
+  "ctpa",
+  "d-dimer",
+  "dvt",
+  "pe",
+  "pulmonary embolism",
+  "rv strain",
+  "right ventricular strain",
+  "wells",
+  "폐색전",
+  "폐색전증",
+];
+
+const PE_RISK_STRATIFICATION_TERMS = [
+  "massive",
+  "risk stratification",
+  "risk stratify",
+  "submassive",
+  "wells",
+  "위험도",
+];
+
+const PE_HEMODYNAMIC_TERMS = [
+  "blood pressure",
+  "echo",
+  "hemodynamic",
+  "hypotension",
+  "instability",
+  "rv strain",
+  "right ventricular",
+  "shock",
+  "syncope",
+  "혈역학",
+  "저혈압",
+];
+
+const PE_IMAGING_PATHWAY_TERMS = [
+  "bedside echo",
+  "ct pulmonary angiography",
+  "ctpa",
+  "echo",
+  "imaging",
+  "v/q",
+  "영상",
+  "심초음파",
+];
+
+const PE_BLEEDING_SAFETY_TERMS = [
+  "bleeding",
+  "recent surgery",
+  "surgery",
+  "thrombolysis",
+  "출혈",
+  "수술",
+];
+
+const PE_RENAL_CONTRAST_SAFETY_TERMS = [
+  "contrast",
+  "creatinine",
+  "egfr",
+  "kidney",
+  "renal",
+  "조영제",
+  "크레아티닌",
+  "신장",
+  "콩팥",
+];
+
+const PE_PREGNANCY_SAFETY_TERMS = ["hcg", "pregnancy", "pregnant", "임신"];
+
 type SourceAnchoredSafetyField =
   | "clinical_red_flags"
   | "time_critical_actions"
@@ -794,6 +865,52 @@ function hasStrokeContraindicationSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresPeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return PE_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasPeTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasRiskStratification = PE_RISK_STRATIFICATION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHemodynamicAssessment = PE_HEMODYNAMIC_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImagingPathway = PE_IMAGING_PATHWAY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasRiskStratification && hasHemodynamicAssessment && hasImagingPathway;
+}
+
+function hasPeContraindicationSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasBleedingSafety = PE_BLEEDING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRenalContrastSafety = PE_RENAL_CONTRAST_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPregnancySafety = PE_PREGNANCY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasBleedingSafety && hasRenalContrastSafety && hasPregnancySafety;
+}
+
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
@@ -873,6 +990,18 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
     if (!hasStrokeContraindicationSafetyCheck(detail.contraindication_checks)) {
       issues.push(
         "stroke reperfusion safety checks must include hemorrhage exclusion, anticoagulant status, platelet count, glucose, and blood pressure thresholds",
+      );
+    }
+  }
+  if (requiresPeSafetyCheck(detail)) {
+    if (!hasPeTimeCriticalActions(detail.time_critical_actions)) {
+      issues.push(
+        "PE time-critical actions must include risk stratification, hemodynamic or RV-strain assessment, and imaging or bedside-echo pathway",
+      );
+    }
+    if (!hasPeContraindicationSafetyCheck(detail.contraindication_checks)) {
+      issues.push(
+        "PE safety checks must include bleeding or recent-surgery risk, renal/contrast safety, and pregnancy status when selecting imaging or anticoagulation",
       );
     }
   }

@@ -1329,6 +1329,75 @@ async def test_clinical_review_requires_stroke_reperfusion_safety_checks(
     assert case.reviewed_by_user_id is None
 
 
+async def test_clinical_review_requires_pe_risk_and_safety_checks(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"pe-safety-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="PE Safety Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case_payload = copy.deepcopy(CASE_POOL[2])
+    case_payload["contraindication_checks"] = [
+        "Bleeding risk and recent surgery before thrombolysis or anticoagulation",
+        "Contrast allergy before CT pulmonary angiography",
+        "Need for escalation if hypotension persists",
+    ]
+    case_payload["clinical_sources"] = [
+        {
+            "title": "2019 ESC Guidelines for Acute Pulmonary Embolism",
+            "organization": "European Society of Cardiology",
+            "url": "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines/Acute-Pulmonary-Embolism-Diagnosis-and-Management-of",
+            "supports": [
+                "risk stratification by hemodynamic instability and RV strain",
+                "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+                "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+                "unilateral calf swelling and elevated D-dimer in suspected PE",
+                "massive versus submassive PE risk stratification before disposition",
+                "urgent escalation for worsening hypotension, syncope, or shock",
+                "imaging, bedside echo, and hemodynamic stability pathways",
+                "bleeding risk and recent surgery before thrombolysis or anticoagulation",
+                "contrast allergy before CT pulmonary angiography",
+                "need for escalation if hypotension persists",
+            ],
+        }
+    ]
+    case = ClinicalCase(**case_payload)
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "educational_safety_confirmed": True,
+            "review_notes": (
+                "Trying to approve PE case without renal or pregnancy safety review."
+            ),
+        },
+    )
+
+    assert response.status_code == 409
+    assert "case quality gate" in response.json()["detail"]
+    assert "PE safety checks must include bleeding or recent-surgery risk" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.review_status == case_payload["review_status"]
+    assert case.reviewed_by_user_id is None
+
+
 async def test_clinical_review_rejects_placeholder_source_url(
     client: AsyncClient,
     db: AsyncSession,

@@ -219,26 +219,30 @@ def test_quality_gate_requires_renal_safety_check_for_contrast_imaging():
 def test_quality_gate_allows_contrast_imaging_with_renal_safety_check():
     case = copy.deepcopy(CASE_POOL[0])
     case["time_critical_actions"] = [
-        "Obtain CT pulmonary angiography promptly when pulmonary embolism remains high risk",
-        "Escalate anticoagulation pathway planning after dangerous alternatives are addressed",
+        "Risk stratify for massive versus submassive PE before choosing disposition",
+        "Escalate anticoagulation pathway planning after dangerous alternatives are addressed and monitor for hypotension or RV strain",
+        "Select CT pulmonary angiography or bedside echo pathway based on hemodynamic stability",
     ]
     case["contraindication_checks"] = [
         "Contrast allergy before CT pulmonary angiography",
         "Renal function and creatinine before contrast imaging",
         "Active bleeding risk before anticoagulation",
+        "Pregnancy status when selecting PE imaging or anticoagulation",
     ]
     case["clinical_sources"][0]["url"] = "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines"
     case["clinical_sources"][0]["supports"] = [
         "pulmonary embolism diagnosis and risk stratification pathway",
         "life-threatening chest pain differential and severity markers",
-        "CT pulmonary angiography timing for high-risk suspected pulmonary embolism",
-        "anticoagulation pathway escalation when dangerous alternatives are addressed",
+        "massive versus submassive PE risk stratification before disposition",
+        "anticoagulation pathway escalation when dangerous alternatives are addressed and hypotension or RV strain is monitored",
+        "CT pulmonary angiography or bedside echo pathway based on hemodynamic stability",
         "crushing substernal chest pain radiating to the arm with diaphoresis",
         "bibasilar crackles suggesting early heart failure",
         "tachycardia with multiple coronary risk factors",
         "contrast allergy before CT pulmonary angiography",
         "renal function and creatinine before contrast imaging",
         "active bleeding risk before anticoagulation",
+        "pregnancy status when selecting PE imaging or anticoagulation",
     ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
@@ -498,6 +502,71 @@ def test_quality_gate_requires_stroke_reperfusion_contraindication_checks():
 
 def test_quality_gate_allows_stroke_reperfusion_with_required_safety_checks():
     case = copy.deepcopy(CASE_POOL[4])
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
+def test_quality_gate_requires_pe_risk_and_imaging_actions():
+    case = copy.deepcopy(CASE_POOL[2])
+    case["time_critical_actions"] = [
+        "Start anticoagulation planning for suspected pulmonary embolism",
+        "Give supplemental oxygen and monitor closely",
+        "Escalate if symptoms worsen",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "pulmonary embolism diagnosis and risk stratification",
+        "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+        "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+        "unilateral calf swelling and elevated D-dimer in suspected PE",
+        "start anticoagulation planning for suspected pulmonary embolism",
+        "give supplemental oxygen and monitor closely",
+        "escalate if symptoms worsen",
+        "bleeding risk, recent surgery, renal function, contrast allergy, and pregnancy safety checks",
+        "pregnancy status when selecting imaging and anticoagulation",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "PE time-critical actions must include risk stratification" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_pe_bleeding_renal_and_pregnancy_safety():
+    case = copy.deepcopy(CASE_POOL[2])
+    case["contraindication_checks"] = [
+        "Bleeding risk and recent surgery before thrombolysis or anticoagulation",
+        "Contrast allergy before CT pulmonary angiography",
+        "Need for escalation if hypotension persists",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "risk stratification by hemodynamic instability and RV strain",
+        "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+        "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+        "unilateral calf swelling and elevated D-dimer in suspected PE",
+        "massive versus submassive PE risk stratification before disposition",
+        "urgent escalation for worsening hypotension, syncope, or shock",
+        "imaging, bedside echo, and hemodynamic stability pathways",
+        "bleeding risk and recent surgery before thrombolysis or anticoagulation",
+        "contrast allergy before CT pulmonary angiography",
+        "need for escalation if hypotension persists",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "PE safety checks must include bleeding or recent-surgery risk" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_allows_pe_with_required_risk_and_safety_checks():
+    case = copy.deepcopy(CASE_POOL[2])
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
 

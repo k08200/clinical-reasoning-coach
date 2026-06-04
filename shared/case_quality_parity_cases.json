@@ -523,5 +523,102 @@
         }
       ]
     }
+  },
+  {
+    "name": "pe_requires_risk_and_imaging_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "PE time-critical actions must include risk stratification"
+    ],
+    "overrides": {
+      "diagnosis": "Pulmonary Embolism with right ventricular strain",
+      "key_teaching_points": [
+        "Wells criteria and clinical probability guide PE diagnostic strategy",
+        "RV strain and hemodynamic instability determine PE risk category",
+        "CTPA or bedside echo pathway depends on hemodynamic stability"
+      ],
+      "clinical_red_flags": [
+        "Sudden dyspnea with hypoxemia and pleuritic chest pain after surgery",
+        "Tachycardia with borderline blood pressure and signs of right heart strain",
+        "Unilateral calf swelling and markedly elevated D-dimer"
+      ],
+      "time_critical_actions": [
+        "Start anticoagulation planning for suspected pulmonary embolism",
+        "Give supplemental oxygen and monitor closely",
+        "Escalate if symptoms worsen"
+      ],
+      "contraindication_checks": [
+        "Bleeding risk, recent surgery, and neuraxial anesthesia before thrombolysis or anticoagulation",
+        "Renal function and contrast allergy before CT pulmonary angiography",
+        "Pregnancy status when selecting imaging and anticoagulation"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2019 ESC Guidelines for Acute Pulmonary Embolism",
+          "organization": "European Society of Cardiology",
+          "url": "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines/Acute-Pulmonary-Embolism-Diagnosis-and-Management-of",
+          "supports": [
+            "pulmonary embolism diagnosis and risk stratification",
+            "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+            "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+            "unilateral calf swelling and elevated D-dimer in suspected PE",
+            "start anticoagulation planning for suspected pulmonary embolism",
+            "give supplemental oxygen and monitor closely",
+            "escalate if symptoms worsen",
+            "bleeding risk, recent surgery, renal function, contrast allergy, and pregnancy safety checks",
+            "pregnancy status when selecting imaging and anticoagulation"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "pe_requires_bleeding_renal_and_pregnancy_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "PE safety checks must include bleeding or recent-surgery risk"
+    ],
+    "overrides": {
+      "diagnosis": "Pulmonary Embolism with right ventricular strain",
+      "key_teaching_points": [
+        "Wells criteria and clinical probability guide PE diagnostic strategy",
+        "RV strain and hemodynamic instability determine PE risk category",
+        "CTPA or bedside echo pathway depends on hemodynamic stability"
+      ],
+      "clinical_red_flags": [
+        "Sudden dyspnea with hypoxemia and pleuritic chest pain after surgery",
+        "Tachycardia with borderline blood pressure and signs of right heart strain",
+        "Unilateral calf swelling and markedly elevated D-dimer"
+      ],
+      "time_critical_actions": [
+        "Risk stratify for massive versus submassive PE before choosing disposition",
+        "Escalate urgently for worsening hypotension, syncope, or shock",
+        "Select imaging or bedside echo pathway based on hemodynamic stability"
+      ],
+      "contraindication_checks": [
+        "Bleeding risk and recent surgery before thrombolysis or anticoagulation",
+        "Contrast allergy before CT pulmonary angiography",
+        "Need for escalation if hypotension persists"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2019 ESC Guidelines for Acute Pulmonary Embolism",
+          "organization": "European Society of Cardiology",
+          "url": "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines/Acute-Pulmonary-Embolism-Diagnosis-and-Management-of",
+          "supports": [
+            "risk stratification by hemodynamic instability and RV strain",
+            "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+            "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+            "unilateral calf swelling and elevated D-dimer in suspected PE",
+            "massive versus submassive PE risk stratification before disposition",
+            "urgent escalation for worsening hypotension, syncope, or shock",
+            "imaging, bedside echo, and hemodynamic stability pathways",
+            "bleeding risk and recent surgery before thrombolysis or anticoagulation",
+            "contrast allergy before CT pulmonary angiography",
+            "need for escalation if hypotension persists"
+          ]
+        }
+      ]
+    }
   }
 ]
