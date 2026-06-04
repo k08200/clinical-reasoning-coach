@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any
 from urllib.parse import urlparse
 
@@ -480,12 +481,22 @@ def _check_source_url(index: int, url: str, report: CaseQualityReport) -> None:
 
 def _check_review_metadata(data: dict[str, Any], report: CaseQualityReport) -> None:
     status = data.get("review_status")
+    last_reviewed_at = data.get("last_reviewed_at")
     if status not in ALLOWED_REVIEW_STATUSES:
         report.add_critical("review_status is not recognized")
-    if status == "clinician_reviewed" and not data.get("last_reviewed_at"):
+    if status == "clinician_reviewed" and not last_reviewed_at:
         report.add_critical("clinician_reviewed cases require last_reviewed_at")
-    if status == "educational_draft" and not data.get("last_reviewed_at"):
+    if status == "educational_draft" and not last_reviewed_at:
         report.add_warning("educational_draft cases should include last_reviewed_at")
+    if not last_reviewed_at:
+        return
+    try:
+        reviewed_on = date.fromisoformat(str(last_reviewed_at)[:10])
+    except ValueError:
+        report.add_critical("last_reviewed_at must be a valid ISO date")
+        return
+    if reviewed_on > date.today():
+        report.add_critical("last_reviewed_at must not be in the future")
 
 
 def _check_coach_guidance(data: dict[str, Any], report: CaseQualityReport) -> None:

@@ -56,6 +56,7 @@ export interface ClinicalCase {
     last_reviewed_at: string | null;
     review_valid_until: string | null;
     review_stale: boolean;
+    review_date_invalid: boolean;
     review_content_changed: boolean;
   };
   times_used: number;

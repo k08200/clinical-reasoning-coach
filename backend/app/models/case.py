@@ -128,16 +128,22 @@ class ClinicalCase(Base):
             },
         )
         reviewed_on = _parse_review_date(self.last_reviewed_at)
+        today = date.today()
+        review_date_invalid = (
+            self.review_status == "clinician_reviewed"
+            and bool(self.last_reviewed_at)
+            and (reviewed_on is None or reviewed_on > today)
+        )
         review_valid_until = (
             (reviewed_on + timedelta(days=CLINICAL_REVIEW_VALID_DAYS)).isoformat()
-            if reviewed_on
+            if reviewed_on and not review_date_invalid
             else None
         )
         review_stale = (
             self.review_status == "clinician_reviewed"
             and (
                 reviewed_on is None
-                or date.today() > reviewed_on + timedelta(days=CLINICAL_REVIEW_VALID_DAYS)
+                or today > reviewed_on + timedelta(days=CLINICAL_REVIEW_VALID_DAYS)
             )
         )
         review_label = review["label"]
@@ -160,6 +166,9 @@ class ClinicalCase(Base):
         if review_stale:
             review_label = "Clinician review stale"
             requires_caution = True
+        if review_date_invalid:
+            review_label = "Clinician review date invalid"
+            requires_caution = True
         if review_content_changed:
             review_label = "Clinician review content changed"
             requires_caution = True
@@ -173,5 +182,6 @@ class ClinicalCase(Base):
             "last_reviewed_at": self.last_reviewed_at,
             "review_valid_until": review_valid_until,
             "review_stale": review_stale,
+            "review_date_invalid": review_date_invalid,
             "review_content_changed": review_content_changed,
         }

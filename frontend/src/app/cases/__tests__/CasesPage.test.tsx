@@ -74,6 +74,7 @@ const makeCase = (overrides: Partial<ClinicalCase> = {}): ClinicalCase => ({
     last_reviewed_at: "2026-06-01",
     review_valid_until: "2027-06-01",
     review_stale: false,
+    review_date_invalid: false,
     review_content_changed: false,
   },
   times_used: 2,
@@ -177,6 +178,7 @@ describe("CasesPage", () => {
             last_reviewed_at: "2026-06-02",
             review_valid_until: "2027-06-02",
             review_stale: false,
+            review_date_invalid: false,
             review_content_changed: false,
           },
         }),
@@ -209,6 +211,7 @@ describe("CasesPage", () => {
             last_reviewed_at: null,
             review_valid_until: null,
             review_stale: false,
+            review_date_invalid: false,
             review_content_changed: false,
           },
         }),
@@ -237,6 +240,7 @@ describe("CasesPage", () => {
             last_reviewed_at: "2024-01-01",
             review_valid_until: "2024-12-31",
             review_stale: true,
+            review_date_invalid: false,
             review_content_changed: false,
           },
         }),
@@ -249,6 +253,38 @@ describe("CasesPage", () => {
     expect(screen.getByText("Clinician review stale")).toBeTruthy();
     expect(screen.getByText("Clinician review is stale; re-review required.")).toBeTruthy();
     expect(screen.getByText("Reviewed 2024-01-01 · Valid until 2024-12-31")).toBeTruthy();
+    const startButton = screen.getByRole("button", { name: "Re-review Required" });
+    expect(startButton).toHaveProperty("disabled", true);
+    expect(mockCreateSession).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Start only as educational simulation/)).toBeFalsy();
+  });
+
+  it("blocks starting a future-dated reviewed case until re-review", () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [
+        makeCase({
+          source_provenance: {
+            source_count: 1,
+            organizations: ["American Heart Association"],
+            review_status: "clinician_reviewed",
+            review_label: "Clinician review date invalid",
+            requires_caution: true,
+            last_reviewed_at: "2099-01-01",
+            review_valid_until: null,
+            review_stale: false,
+            review_date_invalid: true,
+            review_content_changed: false,
+          },
+        }),
+      ],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    render(<CasesPage />);
+
+    expect(screen.getByText("Clinician review date invalid")).toBeTruthy();
+    expect(screen.getByText("Clinician review date is invalid; re-review required.")).toBeTruthy();
+    expect(screen.getByText("Reviewed 2099-01-01")).toBeTruthy();
     const startButton = screen.getByRole("button", { name: "Re-review Required" });
     expect(startButton).toHaveProperty("disabled", true);
     expect(mockCreateSession).not.toHaveBeenCalled();
@@ -268,6 +304,7 @@ describe("CasesPage", () => {
             last_reviewed_at: "2026-06-01",
             review_valid_until: "2027-06-01",
             review_stale: false,
+            review_date_invalid: false,
             review_content_changed: true,
           },
         }),

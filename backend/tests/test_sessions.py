@@ -240,6 +240,52 @@ async def test_create_session_blocks_stale_reviewed_case_even_with_acknowledgeme
 
 
 @pytest.mark.asyncio
+async def test_create_session_blocks_future_reviewed_case_even_with_acknowledgement(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"future-reviewed-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Future Reviewed Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    case.last_reviewed_at = "2099-01-01"
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        "/api/sessions",
+        json={"case_id": str(case.id)},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert "invalid clinician review date" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.times_used == 0
+
+    acknowledged_response = await client.post(
+        "/api/sessions",
+        json={"case_id": str(case.id), "acknowledge_unreviewed_case": True},
+        headers=auth_headers,
+    )
+
+    assert acknowledged_response.status_code == 409
+    assert "invalid clinician review date" in acknowledged_response.json()["detail"]
+    await db.refresh(case)
+    assert case.times_used == 0
+
+
+@pytest.mark.asyncio
 async def test_stream_response_persists_turn_before_done(
     client: AsyncClient,
     monkeypatch: pytest.MonkeyPatch,

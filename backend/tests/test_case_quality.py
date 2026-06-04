@@ -28,6 +28,17 @@ def test_quality_gate_rejects_missing_safety_metadata():
     assert any("clinical red flags" in issue for issue in report.critical_issues)
 
 
+def test_quality_gate_rejects_future_review_date():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["review_status"] = "clinician_reviewed"
+    case["last_reviewed_at"] = "2099-01-01"
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("future" in issue for issue in report.critical_issues)
+
+
 def test_quality_gate_rejects_unrealistic_vitals():
     case = copy.deepcopy(CASE_POOL[0])
     case["physical_exam"]["vitals"]["spo2"] = 150

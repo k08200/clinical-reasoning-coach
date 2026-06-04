@@ -765,6 +765,14 @@ async def create_session(
                 "before learner sessions can start."
             ),
         )
+    if source_provenance["review_date_invalid"]:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This case has an invalid clinician review date and requires "
+                "updated clinical review before learner sessions can start."
+            ),
+        )
     if source_provenance["review_stale"]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

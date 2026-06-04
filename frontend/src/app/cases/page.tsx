@@ -53,6 +53,7 @@ export default function CasesPage() {
     currentUser?.role === "clinician_reviewer" || currentUser?.role === "admin";
   const requiresReReview = (clinicalCase: ClinicalCase): boolean =>
     clinicalCase.source_provenance.review_stale ||
+    clinicalCase.source_provenance.review_date_invalid ||
     clinicalCase.source_provenance.review_content_changed;
 
   async function handleGenerateDemo() {
@@ -102,6 +103,9 @@ export default function CasesPage() {
     if (clinicalCase.source_provenance.review_stale) {
       return "Clinician review is stale; re-review required.";
     }
+    if (clinicalCase.source_provenance.review_date_invalid) {
+      return "Clinician review date is invalid; re-review required.";
+    }
     return "Not clinician reviewed; use only for education.";
   }
 
@@ -111,6 +115,9 @@ export default function CasesPage() {
     }
     if (clinicalCase.source_provenance.review_stale) {
       return "This case has a stale clinician review. Start only as educational simulation.";
+    }
+    if (clinicalCase.source_provenance.review_date_invalid) {
+      return "This case has an invalid clinician review date. Start only as educational simulation.";
     }
     return "This case is not clinician reviewed. Start only as educational simulation.";
   }
