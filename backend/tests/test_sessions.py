@@ -2023,12 +2023,110 @@ async def test_complete_session_blocks_management_before_prior_safety_checks(
         "code": "management_before_safety_checks_incomplete",
         "message": (
             "Before finishing, revisit any management plan that was stated before "
-            "contraindication or safety checks and explain the safety checks first."
+            "red flags, time-critical actions, or safety checks and explain those "
+            "checks first."
         ),
         "unsafe_management_turns": [
             {
                 "turn": 1,
                 "detected_terms": ["heparin"],
+                "missing_red_flags": [
+                    "Diaphoresis with crushing chest pain",
+                    "Hypoxia or hemodynamic instability",
+                ],
+                "missing_time_critical_actions": [
+                    "12-lead ECG within 10 minutes",
+                    "Serial troponin trend",
+                ],
+                "missing_contraindication_checks": [
+                    "Aortic dissection features before anticoagulation",
+                    "Major bleeding risk before antiplatelet therapy",
+                ],
+            }
+        ],
+    }
+    await db.refresh(session)
+    assert session.status == "active"
+    assert session.completed_at is None
+
+
+@pytest.mark.asyncio
+async def test_complete_session_reports_premature_discharge_missing_safety_targets(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"discharge-sequence-guard-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Discharge Sequence Guard",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content="I would discharge him home now with outpatient follow-up.",
+        reasoning_score=82,
+        reasoning_analysis=_passing_reasoning_analysis(),
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=86,
+        reasoning_analysis=_passing_reasoning_analysis(),
+    ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "management_before_safety_checks_incomplete",
+        "message": (
+            "Before finishing, revisit any management plan that was stated before "
+            "red flags, time-critical actions, or safety checks and explain those "
+            "checks first."
+        ),
+        "unsafe_management_turns": [
+            {
+                "turn": 1,
+                "detected_terms": ["discharge", "outpatient follow-up"],
+                "missing_red_flags": [
+                    "Diaphoresis with crushing chest pain",
+                    "Hypoxia or hemodynamic instability",
+                ],
+                "missing_time_critical_actions": [
+                    "12-lead ECG within 10 minutes",
+                    "Serial troponin trend",
+                ],
                 "missing_contraindication_checks": [
                     "Aortic dissection features before anticoagulation",
                     "Major bleeding risk before antiplatelet therapy",

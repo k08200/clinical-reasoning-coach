@@ -72,6 +72,8 @@ type CompletionManagementSafetyDetail = {
   unsafe_management_turns: {
     turn: number;
     detected_terms: string[];
+    missing_red_flags?: string[];
+    missing_time_critical_actions?: string[];
     missing_contraindication_checks: string[];
   }[];
 };
@@ -695,18 +697,42 @@ export default function SessionPage() {
                 </button>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                {completionManagementSafetyDetail.unsafe_management_turns.map((turn) => (
-                  <span
-                    key={`${turn.turn}-${turn.detected_terms.join("-")}`}
-                    className="rounded-full border border-amber-700 bg-slate-900/50 px-3 py-1 text-xs text-amber-100"
-                  >
-                    Turn {turn.turn}: {turn.detected_terms.join(", ")}
-                  </span>
-                ))}
+                {completionManagementSafetyDetail.unsafe_management_turns.map((turn) => {
+                  const missingSafetySections = [
+                    { label: "Red flags", items: turn.missing_red_flags ?? [] },
+                    {
+                      label: "Time-critical actions",
+                      items: turn.missing_time_critical_actions ?? [],
+                    },
+                    {
+                      label: "Contraindication checks",
+                      items: turn.missing_contraindication_checks,
+                    },
+                  ];
+
+                  return (
+                    <div
+                      key={`${turn.turn}-${turn.detected_terms.join("-")}`}
+                      className="rounded-lg border border-amber-700 bg-slate-900/50 px-3 py-2 text-xs text-amber-100"
+                    >
+                      <p className="font-semibold">
+                        Turn {turn.turn}: {turn.detected_terms.join(", ")}
+                      </p>
+                      {missingSafetySections.map(({ label, items }) => (
+                        items.length > 0 ? (
+                          <p key={label} className="mt-1 text-amber-200">
+                            {label}: {items.join("; ")}
+                          </p>
+                        ) : null
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
               <p className="mt-3 text-xs text-amber-300">
-                Completion requires safety checks to come before simulated treatment decisions,
-                not only somewhere later in the transcript.
+                Completion requires red flags, time-critical actions, and safety checks to
+                come before simulated treatment or disposition decisions, not only somewhere
+                later in the transcript.
               </p>
             </div>
           )}

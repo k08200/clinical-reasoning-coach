@@ -680,6 +680,10 @@ def _management_safety_completion_gaps(
             gaps.append({
                 "turn": student_turn,
                 "detected_terms": detected_terms,
+                "missing_red_flags": uncovered_targets["red_flags"],
+                "missing_time_critical_actions": uncovered_targets[
+                    "time_critical_actions"
+                ],
                 "missing_contraindication_checks": uncovered_targets[
                     "contraindication_checks"
                 ],
@@ -693,7 +697,8 @@ def _management_safety_completion_block_detail(gaps: list[dict]) -> dict:
         "code": "management_before_safety_checks_incomplete",
         "message": (
             "Before finishing, revisit any management plan that was stated before "
-            "contraindication or safety checks and explain the safety checks first."
+            "red flags, time-critical actions, or safety checks and explain those "
+            "checks first."
         ),
         "unsafe_management_turns": gaps,
     }

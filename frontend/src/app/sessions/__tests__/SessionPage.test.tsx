@@ -498,6 +498,8 @@ describe("SessionPage", () => {
           {
             turn: 1,
             detected_terms: ["heparin"],
+            missing_red_flags: ["Hypoxia or hemodynamic instability"],
+            missing_time_critical_actions: ["12-lead ECG within 10 minutes"],
             missing_contraindication_checks: [
               "Aortic dissection features before anticoagulation",
             ],
@@ -512,8 +514,15 @@ describe("SessionPage", () => {
     expect(await screen.findByText("Management safety sequence still needs work")).toBeTruthy();
     expect(screen.getByText(/before committing to risky treatment/)).toBeTruthy();
     expect(screen.getByText("Turn 1: heparin")).toBeTruthy();
+    expect(screen.getByText(/Red flags: Hypoxia or hemodynamic instability/)).toBeTruthy();
+    expect(screen.getByText(/Time-critical actions: 12-lead ECG within 10 minutes/)).toBeTruthy();
     expect(
-      screen.getByText(/safety checks to come before simulated treatment decisions/),
+      screen.getByText(
+        /Contraindication checks: Aortic dissection features before anticoagulation/,
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(/before simulated treatment or disposition decisions/),
     ).toBeTruthy();
   });
 
