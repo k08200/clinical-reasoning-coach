@@ -79,8 +79,11 @@ const makeCase = (overrides: Partial<ClinicalCase> = {}): ClinicalCase => ({
   },
   initial_labs: { troponin: "0.03" },
   source_provenance: {
-    source_count: 1,
-    organizations: ["American Heart Association"],
+    source_count: 2,
+    organizations: [
+      "Society of Critical Care Medicine",
+      "National Institute for Health and Care Excellence",
+    ],
     review_status: "educational_draft",
     review_label: "Educational draft",
     requires_caution: true,
@@ -154,6 +157,19 @@ const makeReviewDetail = (
       title: "Surviving Sepsis Campaign Guidelines",
       organization: "Society of Critical Care Medicine",
       url: "https://www.sccm.org/survivingsepsis",
+      supports: [
+        "sepsis diagnosis and risk stratification",
+        "hypotension and altered mental status as red flags",
+        "time-critical blood cultures and broad-spectrum antibiotics",
+        "fluid overload risk and drug allergy safety checks before treatment",
+        "renal function and dosing review before broad-spectrum antibiotics",
+        "pregnancy status before antibiotic or imaging decisions",
+      ],
+    },
+    {
+      title: "NICE Sepsis Guidance",
+      organization: "National Institute for Health and Care Excellence",
+      url: "https://www.nice.org.uk/guidance/ng51",
       supports: [
         "sepsis diagnosis and risk stratification",
         "hypotension and altered mental status as red flags",
@@ -372,8 +388,11 @@ describe("ReviewPage", () => {
     mockReviewSwr();
     mockCompleteClinicalReview.mockResolvedValue(makeCase({
       source_provenance: {
-        source_count: 1,
-        organizations: ["American Heart Association"],
+        source_count: 2,
+        organizations: [
+          "Society of Critical Care Medicine",
+          "National Institute for Health and Care Excellence",
+        ],
         review_status: "clinician_reviewed",
         review_label: "Clinician reviewed",
         requires_caution: false,
@@ -470,6 +489,47 @@ describe("ReviewPage", () => {
 
     expect(screen.getByText("Quality Gate")).toBeTruthy();
     expect(screen.getByText("At least 2 clinical red flags are required.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
+    expect(mockCompleteClinicalReview).not.toHaveBeenCalled();
+  });
+
+  it("blocks clinical review submission without independent source organizations", () => {
+    mockReviewSwr({
+      detail: makeReviewDetail({
+        clinical_sources: [
+          {
+            title: "Surviving Sepsis Campaign Guidelines",
+            organization: "Society of Critical Care Medicine",
+            url: "https://www.sccm.org/survivingsepsis",
+            supports: [
+              "sepsis diagnosis and risk stratification",
+              "hypotension and altered mental status as red flags",
+              "time-critical blood cultures and broad-spectrum antibiotics",
+              "fluid overload risk and drug allergy safety checks before treatment",
+              "renal function and dosing review before broad-spectrum antibiotics",
+              "pregnancy status before antibiotic or imaging decisions",
+            ],
+          },
+        ],
+      }),
+    });
+
+    render(<ReviewPage />);
+
+    for (const checkbox of screen.getAllByRole("checkbox")) {
+      fireEvent.click(checkbox);
+    }
+    fireEvent.change(screen.getByLabelText("Review Notes"), {
+      target: { value: "Sources, safety checks, and simulation limits reviewed." },
+    });
+
+    expect(screen.getByText("Independent source organizations")).toBeTruthy();
+    expect(screen.getByText("1/2")).toBeTruthy();
+    expect(
+      screen.getAllByText(
+        /requires at least 2 independent clinical source organizations/i,
+      ).length,
+    ).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
     expect(mockCompleteClinicalReview).not.toHaveBeenCalled();
   });

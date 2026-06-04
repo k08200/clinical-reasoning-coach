@@ -34,6 +34,7 @@ const DEFAULT_SOURCE_ALIGNMENT_CHECKS: SourceAlignmentChecks = {
 };
 
 const MIN_REVIEW_NOTES_LENGTH = 30;
+const MIN_REVIEWED_SOURCE_ORGANIZATIONS = 2;
 
 const SOURCE_ALIGNMENT_ITEMS: Array<{
   key: keyof SourceAlignmentChecks;
@@ -58,7 +59,8 @@ const SOURCE_ALIGNMENT_ITEMS: Array<{
   {
     key: "contraindication_checks_supported",
     label: "Contraindication checks",
-    description: "Safety checks before treatment are supported by cited sources.",
+    description:
+      "Safety checks before treatment are supported by cited sources from at least 2 independent organizations.",
   },
 ];
 
@@ -80,6 +82,32 @@ function formatGateFieldName(fieldName: "time_critical_actions" | "contraindicat
   return fieldName === "time_critical_actions"
     ? "Time-critical actions"
     : "Contraindication checks";
+}
+
+function uniqueSourceOrganizations(organizations: string[]): string[] {
+  const seen = new Set<string>();
+  return organizations.reduce<string[]>((uniqueOrganizations, organization) => {
+    const normalized = organization.trim().toLowerCase();
+    if (!normalized || seen.has(normalized)) {
+      return uniqueOrganizations;
+    }
+    seen.add(normalized);
+    uniqueOrganizations.push(organization.trim());
+    return uniqueOrganizations;
+  }, []);
+}
+
+function reviewApprovalDetail(
+  detail: ClinicalCaseReviewDetail | undefined,
+): ClinicalCaseReviewDetail | undefined {
+  if (!detail) return undefined;
+  return {
+    ...detail,
+    source_provenance: {
+      ...detail.source_provenance,
+      review_status: "clinician_reviewed",
+    },
+  };
 }
 
 export default function ReviewPage() {
@@ -129,13 +157,25 @@ export default function ReviewPage() {
   const allChecksConfirmed = Object.values(checks).every(Boolean);
   const allSourceAlignmentConfirmed = Object.values(sourceAlignmentChecks).every(Boolean);
   const reviewNotesReady = reviewNotes.trim().length >= MIN_REVIEW_NOTES_LENGTH;
-  const qualityIssues = useMemo(() => reviewQualityIssues(reviewDetail), [reviewDetail]);
+  const approvalDetail = useMemo(() => reviewApprovalDetail(reviewDetail), [reviewDetail]);
+  const qualityIssues = useMemo(() => reviewQualityIssues(approvalDetail), [approvalDetail]);
   const qualityGateStatuses = useMemo(
     () => reviewQualityGateStatuses(reviewDetail),
     [reviewDetail],
   );
   const appliedQualityGateStatuses = qualityGateStatuses.filter((status) => status.applied);
   const missingQualityGateStatuses = appliedQualityGateStatuses.filter((status) => !status.passed);
+  const independentOrganizations = useMemo(
+    () =>
+      uniqueSourceOrganizations(
+        reviewDetail
+          ? reviewDetail.clinical_sources.map((source) => source.organization)
+          : (selectedCase?.source_provenance.organizations ?? []),
+      ),
+    [reviewDetail, selectedCase],
+  );
+  const sourceDiversityReady =
+    independentOrganizations.length >= MIN_REVIEWED_SOURCE_ORGANIZATIONS;
   const canSubmitReview =
     allChecksConfirmed &&
     allSourceAlignmentConfirmed &&
@@ -505,6 +545,28 @@ export default function ReviewPage() {
                         {selectedCase.source_provenance.organizations.join(", ")}
                       </p>
                     )}
+                    <div className="mt-3 rounded border border-slate-700 bg-slate-950/50 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-medium text-slate-100">
+                          Independent source organizations
+                        </p>
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                            sourceDiversityReady
+                              ? "border-emerald-700 bg-emerald-950/30 text-emerald-200"
+                              : "border-amber-700 bg-amber-950/30 text-amber-200"
+                          }`}
+                        >
+                          {independentOrganizations.length}/{MIN_REVIEWED_SOURCE_ORGANIZATIONS}
+                        </span>
+                      </div>
+                      {!sourceDiversityReady && (
+                        <p className="mt-2 text-sm text-amber-100">
+                          Approval requires at least 2 independent clinical source
+                          organizations.
+                        </p>
+                      )}
+                    </div>
                     {reviewDetail && (
                       <div className="mt-3 space-y-3">
                         {reviewDetail.clinical_sources.map((source) => (
