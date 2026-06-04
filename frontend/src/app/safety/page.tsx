@@ -36,6 +36,22 @@ const RESOLUTION_NOTE_REVIEW_TERMS = [
   "reviewed",
   "supervisor",
 ];
+const HIGH_RISK_LOCK_EVENT_TYPES = [
+  "possible_patient_identifier",
+  "real_patient_or_emergency_signal",
+];
+const HIGH_RISK_RESOLUTION_TERMS = [
+  "de-identified",
+  "emergency",
+  "escalated",
+  "local protocol",
+  "not patient care",
+  "outside the app",
+  "privacy",
+  "program director",
+  "supervising",
+  "supervisor",
+];
 
 function isReviewer(user: User | undefined): boolean {
   return user?.role === "clinician_reviewer" || user?.role === "admin";
@@ -81,7 +97,14 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
-function resolutionNoteError(note: string): string | null {
+function isHighRiskLockEvent(event: SafetyEvent): boolean {
+  return (
+    event.severity === "high" &&
+    HIGH_RISK_LOCK_EVENT_TYPES.includes(event.event_type)
+  );
+}
+
+function resolutionNoteError(note: string, event: SafetyEvent): string | null {
   const trimmed = note.trim();
   if (!trimmed) {
     return "Resolution note is required before marking an event resolved.";
@@ -91,6 +114,12 @@ function resolutionNoteError(note: string): string | null {
   }
   if (!RESOLUTION_NOTE_REVIEW_TERMS.some((term) => trimmed.toLowerCase().includes(term))) {
     return "Resolution note must mention review, escalation, or how the issue was addressed.";
+  }
+  if (
+    isHighRiskLockEvent(event) &&
+    !HIGH_RISK_RESOLUTION_TERMS.some((term) => trimmed.toLowerCase().includes(term))
+  ) {
+    return "High-risk lock events require escalation, supervision, privacy handling, local protocol, or not-patient-care documentation.";
   }
   return null;
 }
@@ -137,7 +166,7 @@ export default function SafetyEventsPage() {
 
   async function handleResolve(event: SafetyEvent) {
     const resolutionNote = (resolutionDrafts[event.id] ?? "").trim();
-    const noteError = resolutionNoteError(resolutionNote);
+    const noteError = resolutionNoteError(resolutionNote, event);
     if (noteError) {
       setActionError(noteError);
       setActionMessage(null);
@@ -481,6 +510,9 @@ export default function SafetyEventsPage() {
                           Use at least 20 characters and mention review, audit, escalation,
                           supervision, or how the safety issue was addressed. Resolving audits
                           the event only; safety-locked sessions remain locked.
+                          {isHighRiskLockEvent(event)
+                            ? " High-risk lock events also need escalation, supervision, privacy handling, local protocol, or not-patient-care documentation."
+                            : ""}
                         </p>
                         <button
                           onClick={() => void handleResolve(event)}

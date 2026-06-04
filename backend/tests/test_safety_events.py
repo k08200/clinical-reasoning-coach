@@ -413,6 +413,87 @@ async def test_reviewer_must_document_resolution_note(
 
 
 @pytest.mark.asyncio
+async def test_high_risk_lock_event_resolution_requires_escalation_or_privacy_context(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner = User(
+        email=f"safety-high-risk-learner-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety High Risk Learner",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    reviewer = User(
+        email=f"safety-high-risk-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety High Risk Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case()
+    db.add_all([learner, reviewer, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=learner.id,
+        case_id=case.id,
+        status="safety_locked",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    event = SafetyEvent(
+        session_id=session.id,
+        user_id=learner.id,
+        event_type="possible_patient_identifier",
+        severity="high",
+        action_taken="locked_session_blocked_storage_and_coaching",
+        detected_terms=["medical_record_number"],
+        message_turn=1,
+        note="Session was locked and message storage was blocked.",
+    )
+    db.add(event)
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(event)
+
+    incomplete_response = await client.patch(
+        f"/api/safety-events/{event.id}/resolution",
+        headers=_auth_headers(reviewer),
+        json={
+            "status": "resolved",
+            "resolution_note": "Reviewed the audit trail and documented the event.",
+        },
+    )
+
+    assert incomplete_response.status_code == 422
+    assert incomplete_response.json()["detail"]["code"] == (
+        "high_risk_safety_resolution_note_incomplete"
+    )
+
+    complete_response = await client.patch(
+        f"/api/safety-events/{event.id}/resolution",
+        headers=_auth_headers(reviewer),
+        json={
+            "status": "resolved",
+            "resolution_note": (
+                "Reviewed the audit trail and completed privacy handling outside the app."
+            ),
+        },
+    )
+
+    assert complete_response.status_code == 200
+    payload = complete_response.json()
+    assert payload["status"] == "resolved"
+    assert payload["resolution_note"] == (
+        "Reviewed the audit trail and completed privacy handling outside the app."
+    )
+
+
+@pytest.mark.asyncio
 async def test_learner_cannot_resolve_safety_event(
     client: AsyncClient,
     db: AsyncSession,

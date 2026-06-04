@@ -23,6 +23,23 @@ from app.utils.auth import require_clinical_reviewer
 
 router = APIRouter(prefix="/api/safety-events", tags=["safety"])
 
+HIGH_RISK_LOCK_EVENT_TYPES = {
+    "possible_patient_identifier",
+    "real_patient_or_emergency_signal",
+}
+HIGH_RISK_RESOLUTION_TERMS = {
+    "de-identified",
+    "emergency",
+    "escalated",
+    "local protocol",
+    "not patient care",
+    "outside the app",
+    "privacy",
+    "program director",
+    "supervising",
+    "supervisor",
+}
+
 
 def _validate_safety_event_filter(
     field: str,
@@ -38,6 +55,34 @@ def _validate_safety_event_filter(
             "code": "invalid_safety_event_filter",
             "field": field,
             "allowed_values": sorted(allowed_values),
+        },
+    )
+
+
+def _validate_high_risk_resolution_note(
+    event: SafetyEvent,
+    resolution_note: str | None,
+) -> None:
+    if (
+        event.severity != "high"
+        or event.event_type not in HIGH_RISK_LOCK_EVENT_TYPES
+    ):
+        return
+
+    note = (resolution_note or "").lower()
+    if any(term in note for term in HIGH_RISK_RESOLUTION_TERMS):
+        return
+
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail={
+            "code": "high_risk_safety_resolution_note_incomplete",
+            "message": (
+                "High-risk real patient, emergency, or privacy events require "
+                "documentation of escalation, supervision, privacy handling, local "
+                "protocol use, or that the app was not used for patient care."
+            ),
+            "required_terms": sorted(HIGH_RISK_RESOLUTION_TERMS),
         },
     )
 
@@ -153,6 +198,9 @@ async def update_safety_event_resolution(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Safety event not found",
         )
+
+    if body.status == "resolved":
+        _validate_high_risk_resolution_note(event, body.resolution_note)
 
     event.status = body.status
     event.resolution_note = body.resolution_note.strip() if body.resolution_note else None

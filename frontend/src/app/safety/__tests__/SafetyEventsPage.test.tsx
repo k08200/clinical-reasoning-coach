@@ -186,6 +186,10 @@ describe("SafetyEventsPage", () => {
       screen.getAllByText(/Use at least 20 characters and mention review/)
         .length,
     ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(/High-risk lock events also need escalation/)
+        .length,
+    ).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Reopen" })).toBeTruthy();
   });
 
@@ -230,6 +234,17 @@ describe("SafetyEventsPage", () => {
     expect(
       await screen.findByText(
         "Resolution note must mention review, escalation, or how the issue was addressed.",
+      ),
+    ).toBeTruthy();
+    expect(api.safetyEvents.updateResolution).not.toHaveBeenCalled();
+
+    fireEvent.change(noteInput, {
+      target: { value: "Reviewed and documented the safety audit." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Mark Resolved" }));
+    expect(
+      await screen.findByText(
+        "High-risk lock events require escalation, supervision, privacy handling, local protocol, or not-patient-care documentation.",
       ),
     ).toBeTruthy();
     expect(api.safetyEvents.updateResolution).not.toHaveBeenCalled();
