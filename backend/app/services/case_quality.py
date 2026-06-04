@@ -264,6 +264,53 @@ RENAL_SAFETY_TERMS = (
     "콩팥",
     "크레아티닌",
 )
+HIGH_RISK_THERAPY_TRIGGER_TERMS = (
+    "alteplase",
+    "anticoagulation",
+    "anticoagulant",
+    "anticoagulants",
+    "antiplatelet",
+    "antiplatelets",
+    "antithrombotic",
+    "antithrombotics",
+    "aspirin",
+    "heparin",
+    "reperfusion",
+    "thrombolysis",
+    "thrombolytic",
+    "tpa",
+    "혈전용해",
+    "항응고",
+    "항혈소판",
+    "아스피린",
+    "헤파린",
+)
+HEMORRHAGE_SAFETY_TERMS = (
+    "active bleeding",
+    "anticoagulation",
+    "anticoagulant",
+    "anticoagulants",
+    "aortic dissection",
+    "bleed",
+    "bleeding",
+    "blood pressure",
+    "bp",
+    "dissection",
+    "haemorrhage",
+    "hemorrhage",
+    "intracranial hemorrhage",
+    "platelet",
+    "platelets",
+    "recent surgery",
+    "surgery",
+    "출혈",
+    "두개내출혈",
+    "수술",
+    "혈소판",
+    "혈압",
+    "대동맥박리",
+    "대동맥 박리",
+)
 
 
 @dataclass
@@ -583,6 +630,13 @@ def _check_safety_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
         report.add_critical(
             "renal function safety check is required for contrast imaging or renally cleared therapy"
         )
+    if (
+        _requires_hemorrhage_safety_check(data)
+        and not _has_hemorrhage_safety_check(data.get("contraindication_checks") or [])
+    ):
+        report.add_critical(
+            "bleeding risk safety check is required for thrombolysis or antithrombotic therapy"
+        )
 
 
 def _requires_pregnancy_safety_check(data: dict[str, Any]) -> bool:
@@ -634,6 +688,35 @@ def _requires_renal_safety_check(data: dict[str, Any]) -> bool:
 def _has_renal_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
     return any(_contains_safety_term(normalized_checks, term) for term in RENAL_SAFETY_TERMS)
+
+
+def _requires_hemorrhage_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_sources",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in HIGH_RISK_THERAPY_TRIGGER_TERMS
+    )
+
+
+def _has_hemorrhage_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    return any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HEMORRHAGE_SAFETY_TERMS
+    )
 
 
 def _contains_safety_term(text: str, term: str) -> bool:

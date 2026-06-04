@@ -202,5 +202,39 @@
         }
       ]
     }
+  },
+  {
+    "name": "thrombolysis_requires_bleeding_safety_check",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "bleeding risk safety check is required"
+    ],
+    "overrides": {
+      "time_critical_actions": [
+        "Start thrombolysis pathway immediately when criteria are met",
+        "Activate reperfusion pathway for high-risk presentation"
+      ],
+      "contraindication_checks": [
+        "Pregnancy status before thrombolysis",
+        "Renal function before contrast imaging"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2021 AHA/ACC Guideline for the Evaluation and Diagnosis of Chest Pain",
+          "organization": "American Heart Association / American College of Cardiology",
+          "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "thrombolysis pathway activation and reperfusion timing for high-risk presentation",
+            "crushing substernal chest pain radiating to the arm with diaphoresis",
+            "bibasilar crackles suggesting early heart failure",
+            "tachycardia with multiple coronary risk factors",
+            "pregnancy status before thrombolysis",
+            "renal function before contrast imaging"
+          ]
+        }
+      ]
+    }
   }
 ]

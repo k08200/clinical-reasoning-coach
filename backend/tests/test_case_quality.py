@@ -246,6 +246,64 @@ def test_quality_gate_allows_contrast_imaging_with_renal_safety_check():
     assert report.passed
 
 
+def test_quality_gate_requires_bleeding_safety_check_for_thrombolysis():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["time_critical_actions"] = [
+        "Start thrombolysis pathway immediately when criteria are met",
+        "Activate reperfusion pathway for high-risk presentation",
+    ]
+    case["contraindication_checks"] = [
+        "Pregnancy status before thrombolysis",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "ACS diagnosis and risk stratification for acute chest pain",
+        "life-threatening chest pain differential and severity markers",
+        "thrombolysis pathway activation and reperfusion timing for high-risk presentation",
+        "crushing substernal chest pain radiating to the arm with diaphoresis",
+        "bibasilar crackles suggesting early heart failure",
+        "tachycardia with multiple coronary risk factors",
+        "pregnancy status before thrombolysis",
+        "renal function before contrast imaging",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "bleeding risk safety check is required" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_allows_thrombolysis_with_bleeding_safety_check():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["time_critical_actions"] = [
+        "Start thrombolysis pathway immediately when criteria are met",
+        "Activate reperfusion pathway for high-risk presentation",
+    ]
+    case["contraindication_checks"] = [
+        "Pregnancy status before thrombolysis",
+        "Renal function before contrast imaging",
+        "Active bleeding, recent surgery, anticoagulant use, platelet count, and blood pressure before thrombolysis",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "ACS diagnosis and risk stratification for acute chest pain",
+        "life-threatening chest pain differential and severity markers",
+        "thrombolysis pathway activation and reperfusion timing for high-risk presentation",
+        "crushing substernal chest pain radiating to the arm with diaphoresis",
+        "bibasilar crackles suggesting early heart failure",
+        "tachycardia with multiple coronary risk factors",
+        "pregnancy status before thrombolysis",
+        "renal function before contrast imaging",
+        "active bleeding, recent surgery, anticoagulant use, platelet count, and blood pressure before thrombolysis",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
 def test_quality_gate_rejects_non_numeric_blood_pressure():
     case = copy.deepcopy(CASE_POOL[0])
     case["physical_exam"]["vitals"]["bp"] = "normal"

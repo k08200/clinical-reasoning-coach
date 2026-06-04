@@ -216,6 +216,55 @@ const RENAL_SAFETY_TERMS = [
   "크레아티닌",
 ];
 
+const HIGH_RISK_THERAPY_TRIGGER_TERMS = [
+  "alteplase",
+  "anticoagulation",
+  "anticoagulant",
+  "anticoagulants",
+  "antiplatelet",
+  "antiplatelets",
+  "antithrombotic",
+  "antithrombotics",
+  "aspirin",
+  "heparin",
+  "reperfusion",
+  "thrombolysis",
+  "thrombolytic",
+  "tpa",
+  "혈전용해",
+  "항응고",
+  "항혈소판",
+  "아스피린",
+  "헤파린",
+];
+
+const HEMORRHAGE_SAFETY_TERMS = [
+  "active bleeding",
+  "anticoagulation",
+  "anticoagulant",
+  "anticoagulants",
+  "aortic dissection",
+  "bleed",
+  "bleeding",
+  "blood pressure",
+  "bp",
+  "dissection",
+  "haemorrhage",
+  "hemorrhage",
+  "intracranial hemorrhage",
+  "platelet",
+  "platelets",
+  "recent surgery",
+  "surgery",
+  "출혈",
+  "두개내출혈",
+  "수술",
+  "혈소판",
+  "혈압",
+  "대동맥박리",
+  "대동맥 박리",
+];
+
 type SourceAnchoredSafetyField =
   | "clinical_red_flags"
   | "time_critical_actions"
@@ -383,6 +432,24 @@ function hasRenalSafetyCheck(checks: string[]): boolean {
   return RENAL_SAFETY_TERMS.some((term) => containsSafetyTerm(normalizedChecks, term));
 }
 
+function requiresHemorrhageSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_sources),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return HIGH_RISK_THERAPY_TRIGGER_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasHemorrhageSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  return HEMORRHAGE_SAFETY_TERMS.some((term) => containsSafetyTerm(normalizedChecks, term));
+}
+
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
@@ -419,6 +486,14 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
   if (requiresRenalSafetyCheck(detail) && !hasRenalSafetyCheck(detail.contraindication_checks)) {
     issues.push(
       "renal function safety check is required for contrast imaging or renally cleared therapy",
+    );
+  }
+  if (
+    requiresHemorrhageSafetyCheck(detail) &&
+    !hasHemorrhageSafetyCheck(detail.contraindication_checks)
+  ) {
+    issues.push(
+      "bleeding risk safety check is required for thrombolysis or antithrombotic therapy",
     );
   }
   if (detail.clinical_sources.length < 1) {

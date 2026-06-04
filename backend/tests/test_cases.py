@@ -1050,6 +1050,76 @@ async def test_clinical_review_requires_renal_safety_check_for_contrast_imaging(
     assert case.reviewed_by_user_id is None
 
 
+async def test_clinical_review_requires_bleeding_safety_check_for_thrombolysis(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"bleeding-safety-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Bleeding Safety Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case_payload = copy.deepcopy(CASE_POOL[0])
+    case_payload["time_critical_actions"] = [
+        "Start thrombolysis pathway immediately when criteria are met",
+        "Activate reperfusion pathway for high-risk presentation",
+    ]
+    case_payload["contraindication_checks"] = [
+        "Pregnancy status before thrombolysis",
+        "Renal function before contrast imaging",
+    ]
+    case_payload["clinical_sources"] = [
+        {
+            "title": "2021 AHA/ACC Guideline for the Evaluation and Diagnosis of Chest Pain",
+            "organization": "American Heart Association / American College of Cardiology",
+            "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+            "supports": [
+                "ACS diagnosis and risk stratification for acute chest pain",
+                "life-threatening chest pain differential and severity markers",
+                "thrombolysis pathway activation and reperfusion timing for high-risk presentation",
+                "crushing substernal chest pain radiating to the arm with diaphoresis",
+                "bibasilar crackles suggesting early heart failure",
+                "tachycardia with multiple coronary risk factors",
+                "pregnancy status before thrombolysis",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+    case = ClinicalCase(**case_payload)
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "educational_safety_confirmed": True,
+            "review_notes": (
+                "Trying to approve thrombolysis case without bleeding risk review."
+            ),
+        },
+    )
+
+    assert response.status_code == 409
+    assert "case quality gate" in response.json()["detail"]
+    assert "bleeding risk safety check is required" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.review_status == case_payload["review_status"]
+    assert case.reviewed_by_user_id is None
+
+
 async def test_clinical_review_rejects_placeholder_source_url(
     client: AsyncClient,
     db: AsyncSession,
