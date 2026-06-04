@@ -18,7 +18,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 
 from app.database import get_db, AsyncSessionLocal
-from app.models.case import ClinicalCase, CLINICAL_REVIEW_CONTENT_FIELDS
+from app.models.case import (
+    ClinicalCase,
+    CLINICAL_REVIEW_CONTENT_FIELDS,
+    clinical_case_content_fingerprint,
+)
 from app.models.session import CoachingSession
 from app.models.message import Message
 from app.models.bias_event import BiasEvent
@@ -869,6 +873,7 @@ SESSION_REVIEW_SNAPSHOT_FIELDS = (
 
 def _case_review_snapshot(case: ClinicalCase) -> dict:
     snapshot = {field: getattr(case, field) for field in SESSION_REVIEW_SNAPSHOT_FIELDS}
+    snapshot["case_content_fingerprint"] = clinical_case_content_fingerprint(case)
     snapshot["source_provenance"] = case.source_provenance
     return snapshot
 
@@ -877,6 +882,29 @@ def _session_review_snapshot(session: CoachingSession, case: ClinicalCase) -> di
     if isinstance(session.review_snapshot, dict) and session.review_snapshot:
         return session.review_snapshot
     return _case_review_snapshot(case)
+
+
+def _assert_active_session_case_version_matches(
+    session: CoachingSession,
+    case: ClinicalCase,
+) -> None:
+    if session.status != "active":
+        return
+    if not isinstance(session.review_snapshot, dict):
+        return
+    started_fingerprint = session.review_snapshot.get("case_content_fingerprint")
+    if not started_fingerprint:
+        return
+    if started_fingerprint == clinical_case_content_fingerprint(case):
+        return
+
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail=(
+            "This session was started from an earlier version of the case. "
+            "Start a new session after clinician re-review to avoid mixing case versions."
+        ),
+    )
 
 
 def _assert_case_provenance_allows_learner_session(case: ClinicalCase) -> None:
@@ -972,6 +1000,7 @@ async def create_session(
         case_id=body.case_id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_case_review_snapshot(case),
     )
     db.add(session)
     await db.flush()
@@ -1101,6 +1130,7 @@ async def stream_response(
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
     _assert_case_provenance_allows_learner_session(case)
+    _assert_active_session_case_version_matches(session, case)
     _assert_case_quality_for_learner_session(case)
 
     # Snapshot history before adding any new message
@@ -1370,6 +1400,7 @@ async def complete_session(
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
     _assert_case_provenance_allows_learner_session(case)
+    _assert_active_session_case_version_matches(session, case)
     _assert_case_quality_for_learner_session(case)
     safety_coverage = _build_clinical_safety_coverage(case, session)
     if safety_coverage.total_count and (

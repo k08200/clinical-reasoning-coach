@@ -683,6 +683,67 @@ async def test_stream_response_blocks_if_case_quality_fails_after_session_start(
 
 
 @pytest.mark.asyncio
+async def test_stream_response_blocks_if_active_session_case_version_changes_after_re_review(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def fail_stream_coach_response(**_kwargs):
+        if False:
+            yield StreamChunk(type="done")
+        raise AssertionError("Changed case versions must not reach the provider")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    user = User(
+        email=f"stream-version-gate-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Stream Version Gate Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+    session_response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers=auth_headers,
+    )
+    assert session_response.status_code == 201
+    session_id = session_response.json()["id"]
+
+    case.key_teaching_points = [
+        *case.key_teaching_points,
+        "New clinician-reviewed teaching point after session start.",
+    ]
+    _refresh_review_fingerprint_for_test(case)
+    await db.commit()
+
+    response = await client.post(
+        f"/api/sessions/{session_id}/stream",
+        json={"content": "I am considering ACS and would get an ECG."},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert "earlier version of the case" in response.json()["detail"]
+    assert "Start a new session" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
 async def test_stream_response_hides_internal_provider_errors(
     client: AsyncClient,
     db: AsyncSession,
@@ -1339,6 +1400,80 @@ async def test_session_review_uses_completion_snapshot_after_case_changes(
         "Diaphoresis with crushing chest pain"
     )
     assert payload["source_provenance"]["review_content_changed"] is True
+
+
+@pytest.mark.asyncio
+async def test_complete_session_blocks_if_active_session_case_version_changes_after_re_review(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"complete-version-gate-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Complete Version Gate Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+    session_response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers=auth_headers,
+    )
+    assert session_response.status_code == 201
+    session_id = uuid.UUID(session_response.json()["id"])
+    db.add(Message(
+        session_id=session_id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=82,
+        reasoning_analysis=_passing_reasoning_analysis(),
+    ))
+    db.add(Message(
+        session_id=session_id,
+        role="student",
+        content=(
+            "After that safety pass, I would refine my differential and explain what "
+            "new ECG or troponin findings would change my management plan."
+        ),
+        reasoning_score=86,
+        reasoning_analysis=_passing_reasoning_analysis(),
+    ))
+    case.key_teaching_points = [
+        *case.key_teaching_points,
+        "New clinician-reviewed teaching point after session start.",
+    ]
+    _refresh_review_fingerprint_for_test(case)
+    await db.commit()
+
+    response = await client.post(
+        f"/api/sessions/{session_id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert "earlier version of the case" in response.json()["detail"]
+    session = await db.get(CoachingSession, session_id)
+    assert session is not None
+    assert session.status == "active"
+    assert session.completed_at is None
 
 
 @pytest.mark.asyncio
