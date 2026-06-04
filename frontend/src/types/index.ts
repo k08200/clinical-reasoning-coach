@@ -16,6 +16,20 @@ export interface TokenResponse {
   token_type: string;
 }
 
+export interface ClinicalSourceProvenance {
+  source_count: number;
+  organizations: string[];
+  review_status: string;
+  review_label: string;
+  requires_caution: boolean;
+  last_reviewed_at: string | null;
+  review_valid_until: string | null;
+  review_stale: boolean;
+  review_date_invalid: boolean;
+  review_audit_missing?: boolean;
+  review_content_changed: boolean;
+}
+
 export interface ClinicalCase {
   id: string;
   title: string;
@@ -47,19 +61,7 @@ export interface ClinicalCase {
     other?: string;
   };
   initial_labs: Record<string, string>;
-  source_provenance: {
-    source_count: number;
-    organizations: string[];
-    review_status: string;
-    review_label: string;
-    requires_caution: boolean;
-    last_reviewed_at: string | null;
-    review_valid_until: string | null;
-    review_stale: boolean;
-    review_date_invalid: boolean;
-    review_audit_missing?: boolean;
-    review_content_changed: boolean;
-  };
+  source_provenance: ClinicalSourceProvenance;
   times_used: number;
   created_at: string;
 }
@@ -219,6 +221,7 @@ export interface SessionReview {
   clinical_sources: ReviewSource[];
   clinical_safety_coverage: ClinicalSafetyCoverage;
   clinical_safety_completion: ClinicalSafetyCompletionStatus;
+  source_provenance: ClinicalSourceProvenance;
   review_status: string;
   last_reviewed_at: string | null;
 }

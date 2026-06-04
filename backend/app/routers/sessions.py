@@ -1020,6 +1020,7 @@ async def get_session_review(
         clinical_safety_completion=_safety_review_completion_status(
             clinical_safety_coverage
         ),
+        source_provenance=case.source_provenance,
         review_status=case.review_status,
         last_reviewed_at=case.last_reviewed_at,
     )

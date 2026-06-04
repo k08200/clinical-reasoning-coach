@@ -3322,6 +3322,9 @@ async def test_session_review_available_only_after_completion(
             },
         ],
     }
+    assert payload["source_provenance"]["review_status"] == "educational_draft"
+    assert payload["source_provenance"]["review_label"] == "Educational draft"
+    assert payload["source_provenance"]["requires_caution"] is True
     assert coverage["red_flags"][0] == {
         "item": "Diaphoresis with crushing chest pain",
         "covered": True,
@@ -3428,6 +3431,10 @@ async def test_session_review_bounds_stored_breakdown_and_bias_confidence(
 
     assert response.status_code == 200
     payload = response.json()
+    assert payload["source_provenance"]["review_status"] == "clinician_reviewed"
+    assert payload["source_provenance"]["review_label"] == "Clinician reviewed"
+    assert payload["source_provenance"]["requires_caution"] is False
+    assert payload["source_provenance"]["review_audit_missing"] is False
     assert payload["score_breakdown"] == {
         "systematic_approach": 25.0,
         "evidence_integration": 0.0,

@@ -758,6 +758,19 @@ export default function SessionPage() {
                       <p className="mt-2 text-sm text-amber-100">{review.educational_notice}</p>
                     </section>
 
+                    {review.source_provenance.requires_caution && (
+                      <section className="rounded-lg border border-amber-700 bg-amber-950/35 p-3 lg:col-span-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">
+                          Clinical Case Review Warning
+                        </p>
+                        <p className="mt-2 text-sm text-amber-100">
+                          Current case provenance: {review.source_provenance.review_label}. Treat
+                          this completed review as provisional educational feedback until clinician
+                          re-review restores source provenance.
+                        </p>
+                      </section>
+                    )}
+
                     {!review.clinical_safety_completion.complete && (
                       <section className="rounded-lg border border-amber-700 bg-amber-950/35 p-3 lg:col-span-3">
                         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -798,7 +811,7 @@ export default function SessionPage() {
                       <p className="mt-2 text-sm font-semibold text-white">{review.diagnosis}</p>
                       <p className="mt-2 text-xs text-slate-400">{review.diagnosis_notice}</p>
                       <p className="mt-2 text-xs capitalize text-slate-500">
-                        {review.review_status.replace(/_/g, " ")}
+                        {review.source_provenance.review_label}
                         {review.last_reviewed_at ? ` · Reviewed ${review.last_reviewed_at}` : ""}
                       </p>
                     </section>

@@ -4,6 +4,8 @@ import uuid
 from datetime import datetime
 from pydantic import BaseModel, Field
 
+from app.schemas.case import ClinicalSourceProvenance
+
 
 class SessionCreate(BaseModel):
     case_id: uuid.UUID
@@ -102,6 +104,7 @@ class SessionReviewResponse(BaseModel):
     clinical_sources: list[ReviewSource]
     clinical_safety_coverage: ClinicalSafetyCoverage
     clinical_safety_completion: ClinicalSafetyCompletionStatus
+    source_provenance: ClinicalSourceProvenance
     review_status: str
     last_reviewed_at: str | None
 

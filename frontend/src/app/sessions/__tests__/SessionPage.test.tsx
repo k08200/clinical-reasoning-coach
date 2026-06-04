@@ -675,6 +675,19 @@ describe("SessionPage", () => {
                 },
               ],
             },
+            source_provenance: {
+              source_count: 1,
+              organizations: ["Cardiology Society"],
+              review_status: "educational_draft",
+              review_label: "Educational draft",
+              requires_caution: true,
+              last_reviewed_at: "2026-06-01",
+              review_valid_until: "2027-06-01",
+              review_stale: false,
+              review_date_invalid: false,
+              review_audit_missing: false,
+              review_content_changed: false,
+            },
             review_status: "educational_draft",
             last_reviewed_at: "2026-06-01",
           },
@@ -695,6 +708,9 @@ describe("SessionPage", () => {
 
     expect(screen.getByText("Simulation Review Notice")).toBeTruthy();
     expect(screen.getByText(/simulated clinical reasoning practice only/)).toBeTruthy();
+    expect(screen.getByText("Clinical Case Review Warning")).toBeTruthy();
+    expect(screen.getByText(/Current case provenance: Educational draft/)).toBeTruthy();
+    expect(screen.getByText(/provisional educational feedback/)).toBeTruthy();
     expect(screen.getByText("Incomplete Safety Coverage")).toBeTruthy();
     expect(screen.getByText(/not evidence of safe clinical readiness/)).toBeTruthy();
     expect(screen.getByText("2/4 addressed")).toBeTruthy();
@@ -724,7 +740,7 @@ describe("SessionPage", () => {
       "href",
       "https://example.org/chest-pain",
     );
-    expect(screen.getByText(/educational draft/)).toBeTruthy();
+    expect(screen.getAllByText(/Educational draft/).length).toBeGreaterThan(0);
     expect(screen.getByText(/Reviewed 2026-06-01/)).toBeTruthy();
   });
 });
