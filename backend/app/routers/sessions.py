@@ -1190,7 +1190,13 @@ async def get_session_review(
     db: AsyncSession = Depends(get_db),
 ) -> SessionReviewResponse:
     session = await db.get(CoachingSession, session_id)
-    if not session or str(session.user_id) != user_id:
+    if not session:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+    if str(session.user_id) != user_id and not await _can_reviewer_read_safety_event_session_context(
+        session,
+        user_id,
+        db,
+    ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     if session.status != "completed":
         raise HTTPException(

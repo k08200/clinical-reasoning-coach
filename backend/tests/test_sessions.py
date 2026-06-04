@@ -1937,6 +1937,156 @@ async def test_reviewer_can_read_active_session_with_safety_event_context(
 
 
 @pytest.mark.asyncio
+async def test_reviewer_can_read_completed_safety_event_session_review(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner = User(
+        email=f"completed-safety-review-learner-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Completed Safety Review Learner",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    reviewer = User(
+        email=f"completed-safety-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Completed Safety Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([learner, reviewer, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=learner.id,
+        case_id=case.id,
+        status="completed",
+        final_reasoning_score=82,
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.flush()
+    db.add_all([
+        Message(
+            session_id=session.id,
+            role="student",
+            content=COMPLETE_ACS_SAFETY_REASONING,
+            reasoning_score=82,
+            reasoning_analysis={
+                "score_breakdown": {
+                    "systematic_approach": 21,
+                    "evidence_integration": 19,
+                    "prioritization": 23,
+                    "mechanism_understanding": 17,
+                },
+                "strengths": ["Prioritized dangerous diagnoses"],
+                "gaps": ["Needs more disconfirming evidence"],
+                "coach_insight": "Good initial safety framing.",
+            },
+        ),
+        SafetyEvent(
+            session_id=session.id,
+            user_id=learner.id,
+            event_type="management_before_safety_checks",
+            severity="medium",
+            status="resolved",
+            action_taken="coach_redirected_to_safety_checks",
+            detected_terms=["heparin"],
+            message_turn=1,
+            note="Reviewer needs completed learning review context.",
+            resolution_note="Reviewed safety redirect and completed audit.",
+            resolved_at=datetime.now(timezone.utc),
+            resolved_by_user_id=reviewer.id,
+        ),
+    ])
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.get(
+        f"/api/sessions/{session.id}/review",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["session_id"] == str(session.id)
+    assert payload["diagnosis"] == "Acute coronary syndrome"
+    assert payload["clinical_safety_completion"]["complete"] is True
+    assert len(payload["safety_events"]) == 1
+    safety_event = payload["safety_events"][0]
+    assert safety_event["event_type"] == "management_before_safety_checks"
+    assert safety_event["severity"] == "medium"
+    assert safety_event["status"] == "resolved"
+    assert safety_event["message_turn"] == 1
+    assert safety_event["detected_terms"] == ["heparin"]
+    assert safety_event["resolution_note"] == "Reviewed safety redirect and completed audit."
+    assert safety_event["resolved_at"] is not None
+    assert payload["review_audit"]["confirmations"]["clinical_accuracy_confirmed"] is True
+
+
+@pytest.mark.asyncio
+async def test_reviewer_cannot_read_completed_session_review_without_safety_event(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    learner = User(
+        email=f"completed-private-learner-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Completed Private Learner",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    reviewer = User(
+        email=f"completed-private-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Completed Private Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([learner, reviewer, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=learner.id,
+        case_id=case.id,
+        status="completed",
+        final_reasoning_score=82,
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=COMPLETE_ACS_SAFETY_REASONING,
+        reasoning_score=82,
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.get(
+        f"/api/sessions/{session.id}/review",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Session not found"
+
+
+@pytest.mark.asyncio
 async def test_reviewer_cannot_read_active_session_without_safety_event(
     client: AsyncClient,
     db: AsyncSession,
