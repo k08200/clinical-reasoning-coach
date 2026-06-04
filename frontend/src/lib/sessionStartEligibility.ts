@@ -60,6 +60,17 @@ export function evaluateSessionStartEligibility(
     };
   }
 
+  if (provenance.review_audit_missing) {
+    return {
+      blocked: true,
+      requiresAcknowledgement: false,
+      buttonLabel: "Re-review Required",
+      cautionText: "Clinical review audit is missing; re-review required.",
+      acknowledgementText:
+        "This case is marked clinician reviewed but has no review audit fingerprint. Learner sessions are blocked until clinician re-review.",
+    };
+  }
+
   if (provenance.review_status !== "clinician_reviewed" || provenance.requires_caution) {
     return {
       blocked: true,

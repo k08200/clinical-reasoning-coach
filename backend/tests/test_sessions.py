@@ -11,7 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.routers import sessions as sessions_router
 from app.models.bias_event import BiasEvent
-from app.models.case import ClinicalCase
+from app.models.case import ClinicalCase, clinical_case_content_fingerprint
+from app.models.case_review import ClinicalCaseReview
 from app.models.message import Message
 from app.models.safety_event import SafetyEvent
 from app.models.session import CoachingSession
@@ -77,8 +78,47 @@ def _passing_reasoning_analysis() -> dict:
     }
 
 
+def _review_audit_for_case(case: ClinicalCase) -> ClinicalCaseReview:
+    return ClinicalCaseReview(
+        case=case,
+        reviewer_user_id=uuid.uuid4(),
+        prior_review_status="educational_draft",
+        resulting_review_status="clinician_reviewed",
+        confirmations={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "educational_safety_confirmed": True,
+        },
+        source_snapshot={
+            "source_count": len(case.clinical_sources or []),
+            "organizations": [
+                source.get("organization")
+                for source in case.clinical_sources or []
+                if source.get("organization")
+            ],
+            "case_content_fingerprint": clinical_case_content_fingerprint(case),
+            "alignment_checklist": {
+                "teaching_points_supported": True,
+                "red_flags_supported": True,
+                "time_critical_actions_supported": True,
+                "contraindication_checks_supported": True,
+            },
+        },
+        review_notes="Test clinician review with source and safety alignment.",
+    )
+
+
+def _refresh_review_fingerprint_for_test(case: ClinicalCase) -> None:
+    assert case.clinical_reviews
+    review = case.clinical_reviews[0]
+    review.source_snapshot = {
+        **review.source_snapshot,
+        "case_content_fingerprint": clinical_case_content_fingerprint(case),
+    }
+
+
 def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
-    return ClinicalCase(
+    case = ClinicalCase(
         title="Chest Pain Case",
         specialty="internal_medicine",
         difficulty="medium",
@@ -137,6 +177,10 @@ def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
         last_reviewed_at="2026-06-01" if review_status != "ai_generated_unreviewed" else None,
         coach_guidance="Use Socratic questioning.",
     )
+    if review_status == "clinician_reviewed":
+        case.clinical_reviews = [_review_audit_for_case(case)]
+        _refresh_review_fingerprint_for_test(case)
+    return case
 
 
 async def _mark_case_clinician_reviewed_for_test(
@@ -147,6 +191,7 @@ async def _mark_case_clinician_reviewed_for_test(
     assert case is not None
     case.review_status = "clinician_reviewed"
     case.last_reviewed_at = "2026-06-01"
+    db.add(_review_audit_for_case(case))
     await db.commit()
 
 
@@ -313,6 +358,7 @@ async def test_create_session_blocks_case_failing_quality_gate(
     )
     case = _make_case(review_status="clinician_reviewed")
     case.clinical_sources[0]["url"] = "https://wellness-blog.com/chest-pain"
+    _refresh_review_fingerprint_for_test(case)
     db.add_all([user, case])
     await db.commit()
     await db.refresh(user)
@@ -439,6 +485,44 @@ async def test_create_session_blocks_future_reviewed_case_even_with_acknowledgem
 
     assert acknowledged_response.status_code == 409
     assert "invalid clinician review date" in acknowledged_response.json()["detail"]
+    await db.refresh(case)
+    assert case.times_used == 0
+
+
+@pytest.mark.asyncio
+async def test_create_session_blocks_reviewed_case_without_review_audit(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"audit-missing-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Missing Audit Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    case.clinical_reviews = []
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert "no review audit fingerprint" in response.json()["detail"]
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -575,6 +659,7 @@ async def test_stream_response_blocks_if_case_quality_fails_after_session_start(
             "url": "https://wellness-blog.com/chest-pain",
         }
     ]
+    _refresh_review_fingerprint_for_test(case)
     await db.commit()
     await db.refresh(user)
     await db.refresh(session)
@@ -1214,6 +1299,7 @@ async def test_complete_session_blocks_if_case_quality_fails_after_session_start
             "url": "https://wellness-blog.com/chest-pain",
         }
     ]
+    _refresh_review_fingerprint_for_test(case)
     await db.commit()
     await db.refresh(user)
     await db.refresh(session)

@@ -367,6 +367,33 @@ async def test_future_clinician_review_provenance_requires_caution(
     assert provenance["review_valid_until"] is None
 
 
+async def test_missing_clinician_review_audit_provenance_requires_caution(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    auth_headers = await _register_and_login(client)
+    case_payload = dict(CASE_POOL[0])
+    case_payload["review_status"] = "clinician_reviewed"
+    case_payload["last_reviewed_at"] = date.today().isoformat()
+    case = ClinicalCase(**case_payload)
+    db.add(case)
+    await db.commit()
+    await db.refresh(case)
+
+    response = await client.get(f"/api/cases/{case.id}", headers=auth_headers)
+
+    assert response.status_code == 200
+    payload = response.json()
+    provenance = payload["source_provenance"]
+    assert provenance["review_status"] == "clinician_reviewed"
+    assert provenance["review_label"] == "Clinician review audit missing"
+    assert provenance["requires_caution"] is True
+    assert provenance["review_audit_missing"] is True
+    assert provenance["review_stale"] is False
+    assert provenance["review_date_invalid"] is False
+    assert provenance["review_content_changed"] is False
+
+
 async def test_learner_cannot_mark_case_clinician_reviewed(
     client: AsyncClient,
 ):

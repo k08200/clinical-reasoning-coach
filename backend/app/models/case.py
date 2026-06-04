@@ -158,11 +158,18 @@ class ClinicalCase(Base):
             if latest_review and isinstance(latest_review.source_snapshot, dict)
             else None
         )
+        review_audit_missing = (
+            self.review_status == "clinician_reviewed"
+            and not bool(review_fingerprint)
+        )
         review_content_changed = (
             self.review_status == "clinician_reviewed"
             and bool(review_fingerprint)
             and review_fingerprint != clinical_case_content_fingerprint(self)
         )
+        if review_audit_missing:
+            review_label = "Clinician review audit missing"
+            requires_caution = True
         if review_stale:
             review_label = "Clinician review stale"
             requires_caution = True
@@ -183,5 +190,6 @@ class ClinicalCase(Base):
             "review_valid_until": review_valid_until,
             "review_stale": review_stale,
             "review_date_invalid": review_date_invalid,
+            "review_audit_missing": review_audit_missing,
             "review_content_changed": review_content_changed,
         }

@@ -114,6 +114,11 @@ describe("evaluateSessionStartEligibility", () => {
       label: "Case changed after clinician review; re-review required.",
       acknowledgement: "changed after clinician review",
     },
+    {
+      flag: "review_audit_missing",
+      label: "Clinical review audit is missing; re-review required.",
+      acknowledgement: "no review audit fingerprint",
+    },
   ] as const)(
     "blocks sessions when $flag requires clinician re-review",
     ({ flag, label, acknowledgement }) => {

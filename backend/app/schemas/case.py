@@ -41,6 +41,7 @@ class ClinicalSourceProvenance(BaseModel):
     review_valid_until: str | None = None
     review_stale: bool = False
     review_date_invalid: bool = False
+    review_audit_missing: bool = False
     review_content_changed: bool = False
 
 

@@ -881,6 +881,14 @@ def _assert_case_provenance_allows_learner_session(case: ClinicalCase) -> None:
                 "clinical review before learner sessions can start."
             ),
         )
+    if source_provenance["review_audit_missing"]:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This case is marked clinician reviewed but has no review audit "
+                "fingerprint. Learner sessions are blocked until clinician re-review."
+            ),
+        )
 
 
 def _assert_case_quality_for_learner_session(case: ClinicalCase) -> None:

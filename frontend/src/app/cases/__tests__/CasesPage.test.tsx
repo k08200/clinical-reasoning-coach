@@ -360,6 +360,37 @@ describe("CasesPage", () => {
     expect(screen.queryByText(/Start only as educational simulation/)).toBeFalsy();
   });
 
+  it("blocks starting a case with missing review audit until re-review", () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [
+        makeCase({
+          source_provenance: {
+            source_count: 1,
+            organizations: ["American Heart Association"],
+            review_status: "clinician_reviewed",
+            review_label: "Clinician review audit missing",
+            requires_caution: true,
+            last_reviewed_at: "2026-06-01",
+            review_valid_until: "2027-06-01",
+            review_stale: false,
+            review_date_invalid: false,
+            review_audit_missing: true,
+            review_content_changed: false,
+          },
+        }),
+      ],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    render(<CasesPage />);
+
+    expect(screen.getByText("Clinician review audit missing")).toBeTruthy();
+    expect(screen.getByText("Clinical review audit is missing; re-review required.")).toBeTruthy();
+    const startButton = screen.getByRole("button", { name: "Re-review Required" });
+    expect(startButton).toHaveProperty("disabled", true);
+    expect(mockCreateSession).not.toHaveBeenCalled();
+  });
+
   it("generates a demo case and refreshes the list", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: [],
