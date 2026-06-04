@@ -1312,6 +1312,8 @@ async def complete_session(
     case = await db.get(ClinicalCase, session.case_id)
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+    _assert_case_provenance_allows_learner_session(case)
+    _assert_case_quality_for_learner_session(case)
     safety_coverage = _build_clinical_safety_coverage(case, session)
     if safety_coverage.total_count and (
         safety_coverage.covered_count < safety_coverage.total_count

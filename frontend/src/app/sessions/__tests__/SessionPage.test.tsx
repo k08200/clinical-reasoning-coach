@@ -336,6 +336,43 @@ describe("SessionPage", () => {
     expect(screen.getByText(/checklist stays hidden/)).toBeTruthy();
   });
 
+  it("shows clinical review guidance when completion is blocked by case quality", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+          secondAnalyzedStudentMessage,
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockComplete.mockRejectedValueOnce({
+      message:
+        "Case quality gate blocks learner sessions: clinical_sources[0].url must use a reputable clinical source domain",
+      status: 409,
+      detail:
+        "Case quality gate blocks learner sessions: clinical_sources[0].url must use a reputable clinical source domain",
+    });
+
+    render(<SessionPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish Session" }));
+
+    expect(
+      await screen.findByText("Clinical case review is required before continuing"),
+    ).toBeTruthy();
+    expect(screen.getByText(/reputable clinical source domain/)).toBeTruthy();
+    expect(screen.getByText(/complete safety metadata/)).toBeTruthy();
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
   it("shows reasoning quality guidance when completion score is too low", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession({

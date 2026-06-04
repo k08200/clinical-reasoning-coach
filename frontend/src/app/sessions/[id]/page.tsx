@@ -181,6 +181,19 @@ function errorDetail(error: unknown): unknown {
   return error.detail;
 }
 
+function errorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) return error.message;
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+  return fallback;
+}
+
 function isCaseAccessBlockMessage(message: string): boolean {
   return (
     message.includes("Case quality gate blocks learner sessions") ||
@@ -315,7 +328,7 @@ export default function SessionPage() {
         },
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not send your response");
+      setError(errorMessage(err, "Could not send your response"));
       setLiveTokens({});
       setStreaming(false);
       setStreamingText("");
@@ -358,7 +371,13 @@ export default function SessionPage() {
         setCompletionManagementSafetyDetail(detail);
         setError("");
       } else {
-        setError(err instanceof Error ? err.message : "Could not finish the session");
+        const message = errorMessage(err, "Could not finish the session");
+        if (isCaseAccessBlockMessage(message)) {
+          setCaseAccessBlockMessage(message);
+          setError("");
+        } else {
+          setError(message);
+        }
       }
     } finally {
       setCompleting(false);
