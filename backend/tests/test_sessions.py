@@ -117,6 +117,47 @@ def _refresh_review_fingerprint_for_test(case: ClinicalCase) -> None:
     }
 
 
+def _session_review_snapshot_for_case(case: ClinicalCase) -> dict:
+    organizations = [
+        source.get("organization")
+        for source in case.clinical_sources or []
+        if source.get("organization")
+    ]
+    review_status = case.review_status
+    review_label = (
+        "Clinician reviewed"
+        if review_status == "clinician_reviewed"
+        else "AI-generated, unreviewed"
+        if review_status == "ai_generated_unreviewed"
+        else "Educational draft"
+    )
+    return {
+        "diagnosis": case.diagnosis,
+        "key_teaching_points": case.key_teaching_points,
+        "cognitive_traps": case.cognitive_traps,
+        "clinical_red_flags": case.clinical_red_flags,
+        "time_critical_actions": case.time_critical_actions,
+        "contraindication_checks": case.contraindication_checks,
+        "clinical_sources": case.clinical_sources,
+        "review_status": case.review_status,
+        "last_reviewed_at": case.last_reviewed_at,
+        "case_content_fingerprint": clinical_case_content_fingerprint(case),
+        "source_provenance": {
+            "source_count": len(case.clinical_sources or []),
+            "organizations": organizations,
+            "review_status": review_status,
+            "review_label": review_label,
+            "requires_caution": review_status != "clinician_reviewed",
+            "last_reviewed_at": case.last_reviewed_at,
+            "review_valid_until": None,
+            "review_stale": False,
+            "review_date_invalid": False,
+            "review_audit_missing": False,
+            "review_content_changed": False,
+        },
+    }
+
+
 def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
     case = ClinicalCase(
         title="Chest Pain Case",
@@ -650,6 +691,7 @@ async def test_stream_response_blocks_if_case_quality_fails_after_session_start(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -660,6 +702,7 @@ async def test_stream_response_blocks_if_case_quality_fails_after_session_start(
         }
     ]
     _refresh_review_fingerprint_for_test(case)
+    session.review_snapshot = _session_review_snapshot_for_case(case)
     await db.commit()
     await db.refresh(user)
     await db.refresh(session)
@@ -744,6 +787,58 @@ async def test_stream_response_blocks_if_active_session_case_version_changes_aft
 
 
 @pytest.mark.asyncio
+async def test_stream_response_blocks_legacy_active_session_without_case_snapshot(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def fail_stream_coach_response(**_kwargs):
+        if False:
+            yield StreamChunk(type="done")
+        raise AssertionError("Snapshot-less sessions must not reach the provider")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    user = User(
+        email=f"stream-missing-snapshot-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Stream Missing Snapshot Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "I am considering ACS and would get an ECG."},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert "no starting case version snapshot" in response.json()["detail"]
+    assert "Start a new session" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
 async def test_stream_response_hides_internal_provider_errors(
     client: AsyncClient,
     db: AsyncSession,
@@ -775,6 +870,7 @@ async def test_stream_response_hides_internal_provider_errors(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -837,6 +933,7 @@ async def test_stream_response_hides_internal_analysis_errors(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -906,6 +1003,7 @@ async def test_stream_response_passes_current_uncovered_safety_targets(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -962,6 +1060,7 @@ async def test_complete_session_requires_analyzed_learner_response(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1010,6 +1109,7 @@ async def test_safety_locked_session_cannot_be_completed(
         case_id=case.id,
         status="safety_locked",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1076,6 +1176,7 @@ async def test_reviewer_can_read_safety_locked_session_with_safety_event(
         case_id=case.id,
         status="safety_locked",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1146,6 +1247,7 @@ async def test_reviewer_cannot_read_active_session_without_safety_lock(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1191,6 +1293,7 @@ async def test_complete_session_requires_full_clinical_safety_coverage(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1262,6 +1365,7 @@ async def test_complete_session_succeeds_after_all_clinical_safety_targets_cover
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1328,6 +1432,7 @@ async def test_session_review_uses_completion_snapshot_after_case_changes(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1477,14 +1582,14 @@ async def test_complete_session_blocks_if_active_session_case_version_changes_af
 
 
 @pytest.mark.asyncio
-async def test_complete_session_blocks_if_case_quality_fails_after_session_start(
+async def test_complete_session_blocks_legacy_active_session_without_case_snapshot(
     client: AsyncClient,
     db: AsyncSession,
 ):
     user = User(
-        email=f"complete-quality-gate-{uuid.uuid4()}@test.com",
+        email=f"complete-missing-snapshot-{uuid.uuid4()}@test.com",
         hashed_password=hash_password("safetypass123"),
-        full_name="Complete Quality Gate",
+        full_name="Complete Missing Snapshot Tester",
         training_level="resident",
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
@@ -1523,6 +1628,73 @@ async def test_complete_session_blocks_if_case_quality_fails_after_session_start
         reasoning_score=86,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert "no starting case version snapshot" in response.json()["detail"]
+    await db.refresh(session)
+    assert session.status == "active"
+    assert session.completed_at is None
+
+
+@pytest.mark.asyncio
+async def test_complete_session_blocks_if_case_quality_fails_after_session_start(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"complete-quality-gate-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Complete Quality Gate",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=82,
+        reasoning_analysis=_passing_reasoning_analysis(),
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "After that safety pass, I would refine my differential and explain what "
+            "new ECG or troponin findings would change my management plan."
+        ),
+        reasoning_score=86,
+        reasoning_analysis=_passing_reasoning_analysis(),
+    ))
     case.clinical_sources = [
         {
             **case.clinical_sources[0],
@@ -1530,6 +1702,7 @@ async def test_complete_session_blocks_if_case_quality_fails_after_session_start
         }
     ]
     _refresh_review_fingerprint_for_test(case)
+    session.review_snapshot = _session_review_snapshot_for_case(case)
     await db.commit()
     await db.refresh(user)
     await db.refresh(session)
@@ -1572,6 +1745,7 @@ async def test_complete_session_blocks_management_before_prior_safety_checks(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1651,6 +1825,7 @@ async def test_complete_session_ignores_unanalyzed_turns_for_safety_coverage(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1736,6 +1911,7 @@ async def test_complete_session_accepts_korean_clinical_safety_coverage(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1802,6 +1978,7 @@ async def test_complete_session_blocks_low_bounded_reasoning_score(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1874,6 +2051,7 @@ async def test_complete_session_blocks_zero_dimension_scores_even_with_high_tota
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -1980,6 +2158,7 @@ async def test_complete_session_blocks_active_severe_cognitive_bias(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -2069,6 +2248,7 @@ async def test_complete_session_requires_core_reasoning_dimensions_to_be_availab
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -2162,6 +2342,7 @@ async def test_complete_session_blocks_low_core_reasoning_dimension(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -2256,6 +2437,7 @@ async def test_complete_session_allows_earlier_severe_bias_after_later_correctio
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -2329,6 +2511,7 @@ async def test_complete_session_ignores_coach_reasoning_scores_for_completion_ga
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -2396,6 +2579,7 @@ async def test_complete_session_ignores_coach_reasoning_scores_in_final_score(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -2465,6 +2649,7 @@ async def test_complete_session_requires_multiple_analyzed_reasoning_turns(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -2528,6 +2713,7 @@ async def test_negated_safety_mentions_do_not_satisfy_completion_coverage(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -2598,6 +2784,7 @@ async def test_korean_negated_safety_mentions_do_not_satisfy_completion_coverage
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -2673,6 +2860,7 @@ async def test_passive_contraindication_mentions_do_not_satisfy_completion_cover
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -2976,6 +3164,7 @@ async def test_simulated_urgent_symptoms_do_not_trigger_real_patient_lock(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -3072,6 +3261,7 @@ async def test_management_before_safety_checks_redirects_and_records_safety_even
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -3171,6 +3361,7 @@ async def test_korean_management_before_safety_checks_redirects_and_records_safe
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -3430,6 +3621,7 @@ async def test_session_review_available_only_after_completion(
         case_id=case.id,
         status="active",
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()
@@ -3613,6 +3805,7 @@ async def test_session_review_bounds_stored_breakdown_and_bias_confidence(
         status="completed",
         final_reasoning_score=82,
         reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
     )
     db.add(session)
     await db.flush()

@@ -891,10 +891,22 @@ def _assert_active_session_case_version_matches(
     if session.status != "active":
         return
     if not isinstance(session.review_snapshot, dict):
-        return
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This active session has no starting case version snapshot. "
+                "Start a new session so the case version can be verified."
+            ),
+        )
     started_fingerprint = session.review_snapshot.get("case_content_fingerprint")
     if not started_fingerprint:
-        return
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This active session has no starting case version fingerprint. "
+                "Start a new session so the case version can be verified."
+            ),
+        )
     if started_fingerprint == clinical_case_content_fingerprint(case):
         return
 
