@@ -1,0 +1,103 @@
+[
+  {
+    "name": "trusted_source_with_anchored_safety_supports",
+    "expected_passed": true,
+    "overrides": {
+      "clinical_sources": [
+        {
+          "title": "2021 AHA/ACC Guideline for the Evaluation and Diagnosis of Chest Pain",
+          "organization": "American Heart Association / American College of Cardiology",
+          "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "ECG within 10 minutes and reperfusion pathway activation",
+            "crushing substernal chest pain radiating to the arm with diaphoresis",
+            "bibasilar crackles suggesting early heart failure",
+            "tachycardia with multiple coronary risk factors",
+            "aortic dissection features before anticoagulation or thrombolysis",
+            "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+            "antiplatelet and anticoagulation only after checking ECG context and major contraindications",
+            "hemodynamic instability or pulmonary edema requiring escalation"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "low_trust_source_domain",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "reputable clinical source domain"
+    ],
+    "overrides": {
+      "clinical_sources": [
+        {
+          "title": "Wellness Blog",
+          "organization": "Wellness Blog",
+          "url": "https://wellness-blog.com/chest-pain",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "ECG within 10 minutes and reperfusion pathway activation",
+            "crushing substernal chest pain radiating to the arm with diaphoresis",
+            "bibasilar crackles suggesting early heart failure",
+            "tachycardia with multiple coronary risk factors",
+            "aortic dissection features before anticoagulation or thrombolysis",
+            "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+            "antiplatelet and anticoagulation only after checking ECG context and major contraindications",
+            "hemodynamic instability or pulmonary edema requiring escalation"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "source_supports_missing_safety_scope",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "contraindication or safety checks"
+    ],
+    "overrides": {
+      "clinical_sources": [
+        {
+          "title": "2021 AHA/ACC Guideline for the Evaluation and Diagnosis of Chest Pain",
+          "organization": "American Heart Association / American College of Cardiology",
+          "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "ECG within 10 minutes and reperfusion pathway activation",
+            "crushing substernal chest pain radiating to the arm with diaphoresis",
+            "bibasilar crackles suggesting early heart failure",
+            "tachycardia with multiple coronary risk factors"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "source_supports_do_not_anchor_safety_items",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "specifically anchor clinical red flags",
+      "specifically anchor time-critical actions",
+      "specifically anchor contraindication checks"
+    ],
+    "overrides": {
+      "clinical_sources": [
+        {
+          "title": "2021 AHA/ACC Guideline for the Evaluation and Diagnosis of Chest Pain",
+          "organization": "American Heart Association / American College of Cardiology",
+          "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "shock red flags and severity markers for unrelated abdominal pain",
+            "time-critical antibiotics within 1 hour for unrelated infection",
+            "contraindication and safety checks before unrelated antibiotic dosing"
+          ]
+        }
+      ]
+    }
+  }
+]

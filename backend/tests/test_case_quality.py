@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import json
+from pathlib import Path
 
 import pytest
 
@@ -9,6 +11,10 @@ from app.services.case_generator import CASE_GENERATION_SYSTEM
 from app.services.case_quality import assert_case_quality, evaluate_case_quality
 from app.services.mock_provider import CASE_POOL
 
+PARITY_FIXTURES_PATH = (
+    Path(__file__).resolve().parents[2] / "shared" / "case_quality_parity_cases.json"
+)
+
 
 def test_curated_cases_pass_quality_gate():
     for case in CASE_POOL:
@@ -16,6 +22,21 @@ def test_curated_cases_pass_quality_gate():
 
         assert report.passed, f"{case['title']}: {report}"
         assert report.score >= 85
+
+
+def test_quality_gate_matches_shared_frontend_parity_fixtures():
+    fixtures = json.loads(PARITY_FIXTURES_PATH.read_text())
+
+    for fixture in fixtures:
+        case = copy.deepcopy(CASE_POOL[0])
+        case.update(fixture["overrides"])
+
+        report = evaluate_case_quality(ClinicalCaseCreate(**case))
+        issues = report.critical_issues + report.warnings
+
+        assert report.passed is fixture["expected_passed"], fixture["name"]
+        for issue_substring in fixture.get("expected_issue_substrings", []):
+            assert any(issue_substring in issue for issue in issues), fixture["name"]
 
 
 def test_quality_gate_rejects_missing_safety_metadata():
