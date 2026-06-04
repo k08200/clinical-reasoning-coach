@@ -265,7 +265,21 @@ def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
                     "major bleeding risk and recent surgery before antiplatelet therapy",
                     "hemodynamic instability, heart failure, or pulmonary edema escalation",
                 ],
-            }
+            },
+            {
+                "title": "Acute Coronary Syndrome",
+                "organization": "NCBI Bookshelf / StatPearls",
+                "url": "https://www.ncbi.nlm.nih.gov/books/NBK459157/",
+                "supports": [
+                    "ACS diagnosis and risk stratification for acute chest pain",
+                    "diaphoresis with crushing chest pain and hypoxia or hemodynamic instability",
+                    "12-lead ECG within 10 minutes and serial troponin trend",
+                    "ACS reperfusion pathway and antithrombotic planning",
+                    "aortic dissection features before anticoagulation",
+                    "major bleeding risk and recent surgery before antiplatelet therapy",
+                    "hemodynamic instability, heart failure, or pulmonary edema escalation",
+                ],
+            },
         ],
         review_status=review_status,
         last_reviewed_at="2026-06-01" if review_status != "ai_generated_unreviewed" else None,

@@ -1212,6 +1212,19 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
   if (detail.clinical_sources.length < 1) {
     issues.push("At least 1 clinical source is required.");
   }
+  const sourceOrganizations = new Set(
+    detail.clinical_sources
+      .map((source) => source.organization.trim().toLowerCase())
+      .filter(Boolean),
+  );
+  if (
+    detail.source_provenance.review_status === "clinician_reviewed" &&
+    sourceOrganizations.size < 2
+  ) {
+    issues.push(
+      "Clinician-reviewed cases require at least 2 independent clinical source organizations.",
+    );
+  }
   const supportTexts: string[] = [];
   detail.clinical_sources.forEach((source, index) => {
     const validSupports = source.supports.filter((item) => item.trim());

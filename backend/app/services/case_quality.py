@@ -16,6 +16,7 @@ from app.schemas.case import ClinicalCaseCreate
 from app.services.privacy_guard import detect_patient_identifiers
 
 MIN_PASSING_SCORE = 85
+MIN_REVIEWED_SOURCE_ORGANIZATIONS = 2
 ALLOWED_REVIEW_STATUSES = {
     "ai_generated_unreviewed",
     "educational_draft",
@@ -1492,6 +1493,7 @@ def _check_source_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
     if not sources:
         report.add_critical("at least 1 clinical source is required")
         return
+    source_organizations: set[str] = set()
     support_texts: list[str] = []
     for index, source in enumerate(sources):
         if not isinstance(source, dict):
@@ -1507,6 +1509,9 @@ def _check_source_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
                 f"clinical_sources[{index}] missing {', '.join(missing)}"
             )
             continue
+        organization = str(source.get("organization") or "").strip().lower()
+        if organization:
+            source_organizations.add(organization)
         _check_source_url(index, str(source["url"]), report)
         supports = source.get("supports")
         valid_supports = [
@@ -1520,6 +1525,14 @@ def _check_source_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
             )
             continue
         support_texts.extend(valid_supports)
+    if (
+        data.get("review_status") == "clinician_reviewed"
+        and len(source_organizations) < MIN_REVIEWED_SOURCE_ORGANIZATIONS
+    ):
+        report.add_critical(
+            "clinician_reviewed cases require at least 2 independent clinical "
+            "source organizations"
+        )
     _check_source_support_scope(support_texts, report)
     _check_source_support_item_coverage(data, support_texts, report)
 

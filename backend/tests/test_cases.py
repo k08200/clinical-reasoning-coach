@@ -101,7 +101,7 @@ async def test_case_response_does_not_expose_answer_or_hidden_safety_metadata(
     assert "clinical_sources" not in payload
     assert "review_status" not in payload
     assert "last_reviewed_at" not in payload
-    assert payload["source_provenance"]["source_count"] == 1
+    assert payload["source_provenance"]["source_count"] == 2
     assert payload["source_provenance"]["organizations"]
     assert payload["source_provenance"]["review_status"] == "educational_draft"
     assert payload["source_provenance"]["review_label"] == "Educational draft"
@@ -795,7 +795,7 @@ async def test_clinician_reviewer_can_mark_case_reviewed(
         "source_alignment_confirmed": True,
         "educational_safety_confirmed": True,
     }
-    assert history[0]["source_snapshot"]["source_count"] == 1
+    assert history[0]["source_snapshot"]["source_count"] == 2
     assert history[0]["source_snapshot"]["organizations"]
     assert history[0]["source_snapshot"]["case_content_fingerprint"]
     assert history[0]["source_snapshot"]["alignment_checklist"] == SOURCE_ALIGNMENT_CHECKS
@@ -843,6 +843,50 @@ async def test_clinical_review_requires_source_alignment_checklist(
     assert "Source alignment confirmation requires all source alignment checks" in str(
         response.json()["detail"]
     )
+
+
+async def test_clinical_review_requires_independent_source_organizations(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"source-diversity-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Source Diversity Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case_payload = dict(CASE_POOL[0])
+    case_payload["clinical_sources"] = [case_payload["clinical_sources"][0]]
+    case = ClinicalCase(**case_payload)
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "educational_safety_confirmed": True,
+            "review_notes": REVIEW_AUDIT_NOTES,
+        },
+    )
+
+    assert response.status_code == 409
+    assert "case quality gate" in response.json()["detail"]
+    assert "at least 2 independent clinical source organizations" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.review_status == case_payload["review_status"]
+    assert case.reviewed_by_user_id is None
 
 
 async def test_clinical_review_requires_audit_review_notes(
@@ -1691,7 +1735,7 @@ async def test_clinical_review_writes_audit_log(
     assert review.prior_review_status == "educational_draft"
     assert review.resulting_review_status == "clinician_reviewed"
     assert review.review_notes == REVIEW_AUDIT_NOTES
-    assert review.source_snapshot["source_count"] == 1
+    assert review.source_snapshot["source_count"] == 2
     assert review.source_snapshot["case_content_fingerprint"]
     assert review.source_snapshot["alignment_checklist"] == SOURCE_ALIGNMENT_CHECKS
     assert review.source_snapshot["supported_elements"][0]["title"]

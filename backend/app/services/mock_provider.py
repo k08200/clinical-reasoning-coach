@@ -183,6 +183,19 @@ _SOURCE_CHEST_PAIN = {
     ],
 }
 
+_SOURCE_ACS_STATPEARLS = {
+    "title": "Acute Coronary Syndrome",
+    "organization": "NCBI Bookshelf / StatPearls",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK459157/",
+    "supports": [
+        "acute coronary syndrome diagnosis and risk stratification",
+        "ECG and cardiac biomarkers in ACS evaluation",
+        "STEMI and ACS time-sensitive management pathways",
+        "antiplatelet and anticoagulation safety considerations",
+        "life-threatening differential diagnosis for acute chest pain",
+    ],
+}
+
 _SOURCE_SEPSIS = {
     "title": "Surviving Sepsis Campaign Adult Guidelines",
     "organization": "Society of Critical Care Medicine",
@@ -199,6 +212,19 @@ _SOURCE_SEPSIS = {
         "renal impairment and allergy safety checks before antimicrobial dosing",
         "volume overload risk during fluid resuscitation in CKD or heart failure",
         "vasopressor need when hypotension persists after initial resuscitation",
+    ],
+}
+
+_SOURCE_SEPSIS_STATPEARLS = {
+    "title": "Laboratory Evaluation of Sepsis",
+    "organization": "NCBI Bookshelf / StatPearls",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK594258/",
+    "supports": [
+        "Sepsis-3 diagnosis, SOFA severity assessment, and organ dysfunction",
+        "hypotension, altered mental status, lactate, AKI, and thrombocytopenia as sepsis severity markers",
+        "blood lactate and blood cultures in sepsis evaluation",
+        "antibiotics, fluids, vasopressors, and source control planning",
+        "renal impairment and antimicrobial stewardship safety checks",
     ],
 }
 
@@ -221,6 +247,19 @@ _SOURCE_PE = {
     ],
 }
 
+_SOURCE_PE_STATPEARLS = {
+    "title": "Acute Pulmonary Embolism",
+    "organization": "NCBI Bookshelf / StatPearls",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK560551/",
+    "supports": [
+        "acute pulmonary embolism diagnosis and risk stratification",
+        "dyspnea, hypoxemia, pleuritic chest pain, tachycardia, hypotension, and RV strain severity markers",
+        "CT pulmonary angiography, bedside echo, and hemodynamic stability pathways",
+        "urgent reperfusion or thrombolysis for high-risk deteriorating PE",
+        "bleeding risk, recent surgery, renal function, contrast allergy, and pregnancy safety checks",
+    ],
+}
+
 _SOURCE_DKA = {
     "title": "Standards of Care in Diabetes",
     "organization": "American Diabetes Association",
@@ -235,6 +274,19 @@ _SOURCE_DKA = {
         "cerebral edema risk from overly rapid osmolar shifts",
         "persistent abdominal pain after metabolic correction requiring surgical reassessment",
         "time-critical monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
+    ],
+}
+
+_SOURCE_DKA_STATPEARLS = {
+    "title": "Adult Diabetic Ketoacidosis",
+    "organization": "NCBI Bookshelf / StatPearls",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK560723/",
+    "supports": [
+        "DKA diagnosis using hyperglycemia, acidosis, ketonemia, and anion gap",
+        "Kussmaul respirations, dehydration, AKI, tachycardia, confusion, and hyperkalemia severity markers",
+        "time-critical fluids, insulin planning, potassium checks, and anion-gap closure",
+        "potassium safety threshold before insulin therapy",
+        "cerebral edema, osmolar shift, and persistent abdominal pain safety checks",
     ],
 }
 
@@ -254,6 +306,19 @@ _SOURCE_STROKE = {
         "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
         "large vessel occlusion criteria and transfer needs for thrombectomy",
         "acute stroke diagnosis, severity, and contraindication checks before reperfusion",
+    ],
+}
+
+_SOURCE_STROKE_STATPEARLS = {
+    "title": "Ischemic Stroke",
+    "organization": "NCBI Bookshelf / StatPearls",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK499997/",
+    "supports": [
+        "acute ischemic stroke diagnosis and neurologic severity assessment",
+        "last known normal timing for thrombolysis eligibility",
+        "noncontrast head CT to exclude intracranial hemorrhage before reperfusion",
+        "thrombolysis and thrombectomy eligibility screening",
+        "recent anticoagulant use, platelet count, glucose, and blood pressure contraindication checks",
     ],
 }
 
@@ -318,7 +383,7 @@ _CASE_STEMI = {
         "Active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
         "Hemodynamic instability or pulmonary edema requiring escalation",
     ],
-    "clinical_sources": [_SOURCE_CHEST_PAIN],
+    "clinical_sources": [_SOURCE_CHEST_PAIN, _SOURCE_ACS_STATPEARLS],
     "review_status": "educational_draft",
     "last_reviewed_at": "2026-06-01",
     "coach_guidance": (
@@ -395,7 +460,7 @@ _CASE_SEPSIS = {
         "Volume overload risk during fluid resuscitation in CKD or heart failure",
         "Need for vasopressors if hypotension persists after initial resuscitation",
     ],
-    "clinical_sources": [_SOURCE_SEPSIS],
+    "clinical_sources": [_SOURCE_SEPSIS, _SOURCE_SEPSIS_STATPEARLS],
     "review_status": "educational_draft",
     "last_reviewed_at": "2026-06-01",
     "coach_guidance": (
@@ -472,7 +537,7 @@ _CASE_PE = {
         "Renal function and contrast allergy before CT pulmonary angiography",
         "Pregnancy status when selecting imaging and anticoagulation",
     ],
-    "clinical_sources": [_SOURCE_PE],
+    "clinical_sources": [_SOURCE_PE, _SOURCE_PE_STATPEARLS],
     "review_status": "educational_draft",
     "last_reviewed_at": "2026-06-01",
     "coach_guidance": (
@@ -549,7 +614,7 @@ _CASE_DKA = {
         "Cerebral edema risk from overly rapid osmolar shifts",
         "Need to exclude surgical abdomen if pain persists after metabolic correction",
     ],
-    "clinical_sources": [_SOURCE_DKA],
+    "clinical_sources": [_SOURCE_DKA, _SOURCE_DKA_STATPEARLS],
     "review_status": "educational_draft",
     "last_reviewed_at": "2026-06-01",
     "coach_guidance": (
@@ -625,7 +690,7 @@ _CASE_STROKE = {
         "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
         "Large vessel occlusion criteria and transfer needs for thrombectomy",
     ],
-    "clinical_sources": [_SOURCE_STROKE],
+    "clinical_sources": [_SOURCE_STROKE, _SOURCE_STROKE_STATPEARLS],
     "review_status": "educational_draft",
     "last_reviewed_at": "2026-06-01",
     "coach_guidance": (

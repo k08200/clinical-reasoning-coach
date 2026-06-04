@@ -137,4 +137,41 @@ describe("reviewQualityIssues", () => {
       },
     );
   });
+
+  it("flags clinician-reviewed cases with only one independent source organization", () => {
+    const detail = makeReviewDetail({
+      source_provenance: {
+        review_status: "clinician_reviewed",
+        review_label: "Clinician reviewed",
+        requires_caution: false,
+      },
+      clinical_sources: [
+        {
+          title: "2021 AHA/ACC Guideline for the Evaluation and Diagnosis of Chest Pain",
+          organization: "American Heart Association / American College of Cardiology",
+          url: "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+          supports: [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "ECG within 10 minutes and reperfusion pathway activation",
+            "crushing substernal chest pain radiating to the arm with diaphoresis",
+            "bibasilar crackles suggesting early heart failure",
+            "tachycardia with multiple coronary risk factors",
+            "aortic dissection features before anticoagulation or thrombolysis",
+            "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+            "antiplatelet and anticoagulation only after checking ECG context and major contraindications",
+            "hemodynamic instability or pulmonary edema requiring escalation",
+          ],
+        },
+      ],
+    });
+
+    const issues = reviewQualityIssues(detail);
+
+    expect(
+      issues.some((issue) =>
+        issue.includes("at least 2 independent clinical source organizations"),
+      ),
+    ).toBe(true);
+  });
 });
