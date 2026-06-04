@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from app.schemas.case import ClinicalCaseCreate
+from app.services import case_quality as case_quality_module
 from app.services.case_generator import CASE_GENERATION_SYSTEM
 from app.services.case_quality import assert_case_quality, evaluate_case_quality
 from app.services.mock_provider import CASE_POOL
@@ -37,6 +38,28 @@ def test_quality_gate_matches_shared_frontend_parity_fixtures():
         assert report.passed is fixture["expected_passed"], fixture["name"]
         for issue_substring in fixture.get("expected_issue_substrings", []):
             assert any(issue_substring in issue for issue in issues), fixture["name"]
+
+
+def test_domain_safety_gate_registry_lists_expected_clinical_domains():
+    gates = case_quality_module._domain_safety_gates()
+
+    assert {gate.name for gate in gates} == {
+        "infection_time_critical_actions",
+        "infection_antimicrobial_safety",
+        "dka_time_critical_actions",
+        "dka_contraindication_safety",
+        "stroke_time_critical_actions",
+        "stroke_reperfusion_safety",
+        "pe_time_critical_actions",
+        "pe_contraindication_safety",
+        "acs_time_critical_actions",
+        "acs_contraindication_safety",
+    }
+    assert {gate.field_name for gate in gates} <= {
+        "time_critical_actions",
+        "contraindication_checks",
+    }
+    assert all(gate.issue for gate in gates)
 
 
 def test_quality_gate_rejects_missing_safety_metadata():

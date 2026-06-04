@@ -40,6 +40,14 @@ const TRUSTED_CLINICAL_SOURCE_HOSTS = new Set([
 
 const TRUSTED_CLINICAL_SOURCE_SUFFIXES = [".edu", ".gov"];
 
+type ReviewQualityGate = {
+  name: string;
+  applies: (detail: ClinicalCaseReviewDetail) => boolean;
+  fieldName: "time_critical_actions" | "contraindication_checks";
+  validator: (values: string[]) => boolean;
+  issue: string;
+};
+
 const SOURCE_SUPPORT_SCOPE_PATTERNS: Array<{
   label: string;
   patterns: RegExp[];
@@ -1028,6 +1036,91 @@ function hasAcsContraindicationSafetyCheck(checks: string[]): boolean {
   return hasDissectionExclusion && hasBleedingSafety && hasHemodynamicEscalation;
 }
 
+function domainSafetyGates(): ReviewQualityGate[] {
+  return [
+    {
+      name: "infection_time_critical_actions",
+      applies: requiresInfectionTreatmentSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasInfectionTimeCriticalActions,
+      issue:
+        "infection time-critical actions must include cultures and antimicrobial or source-control planning",
+    },
+    {
+      name: "infection_antimicrobial_safety",
+      applies: requiresInfectionTreatmentSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAntimicrobialSafetyCheck,
+      issue:
+        "antimicrobial allergy and renal dosing safety checks are required for infection therapy",
+    },
+    {
+      name: "dka_time_critical_actions",
+      applies: requiresDkaTreatmentSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasDkaTimeCriticalActions,
+      issue:
+        "DKA time-critical actions must include potassium-before-insulin, fluids/insulin planning, and anion-gap or ketone closure monitoring",
+    },
+    {
+      name: "dka_contraindication_safety",
+      applies: requiresDkaTreatmentSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasDkaContraindicationSafetyCheck,
+      issue:
+        "DKA safety checks must include potassium threshold and osmolar-shift or cerebral-edema risk before insulin therapy",
+    },
+    {
+      name: "stroke_time_critical_actions",
+      applies: requiresStrokeReperfusionSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasStrokeTimeCriticalActions,
+      issue:
+        "stroke time-critical actions must include last-known-normal timing, brain imaging, and reperfusion eligibility planning",
+    },
+    {
+      name: "stroke_reperfusion_safety",
+      applies: requiresStrokeReperfusionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasStrokeContraindicationSafetyCheck,
+      issue:
+        "stroke reperfusion safety checks must include hemorrhage exclusion, anticoagulant status, platelet count, glucose, and blood pressure thresholds",
+    },
+    {
+      name: "pe_time_critical_actions",
+      applies: requiresPeSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasPeTimeCriticalActions,
+      issue:
+        "PE time-critical actions must include risk stratification, hemodynamic or RV-strain assessment, and imaging or bedside-echo pathway",
+    },
+    {
+      name: "pe_contraindication_safety",
+      applies: requiresPeSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasPeContraindicationSafetyCheck,
+      issue:
+        "PE safety checks must include bleeding or recent-surgery risk, renal/contrast safety, and pregnancy status when selecting imaging or anticoagulation",
+    },
+    {
+      name: "acs_time_critical_actions",
+      applies: requiresAcsSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcsTimeCriticalActions,
+      issue:
+        "ACS time-critical actions must include ECG within 10 minutes, reperfusion pathway, and antithrombotic planning",
+    },
+    {
+      name: "acs_contraindication_safety",
+      applies: requiresAcsSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcsContraindicationSafetyCheck,
+      issue:
+        "ACS safety checks must include aortic dissection exclusion, bleeding or recent-surgery risk, and hemodynamic or heart-failure escalation",
+    },
+  ];
+}
+
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
@@ -1074,66 +1167,11 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
       "bleeding risk safety check is required for thrombolysis or antithrombotic therapy",
     );
   }
-  if (requiresInfectionTreatmentSafetyCheck(detail)) {
-    if (!hasInfectionTimeCriticalActions(detail.time_critical_actions)) {
-      issues.push(
-        "infection time-critical actions must include cultures and antimicrobial or source-control planning",
-      );
+  domainSafetyGates().forEach((gate) => {
+    if (gate.applies(detail) && !gate.validator(detail[gate.fieldName])) {
+      issues.push(gate.issue);
     }
-    if (!hasAntimicrobialSafetyCheck(detail.contraindication_checks)) {
-      issues.push(
-        "antimicrobial allergy and renal dosing safety checks are required for infection therapy",
-      );
-    }
-  }
-  if (requiresDkaTreatmentSafetyCheck(detail)) {
-    if (!hasDkaTimeCriticalActions(detail.time_critical_actions)) {
-      issues.push(
-        "DKA time-critical actions must include potassium-before-insulin, fluids/insulin planning, and anion-gap or ketone closure monitoring",
-      );
-    }
-    if (!hasDkaContraindicationSafetyCheck(detail.contraindication_checks)) {
-      issues.push(
-        "DKA safety checks must include potassium threshold and osmolar-shift or cerebral-edema risk before insulin therapy",
-      );
-    }
-  }
-  if (requiresStrokeReperfusionSafetyCheck(detail)) {
-    if (!hasStrokeTimeCriticalActions(detail.time_critical_actions)) {
-      issues.push(
-        "stroke time-critical actions must include last-known-normal timing, brain imaging, and reperfusion eligibility planning",
-      );
-    }
-    if (!hasStrokeContraindicationSafetyCheck(detail.contraindication_checks)) {
-      issues.push(
-        "stroke reperfusion safety checks must include hemorrhage exclusion, anticoagulant status, platelet count, glucose, and blood pressure thresholds",
-      );
-    }
-  }
-  if (requiresPeSafetyCheck(detail)) {
-    if (!hasPeTimeCriticalActions(detail.time_critical_actions)) {
-      issues.push(
-        "PE time-critical actions must include risk stratification, hemodynamic or RV-strain assessment, and imaging or bedside-echo pathway",
-      );
-    }
-    if (!hasPeContraindicationSafetyCheck(detail.contraindication_checks)) {
-      issues.push(
-        "PE safety checks must include bleeding or recent-surgery risk, renal/contrast safety, and pregnancy status when selecting imaging or anticoagulation",
-      );
-    }
-  }
-  if (requiresAcsSafetyCheck(detail)) {
-    if (!hasAcsTimeCriticalActions(detail.time_critical_actions)) {
-      issues.push(
-        "ACS time-critical actions must include ECG within 10 minutes, reperfusion pathway, and antithrombotic planning",
-      );
-    }
-    if (!hasAcsContraindicationSafetyCheck(detail.contraindication_checks)) {
-      issues.push(
-        "ACS safety checks must include aortic dissection exclusion, bleeding or recent-surgery risk, and hemodynamic or heart-failure escalation",
-      );
-    }
-  }
+  });
   if (detail.clinical_sources.length < 1) {
     issues.push("At least 1 clinical source is required.");
   }

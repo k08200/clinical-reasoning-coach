@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import urlparse
 
 from app.schemas.case import ClinicalCaseCreate
@@ -671,6 +671,15 @@ class CaseQualityReport:
         self.score = max(0, self.score - penalty)
 
 
+@dataclass(frozen=True)
+class DomainSafetyGate:
+    name: str
+    applies: Callable[[dict[str, Any]], bool]
+    field_name: str
+    validator: Callable[[list[Any]], bool]
+    issue: str
+
+
 def evaluate_case_quality(case: ClinicalCaseCreate | dict[str, Any]) -> CaseQualityReport:
     data = case.model_dump() if isinstance(case, ClinicalCaseCreate) else case
     report = CaseQualityReport()
@@ -976,51 +985,118 @@ def _check_safety_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
         report.add_critical(
             "bleeding risk safety check is required for thrombolysis or antithrombotic therapy"
         )
-    if _requires_infection_treatment_safety_check(data):
-        if not _has_infection_time_critical_actions(data.get("time_critical_actions") or []):
-            report.add_critical(
-                "infection time-critical actions must include cultures and antimicrobial or source-control planning"
-            )
-        if not _has_antimicrobial_safety_check(data.get("contraindication_checks") or []):
-            report.add_critical(
-                "antimicrobial allergy and renal dosing safety checks are required for infection therapy"
-            )
-    if _requires_dka_treatment_safety_check(data):
-        if not _has_dka_time_critical_actions(data.get("time_critical_actions") or []):
-            report.add_critical(
-                "DKA time-critical actions must include potassium-before-insulin, fluids/insulin planning, and anion-gap or ketone closure monitoring"
-            )
-        if not _has_dka_contraindication_safety_check(data.get("contraindication_checks") or []):
-            report.add_critical(
-                "DKA safety checks must include potassium threshold and osmolar-shift or cerebral-edema risk before insulin therapy"
-            )
-    if _requires_stroke_reperfusion_safety_check(data):
-        if not _has_stroke_time_critical_actions(data.get("time_critical_actions") or []):
-            report.add_critical(
-                "stroke time-critical actions must include last-known-normal timing, brain imaging, and reperfusion eligibility planning"
-            )
-        if not _has_stroke_contraindication_safety_check(data.get("contraindication_checks") or []):
-            report.add_critical(
-                "stroke reperfusion safety checks must include hemorrhage exclusion, anticoagulant status, platelet count, glucose, and blood pressure thresholds"
-            )
-    if _requires_pe_safety_check(data):
-        if not _has_pe_time_critical_actions(data.get("time_critical_actions") or []):
-            report.add_critical(
-                "PE time-critical actions must include risk stratification, hemodynamic or RV-strain assessment, and imaging or bedside-echo pathway"
-            )
-        if not _has_pe_contraindication_safety_check(data.get("contraindication_checks") or []):
-            report.add_critical(
-                "PE safety checks must include bleeding or recent-surgery risk, renal/contrast safety, and pregnancy status when selecting imaging or anticoagulation"
-            )
-    if _requires_acs_safety_check(data):
-        if not _has_acs_time_critical_actions(data.get("time_critical_actions") or []):
-            report.add_critical(
-                "ACS time-critical actions must include ECG within 10 minutes, reperfusion pathway, and antithrombotic planning"
-            )
-        if not _has_acs_contraindication_safety_check(data.get("contraindication_checks") or []):
-            report.add_critical(
-                "ACS safety checks must include aortic dissection exclusion, bleeding or recent-surgery risk, and hemodynamic or heart-failure escalation"
-            )
+    for gate in _domain_safety_gates():
+        if gate.applies(data) and not gate.validator(data.get(gate.field_name) or []):
+            report.add_critical(gate.issue)
+
+
+def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
+    return (
+        DomainSafetyGate(
+            name="infection_time_critical_actions",
+            applies=_requires_infection_treatment_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_infection_time_critical_actions,
+            issue=(
+                "infection time-critical actions must include cultures and "
+                "antimicrobial or source-control planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="infection_antimicrobial_safety",
+            applies=_requires_infection_treatment_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_antimicrobial_safety_check,
+            issue=(
+                "antimicrobial allergy and renal dosing safety checks are "
+                "required for infection therapy"
+            ),
+        ),
+        DomainSafetyGate(
+            name="dka_time_critical_actions",
+            applies=_requires_dka_treatment_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_dka_time_critical_actions,
+            issue=(
+                "DKA time-critical actions must include potassium-before-insulin, "
+                "fluids/insulin planning, and anion-gap or ketone closure monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="dka_contraindication_safety",
+            applies=_requires_dka_treatment_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_dka_contraindication_safety_check,
+            issue=(
+                "DKA safety checks must include potassium threshold and "
+                "osmolar-shift or cerebral-edema risk before insulin therapy"
+            ),
+        ),
+        DomainSafetyGate(
+            name="stroke_time_critical_actions",
+            applies=_requires_stroke_reperfusion_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_stroke_time_critical_actions,
+            issue=(
+                "stroke time-critical actions must include last-known-normal "
+                "timing, brain imaging, and reperfusion eligibility planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="stroke_reperfusion_safety",
+            applies=_requires_stroke_reperfusion_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_stroke_contraindication_safety_check,
+            issue=(
+                "stroke reperfusion safety checks must include hemorrhage "
+                "exclusion, anticoagulant status, platelet count, glucose, and "
+                "blood pressure thresholds"
+            ),
+        ),
+        DomainSafetyGate(
+            name="pe_time_critical_actions",
+            applies=_requires_pe_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_pe_time_critical_actions,
+            issue=(
+                "PE time-critical actions must include risk stratification, "
+                "hemodynamic or RV-strain assessment, and imaging or bedside-echo "
+                "pathway"
+            ),
+        ),
+        DomainSafetyGate(
+            name="pe_contraindication_safety",
+            applies=_requires_pe_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_pe_contraindication_safety_check,
+            issue=(
+                "PE safety checks must include bleeding or recent-surgery risk, "
+                "renal/contrast safety, and pregnancy status when selecting imaging "
+                "or anticoagulation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acs_time_critical_actions",
+            applies=_requires_acs_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_acs_time_critical_actions,
+            issue=(
+                "ACS time-critical actions must include ECG within 10 minutes, "
+                "reperfusion pathway, and antithrombotic planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acs_contraindication_safety",
+            applies=_requires_acs_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acs_contraindication_safety_check,
+            issue=(
+                "ACS safety checks must include aortic dissection exclusion, "
+                "bleeding or recent-surgery risk, and hemodynamic or heart-failure "
+                "escalation"
+            ),
+        ),
+    )
 
 
 def _requires_pregnancy_safety_check(data: dict[str, Any]) -> bool:
