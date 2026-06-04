@@ -190,6 +190,18 @@ export interface ClinicalSafetyCoverage {
   total_count: number;
 }
 
+export interface ClinicalSafetyCompletionCategory {
+  category: string;
+  label: string;
+  missing_count: number;
+}
+
+export interface ClinicalSafetyCompletionStatus {
+  complete: boolean;
+  message: string;
+  uncovered_categories: ClinicalSafetyCompletionCategory[];
+}
+
 export interface SessionReview {
   session_id: string;
   case_id: string;
@@ -205,6 +217,7 @@ export interface SessionReview {
   cognitive_traps: string[];
   clinical_sources: ReviewSource[];
   clinical_safety_coverage: ClinicalSafetyCoverage;
+  clinical_safety_completion: ClinicalSafetyCompletionStatus;
   review_status: string;
   last_reviewed_at: string | null;
 }

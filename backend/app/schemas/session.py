@@ -75,6 +75,18 @@ class ClinicalSafetyCoverage(BaseModel):
     total_count: int
 
 
+class ClinicalSafetyCompletionCategory(BaseModel):
+    category: str
+    label: str
+    missing_count: int
+
+
+class ClinicalSafetyCompletionStatus(BaseModel):
+    complete: bool
+    message: str
+    uncovered_categories: list[ClinicalSafetyCompletionCategory]
+
+
 class SessionReviewResponse(BaseModel):
     session_id: uuid.UUID
     case_id: uuid.UUID
@@ -90,6 +102,7 @@ class SessionReviewResponse(BaseModel):
     cognitive_traps: list[str]
     clinical_sources: list[ReviewSource]
     clinical_safety_coverage: ClinicalSafetyCoverage
+    clinical_safety_completion: ClinicalSafetyCompletionStatus
     review_status: str
     last_reviewed_at: str | None
 

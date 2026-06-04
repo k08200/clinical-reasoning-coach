@@ -575,6 +575,35 @@ def _safety_completion_block_detail(coverage: ClinicalSafetyCoverage) -> dict:
     }
 
 
+def _safety_review_completion_status(coverage: ClinicalSafetyCoverage) -> dict:
+    uncovered_targets = _uncovered_safety_targets(coverage)
+    complete = coverage.total_count == 0 or coverage.covered_count >= coverage.total_count
+    if complete:
+        message = (
+            "All configured hidden clinical safety targets were addressed before "
+            "this simulated learning review."
+        )
+    else:
+        message = (
+            "This completed session has incomplete hidden clinical safety coverage. "
+            "Treat the review as incomplete educational feedback, not evidence of "
+            "safe clinical readiness."
+        )
+    return {
+        "complete": complete,
+        "message": message,
+        "uncovered_categories": [
+            {
+                "category": category,
+                "label": SAFETY_COVERAGE_CATEGORY_LABELS[category],
+                "missing_count": len(items),
+            }
+            for category, items in uncovered_targets.items()
+            if items
+        ],
+    }
+
+
 def _minimum_reasoning_turns_block_detail(analyzed_turn_count: int) -> dict:
     return {
         "code": "minimum_reasoning_turns_incomplete",
@@ -927,6 +956,7 @@ async def get_session_review(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
 
     feedback = _build_review_feedback(session)
+    clinical_safety_coverage = _build_clinical_safety_coverage(case, session)
 
     return SessionReviewResponse(
         session_id=session.id,
@@ -942,7 +972,10 @@ async def get_session_review(
         key_teaching_points=case.key_teaching_points,
         cognitive_traps=case.cognitive_traps,
         clinical_sources=case.clinical_sources,
-        clinical_safety_coverage=_build_clinical_safety_coverage(case, session),
+        clinical_safety_coverage=clinical_safety_coverage,
+        clinical_safety_completion=_safety_review_completion_status(
+            clinical_safety_coverage
+        ),
         review_status=case.review_status,
         last_reviewed_at=case.last_reviewed_at,
     )

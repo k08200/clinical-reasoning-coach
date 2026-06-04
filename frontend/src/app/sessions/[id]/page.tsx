@@ -711,6 +711,39 @@ export default function SessionPage() {
                       <p className="mt-2 text-sm text-amber-100">{review.educational_notice}</p>
                     </section>
 
+                    {!review.clinical_safety_completion.complete && (
+                      <section className="rounded-lg border border-amber-700 bg-amber-950/35 p-3 lg:col-span-3">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">
+                              Incomplete Safety Coverage
+                            </p>
+                            <p className="mt-2 text-sm text-amber-100">
+                              {review.clinical_safety_completion.message}
+                            </p>
+                          </div>
+                          <span className="rounded-full border border-amber-700 bg-slate-900/50 px-3 py-1 text-xs font-semibold text-amber-100">
+                            {review.clinical_safety_coverage.covered_count}/
+                            {review.clinical_safety_coverage.total_count} addressed
+                          </span>
+                        </div>
+                        {review.clinical_safety_completion.uncovered_categories.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {review.clinical_safety_completion.uncovered_categories.map(
+                              (category) => (
+                                <span
+                                  key={category.category}
+                                  className="rounded-full border border-amber-700 bg-slate-900/50 px-3 py-1 text-xs text-amber-100"
+                                >
+                                  {category.label}: {category.missing_count} missing
+                                </span>
+                              ),
+                            )}
+                          </div>
+                        )}
+                      </section>
+                    )}
+
                     <section className="rounded-lg border border-slate-700 bg-slate-900/50 p-3">
                       <p className="text-xs uppercase tracking-wide text-slate-500">
                         Final Diagnosis (Simulation)

@@ -2942,6 +2942,27 @@ async def test_session_review_available_only_after_completion(
     coverage = payload["clinical_safety_coverage"]
     assert coverage["covered_count"] == 3
     assert coverage["total_count"] == 6
+    assert payload["clinical_safety_completion"] == {
+        "complete": False,
+        "message": (
+            "This completed session has incomplete hidden clinical safety coverage. "
+            "Treat the review as incomplete educational feedback, not evidence of "
+            "safe clinical readiness."
+        ),
+        "uncovered_categories": [
+            {"category": "red_flags", "label": "Red flags", "missing_count": 1},
+            {
+                "category": "time_critical_actions",
+                "label": "Time-critical actions",
+                "missing_count": 1,
+            },
+            {
+                "category": "contraindication_checks",
+                "label": "Contraindication checks",
+                "missing_count": 1,
+            },
+        ],
+    }
     assert coverage["red_flags"][0] == {
         "item": "Diaphoresis with crushing chest pain",
         "covered": True,
@@ -3053,6 +3074,14 @@ async def test_session_review_bounds_stored_breakdown_and_bias_confidence(
         "evidence_integration": 0.0,
         "prioritization": 18.0,
         "mechanism_understanding": 0.0,
+    }
+    assert payload["clinical_safety_completion"] == {
+        "complete": True,
+        "message": (
+            "All configured hidden clinical safety targets were addressed before "
+            "this simulated learning review."
+        ),
+        "uncovered_categories": [],
     }
     assert "unsupported_dimension" not in payload["score_breakdown"]
     assert payload["bias_feedback"] == [

@@ -600,6 +600,19 @@ describe("SessionPage", () => {
               covered_count: 2,
               total_count: 4,
             },
+            clinical_safety_completion: {
+              complete: false,
+              message:
+                "This completed session has incomplete hidden clinical safety coverage. Treat the review as incomplete educational feedback, not evidence of safe clinical readiness.",
+              uncovered_categories: [
+                { category: "red_flags", label: "Red flags", missing_count: 1 },
+                {
+                  category: "contraindication_checks",
+                  label: "Contraindication checks",
+                  missing_count: 1,
+                },
+              ],
+            },
             review_status: "educational_draft",
             last_reviewed_at: "2026-06-01",
           },
@@ -620,6 +633,11 @@ describe("SessionPage", () => {
 
     expect(screen.getByText("Simulation Review Notice")).toBeTruthy();
     expect(screen.getByText(/simulated clinical reasoning practice only/)).toBeTruthy();
+    expect(screen.getByText("Incomplete Safety Coverage")).toBeTruthy();
+    expect(screen.getByText(/not evidence of safe clinical readiness/)).toBeTruthy();
+    expect(screen.getByText("2/4 addressed")).toBeTruthy();
+    expect(screen.getByText("Red flags: 1 missing")).toBeTruthy();
+    expect(screen.getByText("Contraindication checks: 1 missing")).toBeTruthy();
     expect(screen.getByText("Final Diagnosis (Simulation)")).toBeTruthy();
     expect(screen.getByText("Acute coronary syndrome")).toBeTruthy();
     expect(screen.getByText(/revealed only after simulation completion/)).toBeTruthy();
