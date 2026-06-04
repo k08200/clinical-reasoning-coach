@@ -397,13 +397,18 @@ async def test_reviewer_must_document_resolution_note(
     await db.refresh(reviewer)
     await db.refresh(event)
 
-    response = await client.patch(
-        f"/api/safety-events/{event.id}/resolution",
-        headers=_auth_headers(reviewer),
-        json={"status": "resolved", "resolution_note": "   "},
-    )
+    for resolution_note in [
+        "   ",
+        "done",
+        "Learner finished the session successfully.",
+    ]:
+        response = await client.patch(
+            f"/api/safety-events/{event.id}/resolution",
+            headers=_auth_headers(reviewer),
+            json={"status": "resolved", "resolution_note": resolution_note},
+        )
 
-    assert response.status_code == 422
+        assert response.status_code == 422
 
 
 @pytest.mark.asyncio

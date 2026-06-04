@@ -12,6 +12,16 @@ VALID_SAFETY_EVENT_TYPES = {
 }
 VALID_SAFETY_EVENT_SEVERITIES = {"low", "medium", "high"}
 VALID_SAFETY_EVENT_STATUSES = {"open", "resolved"}
+MIN_RESOLUTION_NOTE_LENGTH = 20
+RESOLUTION_NOTE_REVIEW_TERMS = {
+    "addressed",
+    "audit",
+    "discussed",
+    "escalated",
+    "review",
+    "reviewed",
+    "supervisor",
+}
 
 
 class SafetyEventResponse(BaseModel):
@@ -50,6 +60,18 @@ class SafetyEventResolutionRequest(BaseModel):
 
     @model_validator(mode="after")
     def require_resolution_note_for_resolved(self) -> "SafetyEventResolutionRequest":
-        if self.status == "resolved" and not (self.resolution_note or "").strip():
+        if self.status != "resolved":
+            return self
+
+        note = (self.resolution_note or "").strip()
+        if not note:
             raise ValueError("resolution_note is required when resolving a safety event")
+        if len(note) < MIN_RESOLUTION_NOTE_LENGTH:
+            raise ValueError(
+                "resolution_note must summarize the safety review or escalation"
+            )
+        if not any(term in note.lower() for term in RESOLUTION_NOTE_REVIEW_TERMS):
+            raise ValueError(
+                "resolution_note must mention review, escalation, or how the issue was addressed"
+            )
         return self
