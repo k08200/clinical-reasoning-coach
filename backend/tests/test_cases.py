@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.case import ClinicalCase
+from app.models.case import ClinicalCase, clinical_case_content_fingerprint
 from app.models.case_review import ClinicalCaseReview
 from app.models.user import User
 from app.routers import cases as cases_router
@@ -634,6 +634,55 @@ async def test_missing_clinician_review_audit_provenance_requires_caution(
     assert provenance["review_audit_missing"] is True
     assert provenance["review_stale"] is False
     assert provenance["review_date_invalid"] is False
+    assert provenance["review_content_changed"] is False
+
+
+async def test_incomplete_clinician_review_audit_provenance_requires_caution(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    auth_headers = await _register_and_login(client)
+    case_payload = dict(CASE_POOL[0])
+    case_payload["review_status"] = "clinician_reviewed"
+    case_payload["last_reviewed_at"] = date.today().isoformat()
+    case = ClinicalCase(**case_payload)
+    db.add(case)
+    await db.flush()
+    db.add(
+        ClinicalCaseReview(
+            case_id=case.id,
+            reviewer_user_id=uuid.uuid4(),
+            prior_review_status="educational_draft",
+            resulting_review_status="clinician_reviewed",
+            confirmations={
+                "clinical_accuracy_confirmed": True,
+                "source_alignment_confirmed": False,
+                "educational_safety_confirmed": True,
+            },
+            source_snapshot={
+                "source_count": len(case.clinical_sources),
+                "organizations": ["American Heart Association"],
+                "case_content_fingerprint": clinical_case_content_fingerprint(case),
+                "alignment_checklist": {
+                    **SOURCE_ALIGNMENT_CHECKS,
+                    "contraindication_checks_supported": False,
+                },
+            },
+            review_notes="Incomplete historical audit should not release learner sessions.",
+        )
+    )
+    await db.commit()
+    await db.refresh(case)
+
+    response = await client.get(f"/api/cases/{case.id}", headers=auth_headers)
+
+    assert response.status_code == 200
+    provenance = response.json()["source_provenance"]
+    assert provenance["review_status"] == "clinician_reviewed"
+    assert provenance["review_label"] == "Clinician review audit incomplete"
+    assert provenance["requires_caution"] is True
+    assert provenance["review_audit_missing"] is False
+    assert provenance["review_audit_incomplete"] is True
     assert provenance["review_content_changed"] is False
 
 

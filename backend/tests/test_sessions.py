@@ -79,6 +79,33 @@ def _passing_reasoning_analysis() -> dict:
     }
 
 
+COMPLETE_ACS_SAFETY_REASONING = (
+    "I need to address diaphoresis with crushing chest pain plus hypoxia "
+    "or hemodynamic instability. I would obtain a 12-lead ECG within "
+    "10 minutes, trend serial troponin, activate the ACS reperfusion pathway "
+    "if STEMI criteria are present, plan antiplatelet and anticoagulation "
+    "after contraindication checks, check for aortic dissection features "
+    "before anticoagulation, assess major bleeding risk and recent major "
+    "surgery before antiplatelet therapy, and escalate hemodynamic instability, "
+    "heart failure, or pulmonary edema."
+)
+
+
+KOREAN_COMPLETE_ACS_SAFETY_REASONING = (
+    "식은땀을 동반한 쥐어짜는 흉통과 저산소증 또는 혈역학적 불안정을 "
+    "위험 신호로 보고, 10분 이내 12유도 심전도와 반복 트로포닌 추적을 "
+    "하겠습니다. STEMI 기준이면 ACS reperfusion pathway를 활성화하고, "
+    "금기 확인 뒤 antiplatelet 및 anticoagulation 계획을 세우겠습니다. "
+    "항응고 전 aortic dissection, 항혈소판 치료 전 major bleeding risk와 "
+    "recent surgery를 확인하고, hemodynamic instability나 heart failure "
+    "또는 pulmonary edema는 상급 처치로 escalate하겠습니다. I will check "
+    "Aortic dissection features before anticoagulation, Major bleeding risk "
+    "before antiplatelet therapy, Recent major surgery before antithrombotic "
+    "therapy, and check Hemodynamic instability, heart failure, or pulmonary "
+    "edema requiring escalation."
+)
+
+
 def _review_audit_for_case(case: ClinicalCase) -> ClinicalCaseReview:
     return ClinicalCaseReview(
         case=case,
@@ -195,10 +222,14 @@ def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
         time_critical_actions=[
             "12-lead ECG within 10 minutes",
             "Serial troponin trend",
+            "Activate ACS reperfusion pathway if STEMI criteria are present",
+            "Plan antiplatelet and anticoagulation after contraindication checks",
         ],
         contraindication_checks=[
             "Aortic dissection features before anticoagulation",
             "Major bleeding risk before antiplatelet therapy",
+            "Recent major surgery before antithrombotic therapy",
+            "Hemodynamic instability, heart failure, or pulmonary edema requiring escalation",
         ],
         clinical_sources=[
             {
@@ -210,8 +241,11 @@ def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
                     "life-threatening chest pain differential and severity markers",
                     "diaphoresis with crushing chest pain and hypoxia or hemodynamic instability",
                     "12-lead ECG within 10 minutes and serial troponin trend",
+                    "ACS reperfusion pathway and antithrombotic planning",
+                    "plan antiplatelet and anticoagulation after contraindication checks",
                     "aortic dissection features before anticoagulation",
-                    "major bleeding risk before antiplatelet therapy",
+                    "major bleeding risk and recent surgery before antiplatelet therapy",
+                    "hemodynamic instability, heart failure, or pulmonary edema escalation",
                 ],
             }
         ],
@@ -565,6 +599,56 @@ async def test_create_session_blocks_reviewed_case_without_review_audit(
 
     assert response.status_code == 409
     assert "no review audit fingerprint" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.times_used == 0
+
+
+@pytest.mark.asyncio
+async def test_create_session_blocks_reviewed_case_with_incomplete_review_audit(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"incomplete-audit-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Incomplete Audit Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    case.clinical_reviews[0].confirmations = {
+        "clinical_accuracy_confirmed": True,
+        "source_alignment_confirmed": False,
+        "educational_safety_confirmed": True,
+    }
+    case.clinical_reviews[0].source_snapshot = {
+        **case.clinical_reviews[0].source_snapshot,
+        "alignment_checklist": {
+            **case.clinical_reviews[0].source_snapshot["alignment_checklist"],
+            "contraindication_checks_supported": False,
+        },
+    }
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert "review audit is incomplete" in response.json()["detail"]
+    assert "confirms clinical accuracy, source alignment, and educational safety" in response.json()["detail"]
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -1268,10 +1352,16 @@ async def test_stream_response_passes_current_uncovered_safety_targets(
     assert response.status_code == 200
     assert captured["uncovered_safety_targets"] == {
         "red_flags": ["Hypoxia or hemodynamic instability"],
-        "time_critical_actions": ["Serial troponin trend"],
+        "time_critical_actions": [
+            "Serial troponin trend",
+            "Activate ACS reperfusion pathway if STEMI criteria are present",
+            "Plan antiplatelet and anticoagulation after contraindication checks",
+        ],
         "contraindication_checks": [
             "Aortic dissection features before anticoagulation",
             "Major bleeding risk before antiplatelet therapy",
+            "Recent major surgery before antithrombotic therapy",
+            "Hemodynamic instability, heart failure, or pulmonary edema requiring escalation",
         ],
     }
 
@@ -1630,18 +1720,18 @@ async def test_complete_session_requires_full_clinical_safety_coverage(
             "contraindication checks in your reasoning."
         ),
         "covered_count": 1,
-        "total_count": 6,
+        "total_count": 10,
         "uncovered_categories": [
             {"category": "red_flags", "label": "Red flags", "missing_count": 1},
             {
                 "category": "time_critical_actions",
                 "label": "Time-critical actions",
-                "missing_count": 2,
+                "missing_count": 4,
             },
             {
                 "category": "contraindication_checks",
                 "label": "Contraindication checks",
-                "missing_count": 2,
+                "missing_count": 4,
             },
         ],
     }
@@ -1679,13 +1769,7 @@ async def test_complete_session_succeeds_after_all_clinical_safety_targets_cover
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -1746,13 +1830,7 @@ async def test_session_review_uses_completion_snapshot_after_case_changes(
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -1875,13 +1953,7 @@ async def test_complete_session_blocks_if_active_session_case_version_changes_af
     db.add(Message(
         session_id=session_id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -1942,13 +2014,7 @@ async def test_complete_session_blocks_legacy_active_session_without_case_snapsh
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -2009,13 +2075,7 @@ async def test_complete_session_blocks_if_case_quality_fails_after_session_start
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -2093,13 +2153,7 @@ async def test_complete_session_blocks_management_before_prior_safety_checks(
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=86,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -2134,10 +2188,14 @@ async def test_complete_session_blocks_management_before_prior_safety_checks(
                 "missing_time_critical_actions": [
                     "12-lead ECG within 10 minutes",
                     "Serial troponin trend",
+                    "Activate ACS reperfusion pathway if STEMI criteria are present",
+                    "Plan antiplatelet and anticoagulation after contraindication checks",
                 ],
                 "missing_contraindication_checks": [
                     "Aortic dissection features before anticoagulation",
                     "Major bleeding risk before antiplatelet therapy",
+                    "Recent major surgery before antithrombotic therapy",
+                    "Hemodynamic instability, heart failure, or pulmonary edema requiring escalation",
                 ],
             }
         ],
@@ -2182,13 +2240,7 @@ async def test_complete_session_reports_premature_discharge_missing_safety_targe
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=86,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -2223,10 +2275,14 @@ async def test_complete_session_reports_premature_discharge_missing_safety_targe
                 "missing_time_critical_actions": [
                     "12-lead ECG within 10 minutes",
                     "Serial troponin trend",
+                    "Activate ACS reperfusion pathway if STEMI criteria are present",
+                    "Plan antiplatelet and anticoagulation after contraindication checks",
                 ],
                 "missing_contraindication_checks": [
                     "Aortic dissection features before anticoagulation",
                     "Major bleeding risk before antiplatelet therapy",
+                    "Recent major surgery before antithrombotic therapy",
+                    "Hemodynamic instability, heart failure, or pulmonary edema requiring escalation",
                 ],
             }
         ],
@@ -2264,13 +2320,7 @@ async def test_complete_session_ignores_unanalyzed_turns_for_safety_coverage(
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=None,
     ))
     db.add(Message(
@@ -2305,18 +2355,18 @@ async def test_complete_session_ignores_unanalyzed_turns_for_safety_coverage(
             "contraindication checks in your reasoning."
         ),
         "covered_count": 0,
-        "total_count": 6,
+        "total_count": 10,
         "uncovered_categories": [
             {"category": "red_flags", "label": "Red flags", "missing_count": 2},
             {
                 "category": "time_critical_actions",
                 "label": "Time-critical actions",
-                "missing_count": 2,
+                "missing_count": 4,
             },
             {
                 "category": "contraindication_checks",
                 "label": "Contraindication checks",
-                "missing_count": 2,
+                "missing_count": 4,
             },
         ],
     }
@@ -2350,13 +2400,7 @@ async def test_complete_session_accepts_korean_clinical_safety_coverage(
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "식은땀을 동반한 쥐어짜는 흉통과 저산소증 또는 혈역학적 "
-            "불안정을 위험 신호로 보겠습니다. 10분 이내 12유도 심전도를 "
-            "확인하고 트로포닌을 반복 추적하겠습니다. 항응고 전에는 "
-            "대동맥 박리 소견을 배제하고, 항혈소판 치료 전 주요 출혈 "
-            "위험을 평가하겠습니다."
-        ),
+        content=KOREAN_COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -2417,13 +2461,7 @@ async def test_complete_session_blocks_low_bounded_reasoning_score(
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=135,
     ))
     db.add(Message(
@@ -2498,13 +2536,7 @@ async def test_complete_session_blocks_zero_dimension_scores_even_with_high_tota
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=88,
         reasoning_analysis=zero_breakdown,
     ))
@@ -2597,13 +2629,7 @@ async def test_complete_session_blocks_active_severe_cognitive_bias(
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -2687,13 +2713,7 @@ async def test_complete_session_requires_core_reasoning_dimensions_to_be_availab
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=84,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -2781,13 +2801,7 @@ async def test_complete_session_blocks_low_core_reasoning_dimension(
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=84,
         reasoning_analysis={
             "score_breakdown": {
@@ -2876,13 +2890,7 @@ async def test_complete_session_allows_earlier_severe_bias_after_later_correctio
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -2950,13 +2958,7 @@ async def test_complete_session_ignores_coach_reasoning_scores_for_completion_ga
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
     ))
     db.add(Message(
@@ -3018,13 +3020,7 @@ async def test_complete_session_ignores_coach_reasoning_scores_in_final_score(
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
         reasoning_analysis=_passing_reasoning_analysis(),
     ))
@@ -3088,13 +3084,7 @@ async def test_complete_session_requires_multiple_analyzed_reasoning_turns(
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
     ))
     await db.commit()
@@ -3180,9 +3170,14 @@ async def test_negated_safety_mentions_do_not_satisfy_completion_coverage(
             "Before finishing, address red flags, time-critical actions, and "
             "contraindication checks in your reasoning."
         ),
-        "covered_count": 5,
-        "total_count": 6,
+        "covered_count": 7,
+        "total_count": 10,
         "uncovered_categories": [
+            {
+                "category": "time_critical_actions",
+                "label": "Time-critical actions",
+                "missing_count": 2,
+            },
             {
                 "category": "contraindication_checks",
                 "label": "Contraindication checks",
@@ -3257,12 +3252,17 @@ async def test_korean_negated_safety_mentions_do_not_satisfy_completion_coverage
             "contraindication checks in your reasoning."
         ),
         "covered_count": 5,
-        "total_count": 6,
+        "total_count": 10,
         "uncovered_categories": [
+            {
+                "category": "time_critical_actions",
+                "label": "Time-critical actions",
+                "missing_count": 2,
+            },
             {
                 "category": "contraindication_checks",
                 "label": "Contraindication checks",
-                "missing_count": 1,
+                "missing_count": 3,
             },
         ],
     }
@@ -3335,13 +3335,18 @@ async def test_passive_contraindication_mentions_do_not_satisfy_completion_cover
             "Before finishing, address red flags, time-critical actions, and "
             "contraindication checks in your reasoning."
         ),
-        "covered_count": 4,
-        "total_count": 6,
+        "covered_count": 6,
+        "total_count": 10,
         "uncovered_categories": [
+            {
+                "category": "time_critical_actions",
+                "label": "Time-critical actions",
+                "missing_count": 1,
+            },
             {
                 "category": "contraindication_checks",
                 "label": "Contraindication checks",
-                "missing_count": 2,
+                "missing_count": 3,
             },
         ],
     }
@@ -4624,13 +4629,7 @@ async def test_session_review_bounds_stored_breakdown_and_bias_confidence(
     db.add(Message(
         session_id=session.id,
         role="student",
-        content=(
-            "I need to address diaphoresis with crushing chest pain plus hypoxia "
-            "or hemodynamic instability. I would obtain a 12-lead ECG within "
-            "10 minutes, trend serial troponin, check for aortic dissection "
-            "features before anticoagulation, and assess major bleeding risk "
-            "before antiplatelet therapy."
-        ),
+        content=COMPLETE_ACS_SAFETY_REASONING,
         reasoning_score=82,
         reasoning_analysis={
             "score_breakdown": {

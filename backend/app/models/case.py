@@ -32,6 +32,17 @@ CLINICAL_REVIEW_CONTENT_FIELDS = (
     "clinical_sources",
     "coach_guidance",
 )
+REQUIRED_REVIEW_CONFIRMATION_FIELDS = (
+    "clinical_accuracy_confirmed",
+    "source_alignment_confirmed",
+    "educational_safety_confirmed",
+)
+REQUIRED_SOURCE_ALIGNMENT_FIELDS = (
+    "teaching_points_supported",
+    "red_flags_supported",
+    "time_critical_actions_supported",
+    "contraindication_checks_supported",
+)
 
 REVIEW_PROVENANCE = {
     "clinician_reviewed": {
@@ -65,6 +76,21 @@ def clinical_case_content_fingerprint(case: "ClinicalCase") -> str:
     }
     serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def _review_audit_confirms_required_items(review: "ClinicalCaseReview") -> bool:
+    confirmations = review.confirmations if isinstance(review.confirmations, dict) else {}
+    if not all(confirmations.get(field) is True for field in REQUIRED_REVIEW_CONFIRMATION_FIELDS):
+        return False
+
+    source_snapshot = review.source_snapshot if isinstance(review.source_snapshot, dict) else {}
+    alignment_checklist = source_snapshot.get("alignment_checklist")
+    if not isinstance(alignment_checklist, dict):
+        return False
+    return all(
+        alignment_checklist.get(field) is True
+        for field in REQUIRED_SOURCE_ALIGNMENT_FIELDS
+    )
 
 
 class ClinicalCase(Base):
@@ -162,6 +188,12 @@ class ClinicalCase(Base):
             self.review_status == "clinician_reviewed"
             and not bool(review_fingerprint)
         )
+        review_audit_incomplete = (
+            self.review_status == "clinician_reviewed"
+            and bool(review_fingerprint)
+            and latest_review is not None
+            and not _review_audit_confirms_required_items(latest_review)
+        )
         review_content_changed = (
             self.review_status == "clinician_reviewed"
             and bool(review_fingerprint)
@@ -169,6 +201,9 @@ class ClinicalCase(Base):
         )
         if review_audit_missing:
             review_label = "Clinician review audit missing"
+            requires_caution = True
+        if review_audit_incomplete:
+            review_label = "Clinician review audit incomplete"
             requires_caution = True
         if review_stale:
             review_label = "Clinician review stale"
@@ -191,5 +226,6 @@ class ClinicalCase(Base):
             "review_stale": review_stale,
             "review_date_invalid": review_date_invalid,
             "review_audit_missing": review_audit_missing,
+            "review_audit_incomplete": review_audit_incomplete,
             "review_content_changed": review_content_changed,
         }

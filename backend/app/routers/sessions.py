@@ -1054,6 +1054,15 @@ def _assert_case_provenance_allows_learner_session(case: ClinicalCase) -> None:
                 "fingerprint. Learner sessions are blocked until clinician re-review."
             ),
         )
+    if source_provenance["review_audit_incomplete"]:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This case is marked clinician reviewed but its review audit is "
+                "incomplete. Learner sessions are blocked until clinician re-review "
+                "confirms clinical accuracy, source alignment, and educational safety."
+            ),
+        )
 
 
 def _assert_case_quality_for_learner_session(case: ClinicalCase) -> None:
