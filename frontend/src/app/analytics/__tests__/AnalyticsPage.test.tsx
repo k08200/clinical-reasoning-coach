@@ -84,6 +84,10 @@ describe("AnalyticsPage", () => {
     render(<AnalyticsPage />);
 
     expect(screen.getByText("Reasoning Dashboard")).toBeTruthy();
+    expect(screen.getByText(/educational simulation metrics only/)).toBeTruthy();
+    expect(screen.getByText(/not a certification of clinical competence/)).toBeTruthy();
+    expect(screen.getByText("Avg Simulation Score")).toBeTruthy();
+    expect(screen.getByText("Specialty Simulation Practice")).toBeTruthy();
     expect(screen.getByText("3")).toBeTruthy();
     expect(screen.getAllByText("74").length).toBeGreaterThan(0);
     expect(screen.getByText("1,500")).toBeTruthy();

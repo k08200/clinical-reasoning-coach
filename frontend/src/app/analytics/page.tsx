@@ -78,7 +78,12 @@ export default function AnalyticsPage() {
             <div>
               <h2 className="text-2xl font-bold text-white">Reasoning Dashboard</h2>
               <p className="mt-1 text-slate-400">
-                Your completed sessions, cognitive bias patterns, and specialty trends.
+                Your simulated sessions, cognitive bias patterns, and specialty practice trends.
+              </p>
+              <p className="mt-2 max-w-3xl text-xs leading-relaxed text-amber-200">
+                These analytics are educational simulation metrics only. They are not a
+                certification of clinical competence, independent practice readiness, or safe care
+                for real patients.
               </p>
             </div>
 
@@ -89,7 +94,9 @@ export default function AnalyticsPage() {
                 <p className="text-sm text-slate-400">{data.completed_sessions} completed</p>
               </div>
               <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Avg Score</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500">
+                  Avg Simulation Score
+                </p>
                 <p className="mt-2 text-3xl font-bold text-white">
                   {data.avg_reasoning_score.toFixed(0)}
                 </p>
@@ -137,7 +144,7 @@ export default function AnalyticsPage() {
               </section>
 
               <section className="rounded-lg border border-slate-700 bg-slate-800 p-5">
-                <h3 className="mb-4 font-semibold text-white">Specialty Performance</h3>
+                <h3 className="mb-4 font-semibold text-white">Specialty Simulation Practice</h3>
                 {Object.keys(data.specialty_performance).length === 0 ? (
                   <p className="text-sm text-slate-400">No completed specialty scores yet.</p>
                 ) : (
