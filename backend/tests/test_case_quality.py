@@ -260,11 +260,38 @@ def test_quality_gate_requires_source_supports_for_all_clinical_safety_scopes():
     )
 
 
+def test_quality_gate_requires_source_supports_to_anchor_safety_items():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["clinical_sources"][0]["supports"] = [
+        "diagnosis and differential reasoning for acute chest pain",
+        "red flags and severity markers for unrelated abdominal pain",
+        "time-critical antibiotics within 1 hour for unrelated infection",
+        "contraindication and safety checks before unrelated antibiotic dosing",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "specifically anchor clinical red flags" in issue
+        for issue in report.critical_issues
+    )
+    assert any(
+        "specifically anchor time-critical actions" in issue
+        for issue in report.critical_issues
+    )
+    assert any(
+        "specifically anchor contraindication checks" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_case_generation_prompt_requires_verifiable_sources():
     assert "real HTTPS url" in CASE_GENERATION_SYSTEM
     assert "at least two specific case elements" in CASE_GENERATION_SYSTEM
     assert "diagnosis/diagnostic" in CASE_GENERATION_SYSTEM
     assert "contraindication/safety checks" in CASE_GENERATION_SYSTEM
+    assert "repeats its specific clinical keywords" in CASE_GENERATION_SYSTEM
     assert "real patient identifiers" in CASE_GENERATION_SYSTEM
     assert "Do NOT reveal the final diagnosis" in CASE_GENERATION_SYSTEM
     assert "Do NOT use exact ages above 89" in CASE_GENERATION_SYSTEM

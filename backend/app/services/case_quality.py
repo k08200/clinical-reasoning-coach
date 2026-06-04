@@ -124,6 +124,65 @@ SOURCE_SUPPORT_SCOPE_PATTERNS = {
         r"\bbefore\b",
     ],
 }
+SOURCE_SUPPORT_COVERAGE_FIELDS = {
+    "clinical_red_flags": "clinical red flags",
+    "time_critical_actions": "time-critical actions",
+    "contraindication_checks": "contraindication checks",
+}
+SOURCE_SUPPORT_STOPWORDS = {
+    "a",
+    "an",
+    "and",
+    "are",
+    "as",
+    "at",
+    "before",
+    "by",
+    "case",
+    "check",
+    "checks",
+    "clinical",
+    "criteria",
+    "features",
+    "for",
+    "from",
+    "in",
+    "into",
+    "is",
+    "markers",
+    "of",
+    "or",
+    "patient",
+    "patients",
+    "risk",
+    "risks",
+    "safety",
+    "severity",
+    "sign",
+    "signs",
+    "the",
+    "therapy",
+    "to",
+    "with",
+}
+SOURCE_SUPPORT_TOKEN_ALIASES = {
+    "antibiotics": "antibiotic",
+    "anticoagulation": "anticoagulant",
+    "anticoagulated": "anticoagulant",
+    "anticoagulants": "anticoagulant",
+    "antithrombotics": "antithrombotic",
+    "cultures": "culture",
+    "allergies": "allergy",
+    "fluids": "fluid",
+    "hypotension": "hypotensive",
+    "hypoxemia": "hypoxia",
+    "ischaemic": "ischemic",
+    "ischemia": "ischemic",
+    "platelets": "platelet",
+    "surgical": "surgery",
+    "thrombolysis": "thrombolytic",
+    "vasopressors": "vasopressor",
+}
 
 
 @dataclass
@@ -448,6 +507,7 @@ def _check_source_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
             continue
         support_texts.extend(valid_supports)
     _check_source_support_scope(support_texts, report)
+    _check_source_support_item_coverage(data, support_texts, report)
 
 
 def _check_source_support_scope(
@@ -461,6 +521,65 @@ def _check_source_support_scope(
         report.add_critical(
             f"clinical_sources.supports must include support for {scope}"
         )
+
+
+def _check_source_support_item_coverage(
+    data: dict[str, Any],
+    support_texts: list[str],
+    report: CaseQualityReport,
+) -> None:
+    support_token_sets = []
+    for text in support_texts:
+        support_tokens = _tokens_for_source_support(text)
+        if support_tokens:
+            support_token_sets.append(support_tokens)
+    if not support_token_sets:
+        return
+    for field_name, label in SOURCE_SUPPORT_COVERAGE_FIELDS.items():
+        for item in data.get(field_name) or []:
+            item_text = str(item).strip()
+            if not item_text:
+                continue
+            item_tokens = _tokens_for_source_support(item_text)
+            if not item_tokens:
+                continue
+            required_overlap = 1 if len(item_tokens) <= 2 else 2
+            if any(
+                len(item_tokens.intersection(support_tokens)) >= required_overlap
+                for support_tokens in support_token_sets
+            ):
+                continue
+            report.add_critical(
+                f"clinical_sources.supports must specifically anchor {label}: "
+                f"{item_text[:120]}"
+            )
+
+
+def _tokens_for_source_support(text: str) -> set[str]:
+    tokens: set[str] = set()
+    normalized = text.lower()
+    phrase_aliases = {
+        "blood pressure": {"blood_pressure", "bp"},
+        "ct pulmonary angiography": {"ctpa", "contrast", "imaging"},
+        "door to balloon": {"door_to_balloon", "reperfusion"},
+        "door-to-balloon": {"door_to_balloon", "reperfusion"},
+        "heart failure": {"heart_failure", "pulmonary_edema"},
+        "last known normal": {"last_known_normal", "lkn"},
+        "mental status": {"mental_status", "confusion"},
+        "pulmonary edema": {"pulmonary_edema", "heart_failure"},
+        "right heart strain": {"rv_strain", "strain"},
+        "right ventricular": {"rv", "rv_strain"},
+    }
+    for phrase, aliases in phrase_aliases.items():
+        if phrase in normalized:
+            tokens.update(aliases)
+    for token in re.findall(r"[a-z0-9]+", normalized):
+        if len(token) < 3 and token not in {"bp", "ct", "pe"}:
+            continue
+        token = SOURCE_SUPPORT_TOKEN_ALIASES.get(token, token)
+        if token not in SOURCE_SUPPORT_STOPWORDS:
+            tokens.add(token)
+    return tokens
 
 
 def _check_source_url(index: int, url: str, report: CaseQualityReport) -> None:

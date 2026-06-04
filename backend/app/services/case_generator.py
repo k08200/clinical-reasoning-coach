@@ -40,6 +40,10 @@ Rules:
 - Across clinical_sources.supports, explicitly cover diagnosis/diagnostic
   reasoning, red flags or severity markers, time-critical actions, and
   contraindication/safety checks.
+- Each clinical_red_flags, time_critical_actions, and contraindication_checks
+  item must be anchored by at least one clinical_sources.supports entry that
+  repeats its specific clinical keywords (for example lactate, ECG, potassium,
+  bleeding risk, renal function, imaging, or hemodynamic instability).
 - Do not use placeholder or unverifiable source URLs such as example.com,
   example.org, localhost, or non-HTTPS links.
 - Mark review_status as "ai_generated_unreviewed" unless a human clinician has

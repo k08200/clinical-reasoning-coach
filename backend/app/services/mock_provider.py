@@ -174,7 +174,12 @@ _SOURCE_CHEST_PAIN = {
         "ECG within 10 minutes for acute chest pain",
         "life-threatening chest pain differential",
         "ACS risk stratification",
+        "bibasilar crackles and early heart failure as high-risk chest pain features",
+        "tachycardia and coronary risk factors in acute chest pain risk stratification",
+        "ACS reperfusion pathway activation when STEMI criteria are met",
+        "aortic dissection features before anticoagulation or thrombolysis",
         "major contraindications and safety checks before antithrombotic therapy",
+        "hemodynamic instability and pulmonary edema requiring escalation",
     ],
 }
 
@@ -184,10 +189,16 @@ _SOURCE_SEPSIS = {
     "url": "https://www.sccm.org/survivingsepsiscampaign/guidelines-and-resources/surviving-sepsis-campaign-adult-guidelines",
     "supports": [
         "lactate measurement and reassessment",
+        "hypotension, fever, and altered mental status as sepsis severity markers",
+        "lactate elevation and tissue hypoperfusion in septic shock",
+        "AKI, thrombocytopenia, delayed urination, and poor perfusion as organ dysfunction",
+        "suspected septic shock recognition and immediate escalation",
         "blood cultures and antimicrobial timing",
         "fluid reassessment and vasopressor escalation",
         "shock severity markers and organ dysfunction in sepsis diagnosis",
         "renal impairment and allergy safety checks before antimicrobial dosing",
+        "volume overload risk during fluid resuscitation in CKD or heart failure",
+        "vasopressor need when hypotension persists after initial resuscitation",
     ],
 }
 
@@ -197,9 +208,16 @@ _SOURCE_PE = {
     "url": "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines/Acute-Pulmonary-Embolism-Diagnosis-and-Management-of",
     "supports": [
         "risk stratification by hemodynamic instability and RV strain",
+        "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+        "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+        "unilateral calf swelling and elevated D-dimer in suspected PE",
+        "massive versus submassive PE risk stratification before disposition",
+        "urgent escalation for worsening hypotension, syncope, or shock",
+        "imaging, bedside echo, and hemodynamic stability pathways",
         "CTPA and alternative diagnostic pathways",
         "thrombolysis reserved for high-risk or deteriorating PE",
         "bleeding risk, recent surgery, renal function, contrast allergy, and pregnancy safety checks",
+        "pregnancy status when selecting imaging and anticoagulation",
     ],
 }
 
@@ -210,7 +228,12 @@ _SOURCE_DKA = {
     "supports": [
         "DKA diagnostic pattern",
         "acidosis, dehydration, and mental status severity markers",
+        "severe metabolic acidosis with Kussmaul respirations",
+        "tachycardia, dehydration signs, AKI, and confusion in DKA severity assessment",
+        "hyperkalemia despite total body potassium depletion",
         "potassium assessment before insulin therapy",
+        "cerebral edema risk from overly rapid osmolar shifts",
+        "persistent abdominal pain after metabolic correction requiring surgical reassessment",
         "time-critical monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
     ],
 }
@@ -221,8 +244,15 @@ _SOURCE_STROKE = {
     "url": "https://www.heart.org/-/media/files/professional/quality-improvement/get-with-the-guidelines/get-with-the-guidelines-stroke/2019updateahaasaaisguidelineslidedeckrevisedadl12919.pdf",
     "supports": [
         "last-known-normal based reperfusion eligibility",
+        "sudden focal neurologic deficit and NIHSS severity assessment",
+        "treatable stroke within thrombolysis window from last known normal",
+        "atrial fibrillation and missed anticoagulation as embolic risk",
         "blood pressure thresholds before alteplase",
+        "noncontrast head CT to exclude hemorrhage before treatment decision",
         "thrombectomy eligibility screening",
+        "intracranial hemorrhage and early extensive ischemic change contraindication checks",
+        "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "large vessel occlusion criteria and transfer needs for thrombectomy",
         "acute stroke diagnosis, severity, and contraindication checks before reperfusion",
     ],
 }
