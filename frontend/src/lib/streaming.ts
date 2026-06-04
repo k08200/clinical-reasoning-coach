@@ -10,6 +10,19 @@ export interface StreamCallbacks {
   onError: (message: string) => void;
 }
 
+function streamErrorMessage(detail: unknown, fallback: string): string {
+  if (typeof detail === "string") return detail;
+  if (
+    detail &&
+    typeof detail === "object" &&
+    "message" in detail &&
+    typeof detail.message === "string"
+  ) {
+    return detail.message;
+  }
+  return fallback;
+}
+
 export async function streamMessage(
   sessionId: string,
   content: string,
@@ -29,7 +42,7 @@ export async function streamMessage(
     if (response.status === 401) {
       handleUnauthorized();
     }
-    callbacks.onError(body.detail || "Failed to connect");
+    callbacks.onError(streamErrorMessage(body.detail, "Failed to connect"));
     return;
   }
 

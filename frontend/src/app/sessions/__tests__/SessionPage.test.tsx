@@ -196,6 +196,31 @@ describe("SessionPage", () => {
     expect(await screen.findByText("Stream failed")).toBeTruthy();
   });
 
+  it("shows clinical review guidance when streaming is blocked by case quality", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession(),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockStreamMessage.mockImplementation(async (_id, _content, callbacks) => {
+      callbacks.onError(
+        "Case quality gate blocks learner sessions: clinical_sources[0].url must use a reputable clinical source domain",
+      );
+    });
+
+    render(<SessionPage />);
+    fireEvent.change(screen.getByPlaceholderText(/Share your clinical reasoning/), {
+      target: { value: "My reasoning" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(
+      await screen.findByText("Clinical case review is required before continuing"),
+    ).toBeTruthy();
+    expect(screen.getByText(/reputable clinical source domain/)).toBeTruthy();
+    expect(screen.getByText(/current clinician review/)).toBeTruthy();
+    expect(screen.queryByText("Stream failed")).toBeFalsy();
+  });
+
   it("disables completion until a learner response has been analyzed", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession(),

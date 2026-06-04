@@ -74,4 +74,29 @@ describe("streamMessage", () => {
     expect(callbacks.onError).not.toHaveBeenCalled();
     expect(mockHandleUnauthorized).not.toHaveBeenCalled();
   });
+
+  it("uses structured error detail messages for failed stream requests", async () => {
+    mockGetAccessToken.mockReturnValue("access-token");
+    fetchMock.mockResolvedValueOnce(jsonResponse({
+      detail: {
+        code: "case_quality_gate_blocked",
+        message: "Case quality gate blocks learner sessions.",
+      },
+    }, 409));
+
+    const callbacks = {
+      onText: vi.fn(),
+      onUsage: vi.fn(),
+      onDone: vi.fn(),
+      onError: vi.fn(),
+    };
+
+    await streamMessage("session-1", "hello", callbacks);
+
+    expect(callbacks.onError).toHaveBeenCalledWith(
+      "Case quality gate blocks learner sessions.",
+    );
+    expect(callbacks.onText).not.toHaveBeenCalled();
+    expect(callbacks.onDone).not.toHaveBeenCalled();
+  });
 });

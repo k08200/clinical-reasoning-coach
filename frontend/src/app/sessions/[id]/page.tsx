@@ -181,6 +181,15 @@ function errorDetail(error: unknown): unknown {
   return error.detail;
 }
 
+function isCaseAccessBlockMessage(message: string): boolean {
+  return (
+    message.includes("Case quality gate blocks learner sessions") ||
+    message.includes("requires re-review before learner sessions can start") ||
+    message.includes("requires updated clinical review before learner sessions can start") ||
+    message.includes("no supporting clinical source")
+  );
+}
+
 export default function SessionPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -205,6 +214,7 @@ export default function SessionPage() {
   const [showMap, setShowMap] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState("");
+  const [caseAccessBlockMessage, setCaseAccessBlockMessage] = useState("");
   const [completionSafetyDetail, setCompletionSafetyDetail] =
     useState<CompletionSafetyDetail | null>(null);
   const [completionReasoningTurnsDetail, setCompletionReasoningTurnsDetail] =
@@ -260,6 +270,7 @@ export default function SessionPage() {
     setThinking(false);
     setStreamingText("");
     setError("");
+    setCaseAccessBlockMessage("");
     setCompletionSafetyDetail(null);
     setCompletionReasoningTurnsDetail(null);
     setCompletionReasoningQualityDetail(null);
@@ -295,7 +306,12 @@ export default function SessionPage() {
           setThinking(false);
           setLiveTokens({});
           setInput(content);
-          setError(message);
+          if (isCaseAccessBlockMessage(message)) {
+            setCaseAccessBlockMessage(message);
+            setError("");
+          } else {
+            setError(message);
+          }
         },
       });
     } catch (err) {
@@ -311,6 +327,7 @@ export default function SessionPage() {
   async function handleComplete() {
     setCompleting(true);
     setError("");
+    setCaseAccessBlockMessage("");
     setCompletionSafetyDetail(null);
     setCompletionReasoningTurnsDetail(null);
     setCompletionReasoningQualityDetail(null);
@@ -457,6 +474,17 @@ export default function SessionPage() {
           {error && (
             <div className="mx-4 mt-4 rounded-lg border border-red-700 bg-red-900/40 px-4 py-3 text-sm text-red-200">
               {error}
+            </div>
+          )}
+
+          {caseAccessBlockMessage && (
+            <div className="mx-4 mt-4 rounded-lg border border-amber-700 bg-amber-950/45 px-4 py-3 text-sm leading-relaxed text-amber-100">
+              <p className="font-semibold">Clinical case review is required before continuing</p>
+              <p className="mt-1 text-amber-200">{caseAccessBlockMessage}</p>
+              <p className="mt-3 text-xs text-amber-300">
+                This session cannot continue until the case has current clinician review,
+                reputable source alignment, and complete safety metadata.
+              </p>
             </div>
           )}
 
