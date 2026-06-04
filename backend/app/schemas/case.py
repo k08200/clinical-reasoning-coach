@@ -6,6 +6,33 @@ import uuid
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 MIN_CLINICAL_REVIEW_NOTES_LENGTH = 30
+CLINICAL_REVIEW_NOTE_SOURCE_TERMS = (
+    "source",
+    "sources",
+    "cited",
+    "citation",
+    "evidence",
+    "guideline",
+    "guidelines",
+)
+CLINICAL_REVIEW_NOTE_SAFETY_TERMS = (
+    "safety",
+    "contraindication",
+    "contraindications",
+    "red flag",
+    "red flags",
+    "time-critical",
+    "time critical",
+)
+CLINICAL_REVIEW_NOTE_EDUCATIONAL_TERMS = (
+    "education",
+    "educational",
+    "simulation",
+    "simulated",
+    "limitation",
+    "limitations",
+    "not patient care",
+)
 MAX_SEED_SCENARIO_LENGTH = 2000
 VALID_GENERATION_SPECIALTIES = {
     "cardiology",
@@ -196,6 +223,20 @@ class ClinicalReviewRequest(BaseModel):
         if len(note) < MIN_CLINICAL_REVIEW_NOTES_LENGTH:
             raise ValueError(
                 "Clinical review notes must summarize source alignment, safety checks, and educational limitations"
+            )
+        normalized_note = note.lower()
+        has_source_summary = any(
+            term in normalized_note for term in CLINICAL_REVIEW_NOTE_SOURCE_TERMS
+        )
+        has_safety_summary = any(
+            term in normalized_note for term in CLINICAL_REVIEW_NOTE_SAFETY_TERMS
+        )
+        has_educational_summary = any(
+            term in normalized_note for term in CLINICAL_REVIEW_NOTE_EDUCATIONAL_TERMS
+        )
+        if not (has_source_summary and has_safety_summary and has_educational_summary):
+            raise ValueError(
+                "Clinical review notes must mention source alignment, safety checks, and educational limitations"
             )
         return note
 

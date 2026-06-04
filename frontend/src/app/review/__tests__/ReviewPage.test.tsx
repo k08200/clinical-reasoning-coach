@@ -394,7 +394,9 @@ describe("ReviewPage", () => {
       fireEvent.click(checkbox);
     }
     fireEvent.change(screen.getByLabelText("Review Notes"), {
-      target: { value: "Clinically appropriate for simulation." },
+      target: {
+        value: "Source alignment, safety checks, and educational simulation limitations reviewed.",
+      },
     });
     fireEvent.click(submit);
 
@@ -409,7 +411,8 @@ describe("ReviewPage", () => {
           contraindication_checks_supported: true,
         },
         educational_safety_confirmed: true,
-        review_notes: "Clinically appropriate for simulation.",
+        review_notes:
+          "Source alignment, safety checks, and educational simulation limitations reviewed.",
       }),
     );
     expect(mockMutateCases).toHaveBeenCalledOnce();

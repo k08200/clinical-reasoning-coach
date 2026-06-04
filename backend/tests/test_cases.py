@@ -23,6 +23,9 @@ SOURCE_ALIGNMENT_CHECKS = {
     "time_critical_actions_supported": True,
     "contraindication_checks_supported": True,
 }
+REVIEW_AUDIT_NOTES = (
+    "Source alignment, hidden safety checks, and educational simulation limitations reviewed."
+)
 
 
 async def _register_and_login(client: AsyncClient) -> dict[str, str]:
@@ -704,7 +707,7 @@ async def test_learner_cannot_mark_case_clinician_reviewed(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": "Looks clinically sound for education.",
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -761,7 +764,7 @@ async def test_clinician_reviewer_can_mark_case_reviewed(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": "Reviewed against cited educational source.",
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -774,7 +777,7 @@ async def test_clinician_reviewer_can_mark_case_reviewed(
 
     await db.refresh(case)
     assert case.reviewed_by_user_id == reviewer.id
-    assert case.review_notes == "Reviewed against cited educational source."
+    assert case.review_notes == REVIEW_AUDIT_NOTES
 
     history_response = await client.get(
         f"/api/cases/{case.id}/clinical-review/history",
@@ -832,7 +835,7 @@ async def test_clinical_review_requires_source_alignment_checklist(
                 "contraindication_checks_supported": False,
             },
             "educational_safety_confirmed": True,
-            "review_notes": "Trying to approve partial source alignment.",
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -882,6 +885,46 @@ async def test_clinical_review_requires_audit_review_notes(
     )
 
 
+async def test_clinical_review_notes_must_cover_audit_domains(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"domain-notes-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Domain Notes Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = ClinicalCase(**CASE_POOL[0])
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "educational_safety_confirmed": True,
+            "review_notes": "Reviewed carefully by clinician reviewer before approval.",
+        },
+    )
+
+    assert response.status_code == 422
+    assert "must mention source alignment, safety checks, and educational limitations" in str(
+        response.json()["detail"]
+    )
+
+
 async def test_clinical_review_requires_complete_safety_metadata(
     client: AsyncClient,
     db: AsyncSession,
@@ -914,7 +957,7 @@ async def test_clinical_review_requires_complete_safety_metadata(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": "Trying to approve incomplete safety metadata.",
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -963,9 +1006,7 @@ async def test_clinical_review_requires_pregnancy_safety_check_for_reproductive_
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": (
-                "Trying to approve source-aligned case without pregnancy safety review."
-            ),
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -1014,9 +1055,7 @@ async def test_clinical_review_requires_weight_based_safety_check_for_pediatric_
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": (
-                "Trying to approve pediatric case without weight-based safety review."
-            ),
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -1085,9 +1124,7 @@ async def test_clinical_review_requires_renal_safety_check_for_contrast_imaging(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": (
-                "Trying to approve contrast imaging case without renal function review."
-            ),
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -1155,9 +1192,7 @@ async def test_clinical_review_requires_bleeding_safety_check_for_thrombolysis(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": (
-                "Trying to approve thrombolysis case without bleeding risk review."
-            ),
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -1228,9 +1263,7 @@ async def test_clinical_review_requires_antimicrobial_safety_for_sepsis_therapy(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": (
-                "Trying to approve sepsis therapy without antimicrobial safety review."
-            ),
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -1295,9 +1328,7 @@ async def test_clinical_review_requires_dka_insulin_safety_checks(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": (
-                "Trying to approve DKA therapy without potassium/osmolar safety review."
-            ),
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -1364,9 +1395,7 @@ async def test_clinical_review_requires_stroke_reperfusion_safety_checks(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": (
-                "Trying to approve stroke reperfusion without threshold safety review."
-            ),
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -1433,9 +1462,7 @@ async def test_clinical_review_requires_pe_risk_and_safety_checks(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": (
-                "Trying to approve PE case without renal or pregnancy safety review."
-            ),
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -1500,9 +1527,7 @@ async def test_clinical_review_requires_acs_safety_checks(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": (
-                "Trying to approve ACS case without dissection or hemodynamic safety review."
-            ),
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -1553,7 +1578,7 @@ async def test_clinical_review_rejects_placeholder_source_url(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": "Trying to approve placeholder evidence.",
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -1653,9 +1678,7 @@ async def test_clinical_review_writes_audit_log(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": (
-                "Sources, hidden safety checks, and simulation limitations reviewed."
-            ),
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
 
@@ -1667,10 +1690,7 @@ async def test_clinical_review_writes_audit_log(
     assert review.reviewer_user_id == reviewer.id
     assert review.prior_review_status == "educational_draft"
     assert review.resulting_review_status == "clinician_reviewed"
-    assert (
-        review.review_notes
-        == "Sources, hidden safety checks, and simulation limitations reviewed."
-    )
+    assert review.review_notes == REVIEW_AUDIT_NOTES
     assert review.source_snapshot["source_count"] == 1
     assert review.source_snapshot["case_content_fingerprint"]
     assert review.source_snapshot["alignment_checklist"] == SOURCE_ALIGNMENT_CHECKS
@@ -1707,7 +1727,7 @@ async def test_post_review_case_content_change_blocks_sessions_until_re_review(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": "Baseline source and safety review before content change.",
+            "review_notes": REVIEW_AUDIT_NOTES,
         },
     )
     assert review_response.status_code == 200
