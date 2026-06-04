@@ -240,6 +240,10 @@ def test_management_safety_gap_detection_requires_missing_contraindication_check
     assert detect_management_safety_gap(
         "I would start heparin after checking for aortic dissection.",
         uncovered,
+    ) == ["heparin"]
+    assert detect_management_safety_gap(
+        "I would start heparin after checking for aortic dissection and major bleeding risk.",
+        uncovered,
     ) == []
     assert detect_management_safety_gap(
         "헤파린을 바로 시작하겠습니다.",
@@ -262,8 +266,19 @@ def test_management_safety_gap_detection_requires_missing_contraindication_check
         uncovered,
     ) == ["blood products"]
     assert detect_management_safety_gap(
-        "I would transfuse after crossmatch and consent.",
+        "I would give blood products after crossmatch and consent.",
         uncovered,
+    ) == ["blood products"]
+    assert detect_management_safety_gap(
+        "I would give blood products after checking blood type, crossmatch, consent, and transfusion reaction risk.",
+        {
+            "red_flags": [],
+            "time_critical_actions": [],
+            "contraindication_checks": [
+                "Blood type and crossmatch before transfusion",
+                "Consent and transfusion reaction risk before blood products",
+            ],
+        },
     ) == []
     assert detect_management_safety_gap(
         "수혈을 바로 시작하겠습니다.",
@@ -276,6 +291,17 @@ def test_management_safety_gap_detection_requires_missing_contraindication_check
     assert detect_management_safety_gap(
         "혈액형과 교차시험 확인 후 수혈을 진행하겠습니다.",
         uncovered,
+    ) == ["transfusion"]
+    assert detect_management_safety_gap(
+        "혈액형, 교차시험, 동의, 수혈 반응 위험 확인 후 수혈을 진행하겠습니다.",
+        {
+            "red_flags": [],
+            "time_critical_actions": [],
+            "contraindication_checks": [
+                "Blood type and crossmatch before transfusion",
+                "Consent and transfusion reaction risk before blood products",
+            ],
+        },
     ) == []
     assert detect_management_safety_gap(
         "I would intubate now.",
@@ -288,14 +314,36 @@ def test_management_safety_gap_detection_requires_missing_contraindication_check
     assert detect_management_safety_gap(
         "I would intubate after assessing oxygenation, hemodynamics, and difficult airway backup.",
         uncovered,
+    ) == ["intubation"]
+    assert detect_management_safety_gap(
+        "I would intubate after assessing oxygenation, hemodynamics, and difficult airway backup.",
+        {
+            "red_flags": [],
+            "time_critical_actions": [],
+            "contraindication_checks": [
+                "Oxygenation and hemodynamics before intubation",
+                "Difficult airway backup plan before RSI sedation",
+            ],
+        },
     ) == []
     assert detect_management_safety_gap(
         "기관삽관을 바로 진행하겠습니다.",
         uncovered,
     ) == ["intubation"]
     assert detect_management_safety_gap(
-        "기도와 산소화, 혈역학을 확인한 뒤 삽관을 준비하겠습니다.",
+        "기도와 산소화, 혈역학을 확인한 뒤 삽관을 진행하겠습니다.",
         uncovered,
+    ) == ["intubation"]
+    assert detect_management_safety_gap(
+        "기도, 산소화, 혈역학, 어려운 기도 백업 계획을 확인한 뒤 삽관을 진행하겠습니다.",
+        {
+            "red_flags": [],
+            "time_critical_actions": [],
+            "contraindication_checks": [
+                "Oxygenation and hemodynamics before intubation",
+                "Difficult airway backup plan before RSI sedation",
+            ],
+        },
     ) == []
     assert detect_management_safety_gap(
         "I would order an ECG now.",

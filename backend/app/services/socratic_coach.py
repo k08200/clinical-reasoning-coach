@@ -536,6 +536,71 @@ MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
     r"\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b.{0,80}\b(?:check|rule out|contraindications?|airway|allerg(?:y|ies)|aspiration risk|backup plan|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|difficult airway|hemodynamics?|hypotension|oxygenation|potassium|renal|kidney|type and screen|transfusion reaction)\b",
     r"\b(?:check|rule out|contraindications?|airway|allerg(?:y|ies)|aspiration risk|backup plan|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|difficult airway|hemodynamics?|hypotension|oxygenation|potassium|renal|kidney|type and screen|transfusion reaction)\b.{0,80}\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b",
 ]
+MANAGEMENT_SAFETY_COVERAGE_STOPWORDS = {
+    "a",
+    "an",
+    "and",
+    "before",
+    "check",
+    "checks",
+    "clinical",
+    "contraindication",
+    "contraindications",
+    "feature",
+    "features",
+    "for",
+    "or",
+    "patient",
+    "risk",
+    "risks",
+    "safety",
+    "the",
+    "therapy",
+    "with",
+}
+MANAGEMENT_SAFETY_COVERAGE_ALIASES = {
+    "allergies": "allergy",
+    "anticoagulation": "anticoagulant",
+    "anticoagulants": "anticoagulant",
+    "antiplatelets": "antiplatelet",
+    "crossmatch": "cross-match",
+    "hemodynamics": "hemodynamic",
+    "haemorrhage": "hemorrhage",
+    "hypotensive": "hypotension",
+    "oxygenating": "oxygenation",
+    "oxygen": "oxygenation",
+    "surgeries": "surgery",
+}
+KOREAN_MANAGEMENT_SAFETY_COVERAGE_ALIASES = [
+    ("대동맥 박리", ("aortic", "dissection")),
+    ("대동맥박리", ("aortic", "dissection")),
+    ("출혈", ("bleeding",)),
+    ("출혈 위험", ("major", "bleeding")),
+    ("주요 출혈", ("major", "bleeding")),
+    ("심한 출혈", ("major", "bleeding")),
+    ("수술", ("surgery",)),
+    ("최근 수술", ("recent", "surgery")),
+    ("혈역학", ("hemodynamic",)),
+    ("불안정", ("instability",)),
+    ("심부전", ("heart", "failure")),
+    ("폐부종", ("pulmonary", "edema")),
+    ("혈액형", ("blood", "type")),
+    ("교차시험", ("cross-match",)),
+    ("교차 시험", ("cross-match",)),
+    ("교차적합", ("cross-match",)),
+    ("교차 적합", ("cross-match",)),
+    ("동의", ("consent",)),
+    ("수혈 반응", ("transfusion", "reaction")),
+    ("수혈반응", ("transfusion", "reaction")),
+    ("기도", ("airway",)),
+    ("산소화", ("oxygenation",)),
+    ("어려운 기도", ("difficult", "airway")),
+    ("백업", ("backup",)),
+    ("칼륨", ("potassium",)),
+    ("포타슘", ("potassium",)),
+    ("신장", ("renal", "kidney")),
+    ("콩팥", ("renal", "kidney")),
+]
 
 DIAGNOSIS_LEAK_TERMS = {
     "acute coronary syndrome": ["acute coronary syndrome", "acs"],
@@ -766,10 +831,50 @@ def detect_management_safety_gap(
 
     bypasses_safety_check = _bypasses_management_safety_check(normalized)
     mentions_safety_check = _mentions_management_safety_check(normalized)
-    if mentions_safety_check and not bypasses_safety_check:
+    if (
+        mentions_safety_check
+        and not bypasses_safety_check
+        and _covers_uncovered_management_safety_checks(
+            student_message,
+            uncovered_checks,
+        )
+    ):
         return []
 
     return risky_terms
+
+
+def _tokens_for_management_safety_coverage(text: str) -> set[str]:
+    normalized = _normalize_for_guardrail(text)
+    tokens: set[str] = set()
+    for phrase, aliases in KOREAN_MANAGEMENT_SAFETY_COVERAGE_ALIASES:
+        if phrase in normalized:
+            tokens.update(aliases)
+    for raw_token in re.findall(r"[a-z0-9]+", normalized):
+        if len(raw_token) < 3 and raw_token not in {"bp", "ct"}:
+            continue
+        token = MANAGEMENT_SAFETY_COVERAGE_ALIASES.get(raw_token, raw_token)
+        if token not in MANAGEMENT_SAFETY_COVERAGE_STOPWORDS:
+            tokens.add(token)
+    return tokens
+
+
+def _covers_uncovered_management_safety_checks(
+    student_message: str,
+    uncovered_checks: list[str],
+) -> bool:
+    message_tokens = _tokens_for_management_safety_coverage(student_message)
+    if not message_tokens:
+        return False
+
+    for check in uncovered_checks:
+        check_tokens = _tokens_for_management_safety_coverage(check)
+        if not check_tokens:
+            continue
+        required_overlap = 1 if len(check_tokens) <= 2 else 2
+        if len(check_tokens.intersection(message_tokens)) < required_overlap:
+            return False
+    return True
 
 
 def _premature_closure_terms(normalized: str) -> list[str]:
