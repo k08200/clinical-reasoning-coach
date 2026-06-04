@@ -979,6 +979,77 @@ async def test_clinical_review_requires_weight_based_safety_check_for_pediatric_
     assert case.reviewed_by_user_id is None
 
 
+async def test_clinical_review_requires_renal_safety_check_for_contrast_imaging(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"renal-safety-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Renal Safety Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case_payload = dict(CASE_POOL[0])
+    case_payload["time_critical_actions"] = [
+        "Obtain CT pulmonary angiography promptly when pulmonary embolism remains high risk",
+        "Escalate anticoagulation pathway planning after dangerous alternatives are addressed",
+    ]
+    case_payload["contraindication_checks"] = [
+        "Contrast allergy before CT pulmonary angiography",
+        "Active bleeding risk before anticoagulation",
+    ]
+    case_payload["clinical_sources"] = [
+        {
+            "title": "ESC Guidelines for Pulmonary Embolism",
+            "organization": "European Society of Cardiology",
+            "url": "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines",
+            "supports": [
+                "pulmonary embolism diagnosis and risk stratification pathway",
+                "life-threatening chest pain differential and severity markers",
+                "CT pulmonary angiography timing for high-risk suspected pulmonary embolism",
+                "anticoagulation pathway escalation when dangerous alternatives are addressed",
+                "crushing substernal chest pain radiating to the arm with diaphoresis",
+                "bibasilar crackles suggesting early heart failure",
+                "tachycardia with multiple coronary risk factors",
+                "contrast allergy before CT pulmonary angiography",
+                "active bleeding risk before anticoagulation",
+            ],
+        }
+    ]
+    case = ClinicalCase(**case_payload)
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "educational_safety_confirmed": True,
+            "review_notes": (
+                "Trying to approve contrast imaging case without renal function review."
+            ),
+        },
+    )
+
+    assert response.status_code == 409
+    assert "case quality gate" in response.json()["detail"]
+    assert "renal function safety check is required" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.review_status == case_payload["review_status"]
+    assert case.reviewed_by_user_id is None
+
+
 async def test_clinical_review_rejects_placeholder_source_url(
     client: AsyncClient,
     db: AsyncSession,

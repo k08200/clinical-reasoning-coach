@@ -184,6 +184,68 @@ def test_quality_gate_allows_pediatric_case_with_weight_based_safety_check():
     assert report.passed
 
 
+def test_quality_gate_requires_renal_safety_check_for_contrast_imaging():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["time_critical_actions"] = [
+        "Obtain CT pulmonary angiography promptly when pulmonary embolism remains high risk",
+        "Escalate anticoagulation pathway planning after dangerous alternatives are addressed",
+    ]
+    case["contraindication_checks"] = [
+        "Contrast allergy before CT pulmonary angiography",
+        "Active bleeding risk before anticoagulation",
+    ]
+    case["clinical_sources"][0]["url"] = "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines"
+    case["clinical_sources"][0]["supports"] = [
+        "pulmonary embolism diagnosis and risk stratification pathway",
+        "life-threatening chest pain differential and severity markers",
+        "CT pulmonary angiography timing for high-risk suspected pulmonary embolism",
+        "anticoagulation pathway escalation when dangerous alternatives are addressed",
+        "crushing substernal chest pain radiating to the arm with diaphoresis",
+        "bibasilar crackles suggesting early heart failure",
+        "tachycardia with multiple coronary risk factors",
+        "contrast allergy before CT pulmonary angiography",
+        "active bleeding risk before anticoagulation",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "renal function safety check is required" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_allows_contrast_imaging_with_renal_safety_check():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["time_critical_actions"] = [
+        "Obtain CT pulmonary angiography promptly when pulmonary embolism remains high risk",
+        "Escalate anticoagulation pathway planning after dangerous alternatives are addressed",
+    ]
+    case["contraindication_checks"] = [
+        "Contrast allergy before CT pulmonary angiography",
+        "Renal function and creatinine before contrast imaging",
+        "Active bleeding risk before anticoagulation",
+    ]
+    case["clinical_sources"][0]["url"] = "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines"
+    case["clinical_sources"][0]["supports"] = [
+        "pulmonary embolism diagnosis and risk stratification pathway",
+        "life-threatening chest pain differential and severity markers",
+        "CT pulmonary angiography timing for high-risk suspected pulmonary embolism",
+        "anticoagulation pathway escalation when dangerous alternatives are addressed",
+        "crushing substernal chest pain radiating to the arm with diaphoresis",
+        "bibasilar crackles suggesting early heart failure",
+        "tachycardia with multiple coronary risk factors",
+        "contrast allergy before CT pulmonary angiography",
+        "renal function and creatinine before contrast imaging",
+        "active bleeding risk before anticoagulation",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
 def test_quality_gate_rejects_non_numeric_blood_pressure():
     case = copy.deepcopy(CASE_POOL[0])
     case["physical_exam"]["vitals"]["bp"] = "normal"

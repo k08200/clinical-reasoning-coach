@@ -186,6 +186,36 @@ const PEDIATRIC_WEIGHT_SAFETY_TERMS = [
   "체중",
 ];
 
+const RENAL_RISK_TRIGGER_TERMS = [
+  "aminoglycoside",
+  "antibiotic dosing",
+  "antimicrobial dosing",
+  "ckd",
+  "contrast",
+  "creatinine",
+  "ct pulmonary angiography",
+  "ctpa",
+  "egfr",
+  "kidney",
+  "metformin",
+  "renal",
+  "vancomycin",
+  "조영제",
+  "크레아티닌",
+  "신장",
+  "콩팥",
+];
+
+const RENAL_SAFETY_TERMS = [
+  "creatinine",
+  "egfr",
+  "kidney",
+  "renal",
+  "신장",
+  "콩팥",
+  "크레아티닌",
+];
+
 type SourceAnchoredSafetyField =
   | "clinical_red_flags"
   | "time_critical_actions"
@@ -295,6 +325,64 @@ function hasPediatricWeightSafetyCheck(checks: string[]): boolean {
   return PEDIATRIC_WEIGHT_SAFETY_TERMS.some((term) => normalizedChecks.includes(term));
 }
 
+function nestedStrings(value: unknown): string[] {
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap((item) => nestedStrings(item));
+  if (value && typeof value === "object") {
+    return Object.values(value).flatMap((item) => nestedStrings(item));
+  }
+  return [];
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function containsSafetyTerm(text: string, term: string): boolean {
+  const normalizedTerm = term.toLowerCase();
+  if (normalizedTerm === "contrast") {
+    const contrastPattern = /(^|[^a-z0-9])contrast(?=$|[^a-z0-9])/g;
+    for (const match of text.matchAll(contrastPattern)) {
+      const contrastStart = (match.index ?? 0) + match[1].length;
+      const prefix = text.slice(Math.max(0, contrastStart - 4), contrastStart);
+      if (prefix !== "non-" && prefix !== "non ") {
+        return true;
+      }
+    }
+    return false;
+  }
+  if (/[^a-z0-9\s-]/.test(normalizedTerm)) {
+    return text.includes(normalizedTerm);
+  }
+  return new RegExp(`(^|[^a-z0-9])${escapeRegExp(normalizedTerm)}(?=$|[^a-z0-9])`).test(
+    text,
+  );
+}
+
+function requiresRenalSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.medications),
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return RENAL_RISK_TRIGGER_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasRenalSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  return RENAL_SAFETY_TERMS.some((term) => containsSafetyTerm(normalizedChecks, term));
+}
+
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
@@ -327,6 +415,11 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
     !hasPediatricWeightSafetyCheck(detail.contraindication_checks)
   ) {
     issues.push("weight-based dosing safety check is required for pediatric cases");
+  }
+  if (requiresRenalSafetyCheck(detail) && !hasRenalSafetyCheck(detail.contraindication_checks)) {
+    issues.push(
+      "renal function safety check is required for contrast imaging or renally cleared therapy",
+    );
   }
   if (detail.clinical_sources.length < 1) {
     issues.push("At least 1 clinical source is required.");

@@ -236,6 +236,34 @@ PEDIATRIC_WEIGHT_SAFETY_TERMS = (
     "units/kg",
     "체중",
 )
+RENAL_RISK_TRIGGER_TERMS = (
+    "aminoglycoside",
+    "antibiotic dosing",
+    "antimicrobial dosing",
+    "ckd",
+    "contrast",
+    "creatinine",
+    "ct pulmonary angiography",
+    "ctpa",
+    "egfr",
+    "kidney",
+    "metformin",
+    "renal",
+    "vancomycin",
+    "조영제",
+    "크레아티닌",
+    "신장",
+    "콩팥",
+)
+RENAL_SAFETY_TERMS = (
+    "creatinine",
+    "egfr",
+    "kidney",
+    "renal",
+    "신장",
+    "콩팥",
+    "크레아티닌",
+)
 
 
 @dataclass
@@ -548,6 +576,13 @@ def _check_safety_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
         report.add_critical(
             "weight-based dosing safety check is required for pediatric cases"
         )
+    if (
+        _requires_renal_safety_check(data)
+        and not _has_renal_safety_check(data.get("contraindication_checks") or [])
+    ):
+        report.add_critical(
+            "renal function safety check is required for contrast imaging or renally cleared therapy"
+        )
 
 
 def _requires_pregnancy_safety_check(data: dict[str, Any]) -> bool:
@@ -570,6 +605,50 @@ def _requires_pediatric_weight_safety_check(data: dict[str, Any]) -> bool:
 def _has_pediatric_weight_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
     return any(term in normalized_checks for term in PEDIATRIC_WEIGHT_SAFETY_TERMS)
+
+
+def _requires_renal_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "medications",
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(_contains_safety_term(risk_text, term) for term in RENAL_RISK_TRIGGER_TERMS)
+
+
+def _has_renal_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    return any(_contains_safety_term(normalized_checks, term) for term in RENAL_SAFETY_TERMS)
+
+
+def _contains_safety_term(text: str, term: str) -> bool:
+    normalized_term = term.lower()
+    if normalized_term == "contrast":
+        for match in re.finditer(r"(?<![a-z0-9])contrast(?![a-z0-9])", text):
+            prefix = text[max(0, match.start() - 4):match.start()]
+            if prefix not in {"non-", "non "}:
+                return True
+        return False
+    if re.search(r"[^a-z0-9\s-]", normalized_term):
+        return normalized_term in text
+    return bool(
+        re.search(rf"(?<![a-z0-9]){re.escape(normalized_term)}(?![a-z0-9])", text)
+    )
 
 
 def _check_source_metadata(data: dict[str, Any], report: CaseQualityReport) -> None:

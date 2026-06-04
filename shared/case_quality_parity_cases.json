@@ -167,5 +167,40 @@
         }
       ]
     }
+  },
+  {
+    "name": "contrast_imaging_requires_renal_safety_check",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "renal function safety check is required"
+    ],
+    "overrides": {
+      "time_critical_actions": [
+        "Obtain CT pulmonary angiography promptly when pulmonary embolism remains high risk",
+        "Escalate anticoagulation pathway planning after dangerous alternatives are addressed"
+      ],
+      "contraindication_checks": [
+        "Contrast allergy before CT pulmonary angiography",
+        "Active bleeding risk before anticoagulation"
+      ],
+      "clinical_sources": [
+        {
+          "title": "ESC Guidelines for Pulmonary Embolism",
+          "organization": "European Society of Cardiology",
+          "url": "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines",
+          "supports": [
+            "pulmonary embolism diagnosis and risk stratification pathway",
+            "life-threatening chest pain differential and severity markers",
+            "CT pulmonary angiography timing for high-risk suspected pulmonary embolism",
+            "anticoagulation pathway escalation when dangerous alternatives are addressed",
+            "crushing substernal chest pain radiating to the arm with diaphoresis",
+            "bibasilar crackles suggesting early heart failure",
+            "tachycardia with multiple coronary risk factors",
+            "contrast allergy before CT pulmonary angiography",
+            "active bleeding risk before anticoagulation"
+          ]
+        }
+      ]
+    }
   }
 ]
