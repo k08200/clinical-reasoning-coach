@@ -146,7 +146,6 @@ export default function CasesPage() {
     try {
       const session = await api.sessions.create(clinicalCase.id, {
         acknowledge_educational_simulation: true,
-        acknowledge_unreviewed_case: clinicalCase.source_provenance.requires_caution,
       }) as { id: string };
       router.push(`/sessions/${session.id}`);
     } catch (err) {

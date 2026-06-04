@@ -64,15 +64,15 @@ describe("evaluateSessionStartEligibility", () => {
     expect(eligibility.acknowledgementText).toContain("no supporting clinical source");
   });
 
-  it("requires acknowledgement for unreviewed educational draft cases", () => {
+  it("blocks unreviewed educational draft cases until clinical review", () => {
     const eligibility = evaluateSessionStartEligibility(makeCase());
 
-    expect(eligibility.blocked).toBe(false);
-    expect(eligibility.requiresAcknowledgement).toBe(true);
-    expect(eligibility.buttonLabel).toBe("Start Session");
-    expect(eligibility.cautionText).toBe("Not clinician reviewed; use only for education.");
+    expect(eligibility.blocked).toBe(true);
+    expect(eligibility.requiresAcknowledgement).toBe(false);
+    expect(eligibility.buttonLabel).toBe("Clinical Review Required");
+    expect(eligibility.cautionText).toBe("Not clinician reviewed; clinical review required.");
     expect(eligibility.acknowledgementText).toContain("not clinician reviewed");
-    expect(eligibility.acknowledgementText).toContain("not patient care");
+    expect(eligibility.acknowledgementText).toContain("blocked until clinician review");
   });
 
   it("requires simulation acknowledgement for clinician-reviewed cases", () => {

@@ -162,7 +162,6 @@ export const api = {
       case_id: string,
       options: {
         acknowledge_educational_simulation?: boolean;
-        acknowledge_unreviewed_case?: boolean;
       } = {},
     ) =>
       request("/api/sessions", {

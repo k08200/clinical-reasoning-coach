@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 class SessionCreate(BaseModel):
     case_id: uuid.UUID
     acknowledge_educational_simulation: bool = False
-    acknowledge_unreviewed_case: bool = False
 
 
 class MessageResponse(BaseModel):

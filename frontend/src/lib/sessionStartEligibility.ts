@@ -60,14 +60,14 @@ export function evaluateSessionStartEligibility(
     };
   }
 
-  if (provenance.requires_caution) {
+  if (provenance.review_status !== "clinician_reviewed" || provenance.requires_caution) {
     return {
-      blocked: false,
-      requiresAcknowledgement: true,
-      buttonLabel: "Start Session",
-      cautionText: "Not clinician reviewed; use only for education.",
+      blocked: true,
+      requiresAcknowledgement: false,
+      buttonLabel: "Clinical Review Required",
+      cautionText: "Not clinician reviewed; clinical review required.",
       acknowledgementText:
-        "This case is not clinician reviewed. This is an educational simulation only, not patient care or medical advice.",
+        "This case is not clinician reviewed. Learner sessions are blocked until clinician review confirms clinical accuracy, source alignment, and educational safety.",
     };
   }
 

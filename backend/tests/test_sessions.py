@@ -139,8 +139,19 @@ def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
     )
 
 
+async def _mark_case_clinician_reviewed_for_test(
+    db: AsyncSession,
+    case_id: str,
+) -> None:
+    case = await db.get(ClinicalCase, uuid.UUID(case_id))
+    assert case is not None
+    case.review_status = "clinician_reviewed"
+    case.last_reviewed_at = "2026-06-01"
+    await db.commit()
+
+
 @pytest.mark.asyncio
-async def test_create_session_requires_acknowledgement_for_unreviewed_case(
+async def test_create_session_blocks_unreviewed_case_even_with_acknowledgement(
     client: AsyncClient,
     db: AsyncSession,
 ):
@@ -166,12 +177,14 @@ async def test_create_session_requires_acknowledgement_for_unreviewed_case(
         json={
             "case_id": str(case.id),
             "acknowledge_educational_simulation": True,
+            "acknowledge_unreviewed_case": True,
         },
         headers=auth_headers,
     )
 
-    assert response.status_code == 400
-    assert "not currently clinician reviewed" in response.json()["detail"]
+    assert response.status_code == 409
+    assert "not clinician reviewed" in response.json()["detail"]
+    assert "blocked until clinician review" in response.json()["detail"]
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -433,6 +446,7 @@ async def test_create_session_blocks_future_reviewed_case_even_with_acknowledgem
 @pytest.mark.asyncio
 async def test_stream_response_persists_turn_before_done(
     client: AsyncClient,
+    db: AsyncSession,
     monkeypatch: pytest.MonkeyPatch,
 ):
     monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
@@ -472,13 +486,13 @@ async def test_stream_response_persists_turn_before_done(
     case_response = await client.post("/api/cases/generate/demo", headers=auth_headers)
     assert case_response.status_code == 201
     case_id = case_response.json()["id"]
+    await _mark_case_clinician_reviewed_for_test(db, case_id)
 
     session_response = await client.post(
         "/api/sessions",
         json={
             "case_id": case_id,
             "acknowledge_educational_simulation": True,
-            "acknowledge_unreviewed_case": True,
         },
         headers=auth_headers,
     )
@@ -2403,6 +2417,7 @@ async def test_passive_contraindication_mentions_do_not_satisfy_completion_cover
 @pytest.mark.asyncio
 async def test_real_patient_signal_halts_coaching_and_records_safety_event(
     client: AsyncClient,
+    db: AsyncSession,
     monkeypatch: pytest.MonkeyPatch,
 ):
     monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
@@ -2446,12 +2461,12 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
     }
 
     case_response = await client.post("/api/cases/generate/demo", headers=auth_headers)
+    await _mark_case_clinician_reviewed_for_test(db, case_response.json()["id"])
     session_response = await client.post(
         "/api/sessions",
         json={
             "case_id": case_response.json()["id"],
             "acknowledge_educational_simulation": True,
-            "acknowledge_unreviewed_case": True,
         },
         headers=auth_headers,
     )
@@ -2520,6 +2535,7 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
 @pytest.mark.asyncio
 async def test_korean_real_patient_signal_uses_korean_safety_response(
     client: AsyncClient,
+    db: AsyncSession,
     monkeypatch: pytest.MonkeyPatch,
 ):
     monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
@@ -2563,12 +2579,12 @@ async def test_korean_real_patient_signal_uses_korean_safety_response(
     }
 
     case_response = await client.post("/api/cases/generate/demo", headers=auth_headers)
+    await _mark_case_clinician_reviewed_for_test(db, case_response.json()["id"])
     session_response = await client.post(
         "/api/sessions",
         json={
             "case_id": case_response.json()["id"],
             "acknowledge_educational_simulation": True,
-            "acknowledge_unreviewed_case": True,
         },
         headers=auth_headers,
     )
@@ -2893,6 +2909,7 @@ async def test_korean_management_before_safety_checks_redirects_and_records_safe
 @pytest.mark.asyncio
 async def test_patient_identifier_signal_blocks_storage_and_records_safety_event(
     client: AsyncClient,
+    db: AsyncSession,
     monkeypatch: pytest.MonkeyPatch,
 ):
     monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
@@ -2936,12 +2953,12 @@ async def test_patient_identifier_signal_blocks_storage_and_records_safety_event
     }
 
     case_response = await client.post("/api/cases/generate/demo", headers=auth_headers)
+    await _mark_case_clinician_reviewed_for_test(db, case_response.json()["id"])
     session_response = await client.post(
         "/api/sessions",
         json={
             "case_id": case_response.json()["id"],
             "acknowledge_educational_simulation": True,
-            "acknowledge_unreviewed_case": True,
         },
         headers=auth_headers,
     )

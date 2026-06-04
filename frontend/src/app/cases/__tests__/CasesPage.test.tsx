@@ -123,39 +123,25 @@ describe("CasesPage", () => {
     expect(mockMutate).toHaveBeenCalledOnce();
   });
 
-  it("requires acknowledgement before starting an unreviewed case", async () => {
+  it("blocks starting an unreviewed case until clinical review", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: [makeCase()],
       error: undefined,
       mutate: mockMutate,
     } as unknown as ReturnType<typeof useSWR>);
-    mockCreateSession.mockResolvedValue({ id: "session-1" });
 
     render(<CasesPage />);
 
     expect(screen.getByText("1 clinical source")).toBeTruthy();
     expect(screen.getByText("Educational draft")).toBeTruthy();
-    expect(screen.getByText("Not clinician reviewed; use only for education.")).toBeTruthy();
+    expect(screen.getByText("Not clinician reviewed; clinical review required.")).toBeTruthy();
     expect(
       screen.getByText("American Heart Association / American College of Cardiology"),
     ).toBeTruthy();
     expect(screen.getByText("Reviewed 2026-06-01 · Valid until 2027-06-01")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Start Session" }));
-
-    expect(
-      screen.getByText(
-        "This case is not clinician reviewed. This is an educational simulation only, not patient care or medical advice.",
-      ),
-    ).toBeTruthy();
+    const startButton = screen.getByRole("button", { name: "Clinical Review Required" });
+    expect(startButton).toHaveProperty("disabled", true);
     expect(mockCreateSession).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole("button", { name: "Acknowledge and Start" }));
-
-    await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1", {
-      acknowledge_educational_simulation: true,
-      acknowledge_unreviewed_case: true,
-    }));
-    expect(mockPush).toHaveBeenCalledWith("/sessions/session-1");
   });
 
   it("renders older adult age buckets without appending yo", () => {
@@ -208,7 +194,6 @@ describe("CasesPage", () => {
 
     await waitFor(() => expect(mockCreateSession).toHaveBeenCalledWith("case-1", {
       acknowledge_educational_simulation: true,
-      acknowledge_unreviewed_case: false,
     }));
     expect(screen.queryByText(/not clinician reviewed/i)).toBeFalsy();
     expect(mockPush).toHaveBeenCalledWith("/sessions/session-reviewed");
@@ -239,7 +224,11 @@ describe("CasesPage", () => {
     render(<CasesPage />);
 
     expect(screen.getByText("AI-generated, unreviewed")).toBeTruthy();
-    expect(screen.getByText("Not clinician reviewed; use only for education.")).toBeTruthy();
+    expect(screen.getByText("Not clinician reviewed; clinical review required.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Clinical Review Required" })).toHaveProperty(
+      "disabled",
+      true,
+    );
     expect(screen.queryByText(/Reviewed/)).toBeFalsy();
   });
 

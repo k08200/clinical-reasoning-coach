@@ -848,6 +848,15 @@ def _assert_case_provenance_allows_learner_session(case: ClinicalCase) -> None:
                 "clinician review with source alignment before learner sessions can start."
             ),
         )
+    if source_provenance["review_status"] != "clinician_reviewed":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This case is not clinician reviewed. Learner sessions are blocked "
+                "until clinician review confirms clinical accuracy, source alignment, "
+                "and educational safety."
+            ),
+        )
     if source_provenance["review_content_changed"]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -906,16 +915,7 @@ async def create_session(
                 "care or medical advice, before starting a session."
             ),
         )
-    source_provenance = case.source_provenance
     _assert_case_provenance_allows_learner_session(case)
-    if source_provenance["requires_caution"] and not body.acknowledge_unreviewed_case:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "This case is not currently clinician reviewed. Set "
-                "acknowledge_unreviewed_case=true to use it for educational simulation."
-            ),
-        )
     _assert_case_quality_for_learner_session(case)
 
     session = CoachingSession(
