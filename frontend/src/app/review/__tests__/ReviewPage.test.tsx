@@ -420,6 +420,21 @@ describe("ReviewPage", () => {
     expect(mockCompleteClinicalReview).not.toHaveBeenCalled();
   });
 
+  it("requires audit review notes before review submission", () => {
+    mockReviewSwr();
+
+    render(<ReviewPage />);
+
+    for (const checkbox of screen.getAllByRole("checkbox")) {
+      fireEvent.click(checkbox);
+    }
+
+    expect(screen.getByText(/Add at least 30 characters of review notes/)).toBeTruthy();
+    expect(screen.getByText(/Summarize source alignment, safety checks/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
+    expect(mockCompleteClinicalReview).not.toHaveBeenCalled();
+  });
+
   it("blocks clinical review submission when safety metadata is incomplete", () => {
     mockReviewSwr({
       detail: makeReviewDetail({

@@ -32,6 +32,8 @@ const DEFAULT_SOURCE_ALIGNMENT_CHECKS: SourceAlignmentChecks = {
   contraindication_checks_supported: false,
 };
 
+const MIN_REVIEW_NOTES_LENGTH = 30;
+
 const SOURCE_ALIGNMENT_ITEMS: Array<{
   key: keyof SourceAlignmentChecks;
   label: string;
@@ -174,9 +176,13 @@ export default function ReviewPage() {
   );
   const allChecksConfirmed = Object.values(checks).every(Boolean);
   const allSourceAlignmentConfirmed = Object.values(sourceAlignmentChecks).every(Boolean);
+  const reviewNotesReady = reviewNotes.trim().length >= MIN_REVIEW_NOTES_LENGTH;
   const qualityIssues = useMemo(() => reviewQualityIssues(reviewDetail), [reviewDetail]);
   const canSubmitReview =
-    allChecksConfirmed && allSourceAlignmentConfirmed && qualityIssues.length === 0;
+    allChecksConfirmed &&
+    allSourceAlignmentConfirmed &&
+    reviewNotesReady &&
+    qualityIssues.length === 0;
 
   useEffect(() => {
     setLinkedCaseId(new URLSearchParams(window.location.search).get("case"));
@@ -566,12 +572,22 @@ export default function ReviewPage() {
                   <label className="mt-4 block text-sm font-medium text-slate-300">
                     Review Notes
                     <textarea
+                      aria-label="Review Notes"
                       value={reviewNotes}
                       onChange={(event) => setReviewNotes(event.target.value)}
                       maxLength={2000}
                       rows={4}
                       className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-brand-500"
                     />
+                    <span className="mt-1 block text-xs text-slate-400">
+                      Summarize source alignment, safety checks, and educational limitations
+                      before approving.
+                    </span>
+                    {!reviewNotesReady && (
+                      <span className="mt-1 block text-xs text-amber-300">
+                        Add at least {MIN_REVIEW_NOTES_LENGTH} characters of review notes.
+                      </span>
+                    )}
                   </label>
                   <button
                     onClick={handleSubmitReview}

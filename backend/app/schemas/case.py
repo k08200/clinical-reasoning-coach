@@ -5,6 +5,8 @@ import uuid
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+MIN_CLINICAL_REVIEW_NOTES_LENGTH = 30
+
 
 class ClinicalCaseCreate(BaseModel):
     title: str
@@ -147,6 +149,16 @@ class ClinicalReviewRequest(BaseModel):
                 "Source alignment confirmation requires all source alignment checks"
             )
         return self
+
+    @field_validator("review_notes")
+    @classmethod
+    def require_review_notes(cls, value: str | None) -> str:
+        note = (value or "").strip()
+        if len(note) < MIN_CLINICAL_REVIEW_NOTES_LENGTH:
+            raise ValueError(
+                "Clinical review notes must summarize source alignment, safety checks, and educational limitations"
+            )
+        return note
 
 
 class ClinicalCaseReviewResponse(BaseModel):

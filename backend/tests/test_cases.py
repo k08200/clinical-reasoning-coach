@@ -523,6 +523,46 @@ async def test_clinical_review_requires_source_alignment_checklist(
     )
 
 
+async def test_clinical_review_requires_audit_review_notes(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"notes-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Notes Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = ClinicalCase(**CASE_POOL[0])
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "educational_safety_confirmed": True,
+            "review_notes": "OK",
+        },
+    )
+
+    assert response.status_code == 422
+    assert "Clinical review notes must summarize source alignment" in str(
+        response.json()["detail"]
+    )
+
+
 async def test_clinical_review_requires_complete_safety_metadata(
     client: AsyncClient,
     db: AsyncSession,
@@ -706,7 +746,9 @@ async def test_clinical_review_writes_audit_log(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": "Audit trail confirmation.",
+            "review_notes": (
+                "Sources, hidden safety checks, and simulation limitations reviewed."
+            ),
         },
     )
 
@@ -718,7 +760,10 @@ async def test_clinical_review_writes_audit_log(
     assert review.reviewer_user_id == reviewer.id
     assert review.prior_review_status == "educational_draft"
     assert review.resulting_review_status == "clinician_reviewed"
-    assert review.review_notes == "Audit trail confirmation."
+    assert (
+        review.review_notes
+        == "Sources, hidden safety checks, and simulation limitations reviewed."
+    )
     assert review.source_snapshot["source_count"] == 1
     assert review.source_snapshot["case_content_fingerprint"]
     assert review.source_snapshot["alignment_checklist"] == SOURCE_ALIGNMENT_CHECKS
@@ -755,7 +800,7 @@ async def test_post_review_case_content_change_blocks_sessions_until_re_review(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "educational_safety_confirmed": True,
-            "review_notes": "Content fingerprint baseline.",
+            "review_notes": "Baseline source and safety review before content change.",
         },
     )
     assert review_response.status_code == 200
