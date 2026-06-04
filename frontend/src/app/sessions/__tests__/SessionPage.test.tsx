@@ -771,6 +771,21 @@ describe("SessionPage", () => {
               review_audit_missing: false,
               review_content_changed: false,
             },
+            review_audit: {
+              confirmations: {
+                clinical_accuracy_confirmed: true,
+                source_alignment_confirmed: true,
+                educational_safety_confirmed: true,
+              },
+              source_alignment_checks: {
+                teaching_points_supported: true,
+                red_flags_supported: true,
+                time_critical_actions_supported: true,
+                contraindication_checks_supported: true,
+              },
+              review_notes:
+                "Source alignment, safety checks, and educational simulation limitations reviewed.",
+            },
             review_status: "educational_draft",
             last_reviewed_at: "2026-06-01",
           },
@@ -797,6 +812,12 @@ describe("SessionPage", () => {
     expect(screen.getByText("Clinical Case Review Warning")).toBeTruthy();
     expect(screen.getByText(/Current case provenance: Educational draft/)).toBeTruthy();
     expect(screen.getByText(/provisional educational feedback/)).toBeTruthy();
+    expect(screen.getByText("Clinician Review Audit")).toBeTruthy();
+    expect(screen.getByText(/Source alignment, safety checks/)).toBeTruthy();
+    expect(screen.getByText("7/7 confirmed")).toBeTruthy();
+    expect(screen.getByText("Clinical accuracy")).toBeTruthy();
+    expect(screen.getByText("Educational safety")).toBeTruthy();
+    expect(screen.getAllByText("Contraindication checks").length).toBeGreaterThan(0);
     expect(screen.getByText("Incomplete Safety Coverage")).toBeTruthy();
     expect(screen.getByText(/not evidence of safe clinical readiness/)).toBeTruthy();
     expect(screen.getByText("2/4 addressed")).toBeTruthy();

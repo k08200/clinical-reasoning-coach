@@ -102,6 +102,12 @@ class SessionSafetyEventSummary(BaseModel):
     resolved_at: datetime | None
 
 
+class SessionReviewAuditSummary(BaseModel):
+    confirmations: dict[str, bool] = Field(default_factory=dict)
+    source_alignment_checks: dict[str, bool] = Field(default_factory=dict)
+    review_notes: str | None = None
+
+
 class SessionReviewResponse(BaseModel):
     session_id: uuid.UUID
     case_id: uuid.UUID
@@ -120,6 +126,7 @@ class SessionReviewResponse(BaseModel):
     clinical_safety_coverage: ClinicalSafetyCoverage
     clinical_safety_completion: ClinicalSafetyCompletionStatus
     source_provenance: ClinicalSourceProvenance
+    review_audit: SessionReviewAuditSummary | None = None
     review_status: str
     last_reviewed_at: str | None
 

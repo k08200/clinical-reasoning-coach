@@ -959,7 +959,38 @@ def _case_review_snapshot(case: ClinicalCase) -> dict:
     snapshot = {field: getattr(case, field) for field in SESSION_REVIEW_SNAPSHOT_FIELDS}
     snapshot["case_content_fingerprint"] = clinical_case_content_fingerprint(case)
     snapshot["source_provenance"] = case.source_provenance
+    snapshot["review_audit"] = _case_review_audit_snapshot(case)
     return snapshot
+
+
+def _case_review_audit_snapshot(case: ClinicalCase) -> dict | None:
+    latest_review = max(
+        case.clinical_reviews or [],
+        key=lambda review: review.created_at or datetime.min.replace(tzinfo=timezone.utc),
+        default=None,
+    )
+    if latest_review is None:
+        return None
+
+    confirmations = (
+        latest_review.confirmations
+        if isinstance(latest_review.confirmations, dict)
+        else {}
+    )
+    source_snapshot = (
+        latest_review.source_snapshot
+        if isinstance(latest_review.source_snapshot, dict)
+        else {}
+    )
+    alignment_checklist = source_snapshot.get("alignment_checklist")
+    source_alignment_checks = (
+        alignment_checklist if isinstance(alignment_checklist, dict) else {}
+    )
+    return {
+        "confirmations": confirmations,
+        "source_alignment_checks": source_alignment_checks,
+        "review_notes": latest_review.review_notes,
+    }
 
 
 def _session_review_snapshot(session: CoachingSession, case: ClinicalCase) -> dict:
@@ -1205,6 +1236,7 @@ async def get_session_review(
             clinical_safety_coverage
         ),
         source_provenance=case.source_provenance,
+        review_audit=review_snapshot.get("review_audit"),
         review_status=review_snapshot.get("review_status") or case.review_status,
         last_reviewed_at=review_snapshot.get("last_reviewed_at"),
     )

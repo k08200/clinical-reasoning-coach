@@ -95,6 +95,20 @@ function safetyCoverageLabel(category: string): string {
   return "Contraindication Checks";
 }
 
+const REVIEW_AUDIT_LABELS: Record<string, string> = {
+  clinical_accuracy_confirmed: "Clinical accuracy",
+  source_alignment_confirmed: "Source alignment",
+  educational_safety_confirmed: "Educational safety",
+  teaching_points_supported: "Teaching points",
+  red_flags_supported: "Red flags",
+  time_critical_actions_supported: "Time-critical actions",
+  contraindication_checks_supported: "Contraindication checks",
+};
+
+function reviewAuditLabel(key: string): string {
+  return REVIEW_AUDIT_LABELS[key] ?? key.replace(/_/g, " ");
+}
+
 function isCompletionSafetyDetail(value: unknown): value is CompletionSafetyDetail {
   return (
     !!value &&
@@ -884,6 +898,75 @@ export default function SessionPage() {
                           this completed review as provisional educational feedback until clinician
                           re-review restores source provenance.
                         </p>
+                      </section>
+                    )}
+
+                    {review.review_audit && (
+                      <section className="rounded-lg border border-emerald-800/70 bg-emerald-950/20 p-3 lg:col-span-3">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-200">
+                              Clinician Review Audit
+                            </p>
+                            {review.review_audit.review_notes && (
+                              <p className="mt-2 text-sm text-emerald-50">
+                                {review.review_audit.review_notes}
+                              </p>
+                            )}
+                          </div>
+                          {(() => {
+                            const auditEntries = [
+                              ...Object.entries(review.review_audit.confirmations),
+                              ...Object.entries(review.review_audit.source_alignment_checks),
+                            ];
+                            const confirmedCount = auditEntries.filter(([, value]) => value).length;
+                            return (
+                              <span className="rounded-full border border-emerald-800 bg-slate-900/50 px-3 py-1 text-xs font-semibold text-emerald-100">
+                                {confirmedCount}/{auditEntries.length} confirmed
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        <div className="mt-3 grid gap-2 md:grid-cols-2">
+                          {Object.entries(review.review_audit.confirmations).map(
+                            ([key, confirmed]) => (
+                              <div
+                                key={key}
+                                className="flex items-center justify-between gap-3 rounded border border-emerald-900/70 bg-slate-950/50 px-3 py-2 text-sm"
+                              >
+                                <span className="text-slate-200">{reviewAuditLabel(key)}</span>
+                                <span
+                                  className={
+                                    confirmed
+                                      ? "text-xs font-semibold text-emerald-200"
+                                      : "text-xs font-semibold text-amber-200"
+                                  }
+                                >
+                                  {confirmed ? "Confirmed" : "Not confirmed"}
+                                </span>
+                              </div>
+                            ),
+                          )}
+                          {Object.entries(review.review_audit.source_alignment_checks).map(
+                            ([key, confirmed]) => (
+                              <div
+                                key={key}
+                                className="flex items-center justify-between gap-3 rounded border border-emerald-900/70 bg-slate-950/50 px-3 py-2 text-sm"
+                              >
+                                <span className="text-slate-200">{reviewAuditLabel(key)}</span>
+                                <span
+                                  className={
+                                    confirmed
+                                      ? "text-xs font-semibold text-emerald-200"
+                                      : "text-xs font-semibold text-amber-200"
+                                  }
+                                >
+                                  {confirmed ? "Confirmed" : "Not confirmed"}
+                                </span>
+                              </div>
+                            ),
+                          )}
+                        </div>
                       </section>
                     )}
 

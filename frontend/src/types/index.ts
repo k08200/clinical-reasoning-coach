@@ -96,6 +96,12 @@ export interface SourceAlignmentChecks {
   contraindication_checks_supported: boolean;
 }
 
+export interface SessionReviewAuditSummary {
+  confirmations: Record<string, boolean>;
+  source_alignment_checks: Record<string, boolean>;
+  review_notes: string | null;
+}
+
 export interface ClinicalSource {
   title: string;
   organization: string;
@@ -234,6 +240,7 @@ export interface SessionReview {
   clinical_safety_coverage: ClinicalSafetyCoverage;
   clinical_safety_completion: ClinicalSafetyCompletionStatus;
   source_provenance: ClinicalSourceProvenance;
+  review_audit: SessionReviewAuditSummary | null;
   review_status: string;
   last_reviewed_at: string | null;
 }

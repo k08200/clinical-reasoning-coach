@@ -145,6 +145,22 @@ def _refresh_review_fingerprint_for_test(case: ClinicalCase) -> None:
     }
 
 
+def _review_audit_snapshot_for_case(case: ClinicalCase) -> dict | None:
+    clinical_reviews = case.__dict__.get("clinical_reviews") or []
+    if not clinical_reviews:
+        return None
+    review = clinical_reviews[0]
+    source_snapshot = review.source_snapshot if isinstance(review.source_snapshot, dict) else {}
+    alignment_checklist = source_snapshot.get("alignment_checklist")
+    return {
+        "confirmations": review.confirmations,
+        "source_alignment_checks": (
+            alignment_checklist if isinstance(alignment_checklist, dict) else {}
+        ),
+        "review_notes": review.review_notes,
+    }
+
+
 def _session_review_snapshot_for_case(case: ClinicalCase) -> dict:
     organizations = [
         source.get("organization")
@@ -181,8 +197,10 @@ def _session_review_snapshot_for_case(case: ClinicalCase) -> dict:
             "review_stale": False,
             "review_date_invalid": False,
             "review_audit_missing": False,
+            "review_audit_incomplete": False,
             "review_content_changed": False,
         },
+        "review_audit": _review_audit_snapshot_for_case(case),
     }
 
 
@@ -1902,6 +1920,20 @@ async def test_session_review_uses_completion_snapshot_after_case_changes(
         "Check contraindications before antithrombotic treatment",
     ]
     assert payload["clinical_sources"][0]["title"] == "2021 AHA/ACC Chest Pain Guideline"
+    assert payload["review_audit"] == {
+        "confirmations": {
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "educational_safety_confirmed": True,
+        },
+        "source_alignment_checks": {
+            "teaching_points_supported": True,
+            "red_flags_supported": True,
+            "time_critical_actions_supported": True,
+            "contraindication_checks_supported": True,
+        },
+        "review_notes": "Test clinician review with source and safety alignment.",
+    }
     assert payload["clinical_safety_coverage"]["red_flags"][0]["item"] == (
         "Diaphoresis with crushing chest pain"
     )
@@ -4564,6 +4596,7 @@ async def test_session_review_available_only_after_completion(
     assert payload["source_provenance"]["review_status"] == "educational_draft"
     assert payload["source_provenance"]["review_label"] == "Educational draft"
     assert payload["source_provenance"]["requires_caution"] is True
+    assert payload["review_audit"] is None
     assert coverage["red_flags"][0] == {
         "item": "Diaphoresis with crushing chest pain",
         "covered": True,
@@ -4669,6 +4702,20 @@ async def test_session_review_bounds_stored_breakdown_and_bias_confidence(
     assert payload["source_provenance"]["review_label"] == "Clinician reviewed"
     assert payload["source_provenance"]["requires_caution"] is False
     assert payload["source_provenance"]["review_audit_missing"] is False
+    assert payload["review_audit"] == {
+        "confirmations": {
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "educational_safety_confirmed": True,
+        },
+        "source_alignment_checks": {
+            "teaching_points_supported": True,
+            "red_flags_supported": True,
+            "time_critical_actions_supported": True,
+            "contraindication_checks_supported": True,
+        },
+        "review_notes": "Test clinician review with source and safety alignment.",
+    }
     assert payload["score_breakdown"] == {
         "systematic_approach": 25.0,
         "evidence_integration": 0.0,
