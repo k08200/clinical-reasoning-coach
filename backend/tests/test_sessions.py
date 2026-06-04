@@ -839,6 +839,172 @@ async def test_stream_response_blocks_legacy_active_session_without_case_snapsho
 
 
 @pytest.mark.asyncio
+async def test_real_patient_signal_halts_before_case_snapshot_gate(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+
+    async def fail_stream_coach_response(**_kwargs):
+        raise AssertionError("Real-patient signals must not reach the provider")
+        yield
+
+    async def fail_analyze_student_response(**_kwargs):
+        raise AssertionError("Real-patient signals must not reach analysis")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fail_analyze_student_response,
+    )
+    user = User(
+        email=f"stream-safety-before-snapshot-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Stream Safety Before Snapshot Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "My patient has severe chest pain right now and cannot breathe."},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert "I cannot continue coaching" in response.text
+    assert '"type": "done"' in response.text
+
+    await db.refresh(session)
+    assert session.status == "safety_locked"
+    safety_events = (
+        await db.execute(
+            select(SafetyEvent).where(SafetyEvent.session_id == session.id)
+        )
+    ).scalars().all()
+    messages = (
+        await db.execute(
+            select(Message).where(Message.session_id == session.id)
+        )
+    ).scalars().all()
+    assert len(safety_events) == 1
+    assert safety_events[0].event_type == "real_patient_or_emergency_signal"
+    assert safety_events[0].action_taken == "locked_session_blocked_storage_and_coaching"
+    assert "severe chest pain" in safety_events[0].detected_terms
+    assert [message.role for message in messages] == ["coach"]
+    assert all("cannot breathe" not in message.content for message in messages)
+
+
+@pytest.mark.asyncio
+async def test_patient_identifier_signal_halts_before_case_snapshot_gate(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+
+    async def fail_stream_coach_response(**_kwargs):
+        raise AssertionError("Identifier signals must not reach the provider")
+        yield
+
+    async def fail_analyze_student_response(**_kwargs):
+        raise AssertionError("Identifier signals must not reach analysis")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fail_analyze_student_response,
+    )
+    user = User(
+        email=f"stream-privacy-before-snapshot-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Stream Privacy Before Snapshot Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={
+            "content": (
+                "Patient name is John Smith, DOB 01/02/1970, "
+                "MRN A123456, and phone 555-123-4567."
+            ),
+        },
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert "patient identifiers" in response.text
+    assert '"type": "done"' in response.text
+
+    await db.refresh(session)
+    assert session.status == "safety_locked"
+    safety_events = (
+        await db.execute(
+            select(SafetyEvent).where(SafetyEvent.session_id == session.id)
+        )
+    ).scalars().all()
+    messages = (
+        await db.execute(
+            select(Message).where(Message.session_id == session.id)
+        )
+    ).scalars().all()
+    assert len(safety_events) == 1
+    assert safety_events[0].event_type == "possible_patient_identifier"
+    assert safety_events[0].action_taken == "locked_session_blocked_storage_and_coaching"
+    assert "medical_record_number" in safety_events[0].detected_terms
+    assert [message.role for message in messages] == ["coach"]
+    assert all("John Smith" not in message.content for message in messages)
+    assert all("A123456" not in message.content for message in messages)
+
+
+@pytest.mark.asyncio
 async def test_stream_response_hides_internal_provider_errors(
     client: AsyncClient,
     db: AsyncSession,

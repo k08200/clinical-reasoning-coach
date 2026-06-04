@@ -1138,15 +1138,6 @@ async def stream_response(
             detail="Session is not active",
         )
 
-    case = await db.get(ClinicalCase, session.case_id)
-    if not case:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
-    _assert_case_provenance_allows_learner_session(case)
-    _assert_active_session_case_version_matches(session, case)
-    _assert_case_quality_for_learner_session(case)
-
-    # Snapshot history before adding any new message
-    claude_history = _build_claude_history(session.messages)
     turn_number = sum(1 for m in session.messages if m.role == "student") + 1
 
     patient_identifiers = detect_patient_identifiers(body.content)
@@ -1193,6 +1184,16 @@ async def stream_response(
                 "X-Accel-Buffering": "no",
             },
         )
+
+    case = await db.get(ClinicalCase, session.case_id)
+    if not case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+    _assert_case_provenance_allows_learner_session(case)
+    _assert_active_session_case_version_matches(session, case)
+    _assert_case_quality_for_learner_session(case)
+
+    # Snapshot history before adding any new message
+    claude_history = _build_claude_history(session.messages)
 
     # Save student message
     student_msg = Message(
