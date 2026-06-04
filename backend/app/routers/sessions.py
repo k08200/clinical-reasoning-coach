@@ -500,6 +500,22 @@ def _build_clinical_safety_coverage_for_messages(
     messages: list[Message],
     analyzed_only: bool = False,
 ) -> ClinicalSafetyCoverage:
+    return _build_clinical_safety_coverage_from_targets(
+        red_flag_targets=case.clinical_red_flags or [],
+        time_critical_action_targets=case.time_critical_actions or [],
+        contraindication_check_targets=case.contraindication_checks or [],
+        messages=messages,
+        analyzed_only=analyzed_only,
+    )
+
+
+def _build_clinical_safety_coverage_from_targets(
+    red_flag_targets: list[str],
+    time_critical_action_targets: list[str],
+    contraindication_check_targets: list[str],
+    messages: list[Message],
+    analyzed_only: bool = False,
+) -> ClinicalSafetyCoverage:
     student_turns = [
         (index, _tokens_for_safety_coverage(message.content), message.content)
         for index, message in enumerate(
@@ -514,17 +530,17 @@ def _build_clinical_safety_coverage_for_messages(
     ]
     red_flags = _coverage_items_for_category(
         "red_flags",
-        case.clinical_red_flags or [],
+        red_flag_targets,
         student_turns,
     )
     time_critical_actions = _coverage_items_for_category(
         "time_critical_actions",
-        case.time_critical_actions or [],
+        time_critical_action_targets,
         student_turns,
     )
     contraindication_checks = _coverage_items_for_category(
         "contraindication_checks",
-        case.contraindication_checks or [],
+        contraindication_check_targets,
         student_turns,
     )
     all_items = red_flags + time_critical_actions + contraindication_checks
@@ -838,6 +854,31 @@ def _quality_payload_for_session_start(case: ClinicalCase) -> dict:
     return payload
 
 
+SESSION_REVIEW_SNAPSHOT_FIELDS = (
+    "diagnosis",
+    "key_teaching_points",
+    "cognitive_traps",
+    "clinical_red_flags",
+    "time_critical_actions",
+    "contraindication_checks",
+    "clinical_sources",
+    "review_status",
+    "last_reviewed_at",
+)
+
+
+def _case_review_snapshot(case: ClinicalCase) -> dict:
+    snapshot = {field: getattr(case, field) for field in SESSION_REVIEW_SNAPSHOT_FIELDS}
+    snapshot["source_provenance"] = case.source_provenance
+    return snapshot
+
+
+def _session_review_snapshot(session: CoachingSession, case: ClinicalCase) -> dict:
+    if isinstance(session.review_snapshot, dict) and session.review_snapshot:
+        return session.review_snapshot
+    return _case_review_snapshot(case)
+
+
 def _assert_case_provenance_allows_learner_session(case: ClinicalCase) -> None:
     source_provenance = case.source_provenance
     if source_provenance["source_count"] < 1:
@@ -999,30 +1040,37 @@ async def get_session_review(
     if not case:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
 
+    review_snapshot = _session_review_snapshot(session, case)
     feedback = _build_review_feedback(session)
-    clinical_safety_coverage = _build_clinical_safety_coverage(case, session)
+    clinical_safety_coverage = _build_clinical_safety_coverage_from_targets(
+        red_flag_targets=review_snapshot.get("clinical_red_flags") or [],
+        time_critical_action_targets=review_snapshot.get("time_critical_actions") or [],
+        contraindication_check_targets=review_snapshot.get("contraindication_checks") or [],
+        messages=session.messages,
+        analyzed_only=True,
+    )
 
     return SessionReviewResponse(
         session_id=session.id,
         case_id=case.id,
         educational_notice=SESSION_REVIEW_EDUCATIONAL_NOTICE,
         diagnosis_notice=SESSION_REVIEW_DIAGNOSIS_NOTICE,
-        diagnosis=case.diagnosis,
+        diagnosis=review_snapshot.get("diagnosis") or case.diagnosis,
         score_breakdown=feedback["score_breakdown"],
         strengths=feedback["strengths"],
         gaps=feedback["gaps"],
         coach_insights=feedback["coach_insights"],
         bias_feedback=feedback["bias_feedback"],
-        key_teaching_points=case.key_teaching_points,
-        cognitive_traps=case.cognitive_traps,
-        clinical_sources=case.clinical_sources,
+        key_teaching_points=review_snapshot.get("key_teaching_points") or [],
+        cognitive_traps=review_snapshot.get("cognitive_traps") or [],
+        clinical_sources=review_snapshot.get("clinical_sources") or [],
         clinical_safety_coverage=clinical_safety_coverage,
         clinical_safety_completion=_safety_review_completion_status(
             clinical_safety_coverage
         ),
         source_provenance=case.source_provenance,
-        review_status=case.review_status,
-        last_reviewed_at=case.last_reviewed_at,
+        review_status=review_snapshot.get("review_status") or case.review_status,
+        last_reviewed_at=review_snapshot.get("last_reviewed_at"),
     )
 
 
@@ -1381,6 +1429,7 @@ async def complete_session(
     session.status = "completed"
     session.final_reasoning_score = final_score
     session.bias_summary = bias_counts
+    session.review_snapshot = _case_review_snapshot(case)
     session.completed_at = datetime.now(timezone.utc)
 
     await db.flush()

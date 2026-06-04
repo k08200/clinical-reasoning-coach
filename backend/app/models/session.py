@@ -27,6 +27,7 @@ class CoachingSession(Base):
     reasoning_trajectory: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     reasoning_map: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     bias_summary: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    review_snapshot: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     total_input_tokens: Mapped[int] = mapped_column(Integer, default=0)
     total_output_tokens: Mapped[int] = mapped_column(Integer, default=0)
     total_thinking_tokens: Mapped[int] = mapped_column(Integer, default=0)

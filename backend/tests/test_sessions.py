@@ -1247,6 +1247,101 @@ async def test_complete_session_succeeds_after_all_clinical_safety_targets_cover
 
 
 @pytest.mark.asyncio
+async def test_session_review_uses_completion_snapshot_after_case_changes(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"review-snapshot-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Review Snapshot Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "I need to address diaphoresis with crushing chest pain plus hypoxia "
+            "or hemodynamic instability. I would obtain a 12-lead ECG within "
+            "10 minutes, trend serial troponin, check for aortic dissection "
+            "features before anticoagulation, and assess major bleeding risk "
+            "before antiplatelet therapy."
+        ),
+        reasoning_score=82,
+        reasoning_analysis=_passing_reasoning_analysis(),
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=(
+            "After that safety pass, I would refine my differential and explain what "
+            "new ECG or troponin findings would change my management plan."
+        ),
+        reasoning_score=86,
+        reasoning_analysis=_passing_reasoning_analysis(),
+    ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    complete_response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+    assert complete_response.status_code == 200
+    await db.refresh(session)
+    assert session.review_snapshot["diagnosis"] == "Acute coronary syndrome"
+
+    case.diagnosis = "Changed diagnosis after completion"
+    case.key_teaching_points = ["Changed teaching point"]
+    case.clinical_sources = [
+        {
+            "title": "Changed Source",
+            "organization": "Changed Organization",
+            "url": "https://www.nejm.org/changed",
+            "supports": ["changed support"],
+        }
+    ]
+    case.clinical_red_flags = ["Changed red flag"]
+    await db.commit()
+
+    review_response = await client.get(
+        f"/api/sessions/{session.id}/review",
+        headers=auth_headers,
+    )
+
+    assert review_response.status_code == 200
+    payload = review_response.json()
+    assert payload["diagnosis"] == "Acute coronary syndrome"
+    assert payload["key_teaching_points"] == [
+        "Obtain ECG early in acute chest pain",
+        "Risk-stratify life-threatening chest pain before reassurance",
+        "Check contraindications before antithrombotic treatment",
+    ]
+    assert payload["clinical_sources"][0]["title"] == "2021 AHA/ACC Chest Pain Guideline"
+    assert payload["clinical_safety_coverage"]["red_flags"][0]["item"] == (
+        "Diaphoresis with crushing chest pain"
+    )
+    assert payload["source_provenance"]["review_content_changed"] is True
+
+
+@pytest.mark.asyncio
 async def test_complete_session_blocks_if_case_quality_fails_after_session_start(
     client: AsyncClient,
     db: AsyncSession,
