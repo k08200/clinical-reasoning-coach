@@ -38,6 +38,17 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
         re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
     ),
     IdentifierPattern(
+        "social_security_number",
+        re.compile(r"(?<!\d)\d{6}-[1-8]\d{6}(?!\d)"),
+    ),
+    IdentifierPattern(
+        "social_security_number",
+        re.compile(
+            r"(?:주민등록번호|주민번호|외국인등록번호|외국인번호)\s*(?:은|는|:|=)?\s*"
+            r"\d{6}\s*-?\s*[1-8]\d{6}"
+        ),
+    ),
+    IdentifierPattern(
         "medical_record_number",
         re.compile(
             r"\b(?:MRN|medical record(?: number)?|chart(?: number)?|patient ID)\s*[:#-]?\s*[A-Z0-9-]{5,}\b",
@@ -46,7 +57,9 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
     ),
     IdentifierPattern(
         "medical_record_number",
-        re.compile(r"(?:등록번호|환자번호|차트번호)\s*[:#-]?\s*[A-Z0-9가-힣-]{4,}"),
+        re.compile(
+            r"(?<!주민)(?<!외국인)(?:등록번호|환자번호|차트번호)\s*[:#-]?\s*[A-Z0-9가-힣-]{4,}"
+        ),
     ),
     IdentifierPattern(
         "date_of_birth",

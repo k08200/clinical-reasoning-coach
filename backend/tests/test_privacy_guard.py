@@ -34,6 +34,15 @@ def test_detect_patient_identifiers_finds_korean_phi_patterns():
     ]
 
 
+def test_detect_patient_identifiers_finds_korean_resident_registration_numbers():
+    detected = detect_patient_identifiers(
+        "주민등록번호는 900101-1234567입니다. "
+        "외국인등록번호 850505 5234567도 포함되어 있습니다."
+    )
+
+    assert detected == ["social_security_number"]
+
+
 def test_detect_patient_identifiers_finds_exact_visit_dates():
     detected = detect_patient_identifiers(
         "The simulated note says the visit happened on June 4, 2026 "
@@ -74,6 +83,14 @@ def test_detect_patient_identifiers_allows_generic_korean_location_context():
     detected = detect_patient_identifiers(
         "서울 지역 병원에서 흔한 흉통 시뮬레이션 케이스입니다. "
         "강남구 응급실 내원 상황을 교육용으로 구성합니다."
+    )
+
+    assert detected == []
+
+
+def test_detect_patient_identifiers_allows_unlabeled_13_digit_clinical_numbers():
+    detected = detect_patient_identifiers(
+        "검체 바코드 예시는 1234567890123이며 교육용 더미 값입니다."
     )
 
     assert detected == []
