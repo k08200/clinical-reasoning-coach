@@ -5,6 +5,12 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+VALID_SAFETY_EVENT_TYPES = {
+    "management_before_safety_checks",
+    "possible_patient_identifier",
+    "real_patient_or_emergency_signal",
+}
+VALID_SAFETY_EVENT_SEVERITIES = {"low", "medium", "high"}
 VALID_SAFETY_EVENT_STATUSES = {"open", "resolved"}
 
 

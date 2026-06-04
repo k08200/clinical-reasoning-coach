@@ -78,6 +78,50 @@ async def test_safety_events_require_clinician_reviewer_role(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("query", "field", "allowed_value"),
+    [
+        (
+            "event_type=unknown_event",
+            "event_type",
+            "real_patient_or_emergency_signal",
+        ),
+        ("severity=critical", "severity", "high"),
+        ("event_status=closed", "event_status", "resolved"),
+    ],
+)
+async def test_safety_events_reject_invalid_audit_filters(
+    client: AsyncClient,
+    db: AsyncSession,
+    query: str,
+    field: str,
+    allowed_value: str,
+):
+    reviewer = User(
+        email=f"safety-filter-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Filter Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    db.add(reviewer)
+    await db.commit()
+    await db.refresh(reviewer)
+
+    response = await client.get(
+        f"/api/safety-events?{query}",
+        headers=_auth_headers(reviewer),
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"]["code"] == "invalid_safety_event_filter"
+    assert response.json()["detail"]["field"] == field
+    assert allowed_value in response.json()["detail"]["allowed_values"]
+
+
+@pytest.mark.asyncio
 async def test_reviewer_can_list_and_filter_safety_events(
     client: AsyncClient,
     db: AsyncSession,

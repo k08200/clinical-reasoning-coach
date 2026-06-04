@@ -12,10 +12,34 @@ from app.database import get_db
 from app.models.safety_event import SafetyEvent
 from app.models.session import CoachingSession
 from app.models.user import User
-from app.schemas.safety import SafetyEventResolutionRequest, SafetyEventResponse
+from app.schemas.safety import (
+    VALID_SAFETY_EVENT_SEVERITIES,
+    VALID_SAFETY_EVENT_STATUSES,
+    VALID_SAFETY_EVENT_TYPES,
+    SafetyEventResolutionRequest,
+    SafetyEventResponse,
+)
 from app.utils.auth import require_clinical_reviewer
 
 router = APIRouter(prefix="/api/safety-events", tags=["safety"])
+
+
+def _validate_safety_event_filter(
+    field: str,
+    value: str | None,
+    allowed_values: set[str],
+) -> None:
+    if value is None or value in allowed_values:
+        return
+
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail={
+            "code": "invalid_safety_event_filter",
+            "field": field,
+            "allowed_values": sorted(allowed_values),
+        },
+    )
 
 
 def _safety_event_response(
@@ -61,6 +85,10 @@ async def list_safety_events(
     _reviewer: User = Depends(require_clinical_reviewer),
     db: AsyncSession = Depends(get_db),
 ) -> list[SafetyEventResponse]:
+    _validate_safety_event_filter("event_type", event_type, VALID_SAFETY_EVENT_TYPES)
+    _validate_safety_event_filter("severity", severity, VALID_SAFETY_EVENT_SEVERITIES)
+    _validate_safety_event_filter("event_status", event_status, VALID_SAFETY_EVENT_STATUSES)
+
     resolved_by_user = aliased(User)
     query = (
         select(
