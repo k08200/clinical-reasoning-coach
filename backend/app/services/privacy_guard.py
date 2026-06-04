@@ -70,6 +70,19 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
         re.compile(r"\b\d{2,4}[./-]\d{1,2}[./-]\d{1,2}\b"),
     ),
     IdentifierPattern(
+        "full_date",
+        re.compile(
+            r"\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|"
+            r"Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|"
+            r"Dec(?:ember)?)\s+\d{1,2},?\s+\d{4}\b",
+            re.IGNORECASE,
+        ),
+    ),
+    IdentifierPattern(
+        "full_date",
+        re.compile(r"\b\d{2,4}년\s*\d{1,2}월\s*\d{1,2}일\b"),
+    ),
+    IdentifierPattern(
         "name_identifier",
         re.compile(
             r"\b(?:patient(?:'s)? name|name|called)\s+(?:is|:)?\s*[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}\b"

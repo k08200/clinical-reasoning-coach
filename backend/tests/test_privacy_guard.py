@@ -34,6 +34,15 @@ def test_detect_patient_identifiers_finds_korean_phi_patterns():
     ]
 
 
+def test_detect_patient_identifiers_finds_exact_visit_dates():
+    detected = detect_patient_identifiers(
+        "The simulated note says the visit happened on June 4, 2026 "
+        "and follow-up was documented on 2026년 6월 5일."
+    )
+
+    assert detected == ["full_date"]
+
+
 def test_detect_patient_identifiers_allows_deidentified_reasoning():
     detected = detect_patient_identifiers(
         "The simulated patient is a 58-year-old man with chest pressure, "

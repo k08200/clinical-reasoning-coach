@@ -172,6 +172,49 @@ async def test_dynamic_generation_blocks_phi_seed_before_provider_call(
     assert after_count == before_count
 
 
+async def test_dynamic_generation_blocks_exact_visit_date_seed_before_provider_call(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch,
+):
+    auth_headers = await _register_and_login(client)
+    before_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+
+    async def fail_generate_clinical_case(**_kwargs) -> ClinicalCaseCreate:
+        raise AssertionError("Exact visit dates must not be sent to generation")
+
+    monkeypatch.setattr(
+        cases_router,
+        "generate_clinical_case",
+        fail_generate_clinical_case,
+    )
+
+    response = await client.post(
+        "/api/cases/generate",
+        headers=auth_headers,
+        json={
+            "specialty": "internal_medicine",
+            "difficulty": "medium",
+            "seed_scenario": (
+                "A simulated chest pain case based on a visit from June 4, 2026."
+            ),
+            "acknowledge_unreviewed_generation": True,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == {
+        "code": "seed_scenario_contains_patient_identifiers",
+        "message": (
+            "Seed scenarios must be de-identified educational prompts. "
+            "Remove patient identifiers before generating a case."
+        ),
+        "detected_identifier_categories": ["full_date"],
+    }
+    after_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
+    assert after_count == before_count
+
+
 async def test_dynamic_generation_blocks_real_patient_seed_before_provider_call(
     client: AsyncClient,
     db: AsyncSession,
