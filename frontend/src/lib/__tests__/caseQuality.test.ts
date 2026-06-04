@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { reviewQualityIssues } from "@/lib/caseQuality";
+import { reviewQualityGateStatuses, reviewQualityIssues } from "@/lib/caseQuality";
 import type { ClinicalCaseReviewDetail, ClinicalSource } from "@/types";
 import parityFixtures from "../../../../shared/case_quality_parity_cases.json";
 
@@ -111,4 +111,30 @@ describe("reviewQualityIssues", () => {
       }
     },
   );
+
+  it("reports structured domain safety gate status for reviewer checklist display", () => {
+    const detail = makeReviewDetail({
+      diagnosis: "Septic shock from urinary source",
+      time_critical_actions: ["Blood cultures before broad-spectrum antibiotics"],
+      contraindication_checks: ["Drug allergy review only"],
+    });
+
+    const statuses = reviewQualityGateStatuses(detail);
+
+    expect(
+      statuses.find((status) => status.name === "infection_time_critical_actions"),
+    ).toMatchObject({
+      applied: true,
+      passed: true,
+      label: "Infection cultures and treatment plan",
+      fieldName: "time_critical_actions",
+    });
+    expect(statuses.find((status) => status.name === "infection_antimicrobial_safety")).toMatchObject(
+      {
+        applied: true,
+        passed: false,
+        fieldName: "contraindication_checks",
+      },
+    );
+  });
 });

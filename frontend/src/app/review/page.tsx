@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { api } from "@/lib/api";
-import { reviewQualityIssues } from "@/lib/caseQuality";
+import { reviewQualityGateStatuses, reviewQualityIssues } from "@/lib/caseQuality";
 import { useRequireAuth } from "@/lib/useAuthGate";
 import type {
   ClinicalCase,
@@ -76,6 +76,12 @@ function formatAge(age: number | string): string {
   return typeof age === "number" ? `${age}yo` : age;
 }
 
+function formatGateFieldName(fieldName: "time_critical_actions" | "contraindication_checks"): string {
+  return fieldName === "time_critical_actions"
+    ? "Time-critical actions"
+    : "Contraindication checks";
+}
+
 export default function ReviewPage() {
   const checkingAuth = useRequireAuth();
   const [linkedCaseId, setLinkedCaseId] = useState<string | null>(null);
@@ -124,6 +130,12 @@ export default function ReviewPage() {
   const allSourceAlignmentConfirmed = Object.values(sourceAlignmentChecks).every(Boolean);
   const reviewNotesReady = reviewNotes.trim().length >= MIN_REVIEW_NOTES_LENGTH;
   const qualityIssues = useMemo(() => reviewQualityIssues(reviewDetail), [reviewDetail]);
+  const qualityGateStatuses = useMemo(
+    () => reviewQualityGateStatuses(reviewDetail),
+    [reviewDetail],
+  );
+  const appliedQualityGateStatuses = qualityGateStatuses.filter((status) => status.applied);
+  const missingQualityGateStatuses = appliedQualityGateStatuses.filter((status) => !status.passed);
   const canSubmitReview =
     allChecksConfirmed &&
     allSourceAlignmentConfirmed &&
@@ -405,6 +417,78 @@ export default function ReviewPage() {
                           <li key={issue}>{issue}</li>
                         ))}
                       </ul>
+                    </div>
+                  )}
+
+                  {reviewDetail && (
+                    <div className="mt-4 border-t border-slate-700 pt-4">
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Safety Gate Checklist
+                          </p>
+                          <p className="mt-1 text-sm text-slate-400">
+                            {appliedQualityGateStatuses.length === 0
+                              ? "No domain-specific treatment safety gate was triggered by this case."
+                              : `${appliedQualityGateStatuses.length} domain-specific gate${
+                                  appliedQualityGateStatuses.length === 1 ? "" : "s"
+                                } triggered for clinician review.`}
+                          </p>
+                        </div>
+                        {appliedQualityGateStatuses.length > 0 && (
+                          <span
+                            className={`w-fit rounded-full border px-2.5 py-1 text-xs font-medium ${
+                              missingQualityGateStatuses.length > 0
+                                ? "border-amber-700 bg-amber-950/30 text-amber-200"
+                                : "border-emerald-700 bg-emerald-950/30 text-emerald-200"
+                            }`}
+                          >
+                            {missingQualityGateStatuses.length > 0
+                              ? `${missingQualityGateStatuses.length} missing`
+                              : "All clear"}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        {(appliedQualityGateStatuses.length > 0
+                          ? appliedQualityGateStatuses
+                          : qualityGateStatuses
+                        ).map((status) => (
+                          <div
+                            key={status.name}
+                            className={`border-l-2 py-2 pl-3 ${
+                              !status.applied
+                                ? "border-slate-700"
+                                : status.passed
+                                  ? "border-emerald-600"
+                                  : "border-amber-500"
+                            }`}
+                          >
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span
+                                className={`text-xs font-semibold uppercase ${
+                                  !status.applied
+                                    ? "text-slate-500"
+                                    : status.passed
+                                      ? "text-emerald-300"
+                                      : "text-amber-300"
+                                }`}
+                              >
+                                {!status.applied ? "Not triggered" : status.passed ? "Clear" : "Missing"}
+                              </span>
+                              <span className="text-sm font-medium text-slate-100">
+                                {status.label}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs text-slate-400">
+                              {formatGateFieldName(status.fieldName)}
+                            </p>
+                            {status.applied && !status.passed && (
+                              <p className="mt-1 text-sm text-amber-100">{status.issue}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
 

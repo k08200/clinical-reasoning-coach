@@ -42,9 +42,19 @@ const TRUSTED_CLINICAL_SOURCE_SUFFIXES = [".edu", ".gov"];
 
 type ReviewQualityGate = {
   name: string;
+  label: string;
   applies: (detail: ClinicalCaseReviewDetail) => boolean;
   fieldName: "time_critical_actions" | "contraindication_checks";
   validator: (values: string[]) => boolean;
+  issue: string;
+};
+
+export type ReviewQualityGateStatus = {
+  name: string;
+  label: string;
+  fieldName: ReviewQualityGate["fieldName"];
+  applied: boolean;
+  passed: boolean;
   issue: string;
 };
 
@@ -1040,6 +1050,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
   return [
     {
       name: "infection_time_critical_actions",
+      label: "Infection cultures and treatment plan",
       applies: requiresInfectionTreatmentSafetyCheck,
       fieldName: "time_critical_actions",
       validator: hasInfectionTimeCriticalActions,
@@ -1048,6 +1059,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
     },
     {
       name: "infection_antimicrobial_safety",
+      label: "Infection antimicrobial safety",
       applies: requiresInfectionTreatmentSafetyCheck,
       fieldName: "contraindication_checks",
       validator: hasAntimicrobialSafetyCheck,
@@ -1056,6 +1068,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
     },
     {
       name: "dka_time_critical_actions",
+      label: "DKA treatment sequence",
       applies: requiresDkaTreatmentSafetyCheck,
       fieldName: "time_critical_actions",
       validator: hasDkaTimeCriticalActions,
@@ -1064,6 +1077,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
     },
     {
       name: "dka_contraindication_safety",
+      label: "DKA insulin safety",
       applies: requiresDkaTreatmentSafetyCheck,
       fieldName: "contraindication_checks",
       validator: hasDkaContraindicationSafetyCheck,
@@ -1072,6 +1086,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
     },
     {
       name: "stroke_time_critical_actions",
+      label: "Stroke reperfusion timing",
       applies: requiresStrokeReperfusionSafetyCheck,
       fieldName: "time_critical_actions",
       validator: hasStrokeTimeCriticalActions,
@@ -1080,6 +1095,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
     },
     {
       name: "stroke_reperfusion_safety",
+      label: "Stroke reperfusion thresholds",
       applies: requiresStrokeReperfusionSafetyCheck,
       fieldName: "contraindication_checks",
       validator: hasStrokeContraindicationSafetyCheck,
@@ -1088,6 +1104,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
     },
     {
       name: "pe_time_critical_actions",
+      label: "PE risk and imaging pathway",
       applies: requiresPeSafetyCheck,
       fieldName: "time_critical_actions",
       validator: hasPeTimeCriticalActions,
@@ -1096,6 +1113,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
     },
     {
       name: "pe_contraindication_safety",
+      label: "PE anticoagulation and imaging safety",
       applies: requiresPeSafetyCheck,
       fieldName: "contraindication_checks",
       validator: hasPeContraindicationSafetyCheck,
@@ -1104,6 +1122,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
     },
     {
       name: "acs_time_critical_actions",
+      label: "ACS time-critical pathway",
       applies: requiresAcsSafetyCheck,
       fieldName: "time_critical_actions",
       validator: hasAcsTimeCriticalActions,
@@ -1112,6 +1131,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
     },
     {
       name: "acs_contraindication_safety",
+      label: "ACS antithrombotic safety",
       applies: requiresAcsSafetyCheck,
       fieldName: "contraindication_checks",
       validator: hasAcsContraindicationSafetyCheck,
@@ -1119,6 +1139,23 @@ function domainSafetyGates(): ReviewQualityGate[] {
         "ACS safety checks must include aortic dissection exclusion, bleeding or recent-surgery risk, and hemodynamic or heart-failure escalation",
     },
   ];
+}
+
+export function reviewQualityGateStatuses(
+  detail: ClinicalCaseReviewDetail | undefined,
+): ReviewQualityGateStatus[] {
+  if (!detail) return [];
+  return domainSafetyGates().map((gate) => {
+    const applied = gate.applies(detail);
+    return {
+      name: gate.name,
+      label: gate.label,
+      fieldName: gate.fieldName,
+      applied,
+      passed: !applied || gate.validator(detail[gate.fieldName]),
+      issue: gate.issue,
+    };
+  });
 }
 
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {

@@ -471,6 +471,38 @@ describe("ReviewPage", () => {
     expect(mockCompleteClinicalReview).not.toHaveBeenCalled();
   });
 
+  it("shows structured safety gate checklist for clinician review", () => {
+    mockReviewSwr();
+
+    render(<ReviewPage />);
+
+    expect(screen.getByText("Safety Gate Checklist")).toBeTruthy();
+    expect(screen.getByText("2 domain-specific gates triggered for clinician review.")).toBeTruthy();
+    expect(screen.getByText("Infection cultures and treatment plan")).toBeTruthy();
+    expect(screen.getByText("Infection antimicrobial safety")).toBeTruthy();
+    expect(screen.getByText("All clear")).toBeTruthy();
+  });
+
+  it("shows missing domain safety gate details before review approval", () => {
+    mockReviewSwr({
+      detail: makeReviewDetail({
+        contraindication_checks: ["Drug allergy review before antibiotics"],
+      }),
+    });
+
+    render(<ReviewPage />);
+
+    expect(screen.getByText("Safety Gate Checklist")).toBeTruthy();
+    expect(screen.getByText("1 missing")).toBeTruthy();
+    expect(screen.getByText("Infection antimicrobial safety")).toBeTruthy();
+    expect(
+      screen.getAllByText(
+        "antimicrobial allergy and renal dosing safety checks are required for infection therapy",
+      ),
+    ).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
+  });
+
   it("blocks review submission when source domain is not reputable", () => {
     mockReviewSwr({
       detail: makeReviewDetail({
