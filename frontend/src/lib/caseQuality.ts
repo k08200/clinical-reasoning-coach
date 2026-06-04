@@ -265,6 +265,69 @@ const HEMORRHAGE_SAFETY_TERMS = [
   "대동맥 박리",
 ];
 
+const INFECTION_TREATMENT_TRIGGER_TERMS = [
+  "antibiotic",
+  "antibiotics",
+  "antimicrobial",
+  "antimicrobials",
+  "bacteremia",
+  "empiric antibiotics",
+  "sepsis",
+  "sepsis bundle",
+  "septic",
+  "septic shock",
+  "source control",
+  "urosepsis",
+  "감염",
+  "균혈증",
+  "패혈증",
+  "항균제",
+  "항생제",
+];
+
+const INFECTION_CULTURE_TERMS = [
+  "blood culture",
+  "blood cultures",
+  "culture",
+  "cultures",
+  "배양",
+  "혈액배양",
+  "혈액 배양",
+];
+
+const INFECTION_TREATMENT_ACTION_TERMS = [
+  "antibiotic",
+  "antibiotics",
+  "antimicrobial",
+  "antimicrobials",
+  "source control",
+  "항균제",
+  "항생제",
+  "감염원 조절",
+];
+
+const ANTIMICROBIAL_ALLERGY_SAFETY_TERMS = [
+  "allergies",
+  "allergy",
+  "drug allergy",
+  "medication allergy",
+  "알레르기",
+  "약물 알레르기",
+];
+
+const ANTIMICROBIAL_DOSING_SAFETY_TERMS = [
+  "creatinine",
+  "dose",
+  "dosing",
+  "egfr",
+  "kidney",
+  "renal",
+  "신장",
+  "용량",
+  "콩팥",
+  "크레아티닌",
+];
+
 type SourceAnchoredSafetyField =
   | "clinical_red_flags"
   | "time_critical_actions"
@@ -450,6 +513,42 @@ function hasHemorrhageSafetyCheck(checks: string[]): boolean {
   return HEMORRHAGE_SAFETY_TERMS.some((term) => containsSafetyTerm(normalizedChecks, term));
 }
 
+function requiresInfectionTreatmentSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return INFECTION_TREATMENT_TRIGGER_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasInfectionTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCultures = INFECTION_CULTURE_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTreatment = INFECTION_TREATMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasCultures && hasTreatment;
+}
+
+function hasAntimicrobialSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAllergyCheck = ANTIMICROBIAL_ALLERGY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDosingCheck = ANTIMICROBIAL_DOSING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasAllergyCheck && hasDosingCheck;
+}
+
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
@@ -495,6 +594,18 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
     issues.push(
       "bleeding risk safety check is required for thrombolysis or antithrombotic therapy",
     );
+  }
+  if (requiresInfectionTreatmentSafetyCheck(detail)) {
+    if (!hasInfectionTimeCriticalActions(detail.time_critical_actions)) {
+      issues.push(
+        "infection time-critical actions must include cultures and antimicrobial or source-control planning",
+      );
+    }
+    if (!hasAntimicrobialSafetyCheck(detail.contraindication_checks)) {
+      issues.push(
+        "antimicrobial allergy and renal dosing safety checks are required for infection therapy",
+      );
+    }
   }
   if (detail.clinical_sources.length < 1) {
     issues.push("At least 1 clinical source is required.");

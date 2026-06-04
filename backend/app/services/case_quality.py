@@ -311,6 +311,64 @@ HEMORRHAGE_SAFETY_TERMS = (
     "대동맥박리",
     "대동맥 박리",
 )
+INFECTION_TREATMENT_TRIGGER_TERMS = (
+    "antibiotic",
+    "antibiotics",
+    "antimicrobial",
+    "antimicrobials",
+    "bacteremia",
+    "empiric antibiotics",
+    "sepsis",
+    "sepsis bundle",
+    "septic",
+    "septic shock",
+    "source control",
+    "urosepsis",
+    "감염",
+    "균혈증",
+    "패혈증",
+    "항균제",
+    "항생제",
+)
+INFECTION_CULTURE_TERMS = (
+    "blood culture",
+    "blood cultures",
+    "culture",
+    "cultures",
+    "배양",
+    "혈액배양",
+    "혈액 배양",
+)
+INFECTION_TREATMENT_ACTION_TERMS = (
+    "antibiotic",
+    "antibiotics",
+    "antimicrobial",
+    "antimicrobials",
+    "source control",
+    "항균제",
+    "항생제",
+    "감염원 조절",
+)
+ANTIMICROBIAL_ALLERGY_SAFETY_TERMS = (
+    "allergies",
+    "allergy",
+    "drug allergy",
+    "medication allergy",
+    "알레르기",
+    "약물 알레르기",
+)
+ANTIMICROBIAL_DOSING_SAFETY_TERMS = (
+    "creatinine",
+    "dose",
+    "dosing",
+    "egfr",
+    "kidney",
+    "renal",
+    "신장",
+    "용량",
+    "콩팥",
+    "크레아티닌",
+)
 
 
 @dataclass
@@ -637,6 +695,15 @@ def _check_safety_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
         report.add_critical(
             "bleeding risk safety check is required for thrombolysis or antithrombotic therapy"
         )
+    if _requires_infection_treatment_safety_check(data):
+        if not _has_infection_time_critical_actions(data.get("time_critical_actions") or []):
+            report.add_critical(
+                "infection time-critical actions must include cultures and antimicrobial or source-control planning"
+            )
+        if not _has_antimicrobial_safety_check(data.get("contraindication_checks") or []):
+            report.add_critical(
+                "antimicrobial allergy and renal dosing safety checks are required for infection therapy"
+            )
 
 
 def _requires_pregnancy_safety_check(data: dict[str, Any]) -> bool:
@@ -717,6 +784,54 @@ def _has_hemorrhage_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in HEMORRHAGE_SAFETY_TERMS
     )
+
+
+def _requires_infection_treatment_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in INFECTION_TREATMENT_TRIGGER_TERMS
+    )
+
+
+def _has_infection_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_cultures = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in INFECTION_CULTURE_TERMS
+    )
+    has_treatment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in INFECTION_TREATMENT_ACTION_TERMS
+    )
+    return has_cultures and has_treatment
+
+
+def _has_antimicrobial_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_allergy_check = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ANTIMICROBIAL_ALLERGY_SAFETY_TERMS
+    )
+    has_dosing_check = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ANTIMICROBIAL_DOSING_SAFETY_TERMS
+    )
+    return has_allergy_check and has_dosing_check
 
 
 def _contains_safety_term(text: str, term: str) -> bool:

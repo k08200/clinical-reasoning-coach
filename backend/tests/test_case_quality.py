@@ -304,6 +304,75 @@ def test_quality_gate_allows_thrombolysis_with_bleeding_safety_check():
     assert report.passed
 
 
+def test_quality_gate_requires_infection_bundle_actions_for_sepsis_therapy():
+    case = copy.deepcopy(CASE_POOL[1])
+    case["time_critical_actions"] = [
+        "Start broad-spectrum antibiotics within 1 hour",
+        "Begin sepsis fluid resuscitation and reassessment",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "sepsis diagnosis and risk stratification",
+        "hypotension, fever, and altered mental status as sepsis severity markers",
+        "broad-spectrum antibiotics within 1 hour",
+        "sepsis fluid resuscitation and reassessment",
+        "hypotension with fever and altered mental status",
+        "lactate 4.1 mmol/L suggesting tissue hypoperfusion",
+        "AKI, thrombocytopenia, delayed urination, and poor perfusion",
+        "renal impairment and allergy history before antibiotic selection or dosing",
+        "volume overload risk during fluid resuscitation in CKD or heart failure",
+        "need for vasopressors if hypotension persists after initial resuscitation",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "infection time-critical actions must include cultures" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_antimicrobial_safety_for_infection_therapy():
+    case = copy.deepcopy(CASE_POOL[1])
+    case["contraindication_checks"] = [
+        "Volume overload risk during fluid resuscitation in CKD or heart failure",
+        "Need for vasopressors if hypotension persists after initial resuscitation",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "lactate measurement and reassessment",
+        "hypotension, fever, and altered mental status as sepsis severity markers",
+        "lactate elevation and tissue hypoperfusion in septic shock",
+        "AKI, thrombocytopenia, delayed urination, and poor perfusion as organ dysfunction",
+        "suspected septic shock recognition and immediate escalation",
+        "blood cultures and antimicrobial timing",
+        "fluid reassessment and vasopressor escalation",
+        "shock severity markers and organ dysfunction in sepsis diagnosis",
+        "hypotension with fever and altered mental status",
+        "lactate 4.1 mmol/L suggesting tissue hypoperfusion",
+        "AKI, thrombocytopenia, delayed urination, and poor perfusion",
+        "obtain blood cultures promptly without delaying empiric antibiotics",
+        "start sepsis bundle actions including fluids, antibiotics, lactate reassessment, and source control planning",
+        "volume overload risk during fluid resuscitation in CKD or heart failure",
+        "need for vasopressors if hypotension persists after initial resuscitation",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "antimicrobial allergy and renal dosing safety checks are required" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_allows_sepsis_therapy_with_infection_safety_checks():
+    case = copy.deepcopy(CASE_POOL[1])
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
 def test_quality_gate_rejects_non_numeric_blood_pressure():
     case = copy.deepcopy(CASE_POOL[0])
     case["physical_exam"]["vitals"]["bp"] = "normal"

@@ -1120,6 +1120,79 @@ async def test_clinical_review_requires_bleeding_safety_check_for_thrombolysis(
     assert case.reviewed_by_user_id is None
 
 
+async def test_clinical_review_requires_antimicrobial_safety_for_sepsis_therapy(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"antimicrobial-safety-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Antimicrobial Safety Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case_payload = copy.deepcopy(CASE_POOL[1])
+    case_payload["contraindication_checks"] = [
+        "Volume overload risk during fluid resuscitation in CKD or heart failure",
+        "Need for vasopressors if hypotension persists after initial resuscitation",
+    ]
+    case_payload["clinical_sources"] = [
+        {
+            "title": "Surviving Sepsis Campaign Adult Guidelines",
+            "organization": "Society of Critical Care Medicine",
+            "url": "https://www.sccm.org/survivingsepsiscampaign/guidelines-and-resources/surviving-sepsis-campaign-adult-guidelines",
+            "supports": [
+                "lactate measurement and reassessment",
+                "hypotension, fever, and altered mental status as sepsis severity markers",
+                "lactate elevation and tissue hypoperfusion in septic shock",
+                "AKI, thrombocytopenia, delayed urination, and poor perfusion as organ dysfunction",
+                "suspected septic shock recognition and immediate escalation",
+                "blood cultures and antimicrobial timing",
+                "fluid reassessment and vasopressor escalation",
+                "shock severity markers and organ dysfunction in sepsis diagnosis",
+                "hypotension with fever and altered mental status",
+                "lactate 4.1 mmol/L suggesting tissue hypoperfusion",
+                "AKI, thrombocytopenia, delayed urination, and poor perfusion",
+                "obtain blood cultures promptly without delaying empiric antibiotics",
+                "start sepsis bundle actions including fluids, antibiotics, lactate reassessment, and source control planning",
+                "volume overload risk during fluid resuscitation in CKD or heart failure",
+                "need for vasopressors if hypotension persists after initial resuscitation",
+            ],
+        }
+    ]
+    case = ClinicalCase(**case_payload)
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "educational_safety_confirmed": True,
+            "review_notes": (
+                "Trying to approve sepsis therapy without antimicrobial safety review."
+            ),
+        },
+    )
+
+    assert response.status_code == 409
+    assert "case quality gate" in response.json()["detail"]
+    assert "antimicrobial allergy and renal dosing safety checks" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.review_status == case_payload["review_status"]
+    assert case.reviewed_by_user_id is None
+
+
 async def test_clinical_review_rejects_placeholder_source_url(
     client: AsyncClient,
     db: AsyncSession,

@@ -146,6 +146,7 @@ const makeReviewDetail = (
   contraindication_checks: [
     "Fluid overload risk",
     "Drug allergy review",
+    "Renal function and dosing review before broad-spectrum antibiotics",
     "Pregnancy status before antibiotic or imaging decisions",
   ],
   clinical_sources: [
@@ -158,6 +159,7 @@ const makeReviewDetail = (
         "hypotension and altered mental status as red flags",
         "time-critical blood cultures and broad-spectrum antibiotics",
         "fluid overload risk and drug allergy safety checks before treatment",
+        "renal function and dosing review before broad-spectrum antibiotics",
         "pregnancy status before antibiotic or imaging decisions",
       ],
     },
