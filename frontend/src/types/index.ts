@@ -47,8 +47,6 @@ export interface ClinicalCase {
     other?: string;
   };
   initial_labs: Record<string, string>;
-  key_teaching_points: string[];
-  cognitive_traps: string[];
   source_provenance: {
     source_count: number;
     organizations: string[];
@@ -102,6 +100,8 @@ export interface ClinicalSource {
 
 export interface ClinicalCaseReviewDetail extends ClinicalCase {
   diagnosis: string;
+  key_teaching_points: string[];
+  cognitive_traps: string[];
   clinical_red_flags: string[];
   time_critical_actions: string[];
   contraindication_checks: string[];

@@ -90,6 +90,8 @@ async def test_case_response_does_not_expose_answer_or_hidden_safety_metadata(
     payload = response.json()
     assert "diagnosis" not in payload
     assert "coach_guidance" not in payload
+    assert "key_teaching_points" not in payload
+    assert "cognitive_traps" not in payload
     assert "clinical_red_flags" not in payload
     assert "time_critical_actions" not in payload
     assert "contraindication_checks" not in payload

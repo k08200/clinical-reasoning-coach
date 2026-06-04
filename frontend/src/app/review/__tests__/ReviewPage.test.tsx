@@ -78,8 +78,6 @@ const makeCase = (overrides: Partial<ClinicalCase> = {}): ClinicalCase => ({
     neuro: "Alert",
   },
   initial_labs: { troponin: "0.03" },
-  key_teaching_points: ["Risk stratification", "Serial ECGs", "Troponin trend"],
-  cognitive_traps: ["anchoring", "premature closure"],
   source_provenance: {
     source_count: 1,
     organizations: ["American Heart Association"],
@@ -135,6 +133,8 @@ const makeReviewDetail = (
 ): ClinicalCaseReviewDetail => ({
   ...makeCase(),
   diagnosis: "Sepsis from urinary source",
+  key_teaching_points: ["Risk stratification", "Serial ECGs", "Troponin trend"],
+  cognitive_traps: ["anchoring", "premature closure"],
   clinical_red_flags: ["Hypotension", "Altered mental status"],
   time_critical_actions: ["Blood cultures", "Broad-spectrum antibiotics"],
   contraindication_checks: ["Fluid overload risk", "Drug allergy review"],

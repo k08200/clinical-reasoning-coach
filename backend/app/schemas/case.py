@@ -53,21 +53,22 @@ class ClinicalCaseResponse(BaseModel):
     medications: list[str]
     physical_exam: dict
     initial_labs: dict
-    key_teaching_points: list[str]
-    cognitive_traps: list[str]
     source_provenance: ClinicalSourceProvenance
     times_used: int
     created_at: datetime
-    # NOTE: diagnosis, coach_guidance, hidden safety metadata, raw clinical
-    # sources, source URLs/titles, and internal source support notes are NEVER
-    # included here because they can reveal the case answer or internal
-    # validation notes. source_provenance exposes only coarse trust metadata.
+    # NOTE: diagnosis, coach_guidance, teaching points, cognitive traps, hidden
+    # safety metadata, raw clinical sources, source URLs/titles, and internal
+    # source support notes are NEVER included here because they can reveal the
+    # case answer or internal validation notes. source_provenance exposes only
+    # coarse trust metadata.
 
     model_config = {"from_attributes": True}
 
 
 class ClinicalCaseReviewDetailResponse(ClinicalCaseResponse):
     diagnosis: str
+    key_teaching_points: list[str]
+    cognitive_traps: list[str]
     clinical_red_flags: list[str]
     time_critical_actions: list[str]
     contraindication_checks: list[str]

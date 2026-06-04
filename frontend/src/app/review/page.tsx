@@ -362,44 +362,46 @@ export default function ReviewPage() {
                     </span>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-slate-500">Teaching Points</p>
-                      <ul className="mt-2 space-y-2 text-sm text-slate-300">
-                        {selectedCase.key_teaching_points.map((point) => (
-                          <li key={point}>{point}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-slate-500">Cognitive Traps</p>
-                      <ul className="mt-2 space-y-2 text-sm text-slate-300">
-                        {selectedCase.cognitive_traps.map((trap) => (
-                          <li key={trap}>{trap}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
                   {reviewDetail ? (
-                    <div className="mt-4 grid gap-4 md:grid-cols-2">
-                      <div className="rounded-lg border border-emerald-700 bg-emerald-950/20 p-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-emerald-400">
-                          Diagnosis
-                        </p>
-                        <p className="mt-2 text-sm font-semibold text-emerald-100">
-                          {reviewDetail.diagnosis}
-                        </p>
+                    <>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-slate-500">Teaching Points</p>
+                          <ul className="mt-2 space-y-2 text-sm text-slate-300">
+                            {reviewDetail.key_teaching_points.map((point) => (
+                              <li key={point}>{point}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-slate-500">Cognitive Traps</p>
+                          <ul className="mt-2 space-y-2 text-sm text-slate-300">
+                            {reviewDetail.cognitive_traps.map((trap) => (
+                              <li key={trap}>{trap}</li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
-                      <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-3">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                          Coach Guidance
-                        </p>
-                        <p className="mt-2 text-sm text-slate-300">
-                          {reviewDetail.coach_guidance}
-                        </p>
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        <div className="rounded-lg border border-emerald-700 bg-emerald-950/20 p-3">
+                          <p className="text-xs font-medium uppercase tracking-wide text-emerald-400">
+                            Diagnosis
+                          </p>
+                          <p className="mt-2 text-sm font-semibold text-emerald-100">
+                            {reviewDetail.diagnosis}
+                          </p>
+                        </div>
+                        <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-3">
+                          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                            Coach Guidance
+                          </p>
+                          <p className="mt-2 text-sm text-slate-300">
+                            {reviewDetail.coach_guidance}
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    </>
                   ) : (
                     <div className="mt-4 rounded-lg border border-slate-700 bg-slate-900/40 p-3 text-sm text-slate-400">
                       Loading reviewer-only case detail...

@@ -65,8 +65,6 @@ const makeCase = (overrides: Partial<ClinicalCase> = {}): ClinicalCase => ({
     neuro: "Alert",
   },
   initial_labs: { troponin: "0.03" },
-  key_teaching_points: ["Risk stratification"],
-  cognitive_traps: ["anchoring"],
   source_provenance: {
     source_count: 1,
     organizations: ["American Heart Association / American College of Cardiology"],
