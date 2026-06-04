@@ -44,6 +44,7 @@ from app.services.socratic_coach import (
     detect_management_safety_gap,
     detect_real_patient_signals,
     real_patient_safety_response_for,
+    review_feedback_safety_violations,
     stream_coach_response,
     get_opening_message,
 )
@@ -259,10 +260,22 @@ def _build_claude_history(messages: list[Message]) -> list[dict]:
     return history
 
 
-def _append_unique(target: list[str], values: list[str] | None) -> None:
+def _append_safe_review_feedback(target: list[str], values: list[str] | None) -> None:
     for value in values or []:
-        if value and value not in target:
-            target.append(value)
+        if not value or value in target:
+            continue
+        if review_feedback_safety_violations(value):
+            continue
+        target.append(value)
+
+
+def _safe_review_feedback_text(value: object) -> str | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    text = value.strip()
+    if review_feedback_safety_violations(text):
+        return None
+    return text
 
 
 def _bounded_reasoning_score(value: float) -> float:
@@ -340,10 +353,10 @@ def _build_review_feedback(session: CoachingSession) -> dict:
             score_totals[dimension] = score_totals.get(dimension, 0.0) + value
             score_counts[dimension] = score_counts.get(dimension, 0) + 1
 
-        _append_unique(strengths, analysis.get("strengths"))
-        _append_unique(gaps, analysis.get("gaps"))
+        _append_safe_review_feedback(strengths, analysis.get("strengths"))
+        _append_safe_review_feedback(gaps, analysis.get("gaps"))
 
-        insight = analysis.get("coach_insight")
+        insight = _safe_review_feedback_text(analysis.get("coach_insight"))
         if insight and insight not in coach_insights:
             coach_insights.append(insight)
 

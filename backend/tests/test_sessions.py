@@ -5183,6 +5183,101 @@ async def test_session_review_available_only_after_completion(
 
 
 @pytest.mark.asyncio
+async def test_session_review_filters_unsafe_stored_feedback_text(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"review-feedback-safety-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Review Feedback Safety Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="completed",
+        final_reasoning_score=84,
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content=COMPLETE_ACS_SAFETY_REASONING,
+        reasoning_score=84,
+        reasoning_analysis={
+            "score_breakdown": {
+                "systematic_approach": 21,
+                "evidence_integration": 20,
+                "prioritization": 22,
+                "mechanism_understanding": 19,
+            },
+            "strengths": [
+                "Prioritized dangerous alternatives before narrowing the differential.",
+                "You should give aspirin now.",
+            ],
+            "gaps": [
+                "Needs clearer safety checks before management.",
+                "Heparin can be 60 units/kg.",
+                "The patient can go home with outpatient follow-up.",
+            ],
+            "coach_insight": "Start heparin now after the ECG.",
+        },
+    ))
+    db.add(Message(
+        session_id=session.id,
+        role="student",
+        content="I would revisit the differential as new information arrives.",
+        reasoning_score=86,
+        reasoning_analysis={
+            "score_breakdown": {
+                "systematic_approach": 22,
+                "evidence_integration": 21,
+                "prioritization": 22,
+                "mechanism_understanding": 20,
+            },
+            "strengths": ["Prioritized dangerous alternatives before narrowing the differential."],
+            "gaps": ["Needs explicit disconfirming evidence."],
+            "coach_insight": "Ask for disconfirming evidence before closure.",
+        },
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.get(
+        f"/api/sessions/{session.id}/review",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["strengths"] == [
+        "Prioritized dangerous alternatives before narrowing the differential."
+    ]
+    assert payload["gaps"] == [
+        "Needs clearer safety checks before management.",
+        "Needs explicit disconfirming evidence.",
+    ]
+    assert payload["coach_insights"] == [
+        "Ask for disconfirming evidence before closure."
+    ]
+    assert "aspirin" not in str(payload["strengths"]).lower()
+    assert "60 units/kg" not in str(payload["gaps"]).lower()
+    assert "go home" not in str(payload["gaps"]).lower()
+    assert "heparin" not in str(payload["coach_insights"]).lower()
+
+
+@pytest.mark.asyncio
 async def test_session_review_bounds_stored_breakdown_and_bias_confidence(
     client: AsyncClient,
     db: AsyncSession,

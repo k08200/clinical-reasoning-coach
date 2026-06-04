@@ -18,6 +18,7 @@ from app.services.socratic_coach import (
     detect_management_safety_gap,
     is_coach_response_safe,
     real_patient_safety_response_for,
+    review_feedback_safety_violations,
     should_emit_real_patient_safety_notice,
     stream_coach_response,
 )
@@ -736,6 +737,21 @@ def test_management_safety_redirect_response_is_socratic():
     assert "choosing disposition" in MANAGEMENT_SAFETY_REDIRECT_RESPONSE
     assert "red flags" in MANAGEMENT_SAFETY_REDIRECT_RESPONSE
     assert "simulated case" in MANAGEMENT_SAFETY_REDIRECT_RESPONSE
+
+
+def test_review_feedback_safety_violations_block_actionable_medical_advice():
+    assert review_feedback_safety_violations("You should give aspirin now.") == [
+        "direct_management_order"
+    ]
+    assert review_feedback_safety_violations("Heparin can be 60 units/kg.") == [
+        "concrete_dosing_directive"
+    ]
+    assert review_feedback_safety_violations(
+        "The patient can go home with outpatient follow-up."
+    ) == ["premature_closure_directive"]
+    assert review_feedback_safety_violations(
+        "Needs clearer prioritization of dangerous alternatives and safety checks."
+    ) == []
 
 
 @pytest.mark.asyncio

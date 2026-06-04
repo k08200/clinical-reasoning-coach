@@ -984,6 +984,17 @@ def coach_response_safety_violations(case: ClinicalCase, response_text: str) -> 
     return violations
 
 
+def review_feedback_safety_violations(feedback_text: str) -> list[str]:
+    violations: list[str] = []
+    if _contains_direct_management_order(feedback_text):
+        violations.append("direct_management_order")
+    if _contains_concrete_dosing_directive(feedback_text):
+        violations.append("concrete_dosing_directive")
+    if _contains_premature_closure_directive(feedback_text):
+        violations.append("premature_closure_directive")
+    return violations
+
+
 def is_coach_response_safe(case: ClinicalCase, response_text: str) -> bool:
     return not coach_response_safety_violations(case, response_text)
 
