@@ -60,6 +60,10 @@ from app.utils.auth import require_educational_use_consent
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 logger = logging.getLogger(__name__)
 SAFETY_LOCKED_SESSION_STATUS = "safety_locked"
+STREAM_SAFE_ERROR_MESSAGE = (
+    "Coaching is temporarily unavailable. Please try again with this simulated "
+    "case in a moment."
+)
 MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION = 2
 MIN_REASONING_SCORE_FOR_COMPLETION = 60.0
 MIN_REASONING_DIMENSION_SCORE_FOR_COMPLETION = 12.0
@@ -1027,8 +1031,9 @@ async def stream_response(
                     yield f"data: {json.dumps({'type': 'done'})}\n\n"
                     return
 
-        except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+        except Exception:
+            logger.exception("Stream failed for session %s", session_id)
+            yield f"data: {json.dumps({'type': 'error', 'message': STREAM_SAFE_ERROR_MESSAGE})}\n\n"
 
     return StreamingResponse(
         event_generator(),

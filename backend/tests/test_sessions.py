@@ -326,6 +326,125 @@ async def test_stream_response_persists_turn_before_done(
 
 
 @pytest.mark.asyncio
+async def test_stream_response_hides_internal_provider_errors(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def fail_stream_coach_response(**_kwargs) -> AsyncGenerator[StreamChunk, None]:
+        raise RuntimeError("anthropic api key sk-test-secret failed")
+        yield
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+
+    user = User(
+        email=f"stream-provider-error-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Stream Provider Error",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="Opening case",
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "I would build a broad differential first."},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert sessions_router.STREAM_SAFE_ERROR_MESSAGE in response.text
+    assert "sk-test-secret" not in response.text
+    assert "anthropic api key" not in response.text
+
+
+@pytest.mark.asyncio
+async def test_stream_response_hides_internal_analysis_errors(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def fail_analyze_student_response(**_kwargs) -> ReasoningAnalysis:
+        raise RuntimeError("analysis provider leaked token sk-analysis-secret")
+
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fake_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fail_analyze_student_response,
+    )
+
+    user = User(
+        email=f"stream-analysis-error-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Stream Analysis Error",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="Opening case",
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "I would build a broad differential first."},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert sessions_router.STREAM_SAFE_ERROR_MESSAGE in response.text
+    assert "sk-analysis-secret" not in response.text
+    assert "analysis provider leaked" not in response.text
+
+
+@pytest.mark.asyncio
 async def test_stream_response_passes_current_uncovered_safety_targets(
     client: AsyncClient,
     db: AsyncSession,
