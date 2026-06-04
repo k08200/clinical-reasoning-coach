@@ -173,6 +173,19 @@ const PREGNANCY_SAFETY_TERMS = [
   "임신",
 ];
 
+const PEDIATRIC_WEIGHT_SAFETY_TERMS = [
+  "weight",
+  "weight-based",
+  "weight based",
+  "kg",
+  "dose",
+  "dosing",
+  "mg/kg",
+  "ml/kg",
+  "units/kg",
+  "체중",
+];
+
 type SourceAnchoredSafetyField =
   | "clinical_red_flags"
   | "time_critical_actions"
@@ -268,6 +281,20 @@ function hasPregnancySafetyCheck(checks: string[]): boolean {
   return PREGNANCY_SAFETY_TERMS.some((term) => normalizedChecks.includes(term));
 }
 
+function isPediatricAge(age: unknown): boolean {
+  return typeof age === "number" && age < 18;
+}
+
+function hasValidPediatricWeight(detail: ClinicalCaseReviewDetail): boolean {
+  const weightKg = detail.patient_demographics.weight_kg;
+  return typeof weightKg === "number" && weightKg >= 0.5 && weightKg <= 150;
+}
+
+function hasPediatricWeightSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  return PEDIATRIC_WEIGHT_SAFETY_TERMS.some((term) => normalizedChecks.includes(term));
+}
+
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
@@ -276,6 +303,9 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
   }
   if (detail.cognitive_traps.length < 2) {
     issues.push("At least 2 cognitive traps are required.");
+  }
+  if (isPediatricAge(detail.patient_demographics.age) && !hasValidPediatricWeight(detail)) {
+    issues.push("patient_demographics.weight_kg is required for pediatric cases");
   }
   if (detail.clinical_red_flags.length < 2) {
     issues.push("At least 2 clinical red flags are required.");
@@ -291,6 +321,12 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
     !hasPregnancySafetyCheck(detail.contraindication_checks)
   ) {
     issues.push("pregnancy status safety check is required for reproductive-age female cases");
+  }
+  if (
+    isPediatricAge(detail.patient_demographics.age) &&
+    !hasPediatricWeightSafetyCheck(detail.contraindication_checks)
+  ) {
+    issues.push("weight-based dosing safety check is required for pediatric cases");
   }
   if (detail.clinical_sources.length < 1) {
     issues.push("At least 1 clinical source is required.");

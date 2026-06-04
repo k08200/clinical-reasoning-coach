@@ -224,6 +224,18 @@ PREGNANCY_SAFETY_TERMS = (
     "beta-hcg",
     "임신",
 )
+PEDIATRIC_WEIGHT_SAFETY_TERMS = (
+    "weight",
+    "weight-based",
+    "weight based",
+    "kg",
+    "dose",
+    "dosing",
+    "mg/kg",
+    "ml/kg",
+    "units/kg",
+    "체중",
+)
 
 
 @dataclass
@@ -303,6 +315,12 @@ def _check_demographics(data: dict[str, Any], report: CaseQualityReport) -> None
         )
     if sex not in {"male", "female"}:
         report.add_critical("patient_demographics.sex must be male or female")
+    if _is_pediatric_age(age):
+        weight_kg = demographics.get("weight_kg")
+        if not isinstance(weight_kg, (int, float)) or not 0.5 <= weight_kg <= 150:
+            report.add_critical(
+                "patient_demographics.weight_kg is required for pediatric cases"
+            )
 
 
 def _is_older_adult_age_bucket(age: Any) -> bool:
@@ -316,6 +334,10 @@ def _is_older_adult_age_bucket(age: Any) -> bool:
         "over 89",
         "older than 89",
     }
+
+
+def _is_pediatric_age(age: Any) -> bool:
+    return isinstance(age, int) and age < 18
 
 
 def _check_vitals(data: dict[str, Any], report: CaseQualityReport) -> None:
@@ -519,6 +541,13 @@ def _check_safety_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
         report.add_critical(
             "pregnancy status safety check is required for reproductive-age female cases"
         )
+    if (
+        _requires_pediatric_weight_safety_check(data)
+        and not _has_pediatric_weight_safety_check(data.get("contraindication_checks") or [])
+    ):
+        report.add_critical(
+            "weight-based dosing safety check is required for pediatric cases"
+        )
 
 
 def _requires_pregnancy_safety_check(data: dict[str, Any]) -> bool:
@@ -531,6 +560,16 @@ def _requires_pregnancy_safety_check(data: dict[str, Any]) -> bool:
 def _has_pregnancy_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
     return any(term in normalized_checks for term in PREGNANCY_SAFETY_TERMS)
+
+
+def _requires_pediatric_weight_safety_check(data: dict[str, Any]) -> bool:
+    demographics = data.get("patient_demographics") or {}
+    return _is_pediatric_age(demographics.get("age"))
+
+
+def _has_pediatric_weight_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    return any(term in normalized_checks for term in PEDIATRIC_WEIGHT_SAFETY_TERMS)
 
 
 def _check_source_metadata(data: dict[str, Any], report: CaseQualityReport) -> None:

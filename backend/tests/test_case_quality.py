@@ -127,6 +127,63 @@ def test_quality_gate_allows_reproductive_age_female_case_with_pregnancy_check()
     assert report.passed
 
 
+def test_quality_gate_requires_weight_for_pediatric_cases():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["patient_demographics"] = {
+        "age": 8,
+        "sex": "male",
+        "ethnicity": "Korean",
+    }
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "patient_demographics.weight_kg is required for pediatric cases" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_weight_based_safety_check_for_pediatric_cases():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["patient_demographics"] = {
+        "age": 8,
+        "sex": "male",
+        "weight_kg": 28,
+        "ethnicity": "Korean",
+    }
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "weight-based dosing safety check is required" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_allows_pediatric_case_with_weight_based_safety_check():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["patient_demographics"] = {
+        "age": 8,
+        "sex": "male",
+        "weight_kg": 28,
+        "ethnicity": "Korean",
+    }
+    case["contraindication_checks"] = [
+        *case["contraindication_checks"],
+        "Weight-based dosing and fluid calculations before medication or bolus therapy",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        *case["clinical_sources"][0]["supports"],
+        "weight-based dosing and fluid calculations before medication or bolus therapy",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
 def test_quality_gate_rejects_non_numeric_blood_pressure():
     case = copy.deepcopy(CASE_POOL[0])
     case["physical_exam"]["vitals"]["bp"] = "normal"
