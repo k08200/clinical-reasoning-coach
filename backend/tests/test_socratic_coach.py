@@ -260,6 +260,26 @@ def test_management_safety_gap_detection_requires_missing_contraindication_check
         uncovered,
     ) == []
     assert detect_management_safety_gap(
+        "I would intubate now.",
+        uncovered,
+    ) == ["intubation"]
+    assert detect_management_safety_gap(
+        "Start RSI sedation without checking airway or hemodynamics.",
+        uncovered,
+    ) == ["sedation", "rsi"]
+    assert detect_management_safety_gap(
+        "I would intubate after assessing oxygenation, hemodynamics, and difficult airway backup.",
+        uncovered,
+    ) == []
+    assert detect_management_safety_gap(
+        "기관삽관을 바로 진행하겠습니다.",
+        uncovered,
+    ) == ["intubation"]
+    assert detect_management_safety_gap(
+        "기도와 산소화, 혈역학을 확인한 뒤 삽관을 준비하겠습니다.",
+        uncovered,
+    ) == []
+    assert detect_management_safety_gap(
         "I would order an ECG now.",
         uncovered,
     ) == []

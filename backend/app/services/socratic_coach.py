@@ -262,16 +262,18 @@ MANAGEMENT_ACTION_PATTERN = "|".join(MANAGEMENT_ACTION_VERBS)
 MANAGEMENT_TARGET_PATTERN = (
     r"alteplase|antibiotics?|anticoagulation|anticoagulants?|aspirin|"
     r"blood cultures?|blood products?|bolus|cath lab activation|cath lab|ct|ecg|ekg|"
-    r"fluids?|heparin|insulin|packed rbcs?|prbcs?|pressors?|red blood cells?|"
-    r"thrombolysis|transfusion|tpa|vasopressors?"
+    r"fluids?|heparin|insulin|intubat(?:e|ion)|packed rbcs?|paralytics?|prbcs?|"
+    r"pressors?|red blood cells?|rsi|sedat(?:e|ion)|thrombolysis|transfusion|tpa|"
+    r"vasopressors?"
 )
 MANAGEMENT_TARGET_PHRASE_PATTERN = (
     rf"(?:[a-z0-9-]+\s+){{0,4}}(?:{MANAGEMENT_TARGET_PATTERN})"
 )
 RISKY_MANAGEMENT_TARGET_PATTERN = (
     r"alteplase|anticoagulation|anticoagulants?|antiplatelets?|aspirin|"
-    r"blood products?|heparin|insulin|packed rbcs?|prbcs?|pressors?|red blood cells?|"
-    r"thrombolysis|transfusion|tpa|vasopressors?"
+    r"blood products?|heparin|insulin|intubat(?:e|ion)|packed rbcs?|paralytics?|"
+    r"prbcs?|pressors?|red blood cells?|rsi|sedat(?:e|ion)|thrombolysis|transfusion|"
+    r"tpa|vasopressors?"
 )
 PREMATURE_CLOSURE_TARGETS = {
     "discharge home": "discharge",
@@ -306,6 +308,10 @@ KOREAN_RISKY_MANAGEMENT_TARGETS = {
     "수혈": "transfusion",
     "농축적혈구": "packed red blood cells",
     "혈액제제": "blood products",
+    "삽관": "intubation",
+    "기관삽관": "intubation",
+    "진정": "sedation",
+    "마비제": "paralytics",
 }
 KOREAN_PREMATURE_CLOSURE_TARGETS = {
     "퇴원": "discharge",
@@ -338,6 +344,7 @@ KOREAN_MANAGEMENT_SAFETY_CHECK_PATTERNS = [
     r"금기",
     r"출혈",
     r"알레르기",
+    r"기도",
     r"대동맥\s*박리",
     r"칼륨",
     r"포타슘",
@@ -348,6 +355,12 @@ KOREAN_MANAGEMENT_SAFETY_CHECK_PATTERNS = [
     r"교차\s*적합",
     r"동의",
     r"수혈\s*반응",
+    r"산소화",
+    r"흡인",
+    r"혈역학",
+    r"혈압",
+    r"어려운\s*기도",
+    r"백업",
 ]
 KOREAN_DISPOSITION_SAFETY_CHECK_PATTERNS = [
     r"위험\s*징후",
@@ -363,8 +376,8 @@ KOREAN_DISPOSITION_SAFETY_CHECK_PATTERNS = [
     r"재내원",
 ]
 KOREAN_MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
-    r"(?:확인|평가|검토|배제|금기|출혈|알레르기|대동맥\s*박리|칼륨|포타슘|신장|콩팥|혈액형|교차\s*시험|교차\s*적합|동의|수혈\s*반응).{0,40}(?:없이|안\s*하고|하지\s*않고|필요\s*없)",
-    r"(?:없이|안\s*하고|하지\s*않고|필요\s*없).{0,40}(?:확인|평가|검토|배제|금기|출혈|알레르기|대동맥\s*박리|칼륨|포타슘|신장|콩팥|혈액형|교차\s*시험|교차\s*적합|동의|수혈\s*반응)",
+    r"(?:확인|평가|검토|배제|금기|출혈|알레르기|기도|대동맥\s*박리|칼륨|포타슘|신장|콩팥|혈액형|교차\s*시험|교차\s*적합|동의|수혈\s*반응|산소화|흡인|혈역학|혈압|어려운\s*기도|백업).{0,40}(?:없이|안\s*하고|하지\s*않고|필요\s*없)",
+    r"(?:없이|안\s*하고|하지\s*않고|필요\s*없).{0,40}(?:확인|평가|검토|배제|금기|출혈|알레르기|기도|대동맥\s*박리|칼륨|포타슘|신장|콩팥|혈액형|교차\s*시험|교차\s*적합|동의|수혈\s*반응|산소화|흡인|혈역학|혈압|어려운\s*기도|백업)",
 ]
 DIRECT_MANAGEMENT_PATTERNS = [
     rf"^\s*(?:{MANAGEMENT_ACTION_PATTERN})\b",
@@ -381,20 +394,29 @@ DIRECT_MANAGEMENT_PATTERNS = [
 RISKY_DIRECT_MANAGEMENT_PATTERNS = [
     rf"^\s*(?:{MANAGEMENT_ACTION_PATTERN})\b.*\b(?:{RISKY_MANAGEMENT_TARGET_PATTERN})\b",
     rf"\b(?:i|we|you)\s+(?:will|would|should|need to|must|have to)\s+(?:{MANAGEMENT_ACTION_PATTERN})\b.*\b(?:{RISKY_MANAGEMENT_TARGET_PATTERN})\b",
+    r"\b(?:i|we|you)\s+(?:will|would|should|need to|must|have to)\s+(?:intubate|sedate)\b",
     rf"\b(?:start|give|administer|initiate|proceed with|treat with|manage with)\b.*\b(?:{RISKY_MANAGEMENT_TARGET_PATTERN})\b",
 ]
 MANAGEMENT_SAFETY_CHECK_PATTERNS = [
     r"\b(?:after|before)\s+(?:checking|ruling out|assessing)\b",
+    r"\bairway\b",
+    r"\bairway plan\b",
     r"\bcontraindications?\b",
     r"\ballerg(?:y|ies)\b",
+    r"\baspiration risk\b",
     r"\bbleed(?:ing)?\b",
     r"\bblood type\b",
     r"\baortic dissection\b",
     r"\bconsent\b",
     r"\bcross-?match\b",
+    r"\bdifficult airway\b",
+    r"\bhemodynamics?\b",
+    r"\bhypotension\b",
+    r"\boxygenation\b",
     r"\bpotassium\b",
     r"\brenal\b",
     r"\bkidney\b",
+    r"\bbackup plan\b",
     r"\btype and screen\b",
     r"\btransfusion reaction\b",
 ]
@@ -413,8 +435,8 @@ DISPOSITION_SAFETY_CHECK_PATTERNS = [
     r"\bfollow[-\s]?up plan\b",
 ]
 MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
-    r"\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b.{0,80}\b(?:check|rule out|contraindications?|allerg(?:y|ies)|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|potassium|renal|kidney|type and screen|transfusion reaction)\b",
-    r"\b(?:check|rule out|contraindications?|allerg(?:y|ies)|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|potassium|renal|kidney|type and screen|transfusion reaction)\b.{0,80}\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b",
+    r"\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b.{0,80}\b(?:check|rule out|contraindications?|airway|allerg(?:y|ies)|aspiration risk|backup plan|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|difficult airway|hemodynamics?|hypotension|oxygenation|potassium|renal|kidney|type and screen|transfusion reaction)\b",
+    r"\b(?:check|rule out|contraindications?|airway|allerg(?:y|ies)|aspiration risk|backup plan|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|difficult airway|hemodynamics?|hypotension|oxygenation|potassium|renal|kidney|type and screen|transfusion reaction)\b.{0,80}\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b",
 ]
 
 DIAGNOSIS_LEAK_TERMS = {
@@ -645,11 +667,22 @@ def _has_premature_closure_commitment(normalized: str) -> bool:
 
 
 def _risky_management_terms(normalized: str) -> list[str]:
-    terms = set(re.findall(rf"\b(?:{RISKY_MANAGEMENT_TARGET_PATTERN})\b", normalized))
+    terms = {
+        _canonical_risky_management_term(term)
+        for term in re.findall(rf"\b(?:{RISKY_MANAGEMENT_TARGET_PATTERN})\b", normalized)
+    }
     for phrase, canonical in KOREAN_RISKY_MANAGEMENT_TARGETS.items():
         if phrase.lower() in normalized:
             terms.add(canonical)
     return sorted(terms, key=len, reverse=True)
+
+
+def _canonical_risky_management_term(term: str) -> str:
+    if term.startswith("intubat"):
+        return "intubation"
+    if term.startswith("sedat"):
+        return "sedation"
+    return term
 
 
 def _has_risky_management_commitment(normalized: str) -> bool:
