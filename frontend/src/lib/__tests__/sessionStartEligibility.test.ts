@@ -39,6 +39,31 @@ const makeCase = (overrides: Partial<ClinicalCase> = {}): ClinicalCase => ({
 });
 
 describe("evaluateSessionStartEligibility", () => {
+  it("blocks cases without supporting clinical sources", () => {
+    const eligibility = evaluateSessionStartEligibility(makeCase({
+      source_provenance: {
+        source_count: 0,
+        organizations: [],
+        review_status: "clinician_reviewed",
+        review_label: "Clinician reviewed",
+        requires_caution: false,
+        last_reviewed_at: "2026-06-02",
+        review_valid_until: "2027-06-02",
+        review_stale: false,
+        review_date_invalid: false,
+        review_content_changed: false,
+      },
+    }));
+
+    expect(eligibility.blocked).toBe(true);
+    expect(eligibility.requiresAcknowledgement).toBe(false);
+    expect(eligibility.buttonLabel).toBe("Source Review Required");
+    expect(eligibility.cautionText).toBe(
+      "No supporting clinical source; source review required.",
+    );
+    expect(eligibility.acknowledgementText).toContain("no supporting clinical source");
+  });
+
   it("requires acknowledgement for unreviewed educational draft cases", () => {
     const eligibility = evaluateSessionStartEligibility(makeCase());
 

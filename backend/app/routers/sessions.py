@@ -849,6 +849,14 @@ async def create_session(
             ),
         )
     source_provenance = case.source_provenance
+    if source_provenance["source_count"] < 1:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This case has no supporting clinical source and requires "
+                "clinician review with source alignment before learner sessions can start."
+            ),
+        )
     if source_provenance["review_content_changed"]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

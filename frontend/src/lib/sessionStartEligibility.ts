@@ -16,6 +16,17 @@ export function evaluateSessionStartEligibility(
 ): SessionStartEligibility {
   const provenance = clinicalCase.source_provenance;
 
+  if (provenance.source_count < 1) {
+    return {
+      blocked: true,
+      requiresAcknowledgement: false,
+      buttonLabel: "Source Review Required",
+      cautionText: "No supporting clinical source; source review required.",
+      acknowledgementText:
+        "This case has no supporting clinical source. Learner sessions are blocked until clinician review confirms source alignment.",
+    };
+  }
+
   if (provenance.review_content_changed) {
     return {
       blocked: true,

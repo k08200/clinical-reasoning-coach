@@ -243,6 +243,39 @@ describe("CasesPage", () => {
     expect(screen.queryByText(/Reviewed/)).toBeFalsy();
   });
 
+  it("blocks starting a case without supporting clinical sources", () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [
+        makeCase({
+          source_provenance: {
+            source_count: 0,
+            organizations: [],
+            review_status: "clinician_reviewed",
+            review_label: "Clinician reviewed",
+            requires_caution: false,
+            last_reviewed_at: "2026-06-02",
+            review_valid_until: "2027-06-02",
+            review_stale: false,
+            review_date_invalid: false,
+            review_content_changed: false,
+          },
+        }),
+      ],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+
+    render(<CasesPage />);
+
+    expect(screen.getByText("0 clinical sources")).toBeTruthy();
+    expect(
+      screen.getByText("No supporting clinical source; source review required."),
+    ).toBeTruthy();
+    const startButton = screen.getByRole("button", { name: "Source Review Required" });
+    expect(startButton).toHaveProperty("disabled", true);
+    expect(mockCreateSession).not.toHaveBeenCalled();
+  });
+
   it("blocks starting a stale reviewed case until re-review", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: [

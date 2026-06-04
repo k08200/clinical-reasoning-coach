@@ -234,6 +234,44 @@ async def test_create_session_allows_clinician_reviewed_case_with_simulation_ack
 
 
 @pytest.mark.asyncio
+async def test_create_session_blocks_case_without_clinical_sources(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"source-missing-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Missing Source Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    case.clinical_sources = []
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert "no supporting clinical source" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.times_used == 0
+
+
+@pytest.mark.asyncio
 async def test_create_session_blocks_stale_reviewed_case_even_with_acknowledgement(
     client: AsyncClient,
     db: AsyncSession,
