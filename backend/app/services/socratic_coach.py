@@ -192,6 +192,14 @@ DIRECT_CONFIRMATION_PATTERNS = [
     r"\bthe diagnosis is\b",
     r"\bthis is (?:a |an )?\w+",
 ]
+KOREAN_DIRECT_CONFIRMATION_PATTERNS = [
+    r"맞습니다",
+    r"정답입니다",
+    r"맞는\s*진단",
+    r"올바른\s*진단",
+    r"진단은",
+    r"이\s*환자는\s*.{0,20}입니다",
+]
 
 MANAGEMENT_ACTION_VERBS = (
     "activate",
@@ -245,6 +253,11 @@ KOREAN_RISKY_MANAGEMENT_TARGETS = {
 }
 KOREAN_RISKY_MANAGEMENT_COMMITMENT_PATTERNS = [
     r"(?:시작|투여|주겠|쓰겠|사용|진행|시행|처치|치료|넣겠|올리겠|걸겠|처방)",
+]
+KOREAN_DIRECT_MANAGEMENT_ORDER_PATTERNS = [
+    r"(?:시작|투여|사용|진행|시행|처치|치료|넣|올리|걸|처방)(?:하세요|해야|하십시오|합니다|하세요\.)?",
+    r"(?:주겠|주세요|주십시오|줘야|줍니다|준다)",
+    r"(?:필요합니다|필요해요|적응증입니다|권장됩니다|바로|즉시)",
 ]
 KOREAN_MANAGEMENT_SAFETY_CHECK_PATTERNS = [
     r"확인",
@@ -407,7 +420,13 @@ def _contains_diagnosis_leak(case: ClinicalCase, text: str) -> bool:
 
 def _contains_direct_confirmation(text: str) -> bool:
     normalized = _normalize_for_guardrail(text)
-    return any(re.search(pattern, normalized) for pattern in DIRECT_CONFIRMATION_PATTERNS)
+    return any(
+        re.search(pattern, normalized)
+        for pattern in DIRECT_CONFIRMATION_PATTERNS
+    ) or any(
+        re.search(pattern, text)
+        for pattern in KOREAN_DIRECT_CONFIRMATION_PATTERNS
+    )
 
 
 def _contains_direct_management_order(text: str) -> bool:
@@ -420,6 +439,24 @@ def _contains_direct_management_order(text: str) -> bool:
         re.search(pattern, sentence)
         for sentence in normalized_sentences
         for pattern in DIRECT_MANAGEMENT_PATTERNS
+    ) or _contains_korean_direct_management_order(text)
+
+
+def _contains_korean_direct_management_order(text: str) -> bool:
+    if not HANGUL_PATTERN.search(text):
+        return False
+    normalized = _normalize_for_guardrail(text)
+    if "?" in text or "까요" in normalized:
+        return False
+    has_target = any(
+        phrase.lower() in normalized
+        for phrase in KOREAN_RISKY_MANAGEMENT_TARGETS
+    )
+    if not has_target:
+        return False
+    return any(
+        re.search(pattern, normalized)
+        for pattern in KOREAN_DIRECT_MANAGEMENT_ORDER_PATTERNS
     )
 
 

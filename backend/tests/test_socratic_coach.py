@@ -241,6 +241,7 @@ def test_coach_response_guardrail_detects_unsafe_clinical_content():
     assert not is_coach_response_safe(case, "This is STEMI.")
     assert not is_coach_response_safe(case, "You're on the right track.")
     assert not is_coach_response_safe(case, "You should give aspirin now.")
+    assert not is_coach_response_safe(case, "맞습니다. 진단은 STEMI입니다.")
 
 
 def test_coach_response_guardrail_blocks_dynamic_diagnosis_terms():
@@ -310,6 +311,21 @@ def test_coach_response_guardrail_blocks_direct_management_variants():
         assert not is_coach_response_safe(case, response), response
 
 
+def test_coach_response_guardrail_blocks_korean_direct_management_variants():
+    case = make_mock_case()
+
+    unsafe_responses = [
+        "헤파린을 바로 시작하세요.",
+        "아스피린 투여가 필요합니다.",
+        "인슐린 처방을 진행해야 합니다.",
+        "승압제를 즉시 올리세요.",
+        "혈전용해를 시행합니다.",
+    ]
+
+    for response in unsafe_responses:
+        assert not is_coach_response_safe(case, response), response
+
+
 def test_coach_response_guardrail_allows_socratic_safety_questions():
     case = make_mock_case()
 
@@ -321,6 +337,8 @@ def test_coach_response_guardrail_allows_socratic_safety_questions():
         "How would you decide whether anticoagulation is safe in this scenario?",
         "What would make heparin indicated or unsafe in this simulated case?",
         "Which finding would make antibiotics time-critical?",
+        "헤파린을 시작하기 전에 어떤 안전 확인이 필요할까요?",
+        "아스피린이 안전한지 판단하려면 무엇을 확인해야 할까요?",
     ]
 
     for response in safe_responses:
