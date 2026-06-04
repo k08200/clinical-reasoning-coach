@@ -480,7 +480,7 @@ async def test_high_risk_lock_event_resolution_requires_escalation_or_privacy_co
         json={
             "status": "resolved",
             "resolution_note": (
-                "Reviewed the audit trail and completed privacy handling outside the app."
+                "감사 기록을 검토하고 개인정보 처리 후 지도전문의에게 보고했습니다."
             ),
         },
     )
@@ -489,7 +489,7 @@ async def test_high_risk_lock_event_resolution_requires_escalation_or_privacy_co
     payload = complete_response.json()
     assert payload["status"] == "resolved"
     assert payload["resolution_note"] == (
-        "Reviewed the audit trail and completed privacy handling outside the app."
+        "감사 기록을 검토하고 개인정보 처리 후 지도전문의에게 보고했습니다."
     )
 
 

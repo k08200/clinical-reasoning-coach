@@ -36,6 +36,15 @@ const RESOLUTION_NOTE_REVIEW_TERMS = [
   "review",
   "reviewed",
   "supervisor",
+  "감사",
+  "검토",
+  "논의",
+  "보고",
+  "상급자",
+  "슈퍼바이저",
+  "조치",
+  "지도",
+  "처리",
 ];
 const HIGH_RISK_LOCK_EVENT_TYPES = [
   "possible_patient_identifier",
@@ -52,6 +61,20 @@ const HIGH_RISK_RESOLUTION_TERMS = [
   "program director",
   "supervising",
   "supervisor",
+  "개인정보",
+  "개인 정보",
+  "기관 프로토콜",
+  "보고",
+  "비식별",
+  "상급자",
+  "슈퍼바이저",
+  "앱 밖",
+  "원내 프로토콜",
+  "응급",
+  "지도",
+  "지도전문의",
+  "진료 아님",
+  "환자 진료 아님",
 ];
 
 function isReviewer(user: User | undefined): boolean {
@@ -510,10 +533,10 @@ export default function SafetyEventsPage() {
                         />
                         <p className="text-xs leading-5 text-slate-400">
                           Use at least 20 characters and mention review, audit, escalation,
-                          supervision, or how the safety issue was addressed. Resolving audits
+                          supervision, Korean equivalents, or how the safety issue was addressed. Resolving audits
                           the event only; safety-locked sessions remain locked.
                           {isHighRiskLockEvent(event)
-                            ? " High-risk lock events also need escalation, supervision, privacy handling, local protocol, or not-patient-care documentation."
+                            ? " High-risk lock events also need escalation, supervision, privacy handling, local protocol, not-patient-care documentation, or Korean equivalents."
                             : ""}
                         </p>
                         <button

@@ -274,6 +274,24 @@ describe("SafetyEventsPage", () => {
     expect(await screen.findByText("Safety event marked resolved.")).toBeTruthy();
   });
 
+  it("accepts Korean resolution documentation for high-risk lock events", async () => {
+    mockSafetySwr({ events: [safetyEvents[0]] });
+
+    render(<SafetyEventsPage />);
+    fireEvent.change(screen.getByLabelText("Resolution note for event-1"), {
+      target: { value: "감사 기록을 검토하고 개인정보 처리 후 지도전문의에게 보고했습니다." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Mark Resolved" }));
+
+    await waitFor(() =>
+      expect(api.safetyEvents.updateResolution).toHaveBeenCalledWith("event-1", {
+        status: "resolved",
+        resolution_note: "감사 기록을 검토하고 개인정보 처리 후 지도전문의에게 보고했습니다.",
+      }),
+    );
+    expect(mockMutateSafetyEvents).toHaveBeenCalledOnce();
+  });
+
   it("reopens a resolved safety event", async () => {
     mockSafetySwr({ events: [safetyEvents[1]] });
 

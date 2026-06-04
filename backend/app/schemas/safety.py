@@ -22,6 +22,15 @@ RESOLUTION_NOTE_REVIEW_TERMS = {
     "review",
     "reviewed",
     "supervisor",
+    "감사",
+    "검토",
+    "논의",
+    "보고",
+    "상급자",
+    "슈퍼바이저",
+    "조치",
+    "지도",
+    "처리",
 }
 
 
