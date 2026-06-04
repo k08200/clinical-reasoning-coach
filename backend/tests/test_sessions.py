@@ -97,8 +97,15 @@ def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
         },
         initial_labs={"troponin": "borderline"},
         diagnosis="Acute coronary syndrome",
-        key_teaching_points=["Obtain ECG early in acute chest pain"],
-        cognitive_traps=["Anchoring"],
+        key_teaching_points=[
+            "Obtain ECG early in acute chest pain",
+            "Risk-stratify life-threatening chest pain before reassurance",
+            "Check contraindications before antithrombotic treatment",
+        ],
+        cognitive_traps=[
+            "Anchoring",
+            "Premature closure after borderline troponin",
+        ],
         clinical_red_flags=[
             "Diaphoresis with crushing chest pain",
             "Hypoxia or hemodynamic instability",
@@ -113,10 +120,17 @@ def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
         ],
         clinical_sources=[
             {
-                "title": "Chest Pain Guideline",
-                "organization": "Cardiology Society",
-                "url": "https://example.org/chest-pain",
-                "supports": ["ECG timing", "risk stratification"],
+                "title": "2021 AHA/ACC Chest Pain Guideline",
+                "organization": "American Heart Association / American College of Cardiology",
+                "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+                "supports": [
+                    "ACS diagnosis and risk stratification for acute chest pain",
+                    "life-threatening chest pain differential and severity markers",
+                    "diaphoresis with crushing chest pain and hypoxia or hemodynamic instability",
+                    "12-lead ECG within 10 minutes and serial troponin trend",
+                    "aortic dissection features before anticoagulation",
+                    "major bleeding risk before antiplatelet therapy",
+                ],
             }
         ],
         review_status=review_status,
@@ -267,6 +281,45 @@ async def test_create_session_blocks_case_without_clinical_sources(
 
     assert response.status_code == 409
     assert "no supporting clinical source" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.times_used == 0
+
+
+@pytest.mark.asyncio
+async def test_create_session_blocks_case_failing_quality_gate(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"quality-gate-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Quality Gate Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    case.clinical_sources[0]["url"] = "https://wellness-blog.com/chest-pain"
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert "Case quality gate blocks learner sessions" in response.json()["detail"]
+    assert "reputable clinical source domain" in response.json()["detail"]
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -2860,8 +2913,15 @@ async def test_session_review_available_only_after_completion(
         },
         initial_labs={"troponin": "borderline"},
         diagnosis="Acute coronary syndrome",
-        key_teaching_points=["Obtain ECG early in acute chest pain"],
-        cognitive_traps=["Anchoring"],
+        key_teaching_points=[
+            "Obtain ECG early in acute chest pain",
+            "Risk-stratify life-threatening chest pain before reassurance",
+            "Check contraindications before antithrombotic treatment",
+        ],
+        cognitive_traps=[
+            "Anchoring",
+            "Premature closure after borderline troponin",
+        ],
         clinical_red_flags=[
             "Diaphoresis with crushing chest pain",
             "Hypoxia or hemodynamic instability",
@@ -2876,10 +2936,17 @@ async def test_session_review_available_only_after_completion(
         ],
         clinical_sources=[
             {
-                "title": "Chest Pain Guideline",
-                "organization": "Cardiology Society",
-                "url": "https://example.org/chest-pain",
-                "supports": ["ECG timing", "risk stratification"],
+                "title": "2021 AHA/ACC Chest Pain Guideline",
+                "organization": "American Heart Association / American College of Cardiology",
+                "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+                "supports": [
+                    "ACS diagnosis and risk stratification for acute chest pain",
+                    "life-threatening chest pain differential and severity markers",
+                    "diaphoresis with crushing chest pain and hypoxia or hemodynamic instability",
+                    "12-lead ECG within 10 minutes and serial troponin trend",
+                    "aortic dissection features before anticoagulation",
+                    "major bleeding risk before antiplatelet therapy",
+                ],
             }
         ],
         review_status="educational_draft",
@@ -2967,14 +3034,28 @@ async def test_session_review_available_only_after_completion(
             "message_turn": 1,
         }
     ]
-    assert payload["key_teaching_points"] == ["Obtain ECG early in acute chest pain"]
-    assert payload["cognitive_traps"] == ["Anchoring"]
+    assert payload["key_teaching_points"] == [
+        "Obtain ECG early in acute chest pain",
+        "Risk-stratify life-threatening chest pain before reassurance",
+        "Check contraindications before antithrombotic treatment",
+    ]
+    assert payload["cognitive_traps"] == [
+        "Anchoring",
+        "Premature closure after borderline troponin",
+    ]
     assert payload["clinical_sources"] == [
         {
-            "title": "Chest Pain Guideline",
-            "organization": "Cardiology Society",
-            "url": "https://example.org/chest-pain",
-            "supports": ["ECG timing", "risk stratification"],
+            "title": "2021 AHA/ACC Chest Pain Guideline",
+            "organization": "American Heart Association / American College of Cardiology",
+            "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+            "supports": [
+                "ACS diagnosis and risk stratification for acute chest pain",
+                "life-threatening chest pain differential and severity markers",
+                "diaphoresis with crushing chest pain and hypoxia or hemodynamic instability",
+                "12-lead ECG within 10 minutes and serial troponin trend",
+                "aortic dissection features before anticoagulation",
+                "major bleeding risk before antiplatelet therapy",
+            ],
         }
     ]
     coverage = payload["clinical_safety_coverage"]

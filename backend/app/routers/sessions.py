@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 
 from app.database import get_db, AsyncSessionLocal
-from app.models.case import ClinicalCase
+from app.models.case import ClinicalCase, CLINICAL_REVIEW_CONTENT_FIELDS
 from app.models.session import CoachingSession
 from app.models.message import Message
 from app.models.bias_event import BiasEvent
@@ -47,6 +47,7 @@ from app.services.privacy_guard import (
     PHI_SAFETY_RESPONSE,
     detect_patient_identifiers,
 )
+from app.services.case_quality import evaluate_case_quality
 from app.services.reasoning_analyzer import (
     SCORE_DIMENSIONS,
     VALID_BIAS_SEVERITIES,
@@ -830,6 +831,27 @@ async def _can_reviewer_read_safety_locked_session(
     return bool(safety_event_id)
 
 
+def _quality_payload_for_session_start(case: ClinicalCase) -> dict:
+    payload = {field: getattr(case, field) for field in CLINICAL_REVIEW_CONTENT_FIELDS}
+    payload["review_status"] = case.review_status
+    payload["last_reviewed_at"] = case.last_reviewed_at
+    return payload
+
+
+def _assert_case_quality_for_session_start(case: ClinicalCase) -> None:
+    quality_report = evaluate_case_quality(_quality_payload_for_session_start(case))
+    if quality_report.passed:
+        return
+
+    details = "; ".join(
+        quality_report.critical_issues + quality_report.warnings
+    )
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail=f"Case quality gate blocks learner sessions: {details}",
+    )
+
+
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_session(
     body: SessionCreate,
@@ -889,6 +911,7 @@ async def create_session(
                 "acknowledge_unreviewed_case=true to use it for educational simulation."
             ),
         )
+    _assert_case_quality_for_session_start(case)
 
     session = CoachingSession(
         user_id=uuid.UUID(user_id),
