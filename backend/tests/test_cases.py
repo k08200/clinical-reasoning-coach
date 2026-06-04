@@ -1193,6 +1193,73 @@ async def test_clinical_review_requires_antimicrobial_safety_for_sepsis_therapy(
     assert case.reviewed_by_user_id is None
 
 
+async def test_clinical_review_requires_dka_insulin_safety_checks(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"dka-safety-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="DKA Safety Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case_payload = copy.deepcopy(CASE_POOL[3])
+    case_payload["contraindication_checks"] = [
+        "Need to exclude surgical abdomen if pain persists after metabolic correction",
+        "Assess infection trigger before DKA protocol",
+    ]
+    case_payload["clinical_sources"] = [
+        {
+            "title": "Standards of Care in Diabetes",
+            "organization": "American Diabetes Association",
+            "url": "https://professional.diabetes.org/standards-of-care",
+            "supports": [
+                "DKA diagnostic pattern",
+                "acidosis, dehydration, and mental status severity markers",
+                "severe metabolic acidosis with Kussmaul respirations",
+                "tachycardia, dehydration signs, AKI, and confusion in DKA severity assessment",
+                "hyperkalemia despite total body potassium depletion",
+                "potassium assessment before insulin therapy",
+                "time-critical monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
+                "need to exclude surgical abdomen if pain persists after metabolic correction",
+                "assess infection trigger before DKA protocol",
+            ],
+        }
+    ]
+    case = ClinicalCase(**case_payload)
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "educational_safety_confirmed": True,
+            "review_notes": (
+                "Trying to approve DKA therapy without potassium/osmolar safety review."
+            ),
+        },
+    )
+
+    assert response.status_code == 409
+    assert "case quality gate" in response.json()["detail"]
+    assert "DKA safety checks must include potassium threshold" in response.json()["detail"]
+    await db.refresh(case)
+    assert case.review_status == case_payload["review_status"]
+    assert case.reviewed_by_user_id is None
+
+
 async def test_clinical_review_rejects_placeholder_source_url(
     client: AsyncClient,
     db: AsyncSession,

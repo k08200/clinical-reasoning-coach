@@ -369,6 +369,60 @@ ANTIMICROBIAL_DOSING_SAFETY_TERMS = (
     "콩팥",
     "크레아티닌",
 )
+DKA_TREATMENT_TRIGGER_TERMS = (
+    "anion gap",
+    "diabetic ketoacidosis",
+    "dka",
+    "hyperglycemic crisis",
+    "insulin infusion",
+    "insulin therapy",
+    "ketoacidosis",
+    "ketones",
+    "케톤산증",
+    "인슐린",
+)
+DKA_POTASSIUM_ACTION_TERMS = (
+    "k",
+    "potassium",
+    "칼륨",
+)
+DKA_FLUID_INSULIN_ACTION_TERMS = (
+    "fluid",
+    "fluids",
+    "insulin",
+    "수액",
+    "인슐린",
+)
+DKA_CLOSURE_MONITORING_TERMS = (
+    "anion gap",
+    "gap closes",
+    "gap closure",
+    "ketone",
+    "ketones",
+    "metabolic correction",
+    "close the anion gap",
+    "음이온차",
+    "케톤",
+)
+DKA_POTASSIUM_SAFETY_TERMS = (
+    "k",
+    "potassium",
+    "threshold",
+    "칼륨",
+    "역치",
+)
+DKA_OSMOLAR_SAFETY_TERMS = (
+    "cerebral edema",
+    "fluid",
+    "osmolar",
+    "osmolar shift",
+    "osmolality",
+    "rapid correction",
+    "sodium",
+    "뇌부종",
+    "삼투",
+    "수액",
+)
 
 
 @dataclass
@@ -704,6 +758,15 @@ def _check_safety_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
             report.add_critical(
                 "antimicrobial allergy and renal dosing safety checks are required for infection therapy"
             )
+    if _requires_dka_treatment_safety_check(data):
+        if not _has_dka_time_critical_actions(data.get("time_critical_actions") or []):
+            report.add_critical(
+                "DKA time-critical actions must include potassium-before-insulin, fluids/insulin planning, and anion-gap or ketone closure monitoring"
+            )
+        if not _has_dka_contraindication_safety_check(data.get("contraindication_checks") or []):
+            report.add_critical(
+                "DKA safety checks must include potassium threshold and osmolar-shift or cerebral-edema risk before insulin therapy"
+            )
 
 
 def _requires_pregnancy_safety_check(data: dict[str, Any]) -> bool:
@@ -832,6 +895,59 @@ def _has_antimicrobial_safety_check(checks: list[Any]) -> bool:
         for term in ANTIMICROBIAL_DOSING_SAFETY_TERMS
     )
     return has_allergy_check and has_dosing_check
+
+
+def _requires_dka_treatment_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in DKA_TREATMENT_TRIGGER_TERMS
+    )
+
+
+def _has_dka_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_potassium = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DKA_POTASSIUM_ACTION_TERMS
+    )
+    has_fluid_insulin = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DKA_FLUID_INSULIN_ACTION_TERMS
+    )
+    has_closure_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DKA_CLOSURE_MONITORING_TERMS
+    )
+    return has_potassium and has_fluid_insulin and has_closure_monitoring
+
+
+def _has_dka_contraindication_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_potassium_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DKA_POTASSIUM_SAFETY_TERMS
+    )
+    has_osmolar_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DKA_OSMOLAR_SAFETY_TERMS
+    )
+    return has_potassium_safety and has_osmolar_safety
 
 
 def _contains_safety_term(text: str, term: str) -> bool:

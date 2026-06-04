@@ -373,6 +373,71 @@ def test_quality_gate_allows_sepsis_therapy_with_infection_safety_checks():
     assert report.passed
 
 
+def test_quality_gate_requires_dka_potassium_and_closure_actions():
+    case = copy.deepcopy(CASE_POOL[3])
+    case["time_critical_actions"] = [
+        "Start insulin infusion after DKA is recognized",
+        "Begin fluid resuscitation for dehydration",
+        "Identify precipitating cause",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "DKA diagnostic pattern",
+        "acidosis, dehydration, and mental status severity markers",
+        "severe metabolic acidosis with Kussmaul respirations",
+        "tachycardia, dehydration signs, AKI, and confusion in DKA severity assessment",
+        "hyperkalemia despite total body potassium depletion",
+        "start insulin infusion after DKA is recognized",
+        "begin fluid resuscitation for dehydration",
+        "identify precipitating cause",
+        "potassium below safe threshold before insulin infusion",
+        "cerebral edema risk from overly rapid osmolar shifts",
+        "persistent abdominal pain after metabolic correction requiring surgical reassessment",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "DKA time-critical actions must include potassium-before-insulin" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_dka_potassium_and_osmolar_safety_checks():
+    case = copy.deepcopy(CASE_POOL[3])
+    case["contraindication_checks"] = [
+        "Need to exclude surgical abdomen if pain persists after metabolic correction",
+        "Assess infection trigger before DKA protocol",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "DKA diagnostic pattern",
+        "acidosis, dehydration, and mental status severity markers",
+        "severe metabolic acidosis with Kussmaul respirations",
+        "tachycardia, dehydration signs, AKI, and confusion in DKA severity assessment",
+        "hyperkalemia despite total body potassium depletion",
+        "potassium assessment before insulin therapy",
+        "time-critical monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
+        "need to exclude surgical abdomen if pain persists after metabolic correction",
+        "assess infection trigger before DKA protocol",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "DKA safety checks must include potassium threshold" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_allows_dka_therapy_with_insulin_safety_checks():
+    case = copy.deepcopy(CASE_POOL[3])
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
 def test_quality_gate_rejects_non_numeric_blood_pressure():
     case = copy.deepcopy(CASE_POOL[0])
     case["physical_exam"]["vitals"]["bp"] = "normal"
@@ -475,6 +540,30 @@ def test_quality_gate_allows_diagnosis_terms_in_hidden_teaching_metadata():
         "DKA criteria include acidosis and ketones",
         "Potassium must be assessed before insulin",
         "Close the anion gap before transition",
+    ]
+    case["time_critical_actions"] = [
+        *case["time_critical_actions"],
+        "Plan monitored DKA fluids and insulin protocol after potassium assessment",
+        "Close the anion gap before transition off insulin infusion",
+    ]
+    case["contraindication_checks"] = [
+        *case["contraindication_checks"],
+        "Potassium threshold and cerebral edema risk from osmolar shifts before insulin therapy",
+    ]
+    case["clinical_sources"] = [
+        *case["clinical_sources"],
+        {
+            "title": "Standards of Care in Diabetes",
+            "organization": "American Diabetes Association",
+            "url": "https://professional.diabetes.org/standards-of-care",
+            "supports": [
+                "DKA criteria include acidosis and ketones",
+                "potassium must be assessed before insulin",
+                "plan monitored DKA fluids and insulin protocol after potassium assessment",
+                "close the anion gap before transition off insulin infusion",
+                "potassium threshold and cerebral edema risk from osmolar shifts before insulin therapy",
+            ],
+        },
     ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))

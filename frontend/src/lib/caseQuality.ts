@@ -328,6 +328,56 @@ const ANTIMICROBIAL_DOSING_SAFETY_TERMS = [
   "크레아티닌",
 ];
 
+const DKA_TREATMENT_TRIGGER_TERMS = [
+  "anion gap",
+  "diabetic ketoacidosis",
+  "dka",
+  "hyperglycemic crisis",
+  "insulin infusion",
+  "insulin therapy",
+  "ketoacidosis",
+  "ketones",
+  "케톤산증",
+  "인슐린",
+];
+
+const DKA_POTASSIUM_ACTION_TERMS = ["k", "potassium", "칼륨"];
+
+const DKA_FLUID_INSULIN_ACTION_TERMS = [
+  "fluid",
+  "fluids",
+  "insulin",
+  "수액",
+  "인슐린",
+];
+
+const DKA_CLOSURE_MONITORING_TERMS = [
+  "anion gap",
+  "gap closes",
+  "gap closure",
+  "ketone",
+  "ketones",
+  "metabolic correction",
+  "close the anion gap",
+  "음이온차",
+  "케톤",
+];
+
+const DKA_POTASSIUM_SAFETY_TERMS = ["k", "potassium", "threshold", "칼륨", "역치"];
+
+const DKA_OSMOLAR_SAFETY_TERMS = [
+  "cerebral edema",
+  "fluid",
+  "osmolar",
+  "osmolar shift",
+  "osmolality",
+  "rapid correction",
+  "sodium",
+  "뇌부종",
+  "삼투",
+  "수액",
+];
+
 type SourceAnchoredSafetyField =
   | "clinical_red_flags"
   | "time_critical_actions"
@@ -549,6 +599,46 @@ function hasAntimicrobialSafetyCheck(checks: string[]): boolean {
   return hasAllergyCheck && hasDosingCheck;
 }
 
+function requiresDkaTreatmentSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return DKA_TREATMENT_TRIGGER_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasDkaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasPotassium = DKA_POTASSIUM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFluidInsulin = DKA_FLUID_INSULIN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasClosureMonitoring = DKA_CLOSURE_MONITORING_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasPotassium && hasFluidInsulin && hasClosureMonitoring;
+}
+
+function hasDkaContraindicationSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasPotassiumSafety = DKA_POTASSIUM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOsmolarSafety = DKA_OSMOLAR_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasPotassiumSafety && hasOsmolarSafety;
+}
+
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
@@ -604,6 +694,18 @@ export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined
     if (!hasAntimicrobialSafetyCheck(detail.contraindication_checks)) {
       issues.push(
         "antimicrobial allergy and renal dosing safety checks are required for infection therapy",
+      );
+    }
+  }
+  if (requiresDkaTreatmentSafetyCheck(detail)) {
+    if (!hasDkaTimeCriticalActions(detail.time_critical_actions)) {
+      issues.push(
+        "DKA time-critical actions must include potassium-before-insulin, fluids/insulin planning, and anion-gap or ketone closure monitoring",
+      );
+    }
+    if (!hasDkaContraindicationSafetyCheck(detail.contraindication_checks)) {
+      issues.push(
+        "DKA safety checks must include potassium threshold and osmolar-shift or cerebral-edema risk before insulin therapy",
       );
     }
   }
