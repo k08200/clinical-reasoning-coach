@@ -1399,6 +1399,101 @@ async def test_stream_response_passes_current_uncovered_safety_targets(
 
 
 @pytest.mark.asyncio
+async def test_stream_response_records_unsafe_coach_output_guardrail(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def unsafe_guardrailed_stream(**_kwargs) -> AsyncGenerator[StreamChunk, None]:
+        yield StreamChunk(
+            type="safety_guardrail",
+            content="diagnosis_leak,direct_management_order",
+        )
+        yield StreamChunk(
+            type="text_delta",
+            content="What safety checks would you complete before committing to management?",
+        )
+        yield StreamChunk(type="done")
+
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        unsafe_guardrailed_stream,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fake_analyze_student_response,
+    )
+
+    user = User(
+        email=f"coach-guardrail-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Coach Guardrail Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="Opening case",
+    ))
+    await db.commit()
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "I am considering dangerous diagnoses first."},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert "What safety checks would you complete" in response.text
+    assert "diagnosis_leak" not in response.text
+    safety_events = (
+        await db.execute(
+            select(SafetyEvent).where(SafetyEvent.session_id == session.id)
+        )
+    ).scalars().all()
+    assert len(safety_events) == 1
+    assert safety_events[0].event_type == "unsafe_coach_output_guardrail"
+    assert safety_events[0].severity == "medium"
+    assert safety_events[0].status == "open"
+    assert safety_events[0].action_taken == "unsafe_model_output_replaced_before_delivery"
+    assert safety_events[0].detected_terms == [
+        "diagnosis_leak",
+        "direct_management_order",
+    ]
+
+    complete_response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+
+    assert complete_response.status_code == 400
+    assert complete_response.json()["detail"]["code"] == "open_safety_events_unresolved"
+    assert complete_response.json()["detail"]["open_safety_events"][0]["event_type"] == (
+        "unsafe_coach_output_guardrail"
+    )
+
+
+@pytest.mark.asyncio
 async def test_complete_session_requires_analyzed_learner_response(
     client: AsyncClient,
     db: AsyncSession,

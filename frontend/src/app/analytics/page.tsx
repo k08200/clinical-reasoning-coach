@@ -185,7 +185,7 @@ export default function AnalyticsPage() {
                   </span>
                 )}
               </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                 <SafetyMetric
                   label="Open Events"
                   value={data.safety_summary.open_events}
@@ -200,6 +200,11 @@ export default function AnalyticsPage() {
                   label="Privacy Events"
                   value={data.safety_summary.privacy_events}
                   tone={data.safety_summary.privacy_events > 0 ? "red" : "slate"}
+                />
+                <SafetyMetric
+                  label="Coach Guardrails"
+                  value={data.safety_summary.coach_guardrail_events}
+                  tone={data.safety_summary.coach_guardrail_events > 0 ? "amber" : "slate"}
                 />
                 <SafetyMetric
                   label="Management Safety"

@@ -25,6 +25,7 @@ class SafetyAnalyticsSummary(BaseModel):
     safety_locked_sessions: int
     real_patient_or_emergency_events: int
     privacy_events: int
+    coach_guardrail_events: int
     management_safety_events: int
 
 

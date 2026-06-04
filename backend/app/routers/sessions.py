@@ -1357,6 +1357,7 @@ async def stream_response(
 
         collected_text: list[str] = []
         collected_thinking: list[str] = []
+        coach_guardrail_violations: list[str] = []
         usage_data: dict = {}
 
         try:
@@ -1381,6 +1382,13 @@ async def stream_response(
                     usage_data.update(chunk.usage)
                     yield f"data: {json.dumps({'type': 'usage', 'usage': chunk.usage})}\n\n"
 
+                elif chunk.type == "safety_guardrail":
+                    coach_guardrail_violations = [
+                        item.strip()
+                        for item in chunk.content.split(",")
+                        if item.strip()
+                    ]
+
                 elif chunk.type == "done":
                     full_text = "".join(collected_text)
                     full_thinking = "".join(collected_thinking)
@@ -1397,6 +1405,7 @@ async def stream_response(
                         turn_number=turn_number,
                         claude_history=claude_history,
                         existing_map=session.reasoning_map,
+                        coach_guardrail_violations=coach_guardrail_violations,
                     )
 
                     yield f"data: {json.dumps({'type': 'done'})}\n\n"
@@ -1640,6 +1649,7 @@ async def _save_coach_turn(
     turn_number: int,
     claude_history: list[dict],
     existing_map: dict,
+    coach_guardrail_violations: list[str] | None = None,
 ) -> None:
     """
     Analyze reasoning, save coach message, and update session stats.
@@ -1681,6 +1691,22 @@ async def _save_coach_turn(
                 thinking_tokens=int(usage.get("thinking_tokens", 0)),
             )
             db.add(coach_msg)
+
+            if coach_guardrail_violations:
+                db.add(SafetyEvent(
+                    session_id=session_id,
+                    user_id=user_id,
+                    event_type="unsafe_coach_output_guardrail",
+                    severity="medium",
+                    action_taken="unsafe_model_output_replaced_before_delivery",
+                    detected_terms=coach_guardrail_violations,
+                    message_turn=turn_number,
+                    note=(
+                        "The model attempted unsafe simulated coaching output. "
+                        "It was replaced with the safe guardrail response before "
+                        "delivery and should be reviewed before session completion."
+                    ),
+                ))
 
             # Save bias events
             for bias in analysis.biases_detected:

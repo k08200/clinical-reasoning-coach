@@ -839,20 +839,25 @@ def _mentions_disposition_safety_check(normalized: str) -> bool:
     )
 
 
-def is_coach_response_safe(case: ClinicalCase, response_text: str) -> bool:
+def coach_response_safety_violations(case: ClinicalCase, response_text: str) -> list[str]:
+    violations: list[str] = []
     if "[ollama error:" in response_text.lower():
-        return True
+        return violations
     if _contains_diagnosis_leak(case, response_text):
-        return False
+        violations.append("diagnosis_leak")
     if _contains_direct_confirmation(response_text):
-        return False
+        violations.append("direct_confirmation")
     if _contains_direct_management_order(response_text):
-        return False
+        violations.append("direct_management_order")
     if _contains_concrete_dosing_directive(response_text):
-        return False
+        violations.append("concrete_dosing_directive")
     if _contains_premature_closure_directive(response_text):
-        return False
-    return True
+        violations.append("premature_closure_directive")
+    return violations
+
+
+def is_coach_response_safe(case: ClinicalCase, response_text: str) -> bool:
+    return not coach_response_safety_violations(case, response_text)
 
 
 SOCRATIC_SYSTEM = """You are a Socratic clinical reasoning coach. Your identity and purpose:
@@ -1057,11 +1062,13 @@ async def stream_coach_response(
             done_seen = True
             full_response = "".join(response_text)
             if full_response:
-                safe_response = (
-                    full_response
-                    if is_coach_response_safe(case, full_response)
-                    else SAFE_GUARDRAIL_RESPONSE
-                )
+                violations = coach_response_safety_violations(case, full_response)
+                safe_response = full_response if not violations else SAFE_GUARDRAIL_RESPONSE
+                if violations:
+                    yield StreamChunk(
+                        type="safety_guardrail",
+                        content=",".join(violations),
+                    )
                 yield StreamChunk(type="text_delta", content=safe_response)
             yield chunk
             continue
@@ -1069,11 +1076,13 @@ async def stream_coach_response(
 
     if response_text and not done_seen:
         full_response = "".join(response_text)
-        safe_response = (
-            full_response
-            if is_coach_response_safe(case, full_response)
-            else SAFE_GUARDRAIL_RESPONSE
-        )
+        violations = coach_response_safety_violations(case, full_response)
+        safe_response = full_response if not violations else SAFE_GUARDRAIL_RESPONSE
+        if violations:
+            yield StreamChunk(
+                type="safety_guardrail",
+                content=",".join(violations),
+            )
         yield StreamChunk(type="text_delta", content=safe_response)
 
 

@@ -91,6 +91,7 @@ async def test_get_my_analytics_empty_state(
         "safety_locked_sessions": 0,
         "real_patient_or_emergency_events": 0,
         "privacy_events": 0,
+        "coach_guardrail_events": 0,
         "management_safety_events": 0,
     }
     assert data["total_tokens_used"] == 0
@@ -208,6 +209,16 @@ async def test_get_my_analytics_aggregates_completed_sessions(
             resolution_note="Reviewed and addressed in simulation debrief.",
             resolved_at=datetime.now(timezone.utc),
         ),
+        SafetyEvent(
+            session_id=active_session.id,
+            user_id=user.id,
+            event_type="unsafe_coach_output_guardrail",
+            severity="medium",
+            action_taken="unsafe_model_output_replaced_before_delivery",
+            detected_terms=["direct_management_order"],
+            message_turn=3,
+            note="Unsafe coach output was replaced before delivery.",
+        ),
     ])
     await db.commit()
 
@@ -222,13 +233,14 @@ async def test_get_my_analytics_aggregates_completed_sessions(
     assert data["avg_reasoning_score"] == 80
     assert data["total_tokens_used"] == 100
     assert data["safety_summary"] == {
-        "total_events": 2,
-        "open_events": 1,
+        "total_events": 3,
+        "open_events": 2,
         "high_severity_events": 1,
         "open_high_risk_events": 1,
         "safety_locked_sessions": 1,
         "real_patient_or_emergency_events": 0,
         "privacy_events": 1,
+        "coach_guardrail_events": 1,
         "management_safety_events": 1,
     }
     assert data["specialty_performance"] == {"internal_medicine": 80.0}

@@ -11,6 +11,7 @@ const EVENT_TYPE_OPTIONS = [
   { value: "all", label: "All events" },
   { value: "real_patient_or_emergency_signal", label: "Real patient or emergency" },
   { value: "possible_patient_identifier", label: "Patient identifier" },
+  { value: "unsafe_coach_output_guardrail", label: "Coach output guardrail" },
   { value: "management_before_safety_checks", label: "Management before safety checks" },
 ];
 
@@ -62,6 +63,7 @@ function eventLabel(eventType: string): string {
     return "Real patient or emergency";
   }
   if (eventType === "possible_patient_identifier") return "Patient identifier";
+  if (eventType === "unsafe_coach_output_guardrail") return "Coach output guardrail";
   if (eventType === "management_before_safety_checks") {
     return "Management before safety checks";
   }

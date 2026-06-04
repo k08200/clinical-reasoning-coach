@@ -310,6 +310,7 @@ export interface SafetyAnalyticsSummary {
   safety_locked_sessions: number;
   real_patient_or_emergency_events: number;
   privacy_events: number;
+  coach_guardrail_events: number;
   management_safety_events: number;
 }
 

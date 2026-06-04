@@ -161,6 +161,7 @@ describe("SafetyEventsPage", () => {
     expect(screen.getAllByText("2").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Patient identifier").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Real patient or emergency").length).toBeGreaterThan(0);
+    expect(screen.getByRole("option", { name: "Coach output guardrail" })).toBeTruthy();
     expect(screen.getAllByText("Management before safety checks").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Learner User").length).toBeGreaterThan(0);
     expect(screen.getByText("phone number")).toBeTruthy();

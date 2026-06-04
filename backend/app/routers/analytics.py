@@ -106,6 +106,11 @@ async def get_my_analytics(
             for event in safety_events
             if event.event_type == "possible_patient_identifier"
         ),
+        coach_guardrail_events=sum(
+            1
+            for event in safety_events
+            if event.event_type == "unsafe_coach_output_guardrail"
+        ),
         management_safety_events=sum(
             1
             for event in safety_events

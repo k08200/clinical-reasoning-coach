@@ -51,6 +51,7 @@ const makeAnalytics = (overrides: Partial<UserAnalytics> = {}): UserAnalytics =>
     safety_locked_sessions: 1,
     real_patient_or_emergency_events: 1,
     privacy_events: 1,
+    coach_guardrail_events: 1,
     management_safety_events: 1,
   },
   total_tokens_used: 1500,
@@ -103,6 +104,7 @@ describe("AnalyticsPage", () => {
     expect(screen.getByText("High-risk review needed")).toBeTruthy();
     expect(screen.getByText("Open High Risk")).toBeTruthy();
     expect(screen.getByText("Privacy Events")).toBeTruthy();
+    expect(screen.getByText("Coach Guardrails")).toBeTruthy();
     expect(screen.getByText("Management Safety")).toBeTruthy();
     expect(screen.getByText(/1 locked session/)).toBeTruthy();
     expect(screen.getByText(/Safety events are tracked separately/)).toBeTruthy();
