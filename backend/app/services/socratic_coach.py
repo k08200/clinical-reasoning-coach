@@ -51,8 +51,12 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "my father",
     "my child",
     "my baby",
+    "my friend",
+    "my partner",
+    "my roommate",
     "my wife",
     "my husband",
+    "someone here",
     "i am having",
     "i'm having",
     "right now",
@@ -69,6 +73,10 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "trouble breathing",
     "severe chest pain",
     "stroke symptoms",
+    "unconscious",
+    "collapsed",
+    "not waking up",
+    "seizure",
     "suicidal",
     "overdose",
     "실제 환자",
@@ -81,6 +89,10 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "우리 아버지",
     "제 아이",
     "제 아기",
+    "제 친구",
+    "제 배우자",
+    "제 룸메이트",
+    "룸메이트",
     "제가 지금",
     "나는 지금",
     "응급인가요",
@@ -93,6 +105,10 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "심한 가슴",
     "가슴 통증이 심",
     "뇌졸중 증상",
+    "의식이 없",
+    "깨어나지",
+    "쓰러졌",
+    "발작",
     "자살",
     "극단적 선택",
     "과다복용",
@@ -105,10 +121,18 @@ REAL_PATIENT_CONTEXTUAL_SIGNAL_PATTERNS = {
     "on the ward",
     "severe chest pain",
     "stroke symptoms",
+    "unconscious",
+    "collapsed",
+    "not waking up",
+    "seizure",
     "호흡 곤란",
     "심한 가슴",
     "가슴 통증이 심",
     "뇌졸중 증상",
+    "의식이 없",
+    "깨어나지",
+    "쓰러졌",
+    "발작",
 }
 SIMULATION_CONTEXT_PATTERNS = [
     "simulated patient",
@@ -140,8 +164,12 @@ REAL_PATIENT_OVERRIDE_PATTERNS = [
     "my father",
     "my child",
     "my baby",
+    "my friend",
+    "my partner",
+    "my roommate",
     "my wife",
     "my husband",
+    "someone here",
     "i am having",
     "i'm having",
     "i can't breathe",
@@ -159,6 +187,10 @@ REAL_PATIENT_OVERRIDE_PATTERNS = [
     "우리 아버지",
     "제 아이",
     "제 아기",
+    "제 친구",
+    "제 배우자",
+    "제 룸메이트",
+    "룸메이트",
     "제가 지금",
     "나는 지금",
     "119",
@@ -173,13 +205,13 @@ REAL_PATIENT_HIGH_CONFIDENCE_PATTERNS = [
 ]
 REAL_PATIENT_PERSONAL_URGENCY_PATTERNS = [
     re.compile(
-        r"\b(?:i|me|myself)\b.{0,48}\b(?:severe chest pain|stroke symptoms|trouble breathing)\b"
+        r"\b(?:i|me|myself)\b.{0,48}\b(?:severe chest pain|stroke symptoms|trouble breathing|unconscious|collapsed|not waking up|seizure)\b"
     ),
     re.compile(
-        r"\b(?:severe chest pain|stroke symptoms|trouble breathing)\b.{0,48}\b(?:i|me|myself)\b"
+        r"\b(?:severe chest pain|stroke symptoms|trouble breathing|unconscious|collapsed|not waking up|seizure)\b.{0,48}\b(?:i|me|myself)\b"
     ),
-    re.compile(r"(?:제가|저는|나는|내가).{0,24}(?:호흡 곤란|심한 가슴|가슴 통증이 심|뇌졸중 증상)"),
-    re.compile(r"(?:호흡 곤란|심한 가슴|가슴 통증이 심|뇌졸중 증상).{0,24}(?:제가|저는|나는|내가)"),
+    re.compile(r"(?:제가|저는|나는|내가).{0,24}(?:호흡 곤란|심한 가슴|가슴 통증이 심|뇌졸중 증상|의식이 없|깨어나지|쓰러졌|발작)"),
+    re.compile(r"(?:호흡 곤란|심한 가슴|가슴 통증이 심|뇌졸중 증상|의식이 없|깨어나지|쓰러졌|발작).{0,24}(?:제가|저는|나는|내가)"),
 ]
 
 DIRECT_CONFIRMATION_PATTERNS = [
