@@ -278,6 +278,18 @@ def _safe_review_feedback_text(value: object) -> str | None:
     return text
 
 
+def _safe_bias_evidence_text(value: object) -> str:
+    if not isinstance(value, str) or not value.strip():
+        return ""
+    text = value.strip()
+    if review_feedback_safety_violations(text):
+        return (
+            "Bias evidence was withheld because it resembled actionable medical "
+            "advice rather than educational reasoning feedback."
+        )
+    return text
+
+
 def _bounded_reasoning_score(value: float) -> float:
     score = float(value)
     if score != score:
@@ -376,7 +388,7 @@ def _build_review_feedback(session: CoachingSession) -> dict:
                     if event.severity in VALID_BIAS_SEVERITIES
                     else "mild"
                 ),
-                "evidence": event.evidence,
+                "evidence": _safe_bias_evidence_text(event.evidence),
                 "confidence": _bounded_confidence(event.confidence),
                 "message_turn": event.message_turn,
             }
@@ -1736,7 +1748,7 @@ async def _save_coach_turn(
                         user_id=user_id,
                         bias_type=bias["type"],
                         severity=bias.get("severity", "mild"),
-                        evidence=bias.get("evidence", ""),
+                        evidence=_safe_bias_evidence_text(bias.get("evidence", "")),
                         confidence=float(bias.get("confidence", 0.0)),
                         message_turn=turn_number,
                     ))

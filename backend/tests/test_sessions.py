@@ -778,6 +778,92 @@ async def test_stream_response_persists_turn_before_done(
 
 
 @pytest.mark.asyncio
+async def test_stream_response_sanitizes_unsafe_bias_evidence_before_storage(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fake_stream_coach_response,
+    )
+
+    async def unsafe_bias_analyze_student_response(**_kwargs) -> ReasoningAnalysis:
+        analysis = await fake_analyze_student_response()
+        analysis.biases_detected = [
+            {
+                "type": "commission",
+                "severity": "moderate",
+                "evidence": "The learner wrote: You should give aspirin now.",
+                "confidence": 0.84,
+            }
+        ]
+        return analysis
+
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        unsafe_bias_analyze_student_response,
+    )
+
+    user = User(
+        email=f"unsafe-bias-evidence-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Unsafe Bias Evidence Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="Opening case presentation.",
+    ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    stream_response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "I would compare dangerous diagnoses before choosing a plan."},
+        headers=auth_headers,
+    )
+
+    assert stream_response.status_code == 200
+
+    async with TestSessionLocal() as safety_db:
+        bias_events = (
+            await safety_db.execute(
+                select(BiasEvent).where(BiasEvent.session_id == session.id)
+            )
+        ).scalars().all()
+    assert len(bias_events) == 1
+    assert bias_events[0].bias_type == "commission"
+    assert bias_events[0].evidence == (
+        "Bias evidence was withheld because it resembled actionable medical "
+        "advice rather than educational reasoning feedback."
+    )
+    assert "aspirin" not in bias_events[0].evidence.lower()
+
+
+@pytest.mark.asyncio
 async def test_stream_response_blocks_if_case_quality_fails_after_session_start(
     client: AsyncClient,
     db: AsyncSession,
@@ -5249,6 +5335,15 @@ async def test_session_review_filters_unsafe_stored_feedback_text(
             "coach_insight": "Ask for disconfirming evidence before closure.",
         },
     ))
+    db.add(BiasEvent(
+        session_id=session.id,
+        user_id=user.id,
+        bias_type="commission",
+        severity="moderate",
+        evidence="The learner wrote: You should give aspirin now.",
+        confidence=0.83,
+        message_turn=1,
+    ))
     await db.commit()
     auth_headers = {
         "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
@@ -5275,6 +5370,18 @@ async def test_session_review_filters_unsafe_stored_feedback_text(
     assert "60 units/kg" not in str(payload["gaps"]).lower()
     assert "go home" not in str(payload["gaps"]).lower()
     assert "heparin" not in str(payload["coach_insights"]).lower()
+    assert payload["bias_feedback"] == [
+        {
+            "bias_type": "commission",
+            "severity": "moderate",
+            "evidence": (
+                "Bias evidence was withheld because it resembled actionable medical "
+                "advice rather than educational reasoning feedback."
+            ),
+            "confidence": 0.83,
+            "message_turn": 1,
+        }
+    ]
 
 
 @pytest.mark.asyncio
