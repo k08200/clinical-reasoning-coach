@@ -28,6 +28,19 @@ REVIEW_AUDIT_NOTES = (
 )
 
 
+def _quality_gate_detail(response, *, code: str) -> dict:
+    detail = response.json()["detail"]
+    assert isinstance(detail, dict)
+    assert detail["code"] == code
+    assert "case quality gate" in detail["message"]
+    assert isinstance(detail["issues"], list)
+    return detail
+
+
+def _quality_gate_issues(response, *, code: str) -> list[str]:
+    return _quality_gate_detail(response, code=code)["issues"]
+
+
 async def _register_and_login(client: AsyncClient) -> dict[str, str]:
     email = f"case-test-{uuid.uuid4()}@test.com"
     register_response = await client.post(
@@ -524,8 +537,9 @@ async def test_dynamic_generation_quality_gate_blocks_storage(
     )
 
     assert response.status_code == 422
-    assert "Generated case blocked by case quality gate" in response.json()["detail"]
-    assert "clinical red flags" in response.json()["detail"]
+    detail = _quality_gate_detail(response, code="generated_case_quality_gate_failed")
+    assert detail["message"] == "Generated case blocked by case quality gate"
+    assert any("clinical red flags" in issue for issue in detail["issues"])
     after_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
     assert after_count == before_count
 
@@ -552,8 +566,9 @@ async def test_demo_generation_quality_gate_blocks_storage(
     response = await client.post("/api/cases/generate/demo", headers=auth_headers)
 
     assert response.status_code == 422
-    assert "Generated case blocked by case quality gate" in response.json()["detail"]
-    assert "vitals.bp" in response.json()["detail"]
+    detail = _quality_gate_detail(response, code="generated_case_quality_gate_failed")
+    assert detail["message"] == "Generated case blocked by case quality gate"
+    assert any("vitals.bp" in issue for issue in detail["issues"])
     after_count = await db.scalar(select(func.count()).select_from(ClinicalCase))
     assert after_count == before_count
 
@@ -935,8 +950,8 @@ async def test_clinical_review_requires_independent_source_organizations(
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "at least 2 independent clinical source organizations" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("at least 2 independent clinical source organizations" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None
@@ -1059,8 +1074,8 @@ async def test_clinical_review_requires_complete_safety_metadata(
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "clinical red flags" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("clinical red flags" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None
@@ -1108,8 +1123,8 @@ async def test_clinical_review_requires_pregnancy_safety_check_for_reproductive_
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "pregnancy status safety check is required" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("pregnancy status safety check is required" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None
@@ -1157,8 +1172,8 @@ async def test_clinical_review_requires_weight_based_safety_check_for_pediatric_
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "weight-based dosing safety check is required" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("weight-based dosing safety check is required" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None
@@ -1226,8 +1241,8 @@ async def test_clinical_review_requires_renal_safety_check_for_contrast_imaging(
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "renal function safety check is required" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("renal function safety check is required" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None
@@ -1294,8 +1309,8 @@ async def test_clinical_review_requires_bleeding_safety_check_for_thrombolysis(
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "bleeding risk safety check is required" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("bleeding risk safety check is required" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None
@@ -1365,8 +1380,8 @@ async def test_clinical_review_requires_antimicrobial_safety_for_sepsis_therapy(
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "antimicrobial allergy and renal dosing safety checks" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("antimicrobial allergy and renal dosing safety checks" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None
@@ -1430,8 +1445,8 @@ async def test_clinical_review_requires_dka_insulin_safety_checks(
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "DKA safety checks must include potassium threshold" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("DKA safety checks must include potassium threshold" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None
@@ -1497,8 +1512,8 @@ async def test_clinical_review_requires_stroke_reperfusion_safety_checks(
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "stroke reperfusion safety checks" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("stroke reperfusion safety checks" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None
@@ -1564,8 +1579,8 @@ async def test_clinical_review_requires_pe_risk_and_safety_checks(
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "PE safety checks must include bleeding or recent-surgery risk" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("PE safety checks must include bleeding or recent-surgery risk" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None
@@ -1629,8 +1644,8 @@ async def test_clinical_review_requires_acs_safety_checks(
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "ACS safety checks must include aortic dissection exclusion" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("ACS safety checks must include aortic dissection exclusion" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None
@@ -1680,8 +1695,8 @@ async def test_clinical_review_rejects_placeholder_source_url(
     )
 
     assert response.status_code == 409
-    assert "case quality gate" in response.json()["detail"]
-    assert "placeholder source domain" in response.json()["detail"]
+    issues = _quality_gate_issues(response, code="clinical_review_quality_gate_failed")
+    assert any("placeholder source domain" in issue for issue in issues)
     await db.refresh(case)
     assert case.review_status == case_payload["review_status"]
     assert case.reviewed_by_user_id is None

@@ -581,10 +581,15 @@ describe("CasesPage", () => {
       mutate: mockMutate,
     } as unknown as ReturnType<typeof useSWR>);
     mockGenerate.mockRejectedValueOnce({
-      message:
-        "Generated case blocked by case quality gate: At least 2 clinical red flags are required.; Clinical source 1 must use a reputable clinical source domain.",
-      detail:
-        "Generated case blocked by case quality gate: At least 2 clinical red flags are required.; Clinical source 1 must use a reputable clinical source domain.",
+      message: "Generated case blocked by case quality gate",
+      detail: {
+        code: "generated_case_quality_gate_failed",
+        message: "Generated case blocked by case quality gate",
+        issues: [
+          "At least 2 clinical red flags are required.",
+          "Clinical source 1 must use a reputable clinical source domain.",
+        ],
+      },
     });
 
     render(<CasesPage />);
@@ -611,10 +616,12 @@ describe("CasesPage", () => {
       mutate: mockMutate,
     } as unknown as ReturnType<typeof useSWR>);
     mockGenerateDemo.mockRejectedValueOnce({
-      message:
-        "Generated case blocked by case quality gate: contraindication checks are required before risky therapy.",
-      detail:
-        "Generated case blocked by case quality gate: contraindication checks are required before risky therapy.",
+      message: "Generated case blocked by case quality gate",
+      detail: {
+        code: "generated_case_quality_gate_failed",
+        message: "Generated case blocked by case quality gate",
+        issues: ["contraindication checks are required before risky therapy."],
+      },
     });
 
     render(<CasesPage />);
@@ -624,6 +631,27 @@ describe("CasesPage", () => {
     expect(
       screen.getByText("contraindication checks are required before risky therapy."),
     ).toBeTruthy();
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
+  it("keeps parsing legacy quality gate strings", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockGenerateDemo.mockRejectedValueOnce({
+      message:
+        "Generated case blocked by case quality gate: clinical source support is required.",
+      detail:
+        "Generated case blocked by case quality gate: clinical source support is required.",
+    });
+
+    render(<CasesPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Generate Your First Case" }));
+
+    expect(await screen.findByText("Case quality gate blocked generation")).toBeTruthy();
+    expect(screen.getByText("clinical source support is required.")).toBeTruthy();
     expect(mockMutate).not.toHaveBeenCalled();
   });
 

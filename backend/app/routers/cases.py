@@ -59,13 +59,28 @@ def _assert_generated_case_quality(case_payload: dict) -> None:
     if quality_report.passed:
         return
 
-    details = "; ".join(
-        quality_report.critical_issues + quality_report.warnings
-    )
+    issues = quality_report.critical_issues + quality_report.warnings
     raise HTTPException(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        detail=f"Generated case blocked by case quality gate: {details}",
+        detail=_case_quality_gate_detail(
+            code="generated_case_quality_gate_failed",
+            message="Generated case blocked by case quality gate",
+            issues=issues,
+        ),
     )
+
+
+def _case_quality_gate_detail(
+    *,
+    code: str,
+    message: str,
+    issues: list[str],
+) -> dict:
+    return {
+        "code": code,
+        "message": message,
+        "issues": issues,
+    }
 
 
 def _assert_seed_scenario_safe(seed_scenario: str | None) -> None:
@@ -186,12 +201,14 @@ async def complete_clinical_review(
         )
     quality_report = evaluate_case_quality(_quality_payload_for_clinical_review(case))
     if not quality_report.passed:
-        details = "; ".join(
-            quality_report.critical_issues + quality_report.warnings
-        )
+        issues = quality_report.critical_issues + quality_report.warnings
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Clinical review blocked by case quality gate: {details}",
+            detail=_case_quality_gate_detail(
+                code="clinical_review_quality_gate_failed",
+                message="Clinical review blocked by case quality gate",
+                issues=issues,
+            ),
         )
 
     prior_review_status = case.review_status

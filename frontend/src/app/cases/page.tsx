@@ -76,6 +76,24 @@ function isSeedScenarioSafetyDetail(value: unknown): value is SeedScenarioSafety
 }
 
 function parseCaseQualityGateDetail(value: unknown): CaseQualityGateDetail | null {
+  if (
+    value &&
+    typeof value === "object" &&
+    "code" in value &&
+    typeof value.code === "string" &&
+    value.code.includes("quality_gate_failed") &&
+    "message" in value &&
+    typeof value.message === "string"
+  ) {
+    const issues =
+      "issues" in value && Array.isArray(value.issues)
+        ? value.issues.filter((issue): issue is string => typeof issue === "string")
+        : [];
+    return {
+      message: value.message,
+      issues,
+    };
+  }
   if (typeof value !== "string" || !value.toLowerCase().includes("case quality gate")) {
     return null;
   }
