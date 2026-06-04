@@ -30,6 +30,37 @@ PLACEHOLDER_SOURCE_HOSTS = {
     "127.0.0.1",
     "0.0.0.0",
 }
+TRUSTED_CLINICAL_SOURCE_HOSTS = {
+    "acc.org",
+    "acep.org",
+    "acpjournals.org",
+    "acponline.org",
+    "acpjc.org",
+    "ada.org",
+    "ahajournals.org",
+    "annals.org",
+    "bmj.com",
+    "cdc.gov",
+    "diabetes.org",
+    "escardio.org",
+    "heart.org",
+    "idsociety.org",
+    "jacc.org",
+    "jamanetwork.com",
+    "lancet.com",
+    "nejm.org",
+    "nice.org.uk",
+    "nih.gov",
+    "professional.diabetes.org",
+    "pubmed.ncbi.nlm.nih.gov",
+    "sccm.org",
+    "thelancet.com",
+    "who.int",
+}
+TRUSTED_CLINICAL_SOURCE_SUFFIXES = {
+    ".edu",
+    ".gov",
+}
 DIAGNOSIS_LEAK_STOPWORDS = {
     "a",
     "an",
@@ -596,6 +627,21 @@ def _check_source_url(index: int, url: str, report: CaseQualityReport) -> None:
         report.add_critical(
             f"clinical_sources[{index}].url must not use a placeholder source domain"
         )
+        return
+    if not _is_trusted_clinical_source_host(hostname):
+        report.add_critical(
+            f"clinical_sources[{index}].url must use a reputable clinical source domain"
+        )
+
+
+def _is_trusted_clinical_source_host(hostname: str) -> bool:
+    normalized = hostname.removeprefix("www.")
+    if any(normalized.endswith(suffix) for suffix in TRUSTED_CLINICAL_SOURCE_SUFFIXES):
+        return True
+    return any(
+        normalized == trusted_host or normalized.endswith(f".{trusted_host}")
+        for trusted_host in TRUSTED_CLINICAL_SOURCE_HOSTS
+    )
 
 
 def _check_review_metadata(data: dict[str, Any], report: CaseQualityReport) -> None:

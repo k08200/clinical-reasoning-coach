@@ -36,7 +36,9 @@ Rules:
 - Include safety metadata for clinician educators: red flags, time-critical actions,
   and contraindication checks. These are hidden from students and used by the coach.
 - Include at least one reputable clinical source with title, organization, a
-  real HTTPS url, and at least two specific case elements it supports.
+  real HTTPS url from a government, academic, professional society, official
+  guideline, or peer-reviewed journal domain, and at least two specific case
+  elements it supports.
 - Across clinical_sources.supports, explicitly cover diagnosis/diagnostic
   reasoning, red flags or severity markers, time-critical actions, and
   contraindication/safety checks.
@@ -45,7 +47,8 @@ Rules:
   repeats its specific clinical keywords (for example lactate, ECG, potassium,
   bleeding risk, renal function, imaging, or hemodynamic instability).
 - Do not use placeholder or unverifiable source URLs such as example.com,
-  example.org, localhost, or non-HTTPS links.
+  example.org, localhost, non-HTTPS links, blogs, news articles, or commercial
+  wellness pages.
 - Mark review_status as "ai_generated_unreviewed" unless a human clinician has
   reviewed it.
 

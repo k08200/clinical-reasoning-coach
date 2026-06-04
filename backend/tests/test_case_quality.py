@@ -209,6 +209,19 @@ def test_quality_gate_rejects_placeholder_source_url():
     assert any("placeholder source domain" in issue for issue in report.critical_issues)
 
 
+def test_quality_gate_rejects_low_trust_source_domain():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["clinical_sources"][0]["url"] = "https://wellness-blog.com/chest-pain"
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "reputable clinical source domain" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_https_source_url():
     case = copy.deepcopy(CASE_POOL[0])
     case["clinical_sources"] = [
@@ -288,7 +301,10 @@ def test_quality_gate_requires_source_supports_to_anchor_safety_items():
 
 def test_case_generation_prompt_requires_verifiable_sources():
     assert "real HTTPS url" in CASE_GENERATION_SYSTEM
-    assert "at least two specific case elements" in CASE_GENERATION_SYSTEM
+    assert "professional society" in CASE_GENERATION_SYSTEM
+    assert "peer-reviewed journal domain" in CASE_GENERATION_SYSTEM
+    assert "at least two specific case" in CASE_GENERATION_SYSTEM
+    assert "elements it supports" in CASE_GENERATION_SYSTEM
     assert "diagnosis/diagnostic" in CASE_GENERATION_SYSTEM
     assert "contraindication/safety checks" in CASE_GENERATION_SYSTEM
     assert "repeats its specific clinical keywords" in CASE_GENERATION_SYSTEM
@@ -296,3 +312,5 @@ def test_case_generation_prompt_requires_verifiable_sources():
     assert "Do NOT reveal the final diagnosis" in CASE_GENERATION_SYSTEM
     assert "Do NOT use exact ages above 89" in CASE_GENERATION_SYSTEM
     assert "Do not use placeholder" in CASE_GENERATION_SYSTEM
+    assert "commercial" in CASE_GENERATION_SYSTEM
+    assert "wellness pages" in CASE_GENERATION_SYSTEM
