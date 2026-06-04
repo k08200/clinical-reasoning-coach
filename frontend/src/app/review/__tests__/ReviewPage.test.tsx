@@ -254,6 +254,12 @@ describe("ReviewPage", () => {
     expect(screen.getByText("Broad-spectrum antibiotics")).toBeTruthy();
     expect(screen.getByText("Surviving Sepsis Campaign Guidelines")).toBeTruthy();
     expect(screen.getByText("Source Alignment Evidence")).toBeTruthy();
+    expect(screen.getByText("Approval Blockers")).toBeTruthy();
+    expect(
+      screen.getByText(
+        /Quality gate clear for clinician review once checklist confirmations/,
+      ),
+    ).toBeTruthy();
     expect(screen.getByText("Reviewed against cited source.")).toBeTruthy();
     expect(screen.getByText("educational draft to clinician reviewed")).toBeTruthy();
   });
@@ -488,7 +494,8 @@ describe("ReviewPage", () => {
     }
 
     expect(screen.getByText("Quality Gate")).toBeTruthy();
-    expect(screen.getByText("At least 2 clinical red flags are required.")).toBeTruthy();
+    expect(screen.getByText("Approval Blockers")).toBeTruthy();
+    expect(screen.getAllByText("At least 2 clinical red flags are required.").length).toBe(2);
     expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
     expect(mockCompleteClinicalReview).not.toHaveBeenCalled();
   });
@@ -561,8 +568,8 @@ describe("ReviewPage", () => {
     expect(
       screen.getAllByText(
         "antimicrobial allergy and renal dosing safety checks are required for infection therapy",
-      ),
-    ).toHaveLength(2);
+      ).length,
+    ).toBeGreaterThanOrEqual(2);
     expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
   });
 
@@ -594,7 +601,10 @@ describe("ReviewPage", () => {
       target: { value: "Sources, safety checks, and simulation limits reviewed." },
     });
 
-    expect(screen.getByText("Clinical source 1 must use a reputable clinical source domain.")).toBeTruthy();
+    expect(
+      screen.getAllByText("Clinical source 1 must use a reputable clinical source domain.")
+        .length,
+    ).toBe(2);
     expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
     expect(mockCompleteClinicalReview).not.toHaveBeenCalled();
   });
@@ -618,8 +628,15 @@ describe("ReviewPage", () => {
 
     render(<ReviewPage />);
 
-    expect(screen.getByText("Clinical sources must include support for time-critical actions.")).toBeTruthy();
-    expect(screen.getByText("Clinical sources must include support for contraindication or safety checks.")).toBeTruthy();
+    expect(
+      screen.getAllByText("Clinical sources must include support for time-critical actions.")
+        .length,
+    ).toBe(2);
+    expect(
+      screen.getAllByText(
+        "Clinical sources must include support for contraindication or safety checks.",
+      ).length,
+    ).toBe(2);
     expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
   });
 
@@ -645,11 +662,15 @@ describe("ReviewPage", () => {
     render(<ReviewPage />);
 
     expect(
-      screen.getByText("Clinical sources must specifically anchor clinical red flags: Hypotension"),
-    ).toBeTruthy();
+      screen.getAllByText(
+        "Clinical sources must specifically anchor clinical red flags: Hypotension",
+      ).length,
+    ).toBe(2);
     expect(
-      screen.getByText("Clinical sources must specifically anchor time-critical actions: Blood cultures"),
-    ).toBeTruthy();
+      screen.getAllByText(
+        "Clinical sources must specifically anchor time-critical actions: Blood cultures",
+      ).length,
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("button", { name: "Mark Clinician Reviewed" })).toBeDisabled();
   });
 });

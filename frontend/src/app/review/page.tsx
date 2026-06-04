@@ -176,6 +176,7 @@ export default function ReviewPage() {
   );
   const sourceDiversityReady =
     independentOrganizations.length >= MIN_REVIEWED_SOURCE_ORGANIZATIONS;
+  const approvalBlockerCount = qualityIssues.length;
   const canSubmitReview =
     allChecksConfirmed &&
     allSourceAlignmentConfirmed &&
@@ -365,6 +366,53 @@ export default function ReviewPage() {
                       {selectedCase.source_provenance.review_label}
                     </span>
                   </div>
+
+                  {reviewDetail && (
+                    <div
+                      className={`mb-4 rounded-lg border p-3 ${
+                        approvalBlockerCount > 0
+                          ? "border-amber-700 bg-amber-950/30"
+                          : "border-emerald-700 bg-emerald-950/20"
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p
+                          className={`text-xs font-semibold uppercase tracking-wide ${
+                            approvalBlockerCount > 0 ? "text-amber-300" : "text-emerald-300"
+                          }`}
+                        >
+                          Approval Blockers
+                        </p>
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                            approvalBlockerCount > 0
+                              ? "border-amber-700 bg-amber-950/40 text-amber-100"
+                              : "border-emerald-700 bg-emerald-950/40 text-emerald-100"
+                          }`}
+                        >
+                          {approvalBlockerCount}
+                        </span>
+                      </div>
+                      {approvalBlockerCount > 0 ? (
+                        <ul className="mt-2 space-y-1 text-sm text-amber-100">
+                          {qualityIssues.slice(0, 3).map((issue) => (
+                            <li key={issue}>{issue}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="mt-2 text-sm text-emerald-100">
+                          Quality gate clear for clinician review once checklist confirmations
+                          and review notes are complete.
+                        </p>
+                      )}
+                      {approvalBlockerCount > 3 && (
+                        <p className="mt-2 text-xs text-amber-200">
+                          {approvalBlockerCount - 3} more blocker
+                          {approvalBlockerCount - 3 === 1 ? "" : "s"} listed below.
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   {reviewDetail ? (
                     <>
