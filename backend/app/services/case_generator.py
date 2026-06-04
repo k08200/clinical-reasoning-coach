@@ -28,6 +28,8 @@ Rules:
 - Do NOT make cases obscure or exotic — common presentations of common diseases
 - Do NOT include real patient identifiers: names, contact details, record
   numbers, exact dates, addresses, URLs in patient text, or other PHI.
+- Do NOT reveal the final diagnosis or its abbreviations in learner-visible
+  fields such as title, chief_complaint, history, exam, labs, or medications.
 - Do NOT use exact ages above 89. For older adults, set
   patient_demographics.age to "90 or older".
 - Include 2-3 cognitive biases that students commonly fall into with this case

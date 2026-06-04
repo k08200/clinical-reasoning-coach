@@ -29,6 +29,50 @@ PLACEHOLDER_SOURCE_HOSTS = {
     "127.0.0.1",
     "0.0.0.0",
 }
+DIAGNOSIS_LEAK_STOPWORDS = {
+    "a",
+    "an",
+    "and",
+    "by",
+    "due",
+    "from",
+    "in",
+    "of",
+    "or",
+    "secondary",
+    "the",
+    "to",
+    "with",
+}
+DIAGNOSIS_LEAK_ALIASES = {
+    "acute coronary syndrome": ["acute coronary syndrome", "acs"],
+    "myocardial infarction": ["myocardial infarction", "heart attack"],
+    "stemi": [
+        "stemi",
+        "st elevation",
+        "st-elevation",
+        "myocardial infarction",
+        "heart attack",
+        "acute coronary syndrome",
+        "acs",
+    ],
+    "nstemi": [
+        "nstemi",
+        "non st elevation",
+        "non-st elevation",
+        "myocardial infarction",
+    ],
+    "septic shock": ["septic shock", "urosepsis"],
+    "pulmonary embolism": ["pulmonary embolism", "embolism"],
+    "diabetic ketoacidosis": ["diabetic ketoacidosis", "ketoacidosis", "dka"],
+    "acute ischemic stroke": ["acute ischemic stroke", "ischemic stroke"],
+}
+LEARNER_VISIBLE_CASE_TEXT_FIELDS = [
+    "title",
+    "chief_complaint",
+    "history_of_present_illness",
+    "past_medical_history",
+]
 SOURCE_SUPPORT_SCOPE_PATTERNS = {
     "diagnosis or diagnostic reasoning": [
         r"\bdiagnos",
@@ -109,6 +153,7 @@ def evaluate_case_quality(case: ClinicalCaseCreate | dict[str, Any]) -> CaseQual
     _check_vitals(data, report)
     _check_exam_sections(data, report)
     _check_deidentified_case_content(data, report)
+    _check_diagnosis_not_visible_to_learner(data, report)
     _check_education_metadata(data, report)
     _check_safety_metadata(data, report)
     _check_source_metadata(data, report)
@@ -231,6 +276,81 @@ def _check_deidentified_case_content(
             "case content must be de-identified; detected possible "
             f"patient identifiers: {', '.join(detected_identifiers)}"
         )
+
+
+def _check_diagnosis_not_visible_to_learner(
+    data: dict[str, Any],
+    report: CaseQualityReport,
+) -> None:
+    diagnosis_terms = _diagnosis_leak_terms(str(data.get("diagnosis", "")))
+    if not diagnosis_terms:
+        return
+
+    for label, text in _learner_visible_case_strings(data):
+        normalized = _normalize_diagnosis_text(text)
+        leaked_terms = [
+            term
+            for term in diagnosis_terms
+            if _contains_diagnosis_term(normalized, term)
+        ]
+        if leaked_terms:
+            report.add_critical(
+                f"{label} must not reveal the diagnosis term '{leaked_terms[0]}'"
+            )
+
+
+def _learner_visible_case_strings(data: dict[str, Any]) -> list[tuple[str, str]]:
+    strings = [
+        (field_name, str(data.get(field_name)))
+        for field_name in LEARNER_VISIBLE_CASE_TEXT_FIELDS
+        if data.get(field_name)
+    ]
+    for field_name in ("medications",):
+        for value in _nested_strings(data.get(field_name)):
+            strings.append((field_name, value))
+    for field_name in ("physical_exam", "initial_labs"):
+        for value in _nested_strings(data.get(field_name)):
+            strings.append((field_name, value))
+    return strings
+
+
+def _diagnosis_leak_terms(diagnosis: str) -> list[str]:
+    normalized = _normalize_diagnosis_text(diagnosis)
+    terms: set[str] = set()
+    for trigger, aliases in DIAGNOSIS_LEAK_ALIASES.items():
+        if trigger in normalized:
+            terms.update(aliases)
+
+    raw_tokens = re.findall(r"[a-z0-9]+", normalized)
+    tokens = [
+        token
+        for token in raw_tokens
+        if token not in DIAGNOSIS_LEAK_STOPWORDS
+    ]
+    acronym = "".join(
+        token[0]
+        for token in raw_tokens
+        if token not in {"and", "or", "of", "the"}
+    )
+    if 3 <= len(acronym) <= 6:
+        terms.add(acronym)
+
+    for size in (3, 2):
+        for index in range(0, max(0, len(tokens) - size + 1)):
+            phrase_tokens = tokens[index:index + size]
+            if all(len(token) >= 3 for token in phrase_tokens):
+                terms.add(" ".join(phrase_tokens))
+
+    return sorted(terms, key=len, reverse=True)
+
+
+def _normalize_diagnosis_text(text: str) -> str:
+    return re.sub(r"\s+", " ", text.lower()).strip()
+
+
+def _contains_diagnosis_term(normalized_text: str, term: str) -> bool:
+    escaped = re.escape(_normalize_diagnosis_text(term))
+    return bool(re.search(rf"(?<![a-z0-9]){escaped}(?![a-z0-9])", normalized_text))
 
 
 def _case_content_strings(data: dict[str, Any]) -> list[str]:

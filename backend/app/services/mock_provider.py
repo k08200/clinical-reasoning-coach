@@ -465,7 +465,9 @@ _CASE_DKA = {
         "Reports increased thirst and urination for 3 days. "
         "Denies fever, diarrhea, or recent illness. Last ate 8 hours ago."
     ),
-    "past_medical_history": "Type 1 diabetes mellitus (diagnosed age 12), no prior DKA episodes.",
+    "past_medical_history": (
+        "Type 1 diabetes mellitus (diagnosed age 12), no prior diabetes-related hospitalizations."
+    ),
     "medications": ["Insulin glargine 20 units nightly (ran out 2 days ago)", "Insulin lispro with meals (ran out 2 days ago)"],
     "physical_exam": {
         "vitals": {"bp": "102/68", "hr": 122, "rr": 28, "temp_c": 37.1, "spo2": 99},

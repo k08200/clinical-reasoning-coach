@@ -119,6 +119,51 @@ def test_quality_gate_rejects_korean_patient_identifiers_in_case_content():
     )
 
 
+def test_quality_gate_rejects_diagnosis_in_learner_visible_title():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute coronary syndrome"
+    case["title"] = "Acute Coronary Syndrome in a Middle-Aged Patient"
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "title must not reveal the diagnosis term 'acute coronary syndrome'" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_rejects_diagnosis_acronym_in_learner_visible_history():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Diabetic Ketoacidosis"
+    case["history_of_present_illness"] = (
+        "22-year-old patient presents with nausea and dehydration after missing "
+        "insulin; the triage note labels this as DKA."
+    )
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "history_of_present_illness must not reveal the diagnosis term 'dka'" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_allows_diagnosis_terms_in_hidden_teaching_metadata():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Diabetic Ketoacidosis"
+    case["key_teaching_points"] = [
+        "DKA criteria include acidosis and ketones",
+        "Potassium must be assessed before insulin",
+        "Close the anion gap before transition",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
 def test_quality_gate_rejects_source_without_supports():
     case = copy.deepcopy(CASE_POOL[0])
     case["clinical_sources"] = [
@@ -210,5 +255,6 @@ def test_case_generation_prompt_requires_verifiable_sources():
     assert "diagnosis/diagnostic" in CASE_GENERATION_SYSTEM
     assert "contraindication/safety checks" in CASE_GENERATION_SYSTEM
     assert "real patient identifiers" in CASE_GENERATION_SYSTEM
+    assert "Do NOT reveal the final diagnosis" in CASE_GENERATION_SYSTEM
     assert "Do NOT use exact ages above 89" in CASE_GENERATION_SYSTEM
     assert "Do not use placeholder" in CASE_GENERATION_SYSTEM
