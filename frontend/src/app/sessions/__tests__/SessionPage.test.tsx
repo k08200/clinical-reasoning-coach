@@ -392,6 +392,52 @@ describe("SessionPage", () => {
     expect(screen.getByText(/dangerous closure, fixation, or action bias/)).toBeTruthy();
   });
 
+  it("shows management safety sequence guidance when completion is blocked", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+          secondAnalyzedStudentMessage,
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockComplete.mockRejectedValueOnce({
+      message: "Before finishing, revisit management safety.",
+      detail: {
+        code: "management_before_safety_checks_incomplete",
+        message: "Before finishing, revisit management safety.",
+        unsafe_management_turns: [
+          {
+            turn: 1,
+            detected_terms: ["heparin"],
+            missing_contraindication_checks: [
+              "Aortic dissection features before anticoagulation",
+            ],
+          },
+        ],
+      },
+    });
+
+    render(<SessionPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish Session" }));
+
+    expect(await screen.findByText("Management safety sequence still needs work")).toBeTruthy();
+    expect(screen.getByText(/before committing to risky treatment/)).toBeTruthy();
+    expect(screen.getByText("Turn 1: heparin")).toBeTruthy();
+    expect(
+      screen.getByText(/safety checks to come before simulated treatment decisions/),
+    ).toBeTruthy();
+  });
+
   it("shows dimension-level reasoning guidance when completion dimension score is too low", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession({

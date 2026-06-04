@@ -64,6 +64,16 @@ type CompletionActiveBiasDetail = {
   }[];
 };
 
+type CompletionManagementSafetyDetail = {
+  code: "management_before_safety_checks_incomplete";
+  message: string;
+  unsafe_management_turns: {
+    turn: number;
+    detected_terms: string[];
+    missing_contraindication_checks: string[];
+  }[];
+};
+
 function safetyCoverageLabel(category: string): string {
   if (category === "red_flags") return "Red Flags";
   if (category === "time_critical_actions") return "Time-Critical Actions";
@@ -151,6 +161,21 @@ function isCompletionActiveBiasDetail(value: unknown): value is CompletionActive
   );
 }
 
+function isCompletionManagementSafetyDetail(
+  value: unknown,
+): value is CompletionManagementSafetyDetail {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "code" in value &&
+    value.code === "management_before_safety_checks_incomplete" &&
+    "message" in value &&
+    typeof value.message === "string" &&
+    "unsafe_management_turns" in value &&
+    Array.isArray(value.unsafe_management_turns)
+  );
+}
+
 function errorDetail(error: unknown): unknown {
   if (!error || typeof error !== "object" || !("detail" in error)) return null;
   return error.detail;
@@ -190,6 +215,8 @@ export default function SessionPage() {
     useState<CompletionReasoningDimensionDetail | null>(null);
   const [completionActiveBiasDetail, setCompletionActiveBiasDetail] =
     useState<CompletionActiveBiasDetail | null>(null);
+  const [completionManagementSafetyDetail, setCompletionManagementSafetyDetail] =
+    useState<CompletionManagementSafetyDetail | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -238,6 +265,7 @@ export default function SessionPage() {
     setCompletionReasoningQualityDetail(null);
     setCompletionReasoningDimensionDetail(null);
     setCompletionActiveBiasDetail(null);
+    setCompletionManagementSafetyDetail(null);
 
     try {
       await streamMessage(id, content, {
@@ -288,6 +316,7 @@ export default function SessionPage() {
     setCompletionReasoningQualityDetail(null);
     setCompletionReasoningDimensionDetail(null);
     setCompletionActiveBiasDetail(null);
+    setCompletionManagementSafetyDetail(null);
     try {
       await api.sessions.complete(id);
       await mutate();
@@ -307,6 +336,9 @@ export default function SessionPage() {
         setError("");
       } else if (isCompletionActiveBiasDetail(detail)) {
         setCompletionActiveBiasDetail(detail);
+        setError("");
+      } else if (isCompletionManagementSafetyDetail(detail)) {
+        setCompletionManagementSafetyDetail(detail);
         setError("");
       } else {
         setError(err instanceof Error ? err.message : "Could not finish the session");
@@ -583,6 +615,41 @@ export default function SessionPage() {
               <p className="mt-3 text-xs text-amber-300">
                 A completed review should show that dangerous closure, fixation, or action bias
                 has been actively challenged.
+              </p>
+            </div>
+          )}
+
+          {completionManagementSafetyDetail && (
+            <div className="mx-4 mt-4 rounded-lg border border-amber-700 bg-amber-950/45 px-4 py-3 text-sm leading-relaxed text-amber-100">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">Management safety sequence still needs work</p>
+                  <p className="mt-1 text-amber-200">
+                    Revisit the management plan and explain contraindication or safety checks
+                    before committing to risky treatment.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => textareaRef.current?.focus()}
+                  className="rounded-lg border border-amber-600 px-3 py-1.5 text-xs font-semibold text-amber-100 hover:bg-amber-900/60"
+                >
+                  Continue Reasoning
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {completionManagementSafetyDetail.unsafe_management_turns.map((turn) => (
+                  <span
+                    key={`${turn.turn}-${turn.detected_terms.join("-")}`}
+                    className="rounded-full border border-amber-700 bg-slate-900/50 px-3 py-1 text-xs text-amber-100"
+                  >
+                    Turn {turn.turn}: {turn.detected_terms.join(", ")}
+                  </span>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-amber-300">
+                Completion requires safety checks to come before simulated treatment decisions,
+                not only somewhere later in the transcript.
               </p>
             </div>
           )}

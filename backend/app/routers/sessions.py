@@ -603,6 +603,52 @@ def _reasoning_quality_block_detail(final_score: float) -> dict:
     }
 
 
+def _management_safety_completion_gaps(
+    case: ClinicalCase,
+    messages: list[Message],
+) -> list[dict]:
+    gaps: list[dict] = []
+    prior_analyzed_messages: list[Message] = []
+    student_turn = 0
+    for message in messages:
+        if message.role != "student":
+            continue
+        student_turn += 1
+        if message.reasoning_score is None:
+            continue
+        prior_coverage = _build_clinical_safety_coverage_for_messages(
+            case,
+            prior_analyzed_messages,
+            analyzed_only=True,
+        )
+        uncovered_targets = _uncovered_safety_targets(prior_coverage)
+        detected_terms = detect_management_safety_gap(
+            message.content,
+            uncovered_targets,
+        )
+        if detected_terms:
+            gaps.append({
+                "turn": student_turn,
+                "detected_terms": detected_terms,
+                "missing_contraindication_checks": uncovered_targets[
+                    "contraindication_checks"
+                ],
+            })
+        prior_analyzed_messages.append(message)
+    return gaps
+
+
+def _management_safety_completion_block_detail(gaps: list[dict]) -> dict:
+    return {
+        "code": "management_before_safety_checks_incomplete",
+        "message": (
+            "Before finishing, revisit any management plan that was stated before "
+            "contraindication or safety checks and explain the safety checks first."
+        ),
+        "unsafe_management_turns": gaps,
+    }
+
+
 def _reasoning_dimension_averages(messages: list[Message]) -> dict[str, float]:
     score_totals: dict[str, float] = {}
     score_counts: dict[str, int] = {}
@@ -1202,6 +1248,15 @@ async def complete_session(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=_safety_completion_block_detail(safety_coverage),
+        )
+    management_safety_gaps = _management_safety_completion_gaps(
+        case,
+        session.messages,
+    )
+    if management_safety_gaps:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=_management_safety_completion_block_detail(management_safety_gaps),
         )
     if len(scores) < MIN_ANALYZED_LEARNER_TURNS_FOR_COMPLETION:
         raise HTTPException(
