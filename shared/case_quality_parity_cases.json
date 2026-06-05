@@ -1601,5 +1601,65 @@
         }
       ]
     }
+  },
+  {
+    "name": "thyroid_storm_requires_beta_blocker_thionamide_iodine_and_steroid_support",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "thyroid storm time-critical actions must include beta-blockade"
+    ],
+    "overrides": {
+      "diagnosis": "Thyroid storm",
+      "patient_demographics": {
+        "age": 39,
+        "sex": "female",
+        "weight_kg": 57,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Fever, agitation, and severe tachycardia",
+      "history_of_present_illness": "Patient with Graves disease after infection presents with fever 40 C, delirium, atrial fibrillation, heart failure symptoms, vomiting, and severe tachycardia.",
+      "key_teaching_points": [
+        "Thyroid storm is a life-threatening thyrotoxic crisis",
+        "Treatment blocks adrenergic effects, hormone synthesis, hormone release, and T4 to T3 conversion",
+        "Iodine should be given after thionamide to avoid fueling new hormone synthesis"
+      ],
+      "clinical_red_flags": [
+        "Hyperthermia with delirium, agitation, seizure, or coma",
+        "Atrial fibrillation, heart failure, shock, vomiting, diarrhea, or infection trigger"
+      ],
+      "time_critical_actions": [
+        "Start propranolol beta-blocker or esmolol rate control for severe tachycardia if tolerated",
+        "Give iodine or iodide such as Lugol solution or SSKI only after the correct sequence is planned",
+        "Give hydrocortisone glucocorticoid steroid, active cooling with acetaminophen, ICU admission, and supportive care"
+      ],
+      "contraindication_checks": [
+        "Sequence thionamide before iodine or iodide and give iodine after thionamide, often at least one hour after PTU or methimazole",
+        "Review beta-blocker contraindications including asthma, bronchospasm, decompensated heart failure, hypotension, or shock",
+        "Check pregnancy status, CBC for agranulocytosis, liver transaminases, hepatic injury, and PTU hepatotoxicity risk",
+        "Search for infection, thyroidectomy, MI, pulmonary embolism, arrhythmia, atrial fibrillation, and other precipitants with ICU monitoring"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Thyroid Storm",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/endocrine-and-metabolic-disorders/thyroid-disorders/thyroid-storm",
+          "supports": [
+            "thyroid storm diagnosis and risk stratification",
+            "thyroid storm is a life-threatening thyrotoxic crisis",
+            "treatment blocks adrenergic effects, hormone synthesis, hormone release, and T4 to T3 conversion",
+            "iodine should be given after thionamide to avoid fueling new hormone synthesis",
+            "hyperthermia with delirium, agitation, seizure, or coma as red flags",
+            "atrial fibrillation, heart failure, shock, vomiting, diarrhea, or infection trigger as severity markers",
+            "propranolol beta-blocker or esmolol rate control for severe tachycardia if tolerated",
+            "iodine or iodide such as Lugol solution or SSKI only after the correct sequence is planned",
+            "hydrocortisone glucocorticoid steroid, active cooling with acetaminophen, ICU admission, and supportive care",
+            "thionamide before iodine or iodide and iodine after thionamide, often at least one hour after PTU or methimazole",
+            "beta-blocker contraindications including asthma, bronchospasm, decompensated heart failure, hypotension, or shock",
+            "pregnancy status, CBC for agranulocytosis, liver transaminases, hepatic injury, and PTU hepatotoxicity risk",
+            "infection, thyroidectomy, MI, pulmonary embolism, arrhythmia, atrial fibrillation, and other precipitants with ICU monitoring"
+          ]
+        }
+      ]
+    }
   }
 ]

@@ -1274,6 +1274,105 @@ const MALIGNANT_HYPERTHERMIA_TRIGGER_PREVENTION_SAFETY_TERMS = [
   "유전",
 ];
 
+const THYROID_STORM_CONTEXT_TERMS = [
+  "thyroid crisis",
+  "thyroid storm",
+  "thyrotoxic crisis",
+  "thyrotoxic storm",
+  "갑상샘폭풍",
+  "갑상선 폭풍",
+  "갑상샘 위기",
+];
+
+const THYROID_STORM_BETA_BLOCKER_ACTION_TERMS = [
+  "beta blocker",
+  "beta-blocker",
+  "esmolol",
+  "propranolol",
+  "rate control",
+  "tachycardia",
+  "베타차단",
+];
+
+const THYROID_STORM_THIONAMIDE_ACTION_TERMS = [
+  "antithyroid",
+  "methimazole",
+  "propylthiouracil",
+  "ptu",
+  "thionamide",
+  "항갑상샘",
+  "항갑상선",
+];
+
+const THYROID_STORM_IODINE_ACTION_TERMS = [
+  "iodide",
+  "iodine",
+  "lugol",
+  "potassium iodide",
+  "sski",
+  "요오드",
+];
+
+const THYROID_STORM_STEROID_SUPPORT_ACTION_TERMS = [
+  "acetaminophen",
+  "cooling",
+  "dexamethasone",
+  "glucocorticoid",
+  "hydrocortisone",
+  "icu",
+  "supportive care",
+  "steroid",
+  "냉각",
+  "스테로이드",
+];
+
+const THYROID_STORM_SEQUENCE_SAFETY_TERMS = [
+  "after thionamide",
+  "after methimazole",
+  "after ptu",
+  "before iodine",
+  "iodine after",
+  "iodide after",
+  "one hour after",
+  "thionamide before",
+  "요오드 전",
+];
+
+const THYROID_STORM_BETA_BLOCKER_SAFETY_TERMS = [
+  "asthma",
+  "bronchospasm",
+  "decompensated heart failure",
+  "heart failure",
+  "hypotension",
+  "shock",
+  "천식",
+  "심부전",
+];
+
+const THYROID_STORM_DRUG_LIVER_SAFETY_TERMS = [
+  "agranulocytosis",
+  "cbc",
+  "hepatotoxicity",
+  "liver",
+  "pregnancy",
+  "ptu",
+  "transaminase",
+  "간",
+  "임신",
+];
+
+const THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS = [
+  "arrhythmia",
+  "atrial fibrillation",
+  "infection",
+  "mi",
+  "precipitant",
+  "pulmonary embolism",
+  "thyroidectomy",
+  "trigger",
+  "감염",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -3255,6 +3354,59 @@ function hasMalignantHyperthermiaTreatmentSafetyCheck(checks: string[]): boolean
   return hasMetabolicSafety && hasMonitoringSafety && hasDantroleneSafety && hasTriggerPreventionSafety;
 }
 
+function requiresThyroidStormSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return THYROID_STORM_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasThyroidStormTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasBetaBlocker = THYROID_STORM_BETA_BLOCKER_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasThionamide = THYROID_STORM_THIONAMIDE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIodine = THYROID_STORM_IODINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSteroidSupport = THYROID_STORM_STEROID_SUPPORT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasBetaBlocker && hasThionamide && hasIodine && hasSteroidSupport;
+}
+
+function hasThyroidStormTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasSequenceSafety = THYROID_STORM_SEQUENCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBetaBlockerSafety = THYROID_STORM_BETA_BLOCKER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDrugLiverSafety = THYROID_STORM_DRUG_LIVER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTriggerMonitoringSafety = THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasSequenceSafety && hasBetaBlockerSafety && hasDrugLiverSafety && hasTriggerMonitoringSafety;
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -4134,6 +4286,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasMalignantHyperthermiaTreatmentSafetyCheck,
       issue:
         "malignant hyperthermia safety checks must include hyperkalemia, acidosis, arrhythmia, or rhabdomyolysis monitoring, core temperature or ETCO2 and urine-output monitoring, dantrolene repeat-dose or interaction safety, and trigger-free anesthesia or susceptibility prevention planning",
+    },
+    {
+      name: "thyroid_storm_time_critical_actions",
+      label: "Thyroid storm emergency actions",
+      applies: requiresThyroidStormSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasThyroidStormTimeCriticalActions,
+      issue:
+        "thyroid storm time-critical actions must include beta-blockade or rate control, thionamide antithyroid therapy, iodine or iodide therapy, and glucocorticoid plus cooling, ICU, or supportive care",
+    },
+    {
+      name: "thyroid_storm_treatment_safety",
+      label: "Thyroid storm treatment safety",
+      applies: requiresThyroidStormSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasThyroidStormTreatmentSafetyCheck,
+      issue:
+        "thyroid storm safety checks must include iodine-after-thionamide sequencing, beta-blocker contraindication review, thionamide pregnancy, liver, or agranulocytosis safety, and precipitant, arrhythmia, or ICU monitoring",
     },
     {
       name: "dka_time_critical_actions",

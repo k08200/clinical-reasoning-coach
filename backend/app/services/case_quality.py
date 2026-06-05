@@ -1204,6 +1204,96 @@ MALIGNANT_HYPERTHERMIA_TRIGGER_PREVENTION_SAFETY_TERMS = (
     "trigger-free",
     "유전",
 )
+THYROID_STORM_CONTEXT_TERMS = (
+    "thyroid crisis",
+    "thyroid storm",
+    "thyrotoxic crisis",
+    "thyrotoxic storm",
+    "갑상샘폭풍",
+    "갑상선 폭풍",
+    "갑상샘 위기",
+)
+THYROID_STORM_BETA_BLOCKER_ACTION_TERMS = (
+    "beta blocker",
+    "beta-blocker",
+    "esmolol",
+    "propranolol",
+    "rate control",
+    "tachycardia",
+    "베타차단",
+)
+THYROID_STORM_THIONAMIDE_ACTION_TERMS = (
+    "antithyroid",
+    "methimazole",
+    "propylthiouracil",
+    "ptu",
+    "thionamide",
+    "항갑상샘",
+    "항갑상선",
+)
+THYROID_STORM_IODINE_ACTION_TERMS = (
+    "iodide",
+    "iodine",
+    "lugol",
+    "potassium iodide",
+    "sski",
+    "요오드",
+)
+THYROID_STORM_STEROID_SUPPORT_ACTION_TERMS = (
+    "acetaminophen",
+    "cooling",
+    "dexamethasone",
+    "glucocorticoid",
+    "hydrocortisone",
+    "icu",
+    "supportive care",
+    "steroid",
+    "냉각",
+    "스테로이드",
+)
+THYROID_STORM_SEQUENCE_SAFETY_TERMS = (
+    "after thionamide",
+    "after methimazole",
+    "after ptu",
+    "before iodine",
+    "iodine after",
+    "iodide after",
+    "one hour after",
+    "thionamide before",
+    "요오드 전",
+)
+THYROID_STORM_BETA_BLOCKER_SAFETY_TERMS = (
+    "asthma",
+    "bronchospasm",
+    "decompensated heart failure",
+    "heart failure",
+    "hypotension",
+    "shock",
+    "천식",
+    "심부전",
+)
+THYROID_STORM_DRUG_LIVER_SAFETY_TERMS = (
+    "agranulocytosis",
+    "cbc",
+    "hepatotoxicity",
+    "liver",
+    "pregnancy",
+    "ptu",
+    "transaminase",
+    "간",
+    "임신",
+)
+THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS = (
+    "arrhythmia",
+    "atrial fibrillation",
+    "infection",
+    "mi",
+    "precipitant",
+    "pulmonary embolism",
+    "thyroidectomy",
+    "trigger",
+    "감염",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -2959,6 +3049,29 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="thyroid_storm_time_critical_actions",
+            applies=_requires_thyroid_storm_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_thyroid_storm_time_critical_actions,
+            issue=(
+                "thyroid storm time-critical actions must include beta-blockade "
+                "or rate control, thionamide antithyroid therapy, iodine or iodide "
+                "therapy, and glucocorticoid plus cooling, ICU, or supportive care"
+            ),
+        ),
+        DomainSafetyGate(
+            name="thyroid_storm_treatment_safety",
+            applies=_requires_thyroid_storm_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_thyroid_storm_treatment_safety_check,
+            issue=(
+                "thyroid storm safety checks must include iodine-after-thionamide "
+                "sequencing, beta-blocker contraindication review, thionamide "
+                "pregnancy, liver, or agranulocytosis safety, and precipitant, "
+                "arrhythmia, or ICU monitoring"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -3943,6 +4056,80 @@ def _has_malignant_hyperthermia_treatment_safety_check(checks: list[Any]) -> boo
         and has_monitoring_safety
         and has_dantrolene_safety
         and has_trigger_prevention_safety
+    )
+
+
+def _requires_thyroid_storm_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in THYROID_STORM_CONTEXT_TERMS
+    )
+
+
+def _has_thyroid_storm_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_beta_blocker = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THYROID_STORM_BETA_BLOCKER_ACTION_TERMS
+    )
+    has_thionamide = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THYROID_STORM_THIONAMIDE_ACTION_TERMS
+    )
+    has_iodine = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THYROID_STORM_IODINE_ACTION_TERMS
+    )
+    has_steroid_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THYROID_STORM_STEROID_SUPPORT_ACTION_TERMS
+    )
+    return has_beta_blocker and has_thionamide and has_iodine and has_steroid_support
+
+
+def _has_thyroid_storm_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_sequence_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THYROID_STORM_SEQUENCE_SAFETY_TERMS
+    )
+    has_beta_blocker_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THYROID_STORM_BETA_BLOCKER_SAFETY_TERMS
+    )
+    has_drug_liver_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THYROID_STORM_DRUG_LIVER_SAFETY_TERMS
+    )
+    has_trigger_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS
+    )
+    return (
+        has_sequence_safety
+        and has_beta_blocker_safety
+        and has_drug_liver_safety
+        and has_trigger_monitoring_safety
     )
 
 
