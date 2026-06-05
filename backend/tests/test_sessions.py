@@ -4325,7 +4325,7 @@ async def test_korean_real_patient_signal_uses_korean_safety_response(
 
     stream_response = await client.post(
         f"/api/sessions/{session_id}/stream",
-        json={"content": "제 환자가 지금 숨을 못 쉬고 있습니다."},
+        json={"content": "아버지가 방금 쓰러졌고 의식이 없습니다."},
         headers=auth_headers,
     )
 
@@ -4344,7 +4344,7 @@ async def test_korean_real_patient_signal_uses_korean_safety_response(
         "coach",
     ]
     assert saved_session["messages"][1]["content"] == KOREAN_REAL_PATIENT_SAFETY_RESPONSE
-    assert "제 환자가" not in str(saved_session)
+    assert "아버지가" not in str(saved_session)
 
     async with TestSessionLocal() as db:
         safety_events = (
@@ -4355,8 +4355,8 @@ async def test_korean_real_patient_signal_uses_korean_safety_response(
             )
         ).scalars().all()
     assert len(safety_events) == 1
-    assert "제 환자" in safety_events[0].detected_terms
-    assert "숨을 못 쉬" in safety_events[0].detected_terms
+    assert "쓰러졌" in safety_events[0].detected_terms
+    assert "의식이 없" in safety_events[0].detected_terms
 
 
 @pytest.mark.asyncio

@@ -85,9 +85,15 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "cannot breathe",
     "trouble breathing",
     "severe chest pain",
+    "not breathing",
+    "difficulty breathing",
+    "struggling to breathe",
     "stroke symptoms",
     "unconscious",
     "collapsed",
+    "pass out",
+    "passed out",
+    "fainted",
     "not waking up",
     "seizure",
     "suicidal",
@@ -100,6 +106,10 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "우리 어머니",
     "우리 아빠",
     "우리 아버지",
+    "제 엄마",
+    "제 어머니",
+    "제 아빠",
+    "제 아버지",
     "우리 아들",
     "우리 딸",
     "우리 남편",
@@ -137,13 +147,23 @@ REAL_PATIENT_SIGNAL_PATTERNS = [
     "119",
     "숨이 안 쉬",
     "숨을 못 쉬",
+    "숨쉬기 힘",
+    "숨 쉬기 힘",
+    "숨이 가빠",
+    "숨 가빠",
     "호흡 곤란",
+    "호흡이 힘",
     "심한 가슴",
     "가슴 통증이 심",
     "뇌졸중 증상",
     "의식이 없",
+    "의식 잃",
     "깨어나지",
     "쓰러졌",
+    "쓰러져",
+    "쓰러진",
+    "실신",
+    "기절",
     "발작",
     "자살",
     "극단적 선택",
@@ -157,18 +177,34 @@ REAL_PATIENT_CONTEXTUAL_SIGNAL_PATTERNS = {
     "on the ward",
     "our patient",
     "severe chest pain",
+    "not breathing",
+    "difficulty breathing",
+    "struggling to breathe",
     "stroke symptoms",
     "unconscious",
     "collapsed",
+    "pass out",
+    "passed out",
+    "fainted",
     "not waking up",
     "seizure",
+    "숨쉬기 힘",
+    "숨 쉬기 힘",
+    "숨이 가빠",
+    "숨 가빠",
     "호흡 곤란",
+    "호흡이 힘",
     "심한 가슴",
     "가슴 통증이 심",
     "뇌졸중 증상",
     "의식이 없",
+    "의식 잃",
     "깨어나지",
     "쓰러졌",
+    "쓰러져",
+    "쓰러진",
+    "실신",
+    "기절",
     "발작",
 }
 SIMULATION_CONTEXT_PATTERNS = [
@@ -234,6 +270,10 @@ REAL_PATIENT_OVERRIDE_PATTERNS = [
     "우리 어머니",
     "우리 아빠",
     "우리 아버지",
+    "제 엄마",
+    "제 어머니",
+    "제 아빠",
+    "제 아버지",
     "우리 아들",
     "우리 딸",
     "우리 남편",
@@ -275,21 +315,50 @@ REAL_PATIENT_HIGH_CONFIDENCE_PATTERNS = [
     for pattern in REAL_PATIENT_SIGNAL_PATTERNS
     if pattern not in REAL_PATIENT_CONTEXTUAL_SIGNAL_PATTERNS
 ]
+ENGLISH_PERSONAL_URGENCY_TERMS_RE = (
+    r"severe chest pain|stroke symptoms|trouble breathing|can't breathe|cannot breathe|"
+    r"not breathing|difficulty breathing|struggling to breathe|unconscious|collapsed|"
+    r"pass out|passed out|fainted|not waking up|seizure"
+)
+ENGLISH_ONSITE_SUBJECTS_RE = (
+    r"my patient|our patient|someone here|someone|a person|family member"
+)
+KOREAN_PERSONAL_URGENCY_TERMS_RE = (
+    r"호흡 곤란|숨(?:이|을)?\s*(?:안\s*쉬|못\s*쉬|가빠)|"
+    r"숨\s*쉬기\s*힘|숨쉬기\s*힘|호흡이\s*힘|심한 가슴|가슴 통증이 심|"
+    r"뇌졸중 증상|의식이 없|의식 잃|깨어나지|쓰러졌|쓰러져|쓰러진|"
+    r"실신|기절|발작"
+)
+KOREAN_SELF_SUBJECTS_RE = r"제가|저는|나는|내가"
+KOREAN_NEARBY_SUBJECTS_RE = (
+    r"환자|보호자|엄마|어머니|아빠|아버지|아들|딸|남편|아내|형|오빠|"
+    r"누나|언니|할머니|할아버지|아이|아기|친구|배우자|룸메이트"
+)
 REAL_PATIENT_PERSONAL_URGENCY_PATTERNS = [
     re.compile(
-        r"\b(?:i|me|myself)\b.{0,48}\b(?:severe chest pain|stroke symptoms|trouble breathing|can't breathe|cannot breathe|unconscious|collapsed|not waking up|seizure)\b"
+        rf"\b(?:i|me|myself)\b.{{0,48}}\b(?:{ENGLISH_PERSONAL_URGENCY_TERMS_RE})\b"
     ),
     re.compile(
-        r"\b(?:severe chest pain|stroke symptoms|trouble breathing|can't breathe|cannot breathe|unconscious|collapsed|not waking up|seizure)\b.{0,48}\b(?:i|me|myself)\b"
+        rf"\b(?:{ENGLISH_PERSONAL_URGENCY_TERMS_RE})\b.{{0,48}}\b(?:i|me|myself)\b"
     ),
     re.compile(
-        r"\b(?:my patient|our patient|someone here)\b.{0,64}\b(?:severe chest pain|stroke symptoms|trouble breathing|can't breathe|cannot breathe|unconscious|collapsed|not waking up|seizure)\b"
+        rf"\b(?:{ENGLISH_ONSITE_SUBJECTS_RE})\b.{{0,64}}\b(?:{ENGLISH_PERSONAL_URGENCY_TERMS_RE})\b"
     ),
     re.compile(
-        r"\b(?:severe chest pain|stroke symptoms|trouble breathing|can't breathe|cannot breathe|unconscious|collapsed|not waking up|seizure)\b.{0,64}\b(?:my patient|our patient|someone here)\b"
+        rf"\b(?:{ENGLISH_PERSONAL_URGENCY_TERMS_RE})\b.{{0,64}}\b(?:{ENGLISH_ONSITE_SUBJECTS_RE})\b"
     ),
-    re.compile(r"(?:제가|저는|나는|내가).{0,24}(?:호흡 곤란|심한 가슴|가슴 통증이 심|뇌졸중 증상|의식이 없|깨어나지|쓰러졌|발작)"),
-    re.compile(r"(?:호흡 곤란|심한 가슴|가슴 통증이 심|뇌졸중 증상|의식이 없|깨어나지|쓰러졌|발작).{0,24}(?:제가|저는|나는|내가)"),
+    re.compile(
+        rf"(?:{KOREAN_SELF_SUBJECTS_RE}).{{0,24}}(?:{KOREAN_PERSONAL_URGENCY_TERMS_RE})"
+    ),
+    re.compile(
+        rf"(?:{KOREAN_PERSONAL_URGENCY_TERMS_RE}).{{0,24}}(?:{KOREAN_SELF_SUBJECTS_RE})"
+    ),
+    re.compile(
+        rf"(?:{KOREAN_NEARBY_SUBJECTS_RE}).{{0,32}}(?:{KOREAN_PERSONAL_URGENCY_TERMS_RE})"
+    ),
+    re.compile(
+        rf"(?:{KOREAN_PERSONAL_URGENCY_TERMS_RE}).{{0,32}}(?:{KOREAN_NEARBY_SUBJECTS_RE})"
+    ),
 ]
 
 DIRECT_CONFIRMATION_PATTERNS = [
