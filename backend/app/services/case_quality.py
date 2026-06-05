@@ -396,6 +396,38 @@ INFECTION_TREATMENT_ACTION_TERMS = (
     "항생제",
     "감염원 조절",
 )
+SEPSIS_CONTEXT_TERMS = (
+    "sepsis",
+    "sepsis bundle",
+    "septic",
+    "septic shock",
+    "urosepsis",
+    "패혈증",
+)
+SEPSIS_LACTATE_ACTION_TERMS = (
+    "lactate",
+    "젖산",
+)
+SEPSIS_FLUID_ACTION_TERMS = (
+    "fluid",
+    "fluids",
+    "resuscitation",
+    "수액",
+)
+SEPSIS_VASOPRESSOR_ACTION_TERMS = (
+    "hypotension persists",
+    "map",
+    "norepinephrine",
+    "pressor",
+    "pressors",
+    "shock",
+    "vasopressor",
+    "vasopressors",
+    "노르에피네프린",
+    "승압제",
+    "저혈압",
+    "혈관수축제",
+)
 ANTIMICROBIAL_ALLERGY_SAFETY_TERMS = (
     "allergies",
     "allergy",
@@ -1064,6 +1096,17 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="sepsis_resuscitation_actions",
+            applies=_requires_sepsis_resuscitation_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_sepsis_resuscitation_actions,
+            issue=(
+                "sepsis time-critical actions must include lactate measurement "
+                "or reassessment, fluid resuscitation, and vasopressor or shock "
+                "escalation planning"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -1276,6 +1319,46 @@ def _has_antimicrobial_safety_check(checks: list[Any]) -> bool:
         for term in ANTIMICROBIAL_DOSING_SAFETY_TERMS
     )
     return has_allergy_check and has_dosing_check
+
+
+def _requires_sepsis_resuscitation_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in SEPSIS_CONTEXT_TERMS
+    )
+
+
+def _has_sepsis_resuscitation_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_lactate = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEPSIS_LACTATE_ACTION_TERMS
+    )
+    has_fluids = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEPSIS_FLUID_ACTION_TERMS
+    )
+    has_vasopressor_or_shock_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEPSIS_VASOPRESSOR_ACTION_TERMS
+    )
+    return has_lactate and has_fluids and has_vasopressor_or_shock_escalation
 
 
 def _requires_dka_treatment_safety_check(data: dict[str, Any]) -> bool:

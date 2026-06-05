@@ -46,6 +46,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
     assert {gate.name for gate in gates} == {
         "infection_time_critical_actions",
         "infection_antimicrobial_safety",
+        "sepsis_resuscitation_actions",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "stroke_time_critical_actions",
@@ -411,6 +412,37 @@ def test_quality_gate_requires_antimicrobial_safety_for_infection_therapy():
     assert not report.passed
     assert any(
         "antimicrobial allergy and renal dosing safety checks are required" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_sepsis_lactate_fluid_and_vasopressor_actions():
+    case = copy.deepcopy(CASE_POOL[1])
+    case["time_critical_actions"] = [
+        "Obtain blood cultures promptly without delaying empiric antibiotics",
+        "Start broad-spectrum antibiotics and source control planning",
+        "Escalate suspected sepsis urgently",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "sepsis diagnosis and risk stratification",
+        "hypotension, fever, and altered mental status as sepsis severity markers",
+        "lactate elevation and tissue hypoperfusion in septic shock",
+        "AKI, thrombocytopenia, delayed urination, and poor perfusion as organ dysfunction",
+        "blood cultures and antimicrobial timing",
+        "source control planning",
+        "renal impairment and allergy history before antibiotic selection or dosing",
+        "volume overload risk during fluid resuscitation in CKD or heart failure",
+        "need for vasopressors if hypotension persists after initial resuscitation",
+        "obtain blood cultures promptly without delaying empiric antibiotics",
+        "start broad-spectrum antibiotics and source control planning",
+        "escalate suspected sepsis urgently",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "sepsis time-critical actions must include lactate" in issue
         for issue in report.critical_issues
     )
 

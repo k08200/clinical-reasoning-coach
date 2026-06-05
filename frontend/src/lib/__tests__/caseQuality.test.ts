@@ -136,6 +136,14 @@ describe("reviewQualityIssues", () => {
         fieldName: "contraindication_checks",
       },
     );
+    expect(statuses.find((status) => status.name === "sepsis_resuscitation_actions")).toMatchObject(
+      {
+        applied: true,
+        passed: false,
+        label: "Sepsis resuscitation actions",
+        fieldName: "time_critical_actions",
+      },
+    );
   });
 
   it("flags clinician-reviewed cases with only one independent source organization", () => {

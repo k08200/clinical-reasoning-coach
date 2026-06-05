@@ -324,6 +324,34 @@ const INFECTION_TREATMENT_ACTION_TERMS = [
   "감염원 조절",
 ];
 
+const SEPSIS_CONTEXT_TERMS = [
+  "sepsis",
+  "sepsis bundle",
+  "septic",
+  "septic shock",
+  "urosepsis",
+  "패혈증",
+];
+
+const SEPSIS_LACTATE_ACTION_TERMS = ["lactate", "젖산"];
+
+const SEPSIS_FLUID_ACTION_TERMS = ["fluid", "fluids", "resuscitation", "수액"];
+
+const SEPSIS_VASOPRESSOR_ACTION_TERMS = [
+  "hypotension persists",
+  "map",
+  "norepinephrine",
+  "pressor",
+  "pressors",
+  "shock",
+  "vasopressor",
+  "vasopressors",
+  "노르에피네프린",
+  "승압제",
+  "저혈압",
+  "혈관수축제",
+];
+
 const ANTIMICROBIAL_ALLERGY_SAFETY_TERMS = [
   "allergies",
   "allergy",
@@ -850,6 +878,35 @@ function hasAntimicrobialSafetyCheck(checks: string[]): boolean {
   return hasAllergyCheck && hasDosingCheck;
 }
 
+function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return SEPSIS_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasSepsisResuscitationActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasLactate = SEPSIS_LACTATE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFluids = SEPSIS_FLUID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVasopressorOrShockEscalation = SEPSIS_VASOPRESSOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasLactate && hasFluids && hasVasopressorOrShockEscalation;
+}
+
 function requiresDkaTreatmentSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -1065,6 +1122,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAntimicrobialSafetyCheck,
       issue:
         "antimicrobial allergy and renal dosing safety checks are required for infection therapy",
+    },
+    {
+      name: "sepsis_resuscitation_actions",
+      label: "Sepsis resuscitation actions",
+      applies: requiresSepsisResuscitationSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSepsisResuscitationActions,
+      issue:
+        "sepsis time-critical actions must include lactate measurement or reassessment, fluid resuscitation, and vasopressor or shock escalation planning",
     },
     {
       name: "dka_time_critical_actions",
