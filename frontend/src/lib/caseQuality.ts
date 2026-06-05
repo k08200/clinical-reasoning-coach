@@ -978,6 +978,101 @@ const HYPERKALEMIA_RECURRENCE_SAFETY_TERMS = [
   "투석",
 ];
 
+const STATUS_EPILEPTICUS_CONTEXT_TERMS = [
+  "convulsive status epilepticus",
+  "continuous seizure",
+  "ongoing seizure",
+  "prolonged seizure",
+  "refractory status epilepticus",
+  "status epilepticus",
+  "status seizure",
+  "발작지속",
+  "지속 발작",
+];
+
+const STATUS_EPILEPTICUS_AIRWAY_ACTION_TERMS = [
+  "airway",
+  "breathing",
+  "intubation",
+  "oxygen",
+  "suction",
+  "기도",
+  "산소",
+  "삽관",
+];
+
+const STATUS_EPILEPTICUS_BENZO_ACTION_TERMS = [
+  "benzodiazepine",
+  "diazepam",
+  "lorazepam",
+  "midazolam",
+  "벤조디아제핀",
+  "로라제팜",
+  "미다졸람",
+];
+
+const STATUS_EPILEPTICUS_SECOND_LINE_ACTION_TERMS = [
+  "antiseizure loading",
+  "fosphenytoin",
+  "levetiracetam",
+  "phenobarbital",
+  "phenytoin",
+  "second-line",
+  "valproate",
+  "항경련제",
+];
+
+const STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS = [
+  "anesthetic infusion",
+  "continuous eeg",
+  "icu",
+  "intubation",
+  "neurology",
+  "propofol",
+  "refractory",
+  "midazolam infusion",
+  "뇌파",
+  "중환자",
+];
+
+const STATUS_EPILEPTICUS_GLUCOSE_SAFETY_TERMS = [
+  "dextrose",
+  "glucose",
+  "hypoglycemia",
+  "thiamine",
+  "저혈당",
+  "티아민",
+  "혈당",
+];
+
+const STATUS_EPILEPTICUS_RESPIRATORY_SAFETY_TERMS = [
+  "airway",
+  "aspiration",
+  "oxygen saturation",
+  "respiratory depression",
+  "ventilation",
+  "기도",
+  "호흡억제",
+];
+
+const STATUS_EPILEPTICUS_ASM_SAFETY_TERMS = [
+  "dose",
+  "dosing",
+  "ecg",
+  "hepatic",
+  "hypotension",
+  "liver",
+  "pregnancy",
+  "renal",
+  "valproate",
+  "weight",
+  "간기능",
+  "신장",
+  "용량",
+  "임신",
+  "체중",
+];
+
 const STROKE_CONTEXT_TERMS = [
   "acute ischemic stroke",
   "brain attack",
@@ -1897,6 +1992,52 @@ function hasHyperkalemiaTreatmentSafetyCheck(checks: string[]): boolean {
   return hasEcgMonitoring && hasGlucoseSafety && hasRecurrenceReview;
 }
 
+function requiresStatusEpilepticusSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return STATUS_EPILEPTICUS_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasStatusEpilepticusTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAirway = STATUS_EPILEPTICUS_AIRWAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBenzo = STATUS_EPILEPTICUS_BENZO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSecondLine = STATUS_EPILEPTICUS_SECOND_LINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRefractoryEscalation = STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAirway && hasBenzo && hasSecondLine && hasRefractoryEscalation;
+}
+
+function hasStatusEpilepticusTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasGlucoseSafety = STATUS_EPILEPTICUS_GLUCOSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRespiratorySafety = STATUS_EPILEPTICUS_RESPIRATORY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAsmSafety = STATUS_EPILEPTICUS_ASM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasGlucoseSafety && hasRespiratorySafety && hasAsmSafety;
+}
+
 function requiresStrokeReperfusionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -2232,6 +2373,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasHyperkalemiaTreatmentSafetyCheck,
       issue:
         "severe hyperkalemia safety checks must include ECG or telemetry with repeat potassium monitoring, hypoglycemia or glucose monitoring after insulin, and renal or medication recurrence review",
+    },
+    {
+      name: "status_epilepticus_time_critical_actions",
+      label: "Status epilepticus staged treatment",
+      applies: requiresStatusEpilepticusSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasStatusEpilepticusTimeCriticalActions,
+      issue:
+        "status epilepticus time-critical actions must include airway or oxygen support, benzodiazepine treatment, second-line antiseizure loading, and refractory seizure escalation",
+    },
+    {
+      name: "status_epilepticus_treatment_safety",
+      label: "Status epilepticus treatment safety",
+      applies: requiresStatusEpilepticusSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasStatusEpilepticusTreatmentSafetyCheck,
+      issue:
+        "status epilepticus safety checks must include glucose or thiamine assessment, respiratory depression or aspiration safeguards, and second-line antiseizure dosing or contraindication review",
     },
     {
       name: "stroke_time_critical_actions",

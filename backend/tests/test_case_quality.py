@@ -59,6 +59,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
         "hyperkalemia_treatment_safety",
+        "status_epilepticus_time_critical_actions",
+        "status_epilepticus_treatment_safety",
         "stroke_time_critical_actions",
         "stroke_reperfusion_safety",
         "pe_time_critical_actions",
@@ -1018,6 +1020,114 @@ def test_quality_gate_requires_hyperkalemia_ecg_glucose_and_recurrence_safety():
     assert not report.passed
     assert any(
         "severe hyperkalemia safety checks must include ECG or telemetry" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_status_epilepticus_airway_benzo_second_line_and_refractory_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Convulsive status epilepticus"
+    case["chief_complaint"] = "Ongoing convulsions"
+    case["history_of_present_illness"] = (
+        "Patient brought in with continuous generalized convulsions lasting more "
+        "than 5 minutes and no return to baseline."
+    )
+    case["key_teaching_points"] = [
+        "Prolonged convulsions require immediate staged treatment",
+        "Benzodiazepines are first-line but should not delay second-line loading",
+        "Refractory seizures require ICU-level escalation and continuous EEG planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Continuous seizure activity longer than 5 minutes",
+        "Hypoxia and aspiration risk during ongoing convulsions",
+    ]
+    case["time_critical_actions"] = [
+        "Give IV lorazepam immediately for ongoing seizure activity",
+        "Load levetiracetam or fosphenytoin if seizures continue after benzodiazepine",
+    ]
+    case["contraindication_checks"] = [
+        "Check bedside glucose and give dextrose with thiamine if hypoglycemia or malnutrition is possible",
+        "Prepare airway support, suction, oxygen saturation monitoring, and respiratory depression safeguards after benzodiazepines",
+        "Weight-based dosing plus renal, hepatic, pregnancy, ECG, and hypotension review before second-line antiseizure loading",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Evidence-Based Guideline: Treatment of Convulsive Status Epilepticus",
+            "organization": "American Epilepsy Society",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/",
+            "supports": [
+                "convulsive status epilepticus diagnosis and staged treatment",
+                "continuous seizure activity longer than 5 minutes as a red flag",
+                "hypoxia and aspiration risk during ongoing convulsions",
+                "IV lorazepam immediately for ongoing seizure activity",
+                "levetiracetam or fosphenytoin loading if seizures continue after benzodiazepine",
+                "bedside glucose and dextrose with thiamine if hypoglycemia or malnutrition is possible",
+                "airway support, suction, oxygen saturation monitoring, and respiratory depression safeguards after benzodiazepines",
+                "weight-based dosing plus renal, hepatic, pregnancy, ECG, and hypotension review before second-line antiseizure loading",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "status epilepticus time-critical actions must include airway" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_status_epilepticus_glucose_respiratory_and_asm_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Convulsive status epilepticus"
+    case["chief_complaint"] = "Ongoing convulsions"
+    case["history_of_present_illness"] = (
+        "Patient brought in with continuous generalized convulsions lasting more "
+        "than 5 minutes and no return to baseline."
+    )
+    case["key_teaching_points"] = [
+        "Prolonged convulsions require immediate staged treatment",
+        "Benzodiazepines are first-line but should not delay second-line loading",
+        "Refractory seizures require ICU-level escalation and continuous EEG planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Continuous seizure activity longer than 5 minutes",
+        "Hypoxia and aspiration risk during ongoing convulsions",
+    ]
+    case["time_critical_actions"] = [
+        "Support airway and breathing with oxygen, suction, and intubation preparation",
+        "Give IV lorazepam immediately for ongoing seizure activity",
+        "Load levetiracetam or fosphenytoin if seizures continue after benzodiazepine",
+        "Escalate refractory seizures to neurology, ICU, continuous EEG, and anesthetic infusion planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiseizure therapy",
+        "Temperature and infection trigger assessment",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Evidence-Based Guideline: Treatment of Convulsive Status Epilepticus",
+            "organization": "American Epilepsy Society",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/",
+            "supports": [
+                "convulsive status epilepticus diagnosis and staged treatment",
+                "continuous seizure activity longer than 5 minutes as a red flag",
+                "hypoxia and aspiration risk during ongoing convulsions",
+                "airway and breathing support with oxygen, suction, and intubation preparation",
+                "IV lorazepam immediately for ongoing seizure activity",
+                "levetiracetam or fosphenytoin loading if seizures continue after benzodiazepine",
+                "neurology, ICU, continuous EEG, and anesthetic infusion planning for refractory seizures",
+                "medication allergy before antiseizure therapy",
+                "temperature and infection trigger assessment",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "status epilepticus safety checks must include glucose or thiamine" in issue
         for issue in report.critical_issues
     )
 

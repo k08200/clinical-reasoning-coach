@@ -941,6 +941,93 @@ HYPERKALEMIA_RECURRENCE_SAFETY_TERMS = (
     "신장",
     "투석",
 )
+STATUS_EPILEPTICUS_CONTEXT_TERMS = (
+    "convulsive status epilepticus",
+    "continuous seizure",
+    "ongoing seizure",
+    "prolonged seizure",
+    "refractory status epilepticus",
+    "status epilepticus",
+    "status seizure",
+    "발작지속",
+    "지속 발작",
+)
+STATUS_EPILEPTICUS_AIRWAY_ACTION_TERMS = (
+    "airway",
+    "breathing",
+    "intubation",
+    "oxygen",
+    "suction",
+    "기도",
+    "산소",
+    "삽관",
+)
+STATUS_EPILEPTICUS_BENZO_ACTION_TERMS = (
+    "benzodiazepine",
+    "diazepam",
+    "lorazepam",
+    "midazolam",
+    "벤조디아제핀",
+    "로라제팜",
+    "미다졸람",
+)
+STATUS_EPILEPTICUS_SECOND_LINE_ACTION_TERMS = (
+    "antiseizure loading",
+    "fosphenytoin",
+    "levetiracetam",
+    "phenobarbital",
+    "phenytoin",
+    "second-line",
+    "valproate",
+    "항경련제",
+)
+STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS = (
+    "anesthetic infusion",
+    "continuous eeg",
+    "icu",
+    "intubation",
+    "neurology",
+    "propofol",
+    "refractory",
+    "midazolam infusion",
+    "뇌파",
+    "중환자",
+)
+STATUS_EPILEPTICUS_GLUCOSE_SAFETY_TERMS = (
+    "dextrose",
+    "glucose",
+    "hypoglycemia",
+    "thiamine",
+    "저혈당",
+    "티아민",
+    "혈당",
+)
+STATUS_EPILEPTICUS_RESPIRATORY_SAFETY_TERMS = (
+    "airway",
+    "aspiration",
+    "oxygen saturation",
+    "respiratory depression",
+    "ventilation",
+    "기도",
+    "호흡억제",
+)
+STATUS_EPILEPTICUS_ASM_SAFETY_TERMS = (
+    "dose",
+    "dosing",
+    "ecg",
+    "hepatic",
+    "hypotension",
+    "liver",
+    "pregnancy",
+    "renal",
+    "valproate",
+    "weight",
+    "간기능",
+    "신장",
+    "용량",
+    "임신",
+    "체중",
+)
 STROKE_CONTEXT_TERMS = (
     "acute ischemic stroke",
     "brain attack",
@@ -1766,6 +1853,28 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="status_epilepticus_time_critical_actions",
+            applies=_requires_status_epilepticus_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_status_epilepticus_time_critical_actions,
+            issue=(
+                "status epilepticus time-critical actions must include airway or "
+                "oxygen support, benzodiazepine treatment, second-line antiseizure "
+                "loading, and refractory seizure escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="status_epilepticus_treatment_safety",
+            applies=_requires_status_epilepticus_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_status_epilepticus_treatment_safety_check,
+            issue=(
+                "status epilepticus safety checks must include glucose or thiamine "
+                "assessment, respiratory depression or aspiration safeguards, and "
+                "second-line antiseizure dosing or contraindication review"
+            ),
+        ),
+        DomainSafetyGate(
             name="stroke_time_critical_actions",
             applies=_requires_stroke_reperfusion_safety_check,
             field_name="time_critical_actions",
@@ -2361,6 +2470,67 @@ def _has_hyperkalemia_treatment_safety_check(checks: list[Any]) -> bool:
         for term in HYPERKALEMIA_RECURRENCE_SAFETY_TERMS
     )
     return has_ecg_monitoring and has_glucose_safety and has_recurrence_review
+
+
+def _requires_status_epilepticus_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in STATUS_EPILEPTICUS_CONTEXT_TERMS
+    )
+
+
+def _has_status_epilepticus_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_airway = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in STATUS_EPILEPTICUS_AIRWAY_ACTION_TERMS
+    )
+    has_benzo = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in STATUS_EPILEPTICUS_BENZO_ACTION_TERMS
+    )
+    has_second_line = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in STATUS_EPILEPTICUS_SECOND_LINE_ACTION_TERMS
+    )
+    has_refractory_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS
+    )
+    return has_airway and has_benzo and has_second_line and has_refractory_escalation
+
+
+def _has_status_epilepticus_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_glucose_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STATUS_EPILEPTICUS_GLUCOSE_SAFETY_TERMS
+    )
+    has_respiratory_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STATUS_EPILEPTICUS_RESPIRATORY_SAFETY_TERMS
+    )
+    has_asm_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STATUS_EPILEPTICUS_ASM_SAFETY_TERMS
+    )
+    return has_glucose_safety and has_respiratory_safety and has_asm_safety
 
 
 def _requires_stroke_reperfusion_safety_check(data: dict[str, Any]) -> bool:
