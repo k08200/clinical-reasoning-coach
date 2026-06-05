@@ -1182,6 +1182,94 @@ ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS = (
     "간부전",
     "저혈당",
 )
+OPIOID_TOXICITY_CONTEXT_TERMS = (
+    "fentanyl overdose",
+    "heroin overdose",
+    "methadone overdose",
+    "opiate overdose",
+    "opiate toxicity",
+    "opioid overdose",
+    "opioid poisoning",
+    "opioid toxicity",
+    "opioid-induced respiratory depression",
+    "naloxone",
+    "narcan",
+    "마약성 진통제",
+    "오피오이드",
+)
+OPIOID_AIRWAY_VENTILATION_ACTION_TERMS = (
+    "airway",
+    "bag-valve",
+    "bag valve",
+    "bvm",
+    "intubation",
+    "oxygen",
+    "positive pressure",
+    "respiratory support",
+    "ventilation",
+    "기도",
+    "산소",
+    "환기",
+)
+OPIOID_NALOXONE_ACTION_TERMS = (
+    "naloxone",
+    "narcan",
+    "opioid antagonist",
+    "날록손",
+)
+OPIOID_RECURRENT_DEPRESSION_ACTION_TERMS = (
+    "capnography",
+    "continuous monitoring",
+    "infusion",
+    "long-acting",
+    "methadone",
+    "observation",
+    "observe",
+    "pulse oximetry",
+    "recurrent",
+    "repeat dose",
+    "repeat naloxone",
+    "renarcotization",
+    "respiratory depression",
+    "재호흡억제",
+    "재투여",
+)
+OPIOID_LONG_ACTING_REBOUND_SAFETY_TERMS = (
+    "extended release",
+    "extended-release",
+    "fentanyl",
+    "long-acting",
+    "methadone",
+    "observation",
+    "rebound",
+    "recurrent",
+    "renarcotization",
+    "sustained release",
+    "서방",
+    "재호흡억제",
+)
+OPIOID_COINGESTION_DIFFERENTIAL_SAFETY_TERMS = (
+    "alcohol",
+    "benzodiazepine",
+    "co-ingestion",
+    "coingestion",
+    "glucose",
+    "hypoglycemia",
+    "sedative",
+    "trauma",
+    "벤조디아제핀",
+    "혈당",
+)
+OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS = (
+    "acute withdrawal",
+    "aspiration",
+    "pulmonary edema",
+    "titrate",
+    "titration",
+    "withdrawal",
+    "금단",
+    "폐부종",
+)
 STROKE_CONTEXT_TERMS = (
     "acute ischemic stroke",
     "brain attack",
@@ -2075,6 +2163,29 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="opioid_toxicity_time_critical_actions",
+            applies=_requires_opioid_toxicity_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_opioid_toxicity_time_critical_actions,
+            issue=(
+                "opioid toxicity time-critical actions must include airway or "
+                "ventilatory support, naloxone reversal, and recurrent respiratory "
+                "depression monitoring or repeat-dose planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="opioid_toxicity_treatment_safety",
+            applies=_requires_opioid_toxicity_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_opioid_toxicity_treatment_safety_check,
+            issue=(
+                "opioid toxicity safety checks must include long-acting opioid or "
+                "renarcotization observation, co-ingestion or alternate-cause "
+                "assessment, and naloxone titration, withdrawal, aspiration, or "
+                "pulmonary-edema safeguards"
+            ),
+        ),
+        DomainSafetyGate(
             name="stroke_time_critical_actions",
             applies=_requires_stroke_reperfusion_safety_check,
             field_name="time_critical_actions",
@@ -2845,6 +2956,67 @@ def _has_acetaminophen_toxicity_treatment_safety_check(checks: list[Any]) -> boo
         for term in ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS
     )
     return has_timing_formulation_safety and has_nac_safety and has_hepatic_failure_safety
+
+
+def _requires_opioid_toxicity_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in OPIOID_TOXICITY_CONTEXT_TERMS
+    )
+
+
+def _has_opioid_toxicity_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_airway_ventilation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPIOID_AIRWAY_VENTILATION_ACTION_TERMS
+    )
+    has_naloxone = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPIOID_NALOXONE_ACTION_TERMS
+    )
+    has_recurrent_depression_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPIOID_RECURRENT_DEPRESSION_ACTION_TERMS
+    )
+    return has_airway_ventilation and has_naloxone and has_recurrent_depression_monitoring
+
+
+def _has_opioid_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_long_acting_rebound_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPIOID_LONG_ACTING_REBOUND_SAFETY_TERMS
+    )
+    has_coingestion_or_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPIOID_COINGESTION_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_naloxone_adverse_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS
+    )
+    return (
+        has_long_acting_rebound_safety
+        and has_coingestion_or_differential_safety
+        and has_naloxone_adverse_safety
+    )
 
 
 def _requires_stroke_reperfusion_safety_check(data: dict[str, Any]) -> bool:

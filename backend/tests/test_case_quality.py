@@ -65,6 +65,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "adrenal_crisis_treatment_safety",
         "acetaminophen_toxicity_time_critical_actions",
         "acetaminophen_toxicity_treatment_safety",
+        "opioid_toxicity_time_critical_actions",
+        "opioid_toxicity_treatment_safety",
         "stroke_time_critical_actions",
         "stroke_reperfusion_safety",
         "pe_time_critical_actions",
@@ -1345,6 +1347,113 @@ def test_quality_gate_requires_acetaminophen_timing_nac_and_liver_failure_safety
     assert not report.passed
     assert any(
         "acetaminophen toxicity safety checks must include ingestion timing" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_opioid_airway_naloxone_and_recurrent_monitoring():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Opioid toxicity"
+    case["chief_complaint"] = "Found unresponsive"
+    case["history_of_present_illness"] = (
+        "Patient is found somnolent with slow breathing and pinpoint pupils after "
+        "taking unknown pills."
+    )
+    case["key_teaching_points"] = [
+        "Opioid toxicity is primarily a respiratory depression emergency",
+        "Naloxone should be titrated to restore adequate ventilation",
+        "Long-acting opioids can cause recurrent respiratory depression after naloxone wears off",
+    ]
+    case["clinical_red_flags"] = [
+        "Bradypnea with low oxygen saturation",
+        "Recurrent somnolence after initial naloxone response",
+    ]
+    case["time_critical_actions"] = [
+        "Give titrated naloxone for suspected opioid toxicity",
+        "Place on continuous monitoring with pulse oximetry and capnography and prepare repeat naloxone dosing",
+    ]
+    case["contraindication_checks"] = [
+        "Assess methadone, fentanyl, extended-release, or long-acting opioid exposure and observe for renarcotization",
+        "Check alcohol, benzodiazepine or sedative co-ingestion, hypoglycemia, and trauma as alternate causes",
+        "Titrate naloxone to ventilation while preparing for acute withdrawal, aspiration, and pulmonary edema safeguards",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Opioid Toxicity",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK470415/",
+            "supports": [
+                "opioid toxicity diagnosis and respiratory depression risk stratification",
+                "bradypnea with low oxygen saturation as a red flag",
+                "recurrent somnolence after initial naloxone response as a severity marker",
+                "titrated naloxone for suspected opioid toxicity",
+                "continuous monitoring with pulse oximetry and capnography and repeat naloxone dosing",
+                "methadone, fentanyl, extended-release, or long-acting opioid exposure and renarcotization observation",
+                "alcohol, benzodiazepine or sedative co-ingestion, hypoglycemia, and trauma as alternate causes",
+                "naloxone titration to ventilation with acute withdrawal, aspiration, and pulmonary edema safeguards",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "opioid toxicity time-critical actions must include airway or ventilatory support"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_opioid_rebound_coingestion_and_naloxone_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Opioid toxicity"
+    case["chief_complaint"] = "Found unresponsive"
+    case["history_of_present_illness"] = (
+        "Patient is found somnolent with slow breathing and pinpoint pupils after "
+        "taking unknown pills."
+    )
+    case["key_teaching_points"] = [
+        "Opioid toxicity is primarily a respiratory depression emergency",
+        "Naloxone should be titrated to restore adequate ventilation",
+        "Long-acting opioids can cause recurrent respiratory depression after naloxone wears off",
+    ]
+    case["clinical_red_flags"] = [
+        "Bradypnea with low oxygen saturation",
+        "Recurrent somnolence after initial naloxone response",
+    ]
+    case["time_critical_actions"] = [
+        "Support airway and ventilation with oxygen and bag-valve-mask if needed",
+        "Give titrated naloxone for suspected opioid toxicity",
+        "Place on continuous monitoring with pulse oximetry and capnography and prepare repeat naloxone dosing",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Opioid Toxicity",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK470415/",
+            "supports": [
+                "opioid toxicity diagnosis and respiratory depression risk stratification",
+                "bradypnea with low oxygen saturation as a red flag",
+                "recurrent somnolence after initial naloxone response as a severity marker",
+                "airway and ventilation support with oxygen and bag-valve-mask if needed",
+                "titrated naloxone for suspected opioid toxicity",
+                "continuous monitoring with pulse oximetry and capnography and repeat naloxone dosing",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "opioid toxicity safety checks must include long-acting opioid" in issue
         for issue in report.critical_issues
     )
 

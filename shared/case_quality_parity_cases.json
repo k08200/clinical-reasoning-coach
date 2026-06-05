@@ -1110,5 +1110,52 @@
         }
       ]
     }
+  },
+  {
+    "name": "opioid_toxicity_requires_airway_naloxone_and_recurrent_monitoring",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "opioid toxicity time-critical actions must include airway or ventilatory support"
+    ],
+    "overrides": {
+      "diagnosis": "Opioid toxicity",
+      "chief_complaint": "Found unresponsive",
+      "history_of_present_illness": "Patient is found somnolent with slow breathing and pinpoint pupils after taking unknown pills.",
+      "key_teaching_points": [
+        "Opioid toxicity is primarily a respiratory depression emergency",
+        "Naloxone should be titrated to restore adequate ventilation",
+        "Long-acting opioids can cause recurrent respiratory depression after naloxone wears off"
+      ],
+      "clinical_red_flags": [
+        "Bradypnea with low oxygen saturation",
+        "Recurrent somnolence after initial naloxone response"
+      ],
+      "time_critical_actions": [
+        "Give titrated naloxone for suspected opioid toxicity",
+        "Place on continuous monitoring with pulse oximetry and capnography and prepare repeat naloxone dosing"
+      ],
+      "contraindication_checks": [
+        "Assess methadone, fentanyl, extended-release, or long-acting opioid exposure and observe for renarcotization",
+        "Check alcohol, benzodiazepine or sedative co-ingestion, hypoglycemia, and trauma as alternate causes",
+        "Titrate naloxone to ventilation while preparing for acute withdrawal, aspiration, and pulmonary edema safeguards"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Opioid Toxicity",
+          "organization": "NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK470415/",
+          "supports": [
+            "opioid toxicity diagnosis and respiratory depression risk stratification",
+            "bradypnea with low oxygen saturation as a red flag",
+            "recurrent somnolence after initial naloxone response as a severity marker",
+            "titrated naloxone for suspected opioid toxicity",
+            "continuous monitoring with pulse oximetry and capnography and repeat naloxone dosing",
+            "methadone, fentanyl, extended-release, or long-acting opioid exposure and renarcotization observation",
+            "alcohol, benzodiazepine or sedative co-ingestion, hypoglycemia, and trauma as alternate causes",
+            "naloxone titration to ventilation with acute withdrawal, aspiration, and pulmonary edema safeguards"
+          ]
+        }
+      ]
+    }
   }
 ]

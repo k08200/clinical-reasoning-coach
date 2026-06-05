@@ -1241,6 +1241,101 @@ const ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS = [
   "저혈당",
 ];
 
+const OPIOID_TOXICITY_CONTEXT_TERMS = [
+  "fentanyl overdose",
+  "heroin overdose",
+  "methadone overdose",
+  "opiate overdose",
+  "opiate toxicity",
+  "opioid overdose",
+  "opioid poisoning",
+  "opioid toxicity",
+  "opioid-induced respiratory depression",
+  "naloxone",
+  "narcan",
+  "마약성 진통제",
+  "오피오이드",
+];
+
+const OPIOID_AIRWAY_VENTILATION_ACTION_TERMS = [
+  "airway",
+  "bag-valve",
+  "bag valve",
+  "bvm",
+  "intubation",
+  "oxygen",
+  "positive pressure",
+  "respiratory support",
+  "ventilation",
+  "기도",
+  "산소",
+  "환기",
+];
+
+const OPIOID_NALOXONE_ACTION_TERMS = [
+  "naloxone",
+  "narcan",
+  "opioid antagonist",
+  "날록손",
+];
+
+const OPIOID_RECURRENT_DEPRESSION_ACTION_TERMS = [
+  "capnography",
+  "continuous monitoring",
+  "infusion",
+  "long-acting",
+  "methadone",
+  "observation",
+  "observe",
+  "pulse oximetry",
+  "recurrent",
+  "repeat dose",
+  "repeat naloxone",
+  "renarcotization",
+  "respiratory depression",
+  "재호흡억제",
+  "재투여",
+];
+
+const OPIOID_LONG_ACTING_REBOUND_SAFETY_TERMS = [
+  "extended release",
+  "extended-release",
+  "fentanyl",
+  "long-acting",
+  "methadone",
+  "observation",
+  "rebound",
+  "recurrent",
+  "renarcotization",
+  "sustained release",
+  "서방",
+  "재호흡억제",
+];
+
+const OPIOID_COINGESTION_DIFFERENTIAL_SAFETY_TERMS = [
+  "alcohol",
+  "benzodiazepine",
+  "co-ingestion",
+  "coingestion",
+  "glucose",
+  "hypoglycemia",
+  "sedative",
+  "trauma",
+  "벤조디아제핀",
+  "혈당",
+];
+
+const OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS = [
+  "acute withdrawal",
+  "aspiration",
+  "pulmonary edema",
+  "titrate",
+  "titration",
+  "withdrawal",
+  "금단",
+  "폐부종",
+];
+
 const STROKE_CONTEXT_TERMS = [
   "acute ischemic stroke",
   "brain attack",
@@ -2294,6 +2389,50 @@ function hasAcetaminophenToxicityTreatmentSafetyCheck(checks: string[]): boolean
   return hasTimingOrFormulationSafety && hasNacSafety && hasHepaticFailureSafety;
 }
 
+function requiresOpioidToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return OPIOID_TOXICITY_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasOpioidToxicityTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAirwayVentilation = OPIOID_AIRWAY_VENTILATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNaloxone = OPIOID_NALOXONE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRecurrentDepressionMonitoring = OPIOID_RECURRENT_DEPRESSION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAirwayVentilation && hasNaloxone && hasRecurrentDepressionMonitoring;
+}
+
+function hasOpioidToxicityTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasLongActingReboundSafety = OPIOID_LONG_ACTING_REBOUND_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCoingestionOrDifferentialSafety =
+    OPIOID_COINGESTION_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasNaloxoneAdverseSafety = OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasLongActingReboundSafety && hasCoingestionOrDifferentialSafety && hasNaloxoneAdverseSafety;
+}
+
 function requiresStrokeReperfusionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -2683,6 +2822,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAcetaminophenToxicityTreatmentSafetyCheck,
       issue:
         "acetaminophen toxicity safety checks must include ingestion timing or formulation limits for nomogram use, N-acetylcysteine dosing or infusion safety, and hepatic failure or transplant-risk monitoring",
+    },
+    {
+      name: "opioid_toxicity_time_critical_actions",
+      label: "Opioid toxicity airway, naloxone, and monitoring",
+      applies: requiresOpioidToxicitySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasOpioidToxicityTimeCriticalActions,
+      issue:
+        "opioid toxicity time-critical actions must include airway or ventilatory support, naloxone reversal, and recurrent respiratory depression monitoring or repeat-dose planning",
+    },
+    {
+      name: "opioid_toxicity_treatment_safety",
+      label: "Opioid toxicity rebound and co-ingestion safety",
+      applies: requiresOpioidToxicitySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasOpioidToxicityTreatmentSafetyCheck,
+      issue:
+        "opioid toxicity safety checks must include long-acting opioid or renarcotization observation, co-ingestion or alternate-cause assessment, and naloxone titration, withdrawal, aspiration, or pulmonary-edema safeguards",
     },
     {
       name: "stroke_time_critical_actions",
