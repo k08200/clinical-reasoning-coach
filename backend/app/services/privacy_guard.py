@@ -42,6 +42,12 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
         re.compile(r"(?<!\d)01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}(?!\d)"),
     ),
     IdentifierPattern(
+        "phone_number",
+        re.compile(
+            r"(?<!\d)(?:02|0[3-6][1-5]|070|050[2-8])[-.\s]?\d{3,4}[-.\s]?\d{4}(?!\d)"
+        ),
+    ),
+    IdentifierPattern(
         "social_security_number",
         re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
     ),
@@ -138,6 +144,13 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
     IdentifierPattern(
         "name_identifier",
         re.compile(r"(?:환자\s*)?(?:이름|성명)\s*(?:은|는|:)?\s*[가-힣]{2,5}"),
+    ),
+    IdentifierPattern(
+        "name_identifier",
+        re.compile(
+            r"(?:환자|대상자)\s*(?::|=)\s*[가-힣]{2,5}(?:님|씨)?|"
+            r"(?:환자|대상자)\s+[가-힣]{2,5}(?:님|씨)"
+        ),
     ),
     IdentifierPattern(
         "street_address",

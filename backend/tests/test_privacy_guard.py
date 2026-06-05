@@ -34,6 +34,22 @@ def test_detect_patient_identifiers_finds_korean_phi_patterns():
     ]
 
 
+def test_detect_patient_identifiers_finds_korean_landline_and_service_numbers():
+    detected = detect_patient_identifiers(
+        "보호자 연락처는 02-1234-5678이고 병원 대표번호는 0507-1234-5678입니다."
+    )
+
+    assert detected == ["phone_number"]
+
+
+def test_detect_patient_identifiers_finds_direct_korean_patient_name_labels():
+    detected = detect_patient_identifiers(
+        "환자: 홍길동님은 흉통으로 내원했고 대상자 김영희씨도 추적 관찰 중입니다."
+    )
+
+    assert detected == ["name_identifier"]
+
+
 def test_detect_patient_identifiers_finds_korean_resident_registration_numbers():
     detected = detect_patient_identifiers(
         "주민등록번호는 900101-1234567입니다. "
@@ -96,6 +112,14 @@ def test_detect_patient_identifiers_allows_generic_korean_location_context():
     detected = detect_patient_identifiers(
         "서울 지역 병원에서 흔한 흉통 시뮬레이션 케이스입니다. "
         "강남구 응급실 내원 상황을 교육용으로 구성합니다."
+    )
+
+    assert detected == []
+
+
+def test_detect_patient_identifiers_allows_generic_korean_patient_state_context():
+    detected = detect_patient_identifiers(
+        "환자 상태는 안정적이고 대상자 교육은 비식별 시뮬레이션으로 진행합니다."
     )
 
     assert detected == []

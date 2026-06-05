@@ -1454,6 +1454,7 @@ async def test_korean_hospital_identifier_signal_halts_before_storage(
         f"/api/sessions/{session.id}/stream",
         json={
             "content": (
+                "환자: 홍길동님, 보호자 연락처 02-1234-5678, "
                 "입원번호 ADM-12345, 접수번호 R20260605, "
                 "건강보험증번호 H123456789, 카카오톡 ID patient_lee입니다."
             ),
@@ -1472,6 +1473,8 @@ async def test_korean_hospital_identifier_signal_halts_before_storage(
     )
     saved_session = saved_response.json()
     assert saved_session["status"] == "safety_locked"
+    assert "홍길동" not in str(saved_session)
+    assert "02-1234-5678" not in str(saved_session)
     assert "ADM-12345" not in str(saved_session)
     assert "patient_lee" not in str(saved_session)
     assert saved_session["safety_events"][0]["detected_terms"] == [
@@ -1491,11 +1494,15 @@ async def test_korean_hospital_identifier_signal_halts_before_storage(
     assert len(safety_events) == 1
     assert safety_events[0].event_type == "possible_patient_identifier"
     assert safety_events[0].detected_terms == [
+        "phone_number",
         "medical_record_number",
+        "name_identifier",
         "license_or_account_number",
         "messenger_handle",
     ]
     assert [message.role for message in messages] == ["coach"]
+    assert all("홍길동" not in message.content for message in messages)
+    assert all("02-1234-5678" not in message.content for message in messages)
     assert all("ADM-12345" not in message.content for message in messages)
     assert all("patient_lee" not in message.content for message in messages)
 
