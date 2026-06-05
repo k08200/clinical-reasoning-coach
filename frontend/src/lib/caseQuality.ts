@@ -1469,6 +1469,105 @@ const HEAT_STROKE_DIFFERENTIAL_SAFETY_TERMS = [
   "감염",
 ];
 
+const CAUDA_EQUINA_CONTEXT_TERMS = [
+  "back pain with urinary retention",
+  "bladder dysfunction with sciatica",
+  "bowel bladder dysfunction",
+  "cauda equina",
+  "cauda equina compression",
+  "cauda equina syndrome",
+  "saddle anesthesia",
+  "saddle anaesthesia",
+  "마미증후군",
+  "마미 증후군",
+];
+
+const CAUDA_EQUINA_MRI_ACTION_TERMS = [
+  "emergency mri",
+  "immediate mri",
+  "lumbar mri",
+  "mri",
+  "urgent mri",
+  "응급 mri",
+  "자기공명",
+];
+
+const CAUDA_EQUINA_BLADDER_ACTION_TERMS = [
+  "bladder scan",
+  "incontinence",
+  "post-void residual",
+  "postvoid residual",
+  "pvr",
+  "urinary retention",
+  "voiding",
+  "배뇨",
+  "요정체",
+];
+
+const CAUDA_EQUINA_NEURO_EXAM_ACTION_TERMS = [
+  "anal tone",
+  "lower limb weakness",
+  "motor deficit",
+  "perianal",
+  "perineal",
+  "saddle anesthesia",
+  "saddle anaesthesia",
+  "sensory deficit",
+  "항문긴장도",
+  "회음부",
+];
+
+const CAUDA_EQUINA_SPINE_ESCALATION_ACTION_TERMS = [
+  "decompression",
+  "neurosurgery",
+  "operative",
+  "spine surgeon",
+  "spine surgery",
+  "surgical referral",
+  "urgent surgery",
+  "감압",
+  "신경외과",
+  "척추",
+];
+
+const CAUDA_EQUINA_RED_FLAG_SAFETY_TERMS = [
+  "bowel",
+  "bladder",
+  "progressive neurologic",
+  "saddle anesthesia",
+  "saddle anaesthesia",
+  "sexual dysfunction",
+  "urinary retention",
+  "배변",
+  "배뇨",
+  "회음부",
+];
+
+const CAUDA_EQUINA_DELAY_SAFETY_TERMS = [
+  "do not delay",
+  "emergency pathway",
+  "not discharge",
+  "not outpatient",
+  "not physical therapy",
+  "urgent referral",
+  "urgent transfer",
+  "지연",
+  "응급",
+];
+
+const CAUDA_EQUINA_COMPRESSIVE_CAUSE_SAFETY_TERMS = [
+  "cancer",
+  "epidural abscess",
+  "infection",
+  "malignancy",
+  "spinal stenosis",
+  "trauma",
+  "tumor",
+  "감염",
+  "암",
+  "외상",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -3561,6 +3660,56 @@ function hasHeatStrokeTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresCaudaEquinaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return CAUDA_EQUINA_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasCaudaEquinaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasMri = CAUDA_EQUINA_MRI_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBladderAssessment = CAUDA_EQUINA_BLADDER_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeuroExam = CAUDA_EQUINA_NEURO_EXAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSpineEscalation = CAUDA_EQUINA_SPINE_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasMri && hasBladderAssessment && hasNeuroExam && hasSpineEscalation;
+}
+
+function hasCaudaEquinaDelaySafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasRedFlagSafety = CAUDA_EQUINA_RED_FLAG_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDelaySafety = CAUDA_EQUINA_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCompressiveCauseSafety = CAUDA_EQUINA_COMPRESSIVE_CAUSE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasRedFlagSafety && hasDelaySafety && hasCompressiveCauseSafety;
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -4476,6 +4625,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasHeatStrokeTreatmentSafetyCheck,
       issue:
         "heat stroke safety checks must include cooling endpoint or overcooling prevention, rhabdomyolysis, renal, liver, electrolyte, or coagulation monitoring, avoidance of antipyretic-centered management, and sepsis, malignant hyperthermia, serotonin syndrome, or other dangerous hyperthermia differential review",
+    },
+    {
+      name: "cauda_equina_time_critical_actions",
+      label: "Cauda equina MRI and escalation",
+      applies: requiresCaudaEquinaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasCaudaEquinaTimeCriticalActions,
+      issue:
+        "cauda equina time-critical actions must include emergency lumbar MRI, bladder or post-void residual assessment, saddle, perianal, anal-tone, or lower-limb neurologic exam, and urgent neurosurgery, spine surgery, or decompression escalation",
+    },
+    {
+      name: "cauda_equina_delay_safety",
+      label: "Cauda equina delay prevention",
+      applies: requiresCaudaEquinaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasCaudaEquinaDelaySafetyCheck,
+      issue:
+        "cauda equina safety checks must document bladder, bowel, saddle, sexual, or progressive neurologic red flags, avoid delayed outpatient or conservative low-back-pain management, and review spinal infection, malignancy, trauma, stenosis, or other compressive causes",
     },
     {
       name: "dka_time_critical_actions",

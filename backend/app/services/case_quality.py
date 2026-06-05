@@ -1381,6 +1381,97 @@ HEAT_STROKE_DIFFERENTIAL_SAFETY_TERMS = (
     "stimulant",
     "감염",
 )
+CAUDA_EQUINA_CONTEXT_TERMS = (
+    "back pain with urinary retention",
+    "bladder dysfunction with sciatica",
+    "bowel bladder dysfunction",
+    "cauda equina",
+    "cauda equina compression",
+    "cauda equina syndrome",
+    "saddle anesthesia",
+    "saddle anaesthesia",
+    "마미증후군",
+    "마미 증후군",
+)
+CAUDA_EQUINA_MRI_ACTION_TERMS = (
+    "emergency mri",
+    "immediate mri",
+    "lumbar mri",
+    "mri",
+    "urgent mri",
+    "응급 mri",
+    "자기공명",
+)
+CAUDA_EQUINA_BLADDER_ACTION_TERMS = (
+    "bladder scan",
+    "incontinence",
+    "post-void residual",
+    "postvoid residual",
+    "pvr",
+    "urinary retention",
+    "voiding",
+    "배뇨",
+    "요정체",
+)
+CAUDA_EQUINA_NEURO_EXAM_ACTION_TERMS = (
+    "anal tone",
+    "lower limb weakness",
+    "motor deficit",
+    "perianal",
+    "perineal",
+    "saddle anesthesia",
+    "saddle anaesthesia",
+    "sensory deficit",
+    "항문긴장도",
+    "회음부",
+)
+CAUDA_EQUINA_SPINE_ESCALATION_ACTION_TERMS = (
+    "decompression",
+    "neurosurgery",
+    "operative",
+    "spine surgeon",
+    "spine surgery",
+    "surgical referral",
+    "urgent surgery",
+    "감압",
+    "신경외과",
+    "척추",
+)
+CAUDA_EQUINA_RED_FLAG_SAFETY_TERMS = (
+    "bowel",
+    "bladder",
+    "progressive neurologic",
+    "saddle anesthesia",
+    "saddle anaesthesia",
+    "sexual dysfunction",
+    "urinary retention",
+    "배변",
+    "배뇨",
+    "회음부",
+)
+CAUDA_EQUINA_DELAY_SAFETY_TERMS = (
+    "do not delay",
+    "emergency pathway",
+    "not discharge",
+    "not outpatient",
+    "not physical therapy",
+    "urgent referral",
+    "urgent transfer",
+    "지연",
+    "응급",
+)
+CAUDA_EQUINA_COMPRESSIVE_CAUSE_SAFETY_TERMS = (
+    "cancer",
+    "epidural abscess",
+    "infection",
+    "malignancy",
+    "spinal stenosis",
+    "trauma",
+    "tumor",
+    "감염",
+    "암",
+    "외상",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -3184,6 +3275,32 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="cauda_equina_time_critical_actions",
+            applies=_requires_cauda_equina_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_cauda_equina_time_critical_actions,
+            issue=(
+                "cauda equina time-critical actions must include emergency "
+                "lumbar MRI, bladder or post-void residual assessment, "
+                "saddle, perianal, anal-tone, or lower-limb neurologic exam, "
+                "and urgent neurosurgery, spine surgery, or decompression "
+                "escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="cauda_equina_delay_safety",
+            applies=_requires_cauda_equina_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_cauda_equina_delay_safety_check,
+            issue=(
+                "cauda equina safety checks must document bladder, bowel, "
+                "saddle, sexual, or progressive neurologic red flags, avoid "
+                "delayed outpatient or conservative low-back-pain management, "
+                "and review spinal infection, malignancy, trauma, stenosis, "
+                "or other compressive causes"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -4317,6 +4434,71 @@ def _has_heat_stroke_treatment_safety_check(checks: list[Any]) -> bool:
         and has_antipyretic_safety
         and has_differential_safety
     )
+
+
+def _requires_cauda_equina_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in CAUDA_EQUINA_CONTEXT_TERMS
+    )
+
+
+def _has_cauda_equina_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_mri = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CAUDA_EQUINA_MRI_ACTION_TERMS
+    )
+    has_bladder_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CAUDA_EQUINA_BLADDER_ACTION_TERMS
+    )
+    has_neuro_exam = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CAUDA_EQUINA_NEURO_EXAM_ACTION_TERMS
+    )
+    has_spine_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CAUDA_EQUINA_SPINE_ESCALATION_ACTION_TERMS
+    )
+    return has_mri and has_bladder_assessment and has_neuro_exam and has_spine_escalation
+
+
+def _has_cauda_equina_delay_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_red_flag_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CAUDA_EQUINA_RED_FLAG_SAFETY_TERMS
+    )
+    has_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CAUDA_EQUINA_DELAY_SAFETY_TERMS
+    )
+    has_compressive_cause_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CAUDA_EQUINA_COMPRESSIVE_CAUSE_SAFETY_TERMS
+    )
+    return has_red_flag_safety and has_delay_safety and has_compressive_cause_safety
 
 
 def _requires_sepsis_resuscitation_safety_check(data: dict[str, Any]) -> bool:
