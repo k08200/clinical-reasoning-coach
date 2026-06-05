@@ -1486,6 +1486,118 @@ COPD_TREATMENT_ADVERSE_SAFETY_TERMS = (
     "전해질",
     "혈당",
 )
+ACUTE_HEART_FAILURE_CONTEXT_TERMS = (
+    "acute decompensated heart failure",
+    "acute heart failure",
+    "acute pulmonary edema",
+    "cardiogenic pulmonary edema",
+    "decompensated heart failure",
+    "flash pulmonary edema",
+    "heart failure exacerbation",
+    "hypertensive pulmonary edema",
+    "pulmonary oedema",
+    "심부전",
+    "폐부종",
+)
+ACUTE_HF_OXYGEN_NIV_ACTION_TERMS = (
+    "bipap",
+    "cpap",
+    "hypoxemia",
+    "intubation",
+    "niv",
+    "noninvasive ventilation",
+    "non-invasive ventilation",
+    "oxygen",
+    "positive pressure",
+    "ventilation",
+    "산소",
+    "양압",
+    "환기",
+)
+ACUTE_HF_DIURETIC_ACTION_TERMS = (
+    "bumetanide",
+    "decongestion",
+    "diuretic",
+    "furosemide",
+    "loop diuretic",
+    "torsemide",
+    "이뇨",
+)
+ACUTE_HF_VASODILATOR_BP_ACTION_TERMS = (
+    "afterload",
+    "blood pressure",
+    "hypertensive",
+    "nitroglycerin",
+    "nitrate",
+    "nitroprusside",
+    "vasodilator",
+    "혈압",
+    "혈관확장",
+)
+ACUTE_HF_ESCALATION_ACTION_TERMS = (
+    "cardiogenic shock",
+    "icu",
+    "inotrope",
+    "intubation",
+    "mechanical ventilation",
+    "pressor",
+    "respiratory failure",
+    "shock",
+    "vasopressor",
+    "기계환기",
+    "삽관",
+    "쇼크",
+    "중환자",
+)
+ACUTE_HF_BP_VASODILATOR_SAFETY_TERMS = (
+    "aortic stenosis",
+    "blood pressure",
+    "hypotension",
+    "nitrate",
+    "right ventricular infarct",
+    "sildenafil",
+    "vasodilator",
+    "저혈압",
+    "혈압",
+)
+ACUTE_HF_RENAL_ELECTROLYTE_SAFETY_TERMS = (
+    "creatinine",
+    "electrolyte",
+    "hypokalemia",
+    "kidney",
+    "magnesium",
+    "potassium",
+    "renal",
+    "urine output",
+    "신장",
+    "전해질",
+)
+ACUTE_HF_TRIGGER_DIFFERENTIAL_SAFETY_TERMS = (
+    "acute coronary syndrome",
+    "arrhythmia",
+    "infection",
+    "ischemia",
+    "myocardial infarction",
+    "pulmonary embolism",
+    "trigger",
+    "valvular",
+    "감염",
+    "부정맥",
+    "심근경색",
+)
+ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS = (
+    "altered mental status",
+    "cardiogenic shock",
+    "hypoperfusion",
+    "hypotension",
+    "intubation",
+    "lactate",
+    "respiratory failure",
+    "shock",
+    "저관류",
+    "쇼크",
+    "호흡부전",
+)
 STROKE_CONTEXT_TERMS = (
     "acute ischemic stroke",
     "brain attack",
@@ -2447,6 +2559,30 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "hypercapnia or ABG monitoring, NIV/intubation failure criteria, "
                 "cardiopulmonary differential diagnosis review, and bronchodilator "
                 "or steroid adverse-effect monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acute_heart_failure_time_critical_actions",
+            applies=_requires_acute_heart_failure_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_acute_heart_failure_time_critical_actions,
+            issue=(
+                "acute heart failure time-critical actions must include oxygen or "
+                "noninvasive ventilation for pulmonary edema, IV loop diuretic "
+                "decongestion, blood-pressure-guided vasodilator or nitrate "
+                "planning, and shock or respiratory-failure escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acute_heart_failure_treatment_safety",
+            applies=_requires_acute_heart_failure_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acute_heart_failure_treatment_safety_check,
+            issue=(
+                "acute heart failure safety checks must include blood pressure or "
+                "vasodilator contraindication review, renal and electrolyte "
+                "monitoring during diuresis, trigger or cardiopulmonary differential "
+                "review, and shock or respiratory-failure monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -3435,6 +3571,76 @@ def _has_copd_exacerbation_treatment_safety_check(checks: list[Any]) -> bool:
         and has_niv_intubation_safety
         and has_differential_review
         and has_treatment_adverse_safety
+    )
+
+
+def _requires_acute_heart_failure_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_HEART_FAILURE_CONTEXT_TERMS
+    )
+
+
+def _has_acute_heart_failure_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_oxygen_niv = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_HF_OXYGEN_NIV_ACTION_TERMS
+    )
+    has_diuretic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_HF_DIURETIC_ACTION_TERMS
+    )
+    has_vasodilator_or_bp_plan = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_HF_VASODILATOR_BP_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_HF_ESCALATION_ACTION_TERMS
+    )
+    return has_oxygen_niv and has_diuretic and has_vasodilator_or_bp_plan and has_escalation
+
+
+def _has_acute_heart_failure_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_bp_vasodilator_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_HF_BP_VASODILATOR_SAFETY_TERMS
+    )
+    has_renal_electrolyte_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_HF_RENAL_ELECTROLYTE_SAFETY_TERMS
+    )
+    has_trigger_differential_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_HF_TRIGGER_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_shock_respiratory_failure_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS
+    )
+    return (
+        has_bp_vasodilator_safety
+        and has_renal_electrolyte_safety
+        and has_trigger_differential_review
+        and has_shock_respiratory_failure_safety
     )
 
 

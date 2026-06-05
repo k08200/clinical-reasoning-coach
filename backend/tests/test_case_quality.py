@@ -71,6 +71,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "severe_asthma_treatment_safety",
         "copd_exacerbation_time_critical_actions",
         "copd_exacerbation_treatment_safety",
+        "acute_heart_failure_time_critical_actions",
+        "acute_heart_failure_treatment_safety",
         "stroke_time_critical_actions",
         "stroke_reperfusion_safety",
         "pe_time_critical_actions",
@@ -1688,6 +1690,119 @@ def test_quality_gate_requires_copd_hypercapnia_niv_differential_and_adverse_saf
     assert any(
         "COPD exacerbation safety checks must include oxygen-induced hypercapnia"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_hf_oxygen_diuresis_vasodilator_and_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute heart failure with pulmonary edema"
+    case["chief_complaint"] = "Severe shortness of breath"
+    case["history_of_present_illness"] = (
+        "Patient presents with abrupt dyspnea, orthopnea, hypoxemia, diffuse crackles, "
+        "hypertension, and frothy sputum."
+    )
+    case["key_teaching_points"] = [
+        "Acute pulmonary edema requires rapid oxygenation and ventilatory support when hypoxemic",
+        "IV loop diuretics treat congestion and require renal and electrolyte monitoring",
+        "Hypertensive acute heart failure may require blood-pressure-guided nitrate or vasodilator therapy",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypoxemia with severe respiratory distress and diffuse crackles",
+        "Hypotension, altered mental status, and rising lactate suggesting cardiogenic shock",
+    ]
+    case["time_critical_actions"] = [
+        "Start oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
+        "Use blood-pressure-guided nitroglycerin nitrate vasodilator planning for hypertensive pulmonary edema",
+        "Escalate to ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
+    ]
+    case["contraindication_checks"] = [
+        "Check blood pressure, hypotension, aortic stenosis, right ventricular infarct, sildenafil, and nitrate or vasodilator contraindications",
+        "Monitor renal function, creatinine, urine output, potassium, magnesium, and electrolytes during diuresis",
+        "Assess acute coronary syndrome, myocardial infarction, arrhythmia, valvular disease, infection, pulmonary embolism, and other triggers",
+        "Monitor lactate, hypoperfusion, altered mental status, cardiogenic shock, intubation need, and respiratory failure",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute Heart Failure in the 2021 ESC Heart Failure Guidelines",
+            "organization": "European Society of Cardiology",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9020374/",
+            "supports": [
+                "acute heart failure with pulmonary edema diagnosis and risk stratification",
+                "hypoxemia with severe respiratory distress and diffuse crackles as red flags",
+                "hypotension, altered mental status, and rising lactate suggesting cardiogenic shock",
+                "oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
+                "blood-pressure-guided nitroglycerin nitrate vasodilator planning for hypertensive pulmonary edema",
+                "ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
+                "blood pressure, hypotension, aortic stenosis, right ventricular infarct, sildenafil, and nitrate or vasodilator contraindications",
+                "renal function, creatinine, urine output, potassium, magnesium, and electrolytes during diuresis",
+                "acute coronary syndrome, myocardial infarction, arrhythmia, valvular disease, infection, pulmonary embolism, and other triggers",
+                "lactate, hypoperfusion, altered mental status, cardiogenic shock, intubation need, and respiratory failure",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute heart failure time-critical actions must include oxygen or noninvasive ventilation"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_hf_bp_renal_trigger_and_shock_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute heart failure with pulmonary edema"
+    case["chief_complaint"] = "Severe shortness of breath"
+    case["history_of_present_illness"] = (
+        "Patient presents with abrupt dyspnea, orthopnea, hypoxemia, diffuse crackles, "
+        "hypertension, and frothy sputum."
+    )
+    case["key_teaching_points"] = [
+        "Acute pulmonary edema requires rapid oxygenation and ventilatory support when hypoxemic",
+        "IV loop diuretics treat congestion and require renal and electrolyte monitoring",
+        "Hypertensive acute heart failure may require blood-pressure-guided nitrate or vasodilator therapy",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypoxemia with severe respiratory distress and diffuse crackles",
+        "Hypotension, altered mental status, and rising lactate suggesting cardiogenic shock",
+    ]
+    case["time_critical_actions"] = [
+        "Start oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
+        "Give IV furosemide loop diuretic for decongestion",
+        "Use blood-pressure-guided nitroglycerin nitrate vasodilator planning for hypertensive pulmonary edema",
+        "Escalate to ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute Heart Failure in the 2021 ESC Heart Failure Guidelines",
+            "organization": "European Society of Cardiology",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9020374/",
+            "supports": [
+                "acute heart failure with pulmonary edema diagnosis and risk stratification",
+                "hypoxemia with severe respiratory distress and diffuse crackles as red flags",
+                "hypotension, altered mental status, and rising lactate suggesting cardiogenic shock",
+                "oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
+                "IV furosemide loop diuretic for decongestion",
+                "blood-pressure-guided nitroglycerin nitrate vasodilator planning for hypertensive pulmonary edema",
+                "ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute heart failure safety checks must include blood pressure" in issue
         for issue in report.critical_issues
     )
 

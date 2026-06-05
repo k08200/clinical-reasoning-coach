@@ -1571,6 +1571,127 @@ const COPD_TREATMENT_ADVERSE_SAFETY_TERMS = [
   "혈당",
 ];
 
+const ACUTE_HEART_FAILURE_CONTEXT_TERMS = [
+  "acute decompensated heart failure",
+  "acute heart failure",
+  "acute pulmonary edema",
+  "cardiogenic pulmonary edema",
+  "decompensated heart failure",
+  "flash pulmonary edema",
+  "heart failure exacerbation",
+  "hypertensive pulmonary edema",
+  "pulmonary oedema",
+  "심부전",
+  "폐부종",
+];
+
+const ACUTE_HF_OXYGEN_NIV_ACTION_TERMS = [
+  "bipap",
+  "cpap",
+  "hypoxemia",
+  "intubation",
+  "niv",
+  "noninvasive ventilation",
+  "non-invasive ventilation",
+  "oxygen",
+  "positive pressure",
+  "ventilation",
+  "산소",
+  "양압",
+  "환기",
+];
+
+const ACUTE_HF_DIURETIC_ACTION_TERMS = [
+  "bumetanide",
+  "decongestion",
+  "diuretic",
+  "furosemide",
+  "loop diuretic",
+  "torsemide",
+  "이뇨",
+];
+
+const ACUTE_HF_VASODILATOR_BP_ACTION_TERMS = [
+  "afterload",
+  "blood pressure",
+  "hypertensive",
+  "nitroglycerin",
+  "nitrate",
+  "nitroprusside",
+  "vasodilator",
+  "혈압",
+  "혈관확장",
+];
+
+const ACUTE_HF_ESCALATION_ACTION_TERMS = [
+  "cardiogenic shock",
+  "icu",
+  "inotrope",
+  "intubation",
+  "mechanical ventilation",
+  "pressor",
+  "respiratory failure",
+  "shock",
+  "vasopressor",
+  "기계환기",
+  "삽관",
+  "쇼크",
+  "중환자",
+];
+
+const ACUTE_HF_BP_VASODILATOR_SAFETY_TERMS = [
+  "aortic stenosis",
+  "blood pressure",
+  "hypotension",
+  "nitrate",
+  "right ventricular infarct",
+  "sildenafil",
+  "vasodilator",
+  "저혈압",
+  "혈압",
+];
+
+const ACUTE_HF_RENAL_ELECTROLYTE_SAFETY_TERMS = [
+  "creatinine",
+  "electrolyte",
+  "hypokalemia",
+  "kidney",
+  "magnesium",
+  "potassium",
+  "renal",
+  "urine output",
+  "신장",
+  "전해질",
+];
+
+const ACUTE_HF_TRIGGER_DIFFERENTIAL_SAFETY_TERMS = [
+  "acute coronary syndrome",
+  "arrhythmia",
+  "infection",
+  "ischemia",
+  "myocardial infarction",
+  "pulmonary embolism",
+  "trigger",
+  "valvular",
+  "감염",
+  "부정맥",
+  "심근경색",
+];
+
+const ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS = [
+  "altered mental status",
+  "cardiogenic shock",
+  "hypoperfusion",
+  "hypotension",
+  "intubation",
+  "lactate",
+  "respiratory failure",
+  "shock",
+  "저관류",
+  "쇼크",
+  "호흡부전",
+];
+
 const STROKE_CONTEXT_TERMS = [
   "acute ischemic stroke",
   "brain attack",
@@ -2780,6 +2901,60 @@ function hasCopdExacerbationTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresAcuteHeartFailureSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return ACUTE_HEART_FAILURE_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasAcuteHeartFailureTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasOxygenNiv = ACUTE_HF_OXYGEN_NIV_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDiuretic = ACUTE_HF_DIURETIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVasodilatorOrBpPlan = ACUTE_HF_VASODILATOR_BP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = ACUTE_HF_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasOxygenNiv && hasDiuretic && hasVasodilatorOrBpPlan && hasEscalation;
+}
+
+function hasAcuteHeartFailureTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasBpVasodilatorSafety = ACUTE_HF_BP_VASODILATOR_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRenalElectrolyteSafety = ACUTE_HF_RENAL_ELECTROLYTE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTriggerDifferentialReview = ACUTE_HF_TRIGGER_DIFFERENTIAL_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasShockRespiratoryFailureSafety = ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasBpVasodilatorSafety &&
+    hasRenalElectrolyteSafety &&
+    hasTriggerDifferentialReview &&
+    hasShockRespiratoryFailureSafety
+  );
+}
+
 function requiresStrokeReperfusionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -3223,6 +3398,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCopdExacerbationTreatmentSafetyCheck,
       issue:
         "COPD exacerbation safety checks must include oxygen-induced hypercapnia or ABG monitoring, NIV/intubation failure criteria, cardiopulmonary differential diagnosis review, and bronchodilator or steroid adverse-effect monitoring",
+    },
+    {
+      name: "acute_heart_failure_time_critical_actions",
+      label: "Acute heart failure oxygen, diuresis, and escalation",
+      applies: requiresAcuteHeartFailureSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcuteHeartFailureTimeCriticalActions,
+      issue:
+        "acute heart failure time-critical actions must include oxygen or noninvasive ventilation for pulmonary edema, IV loop diuretic decongestion, blood-pressure-guided vasodilator or nitrate planning, and shock or respiratory-failure escalation",
+    },
+    {
+      name: "acute_heart_failure_treatment_safety",
+      label: "Acute heart failure renal, trigger, and shock safety",
+      applies: requiresAcuteHeartFailureSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcuteHeartFailureTreatmentSafetyCheck,
+      issue:
+        "acute heart failure safety checks must include blood pressure or vasodilator contraindication review, renal and electrolyte monitoring during diuresis, trigger or cardiopulmonary differential review, and shock or respiratory-failure monitoring",
     },
     {
       name: "stroke_time_critical_actions",
