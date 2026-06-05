@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator
 
 VALID_SAFETY_EVENT_TYPES = {
     "management_before_safety_checks",
@@ -67,21 +67,3 @@ class SafetyEventResolutionRequest(BaseModel):
         if value not in VALID_SAFETY_EVENT_STATUSES:
             raise ValueError(f"status must be one of {VALID_SAFETY_EVENT_STATUSES}")
         return value
-
-    @model_validator(mode="after")
-    def require_resolution_note_for_resolved(self) -> "SafetyEventResolutionRequest":
-        if self.status != "resolved":
-            return self
-
-        note = (self.resolution_note or "").strip()
-        if not note:
-            raise ValueError("resolution_note is required when resolving a safety event")
-        if len(note) < MIN_RESOLUTION_NOTE_LENGTH:
-            raise ValueError(
-                "resolution_note must summarize the safety review or escalation"
-            )
-        if not any(term in note.lower() for term in RESOLUTION_NOTE_REVIEW_TERMS):
-            raise ValueError(
-                "resolution_note must mention review, escalation, or how the issue was addressed"
-            )
-        return self

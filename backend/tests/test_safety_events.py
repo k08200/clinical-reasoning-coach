@@ -318,6 +318,21 @@ async def test_reviewer_can_resolve_safety_event(
     assert open_response.status_code == 200
     assert str(event.id) not in [item["id"] for item in open_response.json()]
 
+    reopen_response = await client.patch(
+        f"/api/safety-events/{event.id}/resolution",
+        headers=_auth_headers(reviewer),
+        json={
+            "status": "open",
+            "resolution_note": "This stale note must be cleared when reopening.",
+        },
+    )
+    assert reopen_response.status_code == 200
+    reopened_payload = reopen_response.json()
+    assert reopened_payload["status"] == "open"
+    assert reopened_payload["resolution_note"] is None
+    assert reopened_payload["resolved_at"] is None
+    assert reopened_payload["resolved_by_user_id"] is None
+
 
 @pytest.mark.asyncio
 async def test_resolving_safety_event_does_not_unlock_session(
@@ -432,11 +447,36 @@ async def test_reviewer_must_document_resolution_note(
     await db.refresh(reviewer)
     await db.refresh(event)
 
-    for resolution_note in [
-        "   ",
-        "done",
-        "Learner finished the session successfully.",
-    ]:
+    cases = [
+        (
+            "   ",
+            {
+                "code": "safety_resolution_note_required",
+                "message": (
+                    "Resolution note is required before marking an event resolved."
+                ),
+            },
+        ),
+        (
+            "done",
+            {
+                "code": "safety_resolution_note_too_short",
+                "message": "Resolution note must summarize the safety review or escalation.",
+                "minimum_length": 20,
+            },
+        ),
+        (
+            "Learner finished the session successfully.",
+            {
+                "code": "safety_resolution_note_context_missing",
+                "message": (
+                    "Resolution note must mention review, escalation, or how the "
+                    "issue was addressed."
+                ),
+            },
+        ),
+    ]
+    for resolution_note, expected_detail in cases:
         response = await client.patch(
             f"/api/safety-events/{event.id}/resolution",
             headers=_auth_headers(reviewer),
@@ -444,6 +484,11 @@ async def test_reviewer_must_document_resolution_note(
         )
 
         assert response.status_code == 422
+        detail = response.json()["detail"]
+        for key, value in expected_detail.items():
+            assert detail[key] == value
+        if detail["code"] == "safety_resolution_note_context_missing":
+            assert "reviewed" in detail["required_terms"]
 
 
 @pytest.mark.asyncio

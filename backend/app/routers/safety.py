@@ -13,6 +13,8 @@ from app.models.safety_event import SafetyEvent
 from app.models.session import CoachingSession
 from app.models.user import User
 from app.schemas.safety import (
+    MIN_RESOLUTION_NOTE_LENGTH,
+    RESOLUTION_NOTE_REVIEW_TERMS,
     VALID_SAFETY_EVENT_SEVERITIES,
     VALID_SAFETY_EVENT_STATUSES,
     VALID_SAFETY_EVENT_TYPES,
@@ -99,6 +101,53 @@ def _validate_high_risk_resolution_note(
             "required_terms": sorted(HIGH_RISK_RESOLUTION_TERMS),
         },
     )
+
+
+def _resolution_note_block_detail(
+    *,
+    code: str,
+    message: str,
+    **extra: object,
+) -> dict:
+    return {
+        "code": code,
+        "message": message,
+        **extra,
+    }
+
+
+def _validate_resolution_note(resolution_note: str | None) -> str:
+    note = (resolution_note or "").strip()
+    if not note:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=_resolution_note_block_detail(
+                code="safety_resolution_note_required",
+                message="Resolution note is required before marking an event resolved.",
+            ),
+        )
+    if len(note) < MIN_RESOLUTION_NOTE_LENGTH:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=_resolution_note_block_detail(
+                code="safety_resolution_note_too_short",
+                message="Resolution note must summarize the safety review or escalation.",
+                minimum_length=MIN_RESOLUTION_NOTE_LENGTH,
+            ),
+        )
+    if not any(term in note.lower() for term in RESOLUTION_NOTE_REVIEW_TERMS):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=_resolution_note_block_detail(
+                code="safety_resolution_note_context_missing",
+                message=(
+                    "Resolution note must mention review, escalation, or how the "
+                    "issue was addressed."
+                ),
+                required_terms=sorted(RESOLUTION_NOTE_REVIEW_TERMS),
+            ),
+        )
+    return note
 
 
 def _safety_event_response(
@@ -216,15 +265,18 @@ async def update_safety_event_resolution(
             },
         )
 
+    resolution_note = None
     if body.status == "resolved":
-        _validate_high_risk_resolution_note(event, body.resolution_note)
+        resolution_note = _validate_resolution_note(body.resolution_note)
+        _validate_high_risk_resolution_note(event, resolution_note)
 
     event.status = body.status
-    event.resolution_note = body.resolution_note.strip() if body.resolution_note else None
     if body.status == "resolved":
+        event.resolution_note = resolution_note
         event.resolved_at = datetime.now(timezone.utc)
         event.resolved_by_user_id = reviewer.id
     else:
+        event.resolution_note = None
         event.resolved_at = None
         event.resolved_by_user_id = None
 
