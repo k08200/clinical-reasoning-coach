@@ -73,6 +73,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "acute_limb_ischemia_treatment_safety",
         "testicular_torsion_time_critical_actions",
         "testicular_torsion_treatment_safety",
+        "ovarian_torsion_time_critical_actions",
+        "ovarian_torsion_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
@@ -1891,6 +1893,134 @@ def test_quality_gate_requires_testicular_torsion_salvage_detorsion_fixation_and
     assert not report.passed
     assert any(
         "testicular torsion safety checks must include ischemia" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ovarian_torsion_hcg_ultrasound_and_surgical_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Adnexal torsion"
+    case["patient_demographics"] = {
+        "age": 17,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden severe right pelvic pain with vomiting"
+    case["history_of_present_illness"] = (
+        "Adolescent has intermittent unilateral pelvic pain, nausea, vomiting, "
+        "right adnexal tenderness, and suspected ovarian torsion."
+    )
+    case["key_teaching_points"] = [
+        "Adnexal torsion is a surgical emergency threatening ovarian function and fertility",
+        "Doppler flow alone cannot confirm or exclude torsion",
+        "Timely diagnostic laparoscopy and detorsion preserve ovarian function",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden unilateral pelvic pain with nausea or vomiting",
+        "Adnexal mass, enlarged ovary, abnormal Doppler flow, or persistent high clinical suspicion",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain pregnancy test and quantitative hCG immediately",
+        "Order pelvic ultrasound or transvaginal ultrasound with Doppler assessment",
+        "Give analgesia and antiemetic support while keeping the patient NPO",
+    ]
+    case["contraindication_checks"] = [
+        "Normal Doppler flow does not rule out torsion and imaging must not delay timely intervention",
+        "Plan ovarian preservation with detorsion, cystectomy when appropriate, fertility protection, and oophorectomy only if unavoidable",
+        "Review ectopic pregnancy, appendicitis, PID, ruptured ovarian cyst, hemorrhagic cyst, tubo-ovarian abscess, and other acute pelvic pain differentials",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Ovarian Torsion",
+            "organization": "National Institutes of Health",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK560675/",
+            "supports": [
+                "adnexal torsion diagnosis and risk stratification",
+                "adnexal torsion is a surgical emergency threatening ovarian function and fertility",
+                "Doppler flow alone cannot confirm or exclude torsion",
+                "timely diagnostic laparoscopy and detorsion preserve ovarian function",
+                "sudden unilateral pelvic pain with nausea or vomiting as red flags",
+                "adnexal mass, enlarged ovary, abnormal Doppler flow, or persistent high clinical suspicion as severity markers",
+                "pregnancy test and quantitative hCG immediately",
+                "pelvic ultrasound or transvaginal ultrasound with Doppler assessment",
+                "analgesia and antiemetic support while keeping the patient NPO",
+                "normal Doppler flow does not rule out torsion and imaging must not delay timely intervention",
+                "ovarian preservation with detorsion, cystectomy, fertility protection, and oophorectomy only if unavoidable",
+                "ectopic pregnancy, appendicitis, PID, ruptured ovarian cyst, hemorrhagic cyst, tubo-ovarian abscess, and acute pelvic pain differentials",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ovarian or adnexal torsion time-critical actions must include pregnancy testing"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ovarian_torsion_doppler_preservation_and_differential_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Adnexal torsion"
+    case["patient_demographics"] = {
+        "age": 17,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden severe right pelvic pain with vomiting"
+    case["history_of_present_illness"] = (
+        "Adolescent has intermittent unilateral pelvic pain, nausea, vomiting, "
+        "right adnexal tenderness, and suspected ovarian torsion."
+    )
+    case["key_teaching_points"] = [
+        "Adnexal torsion is a surgical emergency threatening ovarian function and fertility",
+        "Doppler flow alone cannot confirm or exclude torsion",
+        "Timely diagnostic laparoscopy and detorsion preserve ovarian function",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden unilateral pelvic pain with nausea or vomiting",
+        "Adnexal mass, enlarged ovary, abnormal Doppler flow, or persistent high clinical suspicion",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain pregnancy test and quantitative hCG immediately",
+        "Order pelvic ultrasound or transvaginal ultrasound with Doppler assessment",
+        "Escalate urgently to OB/GYN for diagnostic laparoscopy, detorsion, and surgical evaluation",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before analgesia",
+        "Renal function before contrast CT if alternative diagnosis requires imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Ovarian Torsion",
+            "organization": "National Institutes of Health",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK560675/",
+            "supports": [
+                "adnexal torsion diagnosis and risk stratification",
+                "adnexal torsion is a surgical emergency threatening ovarian function and fertility",
+                "Doppler flow alone cannot confirm or exclude torsion",
+                "timely diagnostic laparoscopy and detorsion preserve ovarian function",
+                "sudden unilateral pelvic pain with nausea or vomiting as red flags",
+                "adnexal mass, enlarged ovary, abnormal Doppler flow, or persistent high clinical suspicion as severity markers",
+                "pregnancy test and quantitative hCG immediately",
+                "pelvic ultrasound or transvaginal ultrasound with Doppler assessment",
+                "urgent OB/GYN diagnostic laparoscopy, detorsion, and surgical evaluation",
+                "medication allergy before analgesia",
+                "renal function before contrast CT if alternative diagnosis requires imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ovarian or adnexal torsion safety checks must include normal Doppler flow"
+        in issue
         for issue in report.critical_issues
     )
 

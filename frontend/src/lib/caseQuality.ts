@@ -1756,6 +1756,83 @@ const TESTICULAR_TORSION_DIFFERENTIAL_SAFETY_TERMS = [
   "감별",
 ];
 
+const OVARIAN_TORSION_CONTEXT_TERMS = [
+  "adnexal torsion",
+  "acute pelvic pain with adnexal mass",
+  "intermittent unilateral pelvic pain",
+  "ovarian torsion",
+  "torsion of the ovary",
+  "torsed ovary",
+  "난소염전",
+  "난소 염전",
+];
+
+const OVARIAN_TORSION_PREGNANCY_ACTION_TERMS = [
+  "beta hcg",
+  "beta-hcg",
+  "hcg",
+  "pregnancy test",
+  "quantitative hcg",
+  "β-hcg",
+  "임신",
+];
+
+const OVARIAN_TORSION_ULTRASOUND_ACTION_TERMS = [
+  "doppler",
+  "pelvic ultrasound",
+  "transvaginal ultrasound",
+  "tvu",
+  "tvus",
+  "ultrasound",
+  "초음파",
+];
+
+const OVARIAN_TORSION_SURGICAL_ACTION_TERMS = [
+  "diagnostic laparoscopy",
+  "detorsion",
+  "gynecology",
+  "laparoscopy",
+  "ob/gyn",
+  "obgyn",
+  "surgical evaluation",
+  "urgent surgery",
+  "산부인과",
+  "수술",
+];
+
+const OVARIAN_TORSION_DOPPLER_DELAY_SAFETY_TERMS = [
+  "do not delay",
+  "doppler flow",
+  "normal doppler",
+  "not delay",
+  "not rule out",
+  "timely intervention",
+  "지연",
+];
+
+const OVARIAN_TORSION_PRESERVATION_SAFETY_TERMS = [
+  "cystectomy",
+  "detorsion",
+  "fertility",
+  "oophorectomy",
+  "ovarian function",
+  "ovarian preservation",
+  "preserve",
+  "난소 보존",
+];
+
+const OVARIAN_TORSION_DIFFERENTIAL_SAFETY_TERMS = [
+  "appendicitis",
+  "ectopic",
+  "hemorrhagic cyst",
+  "ovarian cyst",
+  "pid",
+  "pregnancy",
+  "ruptured cyst",
+  "tubo-ovarian abscess",
+  "감별",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -4005,6 +4082,53 @@ function hasTesticularTorsionTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresOvarianTorsionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return OVARIAN_TORSION_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasOvarianTorsionTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasPregnancyAssessment = OVARIAN_TORSION_PREGNANCY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUltrasoundAssessment = OVARIAN_TORSION_ULTRASOUND_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSurgicalEscalation = OVARIAN_TORSION_SURGICAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasPregnancyAssessment && hasUltrasoundAssessment && hasSurgicalEscalation;
+}
+
+function hasOvarianTorsionTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDopplerDelaySafety = OVARIAN_TORSION_DOPPLER_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPreservationSafety = OVARIAN_TORSION_PRESERVATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferentialSafety = OVARIAN_TORSION_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasDopplerDelaySafety && hasPreservationSafety && hasDifferentialSafety;
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -4974,6 +5098,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasTesticularTorsionTreatmentSafetyCheck,
       issue:
         "testicular torsion safety checks must include ischemia, 4-to-8-hour salvage, viability, orchiectomy, or time-from-onset risk, manual detorsion as non-definitive or not delaying surgery, bilateral or contralateral orchiopexy, fertility, or testicular loss planning, and epididymitis, torsion of appendage, hernia, trauma, or other acute-scrotum differential review",
+    },
+    {
+      name: "ovarian_torsion_time_critical_actions",
+      label: "Ovarian torsion emergency actions",
+      applies: requiresOvarianTorsionSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasOvarianTorsionTimeCriticalActions,
+      issue:
+        "ovarian or adnexal torsion time-critical actions must include pregnancy testing or quantitative hCG, pelvic or transvaginal ultrasound with Doppler assessment, and urgent OB/GYN, diagnostic laparoscopy, detorsion, or surgical escalation",
+    },
+    {
+      name: "ovarian_torsion_treatment_safety",
+      label: "Ovarian torsion treatment safety",
+      applies: requiresOvarianTorsionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasOvarianTorsionTreatmentSafetyCheck,
+      issue:
+        "ovarian or adnexal torsion safety checks must include normal Doppler flow not ruling out torsion or imaging not delaying timely intervention, ovarian preservation, detorsion, cystectomy, fertility, or oophorectomy-limitation planning, and ectopic pregnancy, appendicitis, PID, ruptured cyst, tubo-ovarian abscess, or other acute-pelvic-pain differential review",
     },
     {
       name: "dka_time_critical_actions",

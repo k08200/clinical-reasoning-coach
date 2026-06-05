@@ -1645,6 +1645,76 @@ TESTICULAR_TORSION_DIFFERENTIAL_SAFETY_TERMS = (
     "varicocele",
     "감별",
 )
+OVARIAN_TORSION_CONTEXT_TERMS = (
+    "adnexal torsion",
+    "acute pelvic pain with adnexal mass",
+    "intermittent unilateral pelvic pain",
+    "ovarian torsion",
+    "torsion of the ovary",
+    "torsed ovary",
+    "난소염전",
+    "난소 염전",
+)
+OVARIAN_TORSION_PREGNANCY_ACTION_TERMS = (
+    "beta hcg",
+    "beta-hcg",
+    "hcg",
+    "pregnancy test",
+    "quantitative hcg",
+    "β-hcg",
+    "임신",
+)
+OVARIAN_TORSION_ULTRASOUND_ACTION_TERMS = (
+    "doppler",
+    "pelvic ultrasound",
+    "transvaginal ultrasound",
+    "tvu",
+    "tvus",
+    "ultrasound",
+    "초음파",
+)
+OVARIAN_TORSION_SURGICAL_ACTION_TERMS = (
+    "diagnostic laparoscopy",
+    "detorsion",
+    "gynecology",
+    "laparoscopy",
+    "ob/gyn",
+    "obgyn",
+    "surgical evaluation",
+    "urgent surgery",
+    "산부인과",
+    "수술",
+)
+OVARIAN_TORSION_DOPPLER_DELAY_SAFETY_TERMS = (
+    "do not delay",
+    "doppler flow",
+    "normal doppler",
+    "not delay",
+    "not rule out",
+    "timely intervention",
+    "지연",
+)
+OVARIAN_TORSION_PRESERVATION_SAFETY_TERMS = (
+    "cystectomy",
+    "detorsion",
+    "fertility",
+    "oophorectomy",
+    "ovarian function",
+    "ovarian preservation",
+    "preserve",
+    "난소 보존",
+)
+OVARIAN_TORSION_DIFFERENTIAL_SAFETY_TERMS = (
+    "appendicitis",
+    "ectopic",
+    "hemorrhagic cyst",
+    "ovarian cyst",
+    "pid",
+    "pregnancy",
+    "ruptured cyst",
+    "tubo-ovarian abscess",
+    "감별",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -3531,6 +3601,32 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="ovarian_torsion_time_critical_actions",
+            applies=_requires_ovarian_torsion_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_ovarian_torsion_time_critical_actions,
+            issue=(
+                "ovarian or adnexal torsion time-critical actions must include "
+                "pregnancy testing or quantitative hCG, pelvic or transvaginal "
+                "ultrasound with Doppler assessment, and urgent OB/GYN, diagnostic "
+                "laparoscopy, detorsion, or surgical escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="ovarian_torsion_treatment_safety",
+            applies=_requires_ovarian_torsion_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_ovarian_torsion_treatment_safety_check,
+            issue=(
+                "ovarian or adnexal torsion safety checks must include normal "
+                "Doppler flow not ruling out torsion or imaging not delaying "
+                "timely intervention, ovarian preservation, detorsion, cystectomy, "
+                "fertility, or oophorectomy-limitation planning, and ectopic "
+                "pregnancy, appendicitis, PID, ruptured cyst, tubo-ovarian abscess, "
+                "or other acute-pelvic-pain differential review"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -4864,6 +4960,67 @@ def _has_testicular_torsion_treatment_safety_check(checks: list[Any]) -> bool:
         and has_bilateral_fixation_safety
         and has_differential_safety
     )
+
+
+def _requires_ovarian_torsion_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in OVARIAN_TORSION_CONTEXT_TERMS
+    )
+
+
+def _has_ovarian_torsion_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_pregnancy_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OVARIAN_TORSION_PREGNANCY_ACTION_TERMS
+    )
+    has_ultrasound_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OVARIAN_TORSION_ULTRASOUND_ACTION_TERMS
+    )
+    has_surgical_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OVARIAN_TORSION_SURGICAL_ACTION_TERMS
+    )
+    return has_pregnancy_assessment and has_ultrasound_assessment and has_surgical_escalation
+
+
+def _has_ovarian_torsion_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_doppler_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OVARIAN_TORSION_DOPPLER_DELAY_SAFETY_TERMS
+    )
+    has_preservation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OVARIAN_TORSION_PRESERVATION_SAFETY_TERMS
+    )
+    has_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OVARIAN_TORSION_DIFFERENTIAL_SAFETY_TERMS
+    )
+    return has_doppler_delay_safety and has_preservation_safety and has_differential_safety
 
 
 def _requires_sepsis_resuscitation_safety_check(data: dict[str, Any]) -> bool:
