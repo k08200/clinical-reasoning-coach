@@ -77,6 +77,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "ovarian_torsion_treatment_safety",
         "spinal_epidural_abscess_time_critical_actions",
         "spinal_epidural_abscess_treatment_safety",
+        "acute_mesenteric_ischemia_time_critical_actions",
+        "acute_mesenteric_ischemia_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
@@ -2155,6 +2157,139 @@ def test_quality_gate_requires_spinal_epidural_abscess_neuro_risk_and_antibiotic
     assert any(
         "spinal epidural abscess safety checks must include neurologic deficit"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_mesenteric_ischemia_cta_resuscitation_antibiotics_and_surgery():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute mesenteric ischemia"
+    case["patient_demographics"] = {
+        "age": 78,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe abdominal pain out of proportion to exam"
+    case["history_of_present_illness"] = (
+        "Older patient with atrial fibrillation has abrupt severe abdominal pain, "
+        "vomiting, minimal early tenderness, metabolic acidosis, lactate elevation, "
+        "and concern for acute mesenteric ischemia from SMA embolus."
+    )
+    case["key_teaching_points"] = [
+        "Acute mesenteric ischemia is a surgical and vascular emergency",
+        "CTA should be obtained urgently when AMI is suspected",
+        "Resuscitation, broad-spectrum antibiotics, anticoagulation, and revascularization planning are time-critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Pain out of proportion, vomiting, atrial fibrillation, shock, metabolic acidosis, or rising lactate",
+        "Peritonitis, GI bleeding, organ failure, or suspected bowel infarction",
+    ]
+    case["time_critical_actions"] = [
+        "Order CTA abdomen pelvis or CT angiography immediately for suspected mesenteric ischemia",
+        "Begin fluid resuscitation and monitor lactate, metabolic acidosis, shock, and organ perfusion",
+        "Start early broad-spectrum antibiotics such as piperacillin tazobactam for bowel ischemia",
+    ]
+    case["contraindication_checks"] = [
+        "Review heparin anticoagulation plan with bleeding, platelet, intracranial hemorrhage, and recent surgery contraindications",
+        "Assess bowel viability, necrotic bowel, peritonitis, damage control laparotomy, second look operation, and short bowel risk",
+        "Review embolic atrial fibrillation source, SMA thrombosis, venous thrombosis, low-flow shock, and nonocclusive mesenteric ischemia causes",
+        "Do not delay CTA or intervention because normal lactate does not rule out AMI and pain out of proportion remains high risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute mesenteric ischemia: updated guidelines of the World Society of Emergency Surgery",
+            "organization": "World Journal of Emergency Surgery",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9580452/",
+            "supports": [
+                "acute mesenteric ischemia diagnosis and risk stratification",
+                "acute mesenteric ischemia is a surgical and vascular emergency",
+                "CTA should be obtained urgently when AMI is suspected",
+                "resuscitation, broad-spectrum antibiotics, anticoagulation, and revascularization planning are time-critical",
+                "pain out of proportion, vomiting, atrial fibrillation, shock, metabolic acidosis, or rising lactate as red flags",
+                "peritonitis, GI bleeding, organ failure, or suspected bowel infarction as severity markers",
+                "CTA abdomen pelvis or CT angiography immediately for suspected mesenteric ischemia",
+                "fluid resuscitation and lactate, metabolic acidosis, shock, and organ perfusion monitoring",
+                "early broad-spectrum antibiotics such as piperacillin tazobactam for bowel ischemia",
+                "heparin anticoagulation plan with bleeding, platelet, intracranial hemorrhage, and recent surgery contraindications",
+                "bowel viability, necrotic bowel, peritonitis, damage control laparotomy, second look operation, and short bowel risk",
+                "embolic atrial fibrillation source, SMA thrombosis, venous thrombosis, low-flow shock, and nonocclusive mesenteric ischemia causes",
+                "do not delay CTA or intervention because normal lactate does not rule out AMI and pain out of proportion remains high risk",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute mesenteric ischemia time-critical actions must include CTA"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_mesenteric_ischemia_anticoagulation_viability_cause_and_lactate_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute mesenteric ischemia"
+    case["patient_demographics"] = {
+        "age": 78,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe abdominal pain out of proportion to exam"
+    case["history_of_present_illness"] = (
+        "Older patient with atrial fibrillation has abrupt severe abdominal pain, "
+        "vomiting, minimal early tenderness, metabolic acidosis, lactate elevation, "
+        "and concern for acute mesenteric ischemia from SMA embolus."
+    )
+    case["key_teaching_points"] = [
+        "Acute mesenteric ischemia is a surgical and vascular emergency",
+        "CTA should be obtained urgently when AMI is suspected",
+        "Resuscitation, broad-spectrum antibiotics, anticoagulation, and revascularization planning are time-critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Pain out of proportion, vomiting, atrial fibrillation, shock, metabolic acidosis, or rising lactate",
+        "Peritonitis, GI bleeding, organ failure, or suspected bowel infarction",
+    ]
+    case["time_critical_actions"] = [
+        "Order CTA abdomen pelvis or CT angiography immediately for suspected mesenteric ischemia",
+        "Begin fluid resuscitation and monitor lactate, metabolic acidosis, shock, and organ perfusion",
+        "Start early broad-spectrum antibiotics such as piperacillin tazobactam for bowel ischemia",
+        "Escalate urgently to acute care surgery and vascular surgery for endovascular revascularization, embolectomy, exploratory laparotomy, and bowel resection planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antibiotics",
+        "Creatinine and renal function before contrast imaging if this does not delay CTA",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute mesenteric ischemia: updated guidelines of the World Society of Emergency Surgery",
+            "organization": "World Journal of Emergency Surgery",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9580452/",
+            "supports": [
+                "acute mesenteric ischemia diagnosis and risk stratification",
+                "acute mesenteric ischemia is a surgical and vascular emergency",
+                "CTA should be obtained urgently when AMI is suspected",
+                "resuscitation, broad-spectrum antibiotics, anticoagulation, and revascularization planning are time-critical",
+                "pain out of proportion, vomiting, atrial fibrillation, shock, metabolic acidosis, or rising lactate as red flags",
+                "peritonitis, GI bleeding, organ failure, or suspected bowel infarction as severity markers",
+                "CTA abdomen pelvis or CT angiography immediately for suspected mesenteric ischemia",
+                "fluid resuscitation and lactate, metabolic acidosis, shock, and organ perfusion monitoring",
+                "early broad-spectrum antibiotics such as piperacillin tazobactam for bowel ischemia",
+                "acute care surgery and vascular surgery for endovascular revascularization, embolectomy, exploratory laparotomy, and bowel resection planning",
+                "medication allergy before antibiotics",
+                "creatinine and renal function before contrast imaging if this does not delay CTA",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute mesenteric ischemia safety checks must include heparin" in issue
         for issue in report.critical_issues
     )
 

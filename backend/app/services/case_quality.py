@@ -1801,6 +1801,101 @@ SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS = (
     "unstable",
     "배양",
 )
+ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = (
+    "acute bowel ischemia",
+    "acute intestinal ischemia",
+    "acute mesenteric ischemia",
+    "bowel infarction",
+    "bowel ischemia",
+    "intestinal ischemia",
+    "mesenteric ischemia",
+    "pain out of proportion",
+    "sma embolus",
+    "sma thrombosis",
+    "장간막 허혈",
+)
+ACUTE_MESENTERIC_ISCHEMIA_CTA_ACTION_TERMS = (
+    "cta",
+    "ct angiography",
+    "ct mesenteric angiography",
+    "mesenteric angiography",
+    "multidetector ct",
+    "복부 ct",
+)
+ACUTE_MESENTERIC_ISCHEMIA_RESUSCITATION_ACTION_TERMS = (
+    "fluid",
+    "fluids",
+    "lactate",
+    "metabolic acidosis",
+    "resuscitation",
+    "shock",
+    "수액",
+    "젖산",
+)
+ACUTE_MESENTERIC_ISCHEMIA_ANTIBIOTIC_ACTION_TERMS = (
+    "antibiotic",
+    "antibiotics",
+    "broad-spectrum",
+    "empiric",
+    "piperacillin",
+    "tazobactam",
+    "항생제",
+)
+ACUTE_MESENTERIC_ISCHEMIA_SURGERY_REVASCULARIZATION_ACTION_TERMS = (
+    "embolectomy",
+    "endovascular",
+    "exploratory laparotomy",
+    "laparotomy",
+    "resection",
+    "revascularization",
+    "revascularisation",
+    "sma",
+    "vascular surgery",
+    "혈관외과",
+    "재관류",
+)
+ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_SAFETY_TERMS = (
+    "anticoagulation",
+    "bleeding",
+    "heparin",
+    "intracranial hemorrhage",
+    "platelet",
+    "recent surgery",
+    "출혈",
+    "헤파린",
+)
+ACUTE_MESENTERIC_ISCHEMIA_BOWEL_VIABILITY_SAFETY_TERMS = (
+    "bowel viability",
+    "damage control",
+    "necrotic bowel",
+    "peritonitis",
+    "re-look",
+    "second look",
+    "short bowel",
+    "viability",
+    "복막염",
+)
+ACUTE_MESENTERIC_ISCHEMIA_CAUSE_TYPE_SAFETY_TERMS = (
+    "atrial fibrillation",
+    "embol",
+    "low-flow",
+    "nomas",
+    "nonocclusive",
+    "sma",
+    "thrombosis",
+    "venous thrombosis",
+    "심방세동",
+    "혈전",
+)
+ACUTE_MESENTERIC_ISCHEMIA_LACTATE_LIMITATION_SAFETY_TERMS = (
+    "do not delay",
+    "lactate",
+    "normal lactate",
+    "not exclude",
+    "not rule out",
+    "pain out of proportion",
+    "젖산",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -3741,6 +3836,34 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="acute_mesenteric_ischemia_time_critical_actions",
+            applies=_requires_acute_mesenteric_ischemia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_acute_mesenteric_ischemia_time_critical_actions,
+            issue=(
+                "acute mesenteric ischemia time-critical actions must include "
+                "CTA or CT angiography, resuscitation with lactate, acidosis, "
+                "shock, or fluid monitoring, early broad-spectrum antibiotics, "
+                "and urgent surgery, vascular surgery, endovascular therapy, "
+                "laparotomy, embolectomy, revascularization, or bowel-resection "
+                "escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acute_mesenteric_ischemia_treatment_safety",
+            applies=_requires_acute_mesenteric_ischemia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acute_mesenteric_ischemia_treatment_safety_check,
+            issue=(
+                "acute mesenteric ischemia safety checks must include heparin "
+                "or anticoagulation bleeding contraindication review, bowel "
+                "viability, necrosis, peritonitis, damage-control, second-look, "
+                "or short-bowel planning, embolic, thrombotic, SMA, venous, "
+                "atrial-fibrillation, low-flow, or nonocclusive cause review, "
+                "and lactate limitation or do-not-delay CTA/intervention safety"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -5203,6 +5326,80 @@ def _has_spinal_epidural_abscess_treatment_safety_check(checks: list[Any]) -> bo
         has_neuro_sepsis_safety
         and has_risk_source_safety
         and has_antibiotic_timing_safety
+    )
+
+
+def _requires_acute_mesenteric_ischemia_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS
+    )
+
+
+def _has_acute_mesenteric_ischemia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_cta = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_CTA_ACTION_TERMS
+    )
+    has_resuscitation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_RESUSCITATION_ACTION_TERMS
+    )
+    has_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_surgery_revascularization = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_SURGERY_REVASCULARIZATION_ACTION_TERMS
+    )
+    return has_cta and has_resuscitation and has_antibiotic and has_surgery_revascularization
+
+
+def _has_acute_mesenteric_ischemia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_anticoagulation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_SAFETY_TERMS
+    )
+    has_bowel_viability_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_BOWEL_VIABILITY_SAFETY_TERMS
+    )
+    has_cause_type_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_CAUSE_TYPE_SAFETY_TERMS
+    )
+    has_lactate_limitation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_LACTATE_LIMITATION_SAFETY_TERMS
+    )
+    return (
+        has_anticoagulation_safety
+        and has_bowel_viability_safety
+        and has_cause_type_safety
+        and has_lactate_limitation_safety
     )
 
 

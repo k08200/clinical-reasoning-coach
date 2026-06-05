@@ -1927,6 +1927,110 @@ const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS = [
   "배양",
 ];
 
+const ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = [
+  "acute bowel ischemia",
+  "acute intestinal ischemia",
+  "acute mesenteric ischemia",
+  "bowel infarction",
+  "bowel ischemia",
+  "intestinal ischemia",
+  "mesenteric ischemia",
+  "pain out of proportion",
+  "sma embolus",
+  "sma thrombosis",
+  "장간막 허혈",
+];
+
+const ACUTE_MESENTERIC_ISCHEMIA_CTA_ACTION_TERMS = [
+  "cta",
+  "ct angiography",
+  "ct mesenteric angiography",
+  "mesenteric angiography",
+  "multidetector ct",
+  "복부 ct",
+];
+
+const ACUTE_MESENTERIC_ISCHEMIA_RESUSCITATION_ACTION_TERMS = [
+  "fluid",
+  "fluids",
+  "lactate",
+  "metabolic acidosis",
+  "resuscitation",
+  "shock",
+  "수액",
+  "젖산",
+];
+
+const ACUTE_MESENTERIC_ISCHEMIA_ANTIBIOTIC_ACTION_TERMS = [
+  "antibiotic",
+  "antibiotics",
+  "broad-spectrum",
+  "empiric",
+  "piperacillin",
+  "tazobactam",
+  "항생제",
+];
+
+const ACUTE_MESENTERIC_ISCHEMIA_SURGERY_REVASCULARIZATION_ACTION_TERMS = [
+  "embolectomy",
+  "endovascular",
+  "exploratory laparotomy",
+  "laparotomy",
+  "resection",
+  "revascularization",
+  "revascularisation",
+  "sma",
+  "vascular surgery",
+  "혈관외과",
+  "재관류",
+];
+
+const ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_SAFETY_TERMS = [
+  "anticoagulation",
+  "bleeding",
+  "heparin",
+  "intracranial hemorrhage",
+  "platelet",
+  "recent surgery",
+  "출혈",
+  "헤파린",
+];
+
+const ACUTE_MESENTERIC_ISCHEMIA_BOWEL_VIABILITY_SAFETY_TERMS = [
+  "bowel viability",
+  "damage control",
+  "necrotic bowel",
+  "peritonitis",
+  "re-look",
+  "second look",
+  "short bowel",
+  "viability",
+  "복막염",
+];
+
+const ACUTE_MESENTERIC_ISCHEMIA_CAUSE_TYPE_SAFETY_TERMS = [
+  "atrial fibrillation",
+  "embol",
+  "low-flow",
+  "nomas",
+  "nonocclusive",
+  "sma",
+  "thrombosis",
+  "venous thrombosis",
+  "심방세동",
+  "혈전",
+];
+
+const ACUTE_MESENTERIC_ISCHEMIA_LACTATE_LIMITATION_SAFETY_TERMS = [
+  "do not delay",
+  "lactate",
+  "normal lactate",
+  "not exclude",
+  "not rule out",
+  "pain out of proportion",
+  "젖산",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -4276,6 +4380,69 @@ function hasSpinalEpiduralAbscessTreatmentSafetyCheck(checks: string[]): boolean
   return hasNeuroSepsisSafety && hasRiskSourceSafety && hasAntibioticTimingSafety;
 }
 
+function requiresAcuteMesentericIschemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasAcuteMesentericIschemiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCta = ACUTE_MESENTERIC_ISCHEMIA_CTA_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasResuscitation = ACUTE_MESENTERIC_ISCHEMIA_RESUSCITATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibiotic = ACUTE_MESENTERIC_ISCHEMIA_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSurgeryRevascularization =
+    ACUTE_MESENTERIC_ISCHEMIA_SURGERY_REVASCULARIZATION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  return hasCta && hasResuscitation && hasAntibiotic && hasSurgeryRevascularization;
+}
+
+function hasAcuteMesentericIschemiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAnticoagulationSafety = ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBowelViabilitySafety =
+    ACUTE_MESENTERIC_ISCHEMIA_BOWEL_VIABILITY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCauseTypeSafety = ACUTE_MESENTERIC_ISCHEMIA_CAUSE_TYPE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLactateLimitationSafety =
+    ACUTE_MESENTERIC_ISCHEMIA_LACTATE_LIMITATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasAnticoagulationSafety &&
+    hasBowelViabilitySafety &&
+    hasCauseTypeSafety &&
+    hasLactateLimitationSafety
+  );
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -5281,6 +5448,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSpinalEpiduralAbscessTreatmentSafetyCheck,
       issue:
         "spinal epidural abscess safety checks must include neurologic deficit, bowel or bladder dysfunction, serial neurologic exams, or sepsis monitoring, bacteremia, endocarditis, diabetes, IVDU, immunosuppression, recent spinal procedure, staphylococcal, or source-risk review, and culture-before-antibiotics, biopsy, or do-not-delay empiric antibiotics for unstable or neurologic compromise planning",
+    },
+    {
+      name: "acute_mesenteric_ischemia_time_critical_actions",
+      label: "Acute mesenteric ischemia emergency actions",
+      applies: requiresAcuteMesentericIschemiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcuteMesentericIschemiaTimeCriticalActions,
+      issue:
+        "acute mesenteric ischemia time-critical actions must include CTA or CT angiography, resuscitation with lactate, acidosis, shock, or fluid monitoring, early broad-spectrum antibiotics, and urgent surgery, vascular surgery, endovascular therapy, laparotomy, embolectomy, revascularization, or bowel-resection escalation",
+    },
+    {
+      name: "acute_mesenteric_ischemia_treatment_safety",
+      label: "Acute mesenteric ischemia treatment safety",
+      applies: requiresAcuteMesentericIschemiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcuteMesentericIschemiaTreatmentSafetyCheck,
+      issue:
+        "acute mesenteric ischemia safety checks must include heparin or anticoagulation bleeding contraindication review, bowel viability, necrosis, peritonitis, damage-control, second-look, or short-bowel planning, embolic, thrombotic, SMA, venous, atrial-fibrillation, low-flow, or nonocclusive cause review, and lactate limitation or do-not-delay CTA/intervention safety",
     },
     {
       name: "dka_time_critical_actions",
