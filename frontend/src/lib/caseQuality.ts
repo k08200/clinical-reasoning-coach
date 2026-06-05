@@ -2803,6 +2803,98 @@ const TOXIC_ALCOHOL_COINGESTION_DIFFERENTIAL_SAFETY_TERMS = [
   "동반",
 ];
 
+const SALICYLATE_TOXICITY_CONTEXT_TERMS = [
+  "aspirin overdose",
+  "aspirin poisoning",
+  "aspirin toxicity",
+  "methyl salicylate",
+  "oil of wintergreen",
+  "salicylate overdose",
+  "salicylate poisoning",
+  "salicylate toxicity",
+  "살리실산",
+  "아스피린",
+];
+
+const SALICYLATE_LEVEL_ACID_BASE_ACTION_TERMS = [
+  "abg",
+  "anion gap",
+  "blood gas",
+  "electrolyte",
+  "repeat level",
+  "salicylate concentration",
+  "salicylate level",
+  "serial level",
+  "vbg",
+  "살리실산 농도",
+];
+
+const SALICYLATE_DECONTAMINATION_ACTION_TERMS = [
+  "activated charcoal",
+  "charcoal",
+  "multidose charcoal",
+  "multiple-dose charcoal",
+  "활성탄",
+];
+
+const SALICYLATE_ALKALINIZATION_ACTION_TERMS = [
+  "alkaline diuresis",
+  "alkalinization",
+  "bicarbonate",
+  "potassium",
+  "sodium bicarbonate",
+  "urine ph",
+  "urinary alkalinization",
+  "중탄산",
+];
+
+const SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS = [
+  "dialysis",
+  "hemodialysis",
+  "nephrology",
+  "poison center",
+  "poison control",
+  "toxicologist",
+  "투석",
+];
+
+const SALICYLATE_DIALYSIS_INDICATION_SAFETY_TERMS = [
+  "acidemia",
+  "altered mental status",
+  "high level",
+  "kidney failure",
+  "pulmonary edema",
+  "renal failure",
+  "seizure",
+  "severe acidosis",
+  "very high",
+  "투석",
+];
+
+const SALICYLATE_INTUBATION_PH_SAFETY_TERMS = [
+  "bicarbonate bolus",
+  "hyperventilation",
+  "intubation",
+  "mechanical ventilation",
+  "ph",
+  "respiratory alkalosis",
+  "ventilator",
+  "삽관",
+];
+
+const SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS = [
+  "cerebral edema",
+  "glucose",
+  "hypoglycemia",
+  "hypokalemia",
+  "potassium",
+  "pulmonary edema",
+  "temperature",
+  "전해질",
+  "칼륨",
+  "혈당",
+];
+
 const OPIOID_TOXICITY_CONTEXT_TERMS = [
   "fentanyl overdose",
   "heroin overdose",
@@ -5386,6 +5478,63 @@ function hasToxicAlcoholTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresSalicylateToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return SALICYLATE_TOXICITY_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasSalicylateToxicityTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasLevelAcidBaseAction = SALICYLATE_LEVEL_ACID_BASE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDecontaminationAction = SALICYLATE_DECONTAMINATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAlkalinizationAction = SALICYLATE_ALKALINIZATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDialysisEscalation = SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasLevelAcidBaseAction &&
+    hasDecontaminationAction &&
+    hasAlkalinizationAction &&
+    hasDialysisEscalation
+  );
+}
+
+function hasSalicylateToxicityTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDialysisIndicationSafety = SALICYLATE_DIALYSIS_INDICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasIntubationPhSafety = SALICYLATE_INTUBATION_PH_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasElectrolyteGlucoseSafety = SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasDialysisIndicationSafety && hasIntubationPhSafety && hasElectrolyteGlucoseSafety;
+}
+
 function requiresOpioidToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -6373,6 +6522,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasToxicAlcoholTreatmentSafetyCheck,
       issue:
         "toxic alcohol safety checks must include hemodialysis indication review for severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level, vision, optic, renal, kidney, urine, hypocalcemia, or calcium oxalate organ-injury monitoring, and ethanol, isopropanol, salicylate, ketoacidosis, lactic acidosis, late presentation, or co-ingestion differential review",
+    },
+    {
+      name: "salicylate_toxicity_time_critical_actions",
+      label: "Salicylate toxicity levels and alkalinization",
+      applies: requiresSalicylateToxicitySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSalicylateToxicityTimeCriticalActions,
+      issue:
+        "salicylate toxicity time-critical actions must include serial salicylate levels with anion gap, blood gas, ABG, VBG, or electrolyte monitoring, activated charcoal or multidose charcoal decontamination planning, sodium bicarbonate, urine alkalinization, alkaline diuresis, potassium, or urine pH planning, and poison center, toxicologist, nephrology, hemodialysis, or dialysis escalation",
+    },
+    {
+      name: "salicylate_toxicity_treatment_safety",
+      label: "Salicylate toxicity dialysis and airway safety",
+      applies: requiresSalicylateToxicitySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSalicylateToxicityTreatmentSafetyCheck,
+      issue:
+        "salicylate toxicity safety checks must include hemodialysis indication review for acidemia, severe acidosis, altered mental status, seizure, renal failure, kidney failure, pulmonary edema, or very high salicylate level, intubation or mechanical ventilation pH-preservation planning with hyperventilation or bicarbonate safeguards, and potassium, hypokalemia, glucose, hypoglycemia, temperature, pulmonary edema, or cerebral edema monitoring",
     },
     {
       name: "opioid_toxicity_time_critical_actions",
