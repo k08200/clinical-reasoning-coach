@@ -1715,6 +1715,92 @@ OVARIAN_TORSION_DIFFERENTIAL_SAFETY_TERMS = (
     "tubo-ovarian abscess",
     "감별",
 )
+SPINAL_EPIDURAL_ABSCESS_CONTEXT_TERMS = (
+    "discitis with epidural abscess",
+    "epidural abscess",
+    "infectious cord compression",
+    "spinal abscess",
+    "spinal epidural abscess",
+    "spinal infection with neurologic deficit",
+    "vertebral osteomyelitis with epidural extension",
+    "척추 경막외 농양",
+)
+SPINAL_EPIDURAL_ABSCESS_MRI_ACTION_TERMS = (
+    "contrast mri",
+    "emergency mri",
+    "immediate mri",
+    "mri",
+    "mri spine",
+    "spine mri",
+    "whole spine",
+    "응급 mri",
+)
+SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS = (
+    "blood culture",
+    "blood cultures",
+    "crp",
+    "culture",
+    "cultures",
+    "esr",
+    "source culture",
+    "배양",
+    "혈액배양",
+)
+SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_ACTION_TERMS = (
+    "antibiotic",
+    "antibiotics",
+    "cefepime",
+    "ceftriaxone",
+    "empiric",
+    "meropenem",
+    "vancomycin",
+    "항생제",
+)
+SPINAL_EPIDURAL_ABSCESS_SURGERY_ACTION_TERMS = (
+    "decompression",
+    "drainage",
+    "neurosurgery",
+    "source control",
+    "spine surgery",
+    "surgical consultation",
+    "surgical decompression",
+    "감압",
+    "신경외과",
+)
+SPINAL_EPIDURAL_ABSCESS_NEURO_SEPSIS_SAFETY_TERMS = (
+    "bowel",
+    "bladder",
+    "neurologic",
+    "paralysis",
+    "sepsis",
+    "serial exam",
+    "weakness",
+    "신경",
+    "패혈증",
+)
+SPINAL_EPIDURAL_ABSCESS_RISK_SOURCE_SAFETY_TERMS = (
+    "bacteremia",
+    "diabetes",
+    "endocarditis",
+    "immunosuppression",
+    "iv drug",
+    "ivdu",
+    "recent spinal procedure",
+    "source",
+    "staphylococcus",
+    "감염원",
+)
+SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS = (
+    "after blood cultures",
+    "biopsy",
+    "blood culture",
+    "culture before",
+    "do not delay",
+    "empiric antibiotics",
+    "neurologic compromise",
+    "unstable",
+    "배양",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -3627,6 +3713,34 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="spinal_epidural_abscess_time_critical_actions",
+            applies=_requires_spinal_epidural_abscess_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_spinal_epidural_abscess_time_critical_actions,
+            issue=(
+                "spinal epidural abscess time-critical actions must include "
+                "urgent MRI spine or whole-spine imaging, blood cultures, ESR, "
+                "CRP, source cultures, or microbiology workup, empiric IV "
+                "antibiotics, and neurosurgery, spine surgery, decompression, "
+                "drainage, or source-control escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="spinal_epidural_abscess_treatment_safety",
+            applies=_requires_spinal_epidural_abscess_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_spinal_epidural_abscess_treatment_safety_check,
+            issue=(
+                "spinal epidural abscess safety checks must include neurologic "
+                "deficit, bowel or bladder dysfunction, serial neurologic exams, "
+                "or sepsis monitoring, bacteremia, endocarditis, diabetes, IVDU, "
+                "immunosuppression, recent spinal procedure, staphylococcal, or "
+                "source-risk review, and culture-before-antibiotics, biopsy, "
+                "or do-not-delay empiric antibiotics for unstable or neurologic "
+                "compromise planning"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -5021,6 +5135,75 @@ def _has_ovarian_torsion_treatment_safety_check(checks: list[Any]) -> bool:
         for term in OVARIAN_TORSION_DIFFERENTIAL_SAFETY_TERMS
     )
     return has_doppler_delay_safety and has_preservation_safety and has_differential_safety
+
+
+def _requires_spinal_epidural_abscess_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_CONTEXT_TERMS
+    )
+
+
+def _has_spinal_epidural_abscess_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_mri = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_MRI_ACTION_TERMS
+    )
+    has_culture_lab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS
+    )
+    has_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_surgery = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_SURGERY_ACTION_TERMS
+    )
+    return has_mri and has_culture_lab and has_antibiotic and has_surgery
+
+
+def _has_spinal_epidural_abscess_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_neuro_sepsis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_NEURO_SEPSIS_SAFETY_TERMS
+    )
+    has_risk_source_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_RISK_SOURCE_SAFETY_TERMS
+    )
+    has_antibiotic_timing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS
+    )
+    return (
+        has_neuro_sepsis_safety
+        and has_risk_source_safety
+        and has_antibiotic_timing_safety
+    )
 
 
 def _requires_sepsis_resuscitation_safety_check(data: dict[str, Any]) -> bool:

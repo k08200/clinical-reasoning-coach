@@ -75,6 +75,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "testicular_torsion_treatment_safety",
         "ovarian_torsion_time_critical_actions",
         "ovarian_torsion_treatment_safety",
+        "spinal_epidural_abscess_time_critical_actions",
+        "spinal_epidural_abscess_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
@@ -2020,6 +2022,138 @@ def test_quality_gate_requires_ovarian_torsion_doppler_preservation_and_differen
     assert not report.passed
     assert any(
         "ovarian or adnexal torsion safety checks must include normal Doppler flow"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_spinal_epidural_abscess_mri_cultures_antibiotics_and_surgical_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Spinal epidural abscess"
+    case["patient_demographics"] = {
+        "age": 54,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe back pain with fever and new leg weakness"
+    case["history_of_present_illness"] = (
+        "Patient with diabetes and recent bacteremia has worsening atraumatic back pain, "
+        "fever, focal spine tenderness, urinary retention, and new bilateral leg weakness "
+        "concerning for spinal epidural abscess."
+    )
+    case["key_teaching_points"] = [
+        "Spinal epidural abscess is an infectious spinal cord compression emergency",
+        "MRI spine is the preferred urgent diagnostic test",
+        "Cultures, empiric antibiotics, and surgical source control planning prevent neurologic injury",
+    ]
+    case["clinical_red_flags"] = [
+        "Back pain with fever, bacteremia, diabetes, IVDU, recent spinal procedure, or immunosuppression",
+        "New weakness, sensory change, bowel or bladder dysfunction, sepsis, or progressive neurologic deficit",
+    ]
+    case["time_critical_actions"] = [
+        "Order emergency contrast MRI spine or whole spine MRI immediately",
+        "Obtain blood cultures, ESR, CRP, and source cultures before antibiotics when feasible",
+        "Start empiric IV vancomycin plus cefepime or ceftriaxone antibiotics after cultures if neurologic compromise or sepsis is present",
+    ]
+    case["contraindication_checks"] = [
+        "Perform serial neurologic exams for weakness, paralysis, sensory deficit, bowel or bladder dysfunction, and sepsis monitoring",
+        "Review bacteremia, endocarditis, diabetes, IVDU, immunosuppression, recent spinal procedure, staphylococcus risk, and infection source",
+        "Obtain blood culture before antibiotics when feasible, plan biopsy if stable, and do not delay empiric antibiotics for unstable patient or neurologic compromise",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Spinal Epidural Abscess",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/neurologic-disorders/spinal-cord-disorders/spinal-epidural-abscess",
+            "supports": [
+                "spinal epidural abscess diagnosis and risk stratification",
+                "spinal epidural abscess is an infectious spinal cord compression emergency",
+                "MRI spine is the preferred urgent diagnostic test",
+                "cultures, empiric antibiotics, and surgical source control planning prevent neurologic injury",
+                "back pain with fever, bacteremia, diabetes, IVDU, recent spinal procedure, or immunosuppression as red flags",
+                "new weakness, sensory change, bowel or bladder dysfunction, sepsis, or progressive neurologic deficit as severity markers",
+                "emergency contrast MRI spine or whole spine MRI immediately",
+                "blood cultures, ESR, CRP, and source cultures before antibiotics when feasible",
+                "empiric IV vancomycin plus cefepime or ceftriaxone antibiotics after cultures if neurologic compromise or sepsis is present",
+                "serial neurologic exams for weakness, paralysis, sensory deficit, bowel or bladder dysfunction, and sepsis monitoring",
+                "bacteremia, endocarditis, diabetes, IVDU, immunosuppression, recent spinal procedure, staphylococcus risk, and infection source",
+                "blood culture before antibiotics when feasible, biopsy if stable, and do not delay empiric antibiotics for unstable patient or neurologic compromise",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "spinal epidural abscess time-critical actions must include urgent MRI"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_spinal_epidural_abscess_neuro_risk_and_antibiotic_timing_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Spinal epidural abscess"
+    case["patient_demographics"] = {
+        "age": 54,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe back pain with fever and new leg weakness"
+    case["history_of_present_illness"] = (
+        "Patient with diabetes and recent bacteremia has worsening atraumatic back pain, "
+        "fever, focal spine tenderness, urinary retention, and new bilateral leg weakness "
+        "concerning for spinal epidural abscess."
+    )
+    case["key_teaching_points"] = [
+        "Spinal epidural abscess is an infectious spinal cord compression emergency",
+        "MRI spine is the preferred urgent diagnostic test",
+        "Cultures, empiric antibiotics, and surgical source control planning prevent neurologic injury",
+    ]
+    case["clinical_red_flags"] = [
+        "Back pain with fever, bacteremia, diabetes, IVDU, recent spinal procedure, or immunosuppression",
+        "New weakness, sensory change, bowel or bladder dysfunction, sepsis, or progressive neurologic deficit",
+    ]
+    case["time_critical_actions"] = [
+        "Order emergency contrast MRI spine or whole spine MRI immediately",
+        "Obtain blood cultures, ESR, CRP, and source cultures before antibiotics when feasible",
+        "Start empiric IV vancomycin plus cefepime or ceftriaxone antibiotics after cultures if neurologic compromise or sepsis is present",
+        "Escalate immediately to neurosurgery or spine surgery for decompression, drainage, and source control planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antibiotic selection",
+        "Renal dosing before vancomycin and cefepime",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Spinal Epidural Abscess",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/neurologic-disorders/spinal-cord-disorders/spinal-epidural-abscess",
+            "supports": [
+                "spinal epidural abscess diagnosis and risk stratification",
+                "spinal epidural abscess is an infectious spinal cord compression emergency",
+                "MRI spine is the preferred urgent diagnostic test",
+                "cultures, empiric antibiotics, and surgical source control planning prevent neurologic injury",
+                "back pain with fever, bacteremia, diabetes, IVDU, recent spinal procedure, or immunosuppression as red flags",
+                "new weakness, sensory change, bowel or bladder dysfunction, sepsis, or progressive neurologic deficit as severity markers",
+                "emergency contrast MRI spine or whole spine MRI immediately",
+                "blood cultures, ESR, CRP, and source cultures before antibiotics when feasible",
+                "empiric IV vancomycin plus cefepime or ceftriaxone antibiotics after cultures if neurologic compromise or sepsis is present",
+                "immediate neurosurgery or spine surgery for decompression, drainage, and source control planning",
+                "medication allergy before antibiotic selection",
+                "renal dosing before vancomycin and cefepime",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "spinal epidural abscess safety checks must include neurologic deficit"
         in issue
         for issue in report.critical_issues
     )
