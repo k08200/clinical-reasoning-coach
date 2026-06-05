@@ -51,6 +51,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "anaphylaxis_observation_safety",
         "gi_bleed_time_critical_actions",
         "gi_bleed_transfusion_reversal_safety",
+        "cns_infection_time_critical_actions",
+        "cns_infection_lp_steroid_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "stroke_time_critical_actions",
@@ -454,6 +456,114 @@ def test_quality_gate_requires_gi_bleed_reversal_and_transfusion_safety():
     assert not report.passed
     assert any(
         "GI bleed safety checks must include anticoagulant or coagulopathy reversal review" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_cns_infection_lp_ct_and_steroid_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Bacterial meningitis"
+    case["chief_complaint"] = "Fever, headache, and confusion"
+    case["history_of_present_illness"] = (
+        "Adult with abrupt fever, severe headache, neck stiffness, photophobia, "
+        "and worsening confusion."
+    )
+    case["key_teaching_points"] = [
+        "CNS infection can progress rapidly and requires immediate empiric therapy",
+        "Lumbar puncture and CT sequencing depends on neurologic risk features",
+        "Dexamethasone timing matters when bacterial meningitis is possible",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever with neck stiffness and photophobia",
+        "Altered mental status suggesting invasive CNS infection",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain blood cultures promptly without delaying empiric antibiotics",
+        "Start empiric ceftriaxone and vancomycin immediately",
+    ]
+    case["contraindication_checks"] = [
+        "Antimicrobial allergy, renal function, and vancomycin dosing review",
+        "Head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
+        "Dexamethasone before or with antibiotics when bacterial meningitis is possible",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Bacterial Meningitis Review",
+            "organization": "National Library of Medicine",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/",
+            "supports": [
+                "CNS infection diagnosis and bacterial meningitis risk stratification",
+                "fever with neck stiffness and photophobia as red flags",
+                "altered mental status suggesting invasive CNS infection severity",
+                "blood cultures promptly without delaying empiric antibiotics",
+                "empiric ceftriaxone and vancomycin immediately",
+                "antimicrobial allergy, renal function, and vancomycin dosing review",
+                "head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
+                "dexamethasone before or with antibiotics when bacterial meningitis is possible",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "CNS infection time-critical actions must include blood cultures" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_cns_infection_lp_and_steroid_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Bacterial meningitis"
+    case["chief_complaint"] = "Fever, headache, and confusion"
+    case["history_of_present_illness"] = (
+        "Adult with abrupt fever, severe headache, neck stiffness, photophobia, "
+        "and worsening confusion."
+    )
+    case["key_teaching_points"] = [
+        "CNS infection can progress rapidly and requires immediate empiric therapy",
+        "Lumbar puncture and CT sequencing depends on neurologic risk features",
+        "Dexamethasone timing matters when bacterial meningitis is possible",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever with neck stiffness and photophobia",
+        "Altered mental status suggesting invasive CNS infection",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain blood cultures promptly without delaying empiric antibiotics",
+        "Start empiric ceftriaxone and vancomycin immediately",
+        "Assess lumbar puncture or head CT before LP pathway in parallel",
+        "Give dexamethasone before or with antibiotics when bacterial meningitis is possible",
+    ]
+    case["contraindication_checks"] = [
+        "Antimicrobial allergy, renal function, and vancomycin dosing review",
+        "Medication pregnancy status before imaging if relevant",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Bacterial Meningitis Review",
+            "organization": "National Library of Medicine",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/",
+            "supports": [
+                "CNS infection diagnosis and bacterial meningitis risk stratification",
+                "fever with neck stiffness and photophobia as red flags",
+                "altered mental status suggesting invasive CNS infection severity",
+                "blood cultures promptly without delaying empiric antibiotics",
+                "empiric ceftriaxone and vancomycin immediately",
+                "lumbar puncture and head CT before LP pathway",
+                "dexamethasone before or with antibiotics when bacterial meningitis is possible",
+                "antimicrobial allergy, renal function, and vancomycin dosing review",
+                "medication pregnancy status before imaging if relevant",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "CNS infection safety checks must include antimicrobial allergy" in issue
         for issue in report.critical_issues
     )
 

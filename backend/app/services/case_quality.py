@@ -647,6 +647,93 @@ GI_BLEED_TRANSFUSION_SAFETY_TERMS = (
     "수혈반응",
     "혈액형",
 )
+CNS_INFECTION_CONTEXT_TERMS = (
+    "bacterial meningitis",
+    "meningitis",
+    "meningococcemia",
+    "meningococcal",
+    "수막염",
+    "뇌수막염",
+    "중추신경계 감염",
+)
+CNS_INFECTION_CULTURE_ACTION_TERMS = (
+    "blood culture",
+    "blood cultures",
+    "culture",
+    "cultures",
+    "배양",
+    "혈액배양",
+    "혈액 배양",
+)
+CNS_INFECTION_ANTIBIOTIC_ACTION_TERMS = (
+    "antibiotic",
+    "antibiotics",
+    "antimicrobial",
+    "antimicrobials",
+    "ceftriaxone",
+    "empiric",
+    "vancomycin",
+    "항균제",
+    "항생제",
+)
+CNS_INFECTION_LP_CT_ACTION_TERMS = (
+    "ct before lp",
+    "head ct",
+    "lp",
+    "lumbar puncture",
+    "neuroimaging",
+    "spinal tap",
+    "뇌영상",
+    "요추천자",
+)
+CNS_INFECTION_STEROID_ACTION_TERMS = (
+    "dexamethasone",
+    "steroid",
+    "steroids",
+    "덱사메타손",
+    "스테로이드",
+)
+CNS_INFECTION_ANTIMICROBIAL_SAFETY_TERMS = (
+    "allergies",
+    "allergy",
+    "creatinine",
+    "dose",
+    "dosing",
+    "egfr",
+    "kidney",
+    "renal",
+    "vancomycin",
+    "신장",
+    "알레르기",
+    "용량",
+    "콩팥",
+    "크레아티닌",
+)
+CNS_INFECTION_LP_SAFETY_TERMS = (
+    "anticoagulant",
+    "coagulopathy",
+    "ct before lp",
+    "focal neurologic deficit",
+    "head ct",
+    "increased intracranial pressure",
+    "lp contraindication",
+    "mass lesion",
+    "papilledema",
+    "platelet",
+    "요추천자",
+    "응고",
+    "항응고",
+    "혈소판",
+)
+CNS_INFECTION_STEROID_SAFETY_TERMS = (
+    "before antibiotics",
+    "before or with antibiotics",
+    "dexamethasone",
+    "steroid",
+    "steroids",
+    "덱사메타손",
+    "스테로이드",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -1351,6 +1438,28 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="cns_infection_time_critical_actions",
+            applies=_requires_cns_infection_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_cns_infection_time_critical_actions,
+            issue=(
+                "CNS infection time-critical actions must include blood cultures, "
+                "immediate empiric antibiotics, lumbar puncture or CT-before-LP "
+                "pathway, and dexamethasone timing when bacterial meningitis is possible"
+            ),
+        ),
+        DomainSafetyGate(
+            name="cns_infection_lp_steroid_safety",
+            applies=_requires_cns_infection_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_cns_infection_lp_steroid_safety_check,
+            issue=(
+                "CNS infection safety checks must include antimicrobial allergy or "
+                "renal dosing review, lumbar puncture contraindications, and "
+                "dexamethasone timing relative to antibiotics"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -1670,6 +1779,68 @@ def _has_gi_bleed_transfusion_reversal_safety_check(checks: list[Any]) -> bool:
         for term in GI_BLEED_TRANSFUSION_SAFETY_TERMS
     )
     return has_reversal_review and has_transfusion_safety
+
+
+def _requires_cns_infection_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in CNS_INFECTION_CONTEXT_TERMS
+    )
+
+
+def _has_cns_infection_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_cultures = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CNS_INFECTION_CULTURE_ACTION_TERMS
+    )
+    has_antibiotics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CNS_INFECTION_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_lp_or_ct_pathway = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CNS_INFECTION_LP_CT_ACTION_TERMS
+    )
+    has_steroid_timing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CNS_INFECTION_STEROID_ACTION_TERMS
+    )
+    return has_cultures and has_antibiotics and has_lp_or_ct_pathway and has_steroid_timing
+
+
+def _has_cns_infection_lp_steroid_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_antimicrobial_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CNS_INFECTION_ANTIMICROBIAL_SAFETY_TERMS
+    )
+    has_lp_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CNS_INFECTION_LP_SAFETY_TERMS
+    )
+    has_steroid_timing = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CNS_INFECTION_STEROID_SAFETY_TERMS
+    )
+    return has_antimicrobial_safety and has_lp_safety and has_steroid_timing
 
 
 def _requires_sepsis_resuscitation_safety_check(data: dict[str, Any]) -> bool:

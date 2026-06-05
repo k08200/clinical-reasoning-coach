@@ -774,5 +774,52 @@
         }
       ]
     }
+  },
+  {
+    "name": "cns_infection_requires_cultures_antibiotics_lp_ct_and_steroid_timing",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "CNS infection time-critical actions must include blood cultures"
+    ],
+    "overrides": {
+      "diagnosis": "Bacterial meningitis",
+      "chief_complaint": "Fever, headache, and confusion",
+      "history_of_present_illness": "Adult with abrupt fever, severe headache, neck stiffness, photophobia, and worsening confusion.",
+      "key_teaching_points": [
+        "CNS infection can progress rapidly and requires immediate empiric therapy",
+        "Lumbar puncture and CT sequencing depends on neurologic risk features",
+        "Dexamethasone timing matters when bacterial meningitis is possible"
+      ],
+      "clinical_red_flags": [
+        "Fever with neck stiffness and photophobia",
+        "Altered mental status suggesting invasive CNS infection"
+      ],
+      "time_critical_actions": [
+        "Obtain blood cultures promptly without delaying empiric antibiotics",
+        "Start empiric ceftriaxone and vancomycin immediately"
+      ],
+      "contraindication_checks": [
+        "Antimicrobial allergy, renal function, and vancomycin dosing review",
+        "Head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
+        "Dexamethasone before or with antibiotics when bacterial meningitis is possible"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Bacterial Meningitis Review",
+          "organization": "National Library of Medicine",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/",
+          "supports": [
+            "CNS infection diagnosis and bacterial meningitis risk stratification",
+            "fever with neck stiffness and photophobia as red flags",
+            "altered mental status suggesting invasive CNS infection severity",
+            "blood cultures promptly without delaying empiric antibiotics",
+            "empiric ceftriaxone and vancomycin immediately",
+            "antimicrobial allergy, renal function, and vancomycin dosing review",
+            "head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
+            "dexamethasone before or with antibiotics when bacterial meningitis is possible"
+          ]
+        }
+      ]
+    }
   }
 ]
