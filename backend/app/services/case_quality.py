@@ -2526,6 +2526,89 @@ ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS = (
     "간부전",
     "저혈당",
 )
+TOXIC_ALCOHOL_CONTEXT_TERMS = (
+    "antifreeze ingestion",
+    "ethylene glycol",
+    "methanol",
+    "toxic alcohol",
+    "washer fluid ingestion",
+    "windshield washer fluid",
+    "부동액",
+    "메탄올",
+)
+TOXIC_ALCOHOL_GAP_LAB_ACTION_TERMS = (
+    "anion gap",
+    "ethylene glycol level",
+    "methanol level",
+    "osmol gap",
+    "osmolal gap",
+    "osmolar gap",
+    "serum osmolality",
+    "toxic alcohol level",
+    "음이온차",
+)
+TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS = (
+    "alcohol dehydrogenase",
+    "ethanol antidote",
+    "fomepizole",
+    "포메피졸",
+)
+TOXIC_ALCOHOL_DIALYSIS_ESCALATION_ACTION_TERMS = (
+    "dialysis",
+    "extracorporeal",
+    "hemodialysis",
+    "nephrology",
+    "poison center",
+    "poison control",
+    "toxicologist",
+    "투석",
+)
+TOXIC_ALCOHOL_ACIDOSIS_SUPPORT_ACTION_TERMS = (
+    "acidosis",
+    "bicarbonate",
+    "blood gas",
+    "ph",
+    "sodium bicarbonate",
+    "중탄산",
+    "산증",
+)
+TOXIC_ALCOHOL_DIALYSIS_INDICATION_SAFETY_TERMS = (
+    "anion gap",
+    "coma",
+    "dialysis indication",
+    "hemodialysis indication",
+    "kidney failure",
+    "renal failure",
+    "seizure",
+    "severe acidosis",
+    "visual",
+    "투석",
+    "시력",
+)
+TOXIC_ALCOHOL_ORGAN_INJURY_SAFETY_TERMS = (
+    "calcium oxalate",
+    "hypocalcemia",
+    "kidney",
+    "optic",
+    "renal",
+    "urine",
+    "vision",
+    "visual",
+    "신장",
+    "시력",
+)
+TOXIC_ALCOHOL_COINGESTION_DIFFERENTIAL_SAFETY_TERMS = (
+    "alcoholic ketoacidosis",
+    "co-ingestion",
+    "coingestion",
+    "diabetic ketoacidosis",
+    "ethanol",
+    "isopropanol",
+    "lactic acidosis",
+    "late presentation",
+    "salicylate",
+    "동반",
+)
 OPIOID_TOXICITY_CONTEXT_TERMS = (
     "fentanyl overdose",
     "heroin overdose",
@@ -4404,6 +4487,35 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "acetaminophen toxicity safety checks must include ingestion timing "
                 "or formulation limits for nomogram use, N-acetylcysteine dosing "
                 "or infusion safety, and hepatic failure or transplant-risk monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="toxic_alcohol_time_critical_actions",
+            applies=_requires_toxic_alcohol_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_toxic_alcohol_time_critical_actions,
+            issue=(
+                "toxic alcohol time-critical actions must include anion gap, "
+                "osmolal gap, osmolar gap, serum osmolality, methanol, ethylene "
+                "glycol, or toxic alcohol level assessment, fomepizole or ethanol "
+                "alcohol-dehydrogenase blockade, poison center, toxicologist, "
+                "nephrology, hemodialysis, dialysis, or extracorporeal escalation, "
+                "and acidosis, blood gas, pH, or bicarbonate support planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="toxic_alcohol_treatment_safety",
+            applies=_requires_toxic_alcohol_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_toxic_alcohol_treatment_safety_check,
+            issue=(
+                "toxic alcohol safety checks must include hemodialysis indication "
+                "review for severe acidosis, anion gap, coma, seizure, visual "
+                "symptoms, renal failure, kidney failure, or high-risk level, "
+                "vision, optic, renal, kidney, urine, hypocalcemia, or calcium "
+                "oxalate organ-injury monitoring, and ethanol, isopropanol, "
+                "salicylate, ketoacidosis, lactic acidosis, late presentation, "
+                "or co-ingestion differential review"
             ),
         ),
         DomainSafetyGate(
@@ -6410,6 +6522,80 @@ def _has_acetaminophen_toxicity_treatment_safety_check(checks: list[Any]) -> boo
         for term in ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS
     )
     return has_timing_formulation_safety and has_nac_safety and has_hepatic_failure_safety
+
+
+def _requires_toxic_alcohol_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in TOXIC_ALCOHOL_CONTEXT_TERMS
+    )
+
+
+def _has_toxic_alcohol_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_gap_lab_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TOXIC_ALCOHOL_GAP_LAB_ACTION_TERMS
+    )
+    has_antidote_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS
+    )
+    has_dialysis_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TOXIC_ALCOHOL_DIALYSIS_ESCALATION_ACTION_TERMS
+    )
+    has_acidosis_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TOXIC_ALCOHOL_ACIDOSIS_SUPPORT_ACTION_TERMS
+    )
+    return (
+        has_gap_lab_action
+        and has_antidote_action
+        and has_dialysis_escalation
+        and has_acidosis_support
+    )
+
+
+def _has_toxic_alcohol_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_dialysis_indication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_DIALYSIS_INDICATION_SAFETY_TERMS
+    )
+    has_organ_injury_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_ORGAN_INJURY_SAFETY_TERMS
+    )
+    has_coingestion_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_COINGESTION_DIFFERENTIAL_SAFETY_TERMS
+    )
+    return (
+        has_dialysis_indication_safety
+        and has_organ_injury_safety
+        and has_coingestion_differential_safety
+    )
 
 
 def _requires_opioid_toxicity_safety_check(data: dict[str, Any]) -> bool:
