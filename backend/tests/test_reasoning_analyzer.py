@@ -183,7 +183,14 @@ def test_sanitize_analysis_payload_removes_unsafe_stored_feedback():
             "prioritization": 20,
             "mechanism_understanding": 20,
         },
-        "biases_detected": [],
+        "biases_detected": [
+            {
+                "type": "commission",
+                "severity": "moderate",
+                "evidence": "The learner wrote: You should give aspirin now.",
+                "confidence": 0.82,
+            }
+        ],
         "reasoning_node": {
             "hypothesis": "Keep a broad differential",
             "supporting_evidence": ["serial ECG reasoning"],
@@ -211,6 +218,14 @@ def test_sanitize_analysis_payload_removes_unsafe_stored_feedback():
     ]
     assert result["reasoning_node"]["missing_evidence"] == [
         "Reasoning detail withheld because it resembled actionable medical advice."
+    ]
+    assert result["biases_detected"] == [
+        {
+            "type": "commission",
+            "severity": "moderate",
+            "evidence": "Bias evidence withheld because it resembled actionable medical advice.",
+            "confidence": 0.82,
+        }
     ]
 
 

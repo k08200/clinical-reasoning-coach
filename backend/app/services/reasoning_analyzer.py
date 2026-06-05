@@ -79,6 +79,9 @@ VALID_REASONING_QUALITIES = {"convergent", "divergent", "anchored", "systematic"
 UNSAFE_REASONING_MAP_TEXT = (
     "Reasoning detail withheld because it resembled actionable medical advice."
 )
+UNSAFE_BIAS_EVIDENCE_TEXT = (
+    "Bias evidence withheld because it resembled actionable medical advice."
+)
 
 
 @dataclass
@@ -311,11 +314,14 @@ def _sanitize_biases(raw_biases: Any) -> list[dict[str, Any]]:
         if severity not in VALID_BIAS_SEVERITIES:
             severity = "mild"
         evidence = raw_bias.get("evidence")
+        evidence_text = evidence.strip() if isinstance(evidence, str) else ""
+        if review_feedback_safety_violations(evidence_text):
+            evidence_text = UNSAFE_BIAS_EVIDENCE_TEXT
         confidence = _clamp(_coerce_float(raw_bias.get("confidence"), 0.0), 0.0, 1.0)
         biases.append({
             "type": bias_type,
             "severity": severity,
-            "evidence": evidence.strip() if isinstance(evidence, str) else "",
+            "evidence": evidence_text,
             "confidence": round(confidence, 3),
         })
     return biases
