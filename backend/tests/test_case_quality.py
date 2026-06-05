@@ -59,6 +59,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "severe_preeclampsia_treatment_safety",
         "neutropenic_fever_time_critical_actions",
         "neutropenic_fever_treatment_safety",
+        "severe_hypoglycemia_time_critical_actions",
+        "severe_hypoglycemia_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
@@ -973,6 +975,136 @@ def test_quality_gate_requires_neutropenic_fever_antibiotic_central_line_risk_an
     assert any(
         "febrile neutropenia safety checks must include antibiotic allergy"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_hypoglycemia_glucose_rescue_recheck_and_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe hypoglycemia from long-acting insulin"
+    case["patient_demographics"] = {
+        "age": 71,
+        "sex": "male",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion and seizure with low blood glucose"
+    case["history_of_present_illness"] = (
+        "Patient with diabetes using basal insulin and possible sulfonylurea presents "
+        "confused after poor oral intake, seizure, and blood glucose 40 mg/dL."
+    )
+    case["key_teaching_points"] = [
+        "Severe hypoglycemia can cause seizure, coma, brain injury, and death",
+        "Immediate glucose rescue should not wait for a full diagnostic workup",
+        "Long-acting insulin or sulfonylurea exposure can cause recurrent hypoglycemia",
+    ]
+    case["clinical_red_flags"] = [
+        "Altered mental status, seizure, or inability to swallow with low blood glucose",
+        "Recurrent low glucose after dextrose, renal failure, alcohol use, or missed meals",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm bedside glucose and point-of-care glucose immediately",
+        "Recheck blood glucose in 15 minutes and give a meal, snack, or protein-containing food to prevent recurrence",
+        "Admit or hospitalize for prolonged monitoring if long-acting insulin, sulfonylurea, seizure, renal failure, or persistent altered mental status is present",
+    ]
+    case["contraindication_checks"] = [
+        "Assess airway, aspiration risk, consciousness, seizure activity, NPO status, and ability to swallow before oral carbohydrate",
+        "Monitor recurrent or rebound hypoglycemia from sulfonylurea or long-acting insulin with octreotide and observation planning",
+        "Review renal failure, hepatic failure, alcohol use, adrenal insufficiency, missed meals, and dosing error as causes",
+        "Plan safe discharge with diabetes education, insulin dose adjustment, meal access, driving restriction, return precautions, CGM, and glucagon prescription",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hypoglycemia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/endocrine-and-metabolic-disorders/diabetes-mellitus-and-hypoglycemia/hypoglycemia",
+            "supports": [
+                "severe hypoglycemia from long-acting insulin diagnosis and risk stratification",
+                "severe hypoglycemia can cause seizure, coma, brain injury, and death",
+                "immediate glucose rescue should not wait for a full diagnostic workup",
+                "long-acting insulin or sulfonylurea exposure can cause recurrent hypoglycemia",
+                "altered mental status, seizure, or inability to swallow with low blood glucose as red flags",
+                "recurrent low glucose after dextrose, renal failure, alcohol use, or missed meals as severity markers",
+                "bedside glucose and point-of-care glucose immediately",
+                "blood glucose recheck in 15 minutes and meal, snack, or protein-containing food to prevent recurrence",
+                "admission or hospitalization for prolonged monitoring with long-acting insulin, sulfonylurea, seizure, renal failure, or persistent altered mental status",
+                "airway, aspiration risk, consciousness, seizure activity, NPO status, and ability to swallow before oral carbohydrate",
+                "recurrent or rebound hypoglycemia from sulfonylurea or long-acting insulin with octreotide and observation planning",
+                "renal failure, hepatic failure, alcohol use, adrenal insufficiency, missed meals, and dosing error causes",
+                "safe discharge with diabetes education, insulin dose adjustment, meal access, driving restriction, return precautions, CGM, and glucagon prescription",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hypoglycemia time-critical actions must include bedside" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_hypoglycemia_airway_recurrence_cause_and_prevention_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe hypoglycemia from long-acting insulin"
+    case["patient_demographics"] = {
+        "age": 71,
+        "sex": "male",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion and seizure with low blood glucose"
+    case["history_of_present_illness"] = (
+        "Patient with diabetes using basal insulin and possible sulfonylurea presents "
+        "confused after poor oral intake, seizure, and blood glucose 40 mg/dL."
+    )
+    case["key_teaching_points"] = [
+        "Severe hypoglycemia can cause seizure, coma, brain injury, and death",
+        "Immediate glucose rescue should not wait for a full diagnostic workup",
+        "Long-acting insulin or sulfonylurea exposure can cause recurrent hypoglycemia",
+    ]
+    case["clinical_red_flags"] = [
+        "Altered mental status, seizure, or inability to swallow with low blood glucose",
+        "Recurrent low glucose after dextrose, renal failure, alcohol use, or missed meals",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm bedside glucose and point-of-care glucose immediately",
+        "Give immediate IV dextrose D50 or D10, oral glucose if safe, or glucagon if IV access is unavailable",
+        "Recheck blood glucose in 15 minutes and give a meal, snack, or protein-containing food to prevent recurrence",
+        "Admit or hospitalize for prolonged monitoring if long-acting insulin, sulfonylurea, seizure, renal failure, or persistent altered mental status is present",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hypoglycemia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/endocrine-and-metabolic-disorders/diabetes-mellitus-and-hypoglycemia/hypoglycemia",
+            "supports": [
+                "severe hypoglycemia from long-acting insulin diagnosis and risk stratification",
+                "severe hypoglycemia can cause seizure, coma, brain injury, and death",
+                "immediate glucose rescue should not wait for a full diagnostic workup",
+                "long-acting insulin or sulfonylurea exposure can cause recurrent hypoglycemia",
+                "altered mental status, seizure, or inability to swallow with low blood glucose as red flags",
+                "recurrent low glucose after dextrose, renal failure, alcohol use, or missed meals as severity markers",
+                "bedside glucose and point-of-care glucose immediately",
+                "immediate IV dextrose D50 or D10, oral glucose if safe, or glucagon if IV access is unavailable",
+                "blood glucose recheck in 15 minutes and meal, snack, or protein-containing food to prevent recurrence",
+                "admission or hospitalization for prolonged monitoring with long-acting insulin, sulfonylurea, seizure, renal failure, or persistent altered mental status",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hypoglycemia safety checks must include airway" in issue
         for issue in report.critical_issues
     )
 

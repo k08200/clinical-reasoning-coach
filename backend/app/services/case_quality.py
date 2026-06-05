@@ -1016,6 +1016,106 @@ NEUTROPENIC_FEVER_REASSESSMENT_SAFETY_TERMS = (
     "72 hours",
     "재평가",
 )
+SEVERE_HYPOGLYCEMIA_CONTEXT_TERMS = (
+    "blood glucose 40",
+    "blood glucose 50",
+    "glucose 40",
+    "glucose 50",
+    "hypoglycemic emergency",
+    "hypoglycemic seizure",
+    "insulin overdose",
+    "insulin shock",
+    "low blood glucose",
+    "severe hypoglycemia",
+    "sulfonylurea overdose",
+    "저혈당",
+)
+SEVERE_HYPOGLYCEMIA_GLUCOSE_CHECK_ACTION_TERMS = (
+    "bedside glucose",
+    "blood glucose",
+    "fingerstick",
+    "glucose check",
+    "point-of-care glucose",
+    "poc glucose",
+    "혈당",
+)
+SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS = (
+    "carbohydrate",
+    "d10",
+    "d50",
+    "dextrose",
+    "glucagon",
+    "oral glucose",
+    "iv sugar",
+    "oral sugar",
+    "sugar",
+    "포도당",
+)
+SEVERE_HYPOGLYCEMIA_RECHECK_FEEDING_ACTION_TERMS = (
+    "15 minutes",
+    "complex carbohydrate",
+    "continuous dextrose",
+    "dextrose infusion",
+    "meal",
+    "protein",
+    "recheck",
+    "repeat glucose",
+    "snack",
+    "재측정",
+)
+SEVERE_HYPOGLYCEMIA_ESCALATION_CAUSE_ACTION_TERMS = (
+    "admit",
+    "altered mental status",
+    "cause",
+    "hospitalize",
+    "long-acting insulin",
+    "octreotide",
+    "renal failure",
+    "seizure",
+    "sulfonylurea",
+    "입원",
+)
+SEVERE_HYPOGLYCEMIA_ROUTE_AIRWAY_SAFETY_TERMS = (
+    "airway",
+    "aspiration",
+    "consciousness",
+    "npo",
+    "seizure",
+    "swallow",
+    "unconscious",
+    "기도",
+)
+SEVERE_HYPOGLYCEMIA_RECURRENCE_MED_SAFETY_TERMS = (
+    "long-acting insulin",
+    "octreotide",
+    "observation",
+    "rebound",
+    "recurrent",
+    "sulfonylurea",
+    "재발",
+)
+SEVERE_HYPOGLYCEMIA_CAUSE_RISK_SAFETY_TERMS = (
+    "adrenal",
+    "alcohol",
+    "hepatic",
+    "kidney",
+    "liver",
+    "renal",
+    "sepsis",
+    "간",
+    "신장",
+)
+SEVERE_HYPOGLYCEMIA_DISCHARGE_PREVENTION_SAFETY_TERMS = (
+    "cgm",
+    "dose adjustment",
+    "driving",
+    "education",
+    "glucagon prescription",
+    "meal access",
+    "return precautions",
+    "safe discharge",
+    "교육",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -2719,6 +2819,33 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="severe_hypoglycemia_time_critical_actions",
+            applies=_requires_severe_hypoglycemia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_severe_hypoglycemia_time_critical_actions,
+            issue=(
+                "severe hypoglycemia time-critical actions must include bedside "
+                "or point-of-care glucose confirmation, immediate oral glucose, "
+                "IV dextrose, or glucagon therapy, repeat glucose checks with "
+                "feeding or dextrose infusion to prevent recurrence, and cause "
+                "or admission escalation for prolonged-risk cases"
+            ),
+        ),
+        DomainSafetyGate(
+            name="severe_hypoglycemia_treatment_safety",
+            applies=_requires_severe_hypoglycemia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_severe_hypoglycemia_treatment_safety_check,
+            issue=(
+                "severe hypoglycemia safety checks must include airway or swallow "
+                "route safety, recurrent hypoglycemia risk from sulfonylurea or "
+                "long-acting insulin with octreotide or observation planning, renal, "
+                "hepatic, alcohol, sepsis, or adrenal cause review, and discharge "
+                "prevention such as education, dose adjustment, meal access, or "
+                "glucagon planning"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -3550,6 +3677,85 @@ def _has_neutropenic_fever_treatment_safety_check(checks: list[Any]) -> bool:
         and has_catheter_resistance_safety
         and has_risk_disposition_safety
         and has_reassessment_safety
+    )
+
+
+def _requires_severe_hypoglycemia_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in SEVERE_HYPOGLYCEMIA_CONTEXT_TERMS
+    )
+
+
+def _has_severe_hypoglycemia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_glucose_check = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOGLYCEMIA_GLUCOSE_CHECK_ACTION_TERMS
+    )
+    has_dextrose_or_glucagon = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS
+    )
+    has_recheck_feeding = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOGLYCEMIA_RECHECK_FEEDING_ACTION_TERMS
+    )
+    has_escalation_or_cause = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOGLYCEMIA_ESCALATION_CAUSE_ACTION_TERMS
+    )
+    return (
+        has_glucose_check
+        and has_dextrose_or_glucagon
+        and has_recheck_feeding
+        and has_escalation_or_cause
+    )
+
+
+def _has_severe_hypoglycemia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_route_airway_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_HYPOGLYCEMIA_ROUTE_AIRWAY_SAFETY_TERMS
+    )
+    has_recurrence_med_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_HYPOGLYCEMIA_RECURRENCE_MED_SAFETY_TERMS
+    )
+    has_cause_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_HYPOGLYCEMIA_CAUSE_RISK_SAFETY_TERMS
+    )
+    has_discharge_prevention_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_HYPOGLYCEMIA_DISCHARGE_PREVENTION_SAFETY_TERMS
+    )
+    return (
+        has_route_airway_safety
+        and has_recurrence_med_safety
+        and has_cause_risk_safety
+        and has_discharge_prevention_safety
     )
 
 

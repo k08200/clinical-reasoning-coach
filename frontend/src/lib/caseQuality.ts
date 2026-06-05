@@ -1068,6 +1068,115 @@ const NEUTROPENIC_FEVER_REASSESSMENT_SAFETY_TERMS = [
   "재평가",
 ];
 
+const SEVERE_HYPOGLYCEMIA_CONTEXT_TERMS = [
+  "blood glucose 40",
+  "blood glucose 50",
+  "glucose 40",
+  "glucose 50",
+  "hypoglycemic emergency",
+  "hypoglycemic seizure",
+  "insulin overdose",
+  "insulin shock",
+  "low blood glucose",
+  "severe hypoglycemia",
+  "sulfonylurea overdose",
+  "저혈당",
+];
+
+const SEVERE_HYPOGLYCEMIA_GLUCOSE_CHECK_ACTION_TERMS = [
+  "bedside glucose",
+  "blood glucose",
+  "fingerstick",
+  "glucose check",
+  "point-of-care glucose",
+  "poc glucose",
+  "혈당",
+];
+
+const SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS = [
+  "carbohydrate",
+  "d10",
+  "d50",
+  "dextrose",
+  "glucagon",
+  "oral glucose",
+  "iv sugar",
+  "oral sugar",
+  "sugar",
+  "포도당",
+];
+
+const SEVERE_HYPOGLYCEMIA_RECHECK_FEEDING_ACTION_TERMS = [
+  "15 minutes",
+  "complex carbohydrate",
+  "continuous dextrose",
+  "dextrose infusion",
+  "meal",
+  "protein",
+  "recheck",
+  "repeat glucose",
+  "snack",
+  "재측정",
+];
+
+const SEVERE_HYPOGLYCEMIA_ESCALATION_CAUSE_ACTION_TERMS = [
+  "admit",
+  "altered mental status",
+  "cause",
+  "hospitalize",
+  "long-acting insulin",
+  "octreotide",
+  "renal failure",
+  "seizure",
+  "sulfonylurea",
+  "입원",
+];
+
+const SEVERE_HYPOGLYCEMIA_ROUTE_AIRWAY_SAFETY_TERMS = [
+  "airway",
+  "aspiration",
+  "consciousness",
+  "npo",
+  "seizure",
+  "swallow",
+  "unconscious",
+  "기도",
+];
+
+const SEVERE_HYPOGLYCEMIA_RECURRENCE_MED_SAFETY_TERMS = [
+  "long-acting insulin",
+  "octreotide",
+  "observation",
+  "rebound",
+  "recurrent",
+  "sulfonylurea",
+  "재발",
+];
+
+const SEVERE_HYPOGLYCEMIA_CAUSE_RISK_SAFETY_TERMS = [
+  "adrenal",
+  "alcohol",
+  "hepatic",
+  "kidney",
+  "liver",
+  "renal",
+  "sepsis",
+  "간",
+  "신장",
+];
+
+const SEVERE_HYPOGLYCEMIA_DISCHARGE_PREVENTION_SAFETY_TERMS = [
+  "cgm",
+  "dose adjustment",
+  "driving",
+  "education",
+  "glucagon prescription",
+  "meal access",
+  "return precautions",
+  "safe discharge",
+  "교육",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -2934,6 +3043,66 @@ function hasNeutropenicFeverTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresSevereHypoglycemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return SEVERE_HYPOGLYCEMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasSevereHypoglycemiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasGlucoseCheck = SEVERE_HYPOGLYCEMIA_GLUCOSE_CHECK_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDextroseOrGlucagon = SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRecheckFeeding = SEVERE_HYPOGLYCEMIA_RECHECK_FEEDING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalationOrCause = SEVERE_HYPOGLYCEMIA_ESCALATION_CAUSE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasGlucoseCheck && hasDextroseOrGlucagon && hasRecheckFeeding && hasEscalationOrCause;
+}
+
+function hasSevereHypoglycemiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasRouteAirwaySafety = SEVERE_HYPOGLYCEMIA_ROUTE_AIRWAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRecurrenceMedSafety = SEVERE_HYPOGLYCEMIA_RECURRENCE_MED_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCauseRiskSafety = SEVERE_HYPOGLYCEMIA_CAUSE_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDischargePreventionSafety = SEVERE_HYPOGLYCEMIA_DISCHARGE_PREVENTION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasRouteAirwaySafety &&
+    hasRecurrenceMedSafety &&
+    hasCauseRiskSafety &&
+    hasDischargePreventionSafety
+  );
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -3777,6 +3946,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasNeutropenicFeverTreatmentSafetyCheck,
       issue:
         "febrile neutropenia safety checks must include antibiotic allergy or renal/hepatic dosing review, central-line or resistant-organism coverage indications, validated risk/disposition assessment, and persistent fever or fungal-risk reassessment",
+    },
+    {
+      name: "severe_hypoglycemia_time_critical_actions",
+      label: "Severe hypoglycemia emergency actions",
+      applies: requiresSevereHypoglycemiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSevereHypoglycemiaTimeCriticalActions,
+      issue:
+        "severe hypoglycemia time-critical actions must include bedside or point-of-care glucose confirmation, immediate oral glucose, IV dextrose, or glucagon therapy, repeat glucose checks with feeding or dextrose infusion to prevent recurrence, and cause or admission escalation for prolonged-risk cases",
+    },
+    {
+      name: "severe_hypoglycemia_treatment_safety",
+      label: "Severe hypoglycemia treatment safety",
+      applies: requiresSevereHypoglycemiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSevereHypoglycemiaTreatmentSafetyCheck,
+      issue:
+        "severe hypoglycemia safety checks must include airway or swallow route safety, recurrent hypoglycemia risk from sulfonylurea or long-acting insulin with octreotide or observation planning, renal, hepatic, alcohol, sepsis, or adrenal cause review, and discharge prevention such as education, dose adjustment, meal access, or glucagon planning",
     },
     {
       name: "dka_time_critical_actions",
