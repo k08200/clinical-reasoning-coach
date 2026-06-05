@@ -814,6 +814,102 @@ ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS = (
     "저혈압",
     "혈역학",
 )
+SEVERE_PREECLAMPSIA_CONTEXT_TERMS = (
+    "eclampsia",
+    "postpartum preeclampsia",
+    "preeclampsia with severe features",
+    "severe pre-eclampsia",
+    "severe preeclampsia",
+    "severe-range blood pressure in pregnancy",
+    "severe hypertension in pregnancy",
+    "임신중독증",
+    "전자간증",
+    "자간증",
+)
+SEVERE_PREECLAMPSIA_MAGNESIUM_ACTION_TERMS = (
+    "magnesium",
+    "magnesium sulfate",
+    "mgso4",
+    "seizure prophylaxis",
+    "seizure treatment",
+    "황산마그네슘",
+)
+SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS = (
+    "acute severe hypertension",
+    "antihypertensive",
+    "blood pressure",
+    "hydralazine",
+    "labetalol",
+    "nifedipine",
+    "severe-range",
+    "혈압",
+)
+SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS = (
+    "antenatal corticosteroid",
+    "delivery",
+    "fetal",
+    "maternal-fetal",
+    "obstetric",
+    "placenta",
+    "stabilize",
+    "분만",
+    "태아",
+)
+SEVERE_PREECLAMPSIA_ESCALATION_ACTION_TERMS = (
+    "consult",
+    "critical care",
+    "eclampsia",
+    "icu",
+    "maternal-fetal medicine",
+    "obstetric",
+    "pulmonary edema",
+    "seizure",
+    "중환자",
+)
+SEVERE_PREECLAMPSIA_MAGNESIUM_TOX_SAFETY_TERMS = (
+    "calcium gluconate",
+    "deep tendon reflex",
+    "magnesium toxicity",
+    "respiratory depression",
+    "respiratory rate",
+    "urine output",
+    "반사",
+    "소변",
+)
+SEVERE_PREECLAMPSIA_BP_MED_SAFETY_TERMS = (
+    "asthma",
+    "bradycardia",
+    "heart failure",
+    "hypotension",
+    "labetalol",
+    "nifedipine",
+    "혈압",
+)
+SEVERE_PREECLAMPSIA_LAB_ORGAN_SAFETY_TERMS = (
+    "alt",
+    "ast",
+    "creatinine",
+    "hellp",
+    "liver",
+    "platelet",
+    "proteinuria",
+    "renal",
+    "간",
+    "신장",
+    "혈소판",
+)
+SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS = (
+    "abruption",
+    "fetal",
+    "gestational age",
+    "headache",
+    "pulmonary edema",
+    "right upper quadrant",
+    "seizure",
+    "visual",
+    "태아",
+    "폐부종",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -2469,6 +2565,30 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="severe_preeclampsia_time_critical_actions",
+            applies=_requires_severe_preeclampsia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_severe_preeclampsia_time_critical_actions,
+            issue=(
+                "severe preeclampsia or eclampsia time-critical actions must "
+                "include magnesium sulfate seizure prophylaxis or treatment, "
+                "acute severe-hypertension treatment, delivery or maternal-fetal "
+                "planning, and OB/MFM or critical-care escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="severe_preeclampsia_treatment_safety",
+            applies=_requires_severe_preeclampsia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_severe_preeclampsia_treatment_safety_check,
+            issue=(
+                "severe preeclampsia or eclampsia safety checks must include "
+                "magnesium toxicity monitoring, antihypertensive contraindication "
+                "review, HELLP or renal-organ labs, and maternal-fetal severe-feature "
+                "or delivery-risk monitoring"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -3143,6 +3263,85 @@ def _has_ectopic_pregnancy_treatment_safety_check(checks: list[Any]) -> bool:
         for term in ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS
     )
     return has_rh_safety and has_mtx_safety and has_hemodynamic_safety
+
+
+def _requires_severe_preeclampsia_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in SEVERE_PREECLAMPSIA_CONTEXT_TERMS
+    )
+
+
+def _has_severe_preeclampsia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_magnesium = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_PREECLAMPSIA_MAGNESIUM_ACTION_TERMS
+    )
+    has_antihypertensive = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS
+    )
+    has_delivery_planning = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_PREECLAMPSIA_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_magnesium
+        and has_antihypertensive
+        and has_delivery_planning
+        and has_escalation
+    )
+
+
+def _has_severe_preeclampsia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_magnesium_toxicity_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_MAGNESIUM_TOX_SAFETY_TERMS
+    )
+    has_bp_med_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_BP_MED_SAFETY_TERMS
+    )
+    has_lab_organ_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_LAB_ORGAN_SAFETY_TERMS
+    )
+    has_maternal_fetal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS
+    )
+    return (
+        has_magnesium_toxicity_safety
+        and has_bp_med_safety
+        and has_lab_organ_safety
+        and has_maternal_fetal_safety
+    )
 
 
 def _requires_sepsis_resuscitation_safety_check(data: dict[str, Any]) -> bool:

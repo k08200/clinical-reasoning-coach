@@ -848,6 +848,111 @@ const ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS = [
   "혈역학",
 ];
 
+const SEVERE_PREECLAMPSIA_CONTEXT_TERMS = [
+  "eclampsia",
+  "postpartum preeclampsia",
+  "preeclampsia with severe features",
+  "severe pre-eclampsia",
+  "severe preeclampsia",
+  "severe-range blood pressure in pregnancy",
+  "severe hypertension in pregnancy",
+  "임신중독증",
+  "전자간증",
+  "자간증",
+];
+
+const SEVERE_PREECLAMPSIA_MAGNESIUM_ACTION_TERMS = [
+  "magnesium",
+  "magnesium sulfate",
+  "mgso4",
+  "seizure prophylaxis",
+  "seizure treatment",
+  "황산마그네슘",
+];
+
+const SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS = [
+  "acute severe hypertension",
+  "antihypertensive",
+  "blood pressure",
+  "hydralazine",
+  "labetalol",
+  "nifedipine",
+  "severe-range",
+  "혈압",
+];
+
+const SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS = [
+  "antenatal corticosteroid",
+  "delivery",
+  "fetal",
+  "maternal-fetal",
+  "obstetric",
+  "placenta",
+  "stabilize",
+  "분만",
+  "태아",
+];
+
+const SEVERE_PREECLAMPSIA_ESCALATION_ACTION_TERMS = [
+  "consult",
+  "critical care",
+  "eclampsia",
+  "icu",
+  "maternal-fetal medicine",
+  "obstetric",
+  "pulmonary edema",
+  "seizure",
+  "중환자",
+];
+
+const SEVERE_PREECLAMPSIA_MAGNESIUM_TOX_SAFETY_TERMS = [
+  "calcium gluconate",
+  "deep tendon reflex",
+  "magnesium toxicity",
+  "respiratory depression",
+  "respiratory rate",
+  "urine output",
+  "반사",
+  "소변",
+];
+
+const SEVERE_PREECLAMPSIA_BP_MED_SAFETY_TERMS = [
+  "asthma",
+  "bradycardia",
+  "heart failure",
+  "hypotension",
+  "labetalol",
+  "nifedipine",
+  "혈압",
+];
+
+const SEVERE_PREECLAMPSIA_LAB_ORGAN_SAFETY_TERMS = [
+  "alt",
+  "ast",
+  "creatinine",
+  "hellp",
+  "liver",
+  "platelet",
+  "proteinuria",
+  "renal",
+  "간",
+  "신장",
+  "혈소판",
+];
+
+const SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS = [
+  "abruption",
+  "fetal",
+  "gestational age",
+  "headache",
+  "pulmonary edema",
+  "right upper quadrant",
+  "seizure",
+  "visual",
+  "태아",
+  "폐부종",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -2596,6 +2701,66 @@ function hasEctopicPregnancyTreatmentSafetyCheck(checks: string[]): boolean {
   return hasRhSafety && hasMtxSafety && hasHemodynamicSafety;
 }
 
+function requiresSeverePreeclampsiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return SEVERE_PREECLAMPSIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasSeverePreeclampsiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasMagnesium = SEVERE_PREECLAMPSIA_MAGNESIUM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntihypertensive = SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDeliveryPlanning = SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = SEVERE_PREECLAMPSIA_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasMagnesium && hasAntihypertensive && hasDeliveryPlanning && hasEscalation;
+}
+
+function hasSeverePreeclampsiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasMagnesiumToxicitySafety = SEVERE_PREECLAMPSIA_MAGNESIUM_TOX_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBpMedSafety = SEVERE_PREECLAMPSIA_BP_MED_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLabOrganSafety = SEVERE_PREECLAMPSIA_LAB_ORGAN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMaternalFetalSafety = SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasMagnesiumToxicitySafety &&
+    hasBpMedSafety &&
+    hasLabOrganSafety &&
+    hasMaternalFetalSafety
+  );
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -3403,6 +3568,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasEctopicPregnancyTreatmentSafetyCheck,
       issue:
         "ectopic pregnancy safety checks must include Rh status or anti-D planning, methotrexate eligibility or contraindications, and hemodynamic or rupture risk",
+    },
+    {
+      name: "severe_preeclampsia_time_critical_actions",
+      label: "Severe preeclampsia emergency actions",
+      applies: requiresSeverePreeclampsiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSeverePreeclampsiaTimeCriticalActions,
+      issue:
+        "severe preeclampsia or eclampsia time-critical actions must include magnesium sulfate seizure prophylaxis or treatment, acute severe-hypertension treatment, delivery or maternal-fetal planning, and OB/MFM or critical-care escalation",
+    },
+    {
+      name: "severe_preeclampsia_treatment_safety",
+      label: "Severe preeclampsia treatment safety",
+      applies: requiresSeverePreeclampsiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSeverePreeclampsiaTreatmentSafetyCheck,
+      issue:
+        "severe preeclampsia or eclampsia safety checks must include magnesium toxicity monitoring, antihypertensive contraindication review, HELLP or renal-organ labs, and maternal-fetal severe-feature or delivery-risk monitoring",
     },
     {
       name: "dka_time_critical_actions",
