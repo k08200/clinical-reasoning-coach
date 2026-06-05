@@ -665,6 +665,14 @@ def _minimum_reasoning_turns_block_detail(analyzed_turn_count: int) -> dict:
     }
 
 
+def _session_not_active_block_detail(session: CoachingSession) -> dict:
+    return {
+        "code": "session_not_active",
+        "message": "Session is not active",
+        "session_status": session.status,
+    }
+
+
 def _reasoning_quality_block_detail(final_score: float) -> dict:
     return {
         "code": "clinical_reasoning_quality_incomplete",
@@ -1340,7 +1348,7 @@ async def stream_response(
     if session.status != "active":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Session is not active",
+            detail=_session_not_active_block_detail(session),
         )
 
     turn_number = sum(1 for m in session.messages if m.role == "student") + 1
@@ -1627,7 +1635,7 @@ async def complete_session(
     if session.status != "active":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Session is not active",
+            detail=_session_not_active_block_detail(session),
         )
 
     open_safety_event_detail = await _open_safety_event_completion_block_detail(
@@ -1644,7 +1652,7 @@ async def complete_session(
     if not scores:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="At least one analyzed learner response is required before completion",
+            detail=_minimum_reasoning_turns_block_detail(0),
         )
 
     case = await db.get(ClinicalCase, session.case_id)

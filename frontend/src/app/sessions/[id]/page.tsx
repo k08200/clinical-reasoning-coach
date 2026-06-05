@@ -581,6 +581,10 @@ export default function SessionPage() {
       : "Complete one more analyzed reasoning turn before finishing the session.";
   const completionSafetyMessage =
     "Before finishing, address red flags, time-critical actions, and contraindication checks.";
+  const remainingCompletionTurnText =
+    completionReasoningTurnsDetail?.remaining_turn_count === 1
+      ? "one more coach question"
+      : `${completionReasoningTurnsDetail?.remaining_turn_count ?? 0} more coach questions`;
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
@@ -713,7 +717,7 @@ export default function SessionPage() {
                   <p className="mt-1 text-amber-200">
                     {completionReasoningTurnsDetail.analyzed_turn_count} of{" "}
                     {completionReasoningTurnsDetail.minimum_turn_count} analyzed learner turns are
-                    complete. Answer one more coach question before finishing.
+                    complete. Answer {remainingCompletionTurnText} before finishing.
                   </p>
                 </div>
                 <button

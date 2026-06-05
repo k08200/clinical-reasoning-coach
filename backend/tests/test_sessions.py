@@ -97,6 +97,15 @@ def _case_provenance_block_message(response, *, code: str) -> str:
     return detail["message"]
 
 
+def _session_not_active_block_detail(response, *, session_status: str) -> dict:
+    detail = response.json()["detail"]
+    assert isinstance(detail, dict)
+    assert detail["code"] == "session_not_active"
+    assert detail["message"] == "Session is not active"
+    assert detail["session_status"] == session_status
+    return detail
+
+
 COMPLETE_ACS_SAFETY_REASONING = (
     "I need to address diaphoresis with crushing chest pain plus hypoxia "
     "or hemodynamic instability. I would obtain a 12-lead ECG within "
@@ -1825,9 +1834,16 @@ async def test_complete_session_requires_analyzed_learner_response(
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == (
-        "At least one analyzed learner response is required before completion"
-    )
+    detail = response.json()["detail"]
+    assert detail == {
+        "code": "minimum_reasoning_turns_incomplete",
+        "message": (
+            "Before finishing, complete at least two analyzed learner reasoning turns."
+        ),
+        "analyzed_turn_count": 0,
+        "minimum_turn_count": 2,
+        "remaining_turn_count": 2,
+    }
     await db.refresh(session)
     assert session.status == "active"
     assert session.final_reasoning_score is None
@@ -1884,7 +1900,7 @@ async def test_safety_locked_session_cannot_be_completed(
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == "Session is not active"
+    _session_not_active_block_detail(response, session_status="safety_locked")
     await db.refresh(session)
     assert session.status == "safety_locked"
     assert session.final_reasoning_score is None
@@ -4150,7 +4166,10 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
         headers=auth_headers,
     )
     assert repeat_response.status_code == 400
-    assert repeat_response.json()["detail"] == "Session is not active"
+    _session_not_active_block_detail(
+        repeat_response,
+        session_status="safety_locked",
+    )
 
 
 @pytest.mark.asyncio
@@ -5131,7 +5150,10 @@ async def test_patient_identifier_signal_blocks_storage_and_records_safety_event
         headers=auth_headers,
     )
     assert repeat_response.status_code == 400
-    assert repeat_response.json()["detail"] == "Session is not active"
+    _session_not_active_block_detail(
+        repeat_response,
+        session_status="safety_locked",
+    )
 
 
 @pytest.mark.asyncio

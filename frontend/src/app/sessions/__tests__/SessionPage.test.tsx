@@ -497,6 +497,45 @@ describe("SessionPage", () => {
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
+  it("shows remaining turn count when completion is blocked by too few analyzed turns", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+          secondAnalyzedStudentMessage,
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockComplete.mockRejectedValueOnce({
+      message: "Before finishing, complete at least two analyzed learner reasoning turns.",
+      status: 400,
+      detail: {
+        code: "minimum_reasoning_turns_incomplete",
+        message: "Before finishing, complete at least two analyzed learner reasoning turns.",
+        analyzed_turn_count: 0,
+        minimum_turn_count: 2,
+        remaining_turn_count: 2,
+      },
+    });
+
+    render(<SessionPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish Session" }));
+
+    expect(await screen.findByText("More clinical reasoning is needed")).toBeTruthy();
+    expect(screen.getByText(/0 of 2 analyzed learner turns are complete/)).toBeTruthy();
+    expect(screen.getByText(/Answer 2 more coach questions before finishing/)).toBeTruthy();
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
   it("shows reasoning quality guidance when completion score is too low", async () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession({
