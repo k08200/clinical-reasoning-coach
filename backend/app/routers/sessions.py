@@ -673,6 +673,15 @@ def _session_not_active_block_detail(session: CoachingSession) -> dict:
     }
 
 
+def _session_review_unavailable_block_detail(session: CoachingSession) -> dict:
+    return {
+        "code": "session_review_unavailable",
+        "message": "Session review is available only after completion",
+        "session_status": session.status,
+        "required_status": "completed",
+    }
+
+
 def _reasoning_quality_block_detail(final_score: float) -> dict:
     return {
         "code": "clinical_reasoning_quality_incomplete",
@@ -1284,7 +1293,7 @@ async def get_session_review(
     if session.status != "completed":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Session review is available only after completion",
+            detail=_session_review_unavailable_block_detail(session),
         )
 
     case = await db.get(ClinicalCase, session.case_id)

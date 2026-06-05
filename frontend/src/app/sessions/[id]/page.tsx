@@ -1029,7 +1029,7 @@ export default function SessionPage() {
                 </p>
                 {reviewError && (
                   <p className="mt-3 rounded-lg border border-red-700 bg-red-900/40 px-3 py-2 text-sm text-red-200">
-                    Could not load the learning review.
+                    {errorMessage(reviewError, "Could not load the learning review.")}
                   </p>
                 )}
                 {review && (

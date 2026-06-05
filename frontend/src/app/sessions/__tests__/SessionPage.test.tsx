@@ -853,6 +853,39 @@ describe("SessionPage", () => {
     expect(mockStreamMessage).not.toHaveBeenCalled();
   });
 
+  it("shows structured learning review load errors", () => {
+    vi.mocked(useSWR).mockImplementation((key) => {
+      if (key === "/api/sessions/session-1/review") {
+        return {
+          error: {
+            message: "Session review is available only after completion",
+            status: 403,
+            detail: {
+              code: "session_review_unavailable",
+              message: "Session review is available only after completion",
+              session_status: "active",
+              required_status: "completed",
+            },
+          },
+        } as unknown as ReturnType<typeof useSWR>;
+      }
+
+      return {
+        data: makeSession({
+          status: "completed",
+          final_reasoning_score: 82,
+          completed_at: "2026-05-20T00:10:00Z",
+        }),
+        mutate: mockMutate,
+      } as unknown as ReturnType<typeof useSWR>;
+    });
+
+    render(<SessionPage />);
+
+    expect(screen.getByText("Session review is available only after completion")).toBeTruthy();
+    expect(screen.queryByText("Could not load the learning review.")).toBeFalsy();
+  });
+
   it("shows the completed learning review with sources", () => {
     vi.mocked(useSWR).mockImplementation((key) => {
       if (key === "/api/sessions/session-1/review") {

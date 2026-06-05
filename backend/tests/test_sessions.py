@@ -5281,6 +5281,12 @@ async def test_session_review_available_only_after_completion(
         headers=auth_headers,
     )
     assert blocked_response.status_code == 403
+    assert blocked_response.json()["detail"] == {
+        "code": "session_review_unavailable",
+        "message": "Session review is available only after completion",
+        "session_status": "active",
+        "required_status": "completed",
+    }
 
     session.status = "completed"
     session.final_reasoning_score = 82
