@@ -302,6 +302,35 @@ describe("SessionPage", () => {
     expect(screen.queryByText("Stream failed")).toBeFalsy();
   });
 
+  it("shows data recovery guidance when streaming is blocked by a missing linked case", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession(),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockStreamMessage.mockImplementation(async (_id, _content, callbacks) => {
+      callbacks.onError(
+        "This session is missing its linked clinical case. The simulation cannot continue, finish, or show a learning review until the case is restored.",
+        {
+          code: "session_case_missing",
+          message:
+            "This session is missing its linked clinical case. The simulation cannot continue, finish, or show a learning review until the case is restored.",
+          case_id: "case-1",
+        },
+      );
+    });
+
+    render(<SessionPage />);
+    fireEvent.change(screen.getByPlaceholderText(/Share your clinical reasoning/), {
+      target: { value: "My reasoning" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(await screen.findByText("Clinical case data is unavailable")).toBeTruthy();
+    expect(screen.getByText(/missing its linked clinical case/)).toBeTruthy();
+    expect(screen.getByText(/must be restored before this simulated session/)).toBeTruthy();
+    expect(screen.queryByText("Clinical case review is required before continuing")).toBeFalsy();
+  });
+
   it("disables completion until a learner response has been analyzed", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession(),
@@ -494,6 +523,44 @@ describe("SessionPage", () => {
       await screen.findByText("Clinical case review is required before continuing"),
     ).toBeTruthy();
     expect(screen.getByText(/avoid mixing case versions/)).toBeTruthy();
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
+  it("shows data recovery guidance when completion is blocked by a missing linked case", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+          secondAnalyzedStudentMessage,
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockComplete.mockRejectedValueOnce({
+      message:
+        "This session is missing its linked clinical case. The simulation cannot continue, finish, or show a learning review until the case is restored.",
+      status: 409,
+      detail: {
+        code: "session_case_missing",
+        message:
+          "This session is missing its linked clinical case. The simulation cannot continue, finish, or show a learning review until the case is restored.",
+        case_id: "case-1",
+      },
+    });
+
+    render(<SessionPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish Session" }));
+
+    expect(await screen.findByText("Clinical case data is unavailable")).toBeTruthy();
+    expect(screen.getByText(/Linked case case-1 must be restored/)).toBeTruthy();
     expect(mockMutate).not.toHaveBeenCalled();
   });
 

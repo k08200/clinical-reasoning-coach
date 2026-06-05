@@ -682,6 +682,17 @@ def _session_review_unavailable_block_detail(session: CoachingSession) -> dict:
     }
 
 
+def _session_case_missing_block_detail(session: CoachingSession) -> dict:
+    return {
+        "code": "session_case_missing",
+        "message": (
+            "This session is missing its linked clinical case. The simulation cannot "
+            "continue, finish, or show a learning review until the case is restored."
+        ),
+        "case_id": str(session.case_id),
+    }
+
+
 def _reasoning_quality_block_detail(final_score: float) -> dict:
     return {
         "code": "clinical_reasoning_quality_incomplete",
@@ -1298,7 +1309,10 @@ async def get_session_review(
 
     case = await db.get(ClinicalCase, session.case_id)
     if not case:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=_session_case_missing_block_detail(session),
+        )
 
     review_snapshot = _session_review_snapshot(session, case)
     feedback = _build_review_feedback(session)
@@ -1412,7 +1426,10 @@ async def stream_response(
 
     case = await db.get(ClinicalCase, session.case_id)
     if not case:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=_session_case_missing_block_detail(session),
+        )
     _assert_case_provenance_allows_learner_session(case)
     _assert_active_session_case_version_matches(session, case)
     _assert_case_quality_for_learner_session(case)
@@ -1666,7 +1683,10 @@ async def complete_session(
 
     case = await db.get(ClinicalCase, session.case_id)
     if not case:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Case not found")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=_session_case_missing_block_detail(session),
+        )
     _assert_case_provenance_allows_learner_session(case)
     _assert_active_session_case_version_matches(session, case)
     _assert_case_quality_for_learner_session(case)

@@ -94,6 +94,12 @@ type CaseAccessBlockDetail = {
   issues: string[];
 };
 
+type SessionCaseMissingDetail = {
+  code: "session_case_missing";
+  message: string;
+  case_id: string;
+};
+
 function safetyCoverageLabel(category: string): string {
   if (category === "red_flags") return "Red Flags";
   if (category === "time_critical_actions") return "Time-Critical Actions";
@@ -241,6 +247,19 @@ function isCompletionOpenSafetyEventsDetail(
   );
 }
 
+function isSessionCaseMissingDetail(value: unknown): value is SessionCaseMissingDetail {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "code" in value &&
+    value.code === "session_case_missing" &&
+    "message" in value &&
+    typeof value.message === "string" &&
+    "case_id" in value &&
+    typeof value.case_id === "string"
+  );
+}
+
 function errorDetail(error: unknown): unknown {
   if (!error || typeof error !== "object" || !("detail" in error)) return null;
   return error.detail;
@@ -359,6 +378,8 @@ export default function SessionPage() {
   const [error, setError] = useState("");
   const [caseAccessBlockDetailState, setCaseAccessBlockDetailState] =
     useState<CaseAccessBlockDetail | null>(null);
+  const [sessionCaseMissingDetail, setSessionCaseMissingDetail] =
+    useState<SessionCaseMissingDetail | null>(null);
   const [completionSafetyDetail, setCompletionSafetyDetail] =
     useState<CompletionSafetyDetail | null>(null);
   const [completionReasoningTurnsDetail, setCompletionReasoningTurnsDetail] =
@@ -423,6 +444,7 @@ export default function SessionPage() {
     setStreamingText("");
     setError("");
     setCaseAccessBlockDetailState(null);
+    setSessionCaseMissingDetail(null);
     setCompletionSafetyDetail(null);
     setCompletionReasoningTurnsDetail(null);
     setCompletionReasoningQualityDetail(null);
@@ -459,17 +481,28 @@ export default function SessionPage() {
           setThinking(false);
           setLiveTokens({});
           setInput(content);
-          const accessBlockDetail = caseAccessBlockDetail(message, detail);
-          if (accessBlockDetail) {
-            setCaseAccessBlockDetailState(accessBlockDetail);
+          if (isSessionCaseMissingDetail(detail)) {
+            setSessionCaseMissingDetail(detail);
             setError("");
           } else {
-            setError(message);
+            const accessBlockDetail = caseAccessBlockDetail(message, detail);
+            if (accessBlockDetail) {
+              setCaseAccessBlockDetailState(accessBlockDetail);
+              setError("");
+            } else {
+              setError(message);
+            }
           }
         },
       });
     } catch (err) {
-      setError(errorMessage(err, "Could not send your response"));
+      const detail = errorDetail(err);
+      if (isSessionCaseMissingDetail(detail)) {
+        setSessionCaseMissingDetail(detail);
+        setError("");
+      } else {
+        setError(errorMessage(err, "Could not send your response"));
+      }
       setLiveTokens({});
       setStreaming(false);
       setStreamingText("");
@@ -482,6 +515,7 @@ export default function SessionPage() {
     setCompleting(true);
     setError("");
     setCaseAccessBlockDetailState(null);
+    setSessionCaseMissingDetail(null);
     setCompletionSafetyDetail(null);
     setCompletionReasoningTurnsDetail(null);
     setCompletionReasoningQualityDetail(null);
@@ -494,7 +528,10 @@ export default function SessionPage() {
       await mutate();
     } catch (err) {
       const detail = errorDetail(err);
-      if (isCompletionSafetyDetail(detail)) {
+      if (isSessionCaseMissingDetail(detail)) {
+        setSessionCaseMissingDetail(detail);
+        setError("");
+      } else if (isCompletionSafetyDetail(detail)) {
         setCompletionSafetyDetail(detail);
         setError("");
       } else if (isCompletionReasoningTurnsDetail(detail)) {
@@ -651,6 +688,17 @@ export default function SessionPage() {
           {error && (
             <div className="mx-4 mt-4 rounded-lg border border-red-700 bg-red-900/40 px-4 py-3 text-sm text-red-200">
               {error}
+            </div>
+          )}
+
+          {sessionCaseMissingDetail && (
+            <div className="mx-4 mt-4 rounded-lg border border-red-700 bg-red-950/45 px-4 py-3 text-sm leading-relaxed text-red-100">
+              <p className="font-semibold">Clinical case data is unavailable</p>
+              <p className="mt-1 text-red-200">{sessionCaseMissingDetail.message}</p>
+              <p className="mt-3 text-xs text-red-300">
+                Linked case {sessionCaseMissingDetail.case_id.slice(0, 8)} must be restored
+                before this simulated session can continue, finish, or show a learning review.
+              </p>
             </div>
           )}
 

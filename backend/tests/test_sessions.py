@@ -106,6 +106,15 @@ def _session_not_active_block_detail(response, *, session_status: str) -> dict:
     return detail
 
 
+def _session_case_missing_block_detail(response, *, case_id: uuid.UUID) -> dict:
+    detail = response.json()["detail"]
+    assert isinstance(detail, dict)
+    assert detail["code"] == "session_case_missing"
+    assert "missing its linked clinical case" in detail["message"]
+    assert detail["case_id"] == str(case_id)
+    return detail
+
+
 COMPLETE_ACS_SAFETY_REASONING = (
     "I need to address diaphoresis with crushing chest pain plus hypoxia "
     "or hemodynamic instability. I would obtain a 12-lead ECG within "
@@ -1905,6 +1914,83 @@ async def test_safety_locked_session_cannot_be_completed(
     assert session.status == "safety_locked"
     assert session.final_reasoning_score is None
     assert session.completed_at is None
+
+
+@pytest.mark.asyncio
+async def test_session_endpoints_block_when_linked_case_is_missing(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"missing-case-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Missing Case Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    missing_case_id = uuid.uuid4()
+    db.add(user)
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=missing_case_id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+    )
+    db.add(session)
+    await db.flush()
+    db.add_all([
+        Message(
+            session_id=session.id,
+            role="student",
+            content=COMPLETE_ACS_SAFETY_REASONING,
+            reasoning_score=82,
+            reasoning_analysis=_passing_reasoning_analysis(),
+        ),
+        Message(
+            session_id=session.id,
+            role="student",
+            content=(
+                "I would revisit the ECG, troponin trend, red flags, and "
+                "contraindication checks before narrowing management."
+            ),
+            reasoning_score=84,
+            reasoning_analysis=_passing_reasoning_analysis(),
+        ),
+    ])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    stream_response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "I am considering the differential diagnosis."},
+        headers=auth_headers,
+    )
+    assert stream_response.status_code == 409
+    _session_case_missing_block_detail(stream_response, case_id=missing_case_id)
+
+    complete_response = await client.post(
+        f"/api/sessions/{session.id}/complete",
+        headers=auth_headers,
+    )
+    assert complete_response.status_code == 409
+    _session_case_missing_block_detail(complete_response, case_id=missing_case_id)
+
+    session.status = "completed"
+    session.final_reasoning_score = 83
+    await db.commit()
+
+    review_response = await client.get(
+        f"/api/sessions/{session.id}/review",
+        headers=auth_headers,
+    )
+    assert review_response.status_code == 409
+    _session_case_missing_block_detail(review_response, case_id=missing_case_id)
 
 
 @pytest.mark.asyncio
