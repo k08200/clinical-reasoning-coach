@@ -1016,5 +1016,52 @@
         }
       ]
     }
+  },
+  {
+    "name": "adrenal_crisis_requires_immediate_hydrocortisone_fluids_and_monitoring",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "adrenal crisis time-critical actions must include immediate hydrocortisone"
+    ],
+    "overrides": {
+      "diagnosis": "Adrenal crisis",
+      "chief_complaint": "Vomiting, weakness, and dizziness",
+      "history_of_present_illness": "Patient with chronic steroid use presents with vomiting, abdominal pain, confusion, hypotension, and fever after missed doses.",
+      "key_teaching_points": [
+        "Adrenal crisis is a life-threatening endocrine emergency",
+        "Hydrocortisone should not be delayed for confirmatory testing",
+        "Fluid resuscitation and glucose or electrolyte correction are time critical"
+      ],
+      "clinical_red_flags": [
+        "Hypotension with vomiting and confusion",
+        "Hyponatremia, hyperkalemia, and hypoglycemia with missed steroid doses"
+      ],
+      "time_critical_actions": [
+        "Start isotonic saline fluid resuscitation with dextrose if hypoglycemia is present",
+        "Monitor blood pressure, glucose, sodium, potassium, and shock response"
+      ],
+      "contraindication_checks": [
+        "Draw cortisol if feasible but do not delay immediate hydrocortisone for testing",
+        "Monitor blood pressure, glucose, sodium, potassium, and other electrolytes during treatment",
+        "Review infection, sepsis, missed steroid doses, steroid withdrawal, and stress dosing triggers"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Adrenal Insufficiency: Identification and Management",
+          "organization": "National Institute for Health and Care Excellence",
+          "url": "https://www.nice.org.uk/guidance/ng243",
+          "supports": [
+            "adrenal crisis diagnosis and risk stratification",
+            "hypotension with vomiting and confusion as red flags",
+            "hyponatremia, hyperkalemia, and hypoglycemia with missed steroid doses as severity markers",
+            "isotonic saline fluid resuscitation with dextrose if hypoglycemia is present",
+            "blood pressure, glucose, sodium, potassium, and shock response monitoring",
+            "draw cortisol if feasible but do not delay immediate hydrocortisone for testing",
+            "blood pressure, glucose, sodium, potassium, and electrolyte monitoring during treatment",
+            "infection, sepsis, missed steroid doses, steroid withdrawal, and stress dosing triggers"
+          ]
+        }
+      ]
+    }
   }
 ]

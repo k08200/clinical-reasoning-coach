@@ -1028,6 +1028,84 @@ STATUS_EPILEPTICUS_ASM_SAFETY_TERMS = (
     "임신",
     "체중",
 )
+ADRENAL_CRISIS_CONTEXT_TERMS = (
+    "acute adrenal insufficiency",
+    "addisonian crisis",
+    "adrenal crisis",
+    "adrenal insufficiency with hypotension",
+    "adrenal insufficiency with shock",
+    "steroid-dependent with shock",
+    "부신 위기",
+    "부신기능부전",
+)
+ADRENAL_CRISIS_STEROID_ACTION_TERMS = (
+    "glucocorticoid",
+    "hydrocortisone",
+    "parenteral steroid",
+    "stress dose",
+    "steroid",
+    "하이드로코르티손",
+    "스테로이드",
+)
+ADRENAL_CRISIS_FLUID_GLUCOSE_ACTION_TERMS = (
+    "0.9% saline",
+    "dextrose",
+    "fluid resuscitation",
+    "glucose",
+    "isotonic saline",
+    "normal saline",
+    "saline",
+    "수액",
+    "생리식염수",
+    "포도당",
+)
+ADRENAL_CRISIS_MONITORING_ACTION_TERMS = (
+    "blood pressure",
+    "electrolyte",
+    "glucose",
+    "hemodynamic",
+    "hypoglycemia",
+    "potassium",
+    "sodium",
+    "shock",
+    "전해질",
+    "혈당",
+    "혈압",
+)
+ADRENAL_CRISIS_DO_NOT_DELAY_SAFETY_TERMS = (
+    "before cortisol",
+    "cortisol",
+    "do not delay",
+    "draw cortisol",
+    "immediate hydrocortisone",
+    "not delay",
+    "지연",
+    "코르티솔",
+)
+ADRENAL_CRISIS_MONITORING_SAFETY_TERMS = (
+    "blood pressure",
+    "electrolyte",
+    "glucose",
+    "hypoglycemia",
+    "hyponatremia",
+    "potassium",
+    "sodium",
+    "혈당",
+    "혈압",
+    "전해질",
+)
+ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS = (
+    "infection",
+    "missed steroid",
+    "precipitant",
+    "sepsis",
+    "steroid withdrawal",
+    "stress dosing",
+    "trigger",
+    "감염",
+    "유발",
+    "중단",
+)
 STROKE_CONTEXT_TERMS = (
     "acute ischemic stroke",
     "brain attack",
@@ -1875,6 +1953,29 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="adrenal_crisis_time_critical_actions",
+            applies=_requires_adrenal_crisis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_adrenal_crisis_time_critical_actions,
+            issue=(
+                "adrenal crisis time-critical actions must include immediate "
+                "hydrocortisone or stress-dose steroid, isotonic saline or "
+                "dextrose resuscitation, and glucose, electrolyte, or hemodynamic "
+                "monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="adrenal_crisis_treatment_safety",
+            applies=_requires_adrenal_crisis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_adrenal_crisis_treatment_safety_check,
+            issue=(
+                "adrenal crisis safety checks must include not delaying "
+                "hydrocortisone for cortisol testing, glucose and electrolyte "
+                "monitoring, and precipitant, infection, or missed-steroid review"
+            ),
+        ),
+        DomainSafetyGate(
             name="stroke_time_critical_actions",
             applies=_requires_stroke_reperfusion_safety_check,
             field_name="time_critical_actions",
@@ -2531,6 +2632,63 @@ def _has_status_epilepticus_treatment_safety_check(checks: list[Any]) -> bool:
         for term in STATUS_EPILEPTICUS_ASM_SAFETY_TERMS
     )
     return has_glucose_safety and has_respiratory_safety and has_asm_safety
+
+
+def _requires_adrenal_crisis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in ADRENAL_CRISIS_CONTEXT_TERMS
+    )
+
+
+def _has_adrenal_crisis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_steroid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADRENAL_CRISIS_STEROID_ACTION_TERMS
+    )
+    has_fluid_or_glucose = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADRENAL_CRISIS_FLUID_GLUCOSE_ACTION_TERMS
+    )
+    has_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADRENAL_CRISIS_MONITORING_ACTION_TERMS
+    )
+    return has_steroid and has_fluid_or_glucose and has_monitoring
+
+
+def _has_adrenal_crisis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_do_not_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ADRENAL_CRISIS_DO_NOT_DELAY_SAFETY_TERMS
+    )
+    has_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ADRENAL_CRISIS_MONITORING_SAFETY_TERMS
+    )
+    has_precipitant_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS
+    )
+    return has_do_not_delay_safety and has_monitoring_safety and has_precipitant_review
 
 
 def _requires_stroke_reperfusion_safety_check(data: dict[str, Any]) -> bool:

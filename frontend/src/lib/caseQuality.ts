@@ -1073,6 +1073,91 @@ const STATUS_EPILEPTICUS_ASM_SAFETY_TERMS = [
   "체중",
 ];
 
+const ADRENAL_CRISIS_CONTEXT_TERMS = [
+  "acute adrenal insufficiency",
+  "addisonian crisis",
+  "adrenal crisis",
+  "adrenal insufficiency with hypotension",
+  "adrenal insufficiency with shock",
+  "steroid-dependent with shock",
+  "부신 위기",
+  "부신기능부전",
+];
+
+const ADRENAL_CRISIS_STEROID_ACTION_TERMS = [
+  "glucocorticoid",
+  "hydrocortisone",
+  "parenteral steroid",
+  "stress dose",
+  "steroid",
+  "하이드로코르티손",
+  "스테로이드",
+];
+
+const ADRENAL_CRISIS_FLUID_GLUCOSE_ACTION_TERMS = [
+  "0.9% saline",
+  "dextrose",
+  "fluid resuscitation",
+  "glucose",
+  "isotonic saline",
+  "normal saline",
+  "saline",
+  "수액",
+  "생리식염수",
+  "포도당",
+];
+
+const ADRENAL_CRISIS_MONITORING_ACTION_TERMS = [
+  "blood pressure",
+  "electrolyte",
+  "glucose",
+  "hemodynamic",
+  "hypoglycemia",
+  "potassium",
+  "sodium",
+  "shock",
+  "전해질",
+  "혈당",
+  "혈압",
+];
+
+const ADRENAL_CRISIS_DO_NOT_DELAY_SAFETY_TERMS = [
+  "before cortisol",
+  "cortisol",
+  "do not delay",
+  "draw cortisol",
+  "immediate hydrocortisone",
+  "not delay",
+  "지연",
+  "코르티솔",
+];
+
+const ADRENAL_CRISIS_MONITORING_SAFETY_TERMS = [
+  "blood pressure",
+  "electrolyte",
+  "glucose",
+  "hypoglycemia",
+  "hyponatremia",
+  "potassium",
+  "sodium",
+  "혈당",
+  "혈압",
+  "전해질",
+];
+
+const ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS = [
+  "infection",
+  "missed steroid",
+  "precipitant",
+  "sepsis",
+  "steroid withdrawal",
+  "stress dosing",
+  "trigger",
+  "감염",
+  "유발",
+  "중단",
+];
+
 const STROKE_CONTEXT_TERMS = [
   "acute ischemic stroke",
   "brain attack",
@@ -2038,6 +2123,49 @@ function hasStatusEpilepticusTreatmentSafetyCheck(checks: string[]): boolean {
   return hasGlucoseSafety && hasRespiratorySafety && hasAsmSafety;
 }
 
+function requiresAdrenalCrisisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return ADRENAL_CRISIS_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasAdrenalCrisisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasSteroid = ADRENAL_CRISIS_STEROID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFluidOrGlucose = ADRENAL_CRISIS_FLUID_GLUCOSE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMonitoring = ADRENAL_CRISIS_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasSteroid && hasFluidOrGlucose && hasMonitoring;
+}
+
+function hasAdrenalCrisisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDoNotDelaySafety = ADRENAL_CRISIS_DO_NOT_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMonitoringSafety = ADRENAL_CRISIS_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPrecipitantReview = ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasDoNotDelaySafety && hasMonitoringSafety && hasPrecipitantReview;
+}
+
 function requiresStrokeReperfusionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -2391,6 +2519,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasStatusEpilepticusTreatmentSafetyCheck,
       issue:
         "status epilepticus safety checks must include glucose or thiamine assessment, respiratory depression or aspiration safeguards, and second-line antiseizure dosing or contraindication review",
+    },
+    {
+      name: "adrenal_crisis_time_critical_actions",
+      label: "Adrenal crisis immediate steroid and fluids",
+      applies: requiresAdrenalCrisisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAdrenalCrisisTimeCriticalActions,
+      issue:
+        "adrenal crisis time-critical actions must include immediate hydrocortisone or stress-dose steroid, isotonic saline or dextrose resuscitation, and glucose, electrolyte, or hemodynamic monitoring",
+    },
+    {
+      name: "adrenal_crisis_treatment_safety",
+      label: "Adrenal crisis monitoring and trigger safety",
+      applies: requiresAdrenalCrisisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAdrenalCrisisTreatmentSafetyCheck,
+      issue:
+        "adrenal crisis safety checks must include not delaying hydrocortisone for cortisol testing, glucose and electrolyte monitoring, and precipitant, infection, or missed-steroid review",
     },
     {
       name: "stroke_time_critical_actions",
