@@ -553,6 +553,32 @@ def test_coach_response_guardrail_blocks_source_anchor_leaks():
     )
 
 
+def test_coach_response_guardrail_blocks_source_organization_and_domain_leaks():
+    case = make_mock_case()
+    case.clinical_sources = [
+        {
+            "title": "2021 AHA/ACC Guideline for the Evaluation and Diagnosis of Chest Pain",
+            "organization": "American Heart Association / American College of Cardiology",
+            "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+            "supports": ["ECG timing"],
+        }
+    ]
+
+    unsafe_responses = [
+        "The American Heart Association source would guide this case.",
+        "This follows the AHA/ACC guideline approach.",
+        "You can check jacc.org for the relevant pathway.",
+    ]
+
+    for response in unsafe_responses:
+        assert not is_coach_response_safe(case, response), response
+
+    assert is_coach_response_safe(
+        case,
+        "What finding would make this chest pain pathway time-sensitive?",
+    )
+
+
 def test_coach_response_guardrail_blocks_direct_management_variants():
     case = make_mock_case()
 
@@ -781,6 +807,47 @@ async def test_stream_replaces_source_anchor_leak_with_safe_question(
     assert response_text == SAFE_GUARDRAIL_RESPONSE
     assert "Chest pain guideline" not in response_text
     assert "https://example.test/chest-pain" not in response_text
+    assert "source_anchor_leak" in violation_text
+
+
+@pytest.mark.asyncio
+async def test_stream_replaces_source_organization_leak_with_safe_question(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    class UnsafeProvider:
+        async def stream(self, **_kwargs):
+            yield StreamChunk(type="text_delta", content="The American Heart Association ")
+            yield StreamChunk(type="text_delta", content="source supports this pathway.")
+            yield StreamChunk(type="done")
+
+    case = make_mock_case()
+    case.clinical_sources = [
+        {
+            "title": "2021 AHA/ACC Guideline for the Evaluation and Diagnosis of Chest Pain",
+            "organization": "American Heart Association / American College of Cardiology",
+            "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
+            "supports": ["ECG timing"],
+        }
+    ]
+    monkeypatch.setattr(
+        "app.services.socratic_coach.get_provider",
+        lambda: UnsafeProvider(),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in stream_coach_response(
+            case=case,
+            conversation_history=[],
+            student_message="In this simulated case, I am building a differential.",
+            turn_number=1,
+        )
+    ]
+
+    response_text = "".join(chunk.content for chunk in chunks if chunk.type == "text_delta")
+    violation_text = ",".join(chunk.content for chunk in chunks if chunk.type == "safety_guardrail")
+    assert response_text == SAFE_GUARDRAIL_RESPONSE
+    assert "American Heart Association" not in response_text
     assert "source_anchor_leak" in violation_text
 
 

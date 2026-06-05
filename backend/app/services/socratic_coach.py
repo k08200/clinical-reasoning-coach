@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 from collections.abc import AsyncGenerator
 from typing import Any
+from urllib.parse import urlparse
 
 from app.services.provider import StreamChunk
 from app.services.provider_factory import get_provider
@@ -774,6 +775,27 @@ DIAGNOSIS_LEAK_STOPWORDS = {
     "with",
     "without",
 }
+SOURCE_ANCHOR_TITLE_MARKERS = {
+    "guideline",
+    "guidelines",
+    "statement",
+    "statements",
+    "consensus",
+    "review",
+    "recommendation",
+    "recommendations",
+}
+SOURCE_ANCHOR_STOPWORDS = {
+    "a",
+    "an",
+    "and",
+    "for",
+    "in",
+    "of",
+    "on",
+    "the",
+    "to",
+}
 
 SAFE_GUARDRAIL_RESPONSE = (
     "Let's keep this as a reasoning exercise. What findings make this presentation "
@@ -901,20 +923,63 @@ def _source_anchor_leak_terms(case: ClinicalCase) -> list[str]:
     for source in case.clinical_sources or []:
         if not isinstance(source, dict):
             continue
-        title = str(source.get("title") or "").strip().lower()
-        url = str(source.get("url") or "").strip().lower()
-        if len(title) >= 8:
-            terms.add(title)
-        if url:
-            terms.add(url)
+        title = str(source.get("title") or "").strip()
+        organization = str(source.get("organization") or "").strip()
+        url = str(source.get("url") or "").strip()
+        terms.update(_source_anchor_title_terms(title))
+        terms.update(_source_anchor_organization_terms(organization))
+        terms.update(_source_anchor_url_terms(url))
     return sorted(terms, key=len, reverse=True)
+
+
+def _normalize_source_anchor_text(text: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9가-힣]+", " ", text.lower())).strip()
+
+
+def _source_anchor_title_terms(title: str) -> set[str]:
+    normalized = _normalize_source_anchor_text(title)
+    terms = {normalized} if len(normalized) >= 8 else set()
+    tokens = [token for token in normalized.split() if token not in SOURCE_ANCHOR_STOPWORDS]
+    for size in (4, 3):
+        for index in range(0, max(0, len(tokens) - size + 1)):
+            phrase_tokens = tokens[index:index + size]
+            phrase = " ".join(phrase_tokens)
+            has_title_marker = bool(SOURCE_ANCHOR_TITLE_MARKERS.intersection(phrase_tokens))
+            has_distinct_short_token = any(len(token) <= 4 for token in phrase_tokens)
+            if len(phrase) >= 8 and has_title_marker and has_distinct_short_token:
+                terms.add(phrase)
+    return terms
+
+
+def _source_anchor_organization_terms(organization: str) -> set[str]:
+    terms: set[str] = set()
+    for candidate in [organization, *re.split(r"[/|;]", organization)]:
+        normalized = _normalize_source_anchor_text(candidate)
+        if len(normalized) >= 8:
+            terms.add(normalized)
+    return terms
+
+
+def _source_anchor_url_terms(url: str) -> set[str]:
+    terms: set[str] = set()
+    normalized_url = _normalize_source_anchor_text(url)
+    if len(normalized_url) >= 8:
+        terms.add(normalized_url)
+    parse_target = url if re.match(r"^[a-z][a-z0-9+.-]*://", url.lower()) else f"https://{url}"
+    parsed = urlparse(parse_target)
+    hostname = (parsed.hostname or "").lower().removeprefix("www.")
+    normalized_hostname = _normalize_source_anchor_text(hostname)
+    if len(normalized_hostname) >= 4:
+        terms.add(normalized_hostname)
+    return terms
 
 
 def _contains_source_anchor_leak(case: ClinicalCase, text: str) -> bool:
     normalized = _normalize_for_guardrail(text)
     if re.search(r"https?://|www\.", normalized):
         return True
-    return any(term in normalized for term in _source_anchor_leak_terms(case))
+    anchor_normalized = _normalize_source_anchor_text(text)
+    return any(term in anchor_normalized for term in _source_anchor_leak_terms(case))
 
 
 def _contains_korean_direct_management_order(text: str) -> bool:
