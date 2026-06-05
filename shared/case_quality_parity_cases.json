@@ -1837,5 +1837,63 @@
         }
       ]
     }
+  },
+  {
+    "name": "testicular_torsion_requires_assessment_immediate_urology_and_no_delay",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "testicular torsion time-critical actions must include acute scrotal assessment"
+    ],
+    "overrides": {
+      "diagnosis": "Testicular torsion",
+      "patient_demographics": {
+        "age": 16,
+        "sex": "male",
+        "weight_kg": 62,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Sudden severe right testicular pain",
+      "history_of_present_illness": "Adolescent has acute scrotal pain with nausea, high-riding testis, horizontal lie, absent cremasteric reflex, and concern for testicular torsion.",
+      "key_teaching_points": [
+        "Testicular torsion is a surgical emergency with time-sensitive ischemia",
+        "High clinical suspicion should trigger immediate urology and surgical exploration",
+        "Scrotal ultrasound can help if equivocal but must not delay definitive management"
+      ],
+      "clinical_red_flags": [
+        "Sudden severe unilateral testicular pain with nausea or vomiting",
+        "High-riding testis, horizontal lie, absent cremasteric reflex, or reduced Doppler flow"
+      ],
+      "time_critical_actions": [
+        "Assess high clinical suspicion with cremasteric reflex, high-riding testis, horizontal lie, and Doppler or scrotal ultrasound only if equivocal",
+        "Keep patient NPO, give analgesia, and document that imaging must not delay immediate management"
+      ],
+      "contraindication_checks": [
+        "Track time from onset because 4 hour to 8 hour ischemia window affects salvage, viability, orchiectomy risk, fertility, and testicular loss",
+        "Manual detorsion may be attempted if surgery is not immediately available but is not definitive and must not delay orchiopexy",
+        "Plan bilateral orchiopexy or contralateral fixation to prevent recurrence and preserve fertility",
+        "Review acute scrotum differentials including epididymitis, torsion of appendage, incarcerated hernia, orchitis, hydrocele, varicocele, and trauma"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Testicular Torsion: Diagnosis, Evaluation, and Management",
+          "organization": "American Family Physician",
+          "url": "https://www.aafp.org/pubs/afp/issues/2013/1215/p835.html",
+          "supports": [
+            "testicular torsion diagnosis and risk stratification",
+            "testicular torsion is a surgical emergency with time-sensitive ischemia",
+            "high clinical suspicion should trigger immediate urology and surgical exploration",
+            "scrotal ultrasound can help if equivocal but must not delay definitive management",
+            "sudden severe unilateral testicular pain with nausea or vomiting as red flags",
+            "high-riding testis, horizontal lie, absent cremasteric reflex, or reduced Doppler flow as severity markers",
+            "high clinical suspicion with cremasteric reflex, high-riding testis, horizontal lie, and Doppler or scrotal ultrasound only if equivocal",
+            "NPO, analgesia, and imaging must not delay immediate management",
+            "time from onset because 4 hour to 8 hour ischemia window affects salvage, viability, orchiectomy risk, fertility, and testicular loss",
+            "manual detorsion may be attempted if surgery is not immediately available but is not definitive and must not delay orchiopexy",
+            "bilateral orchiopexy or contralateral fixation to prevent recurrence and preserve fertility",
+            "epididymitis, torsion of appendage, incarcerated hernia, orchitis, hydrocele, varicocele, and trauma acute scrotum differentials"
+          ]
+        }
+      ]
+    }
   }
 ]

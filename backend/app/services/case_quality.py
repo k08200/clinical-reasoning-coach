@@ -1560,6 +1560,91 @@ ACUTE_LIMB_ISCHEMIA_SOURCE_DIFFERENTIAL_SAFETY_TERMS = (
     "색전",
     "혈전",
 )
+TESTICULAR_TORSION_CONTEXT_TERMS = (
+    "acute scrotal pain",
+    "acute testicular pain",
+    "high-riding testis",
+    "painful testicle",
+    "scrotal pain",
+    "testicular torsion",
+    "torsion of the testis",
+    "twisted spermatic cord",
+    "고환염전",
+    "고환 염전",
+    "급성 음낭통",
+)
+TESTICULAR_TORSION_ASSESSMENT_ACTION_TERMS = (
+    "absent cremasteric",
+    "cremasteric reflex",
+    "doppler",
+    "high clinical suspicion",
+    "high-riding",
+    "horizontal lie",
+    "nausea",
+    "scrotal ultrasound",
+    "ultrasound",
+    "초음파",
+)
+TESTICULAR_TORSION_UROLOGY_SURGERY_ACTION_TERMS = (
+    "orchiopexy",
+    "scrotal exploration",
+    "surgical exploration",
+    "urology",
+    "urgent exploration",
+    "urgent surgery",
+    "uro consult",
+    "비뇨",
+    "수술",
+)
+TESTICULAR_TORSION_DELAY_ACTION_TERMS = (
+    "do not delay",
+    "immediate",
+    "not delay",
+    "not postpone",
+    "time critical",
+    "urgent",
+    "지연",
+    "즉시",
+)
+TESTICULAR_TORSION_SALVAGE_SAFETY_TERMS = (
+    "4 hour",
+    "6 hour",
+    "8 hour",
+    "ischemia",
+    "orchiectomy",
+    "salvage",
+    "time from onset",
+    "viability",
+    "허혈",
+)
+TESTICULAR_TORSION_MANUAL_DETORSION_SAFETY_TERMS = (
+    "manual detorsion",
+    "not definitive",
+    "not delay",
+    "orchiopexy",
+    "surgery still required",
+    "untwist",
+    "수기 정복",
+)
+TESTICULAR_TORSION_BILATERAL_FIXATION_SAFETY_TERMS = (
+    "bilateral",
+    "contralateral",
+    "fertility",
+    "orchiectomy",
+    "orchiopexy",
+    "testicular loss",
+    "불임",
+)
+TESTICULAR_TORSION_DIFFERENTIAL_SAFETY_TERMS = (
+    "appendage torsion",
+    "epididymitis",
+    "hernia",
+    "hydrocele",
+    "orchitis",
+    "trauma",
+    "varicocele",
+    "감별",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -3418,6 +3503,34 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="testicular_torsion_time_critical_actions",
+            applies=_requires_testicular_torsion_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_testicular_torsion_time_critical_actions,
+            issue=(
+                "testicular torsion time-critical actions must include acute "
+                "scrotal assessment with high-clinical-suspicion, cremasteric, "
+                "high-riding, Doppler, or ultrasound pathway, immediate urology, "
+                "scrotal exploration, orchiopexy, or urgent surgical escalation, "
+                "and explicit imaging-not-to-delay or immediate time-critical "
+                "management"
+            ),
+        ),
+        DomainSafetyGate(
+            name="testicular_torsion_treatment_safety",
+            applies=_requires_testicular_torsion_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_testicular_torsion_treatment_safety_check,
+            issue=(
+                "testicular torsion safety checks must include ischemia, "
+                "4-to-8-hour salvage, viability, orchiectomy, or time-from-onset "
+                "risk, manual detorsion as non-definitive or not delaying surgery, "
+                "bilateral or contralateral orchiopexy, fertility, or testicular "
+                "loss planning, and epididymitis, torsion of appendage, hernia, "
+                "trauma, or other acute-scrotum differential review"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -4680,6 +4793,76 @@ def _has_acute_limb_ischemia_treatment_safety_check(checks: list[Any]) -> bool:
         has_bleeding_safety
         and has_irreversible_compartment_safety
         and has_source_differential_safety
+    )
+
+
+def _requires_testicular_torsion_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in TESTICULAR_TORSION_CONTEXT_TERMS
+    )
+
+
+def _has_testicular_torsion_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TESTICULAR_TORSION_ASSESSMENT_ACTION_TERMS
+    )
+    has_urology_surgery = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TESTICULAR_TORSION_UROLOGY_SURGERY_ACTION_TERMS
+    )
+    has_delay_prevention = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TESTICULAR_TORSION_DELAY_ACTION_TERMS
+    )
+    return has_assessment and has_urology_surgery and has_delay_prevention
+
+
+def _has_testicular_torsion_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_salvage_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TESTICULAR_TORSION_SALVAGE_SAFETY_TERMS
+    )
+    has_manual_detorsion_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TESTICULAR_TORSION_MANUAL_DETORSION_SAFETY_TERMS
+    )
+    has_bilateral_fixation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TESTICULAR_TORSION_BILATERAL_FIXATION_SAFETY_TERMS
+    )
+    has_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TESTICULAR_TORSION_DIFFERENTIAL_SAFETY_TERMS
+    )
+    return (
+        has_salvage_safety
+        and has_manual_detorsion_safety
+        and has_bilateral_fixation_safety
+        and has_differential_safety
     )
 
 

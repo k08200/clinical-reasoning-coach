@@ -1663,6 +1663,99 @@ const ACUTE_LIMB_ISCHEMIA_SOURCE_DIFFERENTIAL_SAFETY_TERMS = [
   "혈전",
 ];
 
+const TESTICULAR_TORSION_CONTEXT_TERMS = [
+  "acute scrotal pain",
+  "acute testicular pain",
+  "high-riding testis",
+  "painful testicle",
+  "scrotal pain",
+  "testicular torsion",
+  "torsion of the testis",
+  "twisted spermatic cord",
+  "고환염전",
+  "고환 염전",
+  "급성 음낭통",
+];
+
+const TESTICULAR_TORSION_ASSESSMENT_ACTION_TERMS = [
+  "absent cremasteric",
+  "cremasteric reflex",
+  "doppler",
+  "high clinical suspicion",
+  "high-riding",
+  "horizontal lie",
+  "nausea",
+  "scrotal ultrasound",
+  "ultrasound",
+  "초음파",
+];
+
+const TESTICULAR_TORSION_UROLOGY_SURGERY_ACTION_TERMS = [
+  "orchiopexy",
+  "scrotal exploration",
+  "surgical exploration",
+  "urology",
+  "urgent exploration",
+  "urgent surgery",
+  "uro consult",
+  "비뇨",
+  "수술",
+];
+
+const TESTICULAR_TORSION_DELAY_ACTION_TERMS = [
+  "do not delay",
+  "immediate",
+  "not delay",
+  "not postpone",
+  "time critical",
+  "urgent",
+  "지연",
+  "즉시",
+];
+
+const TESTICULAR_TORSION_SALVAGE_SAFETY_TERMS = [
+  "4 hour",
+  "6 hour",
+  "8 hour",
+  "ischemia",
+  "orchiectomy",
+  "salvage",
+  "time from onset",
+  "viability",
+  "허혈",
+];
+
+const TESTICULAR_TORSION_MANUAL_DETORSION_SAFETY_TERMS = [
+  "manual detorsion",
+  "not definitive",
+  "not delay",
+  "orchiopexy",
+  "surgery still required",
+  "untwist",
+  "수기 정복",
+];
+
+const TESTICULAR_TORSION_BILATERAL_FIXATION_SAFETY_TERMS = [
+  "bilateral",
+  "contralateral",
+  "fertility",
+  "orchiectomy",
+  "orchiopexy",
+  "testicular loss",
+  "불임",
+];
+
+const TESTICULAR_TORSION_DIFFERENTIAL_SAFETY_TERMS = [
+  "appendage torsion",
+  "epididymitis",
+  "hernia",
+  "hydrocele",
+  "orchitis",
+  "trauma",
+  "varicocele",
+  "감별",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -3855,6 +3948,63 @@ function hasAcuteLimbIschemiaTreatmentSafetyCheck(checks: string[]): boolean {
   return hasBleedingSafety && hasIrreversibleCompartmentSafety && hasSourceDifferentialSafety;
 }
 
+function requiresTesticularTorsionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return TESTICULAR_TORSION_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasTesticularTorsionTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAssessment = TESTICULAR_TORSION_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUrologySurgery = TESTICULAR_TORSION_UROLOGY_SURGERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDelayPrevention = TESTICULAR_TORSION_DELAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAssessment && hasUrologySurgery && hasDelayPrevention;
+}
+
+function hasTesticularTorsionTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasSalvageSafety = TESTICULAR_TORSION_SALVAGE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasManualDetorsionSafety = TESTICULAR_TORSION_MANUAL_DETORSION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBilateralFixationSafety = TESTICULAR_TORSION_BILATERAL_FIXATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferentialSafety = TESTICULAR_TORSION_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasSalvageSafety &&
+    hasManualDetorsionSafety &&
+    hasBilateralFixationSafety &&
+    hasDifferentialSafety
+  );
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -4806,6 +4956,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAcuteLimbIschemiaTreatmentSafetyCheck,
       issue:
         "acute limb ischemia safety checks must include heparin, thrombolysis, bleeding, platelet, recent-surgery, or other anticoagulation contraindication review, irreversible limb, Rutherford III, compartment-syndrome, fasciotomy, or reperfusion-injury monitoring, and embolic, thrombotic, aneurysm, atrial-fibrillation, trauma, or vascular-access cause review",
+    },
+    {
+      name: "testicular_torsion_time_critical_actions",
+      label: "Testicular torsion emergency actions",
+      applies: requiresTesticularTorsionSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasTesticularTorsionTimeCriticalActions,
+      issue:
+        "testicular torsion time-critical actions must include acute scrotal assessment with high-clinical-suspicion, cremasteric, high-riding, Doppler, or ultrasound pathway, immediate urology, scrotal exploration, orchiopexy, or urgent surgical escalation, and explicit imaging-not-to-delay or immediate time-critical management",
+    },
+    {
+      name: "testicular_torsion_treatment_safety",
+      label: "Testicular torsion treatment safety",
+      applies: requiresTesticularTorsionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasTesticularTorsionTreatmentSafetyCheck,
+      issue:
+        "testicular torsion safety checks must include ischemia, 4-to-8-hour salvage, viability, orchiectomy, or time-from-onset risk, manual detorsion as non-definitive or not delaying surgery, bilateral or contralateral orchiopexy, fertility, or testicular loss planning, and epididymitis, torsion of appendage, hernia, trauma, or other acute-scrotum differential review",
     },
     {
       name: "dka_time_critical_actions",
