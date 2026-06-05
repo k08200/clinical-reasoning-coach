@@ -734,6 +734,86 @@ CNS_INFECTION_STEROID_SAFETY_TERMS = (
     "덱사메타손",
     "스테로이드",
 )
+ECTOPIC_PREGNANCY_CONTEXT_TERMS = (
+    "ectopic pregnancy",
+    "pregnancy of unknown location",
+    "pregnant with abdominal pain",
+    "pregnant with pelvic pain",
+    "pregnant with syncope",
+    "pregnant with vaginal bleeding",
+    "ruptured ectopic",
+    "tubal pregnancy",
+    "자궁외임신",
+    "자궁외 임신",
+)
+ECTOPIC_PREGNANCY_HCG_ACTION_TERMS = (
+    "beta hcg",
+    "beta-hcg",
+    "hcg",
+    "pregnancy test",
+    "quantitative hcg",
+    "β-hcg",
+    "임신반응",
+    "임신 검사",
+)
+ECTOPIC_PREGNANCY_ULTRASOUND_ACTION_TERMS = (
+    "pelvic ultrasound",
+    "transvaginal ultrasound",
+    "tvu",
+    "tvus",
+    "ultrasound",
+    "초음파",
+    "질식초음파",
+)
+ECTOPIC_PREGNANCY_ESCALATION_ACTION_TERMS = (
+    "emergency surgery",
+    "gynecology",
+    "hemodynamic",
+    "ob consult",
+    "ob/gyn",
+    "obgyn",
+    "operative",
+    "rupture",
+    "surgery",
+    "unstable",
+    "산부인과",
+    "수술",
+    "파열",
+    "혈역학",
+)
+ECTOPIC_PREGNANCY_RH_SAFETY_TERMS = (
+    "anti-d",
+    "blood type",
+    "rh",
+    "rhesus",
+    "혈액형",
+)
+ECTOPIC_PREGNANCY_MTX_SAFETY_TERMS = (
+    "breastfeeding",
+    "cbc",
+    "liver",
+    "methotrexate",
+    "renal",
+    "rupture",
+    "unstable",
+    "간기능",
+    "메토트렉세이트",
+    "신장",
+    "파열",
+)
+ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS = (
+    "hemodynamic",
+    "hemoperitoneum",
+    "hypotension",
+    "peritoneal",
+    "shock",
+    "syncope",
+    "unstable",
+    "복막",
+    "실신",
+    "저혈압",
+    "혈역학",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -1460,6 +1540,28 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="ectopic_pregnancy_time_critical_actions",
+            applies=_requires_ectopic_pregnancy_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_ectopic_pregnancy_time_critical_actions,
+            issue=(
+                "ectopic pregnancy time-critical actions must include quantitative "
+                "hCG or pregnancy testing, pelvic or transvaginal ultrasound, and "
+                "urgent OB/GYN or operative escalation for instability or rupture"
+            ),
+        ),
+        DomainSafetyGate(
+            name="ectopic_pregnancy_treatment_safety",
+            applies=_requires_ectopic_pregnancy_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_ectopic_pregnancy_treatment_safety_check,
+            issue=(
+                "ectopic pregnancy safety checks must include Rh status or anti-D "
+                "planning, methotrexate eligibility or contraindications, and "
+                "hemodynamic or rupture risk"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -1841,6 +1943,67 @@ def _has_cns_infection_lp_steroid_safety_check(checks: list[Any]) -> bool:
         for term in CNS_INFECTION_STEROID_SAFETY_TERMS
     )
     return has_antimicrobial_safety and has_lp_safety and has_steroid_timing
+
+
+def _requires_ectopic_pregnancy_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in ECTOPIC_PREGNANCY_CONTEXT_TERMS
+    )
+
+
+def _has_ectopic_pregnancy_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_hcg = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ECTOPIC_PREGNANCY_HCG_ACTION_TERMS
+    )
+    has_ultrasound = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ECTOPIC_PREGNANCY_ULTRASOUND_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ECTOPIC_PREGNANCY_ESCALATION_ACTION_TERMS
+    )
+    return has_hcg and has_ultrasound and has_escalation
+
+
+def _has_ectopic_pregnancy_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_rh_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ECTOPIC_PREGNANCY_RH_SAFETY_TERMS
+    )
+    has_mtx_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ECTOPIC_PREGNANCY_MTX_SAFETY_TERMS
+    )
+    has_hemodynamic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS
+    )
+    return has_rh_safety and has_mtx_safety and has_hemodynamic_safety
 
 
 def _requires_sepsis_resuscitation_safety_check(data: dict[str, Any]) -> bool:

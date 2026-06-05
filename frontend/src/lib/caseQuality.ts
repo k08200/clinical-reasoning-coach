@@ -761,6 +761,93 @@ const CNS_INFECTION_STEROID_SAFETY_TERMS = [
   "스테로이드",
 ];
 
+const ECTOPIC_PREGNANCY_CONTEXT_TERMS = [
+  "ectopic pregnancy",
+  "pregnancy of unknown location",
+  "pregnant with abdominal pain",
+  "pregnant with pelvic pain",
+  "pregnant with syncope",
+  "pregnant with vaginal bleeding",
+  "ruptured ectopic",
+  "tubal pregnancy",
+  "자궁외임신",
+  "자궁외 임신",
+];
+
+const ECTOPIC_PREGNANCY_HCG_ACTION_TERMS = [
+  "beta hcg",
+  "beta-hcg",
+  "hcg",
+  "pregnancy test",
+  "quantitative hcg",
+  "β-hcg",
+  "임신반응",
+  "임신 검사",
+];
+
+const ECTOPIC_PREGNANCY_ULTRASOUND_ACTION_TERMS = [
+  "pelvic ultrasound",
+  "transvaginal ultrasound",
+  "tvu",
+  "tvus",
+  "ultrasound",
+  "초음파",
+  "질식초음파",
+];
+
+const ECTOPIC_PREGNANCY_ESCALATION_ACTION_TERMS = [
+  "emergency surgery",
+  "gynecology",
+  "hemodynamic",
+  "ob consult",
+  "ob/gyn",
+  "obgyn",
+  "operative",
+  "rupture",
+  "surgery",
+  "unstable",
+  "산부인과",
+  "수술",
+  "파열",
+  "혈역학",
+];
+
+const ECTOPIC_PREGNANCY_RH_SAFETY_TERMS = [
+  "anti-d",
+  "blood type",
+  "rh",
+  "rhesus",
+  "혈액형",
+];
+
+const ECTOPIC_PREGNANCY_MTX_SAFETY_TERMS = [
+  "breastfeeding",
+  "cbc",
+  "liver",
+  "methotrexate",
+  "renal",
+  "rupture",
+  "unstable",
+  "간기능",
+  "메토트렉세이트",
+  "신장",
+  "파열",
+];
+
+const ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS = [
+  "hemodynamic",
+  "hemoperitoneum",
+  "hypotension",
+  "peritoneal",
+  "shock",
+  "syncope",
+  "unstable",
+  "복막",
+  "실신",
+  "저혈압",
+  "혈역학",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -1475,6 +1562,53 @@ function hasCnsInfectionLpSteroidSafetyCheck(checks: string[]): boolean {
   return hasAntimicrobialSafety && hasLpSafety && hasSteroidTiming;
 }
 
+function requiresEctopicPregnancySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return ECTOPIC_PREGNANCY_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasEctopicPregnancyTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasHcg = ECTOPIC_PREGNANCY_HCG_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUltrasound = ECTOPIC_PREGNANCY_ULTRASOUND_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = ECTOPIC_PREGNANCY_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasHcg && hasUltrasound && hasEscalation;
+}
+
+function hasEctopicPregnancyTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasRhSafety = ECTOPIC_PREGNANCY_RH_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMtxSafety = ECTOPIC_PREGNANCY_MTX_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHemodynamicSafety = ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasRhSafety && hasMtxSafety && hasHemodynamicSafety;
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -1782,6 +1916,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCnsInfectionLpSteroidSafetyCheck,
       issue:
         "CNS infection safety checks must include antimicrobial allergy or renal dosing review, lumbar puncture contraindications, and dexamethasone timing relative to antibiotics",
+    },
+    {
+      name: "ectopic_pregnancy_time_critical_actions",
+      label: "Ectopic pregnancy diagnostic escalation",
+      applies: requiresEctopicPregnancySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasEctopicPregnancyTimeCriticalActions,
+      issue:
+        "ectopic pregnancy time-critical actions must include quantitative hCG or pregnancy testing, pelvic or transvaginal ultrasound, and urgent OB/GYN or operative escalation for instability or rupture",
+    },
+    {
+      name: "ectopic_pregnancy_treatment_safety",
+      label: "Ectopic pregnancy treatment safety",
+      applies: requiresEctopicPregnancySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasEctopicPregnancyTreatmentSafetyCheck,
+      issue:
+        "ectopic pregnancy safety checks must include Rh status or anti-D planning, methotrexate eligibility or contraindications, and hemodynamic or rupture risk",
     },
     {
       name: "dka_time_critical_actions",

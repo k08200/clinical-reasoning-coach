@@ -821,5 +821,59 @@
         }
       ]
     }
+  },
+  {
+    "name": "ectopic_pregnancy_requires_hcg_ultrasound_and_obgyn_escalation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "ectopic pregnancy time-critical actions must include quantitative hCG"
+    ],
+    "overrides": {
+      "diagnosis": "Ruptured ectopic pregnancy",
+      "patient_demographics": {
+        "age": 29,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Pelvic pain and dizziness",
+      "history_of_present_illness": "Reproductive-age patient with missed period, unilateral pelvic pain, vaginal spotting, and near-syncope.",
+      "key_teaching_points": [
+        "Early pregnancy pain and bleeding requires pregnancy location assessment",
+        "Hemodynamic instability or peritoneal signs require urgent operative escalation",
+        "Treatment choice depends on ultrasound findings, hCG trend, and rupture risk"
+      ],
+      "clinical_red_flags": [
+        "Near-syncope with pelvic pain and vaginal bleeding",
+        "Shoulder pain and guarding suggesting intraperitoneal bleeding"
+      ],
+      "time_critical_actions": [
+        "Place patient on monitoring and establish IV access",
+        "Trend hemoglobin while assessing bleeding severity"
+      ],
+      "contraindication_checks": [
+        "Pregnancy status with quantitative hCG before medication or imaging decisions",
+        "Rh status and anti-D planning if Rh negative",
+        "Methotrexate eligibility including renal and liver function, CBC, breastfeeding, rupture, and unstable status",
+        "Hemodynamic instability, syncope, peritoneal signs, and hemoperitoneum risk"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Ectopic Pregnancy Diagnosis and Management",
+          "organization": "American Family Physician",
+          "url": "https://www.aafp.org/pubs/afp/issues/2020/0515/p599.html",
+          "supports": [
+            "ectopic pregnancy diagnosis and risk stratification",
+            "near-syncope with pelvic pain and vaginal bleeding as red flags",
+            "shoulder pain and guarding suggesting intraperitoneal bleeding",
+            "monitoring, IV access, and hemoglobin trend while assessing bleeding severity",
+            "pregnancy status with quantitative hCG before medication or imaging decisions",
+            "Rh status and anti-D planning if Rh negative",
+            "methotrexate eligibility including renal and liver function, CBC, breastfeeding, rupture, and unstable status",
+            "hemodynamic instability, syncope, peritoneal signs, and hemoperitoneum risk"
+          ]
+        }
+      ]
+    }
   }
 ]

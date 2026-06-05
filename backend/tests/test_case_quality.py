@@ -53,6 +53,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "gi_bleed_transfusion_reversal_safety",
         "cns_infection_time_critical_actions",
         "cns_infection_lp_steroid_safety",
+        "ectopic_pregnancy_time_critical_actions",
+        "ectopic_pregnancy_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "stroke_time_critical_actions",
@@ -564,6 +566,125 @@ def test_quality_gate_requires_cns_infection_lp_and_steroid_safety():
     assert not report.passed
     assert any(
         "CNS infection safety checks must include antimicrobial allergy" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ectopic_pregnancy_hcg_ultrasound_and_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Ruptured ectopic pregnancy"
+    case["patient_demographics"] = {
+        "age": 29,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Pelvic pain and dizziness"
+    case["history_of_present_illness"] = (
+        "Reproductive-age patient with missed period, unilateral pelvic pain, "
+        "vaginal spotting, and near-syncope."
+    )
+    case["key_teaching_points"] = [
+        "Early pregnancy pain and bleeding requires pregnancy location assessment",
+        "Hemodynamic instability or peritoneal signs require urgent operative escalation",
+        "Treatment choice depends on ultrasound findings, hCG trend, and rupture risk",
+    ]
+    case["clinical_red_flags"] = [
+        "Near-syncope with pelvic pain and vaginal bleeding",
+        "Shoulder pain and guarding suggesting intraperitoneal bleeding",
+    ]
+    case["time_critical_actions"] = [
+        "Place patient on monitoring and establish IV access",
+        "Trend hemoglobin while assessing bleeding severity",
+    ]
+    case["contraindication_checks"] = [
+        "Pregnancy status with quantitative hCG before medication or imaging decisions",
+        "Rh status and anti-D planning if Rh negative",
+        "Methotrexate eligibility including renal and liver function, CBC, breastfeeding, rupture, and unstable status",
+        "Hemodynamic instability, syncope, peritoneal signs, and hemoperitoneum risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Ectopic Pregnancy Diagnosis and Management",
+            "organization": "American Family Physician",
+            "url": "https://www.aafp.org/pubs/afp/issues/2020/0515/p599.html",
+            "supports": [
+                "ectopic pregnancy diagnosis and risk stratification",
+                "near-syncope with pelvic pain and vaginal bleeding as red flags",
+                "shoulder pain and guarding suggesting intraperitoneal bleeding",
+                "monitoring, IV access, and hemoglobin trend while assessing bleeding severity",
+                "pregnancy status with quantitative hCG before medication or imaging decisions",
+                "Rh status and anti-D planning if Rh negative",
+                "methotrexate eligibility including renal and liver function, CBC, breastfeeding, rupture, and unstable status",
+                "hemodynamic instability, syncope, peritoneal signs, and hemoperitoneum risk",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ectopic pregnancy time-critical actions must include quantitative hCG" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ectopic_pregnancy_rh_mtx_and_rupture_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Ruptured ectopic pregnancy"
+    case["patient_demographics"] = {
+        "age": 29,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Pelvic pain and dizziness"
+    case["history_of_present_illness"] = (
+        "Reproductive-age patient with missed period, unilateral pelvic pain, "
+        "vaginal spotting, and near-syncope."
+    )
+    case["key_teaching_points"] = [
+        "Early pregnancy pain and bleeding requires pregnancy location assessment",
+        "Hemodynamic instability or peritoneal signs require urgent operative escalation",
+        "Treatment choice depends on ultrasound findings, hCG trend, and rupture risk",
+    ]
+    case["clinical_red_flags"] = [
+        "Near-syncope with pelvic pain and vaginal bleeding",
+        "Shoulder pain and guarding suggesting intraperitoneal bleeding",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain pregnancy test and quantitative hCG immediately",
+        "Perform pelvic ultrasound with transvaginal ultrasound to assess pregnancy location",
+        "Consult OB/GYN urgently and prepare operative escalation if unstable or rupture is suspected",
+    ]
+    case["contraindication_checks"] = [
+        "Pregnancy status with quantitative hCG before medication or imaging decisions",
+        "Medication allergy before analgesia",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Ectopic Pregnancy Diagnosis and Management",
+            "organization": "American Family Physician",
+            "url": "https://www.aafp.org/pubs/afp/issues/2020/0515/p599.html",
+            "supports": [
+                "ectopic pregnancy diagnosis and risk stratification",
+                "near-syncope with pelvic pain and vaginal bleeding as red flags",
+                "shoulder pain and guarding suggesting intraperitoneal bleeding",
+                "pregnancy test and quantitative hCG immediately",
+                "pelvic ultrasound with transvaginal ultrasound to assess pregnancy location",
+                "urgent OB/GYN consultation and operative escalation if unstable or rupture is suspected",
+                "pregnancy status with quantitative hCG before medication or imaging decisions",
+                "medication allergy before analgesia",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ectopic pregnancy safety checks must include Rh status" in issue
         for issue in report.critical_issues
     )
 
