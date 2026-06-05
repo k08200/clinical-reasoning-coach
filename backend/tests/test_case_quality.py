@@ -69,6 +69,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "heat_stroke_treatment_safety",
         "cauda_equina_time_critical_actions",
         "cauda_equina_delay_safety",
+        "acute_limb_ischemia_time_critical_actions",
+        "acute_limb_ischemia_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
@@ -1634,6 +1636,132 @@ def test_quality_gate_requires_cauda_equina_red_flags_delay_and_compressive_caus
     assert not report.passed
     assert any(
         "cauda equina safety checks must document bladder" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_limb_ischemia_viability_heparin_and_revascularization():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute limb ischemia"
+    case["patient_demographics"] = {
+        "age": 72,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden severe left leg pain and cold foot"
+    case["history_of_present_illness"] = (
+        "Patient with atrial fibrillation develops abrupt severe leg pain, pallor, "
+        "pulseless cold limb, paresthesia, and motor weakness concerning for threatened limb."
+    )
+    case["key_teaching_points"] = [
+        "Acute limb ischemia is a vascular emergency with amputation risk",
+        "Rutherford limb viability assessment guides urgency of revascularization",
+        "Immediate anticoagulation and urgent vascular surgery escalation are time-critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden pain, pallor, pulselessness, paresthesia, paralysis, or poikilothermia",
+        "Motor deficit, sensory deficit, absent Doppler pulse, or threatened limb viability",
+    ]
+    case["time_critical_actions"] = [
+        "Assess 6 Ps, pulses, capillary refill, Doppler signals, motor deficit, sensory deficit, and Rutherford limb viability",
+        "Start immediate IV unfractionated heparin infusion and anticoagulation planning if no contraindication",
+        "Give analgesia and keep the limb protected while monitoring perfusion",
+    ]
+    case["contraindication_checks"] = [
+        "Review active bleeding, intracranial hemorrhage, platelet count, recent surgery, heparin contraindication, and thrombolysis bleeding risk",
+        "Monitor irreversible Rutherford III limb, paralysis, muscle necrosis, compartment syndrome, reperfusion injury, and fasciotomy need",
+        "Review atrial fibrillation cardiac embolic source, thrombosis, popliteal aneurysm, trauma, and vascular access causes",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute Limb Ischemia: An Update on Diagnosis and Management",
+            "organization": "National Institutes of Health",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6723825/",
+            "supports": [
+                "acute limb ischemia diagnosis and risk stratification",
+                "acute limb ischemia is a vascular emergency with amputation risk",
+                "Rutherford limb viability assessment guides urgency of revascularization",
+                "immediate anticoagulation and urgent vascular surgery escalation are time-critical",
+                "sudden pain, pallor, pulselessness, paresthesia, paralysis, or poikilothermia as red flags",
+                "motor deficit, sensory deficit, absent Doppler pulse, or threatened limb viability as severity markers",
+                "6 Ps, pulses, capillary refill, Doppler signals, motor deficit, sensory deficit, and Rutherford limb viability assessment",
+                "immediate IV unfractionated heparin infusion and anticoagulation planning if no contraindication",
+                "analgesia and limb protection while monitoring perfusion",
+                "active bleeding, intracranial hemorrhage, platelet count, recent surgery, heparin contraindication, and thrombolysis bleeding risk",
+                "irreversible Rutherford III limb, paralysis, muscle necrosis, compartment syndrome, reperfusion injury, and fasciotomy need",
+                "atrial fibrillation cardiac embolic source, thrombosis, popliteal aneurysm, trauma, and vascular access causes",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute limb ischemia time-critical actions must include pulse" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_limb_ischemia_bleeding_compartment_and_cause_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute limb ischemia"
+    case["patient_demographics"] = {
+        "age": 72,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden severe left leg pain and cold foot"
+    case["history_of_present_illness"] = (
+        "Patient with atrial fibrillation develops abrupt severe leg pain, pallor, "
+        "pulseless cold limb, paresthesia, and motor weakness concerning for threatened limb."
+    )
+    case["key_teaching_points"] = [
+        "Acute limb ischemia is a vascular emergency with amputation risk",
+        "Rutherford limb viability assessment guides urgency of revascularization",
+        "Immediate anticoagulation and urgent vascular surgery escalation are time-critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden pain, pallor, pulselessness, paresthesia, paralysis, or poikilothermia",
+        "Motor deficit, sensory deficit, absent Doppler pulse, or threatened limb viability",
+    ]
+    case["time_critical_actions"] = [
+        "Assess 6 Ps, pulses, capillary refill, Doppler signals, motor deficit, sensory deficit, and Rutherford limb viability",
+        "Start immediate IV unfractionated heparin infusion and anticoagulation planning if no contraindication",
+        "Escalate urgently to vascular surgery for endovascular revascularization, catheter-directed thrombolysis, thrombectomy, embolectomy, or bypass planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before analgesia",
+        "Renal function before contrast imaging if the limb is not immediately threatened",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute Limb Ischemia: An Update on Diagnosis and Management",
+            "organization": "National Institutes of Health",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6723825/",
+            "supports": [
+                "acute limb ischemia diagnosis and risk stratification",
+                "acute limb ischemia is a vascular emergency with amputation risk",
+                "Rutherford limb viability assessment guides urgency of revascularization",
+                "immediate anticoagulation and urgent vascular surgery escalation are time-critical",
+                "sudden pain, pallor, pulselessness, paresthesia, paralysis, or poikilothermia as red flags",
+                "motor deficit, sensory deficit, absent Doppler pulse, or threatened limb viability as severity markers",
+                "6 Ps, pulses, capillary refill, Doppler signals, motor deficit, sensory deficit, and Rutherford limb viability assessment",
+                "immediate IV unfractionated heparin infusion and anticoagulation planning if no contraindication",
+                "urgent vascular surgery for endovascular revascularization, catheter-directed thrombolysis, thrombectomy, embolectomy, or bypass planning",
+                "medication allergy before analgesia",
+                "renal function before contrast imaging if the limb is not immediately threatened",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute limb ischemia safety checks must include heparin" in issue
         for issue in report.critical_issues
     )
 

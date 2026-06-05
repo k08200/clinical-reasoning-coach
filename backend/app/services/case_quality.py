@@ -1472,6 +1472,94 @@ CAUDA_EQUINA_COMPRESSIVE_CAUSE_SAFETY_TERMS = (
     "암",
     "외상",
 )
+ACUTE_LIMB_ISCHEMIA_CONTEXT_TERMS = (
+    "6 ps",
+    "acute arterial occlusion",
+    "acute limb ischemia",
+    "acute limb ischaemia",
+    "cold pulseless limb",
+    "limb ischemia",
+    "limb ischaemia",
+    "pain pallor pulselessness",
+    "pulseless cold limb",
+    "six ps",
+    "threatened limb",
+    "급성 사지 허혈",
+    "사지 허혈",
+)
+ACUTE_LIMB_ISCHEMIA_VIABILITY_ACTION_TERMS = (
+    "6 ps",
+    "capillary refill",
+    "doppler",
+    "limb viability",
+    "motor deficit",
+    "pulse",
+    "rutherford",
+    "sensory deficit",
+    "six ps",
+    "도플러",
+    "맥박",
+)
+ACUTE_LIMB_ISCHEMIA_HEPARIN_ACTION_TERMS = (
+    "anticoagulation",
+    "heparin",
+    "heparin infusion",
+    "iv heparin",
+    "unfractionated heparin",
+    "항응고",
+    "헤파린",
+)
+ACUTE_LIMB_ISCHEMIA_REVASCULARIZATION_ACTION_TERMS = (
+    "bypass",
+    "catheter-directed thrombolysis",
+    "embolectomy",
+    "endovascular",
+    "revascularization",
+    "revascularisation",
+    "surgical",
+    "thrombectomy",
+    "vascular surgery",
+    "vascular surgeon",
+    "혈관외과",
+    "재관류",
+)
+ACUTE_LIMB_ISCHEMIA_BLEEDING_SAFETY_TERMS = (
+    "active bleeding",
+    "anticoagulation",
+    "bleeding",
+    "contraindication",
+    "heparin",
+    "intracranial hemorrhage",
+    "platelet",
+    "recent surgery",
+    "thrombolysis",
+    "출혈",
+    "혈소판",
+)
+ACUTE_LIMB_ISCHEMIA_IRREVERSIBLE_COMPARTMENT_SAFETY_TERMS = (
+    "compartment syndrome",
+    "fasciotomy",
+    "irreversible",
+    "muscle necrosis",
+    "nonviable",
+    "paralysis",
+    "reperfusion injury",
+    "rutherford iii",
+    "구획증후군",
+)
+ACUTE_LIMB_ISCHEMIA_SOURCE_DIFFERENTIAL_SAFETY_TERMS = (
+    "aneurysm",
+    "atrial fibrillation",
+    "cardiac embol",
+    "embol",
+    "popliteal aneurysm",
+    "thrombosis",
+    "trauma",
+    "vascular access",
+    "심방세동",
+    "색전",
+    "혈전",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -3301,6 +3389,35 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="acute_limb_ischemia_time_critical_actions",
+            applies=_requires_acute_limb_ischemia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_acute_limb_ischemia_time_critical_actions,
+            issue=(
+                "acute limb ischemia time-critical actions must include "
+                "pulse, Doppler, motor, sensory, 6 Ps, or Rutherford limb "
+                "viability assessment, immediate IV unfractionated heparin "
+                "or anticoagulation planning, and urgent vascular surgery, "
+                "endovascular, thrombolysis, thrombectomy, embolectomy, "
+                "bypass, or revascularization escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acute_limb_ischemia_treatment_safety",
+            applies=_requires_acute_limb_ischemia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acute_limb_ischemia_treatment_safety_check,
+            issue=(
+                "acute limb ischemia safety checks must include heparin, "
+                "thrombolysis, bleeding, platelet, recent-surgery, or other "
+                "anticoagulation contraindication review, irreversible limb, "
+                "Rutherford III, compartment-syndrome, fasciotomy, or "
+                "reperfusion-injury monitoring, and embolic, thrombotic, "
+                "aneurysm, atrial-fibrillation, trauma, or vascular-access "
+                "cause review"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -4499,6 +4616,71 @@ def _has_cauda_equina_delay_safety_check(checks: list[Any]) -> bool:
         for term in CAUDA_EQUINA_COMPRESSIVE_CAUSE_SAFETY_TERMS
     )
     return has_red_flag_safety and has_delay_safety and has_compressive_cause_safety
+
+
+def _requires_acute_limb_ischemia_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_LIMB_ISCHEMIA_CONTEXT_TERMS
+    )
+
+
+def _has_acute_limb_ischemia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_viability_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIMB_ISCHEMIA_VIABILITY_ACTION_TERMS
+    )
+    has_heparin = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIMB_ISCHEMIA_HEPARIN_ACTION_TERMS
+    )
+    has_revascularization = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIMB_ISCHEMIA_REVASCULARIZATION_ACTION_TERMS
+    )
+    return has_viability_assessment and has_heparin and has_revascularization
+
+
+def _has_acute_limb_ischemia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_bleeding_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIMB_ISCHEMIA_BLEEDING_SAFETY_TERMS
+    )
+    has_irreversible_compartment_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIMB_ISCHEMIA_IRREVERSIBLE_COMPARTMENT_SAFETY_TERMS
+    )
+    has_source_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIMB_ISCHEMIA_SOURCE_DIFFERENTIAL_SAFETY_TERMS
+    )
+    return (
+        has_bleeding_safety
+        and has_irreversible_compartment_safety
+        and has_source_differential_safety
+    )
 
 
 def _requires_sepsis_resuscitation_safety_check(data: dict[str, Any]) -> bool:

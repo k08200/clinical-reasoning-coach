@@ -1568,6 +1568,101 @@ const CAUDA_EQUINA_COMPRESSIVE_CAUSE_SAFETY_TERMS = [
   "외상",
 ];
 
+const ACUTE_LIMB_ISCHEMIA_CONTEXT_TERMS = [
+  "6 ps",
+  "acute arterial occlusion",
+  "acute limb ischemia",
+  "acute limb ischaemia",
+  "cold pulseless limb",
+  "limb ischemia",
+  "limb ischaemia",
+  "pain pallor pulselessness",
+  "pulseless cold limb",
+  "six ps",
+  "threatened limb",
+  "급성 사지 허혈",
+  "사지 허혈",
+];
+
+const ACUTE_LIMB_ISCHEMIA_VIABILITY_ACTION_TERMS = [
+  "6 ps",
+  "capillary refill",
+  "doppler",
+  "limb viability",
+  "motor deficit",
+  "pulse",
+  "rutherford",
+  "sensory deficit",
+  "six ps",
+  "도플러",
+  "맥박",
+];
+
+const ACUTE_LIMB_ISCHEMIA_HEPARIN_ACTION_TERMS = [
+  "anticoagulation",
+  "heparin",
+  "heparin infusion",
+  "iv heparin",
+  "unfractionated heparin",
+  "항응고",
+  "헤파린",
+];
+
+const ACUTE_LIMB_ISCHEMIA_REVASCULARIZATION_ACTION_TERMS = [
+  "bypass",
+  "catheter-directed thrombolysis",
+  "embolectomy",
+  "endovascular",
+  "revascularization",
+  "revascularisation",
+  "surgical",
+  "thrombectomy",
+  "vascular surgery",
+  "vascular surgeon",
+  "혈관외과",
+  "재관류",
+];
+
+const ACUTE_LIMB_ISCHEMIA_BLEEDING_SAFETY_TERMS = [
+  "active bleeding",
+  "anticoagulation",
+  "bleeding",
+  "contraindication",
+  "heparin",
+  "intracranial hemorrhage",
+  "platelet",
+  "recent surgery",
+  "thrombolysis",
+  "출혈",
+  "혈소판",
+];
+
+const ACUTE_LIMB_ISCHEMIA_IRREVERSIBLE_COMPARTMENT_SAFETY_TERMS = [
+  "compartment syndrome",
+  "fasciotomy",
+  "irreversible",
+  "muscle necrosis",
+  "nonviable",
+  "paralysis",
+  "reperfusion injury",
+  "rutherford iii",
+  "구획증후군",
+];
+
+const ACUTE_LIMB_ISCHEMIA_SOURCE_DIFFERENTIAL_SAFETY_TERMS = [
+  "aneurysm",
+  "atrial fibrillation",
+  "cardiac embol",
+  "embol",
+  "popliteal aneurysm",
+  "thrombosis",
+  "trauma",
+  "vascular access",
+  "심방세동",
+  "색전",
+  "혈전",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -3710,6 +3805,56 @@ function hasCaudaEquinaDelaySafetyCheck(checks: string[]): boolean {
   return hasRedFlagSafety && hasDelaySafety && hasCompressiveCauseSafety;
 }
 
+function requiresAcuteLimbIschemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return ACUTE_LIMB_ISCHEMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasAcuteLimbIschemiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasViabilityAssessment = ACUTE_LIMB_ISCHEMIA_VIABILITY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHeparin = ACUTE_LIMB_ISCHEMIA_HEPARIN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRevascularization = ACUTE_LIMB_ISCHEMIA_REVASCULARIZATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return hasViabilityAssessment && hasHeparin && hasRevascularization;
+}
+
+function hasAcuteLimbIschemiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasBleedingSafety = ACUTE_LIMB_ISCHEMIA_BLEEDING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasIrreversibleCompartmentSafety =
+    ACUTE_LIMB_ISCHEMIA_IRREVERSIBLE_COMPARTMENT_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasSourceDifferentialSafety = ACUTE_LIMB_ISCHEMIA_SOURCE_DIFFERENTIAL_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasBleedingSafety && hasIrreversibleCompartmentSafety && hasSourceDifferentialSafety;
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -4643,6 +4788,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCaudaEquinaDelaySafetyCheck,
       issue:
         "cauda equina safety checks must document bladder, bowel, saddle, sexual, or progressive neurologic red flags, avoid delayed outpatient or conservative low-back-pain management, and review spinal infection, malignancy, trauma, stenosis, or other compressive causes",
+    },
+    {
+      name: "acute_limb_ischemia_time_critical_actions",
+      label: "Acute limb ischemia emergency actions",
+      applies: requiresAcuteLimbIschemiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcuteLimbIschemiaTimeCriticalActions,
+      issue:
+        "acute limb ischemia time-critical actions must include pulse, Doppler, motor, sensory, 6 Ps, or Rutherford limb viability assessment, immediate IV unfractionated heparin or anticoagulation planning, and urgent vascular surgery, endovascular, thrombolysis, thrombectomy, embolectomy, bypass, or revascularization escalation",
+    },
+    {
+      name: "acute_limb_ischemia_treatment_safety",
+      label: "Acute limb ischemia treatment safety",
+      applies: requiresAcuteLimbIschemiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcuteLimbIschemiaTreatmentSafetyCheck,
+      issue:
+        "acute limb ischemia safety checks must include heparin, thrombolysis, bleeding, platelet, recent-surgery, or other anticoagulation contraindication review, irreversible limb, Rutherford III, compartment-syndrome, fasciotomy, or reperfusion-injury monitoring, and embolic, thrombotic, aneurysm, atrial-fibrillation, trauma, or vascular-access cause review",
     },
     {
       name: "dka_time_critical_actions",
