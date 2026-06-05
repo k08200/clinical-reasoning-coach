@@ -1336,6 +1336,115 @@ const OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS = [
   "폐부종",
 ];
 
+const SEVERE_ASTHMA_CONTEXT_TERMS = [
+  "acute asthma exacerbation",
+  "asthma attack",
+  "asthma exacerbation",
+  "life-threatening asthma",
+  "near-fatal asthma",
+  "severe asthma",
+  "severe bronchospasm",
+  "status asthmaticus",
+  "천식 발작",
+  "천식 악화",
+  "중증 천식",
+];
+
+const SEVERE_ASTHMA_OXYGEN_VENTILATION_ACTION_TERMS = [
+  "airway",
+  "hypoxemia",
+  "hypoxia",
+  "intubation",
+  "oxygen",
+  "respiratory failure",
+  "ventilation",
+  "기도",
+  "산소",
+  "저산소",
+  "환기",
+];
+
+const SEVERE_ASTHMA_SABA_ACTION_TERMS = [
+  "albuterol",
+  "beta-agonist",
+  "bronchodilator",
+  "continuous nebulization",
+  "levalbuterol",
+  "saba",
+  "salbutamol",
+  "short-acting beta",
+  "네뷸",
+  "살부타몰",
+];
+
+const SEVERE_ASTHMA_IPRATROPIUM_ACTION_TERMS = [
+  "anticholinergic",
+  "ipratropium",
+  "이프라트로피움",
+];
+
+const SEVERE_ASTHMA_STEROID_ACTION_TERMS = [
+  "corticosteroid",
+  "dexamethasone",
+  "glucocorticoid",
+  "methylprednisolone",
+  "prednisone",
+  "steroid",
+  "스테로이드",
+];
+
+const SEVERE_ASTHMA_ESCALATION_ACTION_TERMS = [
+  "heliox",
+  "icu",
+  "intubation",
+  "magnesium",
+  "mechanical ventilation",
+  "noninvasive ventilation",
+  "respiratory failure",
+  "마그네슘",
+  "삽관",
+  "중환자",
+];
+
+const SEVERE_ASTHMA_RESPONSE_MONITORING_SAFETY_TERMS = [
+  "fev1",
+  "peak flow",
+  "pef",
+  "pulse oximetry",
+  "reassessment",
+  "response",
+  "serial",
+  "work of breathing",
+  "산소포화도",
+  "재평가",
+];
+
+const SEVERE_ASTHMA_RESPIRATORY_FAILURE_SAFETY_TERMS = [
+  "altered mental status",
+  "co2",
+  "drowsiness",
+  "fatigue",
+  "hypercapnia",
+  "intubation",
+  "respiratory failure",
+  "silent chest",
+  "ventilation",
+  "의식",
+  "호흡부전",
+];
+
+const SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS = [
+  "arrhythmia",
+  "hypokalemia",
+  "lactic acidosis",
+  "potassium",
+  "tachycardia",
+  "theophylline",
+  "trigger",
+  "전해질",
+  "저칼륨",
+];
+
 const STROKE_CONTEXT_TERMS = [
   "acute ischemic stroke",
   "brain attack",
@@ -2433,6 +2542,55 @@ function hasOpioidToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   return hasLongActingReboundSafety && hasCoingestionOrDifferentialSafety && hasNaloxoneAdverseSafety;
 }
 
+function requiresSevereAsthmaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return SEVERE_ASTHMA_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasSevereAsthmaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasOxygenOrVentilation = SEVERE_ASTHMA_OXYGEN_VENTILATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSaba = SEVERE_ASTHMA_SABA_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIpratropium = SEVERE_ASTHMA_IPRATROPIUM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSystemicSteroid = SEVERE_ASTHMA_STEROID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = SEVERE_ASTHMA_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasOxygenOrVentilation && hasSaba && hasIpratropium && hasSystemicSteroid && hasEscalation;
+}
+
+function hasSevereAsthmaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasResponseMonitoring = SEVERE_ASTHMA_RESPONSE_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRespiratoryFailureSafety = SEVERE_ASTHMA_RESPIRATORY_FAILURE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTreatmentAdverseSafety = SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasResponseMonitoring && hasRespiratoryFailureSafety && hasTreatmentAdverseSafety;
+}
+
 function requiresStrokeReperfusionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -2840,6 +2998,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasOpioidToxicityTreatmentSafetyCheck,
       issue:
         "opioid toxicity safety checks must include long-acting opioid or renarcotization observation, co-ingestion or alternate-cause assessment, and naloxone titration, withdrawal, aspiration, or pulmonary-edema safeguards",
+    },
+    {
+      name: "severe_asthma_time_critical_actions",
+      label: "Severe asthma bronchodilator and escalation actions",
+      applies: requiresSevereAsthmaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSevereAsthmaTimeCriticalActions,
+      issue:
+        "severe asthma time-critical actions must include oxygen or ventilatory support, repeated or continuous SABA plus ipratropium, systemic corticosteroids, and magnesium or ICU/intubation escalation for poor response",
+    },
+    {
+      name: "severe_asthma_treatment_safety",
+      label: "Severe asthma response and respiratory failure safety",
+      applies: requiresSevereAsthmaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSevereAsthmaTreatmentSafetyCheck,
+      issue:
+        "severe asthma safety checks must include serial severity or response monitoring, impending respiratory failure or ventilation risk review, and beta-agonist adverse-effect, electrolyte, or trigger reassessment",
     },
     {
       name: "stroke_time_critical_actions",

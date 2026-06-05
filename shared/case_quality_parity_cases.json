@@ -1157,5 +1157,54 @@
         }
       ]
     }
+  },
+  {
+    "name": "severe_asthma_requires_oxygen_bronchodilators_steroids_and_escalation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "severe asthma time-critical actions must include oxygen or ventilatory support"
+    ],
+    "overrides": {
+      "diagnosis": "Severe asthma exacerbation",
+      "chief_complaint": "Shortness of breath and wheezing",
+      "history_of_present_illness": "Patient presents with worsening dyspnea, chest tightness, accessory muscle use, and minimal relief after home inhaler treatments.",
+      "key_teaching_points": [
+        "Severe asthma exacerbation can progress to respiratory failure",
+        "Repeated or continuous SABA plus ipratropium treats acute airflow obstruction",
+        "Systemic corticosteroids reduce relapse and should be started early"
+      ],
+      "clinical_red_flags": [
+        "Silent chest with fatigue and drowsiness",
+        "Hypoxemia with persistent accessory muscle use"
+      ],
+      "time_critical_actions": [
+        "Give oxygen and prepare airway and ventilation support if respiratory failure develops",
+        "Start repeated albuterol SABA nebulizers with ipratropium for severe bronchospasm",
+        "Give IV magnesium and activate ICU or intubation escalation if poor response persists"
+      ],
+      "contraindication_checks": [
+        "Serial peak flow or FEV1, pulse oximetry, work of breathing, and response reassessment",
+        "Review silent chest, fatigue, drowsiness, hypercapnia CO2, and intubation or ventilation risk",
+        "Monitor tachycardia, arrhythmia, potassium hypokalemia, lactic acidosis, and trigger reassessment"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Managing Exacerbations of Asthma",
+          "organization": "National Heart, Lung, and Blood Institute",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK7228/",
+          "supports": [
+            "severe asthma exacerbation diagnosis and respiratory failure risk stratification",
+            "silent chest with fatigue and drowsiness as red flags",
+            "hypoxemia with persistent accessory muscle use as severity markers",
+            "oxygen and airway ventilation support if respiratory failure develops",
+            "repeated albuterol SABA nebulizers with ipratropium for severe bronchospasm",
+            "IV magnesium and ICU or intubation escalation if poor response persists",
+            "serial peak flow or FEV1, pulse oximetry, work of breathing, and response reassessment",
+            "silent chest, fatigue, drowsiness, hypercapnia CO2, and intubation or ventilation risk",
+            "tachycardia, arrhythmia, potassium hypokalemia, lactic acidosis, and trigger reassessment"
+          ]
+        }
+      ]
+    }
   }
 ]

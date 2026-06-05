@@ -1270,6 +1270,106 @@ OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS = (
     "금단",
     "폐부종",
 )
+SEVERE_ASTHMA_CONTEXT_TERMS = (
+    "acute asthma exacerbation",
+    "asthma attack",
+    "asthma exacerbation",
+    "life-threatening asthma",
+    "near-fatal asthma",
+    "severe asthma",
+    "severe bronchospasm",
+    "status asthmaticus",
+    "천식 발작",
+    "천식 악화",
+    "중증 천식",
+)
+SEVERE_ASTHMA_OXYGEN_VENTILATION_ACTION_TERMS = (
+    "airway",
+    "hypoxemia",
+    "hypoxia",
+    "intubation",
+    "oxygen",
+    "respiratory failure",
+    "ventilation",
+    "기도",
+    "산소",
+    "저산소",
+    "환기",
+)
+SEVERE_ASTHMA_SABA_ACTION_TERMS = (
+    "albuterol",
+    "beta-agonist",
+    "bronchodilator",
+    "continuous nebulization",
+    "levalbuterol",
+    "saba",
+    "salbutamol",
+    "short-acting beta",
+    "네뷸",
+    "살부타몰",
+)
+SEVERE_ASTHMA_IPRATROPIUM_ACTION_TERMS = (
+    "anticholinergic",
+    "ipratropium",
+    "이프라트로피움",
+)
+SEVERE_ASTHMA_STEROID_ACTION_TERMS = (
+    "corticosteroid",
+    "dexamethasone",
+    "glucocorticoid",
+    "methylprednisolone",
+    "prednisone",
+    "steroid",
+    "스테로이드",
+)
+SEVERE_ASTHMA_ESCALATION_ACTION_TERMS = (
+    "heliox",
+    "icu",
+    "intubation",
+    "magnesium",
+    "mechanical ventilation",
+    "noninvasive ventilation",
+    "respiratory failure",
+    "마그네슘",
+    "삽관",
+    "중환자",
+)
+SEVERE_ASTHMA_RESPONSE_MONITORING_SAFETY_TERMS = (
+    "fev1",
+    "peak flow",
+    "pef",
+    "pulse oximetry",
+    "reassessment",
+    "response",
+    "serial",
+    "work of breathing",
+    "산소포화도",
+    "재평가",
+)
+SEVERE_ASTHMA_RESPIRATORY_FAILURE_SAFETY_TERMS = (
+    "altered mental status",
+    "co2",
+    "drowsiness",
+    "fatigue",
+    "hypercapnia",
+    "intubation",
+    "respiratory failure",
+    "silent chest",
+    "ventilation",
+    "의식",
+    "호흡부전",
+)
+SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS = (
+    "arrhythmia",
+    "hypokalemia",
+    "lactic acidosis",
+    "potassium",
+    "tachycardia",
+    "theophylline",
+    "trigger",
+    "전해질",
+    "저칼륨",
+)
 STROKE_CONTEXT_TERMS = (
     "acute ischemic stroke",
     "brain attack",
@@ -2186,6 +2286,30 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="severe_asthma_time_critical_actions",
+            applies=_requires_severe_asthma_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_severe_asthma_time_critical_actions,
+            issue=(
+                "severe asthma time-critical actions must include oxygen or "
+                "ventilatory support, repeated or continuous SABA plus ipratropium, "
+                "systemic corticosteroids, and magnesium or ICU/intubation escalation "
+                "for poor response"
+            ),
+        ),
+        DomainSafetyGate(
+            name="severe_asthma_treatment_safety",
+            applies=_requires_severe_asthma_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_severe_asthma_treatment_safety_check,
+            issue=(
+                "severe asthma safety checks must include serial severity or "
+                "response monitoring, impending respiratory failure or ventilation "
+                "risk review, and beta-agonist adverse-effect, electrolyte, or "
+                "trigger reassessment"
+            ),
+        ),
+        DomainSafetyGate(
             name="stroke_time_critical_actions",
             applies=_requires_stroke_reperfusion_safety_check,
             field_name="time_critical_actions",
@@ -3016,6 +3140,81 @@ def _has_opioid_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         has_long_acting_rebound_safety
         and has_coingestion_or_differential_safety
         and has_naloxone_adverse_safety
+    )
+
+
+def _requires_severe_asthma_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in SEVERE_ASTHMA_CONTEXT_TERMS
+    )
+
+
+def _has_severe_asthma_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_oxygen_or_ventilation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ASTHMA_OXYGEN_VENTILATION_ACTION_TERMS
+    )
+    has_saba = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ASTHMA_SABA_ACTION_TERMS
+    )
+    has_ipratropium = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ASTHMA_IPRATROPIUM_ACTION_TERMS
+    )
+    has_systemic_steroid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ASTHMA_STEROID_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ASTHMA_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_oxygen_or_ventilation
+        and has_saba
+        and has_ipratropium
+        and has_systemic_steroid
+        and has_escalation
+    )
+
+
+def _has_severe_asthma_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_response_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_RESPONSE_MONITORING_SAFETY_TERMS
+    )
+    has_respiratory_failure_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_RESPIRATORY_FAILURE_SAFETY_TERMS
+    )
+    has_treatment_adverse_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS
+    )
+    return (
+        has_response_monitoring
+        and has_respiratory_failure_safety
+        and has_treatment_adverse_safety
     )
 
 

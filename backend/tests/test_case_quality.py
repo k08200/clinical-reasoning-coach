@@ -67,6 +67,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "acetaminophen_toxicity_treatment_safety",
         "opioid_toxicity_time_critical_actions",
         "opioid_toxicity_treatment_safety",
+        "severe_asthma_time_critical_actions",
+        "severe_asthma_treatment_safety",
         "stroke_time_critical_actions",
         "stroke_reperfusion_safety",
         "pe_time_critical_actions",
@@ -1454,6 +1456,118 @@ def test_quality_gate_requires_opioid_rebound_coingestion_and_naloxone_safety():
     assert not report.passed
     assert any(
         "opioid toxicity safety checks must include long-acting opioid" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_asthma_oxygen_bronchodilators_steroids_and_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe asthma exacerbation"
+    case["chief_complaint"] = "Shortness of breath and wheezing"
+    case["history_of_present_illness"] = (
+        "Patient presents with worsening dyspnea, chest tightness, accessory muscle "
+        "use, and minimal relief after home inhaler treatments."
+    )
+    case["key_teaching_points"] = [
+        "Severe asthma exacerbation can progress to respiratory failure",
+        "Repeated or continuous SABA plus ipratropium treats acute airflow obstruction",
+        "Systemic corticosteroids reduce relapse and should be started early",
+    ]
+    case["clinical_red_flags"] = [
+        "Silent chest with fatigue and drowsiness",
+        "Hypoxemia with persistent accessory muscle use",
+    ]
+    case["time_critical_actions"] = [
+        "Give oxygen and prepare airway and ventilation support if respiratory failure develops",
+        "Start repeated albuterol SABA nebulizers with ipratropium for severe bronchospasm",
+        "Give IV magnesium and activate ICU or intubation escalation if poor response persists",
+    ]
+    case["contraindication_checks"] = [
+        "Serial peak flow or FEV1, pulse oximetry, work of breathing, and response reassessment",
+        "Review silent chest, fatigue, drowsiness, hypercapnia CO2, and intubation or ventilation risk",
+        "Monitor tachycardia, arrhythmia, potassium hypokalemia, lactic acidosis, and trigger reassessment",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Managing Exacerbations of Asthma",
+            "organization": "National Heart, Lung, and Blood Institute",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK7228/",
+            "supports": [
+                "severe asthma exacerbation diagnosis and respiratory failure risk stratification",
+                "silent chest with fatigue and drowsiness as red flags",
+                "hypoxemia with persistent accessory muscle use as severity markers",
+                "oxygen and airway ventilation support if respiratory failure develops",
+                "repeated albuterol SABA nebulizers with ipratropium for severe bronchospasm",
+                "IV magnesium and ICU or intubation escalation if poor response persists",
+                "serial peak flow or FEV1, pulse oximetry, work of breathing, and response reassessment",
+                "silent chest, fatigue, drowsiness, hypercapnia CO2, and intubation or ventilation risk",
+                "tachycardia, arrhythmia, potassium hypokalemia, lactic acidosis, and trigger reassessment",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe asthma time-critical actions must include oxygen or ventilatory support"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_asthma_response_failure_and_treatment_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe asthma exacerbation"
+    case["chief_complaint"] = "Shortness of breath and wheezing"
+    case["history_of_present_illness"] = (
+        "Patient presents with worsening dyspnea, chest tightness, accessory muscle "
+        "use, and minimal relief after home inhaler treatments."
+    )
+    case["key_teaching_points"] = [
+        "Severe asthma exacerbation can progress to respiratory failure",
+        "Repeated or continuous SABA plus ipratropium treats acute airflow obstruction",
+        "Systemic corticosteroids reduce relapse and should be started early",
+    ]
+    case["clinical_red_flags"] = [
+        "Silent chest with fatigue and drowsiness",
+        "Hypoxemia with persistent accessory muscle use",
+    ]
+    case["time_critical_actions"] = [
+        "Give oxygen and prepare airway and ventilation support if respiratory failure develops",
+        "Start repeated albuterol SABA nebulizers with ipratropium for severe bronchospasm",
+        "Give systemic methylprednisolone corticosteroid early",
+        "Give IV magnesium and activate ICU or intubation escalation if poor response persists",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Managing Exacerbations of Asthma",
+            "organization": "National Heart, Lung, and Blood Institute",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK7228/",
+            "supports": [
+                "severe asthma exacerbation diagnosis and respiratory failure risk stratification",
+                "silent chest with fatigue and drowsiness as red flags",
+                "hypoxemia with persistent accessory muscle use as severity markers",
+                "oxygen and airway ventilation support if respiratory failure develops",
+                "repeated albuterol SABA nebulizers with ipratropium for severe bronchospasm",
+                "systemic methylprednisolone corticosteroid early",
+                "IV magnesium and ICU or intubation escalation if poor response persists",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe asthma safety checks must include serial severity or response monitoring"
+        in issue
         for issue in report.critical_issues
     )
 
