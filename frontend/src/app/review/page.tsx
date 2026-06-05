@@ -35,6 +35,33 @@ const DEFAULT_SOURCE_ALIGNMENT_CHECKS: SourceAlignmentChecks = {
 
 const MIN_REVIEW_NOTES_LENGTH = 30;
 const MIN_REVIEWED_SOURCE_ORGANIZATIONS = 2;
+const REVIEW_NOTE_SOURCE_TERMS = [
+  "source",
+  "sources",
+  "cited",
+  "citation",
+  "evidence",
+  "guideline",
+  "guidelines",
+];
+const REVIEW_NOTE_SAFETY_TERMS = [
+  "safety",
+  "contraindication",
+  "contraindications",
+  "red flag",
+  "red flags",
+  "time-critical",
+  "time critical",
+];
+const REVIEW_NOTE_EDUCATIONAL_TERMS = [
+  "education",
+  "educational",
+  "simulation",
+  "simulated",
+  "limitation",
+  "limitations",
+  "not patient care",
+];
 
 const SOURCE_ALIGNMENT_ITEMS: Array<{
   key: keyof SourceAlignmentChecks;
@@ -97,6 +124,16 @@ function uniqueSourceOrganizations(organizations: string[]): string[] {
   }, []);
 }
 
+function reviewNotesCoverAuditDomains(notes: string): boolean {
+  const normalized = notes.trim().toLowerCase();
+  if (normalized.length < MIN_REVIEW_NOTES_LENGTH) return false;
+  return (
+    REVIEW_NOTE_SOURCE_TERMS.some((term) => normalized.includes(term)) &&
+    REVIEW_NOTE_SAFETY_TERMS.some((term) => normalized.includes(term)) &&
+    REVIEW_NOTE_EDUCATIONAL_TERMS.some((term) => normalized.includes(term))
+  );
+}
+
 function reviewApprovalDetail(
   detail: ClinicalCaseReviewDetail | undefined,
 ): ClinicalCaseReviewDetail | undefined {
@@ -156,7 +193,7 @@ export default function ReviewPage() {
   );
   const allChecksConfirmed = Object.values(checks).every(Boolean);
   const allSourceAlignmentConfirmed = Object.values(sourceAlignmentChecks).every(Boolean);
-  const reviewNotesReady = reviewNotes.trim().length >= MIN_REVIEW_NOTES_LENGTH;
+  const reviewNotesReady = reviewNotesCoverAuditDomains(reviewNotes);
   const approvalDetail = useMemo(() => reviewApprovalDetail(reviewDetail), [reviewDetail]);
   const qualityIssues = useMemo(() => reviewQualityIssues(approvalDetail), [approvalDetail]);
   const qualityGateStatuses = useMemo(
@@ -725,7 +762,8 @@ export default function ReviewPage() {
                     </span>
                     {!reviewNotesReady && (
                       <span className="mt-1 block text-xs text-amber-300">
-                        Add at least {MIN_REVIEW_NOTES_LENGTH} characters of review notes.
+                        Add at least {MIN_REVIEW_NOTES_LENGTH} characters and mention source
+                        alignment, safety checks, and educational limitations.
                       </span>
                     )}
                   </label>
