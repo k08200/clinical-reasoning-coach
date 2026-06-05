@@ -730,5 +730,49 @@
         }
       ]
     }
+  },
+  {
+    "name": "gi_bleed_requires_resuscitation_blood_prep_and_source_control",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "GI bleed time-critical actions must include hemodynamic resuscitation"
+    ],
+    "overrides": {
+      "diagnosis": "Upper GI bleed with hemorrhagic shock",
+      "chief_complaint": "Hematemesis and dizziness",
+      "history_of_present_illness": "Older adult with large-volume hematemesis, melena, and near-syncope.",
+      "key_teaching_points": [
+        "GI bleed severity depends on hemodynamics and ongoing blood loss",
+        "Do not delay source control planning in unstable bleeding",
+        "Anticoagulant exposure changes reversal and transfusion planning"
+      ],
+      "clinical_red_flags": [
+        "Hematemesis with hypotension",
+        "Melena with tachycardia and near-syncope"
+      ],
+      "time_critical_actions": [
+        "Place the patient on monitoring and establish IV access",
+        "Trend hemoglobin while assessing bleeding severity"
+      ],
+      "contraindication_checks": [
+        "Anticoagulant and antiplatelet exposure with INR and platelet review",
+        "Blood type, crossmatch, consent, and transfusion reaction history before blood products"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Upper Gastrointestinal Bleeding Review",
+          "organization": "National Library of Medicine",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/",
+          "supports": [
+            "GI bleed diagnosis and risk stratification",
+            "hematemesis with hypotension as a red flag and severity marker",
+            "melena with tachycardia and near-syncope as red flags",
+            "hemodynamic monitoring and hemoglobin trend in GI bleeding",
+            "anticoagulant and antiplatelet exposure with INR and platelet review",
+            "blood type, crossmatch, consent, and transfusion reaction history before blood products"
+          ]
+        }
+      ]
+    }
   }
 ]

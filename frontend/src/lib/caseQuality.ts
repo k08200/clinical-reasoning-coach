@@ -579,6 +579,93 @@ const ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS = [
   "관찰",
 ];
 
+const GI_BLEED_CONTEXT_TERMS = [
+  "acute blood loss anemia",
+  "gastrointestinal bleeding",
+  "gi bleed",
+  "hematemesis",
+  "hemorrhagic shock",
+  "melena",
+  "upper gi bleed",
+  "variceal bleeding",
+  "위장관 출혈",
+  "토혈",
+  "흑색변",
+];
+
+const GI_BLEED_RESUSCITATION_ACTION_TERMS = [
+  "fluid",
+  "fluid resuscitation",
+  "hemodynamic",
+  "large bore iv",
+  "large-bore iv",
+  "resuscitation",
+  "shock",
+  "two large bore",
+  "two large-bore",
+  "수액",
+  "정맥로",
+  "혈역학",
+];
+
+const GI_BLEED_BLOOD_PREP_ACTION_TERMS = [
+  "blood products",
+  "crossmatch",
+  "cross-match",
+  "massive transfusion",
+  "packed rbc",
+  "prbc",
+  "transfusion",
+  "type and cross",
+  "type and screen",
+  "교차시험",
+  "수혈",
+  "혈액형",
+];
+
+const GI_BLEED_SOURCE_CONTROL_ACTION_TERMS = [
+  "endoscopy",
+  "gastroenterology",
+  "gi consult",
+  "hemostasis",
+  "source control",
+  "urgent endoscopy",
+  "내시경",
+  "소화기",
+  "지혈",
+];
+
+const GI_BLEED_REVERSAL_SAFETY_TERMS = [
+  "anticoagulant",
+  "anticoagulation",
+  "antiplatelet",
+  "coagulopathy",
+  "doac",
+  "inr",
+  "platelet",
+  "reversal",
+  "warfarin",
+  "와파린",
+  "응고",
+  "항응고",
+  "항혈소판",
+  "혈소판",
+];
+
+const GI_BLEED_TRANSFUSION_SAFETY_TERMS = [
+  "blood type",
+  "consent",
+  "crossmatch",
+  "cross-match",
+  "transfusion reaction",
+  "type and screen",
+  "교차시험",
+  "동의",
+  "수혈 반응",
+  "수혈반응",
+  "혈액형",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -1205,6 +1292,47 @@ function hasAnaphylaxisObservationSafetyCheck(checks: string[]): boolean {
   return hasTriggerReview && hasObservation;
 }
 
+function requiresGiBleedSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.initial_labs),
+    ...nestedStrings(detail.physical_exam),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return GI_BLEED_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasGiBleedTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasResuscitation = GI_BLEED_RESUSCITATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodPrep = GI_BLEED_BLOOD_PREP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSourceControl = GI_BLEED_SOURCE_CONTROL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasResuscitation && hasBloodPrep && hasSourceControl;
+}
+
+function hasGiBleedTransfusionReversalSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasReversalReview = GI_BLEED_REVERSAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTransfusionSafety = GI_BLEED_TRANSFUSION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasReversalReview && hasTransfusionSafety;
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -1476,6 +1604,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAnaphylaxisObservationSafetyCheck,
       issue:
         "anaphylaxis safety checks must include trigger or allergen exposure review and observation for biphasic reaction or recurrence",
+    },
+    {
+      name: "gi_bleed_time_critical_actions",
+      label: "GI bleed resuscitation and source control",
+      applies: requiresGiBleedSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasGiBleedTimeCriticalActions,
+      issue:
+        "GI bleed time-critical actions must include hemodynamic resuscitation, blood product preparation or transfusion planning, and urgent endoscopy or source-control planning",
+    },
+    {
+      name: "gi_bleed_transfusion_reversal_safety",
+      label: "GI bleed transfusion and reversal safety",
+      applies: requiresGiBleedSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasGiBleedTransfusionReversalSafetyCheck,
+      issue:
+        "GI bleed safety checks must include anticoagulant or coagulopathy reversal review and transfusion consent, type, or reaction safeguards",
     },
     {
       name: "dka_time_critical_actions",

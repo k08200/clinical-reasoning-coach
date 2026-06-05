@@ -49,6 +49,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "sepsis_resuscitation_actions",
         "anaphylaxis_time_critical_actions",
         "anaphylaxis_observation_safety",
+        "gi_bleed_time_critical_actions",
+        "gi_bleed_transfusion_reversal_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "stroke_time_critical_actions",
@@ -351,6 +353,107 @@ def test_quality_gate_requires_anaphylaxis_trigger_and_observation_safety():
     assert not report.passed
     assert any(
         "anaphylaxis safety checks must include trigger or allergen exposure review" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_gi_bleed_time_critical_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Upper GI bleed with hemorrhagic shock"
+    case["chief_complaint"] = "Hematemesis and dizziness"
+    case["history_of_present_illness"] = (
+        "Older adult with large-volume hematemesis, melena, and near-syncope."
+    )
+    case["key_teaching_points"] = [
+        "GI bleed severity depends on hemodynamics and ongoing blood loss",
+        "Do not delay source control planning in unstable bleeding",
+        "Anticoagulant exposure changes reversal and transfusion planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Hematemesis with hypotension",
+        "Melena with tachycardia and near-syncope",
+    ]
+    case["time_critical_actions"] = [
+        "Place the patient on monitoring and establish IV access",
+        "Trend hemoglobin while assessing bleeding severity",
+    ]
+    case["contraindication_checks"] = [
+        "Anticoagulant and antiplatelet exposure with INR and platelet review",
+        "Blood type, crossmatch, consent, and transfusion reaction history before blood products",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Upper Gastrointestinal Bleeding Review",
+            "organization": "National Library of Medicine",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/",
+            "supports": [
+                "GI bleed diagnosis and risk stratification",
+                "hematemesis with hypotension as a red flag and severity marker",
+                "melena with tachycardia and near-syncope as red flags",
+                "hemodynamic monitoring and hemoglobin trend in GI bleeding",
+                "anticoagulant and antiplatelet exposure with INR and platelet review",
+                "blood type, crossmatch, consent, and transfusion reaction history before blood products",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "GI bleed time-critical actions must include hemodynamic resuscitation" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_gi_bleed_reversal_and_transfusion_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Upper GI bleed with hemorrhagic shock"
+    case["chief_complaint"] = "Hematemesis and dizziness"
+    case["history_of_present_illness"] = (
+        "Older adult with large-volume hematemesis, melena, and near-syncope."
+    )
+    case["key_teaching_points"] = [
+        "GI bleed severity depends on hemodynamics and ongoing blood loss",
+        "Do not delay source control planning in unstable bleeding",
+        "Anticoagulant exposure changes reversal and transfusion planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Hematemesis with hypotension",
+        "Melena with tachycardia and near-syncope",
+    ]
+    case["time_critical_actions"] = [
+        "Start hemodynamic resuscitation with two large-bore IVs",
+        "Prepare type and crossmatch with packed RBC transfusion planning",
+        "Consult gastroenterology for urgent endoscopy and hemostasis planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergies before adjunctive therapies",
+        "Renal function before contrast imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Upper Gastrointestinal Bleeding Review",
+            "organization": "National Library of Medicine",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/",
+            "supports": [
+                "GI bleed diagnosis and risk stratification",
+                "hematemesis with hypotension as a red flag and severity marker",
+                "melena with tachycardia and near-syncope as red flags",
+                "hemodynamic resuscitation with two large-bore IVs",
+                "type and crossmatch with packed RBC transfusion planning",
+                "urgent endoscopy and hemostasis planning",
+                "medication allergies before adjunctive therapies",
+                "renal function before contrast imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "GI bleed safety checks must include anticoagulant or coagulopathy reversal review" in issue
         for issue in report.critical_issues
     )
 

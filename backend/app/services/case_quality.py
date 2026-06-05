@@ -566,6 +566,87 @@ ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS = (
     "재발",
     "관찰",
 )
+GI_BLEED_CONTEXT_TERMS = (
+    "acute blood loss anemia",
+    "gastrointestinal bleeding",
+    "gi bleed",
+    "hematemesis",
+    "hemorrhagic shock",
+    "melena",
+    "upper gi bleed",
+    "variceal bleeding",
+    "위장관 출혈",
+    "토혈",
+    "흑색변",
+)
+GI_BLEED_RESUSCITATION_ACTION_TERMS = (
+    "fluid",
+    "fluid resuscitation",
+    "hemodynamic",
+    "large bore iv",
+    "large-bore iv",
+    "resuscitation",
+    "shock",
+    "two large bore",
+    "two large-bore",
+    "수액",
+    "정맥로",
+    "혈역학",
+)
+GI_BLEED_BLOOD_PREP_ACTION_TERMS = (
+    "blood products",
+    "crossmatch",
+    "cross-match",
+    "massive transfusion",
+    "packed rbc",
+    "prbc",
+    "transfusion",
+    "type and cross",
+    "type and screen",
+    "교차시험",
+    "수혈",
+    "혈액형",
+)
+GI_BLEED_SOURCE_CONTROL_ACTION_TERMS = (
+    "endoscopy",
+    "gastroenterology",
+    "gi consult",
+    "hemostasis",
+    "source control",
+    "urgent endoscopy",
+    "내시경",
+    "소화기",
+    "지혈",
+)
+GI_BLEED_REVERSAL_SAFETY_TERMS = (
+    "anticoagulant",
+    "anticoagulation",
+    "antiplatelet",
+    "coagulopathy",
+    "doac",
+    "inr",
+    "platelet",
+    "reversal",
+    "warfarin",
+    "와파린",
+    "응고",
+    "항응고",
+    "항혈소판",
+    "혈소판",
+)
+GI_BLEED_TRANSFUSION_SAFETY_TERMS = (
+    "blood type",
+    "consent",
+    "crossmatch",
+    "cross-match",
+    "transfusion reaction",
+    "type and screen",
+    "교차시험",
+    "동의",
+    "수혈 반응",
+    "수혈반응",
+    "혈액형",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -1249,6 +1330,27 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="gi_bleed_time_critical_actions",
+            applies=_requires_gi_bleed_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_gi_bleed_time_critical_actions,
+            issue=(
+                "GI bleed time-critical actions must include hemodynamic resuscitation, "
+                "blood product preparation or transfusion planning, and urgent "
+                "endoscopy or source-control planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="gi_bleed_transfusion_reversal_safety",
+            applies=_requires_gi_bleed_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_gi_bleed_transfusion_reversal_safety_check,
+            issue=(
+                "GI bleed safety checks must include anticoagulant or coagulopathy "
+                "reversal review and transfusion consent, type, or reaction safeguards"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -1514,6 +1616,60 @@ def _has_anaphylaxis_observation_safety_check(checks: list[Any]) -> bool:
         for term in ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS
     )
     return has_trigger_review and has_observation
+
+
+def _requires_gi_bleed_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "initial_labs",
+        "physical_exam",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in GI_BLEED_CONTEXT_TERMS
+    )
+
+
+def _has_gi_bleed_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_resuscitation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in GI_BLEED_RESUSCITATION_ACTION_TERMS
+    )
+    has_blood_prep = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in GI_BLEED_BLOOD_PREP_ACTION_TERMS
+    )
+    has_source_control = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in GI_BLEED_SOURCE_CONTROL_ACTION_TERMS
+    )
+    return has_resuscitation and has_blood_prep and has_source_control
+
+
+def _has_gi_bleed_transfusion_reversal_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_reversal_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in GI_BLEED_REVERSAL_SAFETY_TERMS
+    )
+    has_transfusion_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in GI_BLEED_TRANSFUSION_SAFETY_TERMS
+    )
+    return has_reversal_review and has_transfusion_safety
 
 
 def _requires_sepsis_resuscitation_safety_check(data: dict[str, Any]) -> bool:
