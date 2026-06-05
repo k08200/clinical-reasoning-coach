@@ -79,6 +79,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "spinal_epidural_abscess_treatment_safety",
         "acute_mesenteric_ischemia_time_critical_actions",
         "acute_mesenteric_ischemia_treatment_safety",
+        "necrotizing_soft_tissue_infection_time_critical_actions",
+        "necrotizing_soft_tissue_infection_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
@@ -2290,6 +2292,140 @@ def test_quality_gate_requires_acute_mesenteric_ischemia_anticoagulation_viabili
     assert not report.passed
     assert any(
         "acute mesenteric ischemia safety checks must include heparin" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_necrotizing_soft_tissue_infection_surgery_antibiotics_resuscitation_and_no_delay():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Necrotizing fasciitis"
+    case["patient_demographics"] = {
+        "age": 63,
+        "sex": "female",
+        "weight_kg": 72,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Rapidly worsening leg pain with fever and skin discoloration"
+    case["history_of_present_illness"] = (
+        "Patient with diabetes has severe pain out of proportion, rapidly spreading erythema, "
+        "bullae, ecchymosis, crepitus, hypotension, lactate elevation, and concern for "
+        "necrotizing soft tissue infection."
+    )
+    case["key_teaching_points"] = [
+        "Necrotizing soft tissue infection is a surgical emergency",
+        "Broad-spectrum antibiotics and shock resuscitation must accompany urgent source control",
+        "Imaging or laboratory scoring must not delay surgical exploration",
+    ]
+    case["clinical_red_flags"] = [
+        "Pain out of proportion, rapidly progressive erythema, bullae, ecchymosis, crepitus, or skin necrosis",
+        "Fever, shock, lactate elevation, organ failure, diabetes, immunocompromise, or severe toxicity",
+    ]
+    case["time_critical_actions"] = [
+        "Start broad-spectrum empiric antibiotics with vancomycin plus piperacillin tazobactam and clindamycin",
+        "Begin sepsis shock resuscitation with fluids, lactate monitoring, ICU escalation, vasopressors, and organ support",
+        "Document that CT imaging or LRINEC labs must not delay immediate source control",
+    ]
+    case["contraindication_checks"] = [
+        "Include toxin suppression with clindamycin or linezolid for group A strep, streptococcal NSTI, or gas gangrene concern",
+        "Plan repeat debridement, second look, or 24 to 48 hour source control reassessment until infection is controlled",
+        "Do not let LRINEC, imaging, CT, or diagnostic testing exclude NSTI or delay surgical exploration",
+        "Monitor shock, AKI renal injury, coagulopathy, organ failure, amputation risk, diabetes, and immunocompromised risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Clinical Guidance for Type II Necrotizing Fasciitis",
+            "organization": "CDC",
+            "url": "https://www.cdc.gov/group-a-strep/hcp/clinical-guidance/necrotizing-fasciitis.html",
+            "supports": [
+                "necrotizing fasciitis diagnosis and risk stratification",
+                "necrotizing soft tissue infection is a surgical emergency",
+                "broad-spectrum antibiotics and shock resuscitation must accompany urgent source control",
+                "imaging or laboratory scoring must not delay surgical exploration",
+                "pain out of proportion, rapidly progressive erythema, bullae, ecchymosis, crepitus, or skin necrosis as red flags",
+                "fever, shock, lactate elevation, organ failure, diabetes, immunocompromise, or severe toxicity as severity markers",
+                "broad-spectrum empiric antibiotics with vancomycin plus piperacillin tazobactam and clindamycin",
+                "sepsis shock resuscitation with fluids, lactate monitoring, ICU escalation, vasopressors, and organ support",
+                "CT imaging or LRINEC labs must not delay immediate source control",
+                "toxin suppression with clindamycin or linezolid for group A strep, streptococcal NSTI, or gas gangrene concern",
+                "repeat debridement, second look, or 24 to 48 hour source control reassessment until infection is controlled",
+                "LRINEC, imaging, CT, or diagnostic testing should not exclude NSTI or delay surgical exploration",
+                "shock, AKI renal injury, coagulopathy, organ failure, amputation risk, diabetes, and immunocompromised risk monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "necrotizing soft tissue infection time-critical actions must include urgent surgical exploration"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_necrotizing_soft_tissue_infection_toxin_repeat_debridement_diagnostic_and_organ_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Necrotizing fasciitis"
+    case["patient_demographics"] = {
+        "age": 63,
+        "sex": "female",
+        "weight_kg": 72,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Rapidly worsening leg pain with fever and skin discoloration"
+    case["history_of_present_illness"] = (
+        "Patient with diabetes has severe pain out of proportion, rapidly spreading erythema, "
+        "bullae, ecchymosis, crepitus, hypotension, lactate elevation, and concern for "
+        "necrotizing soft tissue infection."
+    )
+    case["key_teaching_points"] = [
+        "Necrotizing soft tissue infection is a surgical emergency",
+        "Broad-spectrum antibiotics and shock resuscitation must accompany urgent source control",
+        "Imaging or laboratory scoring must not delay surgical exploration",
+    ]
+    case["clinical_red_flags"] = [
+        "Pain out of proportion, rapidly progressive erythema, bullae, ecchymosis, crepitus, or skin necrosis",
+        "Fever, shock, lactate elevation, organ failure, diabetes, immunocompromise, or severe toxicity",
+    ]
+    case["time_critical_actions"] = [
+        "Call surgery urgently for immediate surgical exploration, operative debridement, fasciotomy, and source control",
+        "Start broad-spectrum empiric antibiotics with vancomycin plus piperacillin tazobactam and clindamycin",
+        "Begin sepsis shock resuscitation with fluids, lactate monitoring, ICU escalation, vasopressors, and organ support",
+        "Document that CT imaging or LRINEC labs must not delay immediate source control",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antibiotic selection",
+        "Renal dosing before vancomycin and piperacillin tazobactam",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Clinical Guidance for Type II Necrotizing Fasciitis",
+            "organization": "CDC",
+            "url": "https://www.cdc.gov/group-a-strep/hcp/clinical-guidance/necrotizing-fasciitis.html",
+            "supports": [
+                "necrotizing fasciitis diagnosis and risk stratification",
+                "necrotizing soft tissue infection is a surgical emergency",
+                "broad-spectrum antibiotics and shock resuscitation must accompany urgent source control",
+                "imaging or laboratory scoring must not delay surgical exploration",
+                "pain out of proportion, rapidly progressive erythema, bullae, ecchymosis, crepitus, or skin necrosis as red flags",
+                "fever, shock, lactate elevation, organ failure, diabetes, immunocompromise, or severe toxicity as severity markers",
+                "immediate surgical exploration, operative debridement, fasciotomy, and source control",
+                "broad-spectrum empiric antibiotics with vancomycin plus piperacillin tazobactam and clindamycin",
+                "sepsis shock resuscitation with fluids, lactate monitoring, ICU escalation, vasopressors, and organ support",
+                "CT imaging or LRINEC labs must not delay immediate source control",
+                "medication allergy before antibiotic selection",
+                "renal dosing before vancomycin and piperacillin tazobactam",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "necrotizing soft tissue infection safety checks must include clindamycin"
+        in issue
         for issue in report.critical_issues
     )
 

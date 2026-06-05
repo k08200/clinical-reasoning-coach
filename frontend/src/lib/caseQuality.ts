@@ -2031,6 +2031,115 @@ const ACUTE_MESENTERIC_ISCHEMIA_LACTATE_LIMITATION_SAFETY_TERMS = [
   "젖산",
 ];
 
+const NECROTIZING_SOFT_TISSUE_INFECTION_CONTEXT_TERMS = [
+  "fournier gangrene",
+  "fournier's gangrene",
+  "gas gangrene",
+  "nec fasc",
+  "necrotising fasciitis",
+  "necrotizing fasciitis",
+  "necrotizing soft tissue infection",
+  "necrotizing soft-tissue infection",
+  "nsti",
+  "괴사성 근막염",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_ACTION_TERMS = [
+  "debridement",
+  "exploration",
+  "fasciotomy",
+  "operative",
+  "surgical consult",
+  "surgical debridement",
+  "surgical exploration",
+  "surgery",
+  "수술",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS = [
+  "antibiotic",
+  "antibiotics",
+  "broad-spectrum",
+  "carbapenem",
+  "clindamycin",
+  "linezolid",
+  "piperacillin",
+  "tazobactam",
+  "vancomycin",
+  "항생제",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_RESUSCITATION_ACTION_TERMS = [
+  "fluid",
+  "fluids",
+  "icu",
+  "lactate",
+  "resuscitation",
+  "sepsis",
+  "shock",
+  "vasopressor",
+  "수액",
+  "패혈증",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_DELAY_ACTION_TERMS = [
+  "do not delay",
+  "immediate",
+  "not delay",
+  "not postpone",
+  "source control",
+  "time critical",
+  "urgent",
+  "지연",
+  "즉시",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_TOXIN_SAFETY_TERMS = [
+  "clindamycin",
+  "gas gangrene",
+  "group a strep",
+  "linezolid",
+  "strep",
+  "streptococcal",
+  "toxin",
+  "독소",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_SOURCE_SAFETY_TERMS = [
+  "24",
+  "48",
+  "debridement",
+  "repeat",
+  "re-look",
+  "second look",
+  "source control",
+  "재수술",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_LIMITATION_SAFETY_TERMS = [
+  "ct should not delay",
+  "do not delay",
+  "imaging",
+  "lrinec",
+  "not exclude",
+  "not rule out",
+  "surgical exploration",
+  "지연",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_ORGAN_RISK_SAFETY_TERMS = [
+  "aki",
+  "amputation",
+  "coagulopathy",
+  "diabetes",
+  "immunocompromised",
+  "organ failure",
+  "renal",
+  "shock",
+  "괴사",
+  "절단",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -4443,6 +4552,69 @@ function hasAcuteMesentericIschemiaTreatmentSafetyCheck(checks: string[]): boole
   );
 }
 
+function requiresNecrotizingSoftTissueInfectionSafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return NECROTIZING_SOFT_TISSUE_INFECTION_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasNecrotizingSoftTissueInfectionTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasSurgery = NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibiotic = NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasResuscitation = NECROTIZING_SOFT_TISSUE_INFECTION_RESUSCITATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDelayPrevention = NECROTIZING_SOFT_TISSUE_INFECTION_DELAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasSurgery && hasAntibiotic && hasResuscitation && hasDelayPrevention;
+}
+
+function hasNecrotizingSoftTissueInfectionTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasToxinSafety = NECROTIZING_SOFT_TISSUE_INFECTION_TOXIN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRepeatSourceSafety = NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_SOURCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDiagnosticLimitationSafety =
+    NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_LIMITATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasOrganRiskSafety = NECROTIZING_SOFT_TISSUE_INFECTION_ORGAN_RISK_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasToxinSafety &&
+    hasRepeatSourceSafety &&
+    hasDiagnosticLimitationSafety &&
+    hasOrganRiskSafety
+  );
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -5466,6 +5638,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAcuteMesentericIschemiaTreatmentSafetyCheck,
       issue:
         "acute mesenteric ischemia safety checks must include heparin or anticoagulation bleeding contraindication review, bowel viability, necrosis, peritonitis, damage-control, second-look, or short-bowel planning, embolic, thrombotic, SMA, venous, atrial-fibrillation, low-flow, or nonocclusive cause review, and lactate limitation or do-not-delay CTA/intervention safety",
+    },
+    {
+      name: "necrotizing_soft_tissue_infection_time_critical_actions",
+      label: "Necrotizing soft tissue infection emergency actions",
+      applies: requiresNecrotizingSoftTissueInfectionSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasNecrotizingSoftTissueInfectionTimeCriticalActions,
+      issue:
+        "necrotizing soft tissue infection time-critical actions must include urgent surgical exploration, operative debridement, fasciotomy, or surgical consultation, broad-spectrum empiric antibiotics, sepsis, shock, lactate, ICU, vasopressor, or fluid resuscitation, and explicit do-not-delay source-control or immediate time-critical management",
+    },
+    {
+      name: "necrotizing_soft_tissue_infection_treatment_safety",
+      label: "Necrotizing soft tissue infection treatment safety",
+      applies: requiresNecrotizingSoftTissueInfectionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasNecrotizingSoftTissueInfectionTreatmentSafetyCheck,
+      issue:
+        "necrotizing soft tissue infection safety checks must include clindamycin, linezolid, group A strep, clostridial gas gangrene, or toxin-suppression planning, repeat, second-look, 24-to-48-hour debridement or source-control reassessment, LRINEC, imaging, or diagnostic testing not delaying surgical exploration, and shock, renal injury, coagulopathy, organ failure, amputation, diabetes, or immunocompromised risk monitoring",
     },
     {
       name: "dka_time_critical_actions",
