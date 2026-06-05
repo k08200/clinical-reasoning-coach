@@ -1370,6 +1370,122 @@ SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS = (
     "전해질",
     "저칼륨",
 )
+COPD_EXACERBATION_CONTEXT_TERMS = (
+    "acute exacerbation of copd",
+    "aecopd",
+    "chronic bronchitis exacerbation",
+    "chronic obstructive pulmonary disease exacerbation",
+    "copd exacerbation",
+    "copd flare",
+    "emphysema exacerbation",
+    "hypercapnic copd",
+    "만성폐쇄성폐질환",
+)
+COPD_CONTROLLED_OXYGEN_ACTION_TERMS = (
+    "88",
+    "92",
+    "controlled oxygen",
+    "oxygen target",
+    "spo2",
+    "target saturation",
+    "venturi",
+    "산소",
+)
+COPD_BRONCHODILATOR_ACTION_TERMS = (
+    "albuterol",
+    "bronchodilator",
+    "ipratropium",
+    "saba",
+    "salbutamol",
+    "sama",
+    "short-acting anticholinergic",
+    "short-acting beta",
+    "이프라트로피움",
+    "기관지확장",
+)
+COPD_STEROID_ACTION_TERMS = (
+    "corticosteroid",
+    "glucocorticoid",
+    "methylprednisolone",
+    "prednisone",
+    "steroid",
+    "스테로이드",
+)
+COPD_ANTIBIOTIC_CRITERIA_ACTION_TERMS = (
+    "antibiotic",
+    "infection",
+    "pneumonia",
+    "purulent sputum",
+    "sputum purulence",
+    "감염",
+    "항생제",
+)
+COPD_VENTILATORY_SUPPORT_ACTION_TERMS = (
+    "bipap",
+    "hypercapnia",
+    "intubation",
+    "niv",
+    "noninvasive ventilation",
+    "non-invasive ventilation",
+    "respiratory acidosis",
+    "respiratory failure",
+    "기계환기",
+    "비침습",
+    "삽관",
+)
+COPD_OXYGEN_CO2_SAFETY_TERMS = (
+    "88",
+    "92",
+    "abg",
+    "arterial blood gas",
+    "co2",
+    "controlled oxygen",
+    "hypercapnia",
+    "oxygen-induced",
+    "paco2",
+    "ph",
+    "venturi",
+    "동맥혈",
+    "이산화탄소",
+)
+COPD_NIV_INTUBATION_SAFETY_TERMS = (
+    "abg",
+    "altered mental status",
+    "bipap",
+    "fatigue",
+    "hypercapnic acidosis",
+    "intubation",
+    "niv",
+    "noninvasive ventilation",
+    "ph",
+    "respiratory acidosis",
+    "respiratory failure",
+    "의식",
+    "삽관",
+    "호흡부전",
+)
+COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS = (
+    "acute heart failure",
+    "arrhythmia",
+    "bronchiectasis",
+    "pneumonia",
+    "pneumothorax",
+    "pulmonary embolism",
+    "trigger",
+    "감별",
+    "폐렴",
+)
+COPD_TREATMENT_ADVERSE_SAFETY_TERMS = (
+    "arrhythmia",
+    "glucose",
+    "hyperglycemia",
+    "hypokalemia",
+    "potassium",
+    "steroid",
+    "tachycardia",
+    "전해질",
+    "혈당",
+)
 STROKE_CONTEXT_TERMS = (
     "acute ischemic stroke",
     "brain attack",
@@ -2310,6 +2426,30 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="copd_exacerbation_time_critical_actions",
+            applies=_requires_copd_exacerbation_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_copd_exacerbation_time_critical_actions,
+            issue=(
+                "COPD exacerbation time-critical actions must include controlled "
+                "oxygen targeting 88-92%, short-acting bronchodilators, systemic "
+                "corticosteroids, antibiotic or purulent-infection criteria, and "
+                "NIV or ventilatory escalation for hypercapnic respiratory failure"
+            ),
+        ),
+        DomainSafetyGate(
+            name="copd_exacerbation_treatment_safety",
+            applies=_requires_copd_exacerbation_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_copd_exacerbation_treatment_safety_check,
+            issue=(
+                "COPD exacerbation safety checks must include oxygen-induced "
+                "hypercapnia or ABG monitoring, NIV/intubation failure criteria, "
+                "cardiopulmonary differential diagnosis review, and bronchodilator "
+                "or steroid adverse-effect monitoring"
+            ),
+        ),
+        DomainSafetyGate(
             name="stroke_time_critical_actions",
             applies=_requires_stroke_reperfusion_safety_check,
             field_name="time_critical_actions",
@@ -3214,6 +3354,86 @@ def _has_severe_asthma_treatment_safety_check(checks: list[Any]) -> bool:
     return (
         has_response_monitoring
         and has_respiratory_failure_safety
+        and has_treatment_adverse_safety
+    )
+
+
+def _requires_copd_exacerbation_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in COPD_EXACERBATION_CONTEXT_TERMS
+    )
+
+
+def _has_copd_exacerbation_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_controlled_oxygen = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in COPD_CONTROLLED_OXYGEN_ACTION_TERMS
+    )
+    has_bronchodilator = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in COPD_BRONCHODILATOR_ACTION_TERMS
+    )
+    has_systemic_steroid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in COPD_STEROID_ACTION_TERMS
+    )
+    has_antibiotic_criteria = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in COPD_ANTIBIOTIC_CRITERIA_ACTION_TERMS
+    )
+    has_ventilatory_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in COPD_VENTILATORY_SUPPORT_ACTION_TERMS
+    )
+    return (
+        has_controlled_oxygen
+        and has_bronchodilator
+        and has_systemic_steroid
+        and has_antibiotic_criteria
+        and has_ventilatory_support
+    )
+
+
+def _has_copd_exacerbation_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_oxygen_co2_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_OXYGEN_CO2_SAFETY_TERMS
+    )
+    has_niv_intubation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_NIV_INTUBATION_SAFETY_TERMS
+    )
+    has_differential_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_treatment_adverse_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_TREATMENT_ADVERSE_SAFETY_TERMS
+    )
+    return (
+        has_oxygen_co2_safety
+        and has_niv_intubation_safety
+        and has_differential_review
         and has_treatment_adverse_safety
     )
 

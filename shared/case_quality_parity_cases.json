@@ -1206,5 +1206,58 @@
         }
       ]
     }
+  },
+  {
+    "name": "copd_exacerbation_requires_controlled_oxygen_steroids_antibiotics_and_niv",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "COPD exacerbation time-critical actions must include controlled oxygen targeting 88-92%"
+    ],
+    "overrides": {
+      "diagnosis": "COPD exacerbation with acute hypercapnic respiratory failure",
+      "chief_complaint": "Worsening shortness of breath and sputum",
+      "history_of_present_illness": "Patient with chronic obstructive pulmonary disease presents with worsening dyspnea, wheeze, increased purulent sputum, and somnolence.",
+      "key_teaching_points": [
+        "COPD exacerbation requires controlled oxygen rather than uncontrolled high-flow oxygen",
+        "Short-acting bronchodilators and systemic corticosteroids treat airflow obstruction",
+        "Hypercapnic respiratory acidosis should prompt NIV or ventilatory escalation"
+      ],
+      "clinical_red_flags": [
+        "Somnolence with rising PaCO2 and respiratory acidosis",
+        "Purulent sputum with fever and increased work of breathing"
+      ],
+      "time_critical_actions": [
+        "Start controlled oxygen by Venturi mask targeting SpO2 88-92% and obtain ABG",
+        "Give albuterol SABA and ipratropium SAMA short-acting bronchodilators",
+        "Start antibiotics when purulent sputum or pneumonia infection criteria are present",
+        "Start NIV BiPAP for hypercapnic respiratory acidosis and prepare intubation if respiratory failure worsens"
+      ],
+      "contraindication_checks": [
+        "Repeat ABG pH, PaCO2, and oxygen saturation after controlled oxygen to avoid oxygen-induced hypercapnia",
+        "Review NIV failure, altered mental status, fatigue, respiratory acidosis, and intubation criteria",
+        "Assess pneumonia, pneumothorax, pulmonary embolism, acute heart failure, arrhythmia, and other triggers",
+        "Monitor tachycardia, arrhythmia, potassium hypokalemia, glucose hyperglycemia, and steroid adverse effects"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Chronic Obstructive Pulmonary Disease",
+          "organization": "NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK559281/",
+          "supports": [
+            "COPD exacerbation diagnosis and acute hypercapnic respiratory failure risk stratification",
+            "somnolence with rising PaCO2 and respiratory acidosis as red flags",
+            "purulent sputum with fever and increased work of breathing as severity markers",
+            "controlled oxygen by Venturi mask targeting SpO2 88-92% and ABG",
+            "albuterol SABA and ipratropium SAMA short-acting bronchodilators",
+            "antibiotics when purulent sputum or pneumonia infection criteria are present",
+            "NIV BiPAP for hypercapnic respiratory acidosis and intubation if respiratory failure worsens",
+            "ABG pH, PaCO2, and oxygen saturation after controlled oxygen to avoid oxygen-induced hypercapnia",
+            "NIV failure, altered mental status, fatigue, respiratory acidosis, and intubation criteria",
+            "pneumonia, pneumothorax, pulmonary embolism, acute heart failure, arrhythmia, and other triggers",
+            "tachycardia, arrhythmia, potassium hypokalemia, glucose hyperglycemia, and steroid adverse effects"
+          ]
+        }
+      ]
+    }
   }
 ]

@@ -1445,6 +1445,132 @@ const SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS = [
   "저칼륨",
 ];
 
+const COPD_EXACERBATION_CONTEXT_TERMS = [
+  "acute exacerbation of copd",
+  "aecopd",
+  "chronic bronchitis exacerbation",
+  "chronic obstructive pulmonary disease exacerbation",
+  "copd exacerbation",
+  "copd flare",
+  "emphysema exacerbation",
+  "hypercapnic copd",
+  "만성폐쇄성폐질환",
+];
+
+const COPD_CONTROLLED_OXYGEN_ACTION_TERMS = [
+  "88",
+  "92",
+  "controlled oxygen",
+  "oxygen target",
+  "spo2",
+  "target saturation",
+  "venturi",
+  "산소",
+];
+
+const COPD_BRONCHODILATOR_ACTION_TERMS = [
+  "albuterol",
+  "bronchodilator",
+  "ipratropium",
+  "saba",
+  "salbutamol",
+  "sama",
+  "short-acting anticholinergic",
+  "short-acting beta",
+  "이프라트로피움",
+  "기관지확장",
+];
+
+const COPD_STEROID_ACTION_TERMS = [
+  "corticosteroid",
+  "glucocorticoid",
+  "methylprednisolone",
+  "prednisone",
+  "steroid",
+  "스테로이드",
+];
+
+const COPD_ANTIBIOTIC_CRITERIA_ACTION_TERMS = [
+  "antibiotic",
+  "infection",
+  "pneumonia",
+  "purulent sputum",
+  "sputum purulence",
+  "감염",
+  "항생제",
+];
+
+const COPD_VENTILATORY_SUPPORT_ACTION_TERMS = [
+  "bipap",
+  "hypercapnia",
+  "intubation",
+  "niv",
+  "noninvasive ventilation",
+  "non-invasive ventilation",
+  "respiratory acidosis",
+  "respiratory failure",
+  "기계환기",
+  "비침습",
+  "삽관",
+];
+
+const COPD_OXYGEN_CO2_SAFETY_TERMS = [
+  "88",
+  "92",
+  "abg",
+  "arterial blood gas",
+  "co2",
+  "controlled oxygen",
+  "hypercapnia",
+  "oxygen-induced",
+  "paco2",
+  "ph",
+  "venturi",
+  "동맥혈",
+  "이산화탄소",
+];
+
+const COPD_NIV_INTUBATION_SAFETY_TERMS = [
+  "abg",
+  "altered mental status",
+  "bipap",
+  "fatigue",
+  "hypercapnic acidosis",
+  "intubation",
+  "niv",
+  "noninvasive ventilation",
+  "ph",
+  "respiratory acidosis",
+  "respiratory failure",
+  "의식",
+  "삽관",
+  "호흡부전",
+];
+
+const COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS = [
+  "acute heart failure",
+  "arrhythmia",
+  "bronchiectasis",
+  "pneumonia",
+  "pneumothorax",
+  "pulmonary embolism",
+  "trigger",
+  "감별",
+  "폐렴",
+];
+
+const COPD_TREATMENT_ADVERSE_SAFETY_TERMS = [
+  "arrhythmia",
+  "glucose",
+  "hyperglycemia",
+  "hypokalemia",
+  "potassium",
+  "steroid",
+  "tachycardia",
+  "전해질",
+  "혈당",
+];
+
 const STROKE_CONTEXT_TERMS = [
   "acute ischemic stroke",
   "brain attack",
@@ -2591,6 +2717,69 @@ function hasSevereAsthmaTreatmentSafetyCheck(checks: string[]): boolean {
   return hasResponseMonitoring && hasRespiratoryFailureSafety && hasTreatmentAdverseSafety;
 }
 
+function requiresCopdExacerbationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return COPD_EXACERBATION_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasCopdExacerbationTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasControlledOxygen = COPD_CONTROLLED_OXYGEN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBronchodilator = COPD_BRONCHODILATOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSystemicSteroid = COPD_STEROID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibioticCriteria = COPD_ANTIBIOTIC_CRITERIA_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVentilatorySupport = COPD_VENTILATORY_SUPPORT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasControlledOxygen &&
+    hasBronchodilator &&
+    hasSystemicSteroid &&
+    hasAntibioticCriteria &&
+    hasVentilatorySupport
+  );
+}
+
+function hasCopdExacerbationTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasOxygenCo2Safety = COPD_OXYGEN_CO2_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNivIntubationSafety = COPD_NIV_INTUBATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferentialReview = COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTreatmentAdverseSafety = COPD_TREATMENT_ADVERSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasOxygenCo2Safety &&
+    hasNivIntubationSafety &&
+    hasDifferentialReview &&
+    hasTreatmentAdverseSafety
+  );
+}
+
 function requiresStrokeReperfusionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -3016,6 +3205,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSevereAsthmaTreatmentSafetyCheck,
       issue:
         "severe asthma safety checks must include serial severity or response monitoring, impending respiratory failure or ventilation risk review, and beta-agonist adverse-effect, electrolyte, or trigger reassessment",
+    },
+    {
+      name: "copd_exacerbation_time_critical_actions",
+      label: "COPD exacerbation controlled oxygen and ventilatory actions",
+      applies: requiresCopdExacerbationSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasCopdExacerbationTimeCriticalActions,
+      issue:
+        "COPD exacerbation time-critical actions must include controlled oxygen targeting 88-92%, short-acting bronchodilators, systemic corticosteroids, antibiotic or purulent-infection criteria, and NIV or ventilatory escalation for hypercapnic respiratory failure",
+    },
+    {
+      name: "copd_exacerbation_treatment_safety",
+      label: "COPD exacerbation hypercapnia and treatment safety",
+      applies: requiresCopdExacerbationSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasCopdExacerbationTreatmentSafetyCheck,
+      issue:
+        "COPD exacerbation safety checks must include oxygen-induced hypercapnia or ABG monitoring, NIV/intubation failure criteria, cardiopulmonary differential diagnosis review, and bronchodilator or steroid adverse-effect monitoring",
     },
     {
       name: "stroke_time_critical_actions",
