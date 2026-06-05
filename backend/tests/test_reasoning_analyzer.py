@@ -5,6 +5,7 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
 from app.services.reasoning_analyzer import (
+    INTERNAL_THINKING_WITHHELD_TEXT,
     analyze_student_response,
     build_reasoning_map,
     _extract_json,
@@ -71,6 +72,8 @@ async def test_analyze_student_response():
     assert result.biases_detected[0]["type"] == "anchoring"
     assert result.input_tokens == 500
     assert result.thinking_tokens == 1200
+    assert result.thinking_content == INTERNAL_THINKING_WITHHELD_TEXT
+    assert "anchoring bias" not in (result.thinking_content or "")
 
 
 @pytest.mark.asyncio

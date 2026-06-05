@@ -82,6 +82,9 @@ UNSAFE_REASONING_MAP_TEXT = (
 UNSAFE_BIAS_EVIDENCE_TEXT = (
     "Bias evidence withheld because it resembled actionable medical advice."
 )
+INTERNAL_THINKING_WITHHELD_TEXT = (
+    "Internal provider thinking withheld; token counts retained."
+)
 
 
 @dataclass
@@ -93,7 +96,7 @@ class ReasoningAnalysis:
     coach_insight: str
     student_strengths: list
     student_gaps: list
-    thinking_content: str
+    thinking_content: str | None
     input_tokens: int
     output_tokens: int
     thinking_tokens: int
@@ -139,7 +142,7 @@ Analyze this student's clinical reasoning carefully."""
         coach_insight=sanitized["coach_insight"],
         student_strengths=sanitized["student_strengths"],
         student_gaps=sanitized["student_gaps"],
-        thinking_content=response.thinking,
+        thinking_content=safe_internal_thinking_content(response.thinking),
         input_tokens=response.input_tokens,
         output_tokens=response.output_tokens,
         thinking_tokens=response.thinking_tokens,
@@ -271,6 +274,12 @@ def _safe_analysis_feedback_list(value: Any, *, limit: int = 8) -> list[str]:
         if safe_text:
             feedback.append(safe_text)
     return feedback
+
+
+def safe_internal_thinking_content(value: Any) -> str | None:
+    if isinstance(value, str) and value.strip():
+        return INTERNAL_THINKING_WITHHELD_TEXT
+    return None
 
 
 def _list_of_dicts(value: Any, *, limit: int = 100) -> list[dict[str, Any]]:

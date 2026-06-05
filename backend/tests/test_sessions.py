@@ -22,7 +22,10 @@ from app.models.user import User
 from app.schemas.session import MAX_STUDENT_MESSAGE_LENGTH
 from app.services.mock_provider import CASE_POOL
 from app.services.provider import StreamChunk
-from app.services.reasoning_analyzer import ReasoningAnalysis
+from app.services.reasoning_analyzer import (
+    INTERNAL_THINKING_WITHHELD_TEXT,
+    ReasoningAnalysis,
+)
 from app.services.socratic_coach import KOREAN_REAL_PATIENT_SAFETY_RESPONSE
 from app.utils.auth import create_access_token, hash_password
 from tests.conftest import TestSessionLocal
@@ -30,6 +33,7 @@ from tests.conftest import TestSessionLocal
 
 async def fake_stream_coach_response(**_kwargs) -> AsyncGenerator[StreamChunk, None]:
     yield StreamChunk(type="thinking_start")
+    yield StreamChunk(type="thinking_delta", content="Hidden thought: the diagnosis is STEMI.")
     yield StreamChunk(type="text_delta", content="What finding would most change your differential?")
     yield StreamChunk(
         type="usage",
@@ -890,6 +894,23 @@ async def test_stream_response_persists_turn_before_done(
     assert saved_session["total_input_tokens"] == 19
     assert saved_session["total_output_tokens"] == 29
     assert saved_session["total_thinking_tokens"] == 7
+
+    async with TestSessionLocal() as saved_db:
+        stored_messages = (
+            await saved_db.execute(
+                select(Message).where(Message.session_id == uuid.UUID(session_id))
+            )
+        ).scalars().all()
+    student_message = next(message for message in stored_messages if message.role == "student")
+    coach_message = next(
+        message
+        for message in stored_messages
+        if message.role == "coach"
+        and message.content == "What finding would most change your differential?"
+    )
+    assert student_message.thinking_content == INTERNAL_THINKING_WITHHELD_TEXT
+    assert coach_message.thinking_content == INTERNAL_THINKING_WITHHELD_TEXT
+    assert "STEMI" not in (coach_message.thinking_content or "")
 
 
 @pytest.mark.asyncio

@@ -58,6 +58,7 @@ from app.services.reasoning_analyzer import (
     VALID_BIAS_SEVERITIES,
     analyze_student_response,
     build_reasoning_map,
+    safe_internal_thinking_content,
     _clamp,
     _coerce_float,
 )
@@ -1796,7 +1797,9 @@ async def _save_coach_turn(
                         "coach_insight": analysis.coach_insight,
                     },
                     biases_detected=[b["type"] for b in analysis.biases_detected],
-                    thinking_content=analysis.thinking_content,
+                    thinking_content=safe_internal_thinking_content(
+                        analysis.thinking_content
+                    ),
                 )
             )
             # Save coach message
@@ -1804,7 +1807,7 @@ async def _save_coach_turn(
                 session_id=session_id,
                 role="coach",
                 content=coach_content,
-                thinking_content=thinking_content,
+                thinking_content=safe_internal_thinking_content(thinking_content),
                 input_tokens=int(usage.get("input_tokens", 0)),
                 output_tokens=int(usage.get("output_tokens", 0)),
                 thinking_tokens=int(usage.get("thinking_tokens", 0)),
