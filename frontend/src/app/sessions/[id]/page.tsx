@@ -89,6 +89,11 @@ type CompletionOpenSafetyEventsDetail = {
   }[];
 };
 
+type CaseAccessBlockDetail = {
+  message: string;
+  issues: string[];
+};
+
 function safetyCoverageLabel(category: string): string {
   if (category === "red_flags") return "Red Flags";
   if (category === "time_critical_actions") return "Time-Critical Actions";
@@ -263,6 +268,36 @@ function isCaseAccessBlockMessage(message: string): boolean {
   );
 }
 
+function caseAccessBlockDetail(
+  message: string,
+  detail?: unknown,
+): CaseAccessBlockDetail | null {
+  if (
+    detail &&
+    typeof detail === "object" &&
+    "code" in detail &&
+    detail.code === "case_quality_gate_blocked" &&
+    "message" in detail &&
+    typeof detail.message === "string"
+  ) {
+    const issues =
+      "issues" in detail && Array.isArray(detail.issues)
+        ? detail.issues.filter((issue): issue is string => typeof issue === "string")
+        : [];
+    return {
+      message: detail.message,
+      issues,
+    };
+  }
+  if (!isCaseAccessBlockMessage(message)) {
+    return null;
+  }
+  return {
+    message,
+    issues: [],
+  };
+}
+
 function isUser(value: unknown): value is User {
   return (
     !!value &&
@@ -303,7 +338,8 @@ export default function SessionPage() {
   const [showMap, setShowMap] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState("");
-  const [caseAccessBlockMessage, setCaseAccessBlockMessage] = useState("");
+  const [caseAccessBlockDetailState, setCaseAccessBlockDetailState] =
+    useState<CaseAccessBlockDetail | null>(null);
   const [completionSafetyDetail, setCompletionSafetyDetail] =
     useState<CompletionSafetyDetail | null>(null);
   const [completionReasoningTurnsDetail, setCompletionReasoningTurnsDetail] =
@@ -367,7 +403,7 @@ export default function SessionPage() {
     setThinking(false);
     setStreamingText("");
     setError("");
-    setCaseAccessBlockMessage("");
+    setCaseAccessBlockDetailState(null);
     setCompletionSafetyDetail(null);
     setCompletionReasoningTurnsDetail(null);
     setCompletionReasoningQualityDetail(null);
@@ -398,14 +434,15 @@ export default function SessionPage() {
           setStreamingText("");
           setThinking(false);
         },
-        onError: (message) => {
+        onError: (message, detail) => {
           setStreaming(false);
           setStreamingText("");
           setThinking(false);
           setLiveTokens({});
           setInput(content);
-          if (isCaseAccessBlockMessage(message)) {
-            setCaseAccessBlockMessage(message);
+          const accessBlockDetail = caseAccessBlockDetail(message, detail);
+          if (accessBlockDetail) {
+            setCaseAccessBlockDetailState(accessBlockDetail);
             setError("");
           } else {
             setError(message);
@@ -425,7 +462,7 @@ export default function SessionPage() {
   async function handleComplete() {
     setCompleting(true);
     setError("");
-    setCaseAccessBlockMessage("");
+    setCaseAccessBlockDetailState(null);
     setCompletionSafetyDetail(null);
     setCompletionReasoningTurnsDetail(null);
     setCompletionReasoningQualityDetail(null);
@@ -461,8 +498,9 @@ export default function SessionPage() {
         setError("");
       } else {
         const message = errorMessage(err, "Could not finish the session");
-        if (isCaseAccessBlockMessage(message)) {
-          setCaseAccessBlockMessage(message);
+        const accessBlockDetail = caseAccessBlockDetail(message, detail);
+        if (accessBlockDetail) {
+          setCaseAccessBlockDetailState(accessBlockDetail);
           setError("");
         } else {
           setError(message);
@@ -593,10 +631,17 @@ export default function SessionPage() {
             </div>
           )}
 
-          {caseAccessBlockMessage && (
+          {caseAccessBlockDetailState && (
             <div className="mx-4 mt-4 rounded-lg border border-amber-700 bg-amber-950/45 px-4 py-3 text-sm leading-relaxed text-amber-100">
               <p className="font-semibold">Clinical case review is required before continuing</p>
-              <p className="mt-1 text-amber-200">{caseAccessBlockMessage}</p>
+              <p className="mt-1 text-amber-200">{caseAccessBlockDetailState.message}</p>
+              {caseAccessBlockDetailState.issues.length > 0 && (
+                <ul className="mt-2 space-y-1 text-amber-100">
+                  {caseAccessBlockDetailState.issues.map((issue) => (
+                    <li key={issue}>{issue}</li>
+                  ))}
+                </ul>
+              )}
               <p className="mt-3 text-xs text-amber-300">
                 This session cannot continue until the case has current clinician review,
                 reputable source alignment, and complete safety metadata.

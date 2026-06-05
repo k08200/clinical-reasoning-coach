@@ -1131,12 +1131,14 @@ def _assert_case_quality_for_learner_session(case: ClinicalCase) -> None:
     if quality_report.passed:
         return
 
-    details = "; ".join(
-        quality_report.critical_issues + quality_report.warnings
-    )
+    issues = quality_report.critical_issues + quality_report.warnings
     raise HTTPException(
         status_code=status.HTTP_409_CONFLICT,
-        detail=f"Case quality gate blocks learner sessions: {details}",
+        detail={
+            "code": "case_quality_gate_blocked",
+            "message": "Case quality gate blocks learner sessions",
+            "issues": issues,
+        },
     )
 
 

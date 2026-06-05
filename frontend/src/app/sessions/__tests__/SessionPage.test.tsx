@@ -247,7 +247,14 @@ describe("SessionPage", () => {
     } as unknown as ReturnType<typeof useSWR>);
     mockStreamMessage.mockImplementation(async (_id, _content, callbacks) => {
       callbacks.onError(
-        "Case quality gate blocks learner sessions: clinical_sources[0].url must use a reputable clinical source domain",
+        "Case quality gate blocks learner sessions",
+        {
+          code: "case_quality_gate_blocked",
+          message: "Case quality gate blocks learner sessions",
+          issues: [
+            "clinical_sources[0].url must use a reputable clinical source domain",
+          ],
+        },
       );
     });
 
@@ -399,11 +406,15 @@ describe("SessionPage", () => {
       mutate: mockMutate,
     } as unknown as ReturnType<typeof useSWR>);
     mockComplete.mockRejectedValueOnce({
-      message:
-        "Case quality gate blocks learner sessions: clinical_sources[0].url must use a reputable clinical source domain",
+      message: "Case quality gate blocks learner sessions",
       status: 409,
-      detail:
-        "Case quality gate blocks learner sessions: clinical_sources[0].url must use a reputable clinical source domain",
+      detail: {
+        code: "case_quality_gate_blocked",
+        message: "Case quality gate blocks learner sessions",
+        issues: [
+          "clinical_sources[0].url must use a reputable clinical source domain",
+        ],
+      },
     });
 
     render(<SessionPage />);

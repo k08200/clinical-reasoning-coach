@@ -80,6 +80,15 @@ def _passing_reasoning_analysis() -> dict:
     }
 
 
+def _case_quality_gate_issues(response) -> list[str]:
+    detail = response.json()["detail"]
+    assert isinstance(detail, dict)
+    assert detail["code"] == "case_quality_gate_blocked"
+    assert detail["message"] == "Case quality gate blocks learner sessions"
+    assert isinstance(detail["issues"], list)
+    return detail["issues"]
+
+
 COMPLETE_ACS_SAFETY_REASONING = (
     "I need to address diaphoresis with crushing chest pain plus hypoxia "
     "or hemodynamic instability. I would obtain a 12-lead ECG within "
@@ -534,8 +543,8 @@ async def test_create_session_blocks_case_failing_quality_gate(
     )
 
     assert response.status_code == 409
-    assert "Case quality gate blocks learner sessions" in response.json()["detail"]
-    assert "reputable clinical source domain" in response.json()["detail"]
+    issues = _case_quality_gate_issues(response)
+    assert any("reputable clinical source domain" in issue for issue in issues)
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -970,8 +979,8 @@ async def test_stream_response_blocks_if_case_quality_fails_after_session_start(
     )
 
     assert response.status_code == 409
-    assert "Case quality gate blocks learner sessions" in response.json()["detail"]
-    assert "reputable clinical source domain" in response.json()["detail"]
+    issues = _case_quality_gate_issues(response)
+    assert any("reputable clinical source domain" in issue for issue in issues)
     messages = await db.execute(
         select(Message).where(Message.session_id == session.id)
     )
@@ -2727,8 +2736,8 @@ async def test_complete_session_blocks_if_case_quality_fails_after_session_start
     )
 
     assert response.status_code == 409
-    assert "Case quality gate blocks learner sessions" in response.json()["detail"]
-    assert "reputable clinical source domain" in response.json()["detail"]
+    issues = _case_quality_gate_issues(response)
+    assert any("reputable clinical source domain" in issue for issue in issues)
     await db.refresh(session)
     assert session.status == "active"
     assert session.final_reasoning_score is None

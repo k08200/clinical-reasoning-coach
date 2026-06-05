@@ -95,6 +95,10 @@ describe("streamMessage", () => {
 
     expect(callbacks.onError).toHaveBeenCalledWith(
       "Case quality gate blocks learner sessions.",
+      {
+        code: "case_quality_gate_blocked",
+        message: "Case quality gate blocks learner sessions.",
+      },
     );
     expect(callbacks.onText).not.toHaveBeenCalled();
     expect(callbacks.onDone).not.toHaveBeenCalled();

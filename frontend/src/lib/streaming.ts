@@ -7,7 +7,7 @@ export interface StreamCallbacks {
   onText: (text: string) => void;
   onUsage: (usage: Partial<TokenUsage>) => void;
   onDone: () => void;
-  onError: (message: string) => void;
+  onError: (message: string, detail?: unknown) => void;
 }
 
 function streamErrorMessage(detail: unknown, fallback: string): string {
@@ -42,7 +42,7 @@ export async function streamMessage(
     if (response.status === 401) {
       handleUnauthorized();
     }
-    callbacks.onError(streamErrorMessage(body.detail, "Failed to connect"));
+    callbacks.onError(streamErrorMessage(body.detail, "Failed to connect"), body.detail);
     return;
   }
 
