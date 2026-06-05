@@ -497,6 +497,75 @@ ANTIMICROBIAL_DOSING_SAFETY_TERMS = (
     "콩팥",
     "크레아티닌",
 )
+ANAPHYLAXIS_CONTEXT_TERMS = (
+    "anaphylaxis",
+    "anaphylactic",
+    "anaphylactic shock",
+    "angioedema",
+    "urticaria with wheeze",
+    "wheeze with hypotension",
+    "아나필락시스",
+    "혈관부종",
+)
+ANAPHYLAXIS_EPINEPHRINE_ACTION_TERMS = (
+    "adrenaline",
+    "epi",
+    "epinephrine",
+    "im adrenaline",
+    "im epinephrine",
+    "intramuscular adrenaline",
+    "intramuscular epinephrine",
+    "아드레날린",
+    "에피네프린",
+)
+ANAPHYLAXIS_AIRWAY_ACTION_TERMS = (
+    "airway",
+    "bronchospasm",
+    "intubation",
+    "oxygen",
+    "stridor",
+    "wheeze",
+    "기도",
+    "기관삽관",
+    "산소",
+    "천명",
+    "호흡",
+)
+ANAPHYLAXIS_SHOCK_ACTION_TERMS = (
+    "fluid",
+    "fluid bolus",
+    "hypotension",
+    "resuscitation",
+    "shock",
+    "vasopressor",
+    "쇼크",
+    "수액",
+    "저혈압",
+)
+ANAPHYLAXIS_TRIGGER_SAFETY_TERMS = (
+    "allergen",
+    "allergy",
+    "exposure",
+    "remove",
+    "stop infusion",
+    "trigger",
+    "노출",
+    "알레르겐",
+    "중단",
+    "항원",
+)
+ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS = (
+    "biphasic",
+    "monitoring",
+    "observation",
+    "observe",
+    "recurrence",
+    "rebound",
+    "모니터링",
+    "이상성",
+    "재발",
+    "관찰",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -1160,6 +1229,26 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="anaphylaxis_time_critical_actions",
+            applies=_requires_anaphylaxis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_anaphylaxis_time_critical_actions,
+            issue=(
+                "anaphylaxis time-critical actions must include IM epinephrine, "
+                "airway or oxygen support, and fluid or shock escalation planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="anaphylaxis_observation_safety",
+            applies=_requires_anaphylaxis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_anaphylaxis_observation_safety_check,
+            issue=(
+                "anaphylaxis safety checks must include trigger or allergen exposure "
+                "review and observation for biphasic reaction or recurrence"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -1372,6 +1461,59 @@ def _has_antimicrobial_safety_check(checks: list[Any]) -> bool:
         for term in ANTIMICROBIAL_DOSING_SAFETY_TERMS
     )
     return has_allergy_check and has_dosing_check
+
+
+def _requires_anaphylaxis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in ANAPHYLAXIS_CONTEXT_TERMS
+    )
+
+
+def _has_anaphylaxis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_epinephrine = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ANAPHYLAXIS_EPINEPHRINE_ACTION_TERMS
+    )
+    has_airway = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ANAPHYLAXIS_AIRWAY_ACTION_TERMS
+    )
+    has_shock_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ANAPHYLAXIS_SHOCK_ACTION_TERMS
+    )
+    return has_epinephrine and has_airway and has_shock_escalation
+
+
+def _has_anaphylaxis_observation_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_trigger_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ANAPHYLAXIS_TRIGGER_SAFETY_TERMS
+    )
+    has_observation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS
+    )
+    return has_trigger_review and has_observation
 
 
 def _requires_sepsis_resuscitation_safety_check(data: dict[str, Any]) -> bool:

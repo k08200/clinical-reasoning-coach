@@ -504,6 +504,81 @@ const ANTIMICROBIAL_DOSING_SAFETY_TERMS = [
   "크레아티닌",
 ];
 
+const ANAPHYLAXIS_CONTEXT_TERMS = [
+  "anaphylaxis",
+  "anaphylactic",
+  "anaphylactic shock",
+  "angioedema",
+  "urticaria with wheeze",
+  "wheeze with hypotension",
+  "아나필락시스",
+  "혈관부종",
+];
+
+const ANAPHYLAXIS_EPINEPHRINE_ACTION_TERMS = [
+  "adrenaline",
+  "epi",
+  "epinephrine",
+  "im adrenaline",
+  "im epinephrine",
+  "intramuscular adrenaline",
+  "intramuscular epinephrine",
+  "아드레날린",
+  "에피네프린",
+];
+
+const ANAPHYLAXIS_AIRWAY_ACTION_TERMS = [
+  "airway",
+  "bronchospasm",
+  "intubation",
+  "oxygen",
+  "stridor",
+  "wheeze",
+  "기도",
+  "기관삽관",
+  "산소",
+  "천명",
+  "호흡",
+];
+
+const ANAPHYLAXIS_SHOCK_ACTION_TERMS = [
+  "fluid",
+  "fluid bolus",
+  "hypotension",
+  "resuscitation",
+  "shock",
+  "vasopressor",
+  "쇼크",
+  "수액",
+  "저혈압",
+];
+
+const ANAPHYLAXIS_TRIGGER_SAFETY_TERMS = [
+  "allergen",
+  "allergy",
+  "exposure",
+  "remove",
+  "stop infusion",
+  "trigger",
+  "노출",
+  "알레르겐",
+  "중단",
+  "항원",
+];
+
+const ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS = [
+  "biphasic",
+  "monitoring",
+  "observation",
+  "observe",
+  "recurrence",
+  "rebound",
+  "모니터링",
+  "이상성",
+  "재발",
+  "관찰",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -1090,6 +1165,46 @@ function hasAntimicrobialSafetyCheck(checks: string[]): boolean {
   return hasAllergyCheck && hasDosingCheck;
 }
 
+function requiresAnaphylaxisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return ANAPHYLAXIS_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasAnaphylaxisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasEpinephrine = ANAPHYLAXIS_EPINEPHRINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAirway = ANAPHYLAXIS_AIRWAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasShockEscalation = ANAPHYLAXIS_SHOCK_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasEpinephrine && hasAirway && hasShockEscalation;
+}
+
+function hasAnaphylaxisObservationSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasTriggerReview = ANAPHYLAXIS_TRIGGER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasObservation = ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasTriggerReview && hasObservation;
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -1343,6 +1458,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSepsisResuscitationActions,
       issue:
         "sepsis time-critical actions must include lactate measurement or reassessment, fluid resuscitation, and vasopressor or shock escalation planning",
+    },
+    {
+      name: "anaphylaxis_time_critical_actions",
+      label: "Anaphylaxis immediate treatment",
+      applies: requiresAnaphylaxisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAnaphylaxisTimeCriticalActions,
+      issue:
+        "anaphylaxis time-critical actions must include IM epinephrine, airway or oxygen support, and fluid or shock escalation planning",
+    },
+    {
+      name: "anaphylaxis_observation_safety",
+      label: "Anaphylaxis trigger and observation safety",
+      applies: requiresAnaphylaxisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAnaphylaxisObservationSafetyCheck,
+      issue:
+        "anaphylaxis safety checks must include trigger or allergen exposure review and observation for biphasic reaction or recurrence",
     },
     {
       name: "dka_time_critical_actions",

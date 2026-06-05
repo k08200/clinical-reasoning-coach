@@ -698,5 +698,37 @@
         "chest_xray": "우하엽 폐렴 소견"
       }
     }
+  },
+  {
+    "name": "anaphylaxis_requires_immediate_epinephrine_airway_and_shock_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "anaphylaxis time-critical actions must include IM epinephrine"
+    ],
+    "overrides": {
+      "diagnosis": "Anaphylaxis after peanut exposure",
+      "clinical_red_flags": [
+        "Diffuse urticaria with wheeze and hypotension",
+        "Angioedema with progressive airway symptoms"
+      ],
+      "time_critical_actions": [
+        "Place the patient on monitoring and establish IV access",
+        "Prepare antihistamine therapy after initial stabilization"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Anaphylaxis Practice Parameter Update",
+          "organization": "American Academy of Allergy, Asthma & Immunology",
+          "url": "https://www.aaaai.org/practice-resources/statements-and-practice-parameters",
+          "supports": [
+            "anaphylaxis diagnosis and severity assessment",
+            "diffuse urticaria with wheeze and hypotension as red flags",
+            "angioedema with progressive airway symptoms",
+            "initial monitoring and IV access in anaphylaxis",
+            "biphasic reaction observation after anaphylaxis"
+          ]
+        }
+      ]
+    }
   }
 ]

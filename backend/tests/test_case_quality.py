@@ -47,6 +47,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "infection_time_critical_actions",
         "infection_antimicrobial_safety",
         "sepsis_resuscitation_actions",
+        "anaphylaxis_time_critical_actions",
+        "anaphylaxis_observation_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "stroke_time_critical_actions",
@@ -287,6 +289,70 @@ def test_quality_gate_allows_contrast_imaging_with_renal_safety_check():
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
 
     assert report.passed
+
+
+def test_quality_gate_requires_anaphylaxis_time_critical_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Anaphylaxis after peanut exposure"
+    case["clinical_red_flags"] = [
+        "Diffuse urticaria with wheeze and hypotension",
+        "Angioedema with progressive airway symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Place the patient on monitoring and establish IV access",
+        "Prepare antihistamine therapy after initial stabilization",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        *case["clinical_sources"][0]["supports"],
+        "anaphylaxis diagnosis and severity assessment",
+        "diffuse urticaria with wheeze and hypotension as red flags",
+        "angioedema with progressive airway symptoms",
+        "initial monitoring and IV access in anaphylaxis",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "anaphylaxis time-critical actions must include IM epinephrine" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_anaphylaxis_trigger_and_observation_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Anaphylaxis after peanut exposure"
+    case["clinical_red_flags"] = [
+        "Diffuse urticaria with wheeze and hypotension",
+        "Angioedema with progressive airway symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Give intramuscular epinephrine immediately for suspected anaphylaxis",
+        "Assess airway, oxygenation, and prepare for intubation if swelling progresses",
+        "Give IV fluids and escalate shock management if hypotension persists",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy list reviewed",
+        "Pregnancy status if additional medications are considered",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        *case["clinical_sources"][0]["supports"],
+        "anaphylaxis diagnosis and severity assessment",
+        "diffuse urticaria with wheeze and hypotension as red flags",
+        "angioedema with progressive airway symptoms",
+        "intramuscular epinephrine timing for anaphylaxis",
+        "airway oxygenation assessment in anaphylaxis",
+        "fluid resuscitation for hypotension in anaphylaxis",
+        "medication allergy list reviewed",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "anaphylaxis safety checks must include trigger or allergen exposure review" in issue
+        for issue in report.critical_issues
+    )
 
 
 def test_quality_gate_requires_bleeding_safety_check_for_thrombolysis():
