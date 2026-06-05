@@ -511,6 +511,30 @@ def test_coach_response_guardrail_blocks_common_diagnosis_acronyms():
     )
 
 
+def test_coach_response_guardrail_blocks_korean_diagnosis_terms():
+    case = make_mock_case()
+    case.diagnosis = "급성 허혈성 뇌졸중"
+
+    assert not is_coach_response_safe(
+        case,
+        "이 시뮬레이션은 급성허혈성뇌졸중입니다.",
+    )
+    assert not is_coach_response_safe(
+        case,
+        "뇌졸중 가능성이 높습니다.",
+    )
+    assert is_coach_response_safe(
+        case,
+        "어떤 소견이 시간 민감한 위험을 시사하나요?",
+    )
+
+    case.diagnosis = "폐렴"
+    assert not is_coach_response_safe(
+        case,
+        "흉부 X선상 폐렴으로 보는 것이 맞습니다.",
+    )
+
+
 def test_coach_response_guardrail_blocks_source_anchor_leaks():
     case = make_mock_case()
 
@@ -692,6 +716,39 @@ async def test_stream_replaces_diagnosis_leak_with_safe_question(monkeypatch: py
     assert response_text == SAFE_GUARDRAIL_RESPONSE
     assert "STEMI" not in response_text
     assert "cath lab" not in response_text
+
+
+@pytest.mark.asyncio
+async def test_stream_replaces_korean_diagnosis_leak_with_safe_question(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    class UnsafeProvider:
+        async def stream(self, **_kwargs):
+            yield StreamChunk(type="text_delta", content="이 케이스는 뇌졸중입니다. ")
+            yield StreamChunk(type="text_delta", content="재관류 치료를 바로 진행하세요.")
+            yield StreamChunk(type="done")
+
+    case = make_mock_case()
+    case.diagnosis = "급성 허혈성 뇌졸중"
+    monkeypatch.setattr(
+        "app.services.socratic_coach.get_provider",
+        lambda: UnsafeProvider(),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in stream_coach_response(
+            case=case,
+            conversation_history=[],
+            student_message="교육용 시뮬레이션 케이스로 감별진단을 세우고 있습니다.",
+            turn_number=1,
+        )
+    ]
+
+    response_text = "".join(chunk.content for chunk in chunks if chunk.type == "text_delta")
+    assert response_text == SAFE_GUARDRAIL_RESPONSE
+    assert "뇌졸중" not in response_text
+    assert "재관류 치료" not in response_text
 
 
 @pytest.mark.asyncio

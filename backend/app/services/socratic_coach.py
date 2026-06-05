@@ -689,7 +689,20 @@ KOREAN_MANAGEMENT_SAFETY_COVERAGE_ALIASES = [
 
 DIAGNOSIS_LEAK_TERMS = {
     "acute coronary syndrome": ["acute coronary syndrome", "acs"],
+    "급성 관상동맥 증후군": [
+        "급성 관상동맥 증후군",
+        "급성관상동맥증후군",
+        "관상동맥 증후군",
+        "관상동맥증후군",
+        "심근경색",
+    ],
     "myocardial infarction": ["myocardial infarction", "heart attack", "mi"],
+    "심근경색": [
+        "심근경색",
+        "심근 경색",
+        "급성 관상동맥 증후군",
+        "급성관상동맥증후군",
+    ],
     "stemi": [
         "stemi",
         "st elevation",
@@ -702,9 +715,45 @@ DIAGNOSIS_LEAK_TERMS = {
     ],
     "nstemi": ["nstemi", "non st elevation", "non-st elevation", "myocardial infarction", "mi"],
     "septic": ["septic shock", "urosepsis", "sepsis"],
+    "패혈성 쇼크": ["패혈성 쇼크", "패혈성쇼크", "패혈증", "요로패혈증"],
     "pulmonary embolism": ["pulmonary embolism", "embolism", "pe"],
+    "폐색전증": ["폐색전증", "폐색전"],
     "diabetic ketoacidosis": ["diabetic ketoacidosis", "ketoacidosis", "dka"],
+    "당뇨병성 케톤산증": [
+        "당뇨병성 케톤산증",
+        "당뇨병성케톤산증",
+        "케톤산증",
+    ],
     "ischemic stroke": ["ischemic stroke", "cardioembolic stroke", "stroke"],
+    "급성 허혈성 뇌졸중": [
+        "급성 허혈성 뇌졸중",
+        "급성허혈성뇌졸중",
+        "허혈성 뇌졸중",
+        "허혈성뇌졸중",
+        "뇌경색",
+        "뇌졸중",
+    ],
+}
+DIAGNOSIS_KOREAN_SINGLE_TOKEN_LEAK_TERMS = {
+    "기흉",
+    "뇌경색",
+    "뇌졸중",
+    "담관염",
+    "담낭염",
+    "수막염",
+    "심근경색",
+    "심근염",
+    "심낭염",
+    "신우신염",
+    "췌장염",
+    "충수염",
+    "케톤산증",
+    "폐렴",
+    "폐색전",
+    "폐색전증",
+    "패혈증",
+    "요로패혈증",
+    "아나필락시스",
 }
 DIAGNOSIS_LEAK_STOPWORDS = {
     "acute",
@@ -786,13 +835,16 @@ def _generic_diagnosis_leak_terms(diagnosis: str) -> list[str]:
     for token in tokens:
         if len(token) >= 5 or token in {"acs", "copd", "dka", "nstemi", "stemi"}:
             terms.add(token)
+    for term in DIAGNOSIS_KOREAN_SINGLE_TOKEN_LEAK_TERMS:
+        if term in diagnosis:
+            terms.add(term)
     return list(terms)
 
 
 def _contains_diagnosis_leak(case: ClinicalCase, text: str) -> bool:
     normalized = _normalize_for_guardrail(text)
     for term in _diagnosis_leak_terms(case):
-        if re.search(rf"\b{re.escape(term)}\b", normalized):
+        if re.search(rf"(?<![a-z0-9]){re.escape(term)}(?![a-z0-9])", normalized):
             return True
     return False
 
