@@ -953,6 +953,121 @@ const SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS = [
   "폐부종",
 ];
 
+const NEUTROPENIC_FEVER_CONTEXT_TERMS = [
+  "absolute neutrophil count",
+  "anc below 500",
+  "febrile neutropenia",
+  "neutropenic fever",
+  "neutropenic sepsis",
+  "neutropenic patient with fever",
+  "post-chemotherapy fever",
+  "호중구감소",
+  "호중구감소증",
+];
+
+const NEUTROPENIC_FEVER_ANC_ACTION_TERMS = [
+  "absolute neutrophil",
+  "anc",
+  "cbc",
+  "full blood count",
+  "neutrophil count",
+  "백혈구",
+  "호중구",
+];
+
+const NEUTROPENIC_FEVER_CULTURE_ACTION_TERMS = [
+  "blood culture",
+  "central line culture",
+  "culture",
+  "cultures",
+  "peripheral culture",
+  "source",
+  "urinalysis",
+  "배양",
+];
+
+const NEUTROPENIC_FEVER_ANTIPSEUDOMONAL_ACTION_TERMS = [
+  "anti-pseudomonal",
+  "antipseudomonal",
+  "broad-spectrum antibiotic",
+  "cefepime",
+  "ceftazidime",
+  "empiric antibiotic",
+  "meropenem",
+  "piperacillin",
+  "tazobactam",
+  "within 1 hour",
+  "항생제",
+];
+
+const NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS = [
+  "admit",
+  "cisne",
+  "hematology",
+  "icu",
+  "mascc",
+  "oncology",
+  "risk score",
+  "risk stratification",
+  "sepsis",
+  "입원",
+  "혈액",
+  "종양",
+];
+
+const NEUTROPENIC_FEVER_ANTIBIOTIC_SAFETY_TERMS = [
+  "allergy",
+  "antibiogram",
+  "creatinine",
+  "hepatic",
+  "kidney",
+  "liver",
+  "renal",
+  "toxicity",
+  "간",
+  "신장",
+];
+
+const NEUTROPENIC_FEVER_CATHETER_RESISTANCE_SAFETY_TERMS = [
+  "catheter",
+  "central line",
+  "gram-positive",
+  "local microbiology",
+  "mrsa",
+  "pneumonia",
+  "resistant",
+  "skin",
+  "soft tissue",
+  "vancomycin",
+  "중심정맥",
+];
+
+const NEUTROPENIC_FEVER_RISK_DISPOSITION_SAFETY_TERMS = [
+  "cisne",
+  "comorbidity",
+  "discharge",
+  "high risk",
+  "low risk",
+  "mascc",
+  "outpatient",
+  "return precautions",
+  "risk score",
+  "social",
+  "퇴원",
+];
+
+const NEUTROPENIC_FEVER_REASSESSMENT_SAFETY_TERMS = [
+  "antifungal",
+  "deterioration",
+  "fungal",
+  "persistent fever",
+  "reassess",
+  "reassessment",
+  "resistant",
+  "72 hours",
+  "재평가",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -2761,6 +2876,64 @@ function hasSeverePreeclampsiaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresNeutropenicFeverSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return NEUTROPENIC_FEVER_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasNeutropenicFeverTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAncCheck = NEUTROPENIC_FEVER_ANC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCultures = NEUTROPENIC_FEVER_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntipseudomonalAntibiotics = NEUTROPENIC_FEVER_ANTIPSEUDOMONAL_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAncCheck && hasCultures && hasAntipseudomonalAntibiotics && hasEscalation;
+}
+
+function hasNeutropenicFeverTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAntibioticSafety = NEUTROPENIC_FEVER_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCatheterResistanceSafety = NEUTROPENIC_FEVER_CATHETER_RESISTANCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRiskDispositionSafety = NEUTROPENIC_FEVER_RISK_DISPOSITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasReassessmentSafety = NEUTROPENIC_FEVER_REASSESSMENT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasAntibioticSafety &&
+    hasCatheterResistanceSafety &&
+    hasRiskDispositionSafety &&
+    hasReassessmentSafety
+  );
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -3586,6 +3759,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSeverePreeclampsiaTreatmentSafetyCheck,
       issue:
         "severe preeclampsia or eclampsia safety checks must include magnesium toxicity monitoring, antihypertensive contraindication review, HELLP or renal-organ labs, and maternal-fetal severe-feature or delivery-risk monitoring",
+    },
+    {
+      name: "neutropenic_fever_time_critical_actions",
+      label: "Febrile neutropenia emergency actions",
+      applies: requiresNeutropenicFeverSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasNeutropenicFeverTimeCriticalActions,
+      issue:
+        "febrile neutropenia time-critical actions must include ANC or CBC confirmation, blood cultures or source cultures, immediate empiric antipseudomonal broad-spectrum antibiotics, and oncology/hematology or sepsis-risk escalation",
+    },
+    {
+      name: "neutropenic_fever_treatment_safety",
+      label: "Febrile neutropenia treatment safety",
+      applies: requiresNeutropenicFeverSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasNeutropenicFeverTreatmentSafetyCheck,
+      issue:
+        "febrile neutropenia safety checks must include antibiotic allergy or renal/hepatic dosing review, central-line or resistant-organism coverage indications, validated risk/disposition assessment, and persistent fever or fungal-risk reassessment",
     },
     {
       name: "dka_time_critical_actions",

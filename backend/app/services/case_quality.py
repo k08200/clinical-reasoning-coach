@@ -910,6 +910,112 @@ SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS = (
     "태아",
     "폐부종",
 )
+NEUTROPENIC_FEVER_CONTEXT_TERMS = (
+    "absolute neutrophil count",
+    "anc below 500",
+    "febrile neutropenia",
+    "neutropenic fever",
+    "neutropenic sepsis",
+    "neutropenic patient with fever",
+    "post-chemotherapy fever",
+    "호중구감소",
+    "호중구감소증",
+)
+NEUTROPENIC_FEVER_ANC_ACTION_TERMS = (
+    "absolute neutrophil",
+    "anc",
+    "cbc",
+    "full blood count",
+    "neutrophil count",
+    "백혈구",
+    "호중구",
+)
+NEUTROPENIC_FEVER_CULTURE_ACTION_TERMS = (
+    "blood culture",
+    "central line culture",
+    "culture",
+    "cultures",
+    "peripheral culture",
+    "source",
+    "urinalysis",
+    "배양",
+)
+NEUTROPENIC_FEVER_ANTIPSEUDOMONAL_ACTION_TERMS = (
+    "anti-pseudomonal",
+    "antipseudomonal",
+    "broad-spectrum antibiotic",
+    "cefepime",
+    "ceftazidime",
+    "empiric antibiotic",
+    "meropenem",
+    "piperacillin",
+    "tazobactam",
+    "within 1 hour",
+    "항생제",
+)
+NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS = (
+    "admit",
+    "cisne",
+    "hematology",
+    "icu",
+    "mascc",
+    "oncology",
+    "risk score",
+    "risk stratification",
+    "sepsis",
+    "입원",
+    "혈액",
+    "종양",
+)
+NEUTROPENIC_FEVER_ANTIBIOTIC_SAFETY_TERMS = (
+    "allergy",
+    "antibiogram",
+    "creatinine",
+    "hepatic",
+    "kidney",
+    "liver",
+    "renal",
+    "toxicity",
+    "간",
+    "신장",
+)
+NEUTROPENIC_FEVER_CATHETER_RESISTANCE_SAFETY_TERMS = (
+    "catheter",
+    "central line",
+    "gram-positive",
+    "local microbiology",
+    "mrsa",
+    "pneumonia",
+    "resistant",
+    "skin",
+    "soft tissue",
+    "vancomycin",
+    "중심정맥",
+)
+NEUTROPENIC_FEVER_RISK_DISPOSITION_SAFETY_TERMS = (
+    "cisne",
+    "comorbidity",
+    "discharge",
+    "high risk",
+    "low risk",
+    "mascc",
+    "outpatient",
+    "return precautions",
+    "risk score",
+    "social",
+    "퇴원",
+)
+NEUTROPENIC_FEVER_REASSESSMENT_SAFETY_TERMS = (
+    "antifungal",
+    "deterioration",
+    "fungal",
+    "persistent fever",
+    "reassess",
+    "reassessment",
+    "resistant",
+    "72 hours",
+    "재평가",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -2589,6 +2695,30 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="neutropenic_fever_time_critical_actions",
+            applies=_requires_neutropenic_fever_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_neutropenic_fever_time_critical_actions,
+            issue=(
+                "febrile neutropenia time-critical actions must include ANC or "
+                "CBC confirmation, blood cultures or source cultures, immediate "
+                "empiric antipseudomonal broad-spectrum antibiotics, and "
+                "oncology/hematology or sepsis-risk escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="neutropenic_fever_treatment_safety",
+            applies=_requires_neutropenic_fever_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_neutropenic_fever_treatment_safety_check,
+            issue=(
+                "febrile neutropenia safety checks must include antibiotic allergy "
+                "or renal/hepatic dosing review, central-line or resistant-organism "
+                "coverage indications, validated risk/disposition assessment, and "
+                "persistent fever or fungal-risk reassessment"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -3341,6 +3471,85 @@ def _has_severe_preeclampsia_treatment_safety_check(checks: list[Any]) -> bool:
         and has_bp_med_safety
         and has_lab_organ_safety
         and has_maternal_fetal_safety
+    )
+
+
+def _requires_neutropenic_fever_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in NEUTROPENIC_FEVER_CONTEXT_TERMS
+    )
+
+
+def _has_neutropenic_fever_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_anc_check = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUTROPENIC_FEVER_ANC_ACTION_TERMS
+    )
+    has_cultures = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUTROPENIC_FEVER_CULTURE_ACTION_TERMS
+    )
+    has_antipseudomonal_antibiotics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUTROPENIC_FEVER_ANTIPSEUDOMONAL_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_anc_check
+        and has_cultures
+        and has_antipseudomonal_antibiotics
+        and has_escalation
+    )
+
+
+def _has_neutropenic_fever_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_antibiotic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUTROPENIC_FEVER_ANTIBIOTIC_SAFETY_TERMS
+    )
+    has_catheter_resistance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUTROPENIC_FEVER_CATHETER_RESISTANCE_SAFETY_TERMS
+    )
+    has_risk_disposition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUTROPENIC_FEVER_RISK_DISPOSITION_SAFETY_TERMS
+    )
+    has_reassessment_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUTROPENIC_FEVER_REASSESSMENT_SAFETY_TERMS
+    )
+    return (
+        has_antibiotic_safety
+        and has_catheter_resistance_safety
+        and has_risk_disposition_safety
+        and has_reassessment_safety
     )
 
 
