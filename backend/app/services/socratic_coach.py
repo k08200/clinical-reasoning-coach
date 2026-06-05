@@ -409,8 +409,9 @@ MANAGEMENT_ACTION_PATTERN = "|".join(MANAGEMENT_ACTION_VERBS)
 MANAGEMENT_TARGET_PATTERN = (
     r"alteplase|antibiotics?|anticoagulation|anticoagulants?|aspirin|"
     r"blood cultures?|blood products?|bolus|cath lab activation|cath lab|ct|ecg|ekg|"
-    r"fluids?|heparin|insulin|intubat(?:e|ion)|packed rbcs?|paralytics?|prbcs?|"
-    r"pressors?|red blood cells?|rsi|sedat(?:e|ion)|thrombolysis|transfusion|tpa|"
+    r"dopamine|epinephrine|fluids?|heparin|insulin|intubat(?:e|ion)|"
+    r"norepinephrine|noradrenaline|packed rbcs?|paralytics?|prbcs?|pressors?|"
+    r"red blood cells?|rsi|sedat(?:e|ion)|thrombolysis|transfusion|tpa|"
     r"vasopressors?"
 )
 MANAGEMENT_TARGET_PHRASE_PATTERN = (
@@ -418,9 +419,9 @@ MANAGEMENT_TARGET_PHRASE_PATTERN = (
 )
 RISKY_MANAGEMENT_TARGET_PATTERN = (
     r"alteplase|anticoagulation|anticoagulants?|antiplatelets?|aspirin|"
-    r"blood products?|heparin|insulin|intubat(?:e|ion)|packed rbcs?|paralytics?|"
-    r"prbcs?|pressors?|red blood cells?|rsi|sedat(?:e|ion)|thrombolysis|transfusion|"
-    r"tpa|vasopressors?"
+    r"blood products?|dopamine|epinephrine|heparin|insulin|intubat(?:e|ion)|"
+    r"norepinephrine|noradrenaline|packed rbcs?|paralytics?|prbcs?|pressors?|"
+    r"red blood cells?|rsi|sedat(?:e|ion)|thrombolysis|transfusion|tpa|vasopressors?"
 )
 PREMATURE_CLOSURE_TARGETS = {
     "discharge home": "discharge",
@@ -452,6 +453,9 @@ KOREAN_RISKY_MANAGEMENT_TARGETS = {
     "인슐린": "insulin",
     "승압제": "vasopressors",
     "바소프레서": "vasopressors",
+    "노르에피네프린": "vasopressors",
+    "에피네프린": "vasopressors",
+    "도파민": "vasopressors",
     "수혈": "transfusion",
     "농축적혈구": "packed red blood cells",
     "혈액제제": "blood products",
@@ -506,8 +510,12 @@ KOREAN_MANAGEMENT_SAFETY_CHECK_PATTERNS = [
     r"흡인",
     r"혈역학",
     r"혈압",
+    r"map",
+    r"평균\s*동맥압",
     r"어려운\s*기도",
     r"백업",
+    r"수액",
+    r"재평가",
 ]
 KOREAN_DISPOSITION_SAFETY_CHECK_PATTERNS = [
     r"위험\s*징후",
@@ -579,8 +587,10 @@ MANAGEMENT_SAFETY_CHECK_PATTERNS = [
     r"\bdifficult airway\b",
     r"\bhemodynamics?\b",
     r"\bhypotension\b",
+    r"\bmap\b",
     r"\boxygenation\b",
     r"\bpotassium\b",
+    r"\bresuscitation\b",
     r"\brenal\b",
     r"\bkidney\b",
     r"\bbackup plan\b",
@@ -602,8 +612,8 @@ DISPOSITION_SAFETY_CHECK_PATTERNS = [
     r"\bfollow[-\s]?up plan\b",
 ]
 MANAGEMENT_SAFETY_BYPASS_PATTERNS = [
-    r"\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b.{0,80}\b(?:check|rule out|contraindications?|airway|allerg(?:y|ies)|aspiration risk|backup plan|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|difficult airway|hemodynamics?|hypotension|oxygenation|potassium|renal|kidney|type and screen|transfusion reaction)\b",
-    r"\b(?:check|rule out|contraindications?|airway|allerg(?:y|ies)|aspiration risk|backup plan|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|difficult airway|hemodynamics?|hypotension|oxygenation|potassium|renal|kidney|type and screen|transfusion reaction)\b.{0,80}\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b",
+    r"\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b.{0,80}\b(?:check|rule out|contraindications?|airway|allerg(?:y|ies)|aspiration risk|backup plan|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|difficult airway|hemodynamics?|hypotension|map|oxygenation|potassium|renal|kidney|resuscitation|type and screen|transfusion reaction)\b",
+    r"\b(?:check|rule out|contraindications?|airway|allerg(?:y|ies)|aspiration risk|backup plan|bleed(?:ing)?|aortic dissection|blood type|consent|cross-?match|difficult airway|hemodynamics?|hypotension|map|oxygenation|potassium|renal|kidney|resuscitation|type and screen|transfusion reaction)\b.{0,80}\b(?:no need|without|skip|don'?t need|do not need|not necessary)\b",
 ]
 MANAGEMENT_SAFETY_COVERAGE_STOPWORDS = {
     "a",
@@ -650,6 +660,12 @@ KOREAN_MANAGEMENT_SAFETY_COVERAGE_ALIASES = [
     ("수술", ("surgery",)),
     ("최근 수술", ("recent", "surgery")),
     ("혈역학", ("hemodynamic",)),
+    ("혈압", ("blood", "pressure")),
+    ("저혈압", ("hypotension",)),
+    ("평균 동맥압", ("map",)),
+    ("평균동맥압", ("map",)),
+    ("수액", ("fluid", "resuscitation")),
+    ("재평가", ("reassessment",)),
     ("불안정", ("instability",)),
     ("심부전", ("heart", "failure")),
     ("폐부종", ("pulmonary", "edema")),
@@ -986,6 +1002,8 @@ def _canonical_risky_management_term(term: str) -> str:
         return "intubation"
     if term.startswith("sedat"):
         return "sedation"
+    if term in {"dopamine", "epinephrine", "norepinephrine", "noradrenaline"}:
+        return "vasopressors"
     return term
 
 

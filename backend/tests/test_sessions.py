@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import uuid
 from collections.abc import AsyncGenerator
@@ -19,6 +20,7 @@ from app.models.safety_event import SafetyEvent
 from app.models.session import CoachingSession
 from app.models.user import User
 from app.schemas.session import MAX_STUDENT_MESSAGE_LENGTH
+from app.services.mock_provider import CASE_POOL
 from app.services.provider import StreamChunk
 from app.services.reasoning_analyzer import ReasoningAnalysis
 from app.services.socratic_coach import KOREAN_REAL_PATIENT_SAFETY_RESPONSE
@@ -4827,6 +4829,112 @@ async def test_intubation_before_safety_checks_redirects_and_records_safety_even
     assert safety_events[0].action_taken == "coach_redirected_to_safety_checks"
     assert safety_events[0].detected_terms == ["intubation"]
     assert "Aortic dissection features before anticoagulation" in safety_events[0].note
+    assert safety_events[0].status == "open"
+
+
+@pytest.mark.asyncio
+async def test_vasopressor_before_resuscitation_safety_redirects_and_records_event(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(sessions_router, "AsyncSessionLocal", TestSessionLocal)
+
+    async def fail_stream_coach_response(**_kwargs):
+        raise AssertionError("LLM coaching should not run before vasopressor safety redirect")
+        yield
+
+    async def fail_analyze_student_response(**_kwargs):
+        raise AssertionError("Reasoning analysis should not run before vasopressor safety redirect")
+
+    monkeypatch.setattr(
+        sessions_router,
+        "stream_coach_response",
+        fail_stream_coach_response,
+    )
+    monkeypatch.setattr(
+        sessions_router,
+        "analyze_student_response",
+        fail_analyze_student_response,
+    )
+
+    user = User(
+        email=f"vasopressor-safety-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Vasopressor Safety Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case_payload = copy.deepcopy(CASE_POOL[1])
+    case_payload["review_status"] = "clinician_reviewed"
+    case_payload["last_reviewed_at"] = "2026-06-01"
+    case = ClinicalCase(**case_payload)
+    case.clinical_reviews = [_review_audit_for_case(case)]
+    _refresh_review_fingerprint_for_test(case)
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.flush()
+    db.add(Message(
+        session_id=session.id,
+        role="coach",
+        content="Opening case presentation.",
+    ))
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    stream_response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "In this simulation I would start norepinephrine now."},
+        headers=auth_headers,
+    )
+
+    assert stream_response.status_code == 200
+    assert "Pause the management plan" in stream_response.text
+    assert '"type": "done"' in stream_response.text
+
+    saved_response = await client.get(
+        f"/api/sessions/{session.id}",
+        headers=auth_headers,
+    )
+    assert saved_response.status_code == 200
+    saved_session = saved_response.json()
+    assert [message["role"] for message in saved_session["messages"]] == [
+        "coach",
+        "student",
+        "coach",
+    ]
+    assert saved_session["messages"][1]["reasoning_score"] is None
+    assert "Pause the management plan" in saved_session["messages"][2]["content"]
+    assert saved_session["reasoning_map"]["nodes"] == []
+
+    async with TestSessionLocal() as safety_db:
+        safety_events = (
+            await safety_db.execute(
+                select(SafetyEvent).where(SafetyEvent.session_id == session.id)
+            )
+        ).scalars().all()
+    assert len(safety_events) == 1
+    assert safety_events[0].event_type == "management_before_safety_checks"
+    assert safety_events[0].severity == "medium"
+    assert safety_events[0].action_taken == "coach_redirected_to_safety_checks"
+    assert safety_events[0].detected_terms == ["vasopressors"]
+    assert (
+        "Need for vasopressors if hypotension persists after initial resuscitation"
+        in safety_events[0].note
+    )
     assert safety_events[0].status == "open"
 
 

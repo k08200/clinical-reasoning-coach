@@ -348,6 +348,46 @@ def test_management_safety_gap_detection_requires_missing_contraindication_check
         },
     ) == []
     assert detect_management_safety_gap(
+        "I would start norepinephrine now.",
+        {
+            "red_flags": [],
+            "time_critical_actions": [],
+            "contraindication_checks": [
+                "Need for vasopressors if hypotension persists after initial resuscitation",
+            ],
+        },
+    ) == ["vasopressors"]
+    assert detect_management_safety_gap(
+        "I would start norepinephrine after fluid resuscitation and persistent hypotension.",
+        {
+            "red_flags": [],
+            "time_critical_actions": [],
+            "contraindication_checks": [
+                "Need for vasopressors if hypotension persists after initial resuscitation",
+            ],
+        },
+    ) == []
+    assert detect_management_safety_gap(
+        "노르에피네프린을 바로 시작하겠습니다.",
+        {
+            "red_flags": [],
+            "time_critical_actions": [],
+            "contraindication_checks": [
+                "Need for vasopressors if hypotension persists after initial resuscitation",
+            ],
+        },
+    ) == ["vasopressors"]
+    assert detect_management_safety_gap(
+        "수액 재평가 후 저혈압이 지속되면 노르에피네프린을 시작하겠습니다.",
+        {
+            "red_flags": [],
+            "time_critical_actions": [],
+            "contraindication_checks": [
+                "Need for vasopressors if hypotension persists after initial resuscitation",
+            ],
+        },
+    ) == []
+    assert detect_management_safety_gap(
         "기관삽관을 바로 진행하겠습니다.",
         uncovered,
     ) == ["intubation"]
