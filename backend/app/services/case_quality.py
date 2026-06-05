@@ -868,6 +868,79 @@ DKA_OSMOLAR_SAFETY_TERMS = (
     "삼투",
     "수액",
 )
+HYPERKALEMIA_CONTEXT_TERMS = (
+    "ecg changes from hyperkalemia",
+    "hyperkalemic emergency",
+    "hyperkalemic urgency",
+    "k 6.5",
+    "k 7",
+    "k+ 6.5",
+    "k+ 7",
+    "peaked t waves",
+    "severe hyperkalemia",
+    "sine wave",
+    "wide qrs",
+    "고칼륨혈증",
+    "넓은 qrs",
+    "뾰족 t파",
+)
+HYPERKALEMIA_CALCIUM_ACTION_TERMS = (
+    "calcium chloride",
+    "calcium gluconate",
+    "cardiac membrane",
+    "iv calcium",
+    "membrane stabilization",
+    "칼슘",
+)
+HYPERKALEMIA_SHIFT_ACTION_TERMS = (
+    "albuterol",
+    "dextrose",
+    "glucose",
+    "insulin",
+    "salbutamol",
+    "포도당",
+    "인슐린",
+)
+HYPERKALEMIA_REMOVAL_ACTION_TERMS = (
+    "dialysis",
+    "diuretic",
+    "hemodialysis",
+    "potassium binder",
+    "potassium removal",
+    "sodium zirconium",
+    "칼륨 제거",
+    "투석",
+)
+HYPERKALEMIA_ECG_MONITORING_SAFETY_TERMS = (
+    "arrhythmia",
+    "cardiac monitor",
+    "ecg",
+    "repeat potassium",
+    "telemetry",
+    "심전도",
+    "재검",
+)
+HYPERKALEMIA_GLUCOSE_SAFETY_TERMS = (
+    "blood glucose",
+    "dextrose",
+    "glucose",
+    "hypoglycemia",
+    "포도당",
+    "저혈당",
+    "혈당",
+)
+HYPERKALEMIA_RECURRENCE_SAFETY_TERMS = (
+    "ace inhibitor",
+    "arb",
+    "dialysis",
+    "kidney",
+    "medication review",
+    "potassium supplement",
+    "renal",
+    "spironolactone",
+    "신장",
+    "투석",
+)
 STROKE_CONTEXT_TERMS = (
     "acute ischemic stroke",
     "brain attack",
@@ -1671,6 +1744,28 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="hyperkalemia_time_critical_actions",
+            applies=_requires_hyperkalemia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_hyperkalemia_time_critical_actions,
+            issue=(
+                "severe hyperkalemia time-critical actions must include IV calcium "
+                "or cardiac membrane stabilization, potassium-shifting therapy, "
+                "and potassium removal or dialysis planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="hyperkalemia_treatment_safety",
+            applies=_requires_hyperkalemia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_hyperkalemia_treatment_safety_check,
+            issue=(
+                "severe hyperkalemia safety checks must include ECG or telemetry "
+                "with repeat potassium monitoring, hypoglycemia or glucose "
+                "monitoring after insulin, and renal or medication recurrence review"
+            ),
+        ),
+        DomainSafetyGate(
             name="stroke_time_critical_actions",
             applies=_requires_stroke_reperfusion_safety_check,
             field_name="time_critical_actions",
@@ -2209,6 +2304,63 @@ def _has_dka_contraindication_safety_check(checks: list[Any]) -> bool:
         for term in DKA_OSMOLAR_SAFETY_TERMS
     )
     return has_potassium_safety and has_osmolar_safety
+
+
+def _requires_hyperkalemia_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in HYPERKALEMIA_CONTEXT_TERMS
+    )
+
+
+def _has_hyperkalemia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_calcium = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERKALEMIA_CALCIUM_ACTION_TERMS
+    )
+    has_shift = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERKALEMIA_SHIFT_ACTION_TERMS
+    )
+    has_removal = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERKALEMIA_REMOVAL_ACTION_TERMS
+    )
+    return has_calcium and has_shift and has_removal
+
+
+def _has_hyperkalemia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_ecg_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERKALEMIA_ECG_MONITORING_SAFETY_TERMS
+    )
+    has_glucose_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERKALEMIA_GLUCOSE_SAFETY_TERMS
+    )
+    has_recurrence_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERKALEMIA_RECURRENCE_SAFETY_TERMS
+    )
+    return has_ecg_monitoring and has_glucose_safety and has_recurrence_review
 
 
 def _requires_stroke_reperfusion_safety_check(data: dict[str, Any]) -> bool:

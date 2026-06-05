@@ -922,5 +922,52 @@
         }
       ]
     }
+  },
+  {
+    "name": "severe_hyperkalemia_requires_calcium_shift_and_removal_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "severe hyperkalemia time-critical actions must include IV calcium"
+    ],
+    "overrides": {
+      "diagnosis": "Severe hyperkalemia with ECG changes",
+      "chief_complaint": "Weakness and palpitations",
+      "history_of_present_illness": "Patient with kidney disease presents with progressive weakness, palpitations, and missed dialysis.",
+      "key_teaching_points": [
+        "Severe hyperkalemia with ECG changes can cause fatal arrhythmia",
+        "Cardiac membrane stabilization precedes potassium shifting and removal",
+        "Insulin-based shifting requires glucose monitoring and repeat potassium checks"
+      ],
+      "clinical_red_flags": [
+        "Peaked T waves and wide QRS on ECG",
+        "K 7.1 mmol/L with missed dialysis and palpitations"
+      ],
+      "time_critical_actions": [
+        "Give insulin with dextrose and nebulized albuterol to shift potassium intracellularly",
+        "Arrange urgent hemodialysis for potassium removal"
+      ],
+      "contraindication_checks": [
+        "Continuous ECG telemetry and repeat potassium monitoring after therapy",
+        "Blood glucose and hypoglycemia monitoring after insulin and dextrose",
+        "Renal failure, missed dialysis, ACE inhibitor, ARB, spironolactone, and potassium supplement medication review"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hyperkalemia Emergency Treatment Guideline",
+          "organization": "UK Kidney Association",
+          "url": "https://ukkidney.org/health-professionals/guidelines/guidelines-commentaries/hyperkalaemia",
+          "supports": [
+            "severe hyperkalemia with ECG changes diagnosis and risk stratification",
+            "peaked T waves and wide QRS on ECG as red flags",
+            "K 7.1 mmol/L with missed dialysis and palpitations as severity markers",
+            "insulin with dextrose and nebulized albuterol to shift potassium intracellularly",
+            "urgent hemodialysis for potassium removal",
+            "continuous ECG telemetry and repeat potassium monitoring after therapy",
+            "blood glucose and hypoglycemia monitoring after insulin and dextrose",
+            "renal failure, missed dialysis, ACE inhibitor, ARB, spironolactone, and potassium supplement medication review"
+          ]
+        }
+      ]
+    }
   }
 ]

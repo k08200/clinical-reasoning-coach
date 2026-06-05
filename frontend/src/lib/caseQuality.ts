@@ -898,6 +898,86 @@ const DKA_OSMOLAR_SAFETY_TERMS = [
   "수액",
 ];
 
+const HYPERKALEMIA_CONTEXT_TERMS = [
+  "ecg changes from hyperkalemia",
+  "hyperkalemic emergency",
+  "hyperkalemic urgency",
+  "k 6.5",
+  "k 7",
+  "k+ 6.5",
+  "k+ 7",
+  "peaked t waves",
+  "severe hyperkalemia",
+  "sine wave",
+  "wide qrs",
+  "고칼륨혈증",
+  "넓은 qrs",
+  "뾰족 t파",
+];
+
+const HYPERKALEMIA_CALCIUM_ACTION_TERMS = [
+  "calcium chloride",
+  "calcium gluconate",
+  "cardiac membrane",
+  "iv calcium",
+  "membrane stabilization",
+  "칼슘",
+];
+
+const HYPERKALEMIA_SHIFT_ACTION_TERMS = [
+  "albuterol",
+  "dextrose",
+  "glucose",
+  "insulin",
+  "salbutamol",
+  "포도당",
+  "인슐린",
+];
+
+const HYPERKALEMIA_REMOVAL_ACTION_TERMS = [
+  "dialysis",
+  "diuretic",
+  "hemodialysis",
+  "potassium binder",
+  "potassium removal",
+  "sodium zirconium",
+  "칼륨 제거",
+  "투석",
+];
+
+const HYPERKALEMIA_ECG_MONITORING_SAFETY_TERMS = [
+  "arrhythmia",
+  "cardiac monitor",
+  "ecg",
+  "repeat potassium",
+  "telemetry",
+  "심전도",
+  "재검",
+];
+
+const HYPERKALEMIA_GLUCOSE_SAFETY_TERMS = [
+  "blood glucose",
+  "dextrose",
+  "glucose",
+  "hypoglycemia",
+  "포도당",
+  "저혈당",
+  "혈당",
+];
+
+const HYPERKALEMIA_RECURRENCE_SAFETY_TERMS = [
+  "ace inhibitor",
+  "arb",
+  "dialysis",
+  "kidney",
+  "medication review",
+  "potassium supplement",
+  "renal",
+  "spironolactone",
+  "신장",
+  "투석",
+];
+
 const STROKE_CONTEXT_TERMS = [
   "acute ischemic stroke",
   "brain attack",
@@ -1774,6 +1854,49 @@ function hasDkaContraindicationSafetyCheck(checks: string[]): boolean {
   return hasPotassiumSafety && hasOsmolarSafety;
 }
 
+function requiresHyperkalemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return HYPERKALEMIA_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasHyperkalemiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCalcium = HYPERKALEMIA_CALCIUM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasShift = HYPERKALEMIA_SHIFT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRemoval = HYPERKALEMIA_REMOVAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasCalcium && hasShift && hasRemoval;
+}
+
+function hasHyperkalemiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasEcgMonitoring = HYPERKALEMIA_ECG_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasGlucoseSafety = HYPERKALEMIA_GLUCOSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRecurrenceReview = HYPERKALEMIA_RECURRENCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasEcgMonitoring && hasGlucoseSafety && hasRecurrenceReview;
+}
+
 function requiresStrokeReperfusionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -2091,6 +2214,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasDkaContraindicationSafetyCheck,
       issue:
         "DKA safety checks must include potassium threshold and osmolar-shift or cerebral-edema risk before insulin therapy",
+    },
+    {
+      name: "hyperkalemia_time_critical_actions",
+      label: "Severe hyperkalemia emergency actions",
+      applies: requiresHyperkalemiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasHyperkalemiaTimeCriticalActions,
+      issue:
+        "severe hyperkalemia time-critical actions must include IV calcium or cardiac membrane stabilization, potassium-shifting therapy, and potassium removal or dialysis planning",
+    },
+    {
+      name: "hyperkalemia_treatment_safety",
+      label: "Severe hyperkalemia monitoring safety",
+      applies: requiresHyperkalemiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasHyperkalemiaTreatmentSafetyCheck,
+      issue:
+        "severe hyperkalemia safety checks must include ECG or telemetry with repeat potassium monitoring, hypoglycemia or glucose monitoring after insulin, and renal or medication recurrence review",
     },
     {
       name: "stroke_time_critical_actions",

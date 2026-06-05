@@ -57,6 +57,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "ectopic_pregnancy_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
+        "hyperkalemia_time_critical_actions",
+        "hyperkalemia_treatment_safety",
         "stroke_time_critical_actions",
         "stroke_reperfusion_safety",
         "pe_time_critical_actions",
@@ -910,6 +912,112 @@ def test_quality_gate_requires_dka_potassium_and_osmolar_safety_checks():
     assert not report.passed
     assert any(
         "DKA safety checks must include potassium threshold" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_hyperkalemia_calcium_shift_and_removal_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe hyperkalemia with ECG changes"
+    case["chief_complaint"] = "Weakness and palpitations"
+    case["history_of_present_illness"] = (
+        "Patient with kidney disease presents with progressive weakness, palpitations, "
+        "and missed dialysis."
+    )
+    case["key_teaching_points"] = [
+        "Severe hyperkalemia with ECG changes can cause fatal arrhythmia",
+        "Cardiac membrane stabilization precedes potassium shifting and removal",
+        "Insulin-based shifting requires glucose monitoring and repeat potassium checks",
+    ]
+    case["clinical_red_flags"] = [
+        "Peaked T waves and wide QRS on ECG",
+        "K 7.1 mmol/L with missed dialysis and palpitations",
+    ]
+    case["time_critical_actions"] = [
+        "Give insulin with dextrose and nebulized albuterol to shift potassium intracellularly",
+        "Arrange urgent hemodialysis for potassium removal",
+    ]
+    case["contraindication_checks"] = [
+        "Continuous ECG telemetry and repeat potassium monitoring after therapy",
+        "Blood glucose and hypoglycemia monitoring after insulin and dextrose",
+        "Renal failure, missed dialysis, ACE inhibitor, ARB, spironolactone, and potassium supplement medication review",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hyperkalemia Emergency Treatment Guideline",
+            "organization": "UK Kidney Association",
+            "url": "https://ukkidney.org/health-professionals/guidelines/guidelines-commentaries/hyperkalaemia",
+            "supports": [
+                "severe hyperkalemia with ECG changes diagnosis and risk stratification",
+                "peaked T waves and wide QRS on ECG as red flags",
+                "K 7.1 mmol/L with missed dialysis and palpitations as severity markers",
+                "insulin with dextrose and nebulized albuterol to shift potassium intracellularly",
+                "urgent hemodialysis for potassium removal",
+                "continuous ECG telemetry and repeat potassium monitoring after therapy",
+                "blood glucose and hypoglycemia monitoring after insulin and dextrose",
+                "renal failure, missed dialysis, ACE inhibitor, ARB, spironolactone, and potassium supplement medication review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hyperkalemia time-critical actions must include IV calcium" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_hyperkalemia_ecg_glucose_and_recurrence_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe hyperkalemia with ECG changes"
+    case["chief_complaint"] = "Weakness and palpitations"
+    case["history_of_present_illness"] = (
+        "Patient with kidney disease presents with progressive weakness, palpitations, "
+        "and missed dialysis."
+    )
+    case["key_teaching_points"] = [
+        "Severe hyperkalemia with ECG changes can cause fatal arrhythmia",
+        "Cardiac membrane stabilization precedes potassium shifting and removal",
+        "Insulin-based shifting requires glucose monitoring and repeat potassium checks",
+    ]
+    case["clinical_red_flags"] = [
+        "Peaked T waves and wide QRS on ECG",
+        "K 7.1 mmol/L with missed dialysis and palpitations",
+    ]
+    case["time_critical_actions"] = [
+        "Give IV calcium gluconate for cardiac membrane stabilization",
+        "Give insulin with dextrose and nebulized albuterol to shift potassium intracellularly",
+        "Arrange urgent hemodialysis for potassium removal",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before nebulized therapy",
+        "Volume status before additional fluids",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hyperkalemia Emergency Treatment Guideline",
+            "organization": "UK Kidney Association",
+            "url": "https://ukkidney.org/health-professionals/guidelines/guidelines-commentaries/hyperkalaemia",
+            "supports": [
+                "severe hyperkalemia with ECG changes diagnosis and risk stratification",
+                "peaked T waves and wide QRS on ECG as red flags",
+                "K 7.1 mmol/L with missed dialysis and palpitations as severity markers",
+                "IV calcium gluconate for cardiac membrane stabilization",
+                "insulin with dextrose and nebulized albuterol to shift potassium intracellularly",
+                "urgent hemodialysis for potassium removal",
+                "medication allergy before nebulized therapy",
+                "volume status before additional fluids",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hyperkalemia safety checks must include ECG or telemetry" in issue
         for issue in report.critical_issues
     )
 
