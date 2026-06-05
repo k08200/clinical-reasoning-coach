@@ -839,6 +839,34 @@ def test_quality_gate_rejects_single_token_diagnosis_in_visible_labs():
     )
 
 
+def test_quality_gate_rejects_korean_diagnosis_in_learner_visible_title():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "급성 허혈성 뇌졸중"
+    case["title"] = "급성허혈성뇌졸중 환자의 초기 평가"
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "title must not reveal the diagnosis term '급성허혈성뇌졸중'" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_rejects_korean_single_token_diagnosis_in_visible_labs():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "폐렴"
+    case["initial_labs"]["chest_xray"] = "우하엽 폐렴 소견"
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "initial_labs must not reveal the diagnosis term '폐렴'" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_allows_non_answer_clinical_risk_terms_in_visible_history():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute coronary syndrome"

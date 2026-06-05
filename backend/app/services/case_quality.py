@@ -123,9 +123,43 @@ DIAGNOSIS_SINGLE_TOKEN_LEAK_TERMS = {
     "thrombosis",
     "urosepsis",
 }
+DIAGNOSIS_KOREAN_SINGLE_TOKEN_LEAK_TERMS = {
+    "기흉",
+    "뇌경색",
+    "뇌졸중",
+    "담관염",
+    "담낭염",
+    "수막염",
+    "심근경색",
+    "심근염",
+    "심낭염",
+    "신우신염",
+    "췌장염",
+    "충수염",
+    "케톤산증",
+    "폐렴",
+    "폐색전",
+    "폐색전증",
+    "패혈증",
+    "요로패혈증",
+    "아나필락시스",
+}
 DIAGNOSIS_LEAK_ALIASES = {
     "acute coronary syndrome": ["acute coronary syndrome", "acs"],
+    "급성 관상동맥 증후군": [
+        "급성 관상동맥 증후군",
+        "급성관상동맥증후군",
+        "관상동맥 증후군",
+        "관상동맥증후군",
+        "심근경색",
+    ],
     "myocardial infarction": ["myocardial infarction", "heart attack"],
+    "심근경색": [
+        "심근경색",
+        "심근 경색",
+        "급성 관상동맥 증후군",
+        "급성관상동맥증후군",
+    ],
     "stemi": [
         "stemi",
         "st elevation",
@@ -142,9 +176,24 @@ DIAGNOSIS_LEAK_ALIASES = {
         "myocardial infarction",
     ],
     "septic shock": ["septic shock", "sepsis", "urosepsis"],
+    "패혈성 쇼크": ["패혈성 쇼크", "패혈성쇼크", "패혈증", "요로패혈증"],
     "pulmonary embolism": ["pulmonary embolism", "embolism"],
+    "폐색전증": ["폐색전증", "폐색전"],
     "diabetic ketoacidosis": ["diabetic ketoacidosis", "ketoacidosis", "dka"],
+    "당뇨병성 케톤산증": [
+        "당뇨병성 케톤산증",
+        "당뇨병성케톤산증",
+        "케톤산증",
+    ],
     "acute ischemic stroke": ["acute ischemic stroke", "ischemic stroke"],
+    "급성 허혈성 뇌졸중": [
+        "급성 허혈성 뇌졸중",
+        "급성허혈성뇌졸중",
+        "허혈성 뇌졸중",
+        "허혈성뇌졸중",
+        "뇌경색",
+        "뇌졸중",
+    ],
 }
 LEARNER_VISIBLE_CASE_TEXT_FIELDS = [
     "title",
@@ -969,6 +1018,10 @@ def _diagnosis_leak_terms(diagnosis: str) -> list[str]:
     for token in tokens:
         if token in DIAGNOSIS_SINGLE_TOKEN_LEAK_TERMS:
             terms.add(token)
+
+    for term in DIAGNOSIS_KOREAN_SINGLE_TOKEN_LEAK_TERMS:
+        if term in normalized:
+            terms.add(term)
 
     return sorted(terms, key=len, reverse=True)
 

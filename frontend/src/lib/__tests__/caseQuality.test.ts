@@ -112,6 +112,20 @@ describe("reviewQualityIssues", () => {
     },
   );
 
+  it("flags Korean diagnosis terms in learner-visible case fields", () => {
+    const issues = reviewQualityIssues(
+      makeReviewDetail({
+        diagnosis: "급성 허혈성 뇌졸중",
+        title: "급성허혈성뇌졸중 환자의 초기 평가",
+      }),
+    );
+
+    expect(
+      issues.some((issue) => issue.includes("title must not reveal the diagnosis term")),
+    ).toBe(true);
+    expect(issues.some((issue) => issue.includes("급성허혈성뇌졸중"))).toBe(true);
+  });
+
   it("reports structured domain safety gate status for reviewer checklist display", () => {
     const detail = makeReviewDetail({
       diagnosis: "Septic shock from urinary source",

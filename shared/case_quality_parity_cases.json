@@ -685,5 +685,18 @@
         }
       ]
     }
+  },
+  {
+    "name": "korean_diagnosis_visible_initial_labs",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "initial_labs must not reveal the diagnosis term '폐렴'"
+    ],
+    "overrides": {
+      "diagnosis": "폐렴",
+      "initial_labs": {
+        "chest_xray": "우하엽 폐렴 소견"
+      }
+    }
   }
 ]

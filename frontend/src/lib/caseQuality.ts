@@ -40,6 +40,136 @@ const TRUSTED_CLINICAL_SOURCE_HOSTS = new Set([
 
 const TRUSTED_CLINICAL_SOURCE_SUFFIXES = [".edu", ".gov"];
 
+const DIAGNOSIS_LEAK_STOPWORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "by",
+  "acute",
+  "chronic",
+  "class",
+  "due",
+  "exacerbation",
+  "from",
+  "in",
+  "likely",
+  "mild",
+  "moderate",
+  "of",
+  "or",
+  "probable",
+  "secondary",
+  "severe",
+  "stage",
+  "suspected",
+  "syndrome",
+  "the",
+  "to",
+  "type",
+  "with",
+]);
+
+const DIAGNOSIS_SINGLE_TOKEN_LEAK_TERMS = new Set([
+  "anaphylaxis",
+  "appendicitis",
+  "bacteremia",
+  "bronchiolitis",
+  "cellulitis",
+  "cholangitis",
+  "cholecystitis",
+  "colitis",
+  "diverticulitis",
+  "eclampsia",
+  "embolism",
+  "endocarditis",
+  "hemorrhage",
+  "infarction",
+  "ischemia",
+  "ketoacidosis",
+  "meningitis",
+  "myocarditis",
+  "nephrolithiasis",
+  "osteomyelitis",
+  "pancreatitis",
+  "pericarditis",
+  "peritonitis",
+  "pneumonia",
+  "pneumothorax",
+  "preeclampsia",
+  "pyelonephritis",
+  "sepsis",
+  "stroke",
+  "thrombosis",
+  "urosepsis",
+]);
+
+const DIAGNOSIS_KOREAN_SINGLE_TOKEN_LEAK_TERMS = [
+  "기흉",
+  "뇌경색",
+  "뇌졸중",
+  "담관염",
+  "담낭염",
+  "수막염",
+  "심근경색",
+  "심근염",
+  "심낭염",
+  "신우신염",
+  "췌장염",
+  "충수염",
+  "케톤산증",
+  "폐렴",
+  "폐색전",
+  "폐색전증",
+  "패혈증",
+  "요로패혈증",
+  "아나필락시스",
+];
+
+const DIAGNOSIS_LEAK_ALIASES: Record<string, string[]> = {
+  "acute coronary syndrome": ["acute coronary syndrome", "acs"],
+  "급성 관상동맥 증후군": [
+    "급성 관상동맥 증후군",
+    "급성관상동맥증후군",
+    "관상동맥 증후군",
+    "관상동맥증후군",
+    "심근경색",
+  ],
+  "myocardial infarction": ["myocardial infarction", "heart attack"],
+  심근경색: ["심근경색", "심근 경색", "급성 관상동맥 증후군", "급성관상동맥증후군"],
+  stemi: [
+    "stemi",
+    "st elevation",
+    "st-elevation",
+    "myocardial infarction",
+    "heart attack",
+    "acute coronary syndrome",
+    "acs",
+  ],
+  nstemi: ["nstemi", "non st elevation", "non-st elevation", "myocardial infarction"],
+  "septic shock": ["septic shock", "sepsis", "urosepsis"],
+  "패혈성 쇼크": ["패혈성 쇼크", "패혈성쇼크", "패혈증", "요로패혈증"],
+  "pulmonary embolism": ["pulmonary embolism", "embolism"],
+  폐색전증: ["폐색전증", "폐색전"],
+  "diabetic ketoacidosis": ["diabetic ketoacidosis", "ketoacidosis", "dka"],
+  "당뇨병성 케톤산증": ["당뇨병성 케톤산증", "당뇨병성케톤산증", "케톤산증"],
+  "acute ischemic stroke": ["acute ischemic stroke", "ischemic stroke"],
+  "급성 허혈성 뇌졸중": [
+    "급성 허혈성 뇌졸중",
+    "급성허혈성뇌졸중",
+    "허혈성 뇌졸중",
+    "허혈성뇌졸중",
+    "뇌경색",
+    "뇌졸중",
+  ],
+};
+
+const LEARNER_VISIBLE_CASE_TEXT_FIELDS = [
+  "title",
+  "chief_complaint",
+  "history_of_present_illness",
+  "past_medical_history",
+] as const;
+
 type ReviewQualityGate = {
   name: string;
   label: string;
@@ -779,6 +909,88 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function normalizeDiagnosisText(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function containsDiagnosisTerm(normalizedText: string, term: string): boolean {
+  const normalizedTerm = normalizeDiagnosisText(term);
+  return new RegExp(`(^|[^a-z0-9])${escapeRegExp(normalizedTerm)}(?=$|[^a-z0-9])`).test(
+    normalizedText,
+  );
+}
+
+function diagnosisLeakTerms(diagnosis: string): string[] {
+  const normalized = normalizeDiagnosisText(diagnosis);
+  const terms = new Set<string>();
+  Object.entries(DIAGNOSIS_LEAK_ALIASES).forEach(([trigger, aliases]) => {
+    if (normalized.includes(trigger)) {
+      aliases.forEach((alias) => terms.add(alias));
+    }
+  });
+
+  const rawTokens = normalized.match(/[a-z0-9]+/g) ?? [];
+  const tokens = rawTokens.filter((token) => !DIAGNOSIS_LEAK_STOPWORDS.has(token));
+  const acronym = rawTokens
+    .filter((token) => !["and", "or", "of", "the"].includes(token))
+    .map((token) => token[0])
+    .join("");
+  if (acronym.length >= 3 && acronym.length <= 6) {
+    terms.add(acronym);
+  }
+
+  [3, 2].forEach((size) => {
+    for (let index = 0; index <= tokens.length - size; index += 1) {
+      const phraseTokens = tokens.slice(index, index + size);
+      if (phraseTokens.every((token) => token.length >= 3)) {
+        terms.add(phraseTokens.join(" "));
+      }
+    }
+  });
+
+  tokens.forEach((token) => {
+    if (DIAGNOSIS_SINGLE_TOKEN_LEAK_TERMS.has(token)) {
+      terms.add(token);
+    }
+  });
+  DIAGNOSIS_KOREAN_SINGLE_TOKEN_LEAK_TERMS.forEach((term) => {
+    if (normalized.includes(term)) {
+      terms.add(term);
+    }
+  });
+
+  return Array.from(terms).sort((left, right) => right.length - left.length);
+}
+
+function learnerVisibleCaseStrings(detail: ClinicalCaseReviewDetail): Array<[string, string]> {
+  const strings: Array<[string, string]> = [];
+  LEARNER_VISIBLE_CASE_TEXT_FIELDS.forEach((fieldName) => {
+    const value = detail[fieldName];
+    if (value) {
+      strings.push([fieldName, String(value)]);
+    }
+  });
+  nestedStrings(detail.medications).forEach((value) => strings.push(["medications", value]));
+  nestedStrings(detail.physical_exam).forEach((value) => strings.push(["physical_exam", value]));
+  nestedStrings(detail.initial_labs).forEach((value) => strings.push(["initial_labs", value]));
+  return strings;
+}
+
+function diagnosisLeakIssues(detail: ClinicalCaseReviewDetail): string[] {
+  const terms = diagnosisLeakTerms(String(detail.diagnosis ?? ""));
+  if (terms.length === 0) return [];
+
+  const issues: string[] = [];
+  learnerVisibleCaseStrings(detail).forEach(([label, text]) => {
+    const normalized = normalizeDiagnosisText(text);
+    const leakedTerm = terms.find((term) => containsDiagnosisTerm(normalized, term));
+    if (leakedTerm) {
+      issues.push(`${label} must not reveal the diagnosis term '${leakedTerm}'`);
+    }
+  });
+  return issues;
+}
+
 function containsSafetyTerm(text: string, term: string): boolean {
   const normalizedTerm = term.toLowerCase();
   if (normalizedTerm === "contrast") {
@@ -1227,6 +1439,7 @@ export function reviewQualityGateStatuses(
 export function reviewQualityIssues(detail: ClinicalCaseReviewDetail | undefined): string[] {
   if (!detail) return ["Reviewer-only case detail must load before review."];
   const issues: string[] = [];
+  issues.push(...diagnosisLeakIssues(detail));
   if (detail.key_teaching_points.length < 3) {
     issues.push("At least 3 key teaching points are required.");
   }
