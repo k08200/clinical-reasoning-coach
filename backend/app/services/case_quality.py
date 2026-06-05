@@ -2075,6 +2075,89 @@ RUPTURED_AAA_SHOCK_COMPLICATION_SAFETY_TERMS = (
     "응고",
     "쇼크",
 )
+SUBARACHNOID_HEMORRHAGE_CONTEXT_TERMS = (
+    "aneurysmal sah",
+    "sentinel headache",
+    "subarachnoid haemorrhage",
+    "subarachnoid hemorrhage",
+    "sudden worst headache",
+    "thunderclap headache",
+    "worst headache of life",
+    "지주막하 출혈",
+    "지주막하출혈",
+)
+SUBARACHNOID_HEMORRHAGE_CT_ACTION_TERMS = (
+    "ct head",
+    "head ct",
+    "non contrast ct",
+    "non-contrast ct",
+    "noncontrast ct",
+    "뇌 ct",
+    "두부 ct",
+)
+SUBARACHNOID_HEMORRHAGE_LP_CTA_ACTION_TERMS = (
+    "ct angiography",
+    "cta",
+    "lumbar puncture",
+    "lp",
+    "xanthochromia",
+    "요추천자",
+    "혈관조영",
+)
+SUBARACHNOID_HEMORRHAGE_NEURO_ACTION_TERMS = (
+    "neurocritical",
+    "neurosurgery",
+    "neurosurgical",
+    "transfer",
+    "중환자",
+    "신경외과",
+    "전원",
+)
+SUBARACHNOID_HEMORRHAGE_BP_NIMODIPINE_ACTION_TERMS = (
+    "blood pressure",
+    "bp",
+    "labetalol",
+    "nicardipine",
+    "nimodipine",
+    "sbp",
+    "혈압",
+    "니모디핀",
+)
+SUBARACHNOID_HEMORRHAGE_ANTICOAG_REVERSAL_SAFETY_TERMS = (
+    "anticoagulant",
+    "anticoagulation",
+    "coagulopathy",
+    "doac",
+    "inr",
+    "platelet",
+    "reversal",
+    "warfarin",
+    "응고",
+    "항응고",
+    "혈소판",
+)
+SUBARACHNOID_HEMORRHAGE_REBLEED_BP_SAFETY_TERMS = (
+    "blood pressure",
+    "bp",
+    "hypertension",
+    "rebleed",
+    "rebleeding",
+    "secure aneurysm",
+    "unsecured aneurysm",
+    "재출혈",
+    "혈압",
+)
+SUBARACHNOID_HEMORRHAGE_COMPLICATION_SAFETY_TERMS = (
+    "delayed cerebral ischemia",
+    "evd",
+    "hydrocephalus",
+    "icu",
+    "neurocritical",
+    "seizure",
+    "vasospasm",
+    "수두증",
+    "혈관연축",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -4100,6 +4183,32 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="subarachnoid_hemorrhage_time_critical_actions",
+            applies=_requires_subarachnoid_hemorrhage_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_subarachnoid_hemorrhage_time_critical_actions,
+            issue=(
+                "subarachnoid hemorrhage time-critical actions must include "
+                "urgent non-contrast head CT, lumbar puncture, CTA, or "
+                "xanthochromia pathway when CT is negative or delayed, "
+                "neurosurgery, neurocritical care, or specialist transfer "
+                "escalation, and blood pressure control or nimodipine planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="subarachnoid_hemorrhage_treatment_safety",
+            applies=_requires_subarachnoid_hemorrhage_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_subarachnoid_hemorrhage_treatment_safety_check,
+            issue=(
+                "subarachnoid hemorrhage safety checks must include anticoagulant, "
+                "antiplatelet, INR, platelet, coagulopathy, or reversal review, "
+                "rebleeding or unsecured-aneurysm blood-pressure safeguards, "
+                "and hydrocephalus, vasospasm, delayed cerebral ischemia, seizure, "
+                "EVD, ICU, or neurocritical complication monitoring"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -5784,6 +5893,80 @@ def _has_ruptured_aaa_treatment_safety_check(checks: list[Any]) -> bool:
         has_transfer_delay_safety
         and has_antithrombotic_safety
         and has_shock_complication_safety
+    )
+
+
+def _requires_subarachnoid_hemorrhage_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in SUBARACHNOID_HEMORRHAGE_CONTEXT_TERMS
+    )
+
+
+def _has_subarachnoid_hemorrhage_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_ct_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SUBARACHNOID_HEMORRHAGE_CT_ACTION_TERMS
+    )
+    has_lp_or_cta_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SUBARACHNOID_HEMORRHAGE_LP_CTA_ACTION_TERMS
+    )
+    has_neuro_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SUBARACHNOID_HEMORRHAGE_NEURO_ACTION_TERMS
+    )
+    has_bp_or_nimodipine_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SUBARACHNOID_HEMORRHAGE_BP_NIMODIPINE_ACTION_TERMS
+    )
+    return (
+        has_ct_action
+        and has_lp_or_cta_action
+        and has_neuro_action
+        and has_bp_or_nimodipine_action
+    )
+
+
+def _has_subarachnoid_hemorrhage_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_anticoag_reversal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUBARACHNOID_HEMORRHAGE_ANTICOAG_REVERSAL_SAFETY_TERMS
+    )
+    has_rebleed_bp_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUBARACHNOID_HEMORRHAGE_REBLEED_BP_SAFETY_TERMS
+    )
+    has_complication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUBARACHNOID_HEMORRHAGE_COMPLICATION_SAFETY_TERMS
+    )
+    return (
+        has_anticoag_reversal_safety
+        and has_rebleed_bp_safety
+        and has_complication_safety
     )
 
 

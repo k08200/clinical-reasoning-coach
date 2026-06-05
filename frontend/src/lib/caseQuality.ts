@@ -2228,6 +2228,97 @@ const RUPTURED_AAA_SHOCK_COMPLICATION_SAFETY_TERMS = [
   "쇼크",
 ];
 
+const SUBARACHNOID_HEMORRHAGE_CONTEXT_TERMS = [
+  "aneurysmal sah",
+  "sentinel headache",
+  "subarachnoid haemorrhage",
+  "subarachnoid hemorrhage",
+  "sudden worst headache",
+  "thunderclap headache",
+  "worst headache of life",
+  "지주막하 출혈",
+  "지주막하출혈",
+];
+
+const SUBARACHNOID_HEMORRHAGE_CT_ACTION_TERMS = [
+  "ct head",
+  "head ct",
+  "non contrast ct",
+  "non-contrast ct",
+  "noncontrast ct",
+  "뇌 ct",
+  "두부 ct",
+];
+
+const SUBARACHNOID_HEMORRHAGE_LP_CTA_ACTION_TERMS = [
+  "ct angiography",
+  "cta",
+  "lumbar puncture",
+  "lp",
+  "xanthochromia",
+  "요추천자",
+  "혈관조영",
+];
+
+const SUBARACHNOID_HEMORRHAGE_NEURO_ACTION_TERMS = [
+  "neurocritical",
+  "neurosurgery",
+  "neurosurgical",
+  "transfer",
+  "중환자",
+  "신경외과",
+  "전원",
+];
+
+const SUBARACHNOID_HEMORRHAGE_BP_NIMODIPINE_ACTION_TERMS = [
+  "blood pressure",
+  "bp",
+  "labetalol",
+  "nicardipine",
+  "nimodipine",
+  "sbp",
+  "혈압",
+  "니모디핀",
+];
+
+const SUBARACHNOID_HEMORRHAGE_ANTICOAG_REVERSAL_SAFETY_TERMS = [
+  "anticoagulant",
+  "anticoagulation",
+  "coagulopathy",
+  "doac",
+  "inr",
+  "platelet",
+  "reversal",
+  "warfarin",
+  "응고",
+  "항응고",
+  "혈소판",
+];
+
+const SUBARACHNOID_HEMORRHAGE_REBLEED_BP_SAFETY_TERMS = [
+  "blood pressure",
+  "bp",
+  "hypertension",
+  "rebleed",
+  "rebleeding",
+  "secure aneurysm",
+  "unsecured aneurysm",
+  "재출혈",
+  "혈압",
+];
+
+const SUBARACHNOID_HEMORRHAGE_COMPLICATION_SAFETY_TERMS = [
+  "delayed cerebral ischemia",
+  "evd",
+  "hydrocephalus",
+  "icu",
+  "neurocritical",
+  "seizure",
+  "vasospasm",
+  "수두증",
+  "혈관연축",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -4753,6 +4844,62 @@ function hasRupturedAaaTreatmentSafetyCheck(checks: string[]): boolean {
   return hasTransferDelaySafety && hasAntithromboticSafety && hasShockComplicationSafety;
 }
 
+function requiresSubarachnoidHemorrhageSafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return SUBARACHNOID_HEMORRHAGE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasSubarachnoidHemorrhageTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCtAction = SUBARACHNOID_HEMORRHAGE_CT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLpOrCtaAction = SUBARACHNOID_HEMORRHAGE_LP_CTA_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeuroAction = SUBARACHNOID_HEMORRHAGE_NEURO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBpOrNimodipineAction =
+    SUBARACHNOID_HEMORRHAGE_BP_NIMODIPINE_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  return hasCtAction && hasLpOrCtaAction && hasNeuroAction && hasBpOrNimodipineAction;
+}
+
+function hasSubarachnoidHemorrhageTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAnticoagReversalSafety =
+    SUBARACHNOID_HEMORRHAGE_ANTICOAG_REVERSAL_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasRebleedBpSafety = SUBARACHNOID_HEMORRHAGE_REBLEED_BP_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasComplicationSafety = SUBARACHNOID_HEMORRHAGE_COMPLICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasAnticoagReversalSafety && hasRebleedBpSafety && hasComplicationSafety;
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -5812,6 +5959,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasRupturedAaaTreatmentSafetyCheck,
       issue:
         "ruptured or symptomatic abdominal aortic aneurysm safety checks must include unstable-patient transfer, imaging, or repair-not-to-delay planning, bleeding, hemorrhage, anticoagulation, antiplatelet, or thrombolysis avoidance review, and shock, coagulopathy, hypothermia, renal injury, cardiac arrest, or abdominal compartment complication monitoring",
+    },
+    {
+      name: "subarachnoid_hemorrhage_time_critical_actions",
+      label: "Subarachnoid hemorrhage emergency actions",
+      applies: requiresSubarachnoidHemorrhageSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSubarachnoidHemorrhageTimeCriticalActions,
+      issue:
+        "subarachnoid hemorrhage time-critical actions must include urgent non-contrast head CT, lumbar puncture, CTA, or xanthochromia pathway when CT is negative or delayed, neurosurgery, neurocritical care, or specialist transfer escalation, and blood pressure control or nimodipine planning",
+    },
+    {
+      name: "subarachnoid_hemorrhage_treatment_safety",
+      label: "Subarachnoid hemorrhage treatment safety",
+      applies: requiresSubarachnoidHemorrhageSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSubarachnoidHemorrhageTreatmentSafetyCheck,
+      issue:
+        "subarachnoid hemorrhage safety checks must include anticoagulant, antiplatelet, INR, platelet, coagulopathy, or reversal review, rebleeding or unsecured-aneurysm blood-pressure safeguards, and hydrocephalus, vasospasm, delayed cerebral ischemia, seizure, EVD, ICU, or neurocritical complication monitoring",
     },
     {
       name: "dka_time_critical_actions",
