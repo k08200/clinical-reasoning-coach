@@ -1082,8 +1082,12 @@ async def test_stream_response_blocks_if_active_session_case_version_changes_aft
     )
 
     assert response.status_code == 409
-    assert "earlier version of the case" in response.json()["detail"]
-    assert "Start a new session" in response.json()["detail"]
+    message = _case_provenance_block_message(
+        response,
+        code="active_session_case_version_changed",
+    )
+    assert "earlier version of the case" in message
+    assert "Start a new session" in message
 
 
 @pytest.mark.asyncio
@@ -1134,8 +1138,12 @@ async def test_stream_response_blocks_legacy_active_session_without_case_snapsho
     )
 
     assert response.status_code == 409
-    assert "no starting case version snapshot" in response.json()["detail"]
-    assert "Start a new session" in response.json()["detail"]
+    message = _case_provenance_block_message(
+        response,
+        code="active_session_case_snapshot_missing",
+    )
+    assert "no starting case version snapshot" in message
+    assert "Start a new session" in message
 
 
 @pytest.mark.asyncio
@@ -2643,7 +2651,11 @@ async def test_complete_session_blocks_if_active_session_case_version_changes_af
     )
 
     assert response.status_code == 409
-    assert "earlier version of the case" in response.json()["detail"]
+    message = _case_provenance_block_message(
+        response,
+        code="active_session_case_version_changed",
+    )
+    assert "earlier version of the case" in message
     session = await db.get(CoachingSession, session_id)
     assert session is not None
     assert session.status == "active"
@@ -2704,7 +2716,11 @@ async def test_complete_session_blocks_legacy_active_session_without_case_snapsh
     )
 
     assert response.status_code == 409
-    assert "no starting case version snapshot" in response.json()["detail"]
+    message = _case_provenance_block_message(
+        response,
+        code="active_session_case_snapshot_missing",
+    )
+    assert "no starting case version snapshot" in message
     await db.refresh(session)
     assert session.status == "active"
     assert session.completed_at is None

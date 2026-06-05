@@ -1030,18 +1030,24 @@ def _assert_active_session_case_version_matches(
     if not isinstance(session.review_snapshot, dict):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "This active session has no starting case version snapshot. "
-                "Start a new session so the case version can be verified."
+            detail=_case_provenance_block_detail(
+                code="active_session_case_snapshot_missing",
+                message=(
+                    "This active session has no starting case version snapshot. "
+                    "Start a new session so the case version can be verified."
+                ),
             ),
         )
     started_fingerprint = session.review_snapshot.get("case_content_fingerprint")
     if not started_fingerprint:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "This active session has no starting case version fingerprint. "
-                "Start a new session so the case version can be verified."
+            detail=_case_provenance_block_detail(
+                code="active_session_case_fingerprint_missing",
+                message=(
+                    "This active session has no starting case version fingerprint. "
+                    "Start a new session so the case version can be verified."
+                ),
             ),
         )
     if started_fingerprint == clinical_case_content_fingerprint(case):
@@ -1049,9 +1055,12 @@ def _assert_active_session_case_version_matches(
 
     raise HTTPException(
         status_code=status.HTTP_409_CONFLICT,
-        detail=(
-            "This session was started from an earlier version of the case. "
-            "Start a new session after clinician re-review to avoid mixing case versions."
+        detail=_case_provenance_block_detail(
+            code="active_session_case_version_changed",
+            message=(
+                "This session was started from an earlier version of the case. "
+                "Start a new session after clinician re-review to avoid mixing case versions."
+            ),
         ),
     )
 

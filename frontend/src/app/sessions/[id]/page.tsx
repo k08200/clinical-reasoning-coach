@@ -262,11 +262,29 @@ function errorMessage(error: unknown, fallback: string): string {
 function isCaseAccessBlockMessage(message: string): boolean {
   return (
     message.includes("Case quality gate blocks learner sessions") ||
+    message.includes("started from an earlier version of the case") ||
+    message.includes("no starting case version snapshot") ||
+    message.includes("no starting case version fingerprint") ||
     message.includes("requires re-review before learner sessions can start") ||
     message.includes("requires updated clinical review before learner sessions can start") ||
     message.includes("no supporting clinical source")
   );
 }
+
+const CASE_ACCESS_BLOCK_CODES = new Set([
+  "case_quality_gate_blocked",
+  "case_source_missing",
+  "case_not_clinician_reviewed",
+  "case_review_content_changed",
+  "case_review_date_invalid",
+  "case_review_stale",
+  "case_review_audit_missing",
+  "case_review_audit_incomplete",
+  "case_source_diversity_insufficient",
+  "active_session_case_snapshot_missing",
+  "active_session_case_fingerprint_missing",
+  "active_session_case_version_changed",
+]);
 
 function caseAccessBlockDetail(
   message: string,
@@ -276,7 +294,8 @@ function caseAccessBlockDetail(
     detail &&
     typeof detail === "object" &&
     "code" in detail &&
-    detail.code === "case_quality_gate_blocked" &&
+    typeof detail.code === "string" &&
+    CASE_ACCESS_BLOCK_CODES.has(detail.code) &&
     "message" in detail &&
     typeof detail.message === "string"
   ) {

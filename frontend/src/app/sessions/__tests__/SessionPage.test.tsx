@@ -272,6 +272,36 @@ describe("SessionPage", () => {
     expect(screen.queryByText("Stream failed")).toBeFalsy();
   });
 
+  it("shows restart guidance when streaming is blocked by a changed active case version", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession(),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockStreamMessage.mockImplementation(async (_id, _content, callbacks) => {
+      callbacks.onError(
+        "This session was started from an earlier version of the case. Start a new session after clinician re-review to avoid mixing case versions.",
+        {
+          code: "active_session_case_version_changed",
+          message:
+            "This session was started from an earlier version of the case. Start a new session after clinician re-review to avoid mixing case versions.",
+        },
+      );
+    });
+
+    render(<SessionPage />);
+    fireEvent.change(screen.getByPlaceholderText(/Share your clinical reasoning/), {
+      target: { value: "My reasoning" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(
+      await screen.findByText("Clinical case review is required before continuing"),
+    ).toBeTruthy();
+    expect(screen.getByText(/started from an earlier version of the case/)).toBeTruthy();
+    expect(screen.getByText(/Start a new session after clinician re-review/)).toBeTruthy();
+    expect(screen.queryByText("Stream failed")).toBeFalsy();
+  });
+
   it("disables completion until a learner response has been analyzed", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: makeSession(),
@@ -425,6 +455,45 @@ describe("SessionPage", () => {
     ).toBeTruthy();
     expect(screen.getByText(/reputable clinical source domain/)).toBeTruthy();
     expect(screen.getByText(/complete safety metadata/)).toBeTruthy();
+    expect(mockMutate).not.toHaveBeenCalled();
+  });
+
+  it("shows restart guidance when completion is blocked by a changed active case version", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: makeSession({
+        messages: [
+          {
+            id: "m1",
+            role: "coach",
+            content: "Opening case",
+            reasoning_score: null,
+            biases_detected: [],
+            created_at: "2026-05-20T00:00:00Z",
+          },
+          analyzedStudentMessage,
+          secondAnalyzedStudentMessage,
+        ],
+      }),
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockComplete.mockRejectedValueOnce({
+      message:
+        "This session was started from an earlier version of the case. Start a new session after clinician re-review to avoid mixing case versions.",
+      status: 409,
+      detail: {
+        code: "active_session_case_version_changed",
+        message:
+          "This session was started from an earlier version of the case. Start a new session after clinician re-review to avoid mixing case versions.",
+      },
+    });
+
+    render(<SessionPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish Session" }));
+
+    expect(
+      await screen.findByText("Clinical case review is required before continuing"),
+    ).toBeTruthy();
+    expect(screen.getByText(/avoid mixing case versions/)).toBeTruthy();
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
