@@ -89,6 +89,14 @@ def _case_quality_gate_issues(response) -> list[str]:
     return detail["issues"]
 
 
+def _case_provenance_block_message(response, *, code: str) -> str:
+    detail = response.json()["detail"]
+    assert isinstance(detail, dict)
+    assert detail["code"] == code
+    assert isinstance(detail["message"], str)
+    return detail["message"]
+
+
 COMPLETE_ACS_SAFETY_REASONING = (
     "I need to address diaphoresis with crushing chest pain plus hypoxia "
     "or hemodynamic instability. I would obtain a 12-lead ECG within "
@@ -346,8 +354,12 @@ async def test_create_session_blocks_unreviewed_case_even_with_acknowledgement(
     )
 
     assert response.status_code == 409
-    assert "not clinician reviewed" in response.json()["detail"]
-    assert "blocked until clinician review" in response.json()["detail"]
+    message = _case_provenance_block_message(
+        response,
+        code="case_not_clinician_reviewed",
+    )
+    assert "not clinician reviewed" in message
+    assert "blocked until clinician review" in message
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -456,7 +468,8 @@ async def test_create_session_blocks_case_without_clinical_sources(
     )
 
     assert response.status_code == 409
-    assert "no supporting clinical source" in response.json()["detail"]
+    message = _case_provenance_block_message(response, code="case_source_missing")
+    assert "no supporting clinical source" in message
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -496,8 +509,12 @@ async def test_create_session_blocks_reviewed_case_without_independent_sources(
     )
 
     assert response.status_code == 409
+    message = _case_provenance_block_message(
+        response,
+        code="case_source_diversity_insufficient",
+    )
     assert "at least 2 independent clinical source organizations" in (
-        response.json()["detail"]
+        message
     )
     await db.refresh(case)
     assert case.times_used == 0
@@ -582,7 +599,8 @@ async def test_create_session_blocks_stale_reviewed_case_even_with_acknowledgeme
     )
 
     assert response.status_code == 409
-    assert "stale clinician review" in response.json()["detail"]
+    message = _case_provenance_block_message(response, code="case_review_stale")
+    assert "stale clinician review" in message
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -597,7 +615,11 @@ async def test_create_session_blocks_stale_reviewed_case_even_with_acknowledgeme
     )
 
     assert acknowledged_response.status_code == 409
-    assert "stale clinician review" in acknowledged_response.json()["detail"]
+    message = _case_provenance_block_message(
+        acknowledged_response,
+        code="case_review_stale",
+    )
+    assert "stale clinician review" in message
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -635,7 +657,11 @@ async def test_create_session_blocks_future_reviewed_case_even_with_acknowledgem
     )
 
     assert response.status_code == 409
-    assert "invalid clinician review date" in response.json()["detail"]
+    message = _case_provenance_block_message(
+        response,
+        code="case_review_date_invalid",
+    )
+    assert "invalid clinician review date" in message
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -650,7 +676,11 @@ async def test_create_session_blocks_future_reviewed_case_even_with_acknowledgem
     )
 
     assert acknowledged_response.status_code == 409
-    assert "invalid clinician review date" in acknowledged_response.json()["detail"]
+    message = _case_provenance_block_message(
+        acknowledged_response,
+        code="case_review_date_invalid",
+    )
+    assert "invalid clinician review date" in message
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -688,7 +718,11 @@ async def test_create_session_blocks_reviewed_case_without_review_audit(
     )
 
     assert response.status_code == 409
-    assert "no review audit fingerprint" in response.json()["detail"]
+    message = _case_provenance_block_message(
+        response,
+        code="case_review_audit_missing",
+    )
+    assert "no review audit fingerprint" in message
     await db.refresh(case)
     assert case.times_used == 0
 
@@ -737,8 +771,12 @@ async def test_create_session_blocks_reviewed_case_with_incomplete_review_audit(
     )
 
     assert response.status_code == 409
-    assert "review audit is incomplete" in response.json()["detail"]
-    assert "confirms clinical accuracy, source alignment, and educational safety" in response.json()["detail"]
+    message = _case_provenance_block_message(
+        response,
+        code="case_review_audit_incomplete",
+    )
+    assert "review audit is incomplete" in message
+    assert "confirms clinical accuracy, source alignment, and educational safety" in message
     await db.refresh(case)
     assert case.times_used == 0
 

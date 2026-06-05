@@ -1871,7 +1871,9 @@ async def test_post_review_case_content_change_blocks_sessions_until_re_review(
         headers=reviewer_headers,
     )
     assert blocked_session_response.status_code == 409
-    assert "changed after clinician review" in blocked_session_response.json()["detail"]
+    blocked_detail = blocked_session_response.json()["detail"]
+    assert blocked_detail["code"] == "case_review_content_changed"
+    assert "changed after clinician review" in blocked_detail["message"]
 
     acknowledged_session_response = await client.post(
         "/api/sessions",
@@ -1883,6 +1885,8 @@ async def test_post_review_case_content_change_blocks_sessions_until_re_review(
         headers=reviewer_headers,
     )
     assert acknowledged_session_response.status_code == 409
-    assert "changed after clinician review" in acknowledged_session_response.json()["detail"]
+    acknowledged_detail = acknowledged_session_response.json()["detail"]
+    assert acknowledged_detail["code"] == "case_review_content_changed"
+    assert "changed after clinician review" in acknowledged_detail["message"]
     await db.refresh(case)
     assert case.times_used == 0

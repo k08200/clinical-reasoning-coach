@@ -1056,72 +1056,103 @@ def _assert_active_session_case_version_matches(
     )
 
 
+def _case_provenance_block_detail(*, code: str, message: str) -> dict:
+    return {
+        "code": code,
+        "message": message,
+    }
+
+
 def _assert_case_provenance_allows_learner_session(case: ClinicalCase) -> None:
     source_provenance = case.source_provenance
     if source_provenance["source_count"] < 1:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "This case has no supporting clinical source and requires "
-                "clinician review with source alignment before learner sessions can start."
+            detail=_case_provenance_block_detail(
+                code="case_source_missing",
+                message=(
+                    "This case has no supporting clinical source and requires "
+                    "clinician review with source alignment before learner sessions can start."
+                ),
             ),
         )
     if source_provenance["review_status"] != "clinician_reviewed":
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "This case is not clinician reviewed. Learner sessions are blocked "
-                "until clinician review confirms clinical accuracy, source alignment, "
-                "and educational safety."
+            detail=_case_provenance_block_detail(
+                code="case_not_clinician_reviewed",
+                message=(
+                    "This case is not clinician reviewed. Learner sessions are blocked "
+                    "until clinician review confirms clinical accuracy, source alignment, "
+                    "and educational safety."
+                ),
             ),
         )
     if source_provenance["review_content_changed"]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "This case changed after clinician review and requires re-review "
-                "before learner sessions can start."
+            detail=_case_provenance_block_detail(
+                code="case_review_content_changed",
+                message=(
+                    "This case changed after clinician review and requires re-review "
+                    "before learner sessions can start."
+                ),
             ),
         )
     if source_provenance["review_date_invalid"]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "This case has an invalid clinician review date and requires "
-                "updated clinical review before learner sessions can start."
+            detail=_case_provenance_block_detail(
+                code="case_review_date_invalid",
+                message=(
+                    "This case has an invalid clinician review date and requires "
+                    "updated clinical review before learner sessions can start."
+                ),
             ),
         )
     if source_provenance["review_stale"]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "This case has a stale clinician review and requires updated "
-                "clinical review before learner sessions can start."
+            detail=_case_provenance_block_detail(
+                code="case_review_stale",
+                message=(
+                    "This case has a stale clinician review and requires updated "
+                    "clinical review before learner sessions can start."
+                ),
             ),
         )
     if source_provenance["review_audit_missing"]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "This case is marked clinician reviewed but has no review audit "
-                "fingerprint. Learner sessions are blocked until clinician re-review."
+            detail=_case_provenance_block_detail(
+                code="case_review_audit_missing",
+                message=(
+                    "This case is marked clinician reviewed but has no review audit "
+                    "fingerprint. Learner sessions are blocked until clinician re-review."
+                ),
             ),
         )
     if source_provenance["review_audit_incomplete"]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "This case is marked clinician reviewed but its review audit is "
-                "incomplete. Learner sessions are blocked until clinician re-review "
-                "confirms clinical accuracy, source alignment, and educational safety."
+            detail=_case_provenance_block_detail(
+                code="case_review_audit_incomplete",
+                message=(
+                    "This case is marked clinician reviewed but its review audit is "
+                    "incomplete. Learner sessions are blocked until clinician re-review "
+                    "confirms clinical accuracy, source alignment, and educational safety."
+                ),
             ),
         )
     if source_provenance["source_diversity_insufficient"]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                "Clinician-reviewed cases require at least 2 independent clinical "
-                "source organizations before learner sessions can start."
+            detail=_case_provenance_block_detail(
+                code="case_source_diversity_insufficient",
+                message=(
+                    "Clinician-reviewed cases require at least 2 independent clinical "
+                    "source organizations before learner sessions can start."
+                ),
             ),
         )
 
