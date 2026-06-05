@@ -1131,6 +1131,102 @@ const ACS_HEMODYNAMIC_SAFETY_TERMS = [
   "폐부종",
 ];
 
+const AORTIC_DISSECTION_CONTEXT_TERMS = [
+  "acute aortic syndrome",
+  "aortic dissection",
+  "ascending aortic dissection",
+  "stanford type a",
+  "stanford type b",
+  "type a dissection",
+  "type b dissection",
+  "대동맥박리",
+  "대동맥 박리",
+];
+
+const AORTIC_DISSECTION_IMAGING_ACTION_TERMS = [
+  "ct angiography",
+  "cta",
+  "mra",
+  "tee",
+  "transesophageal echo",
+  "transesophageal echocardiography",
+  "대동맥 조영",
+  "식도초음파",
+  "조영 ct",
+];
+
+const AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS = [
+  "anti-impulse",
+  "beta blocker",
+  "beta-blocker",
+  "blood pressure",
+  "esmolol",
+  "heart rate",
+  "impulse",
+  "labetalol",
+  "pain control",
+  "sbp",
+  "베타차단제",
+  "심박",
+  "진통",
+  "혈압",
+];
+
+const AORTIC_DISSECTION_SURGICAL_ACTION_TERMS = [
+  "aortic team",
+  "cardiothoracic",
+  "surgery",
+  "surgical",
+  "transfer",
+  "type a",
+  "vascular surgery",
+  "대동맥팀",
+  "심장외과",
+  "수술",
+  "전원",
+  "혈관외과",
+];
+
+const AORTIC_DISSECTION_ANTITHROMBOTIC_SAFETY_TERMS = [
+  "anticoagulation",
+  "anticoagulant",
+  "antiplatelet",
+  "avoid thrombolysis",
+  "heparin",
+  "thrombolysis",
+  "thrombolytic",
+  "항응고",
+  "항혈소판",
+  "혈전용해",
+];
+
+const AORTIC_DISSECTION_VASODILATOR_SAFETY_TERMS = [
+  "beta blocker before vasodilator",
+  "beta-blocker before vasodilator",
+  "esmolol",
+  "heart rate",
+  "reflex tachycardia",
+  "vasodilator",
+  "베타차단제",
+  "혈관확장제",
+];
+
+const AORTIC_DISSECTION_COMPLICATION_SAFETY_TERMS = [
+  "aortic regurgitation",
+  "branch vessel",
+  "malperfusion",
+  "neurologic deficit",
+  "pericardial effusion",
+  "pulse deficit",
+  "rupture",
+  "tamponade",
+  "대동맥판막",
+  "맥박",
+  "심낭",
+  "장기허혈",
+  "파열",
+];
+
 type SourceAnchoredSafetyField =
   | "clinical_red_flags"
   | "time_critical_actions"
@@ -1834,6 +1930,49 @@ function hasAcsContraindicationSafetyCheck(checks: string[]): boolean {
   return hasDissectionExclusion && hasBleedingSafety && hasHemodynamicEscalation;
 }
 
+function requiresAorticDissectionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return AORTIC_DISSECTION_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasAorticDissectionTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAorticImaging = AORTIC_DISSECTION_IMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntiImpulse = AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSurgicalEscalation = AORTIC_DISSECTION_SURGICAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAorticImaging && hasAntiImpulse && hasSurgicalEscalation;
+}
+
+function hasAorticDissectionTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAntithromboticSafety = AORTIC_DISSECTION_ANTITHROMBOTIC_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasImpulseSafety = AORTIC_DISSECTION_VASODILATOR_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasComplicationScreen = AORTIC_DISSECTION_COMPLICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasAntithromboticSafety && hasImpulseSafety && hasComplicationScreen;
+}
+
 function domainSafetyGates(): ReviewQualityGate[] {
   return [
     {
@@ -2006,6 +2145,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAcsContraindicationSafetyCheck,
       issue:
         "ACS safety checks must include aortic dissection exclusion, bleeding or recent-surgery risk, and hemodynamic or heart-failure escalation",
+    },
+    {
+      name: "aortic_dissection_time_critical_actions",
+      label: "Aortic dissection imaging and escalation",
+      applies: requiresAorticDissectionSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAorticDissectionTimeCriticalActions,
+      issue:
+        "aortic dissection time-critical actions must include definitive aortic imaging, anti-impulse blood pressure or heart-rate control, and cardiothoracic, vascular, or aortic-team surgical escalation",
+    },
+    {
+      name: "aortic_dissection_treatment_safety",
+      label: "Aortic dissection impulse and complication safety",
+      applies: requiresAorticDissectionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAorticDissectionTreatmentSafetyCheck,
+      issue:
+        "aortic dissection safety checks must include antithrombotic or thrombolysis avoidance, beta-blocker-before-vasodilator impulse control safety, and malperfusion, rupture, tamponade, or aortic regurgitation complications",
     },
   ];
 }

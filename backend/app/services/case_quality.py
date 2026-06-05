@@ -1095,6 +1095,95 @@ ACS_HEMODYNAMIC_SAFETY_TERMS = (
     "저혈압",
     "폐부종",
 )
+AORTIC_DISSECTION_CONTEXT_TERMS = (
+    "acute aortic syndrome",
+    "aortic dissection",
+    "ascending aortic dissection",
+    "stanford type a",
+    "stanford type b",
+    "type a dissection",
+    "type b dissection",
+    "대동맥박리",
+    "대동맥 박리",
+)
+AORTIC_DISSECTION_IMAGING_ACTION_TERMS = (
+    "ct angiography",
+    "cta",
+    "mra",
+    "tee",
+    "transesophageal echo",
+    "transesophageal echocardiography",
+    "대동맥 조영",
+    "식도초음파",
+    "조영 ct",
+)
+AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS = (
+    "anti-impulse",
+    "beta blocker",
+    "beta-blocker",
+    "blood pressure",
+    "esmolol",
+    "heart rate",
+    "impulse",
+    "labetalol",
+    "pain control",
+    "sbp",
+    "베타차단제",
+    "심박",
+    "진통",
+    "혈압",
+)
+AORTIC_DISSECTION_SURGICAL_ACTION_TERMS = (
+    "aortic team",
+    "cardiothoracic",
+    "surgery",
+    "surgical",
+    "transfer",
+    "type a",
+    "vascular surgery",
+    "대동맥팀",
+    "심장외과",
+    "수술",
+    "전원",
+    "혈관외과",
+)
+AORTIC_DISSECTION_ANTITHROMBOTIC_SAFETY_TERMS = (
+    "anticoagulation",
+    "anticoagulant",
+    "antiplatelet",
+    "avoid thrombolysis",
+    "heparin",
+    "thrombolysis",
+    "thrombolytic",
+    "항응고",
+    "항혈소판",
+    "혈전용해",
+)
+AORTIC_DISSECTION_VASODILATOR_SAFETY_TERMS = (
+    "beta blocker before vasodilator",
+    "beta-blocker before vasodilator",
+    "esmolol",
+    "heart rate",
+    "reflex tachycardia",
+    "vasodilator",
+    "베타차단제",
+    "혈관확장제",
+)
+AORTIC_DISSECTION_COMPLICATION_SAFETY_TERMS = (
+    "aortic regurgitation",
+    "branch vessel",
+    "malperfusion",
+    "neurologic deficit",
+    "pericardial effusion",
+    "pulse deficit",
+    "rupture",
+    "tamponade",
+    "대동맥판막",
+    "맥박",
+    "심낭",
+    "장기허혈",
+    "파열",
+)
 
 
 @dataclass
@@ -1643,6 +1732,29 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "ACS safety checks must include aortic dissection exclusion, "
                 "bleeding or recent-surgery risk, and hemodynamic or heart-failure "
                 "escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="aortic_dissection_time_critical_actions",
+            applies=_requires_aortic_dissection_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_aortic_dissection_time_critical_actions,
+            issue=(
+                "aortic dissection time-critical actions must include definitive "
+                "aortic imaging, anti-impulse blood pressure or heart-rate control, "
+                "and cardiothoracic, vascular, or aortic-team surgical escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="aortic_dissection_treatment_safety",
+            applies=_requires_aortic_dissection_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_aortic_dissection_treatment_safety_check,
+            issue=(
+                "aortic dissection safety checks must include antithrombotic or "
+                "thrombolysis avoidance, beta-blocker-before-vasodilator impulse "
+                "control safety, and malperfusion, rupture, tamponade, or aortic "
+                "regurgitation complications"
             ),
         ),
     )
@@ -2289,6 +2401,63 @@ def _has_acs_contraindication_safety_check(checks: list[Any]) -> bool:
         for term in ACS_HEMODYNAMIC_SAFETY_TERMS
     )
     return has_dissection_exclusion and has_bleeding_safety and has_hemodynamic_escalation
+
+
+def _requires_aortic_dissection_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in AORTIC_DISSECTION_CONTEXT_TERMS
+    )
+
+
+def _has_aortic_dissection_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_aortic_imaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in AORTIC_DISSECTION_IMAGING_ACTION_TERMS
+    )
+    has_anti_impulse = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS
+    )
+    has_surgical_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in AORTIC_DISSECTION_SURGICAL_ACTION_TERMS
+    )
+    return has_aortic_imaging and has_anti_impulse and has_surgical_escalation
+
+
+def _has_aortic_dissection_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_antithrombotic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AORTIC_DISSECTION_ANTITHROMBOTIC_SAFETY_TERMS
+    )
+    has_impulse_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AORTIC_DISSECTION_VASODILATOR_SAFETY_TERMS
+    )
+    has_complication_screen = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AORTIC_DISSECTION_COMPLICATION_SAFETY_TERMS
+    )
+    return has_antithrombotic_safety and has_impulse_safety and has_complication_screen
 
 
 def _contains_safety_term(text: str, term: str) -> bool:

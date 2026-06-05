@@ -875,5 +875,52 @@
         }
       ]
     }
+  },
+  {
+    "name": "aortic_dissection_requires_imaging_impulse_and_surgical_escalation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "aortic dissection time-critical actions must include definitive aortic imaging"
+    ],
+    "overrides": {
+      "diagnosis": "Acute type A aortic dissection",
+      "chief_complaint": "Tearing chest and back pain",
+      "history_of_present_illness": "Patient with abrupt maximal chest pain radiating to the back, syncope, and asymmetric arm blood pressures.",
+      "key_teaching_points": [
+        "Acute aortic syndrome requires rapid definitive aortic imaging",
+        "Anti-impulse therapy reduces aortic shear while the team prepares definitive care",
+        "Type A involvement requires immediate surgical escalation or transfer"
+      ],
+      "clinical_red_flags": [
+        "Abrupt tearing chest pain radiating to the back",
+        "Syncope with pulse deficit and asymmetric blood pressure"
+      ],
+      "time_critical_actions": [
+        "Place the patient on monitoring and repeat ECG while assessing dangerous chest pain",
+        "Give analgesia while preparing for high-risk chest pain escalation"
+      ],
+      "contraindication_checks": [
+        "Avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+        "Use beta-blocker before vasodilator and monitor heart rate to prevent reflex tachycardia",
+        "Assess pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture risk"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2022 ACC/AHA Guideline for the Diagnosis and Management of Aortic Disease",
+          "organization": "American College of Cardiology / American Heart Association",
+          "url": "https://www.acc.org/Guidelines",
+          "supports": [
+            "acute aortic syndrome diagnosis and aortic dissection risk stratification",
+            "abrupt tearing chest pain radiating to the back as a high-risk feature",
+            "syncope with pulse deficit and asymmetric blood pressure as severity markers",
+            "monitoring and ECG while assessing dangerous chest pain",
+            "analgesia while preparing for high-risk chest pain escalation",
+            "avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+            "beta-blocker before vasodilator with heart rate monitoring to prevent reflex tachycardia",
+            "pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture complications"
+          ]
+        }
+      ]
+    }
   }
 ]

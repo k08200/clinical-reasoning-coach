@@ -63,6 +63,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "pe_contraindication_safety",
         "acs_time_critical_actions",
         "acs_contraindication_safety",
+        "aortic_dissection_time_critical_actions",
+        "aortic_dissection_treatment_safety",
     }
     assert {gate.field_name for gate in gates} <= {
         "time_critical_actions",
@@ -1104,6 +1106,112 @@ def test_quality_gate_requires_acs_dissection_bleeding_and_hemodynamic_safety():
     assert not report.passed
     assert any(
         "ACS safety checks must include aortic dissection exclusion" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_aortic_dissection_imaging_impulse_and_surgical_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute type A aortic dissection"
+    case["chief_complaint"] = "Tearing chest and back pain"
+    case["history_of_present_illness"] = (
+        "Patient with abrupt maximal chest pain radiating to the back, syncope, "
+        "and asymmetric arm blood pressures."
+    )
+    case["key_teaching_points"] = [
+        "Acute aortic syndrome requires rapid definitive aortic imaging",
+        "Anti-impulse therapy reduces aortic shear while the team prepares definitive care",
+        "Type A involvement requires immediate surgical escalation or transfer",
+    ]
+    case["clinical_red_flags"] = [
+        "Abrupt tearing chest pain radiating to the back",
+        "Syncope with pulse deficit and asymmetric blood pressure",
+    ]
+    case["time_critical_actions"] = [
+        "Place the patient on monitoring and repeat ECG while assessing dangerous chest pain",
+        "Give analgesia while preparing for high-risk chest pain escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+        "Use beta-blocker before vasodilator and monitor heart rate to prevent reflex tachycardia",
+        "Assess pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "2022 ACC/AHA Guideline for the Diagnosis and Management of Aortic Disease",
+            "organization": "American College of Cardiology / American Heart Association",
+            "url": "https://www.acc.org/Guidelines",
+            "supports": [
+                "acute aortic syndrome diagnosis and aortic dissection risk stratification",
+                "abrupt tearing chest pain radiating to the back as a high-risk feature",
+                "syncope with pulse deficit and asymmetric blood pressure as severity markers",
+                "monitoring and ECG while assessing dangerous chest pain",
+                "analgesia while preparing for high-risk chest pain escalation",
+                "avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+                "beta-blocker before vasodilator with heart rate monitoring to prevent reflex tachycardia",
+                "pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture complications",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "aortic dissection time-critical actions must include definitive aortic imaging" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_aortic_dissection_antithrombotic_impulse_and_complication_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute type A aortic dissection"
+    case["chief_complaint"] = "Tearing chest and back pain"
+    case["history_of_present_illness"] = (
+        "Patient with abrupt maximal chest pain radiating to the back, syncope, "
+        "and asymmetric arm blood pressures."
+    )
+    case["key_teaching_points"] = [
+        "Acute aortic syndrome requires rapid definitive aortic imaging",
+        "Anti-impulse therapy reduces aortic shear while the team prepares definitive care",
+        "Type A involvement requires immediate surgical escalation or transfer",
+    ]
+    case["clinical_red_flags"] = [
+        "Abrupt tearing chest pain radiating to the back",
+        "Syncope with pulse deficit and asymmetric blood pressure",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain urgent CT angiography of the aorta or TEE if unstable",
+        "Start anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
+        "Consult cardiothoracic or vascular surgery and transfer to an aortic team for suspected type A dissection",
+    ]
+    case["contraindication_checks"] = [
+        "Renal function and contrast allergy before CT angiography",
+        "Medication allergy before analgesia",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "2022 ACC/AHA Guideline for the Diagnosis and Management of Aortic Disease",
+            "organization": "American College of Cardiology / American Heart Association",
+            "url": "https://www.acc.org/Guidelines",
+            "supports": [
+                "acute aortic syndrome diagnosis and aortic dissection risk stratification",
+                "abrupt tearing chest pain radiating to the back as a high-risk feature",
+                "syncope with pulse deficit and asymmetric blood pressure as severity markers",
+                "urgent CT angiography of the aorta or TEE if unstable",
+                "anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
+                "cardiothoracic or vascular surgery consultation and transfer to an aortic team for suspected type A dissection",
+                "renal function and contrast allergy before CT angiography",
+                "medication allergy before analgesia",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "aortic dissection safety checks must include antithrombotic" in issue
         for issue in report.critical_issues
     )
 
