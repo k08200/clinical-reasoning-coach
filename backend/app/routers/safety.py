@@ -210,7 +210,10 @@ async def update_safety_event_resolution(
     if not event:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Safety event not found",
+            detail={
+                "code": "safety_event_not_found",
+                "message": "Safety event not found",
+            },
         )
 
     if body.status == "resolved":

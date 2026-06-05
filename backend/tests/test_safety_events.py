@@ -122,6 +122,40 @@ async def test_safety_events_reject_invalid_audit_filters(
 
 
 @pytest.mark.asyncio
+async def test_update_safety_event_resolution_returns_structured_not_found(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"safety-missing-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Safety Missing Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    db.add(reviewer)
+    await db.commit()
+    await db.refresh(reviewer)
+
+    response = await client.patch(
+        f"/api/safety-events/{uuid.uuid4()}/resolution",
+        headers=_auth_headers(reviewer),
+        json={
+            "status": "resolved",
+            "resolution_note": "Reviewed audit trail and escalated to supervising clinician.",
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == {
+        "code": "safety_event_not_found",
+        "message": "Safety event not found",
+    }
+
+
+@pytest.mark.asyncio
 async def test_reviewer_can_list_and_filter_safety_events(
     client: AsyncClient,
     db: AsyncSession,

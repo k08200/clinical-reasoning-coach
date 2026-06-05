@@ -149,6 +149,18 @@ function resolutionNoteError(note: string, event: SafetyEvent): string | null {
   return null;
 }
 
+function errorMessage(error: unknown, fallback: string): string {
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export default function SafetyEventsPage() {
   const checkingAuth = useRequireAuth();
   const [eventType, setEventType] = useState("all");
@@ -213,8 +225,8 @@ export default function SafetyEventsPage() {
       });
       await mutate();
       setActionMessage("Safety event marked resolved.");
-    } catch {
-      setActionError("Could not update safety event resolution.");
+    } catch (err) {
+      setActionError(errorMessage(err, "Could not update safety event resolution."));
     } finally {
       setUpdatingEventId(null);
     }
@@ -228,8 +240,8 @@ export default function SafetyEventsPage() {
       await api.safetyEvents.updateResolution(event.id, { status: "open" });
       await mutate();
       setActionMessage("Safety event reopened.");
-    } catch {
-      setActionError("Could not reopen safety event.");
+    } catch (err) {
+      setActionError(errorMessage(err, "Could not reopen safety event."));
     } finally {
       setUpdatingEventId(null);
     }

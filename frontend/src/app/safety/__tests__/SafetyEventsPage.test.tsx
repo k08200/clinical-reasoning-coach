@@ -292,6 +292,31 @@ describe("SafetyEventsPage", () => {
     expect(mockMutateSafetyEvents).toHaveBeenCalledOnce();
   });
 
+  it("shows structured server guidance when high-risk resolution documentation is incomplete", async () => {
+    mockSafetySwr({ events: [safetyEvents[0]] });
+    vi.mocked(api.safetyEvents.updateResolution).mockRejectedValueOnce({
+      message:
+        "High-risk real patient, emergency, or privacy events require documentation of escalation, supervision, privacy handling, local protocol use, or that the app was not used for patient care.",
+      status: 422,
+      detail: {
+        code: "high_risk_safety_resolution_note_incomplete",
+        message:
+          "High-risk real patient, emergency, or privacy events require documentation of escalation, supervision, privacy handling, local protocol use, or that the app was not used for patient care.",
+      },
+    });
+
+    render(<SafetyEventsPage />);
+    fireEvent.change(screen.getByLabelText("Resolution note for event-1"), {
+      target: { value: "Reviewed and escalated to the safety team for audit." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Mark Resolved" }));
+
+    expect(
+      await screen.findByText(/require documentation of escalation, supervision/),
+    ).toBeTruthy();
+    expect(mockMutateSafetyEvents).not.toHaveBeenCalled();
+  });
+
   it("reopens a resolved safety event", async () => {
     mockSafetySwr({ events: [safetyEvents[1]] });
 
