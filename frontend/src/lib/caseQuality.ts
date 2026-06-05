@@ -1692,6 +1692,103 @@ const ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS = [
   "호흡부전",
 ];
 
+const TENSION_PNEUMOTHORAX_CONTEXT_TERMS = [
+  "tension pneumothorax",
+  "tension physiology",
+  "traumatic pneumothorax with shock",
+  "unstable pneumothorax",
+  "긴장성 기흉",
+];
+
+const TENSION_PNEUMOTHORAX_DECOMPRESSION_ACTION_TERMS = [
+  "chest decompression",
+  "finger thoracostomy",
+  "needle decompression",
+  "needle thoracostomy",
+  "thoracostomy",
+  "감압",
+  "흉강천자",
+];
+
+const TENSION_PNEUMOTHORAX_CHEST_TUBE_ACTION_TERMS = [
+  "chest drain",
+  "chest tube",
+  "tube thoracostomy",
+  "thoracostomy tube",
+  "흉관",
+];
+
+const TENSION_PNEUMOTHORAX_AIRWAY_OXYGEN_ACTION_TERMS = [
+  "airway",
+  "bag-valve",
+  "bvm",
+  "oxygen",
+  "respiratory failure",
+  "ventilation",
+  "기도",
+  "산소",
+  "환기",
+];
+
+const TENSION_PNEUMOTHORAX_REASSESSMENT_ACTION_TERMS = [
+  "breath sounds",
+  "hemodynamic",
+  "imaging after",
+  "lung sliding",
+  "reassessment",
+  "repeat exam",
+  "ultrasound",
+  "vital signs",
+  "재평가",
+];
+
+const TENSION_PNEUMOTHORAX_NO_DELAY_SAFETY_TERMS = [
+  "clinical diagnosis",
+  "do not delay",
+  "do not wait",
+  "imaging",
+  "unstable",
+  "x-ray",
+  "지연",
+];
+
+const TENSION_PNEUMOTHORAX_SITE_TECHNIQUE_SAFETY_TERMS = [
+  "4th intercostal",
+  "5th intercostal",
+  "axillary",
+  "large-bore",
+  "midaxillary",
+  "midclavicular",
+  "site",
+  "sterile",
+  "technique",
+  "위치",
+];
+
+const TENSION_PNEUMOTHORAX_RECURRENCE_FAILURE_SAFETY_TERMS = [
+  "catheter failure",
+  "chest tube patency",
+  "persistent air leak",
+  "recurrent",
+  "reexpansion",
+  "repeat decompression",
+  "specialty consultation",
+  "tube position",
+  "재발",
+];
+
+const TENSION_PNEUMOTHORAX_DIFFERENTIAL_SAFETY_TERMS = [
+  "cardiac tamponade",
+  "hemothorax",
+  "massive hemothorax",
+  "obstructive shock",
+  "pulmonary embolism",
+  "shock",
+  "trauma",
+  "감별",
+  "쇼크",
+];
+
 const STROKE_CONTEXT_TERMS = [
   "acute ischemic stroke",
   "brain attack",
@@ -2955,6 +3052,58 @@ function hasAcuteHeartFailureTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresTensionPneumothoraxSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return TENSION_PNEUMOTHORAX_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasTensionPneumothoraxTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasDecompression = TENSION_PNEUMOTHORAX_DECOMPRESSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasChestTube = TENSION_PNEUMOTHORAX_CHEST_TUBE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAirwayOxygen = TENSION_PNEUMOTHORAX_AIRWAY_OXYGEN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasReassessment = TENSION_PNEUMOTHORAX_REASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasDecompression && hasChestTube && hasAirwayOxygen && hasReassessment;
+}
+
+function hasTensionPneumothoraxTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNoDelaySafety = TENSION_PNEUMOTHORAX_NO_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSiteTechniqueSafety = TENSION_PNEUMOTHORAX_SITE_TECHNIQUE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRecurrenceFailureSafety =
+    TENSION_PNEUMOTHORAX_RECURRENCE_FAILURE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDifferentialReview = TENSION_PNEUMOTHORAX_DIFFERENTIAL_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasNoDelaySafety && hasSiteTechniqueSafety && hasRecurrenceFailureSafety && hasDifferentialReview;
+}
+
 function requiresStrokeReperfusionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -3416,6 +3565,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAcuteHeartFailureTreatmentSafetyCheck,
       issue:
         "acute heart failure safety checks must include blood pressure or vasodilator contraindication review, renal and electrolyte monitoring during diuresis, trigger or cardiopulmonary differential review, and shock or respiratory-failure monitoring",
+    },
+    {
+      name: "tension_pneumothorax_time_critical_actions",
+      label: "Tension pneumothorax decompression and chest tube",
+      applies: requiresTensionPneumothoraxSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasTensionPneumothoraxTimeCriticalActions,
+      issue:
+        "tension pneumothorax time-critical actions must include immediate needle or finger decompression, definitive chest tube or tube thoracostomy, airway or oxygen support, and post-decompression reassessment",
+    },
+    {
+      name: "tension_pneumothorax_treatment_safety",
+      label: "Tension pneumothorax no-delay and recurrence safety",
+      applies: requiresTensionPneumothoraxSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasTensionPneumothoraxTreatmentSafetyCheck,
+      issue:
+        "tension pneumothorax safety checks must include not delaying decompression for imaging, decompression site or technique safety, recurrence or chest-tube failure monitoring, and obstructive-shock differential review",
     },
     {
       name: "stroke_time_critical_actions",

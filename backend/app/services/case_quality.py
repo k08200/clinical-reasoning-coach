@@ -1598,6 +1598,94 @@ ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS = (
     "쇼크",
     "호흡부전",
 )
+TENSION_PNEUMOTHORAX_CONTEXT_TERMS = (
+    "tension pneumothorax",
+    "tension physiology",
+    "traumatic pneumothorax with shock",
+    "unstable pneumothorax",
+    "긴장성 기흉",
+)
+TENSION_PNEUMOTHORAX_DECOMPRESSION_ACTION_TERMS = (
+    "chest decompression",
+    "finger thoracostomy",
+    "needle decompression",
+    "needle thoracostomy",
+    "thoracostomy",
+    "감압",
+    "흉강천자",
+)
+TENSION_PNEUMOTHORAX_CHEST_TUBE_ACTION_TERMS = (
+    "chest drain",
+    "chest tube",
+    "tube thoracostomy",
+    "thoracostomy tube",
+    "흉관",
+)
+TENSION_PNEUMOTHORAX_AIRWAY_OXYGEN_ACTION_TERMS = (
+    "airway",
+    "bag-valve",
+    "bvm",
+    "oxygen",
+    "respiratory failure",
+    "ventilation",
+    "기도",
+    "산소",
+    "환기",
+)
+TENSION_PNEUMOTHORAX_REASSESSMENT_ACTION_TERMS = (
+    "breath sounds",
+    "hemodynamic",
+    "imaging after",
+    "lung sliding",
+    "reassessment",
+    "repeat exam",
+    "ultrasound",
+    "vital signs",
+    "재평가",
+)
+TENSION_PNEUMOTHORAX_NO_DELAY_SAFETY_TERMS = (
+    "clinical diagnosis",
+    "do not delay",
+    "do not wait",
+    "imaging",
+    "unstable",
+    "x-ray",
+    "지연",
+)
+TENSION_PNEUMOTHORAX_SITE_TECHNIQUE_SAFETY_TERMS = (
+    "4th intercostal",
+    "5th intercostal",
+    "axillary",
+    "large-bore",
+    "midaxillary",
+    "midclavicular",
+    "site",
+    "sterile",
+    "technique",
+    "위치",
+)
+TENSION_PNEUMOTHORAX_RECURRENCE_FAILURE_SAFETY_TERMS = (
+    "catheter failure",
+    "chest tube patency",
+    "persistent air leak",
+    "recurrent",
+    "reexpansion",
+    "repeat decompression",
+    "specialty consultation",
+    "tube position",
+    "재발",
+)
+TENSION_PNEUMOTHORAX_DIFFERENTIAL_SAFETY_TERMS = (
+    "cardiac tamponade",
+    "hemothorax",
+    "massive hemothorax",
+    "obstructive shock",
+    "pulmonary embolism",
+    "shock",
+    "trauma",
+    "감별",
+    "쇼크",
+)
 STROKE_CONTEXT_TERMS = (
     "acute ischemic stroke",
     "brain attack",
@@ -2583,6 +2671,30 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "vasodilator contraindication review, renal and electrolyte "
                 "monitoring during diuresis, trigger or cardiopulmonary differential "
                 "review, and shock or respiratory-failure monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="tension_pneumothorax_time_critical_actions",
+            applies=_requires_tension_pneumothorax_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_tension_pneumothorax_time_critical_actions,
+            issue=(
+                "tension pneumothorax time-critical actions must include immediate "
+                "needle or finger decompression, definitive chest tube or tube "
+                "thoracostomy, airway or oxygen support, and post-decompression "
+                "reassessment"
+            ),
+        ),
+        DomainSafetyGate(
+            name="tension_pneumothorax_treatment_safety",
+            applies=_requires_tension_pneumothorax_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_tension_pneumothorax_treatment_safety_check,
+            issue=(
+                "tension pneumothorax safety checks must include not delaying "
+                "decompression for imaging, decompression site or technique safety, "
+                "recurrence or chest-tube failure monitoring, and obstructive-shock "
+                "differential review"
             ),
         ),
         DomainSafetyGate(
@@ -3641,6 +3753,76 @@ def _has_acute_heart_failure_treatment_safety_check(checks: list[Any]) -> bool:
         and has_renal_electrolyte_safety
         and has_trigger_differential_review
         and has_shock_respiratory_failure_safety
+    )
+
+
+def _requires_tension_pneumothorax_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in TENSION_PNEUMOTHORAX_CONTEXT_TERMS
+    )
+
+
+def _has_tension_pneumothorax_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_decompression = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TENSION_PNEUMOTHORAX_DECOMPRESSION_ACTION_TERMS
+    )
+    has_chest_tube = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TENSION_PNEUMOTHORAX_CHEST_TUBE_ACTION_TERMS
+    )
+    has_airway_oxygen = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TENSION_PNEUMOTHORAX_AIRWAY_OXYGEN_ACTION_TERMS
+    )
+    has_reassessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TENSION_PNEUMOTHORAX_REASSESSMENT_ACTION_TERMS
+    )
+    return has_decompression and has_chest_tube and has_airway_oxygen and has_reassessment
+
+
+def _has_tension_pneumothorax_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_no_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TENSION_PNEUMOTHORAX_NO_DELAY_SAFETY_TERMS
+    )
+    has_site_technique_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TENSION_PNEUMOTHORAX_SITE_TECHNIQUE_SAFETY_TERMS
+    )
+    has_recurrence_failure_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TENSION_PNEUMOTHORAX_RECURRENCE_FAILURE_SAFETY_TERMS
+    )
+    has_differential_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TENSION_PNEUMOTHORAX_DIFFERENTIAL_SAFETY_TERMS
+    )
+    return (
+        has_no_delay_safety
+        and has_site_technique_safety
+        and has_recurrence_failure_safety
+        and has_differential_review
     )
 
 

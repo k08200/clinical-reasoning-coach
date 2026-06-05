@@ -1310,5 +1310,56 @@
         }
       ]
     }
+  },
+  {
+    "name": "tension_pneumothorax_requires_decompression_chest_tube_and_reassessment",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "tension pneumothorax time-critical actions must include immediate needle or finger decompression"
+    ],
+    "overrides": {
+      "diagnosis": "Tension pneumothorax",
+      "chief_complaint": "Severe chest pain and respiratory distress",
+      "history_of_present_illness": "Patient develops sudden pleuritic chest pain, severe dyspnea, hypotension, and unilateral absent breath sounds after chest trauma.",
+      "key_teaching_points": [
+        "Tension pneumothorax is a clinical diagnosis in an unstable patient",
+        "Immediate needle or finger decompression should not wait for imaging",
+        "Definitive tube thoracostomy and reassessment are required after decompression"
+      ],
+      "clinical_red_flags": [
+        "Hypotension with unilateral absent breath sounds",
+        "Distended neck veins, tracheal deviation, and worsening hypoxemia"
+      ],
+      "time_critical_actions": [
+        "Support airway and oxygen ventilation while preparing decompression",
+        "Perform immediate needle decompression or finger thoracostomy for tension physiology",
+        "Reassess breath sounds, vital signs, hemodynamic response, lung sliding, and repeat exam after decompression"
+      ],
+      "contraindication_checks": [
+        "Clinical diagnosis in an unstable patient: do not delay decompression for x-ray, CT, or imaging",
+        "Use large-bore sterile technique at the correct midaxillary or midclavicular intercostal site",
+        "Monitor chest tube patency, tube position, recurrent pneumothorax, persistent air leak, and need for repeat decompression",
+        "Review trauma, massive hemothorax, cardiac tamponade, pulmonary embolism, and other obstructive shock differentials"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Tension Pneumothorax",
+          "organization": "NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK559090/",
+          "supports": [
+            "tension pneumothorax diagnosis and obstructive shock risk stratification",
+            "hypotension with unilateral absent breath sounds as red flags",
+            "distended neck veins, tracheal deviation, and worsening hypoxemia as severity markers",
+            "airway and oxygen ventilation support while preparing decompression",
+            "immediate needle decompression or finger thoracostomy for tension physiology",
+            "breath sounds, vital signs, hemodynamic response, lung sliding, and repeat exam after decompression",
+            "clinical diagnosis in an unstable patient and do not delay decompression for x-ray, CT, or imaging",
+            "large-bore sterile technique at the correct midaxillary or midclavicular intercostal site",
+            "chest tube patency, tube position, recurrent pneumothorax, persistent air leak, and repeat decompression",
+            "trauma, massive hemothorax, cardiac tamponade, pulmonary embolism, and obstructive shock differentials"
+          ]
+        }
+      ]
+    }
   }
 ]

@@ -73,6 +73,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "copd_exacerbation_treatment_safety",
         "acute_heart_failure_time_critical_actions",
         "acute_heart_failure_treatment_safety",
+        "tension_pneumothorax_time_critical_actions",
+        "tension_pneumothorax_treatment_safety",
         "stroke_time_critical_actions",
         "stroke_reperfusion_safety",
         "pe_time_critical_actions",
@@ -1803,6 +1805,120 @@ def test_quality_gate_requires_acute_hf_bp_renal_trigger_and_shock_safety():
     assert not report.passed
     assert any(
         "acute heart failure safety checks must include blood pressure" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_tension_pneumothorax_decompression_chest_tube_and_reassessment():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Tension pneumothorax"
+    case["chief_complaint"] = "Severe chest pain and respiratory distress"
+    case["history_of_present_illness"] = (
+        "Patient develops sudden pleuritic chest pain, severe dyspnea, hypotension, "
+        "and unilateral absent breath sounds after chest trauma."
+    )
+    case["key_teaching_points"] = [
+        "Tension pneumothorax is a clinical diagnosis in an unstable patient",
+        "Immediate needle or finger decompression should not wait for imaging",
+        "Definitive tube thoracostomy and reassessment are required after decompression",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension with unilateral absent breath sounds",
+        "Distended neck veins, tracheal deviation, and worsening hypoxemia",
+    ]
+    case["time_critical_actions"] = [
+        "Support airway and oxygen ventilation while preparing decompression",
+        "Perform immediate needle decompression or finger thoracostomy for tension physiology",
+        "Reassess breath sounds, vital signs, hemodynamic response, lung sliding, and repeat exam after decompression",
+    ]
+    case["contraindication_checks"] = [
+        "Clinical diagnosis in an unstable patient: do not delay decompression for x-ray, CT, or imaging",
+        "Use large-bore sterile technique at the correct midaxillary or midclavicular intercostal site",
+        "Monitor chest tube patency, tube position, recurrent pneumothorax, persistent air leak, and need for repeat decompression",
+        "Review trauma, massive hemothorax, cardiac tamponade, pulmonary embolism, and other obstructive shock differentials",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tension Pneumothorax",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK559090/",
+            "supports": [
+                "tension pneumothorax diagnosis and obstructive shock risk stratification",
+                "hypotension with unilateral absent breath sounds as red flags",
+                "distended neck veins, tracheal deviation, and worsening hypoxemia as severity markers",
+                "airway and oxygen ventilation support while preparing decompression",
+                "immediate needle decompression or finger thoracostomy for tension physiology",
+                "breath sounds, vital signs, hemodynamic response, lung sliding, and repeat exam after decompression",
+                "clinical diagnosis in an unstable patient and do not delay decompression for x-ray, CT, or imaging",
+                "large-bore sterile technique at the correct midaxillary or midclavicular intercostal site",
+                "chest tube patency, tube position, recurrent pneumothorax, persistent air leak, and repeat decompression",
+                "trauma, massive hemothorax, cardiac tamponade, pulmonary embolism, and obstructive shock differentials",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "tension pneumothorax time-critical actions must include immediate needle or finger decompression"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_tension_pneumothorax_no_delay_site_recurrence_and_differential_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Tension pneumothorax"
+    case["chief_complaint"] = "Severe chest pain and respiratory distress"
+    case["history_of_present_illness"] = (
+        "Patient develops sudden pleuritic chest pain, severe dyspnea, hypotension, "
+        "and unilateral absent breath sounds after chest trauma."
+    )
+    case["key_teaching_points"] = [
+        "Tension pneumothorax is a clinical diagnosis in an unstable patient",
+        "Immediate needle or finger decompression should not wait for imaging",
+        "Definitive tube thoracostomy and reassessment are required after decompression",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension with unilateral absent breath sounds",
+        "Distended neck veins, tracheal deviation, and worsening hypoxemia",
+    ]
+    case["time_critical_actions"] = [
+        "Support airway and oxygen ventilation while preparing decompression",
+        "Perform immediate needle decompression or finger thoracostomy for tension physiology",
+        "Place definitive chest tube with tube thoracostomy after initial decompression",
+        "Reassess breath sounds, vital signs, hemodynamic response, lung sliding, and repeat exam after decompression",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before analgesia",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tension Pneumothorax",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK559090/",
+            "supports": [
+                "tension pneumothorax diagnosis and obstructive shock risk stratification",
+                "hypotension with unilateral absent breath sounds as red flags",
+                "distended neck veins, tracheal deviation, and worsening hypoxemia as severity markers",
+                "airway and oxygen ventilation support while preparing decompression",
+                "immediate needle decompression or finger thoracostomy for tension physiology",
+                "definitive chest tube with tube thoracostomy after initial decompression",
+                "breath sounds, vital signs, hemodynamic response, lung sliding, and repeat exam after decompression",
+                "medication allergy before analgesia",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "tension pneumothorax safety checks must include not delaying decompression"
+        in issue
         for issue in report.critical_issues
     )
 
