@@ -63,6 +63,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "status_epilepticus_treatment_safety",
         "adrenal_crisis_time_critical_actions",
         "adrenal_crisis_treatment_safety",
+        "acetaminophen_toxicity_time_critical_actions",
+        "acetaminophen_toxicity_treatment_safety",
         "stroke_time_critical_actions",
         "stroke_reperfusion_safety",
         "pe_time_critical_actions",
@@ -1236,6 +1238,113 @@ def test_quality_gate_requires_adrenal_crisis_do_not_delay_monitoring_and_trigge
     assert not report.passed
     assert any(
         "adrenal crisis safety checks must include not delaying hydrocortisone" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acetaminophen_level_nac_and_hepatic_monitoring():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acetaminophen toxicity"
+    case["chief_complaint"] = "Intentional pill ingestion"
+    case["history_of_present_illness"] = (
+        "Patient presents several hours after ingesting a large quantity of pain "
+        "medication with nausea and right upper quadrant discomfort."
+    )
+    case["key_teaching_points"] = [
+        "Acetaminophen toxicity depends on timed serum concentration and ingestion timing",
+        "N-acetylcysteine should be started promptly when criteria are met or timing is uncertain",
+        "AST, ALT, INR, acidosis, encephalopathy, and transplant risk guide escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "Unknown ingestion time with repeated vomiting",
+        "Right upper quadrant pain with rising AST and INR",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain timed acetaminophen level at 4 hours and plot on Rumack-Matthew nomogram",
+        "Check AST, ALT, INR, hepatic function, and call poison center for toxicology guidance",
+    ]
+    case["contraindication_checks"] = [
+        "Time of ingestion, extended-release formulation, co-ingestion, staggered ingestion, and repeated supratherapeutic use before nomogram interpretation",
+        "Weight-based N-acetylcysteine dose, infusion timing, and anaphylactoid reaction safeguards",
+        "INR, AST, ALT, acidosis, hypoglycemia, encephalopathy, liver failure, and transplant-risk monitoring",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Management of Acetaminophen Poisoning",
+            "organization": "JAMA Network",
+            "url": "https://jamanetwork.com/",
+            "supports": [
+                "acetaminophen toxicity diagnosis and risk stratification depends on timed serum concentration and ingestion timing",
+                "unknown ingestion time with repeated vomiting as a red flag",
+                "right upper quadrant pain with rising AST and INR as severity markers",
+                "timed acetaminophen level at 4 hours and Rumack-Matthew nomogram planning",
+                "AST, ALT, INR, hepatic function, and poison center toxicology guidance",
+                "time of ingestion, extended-release formulation, co-ingestion, staggered ingestion, and repeated supratherapeutic use before nomogram interpretation",
+                "weight-based N-acetylcysteine dose, infusion timing, and anaphylactoid reaction safeguards",
+                "INR, AST, ALT, acidosis, hypoglycemia, encephalopathy, liver failure, and transplant-risk monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acetaminophen toxicity time-critical actions must include a timed acetaminophen level"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acetaminophen_timing_nac_and_liver_failure_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acetaminophen toxicity"
+    case["chief_complaint"] = "Intentional pill ingestion"
+    case["history_of_present_illness"] = (
+        "Patient presents several hours after ingesting a large quantity of pain "
+        "medication with nausea and right upper quadrant discomfort."
+    )
+    case["key_teaching_points"] = [
+        "Acetaminophen toxicity depends on timed serum concentration and ingestion timing",
+        "N-acetylcysteine should be started promptly when criteria are met or timing is uncertain",
+        "AST, ALT, INR, acidosis, encephalopathy, and transplant risk guide escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "Unknown ingestion time with repeated vomiting",
+        "Right upper quadrant pain with rising AST and INR",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain timed acetaminophen level at 4 hours and plot on Rumack-Matthew nomogram",
+        "Start N-acetylcysteine treatment promptly when level, timing, or risk criteria indicate",
+        "Check AST, ALT, INR, hepatic function, and call poison center for toxicology guidance",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Management of Acetaminophen Poisoning",
+            "organization": "JAMA Network",
+            "url": "https://jamanetwork.com/",
+            "supports": [
+                "acetaminophen toxicity diagnosis and risk stratification depends on timed serum concentration and ingestion timing",
+                "unknown ingestion time with repeated vomiting as a red flag",
+                "right upper quadrant pain with rising AST and INR as severity markers",
+                "timed acetaminophen level at 4 hours and Rumack-Matthew nomogram planning",
+                "N-acetylcysteine treatment promptly when level, timing, or risk criteria indicate",
+                "AST, ALT, INR, hepatic function, and poison center toxicology guidance",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acetaminophen toxicity safety checks must include ingestion timing" in issue
         for issue in report.critical_issues
     )
 

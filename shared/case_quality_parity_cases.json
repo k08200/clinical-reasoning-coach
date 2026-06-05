@@ -1063,5 +1063,52 @@
         }
       ]
     }
+  },
+  {
+    "name": "acetaminophen_toxicity_requires_level_nac_and_hepatic_monitoring",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "acetaminophen toxicity time-critical actions must include a timed acetaminophen level"
+    ],
+    "overrides": {
+      "diagnosis": "Acetaminophen toxicity",
+      "chief_complaint": "Intentional pill ingestion",
+      "history_of_present_illness": "Patient presents several hours after ingesting a large quantity of pain medication with nausea and right upper quadrant discomfort.",
+      "key_teaching_points": [
+        "Acetaminophen toxicity depends on timed serum concentration and ingestion timing",
+        "N-acetylcysteine should be started promptly when criteria are met or timing is uncertain",
+        "AST, ALT, INR, acidosis, encephalopathy, and transplant risk guide escalation"
+      ],
+      "clinical_red_flags": [
+        "Unknown ingestion time with repeated vomiting",
+        "Right upper quadrant pain with rising AST and INR"
+      ],
+      "time_critical_actions": [
+        "Obtain timed acetaminophen level at 4 hours and plot on Rumack-Matthew nomogram",
+        "Check AST, ALT, INR, hepatic function, and call poison center for toxicology guidance"
+      ],
+      "contraindication_checks": [
+        "Time of ingestion, extended-release formulation, co-ingestion, staggered ingestion, and repeated supratherapeutic use before nomogram interpretation",
+        "Weight-based N-acetylcysteine dose, infusion timing, and anaphylactoid reaction safeguards",
+        "INR, AST, ALT, acidosis, hypoglycemia, encephalopathy, liver failure, and transplant-risk monitoring"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Management of Acetaminophen Poisoning",
+          "organization": "JAMA Network",
+          "url": "https://jamanetwork.com/",
+          "supports": [
+            "acetaminophen toxicity diagnosis and risk stratification depends on timed serum concentration and ingestion timing",
+            "unknown ingestion time with repeated vomiting as a red flag",
+            "right upper quadrant pain with rising AST and INR as severity markers",
+            "timed acetaminophen level at 4 hours and Rumack-Matthew nomogram planning",
+            "AST, ALT, INR, hepatic function, and poison center toxicology guidance",
+            "time of ingestion, extended-release formulation, co-ingestion, staggered ingestion, and repeated supratherapeutic use before nomogram interpretation",
+            "weight-based N-acetylcysteine dose, infusion timing, and anaphylactoid reaction safeguards",
+            "INR, AST, ALT, acidosis, hypoglycemia, encephalopathy, liver failure, and transplant-risk monitoring"
+          ]
+        }
+      ]
+    }
   }
 ]

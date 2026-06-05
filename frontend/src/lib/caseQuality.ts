@@ -1158,6 +1158,89 @@ const ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS = [
   "중단",
 ];
 
+const ACETAMINOPHEN_TOXICITY_CONTEXT_TERMS = [
+  "acetaminophen overdose",
+  "acetaminophen poisoning",
+  "acetaminophen toxicity",
+  "apap overdose",
+  "apap poisoning",
+  "paracetamol overdose",
+  "paracetamol poisoning",
+  "tylenol overdose",
+  "아세트아미노펜",
+];
+
+const ACETAMINOPHEN_LEVEL_NOMOGRAM_ACTION_TERMS = [
+  "4 hour",
+  "4-hour",
+  "acetaminophen concentration",
+  "acetaminophen level",
+  "apap level",
+  "nomogram",
+  "paracetamol concentration",
+  "paracetamol level",
+  "rumack",
+];
+
+const ACETAMINOPHEN_NAC_ACTION_TERMS = [
+  "acetylcysteine",
+  "n-acetylcysteine",
+  "nac",
+  "엔아세틸시스테인",
+];
+
+const ACETAMINOPHEN_HEPATIC_TOX_ACTION_TERMS = [
+  "alt",
+  "ast",
+  "hepatic",
+  "inr",
+  "lft",
+  "liver",
+  "poison center",
+  "poison control",
+  "toxicologist",
+  "transplant",
+  "간",
+  "독성",
+];
+
+const ACETAMINOPHEN_TIMING_FORMULATION_SAFETY_TERMS = [
+  "co-ingestion",
+  "coingestion",
+  "extended release",
+  "extended-release",
+  "repeated supratherapeutic",
+  "staggered",
+  "time of ingestion",
+  "unknown time",
+  "복용 시간",
+  "서방",
+];
+
+const ACETAMINOPHEN_NAC_SAFETY_TERMS = [
+  "anaphylactoid",
+  "dose",
+  "dosing",
+  "infusion",
+  "weight",
+  "용량",
+  "체중",
+];
+
+const ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS = [
+  "acidosis",
+  "alt",
+  "ast",
+  "encephalopathy",
+  "hepatic failure",
+  "hypoglycemia",
+  "inr",
+  "liver failure",
+  "transplant",
+  "간부전",
+  "저혈당",
+];
+
 const STROKE_CONTEXT_TERMS = [
   "acute ischemic stroke",
   "brain attack",
@@ -2166,6 +2249,51 @@ function hasAdrenalCrisisTreatmentSafetyCheck(checks: string[]): boolean {
   return hasDoNotDelaySafety && hasMonitoringSafety && hasPrecipitantReview;
 }
 
+function requiresAcetaminophenToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return ACETAMINOPHEN_TOXICITY_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasAcetaminophenToxicityTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasLevelNomogram = ACETAMINOPHEN_LEVEL_NOMOGRAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNac = ACETAMINOPHEN_NAC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHepaticMonitoring = ACETAMINOPHEN_HEPATIC_TOX_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasLevelNomogram && hasNac && hasHepaticMonitoring;
+}
+
+function hasAcetaminophenToxicityTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasTimingOrFormulationSafety = ACETAMINOPHEN_TIMING_FORMULATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNacSafety = ACETAMINOPHEN_NAC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHepaticFailureSafety = ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasTimingOrFormulationSafety && hasNacSafety && hasHepaticFailureSafety;
+}
+
 function requiresStrokeReperfusionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -2537,6 +2665,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAdrenalCrisisTreatmentSafetyCheck,
       issue:
         "adrenal crisis safety checks must include not delaying hydrocortisone for cortisol testing, glucose and electrolyte monitoring, and precipitant, infection, or missed-steroid review",
+    },
+    {
+      name: "acetaminophen_toxicity_time_critical_actions",
+      label: "Acetaminophen toxicity level, NAC, and hepatic monitoring",
+      applies: requiresAcetaminophenToxicitySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcetaminophenToxicityTimeCriticalActions,
+      issue:
+        "acetaminophen toxicity time-critical actions must include a timed acetaminophen level with Rumack-Matthew nomogram planning, N-acetylcysteine treatment planning, and hepatic injury or toxicology monitoring",
+    },
+    {
+      name: "acetaminophen_toxicity_treatment_safety",
+      label: "Acetaminophen toxicity treatment safety",
+      applies: requiresAcetaminophenToxicitySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcetaminophenToxicityTreatmentSafetyCheck,
+      issue:
+        "acetaminophen toxicity safety checks must include ingestion timing or formulation limits for nomogram use, N-acetylcysteine dosing or infusion safety, and hepatic failure or transplant-risk monitoring",
     },
     {
       name: "stroke_time_critical_actions",

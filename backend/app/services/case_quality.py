@@ -1106,6 +1106,82 @@ ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS = (
     "유발",
     "중단",
 )
+ACETAMINOPHEN_TOXICITY_CONTEXT_TERMS = (
+    "acetaminophen overdose",
+    "acetaminophen poisoning",
+    "acetaminophen toxicity",
+    "apap overdose",
+    "apap poisoning",
+    "paracetamol overdose",
+    "paracetamol poisoning",
+    "tylenol overdose",
+    "아세트아미노펜",
+)
+ACETAMINOPHEN_LEVEL_NOMOGRAM_ACTION_TERMS = (
+    "4 hour",
+    "4-hour",
+    "acetaminophen concentration",
+    "acetaminophen level",
+    "apap level",
+    "nomogram",
+    "paracetamol concentration",
+    "paracetamol level",
+    "rumack",
+)
+ACETAMINOPHEN_NAC_ACTION_TERMS = (
+    "acetylcysteine",
+    "n-acetylcysteine",
+    "nac",
+    "엔아세틸시스테인",
+)
+ACETAMINOPHEN_HEPATIC_TOX_ACTION_TERMS = (
+    "alt",
+    "ast",
+    "hepatic",
+    "inr",
+    "lft",
+    "liver",
+    "poison center",
+    "poison control",
+    "toxicologist",
+    "transplant",
+    "간",
+    "독성",
+)
+ACETAMINOPHEN_TIMING_FORMULATION_SAFETY_TERMS = (
+    "co-ingestion",
+    "coingestion",
+    "extended release",
+    "extended-release",
+    "repeated supratherapeutic",
+    "staggered",
+    "time of ingestion",
+    "unknown time",
+    "복용 시간",
+    "서방",
+)
+ACETAMINOPHEN_NAC_SAFETY_TERMS = (
+    "anaphylactoid",
+    "dose",
+    "dosing",
+    "infusion",
+    "weight",
+    "용량",
+    "체중",
+)
+ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS = (
+    "acidosis",
+    "alt",
+    "ast",
+    "encephalopathy",
+    "hepatic failure",
+    "hypoglycemia",
+    "inr",
+    "liver failure",
+    "transplant",
+    "간부전",
+    "저혈당",
+)
 STROKE_CONTEXT_TERMS = (
     "acute ischemic stroke",
     "brain attack",
@@ -1976,6 +2052,29 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="acetaminophen_toxicity_time_critical_actions",
+            applies=_requires_acetaminophen_toxicity_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_acetaminophen_toxicity_time_critical_actions,
+            issue=(
+                "acetaminophen toxicity time-critical actions must include a "
+                "timed acetaminophen level with Rumack-Matthew nomogram planning, "
+                "N-acetylcysteine treatment planning, and hepatic injury or "
+                "toxicology monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acetaminophen_toxicity_treatment_safety",
+            applies=_requires_acetaminophen_toxicity_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acetaminophen_toxicity_treatment_safety_check,
+            issue=(
+                "acetaminophen toxicity safety checks must include ingestion timing "
+                "or formulation limits for nomogram use, N-acetylcysteine dosing "
+                "or infusion safety, and hepatic failure or transplant-risk monitoring"
+            ),
+        ),
+        DomainSafetyGate(
             name="stroke_time_critical_actions",
             applies=_requires_stroke_reperfusion_safety_check,
             field_name="time_critical_actions",
@@ -2689,6 +2788,63 @@ def _has_adrenal_crisis_treatment_safety_check(checks: list[Any]) -> bool:
         for term in ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS
     )
     return has_do_not_delay_safety and has_monitoring_safety and has_precipitant_review
+
+
+def _requires_acetaminophen_toxicity_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in ACETAMINOPHEN_TOXICITY_CONTEXT_TERMS
+    )
+
+
+def _has_acetaminophen_toxicity_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_level_or_nomogram = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACETAMINOPHEN_LEVEL_NOMOGRAM_ACTION_TERMS
+    )
+    has_nac = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACETAMINOPHEN_NAC_ACTION_TERMS
+    )
+    has_hepatic_or_toxicology_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACETAMINOPHEN_HEPATIC_TOX_ACTION_TERMS
+    )
+    return has_level_or_nomogram and has_nac and has_hepatic_or_toxicology_monitoring
+
+
+def _has_acetaminophen_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_timing_formulation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACETAMINOPHEN_TIMING_FORMULATION_SAFETY_TERMS
+    )
+    has_nac_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACETAMINOPHEN_NAC_SAFETY_TERMS
+    )
+    has_hepatic_failure_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS
+    )
+    return has_timing_formulation_safety and has_nac_safety and has_hepatic_failure_safety
 
 
 def _requires_stroke_reperfusion_safety_check(data: dict[str, Any]) -> bool:
