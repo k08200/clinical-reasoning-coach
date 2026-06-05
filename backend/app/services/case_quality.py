@@ -1995,6 +1995,86 @@ NECROTIZING_SOFT_TISSUE_INFECTION_ORGAN_RISK_SAFETY_TERMS = (
     "괴사",
     "절단",
 )
+RUPTURED_AAA_CONTEXT_TERMS = (
+    "abdominal aortic aneurysm rupture",
+    "pulsatile abdominal mass",
+    "ruptured abdominal aortic aneurysm",
+    "ruptured aaa",
+    "symptomatic abdominal aortic aneurysm",
+    "symptomatic aaa",
+    "대동맥류 파열",
+    "복부 대동맥류",
+)
+RUPTURED_AAA_VASCULAR_ACTION_TERMS = (
+    "aneurysm repair",
+    "evar",
+    "open repair",
+    "operative repair",
+    "vascular surgery",
+    "vascular surgeon",
+    "혈관외과",
+    "수술",
+)
+RUPTURED_AAA_HEMODYNAMIC_ACTION_TERMS = (
+    "controlled resuscitation",
+    "hypotensive resuscitation",
+    "permissive hypotension",
+    "restrictive fluid",
+    "systolic",
+    "target blood pressure",
+    "저혈압",
+)
+RUPTURED_AAA_BLOOD_ACTION_TERMS = (
+    "blood product",
+    "crossmatch",
+    "large-bore",
+    "massive transfusion",
+    "packed rbc",
+    "prbc",
+    "type and cross",
+    "type and screen",
+    "수혈",
+)
+RUPTURED_AAA_IMAGING_ACTION_TERMS = (
+    "bedside ultrasound",
+    "ct angiography",
+    "cta",
+    "not delay",
+    "unstable",
+    "ultrasound",
+    "초음파",
+)
+RUPTURED_AAA_TRANSFER_DELAY_SAFETY_TERMS = (
+    "do not delay",
+    "door-to-intervention",
+    "immediate repair",
+    "not delay",
+    "transfer",
+    "unstable",
+    "urgent vascular",
+    "전원",
+    "지연",
+)
+RUPTURED_AAA_ANTITHROMBOTIC_SAFETY_TERMS = (
+    "anticoagulation",
+    "antiplatelet",
+    "bleeding",
+    "hemorrhage",
+    "thrombolysis",
+    "출혈",
+    "항응고",
+)
+RUPTURED_AAA_SHOCK_COMPLICATION_SAFETY_TERMS = (
+    "abdominal compartment",
+    "cardiac arrest",
+    "coagulopathy",
+    "hypothermia",
+    "renal",
+    "shock",
+    "triad",
+    "응고",
+    "쇼크",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -3992,6 +4072,34 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="ruptured_aaa_time_critical_actions",
+            applies=_requires_ruptured_aaa_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_ruptured_aaa_time_critical_actions,
+            issue=(
+                "ruptured or symptomatic abdominal aortic aneurysm time-critical "
+                "actions must include immediate vascular surgery, EVAR, open "
+                "repair, or operative repair escalation, permissive hypotension "
+                "or controlled restrictive resuscitation planning, blood product, "
+                "crossmatch, large-bore access, or massive transfusion preparation, "
+                "and bedside ultrasound, CTA, or imaging-not-to-delay strategy"
+            ),
+        ),
+        DomainSafetyGate(
+            name="ruptured_aaa_treatment_safety",
+            applies=_requires_ruptured_aaa_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_ruptured_aaa_treatment_safety_check,
+            issue=(
+                "ruptured or symptomatic abdominal aortic aneurysm safety checks "
+                "must include unstable-patient transfer, imaging, or repair-not-to-delay "
+                "planning, bleeding, hemorrhage, anticoagulation, antiplatelet, "
+                "or thrombolysis avoidance review, and shock, coagulopathy, "
+                "hypothermia, renal injury, cardiac arrest, or abdominal compartment "
+                "complication monitoring"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -5602,6 +5710,80 @@ def _has_necrotizing_soft_tissue_infection_treatment_safety_check(checks: list[A
         and has_repeat_source_safety
         and has_diagnostic_limitation_safety
         and has_organ_risk_safety
+    )
+
+
+def _requires_ruptured_aaa_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in RUPTURED_AAA_CONTEXT_TERMS
+    )
+
+
+def _has_ruptured_aaa_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_vascular_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RUPTURED_AAA_VASCULAR_ACTION_TERMS
+    )
+    has_hemodynamic_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RUPTURED_AAA_HEMODYNAMIC_ACTION_TERMS
+    )
+    has_blood_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RUPTURED_AAA_BLOOD_ACTION_TERMS
+    )
+    has_imaging_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RUPTURED_AAA_IMAGING_ACTION_TERMS
+    )
+    return (
+        has_vascular_action
+        and has_hemodynamic_action
+        and has_blood_action
+        and has_imaging_action
+    )
+
+
+def _has_ruptured_aaa_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_transfer_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RUPTURED_AAA_TRANSFER_DELAY_SAFETY_TERMS
+    )
+    has_antithrombotic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RUPTURED_AAA_ANTITHROMBOTIC_SAFETY_TERMS
+    )
+    has_shock_complication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RUPTURED_AAA_SHOCK_COMPLICATION_SAFETY_TERMS
+    )
+    return (
+        has_transfer_delay_safety
+        and has_antithrombotic_safety
+        and has_shock_complication_safety
     )
 
 

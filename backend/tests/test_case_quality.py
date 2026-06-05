@@ -81,6 +81,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "acute_mesenteric_ischemia_treatment_safety",
         "necrotizing_soft_tissue_infection_time_critical_actions",
         "necrotizing_soft_tissue_infection_treatment_safety",
+        "ruptured_aaa_time_critical_actions",
+        "ruptured_aaa_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
@@ -2425,6 +2427,136 @@ def test_quality_gate_requires_necrotizing_soft_tissue_infection_toxin_repeat_de
     assert not report.passed
     assert any(
         "necrotizing soft tissue infection safety checks must include clindamycin"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ruptured_aaa_vascular_repair_resuscitation_blood_and_imaging_strategy():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Ruptured abdominal aortic aneurysm"
+    case["patient_demographics"] = {
+        "age": 74,
+        "sex": "male",
+        "weight_kg": 79,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe abdominal and back pain with syncope"
+    case["history_of_present_illness"] = (
+        "Older smoker has abrupt abdominal pain radiating to the back, syncope, hypotension, "
+        "tachycardia, and a pulsatile abdominal mass concerning for ruptured abdominal aortic aneurysm."
+    )
+    case["key_teaching_points"] = [
+        "Ruptured abdominal aortic aneurysm is a vascular surgical emergency",
+        "Unstable patients need immediate repair planning without imaging delay",
+        "Controlled resuscitation, blood products, and vascular team activation are time-critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Abdominal or back pain, syncope, hypotension, shock, or pulsatile abdominal mass",
+        "Known abdominal aortic aneurysm, elderly smoker, collapse, or retroperitoneal hemorrhage signs",
+    ]
+    case["time_critical_actions"] = [
+        "Use permissive hypotension with controlled restrictive fluid resuscitation and target systolic blood pressure while mental status is preserved",
+        "Place large-bore IV access, send type and crossmatch, prepare blood products, PRBCs, and massive transfusion protocol",
+        "Use bedside ultrasound or CTA only if stable and document that imaging must not delay care for an unstable patient",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay transfer, immediate repair, or urgent vascular intervention for unstable suspected ruptured AAA",
+        "Avoid anticoagulation, antiplatelet escalation, or thrombolysis until hemorrhage and bleeding risk are addressed",
+        "Monitor shock, coagulopathy, hypothermia, renal injury, cardiac arrest, abdominal compartment syndrome, and lethal triad",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Abdominal aortic aneurysm: diagnosis and management",
+            "organization": "NICE",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK556921/",
+            "supports": [
+                "ruptured abdominal aortic aneurysm diagnosis and risk stratification",
+                "ruptured abdominal aortic aneurysm is a vascular surgical emergency",
+                "unstable patients need immediate repair planning without imaging delay",
+                "controlled resuscitation, blood products, and vascular team activation are time-critical",
+                "abdominal or back pain, syncope, hypotension, shock, or pulsatile abdominal mass as red flags",
+                "known abdominal aortic aneurysm, elderly smoker, collapse, or retroperitoneal hemorrhage signs as severity markers",
+                "permissive hypotension with controlled restrictive fluid resuscitation and target systolic blood pressure",
+                "large-bore IV access, type and crossmatch, blood products, PRBCs, and massive transfusion protocol",
+                "bedside ultrasound or CTA only if stable and imaging must not delay care for an unstable patient",
+                "do not delay transfer, immediate repair, or urgent vascular intervention for unstable suspected ruptured AAA",
+                "avoid anticoagulation, antiplatelet escalation, or thrombolysis until hemorrhage and bleeding risk are addressed",
+                "shock, coagulopathy, hypothermia, renal injury, cardiac arrest, abdominal compartment syndrome, and lethal triad monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ruptured or symptomatic abdominal aortic aneurysm time-critical actions must include immediate vascular surgery"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ruptured_aaa_delay_antithrombotic_and_shock_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Ruptured abdominal aortic aneurysm"
+    case["patient_demographics"] = {
+        "age": 74,
+        "sex": "male",
+        "weight_kg": 79,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe abdominal and back pain with syncope"
+    case["history_of_present_illness"] = (
+        "Older smoker has abrupt abdominal pain radiating to the back, syncope, hypotension, "
+        "tachycardia, and a pulsatile abdominal mass concerning for ruptured abdominal aortic aneurysm."
+    )
+    case["key_teaching_points"] = [
+        "Ruptured abdominal aortic aneurysm is a vascular surgical emergency",
+        "Unstable patients need immediate repair planning without imaging delay",
+        "Controlled resuscitation, blood products, and vascular team activation are time-critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Abdominal or back pain, syncope, hypotension, shock, or pulsatile abdominal mass",
+        "Known abdominal aortic aneurysm, elderly smoker, collapse, or retroperitoneal hemorrhage signs",
+    ]
+    case["time_critical_actions"] = [
+        "Activate vascular surgery immediately for EVAR, open repair, or operative aneurysm repair planning",
+        "Use permissive hypotension with controlled restrictive fluid resuscitation and target systolic blood pressure while mental status is preserved",
+        "Place large-bore IV access, send type and crossmatch, prepare blood products, PRBCs, and massive transfusion protocol",
+        "Use bedside ultrasound or CTA only if stable and document that imaging must not delay care for an unstable patient",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before analgesia",
+        "Renal function before contrast imaging if this does not delay repair",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Abdominal aortic aneurysm: diagnosis and management",
+            "organization": "NICE",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK556921/",
+            "supports": [
+                "ruptured abdominal aortic aneurysm diagnosis and risk stratification",
+                "ruptured abdominal aortic aneurysm is a vascular surgical emergency",
+                "unstable patients need immediate repair planning without imaging delay",
+                "controlled resuscitation, blood products, and vascular team activation are time-critical",
+                "abdominal or back pain, syncope, hypotension, shock, or pulsatile abdominal mass as red flags",
+                "known abdominal aortic aneurysm, elderly smoker, collapse, or retroperitoneal hemorrhage signs as severity markers",
+                "immediate vascular surgery for EVAR, open repair, or operative aneurysm repair planning",
+                "permissive hypotension with controlled restrictive fluid resuscitation and target systolic blood pressure",
+                "large-bore IV access, type and crossmatch, blood products, PRBCs, and massive transfusion protocol",
+                "bedside ultrasound or CTA only if stable and imaging must not delay care for an unstable patient",
+                "medication allergy before analgesia",
+                "renal function before contrast imaging if this does not delay repair",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ruptured or symptomatic abdominal aortic aneurysm safety checks must include unstable-patient transfer"
         in issue
         for issue in report.critical_issues
     )

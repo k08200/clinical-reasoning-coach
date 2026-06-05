@@ -2140,6 +2140,94 @@ const NECROTIZING_SOFT_TISSUE_INFECTION_ORGAN_RISK_SAFETY_TERMS = [
   "절단",
 ];
 
+const RUPTURED_AAA_CONTEXT_TERMS = [
+  "abdominal aortic aneurysm rupture",
+  "pulsatile abdominal mass",
+  "ruptured abdominal aortic aneurysm",
+  "ruptured aaa",
+  "symptomatic abdominal aortic aneurysm",
+  "symptomatic aaa",
+  "대동맥류 파열",
+  "복부 대동맥류",
+];
+
+const RUPTURED_AAA_VASCULAR_ACTION_TERMS = [
+  "aneurysm repair",
+  "evar",
+  "open repair",
+  "operative repair",
+  "vascular surgery",
+  "vascular surgeon",
+  "혈관외과",
+  "수술",
+];
+
+const RUPTURED_AAA_HEMODYNAMIC_ACTION_TERMS = [
+  "controlled resuscitation",
+  "hypotensive resuscitation",
+  "permissive hypotension",
+  "restrictive fluid",
+  "systolic",
+  "target blood pressure",
+  "저혈압",
+];
+
+const RUPTURED_AAA_BLOOD_ACTION_TERMS = [
+  "blood product",
+  "crossmatch",
+  "large-bore",
+  "massive transfusion",
+  "packed rbc",
+  "prbc",
+  "type and cross",
+  "type and screen",
+  "수혈",
+];
+
+const RUPTURED_AAA_IMAGING_ACTION_TERMS = [
+  "bedside ultrasound",
+  "ct angiography",
+  "cta",
+  "not delay",
+  "unstable",
+  "ultrasound",
+  "초음파",
+];
+
+const RUPTURED_AAA_TRANSFER_DELAY_SAFETY_TERMS = [
+  "do not delay",
+  "door-to-intervention",
+  "immediate repair",
+  "not delay",
+  "transfer",
+  "unstable",
+  "urgent vascular",
+  "전원",
+  "지연",
+];
+
+const RUPTURED_AAA_ANTITHROMBOTIC_SAFETY_TERMS = [
+  "anticoagulation",
+  "antiplatelet",
+  "bleeding",
+  "hemorrhage",
+  "thrombolysis",
+  "출혈",
+  "항응고",
+];
+
+const RUPTURED_AAA_SHOCK_COMPLICATION_SAFETY_TERMS = [
+  "abdominal compartment",
+  "cardiac arrest",
+  "coagulopathy",
+  "hypothermia",
+  "renal",
+  "shock",
+  "triad",
+  "응고",
+  "쇼크",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -4615,6 +4703,56 @@ function hasNecrotizingSoftTissueInfectionTreatmentSafetyCheck(checks: string[])
   );
 }
 
+function requiresRupturedAaaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return RUPTURED_AAA_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasRupturedAaaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasVascularAction = RUPTURED_AAA_VASCULAR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHemodynamicAction = RUPTURED_AAA_HEMODYNAMIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodAction = RUPTURED_AAA_BLOOD_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImagingAction = RUPTURED_AAA_IMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasVascularAction && hasHemodynamicAction && hasBloodAction && hasImagingAction;
+}
+
+function hasRupturedAaaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasTransferDelaySafety = RUPTURED_AAA_TRANSFER_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntithromboticSafety = RUPTURED_AAA_ANTITHROMBOTIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasShockComplicationSafety = RUPTURED_AAA_SHOCK_COMPLICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasTransferDelaySafety && hasAntithromboticSafety && hasShockComplicationSafety;
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -5656,6 +5794,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasNecrotizingSoftTissueInfectionTreatmentSafetyCheck,
       issue:
         "necrotizing soft tissue infection safety checks must include clindamycin, linezolid, group A strep, clostridial gas gangrene, or toxin-suppression planning, repeat, second-look, 24-to-48-hour debridement or source-control reassessment, LRINEC, imaging, or diagnostic testing not delaying surgical exploration, and shock, renal injury, coagulopathy, organ failure, amputation, diabetes, or immunocompromised risk monitoring",
+    },
+    {
+      name: "ruptured_aaa_time_critical_actions",
+      label: "Ruptured AAA emergency actions",
+      applies: requiresRupturedAaaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasRupturedAaaTimeCriticalActions,
+      issue:
+        "ruptured or symptomatic abdominal aortic aneurysm time-critical actions must include immediate vascular surgery, EVAR, open repair, or operative repair escalation, permissive hypotension or controlled restrictive resuscitation planning, blood product, crossmatch, large-bore access, or massive transfusion preparation, and bedside ultrasound, CTA, or imaging-not-to-delay strategy",
+    },
+    {
+      name: "ruptured_aaa_treatment_safety",
+      label: "Ruptured AAA treatment safety",
+      applies: requiresRupturedAaaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasRupturedAaaTreatmentSafetyCheck,
+      issue:
+        "ruptured or symptomatic abdominal aortic aneurysm safety checks must include unstable-patient transfer, imaging, or repair-not-to-delay planning, bleeding, hemorrhage, anticoagulation, antiplatelet, or thrombolysis avoidance review, and shock, coagulopathy, hypothermia, renal injury, cardiac arrest, or abdominal compartment complication monitoring",
     },
     {
       name: "dka_time_critical_actions",
