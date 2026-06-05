@@ -37,6 +37,7 @@ type SeedScenarioSafetyDetail = {
 };
 
 type CaseQualityGateDetail = {
+  title: string;
   message: string;
   issues: string[];
 };
@@ -81,7 +82,7 @@ function parseCaseQualityGateDetail(value: unknown): CaseQualityGateDetail | nul
     typeof value === "object" &&
     "code" in value &&
     typeof value.code === "string" &&
-    value.code.includes("quality_gate_failed") &&
+    value.code.includes("quality_gate") &&
     "message" in value &&
     typeof value.message === "string"
   ) {
@@ -90,6 +91,10 @@ function parseCaseQualityGateDetail(value: unknown): CaseQualityGateDetail | nul
         ? value.issues.filter((issue): issue is string => typeof issue === "string")
         : [];
     return {
+      title:
+        value.code === "case_quality_gate_blocked"
+          ? "Case quality gate blocked session start"
+          : "Case quality gate blocked generation",
       message: value.message,
       issues,
     };
@@ -103,6 +108,7 @@ function parseCaseQualityGateDetail(value: unknown): CaseQualityGateDetail | nul
     .map((issue) => issue.trim())
     .filter(Boolean);
   return {
+    title: "Case quality gate blocked generation",
     message: message || "Generated case blocked by case quality gate",
     issues,
   };
@@ -208,25 +214,34 @@ export default function CasesPage() {
     const startEligibility = evaluateSessionStartEligibility(clinicalCase);
     if (startEligibility.blocked) {
       setAcknowledgingCase(null);
+      setCaseQualityGateDetail(null);
       setActionError(startEligibility.acknowledgementText);
       return;
     }
     if (!acknowledged) {
       setAcknowledgingCase(clinicalCase.id);
       setActionError("");
+      setCaseQualityGateDetail(null);
       return;
     }
 
     setStartingSession(clinicalCase.id);
     setActionError("");
+    setCaseQualityGateDetail(null);
     try {
       const session = await api.sessions.create(clinicalCase.id, {
         acknowledge_educational_simulation: true,
       }) as { id: string };
       router.push(`/sessions/${session.id}`);
     } catch (err) {
-      console.error(err);
-      setActionError(err instanceof Error ? err.message : "Could not start the session");
+      const qualityDetail = parseCaseQualityGateDetail(errorDetail(err));
+      if (qualityDetail) {
+        setCaseQualityGateDetail(qualityDetail);
+        setActionError("");
+      } else {
+        console.error(err);
+        setActionError(err instanceof Error ? err.message : "Could not start the session");
+      }
       setStartingSession(null);
     }
   }
@@ -428,7 +443,7 @@ export default function CasesPage() {
 
         {caseQualityGateDetail && (
           <div className="mb-6 rounded-lg border border-amber-700 bg-amber-950/35 px-4 py-3 text-sm text-amber-100">
-            <p className="font-semibold">Case quality gate blocked generation</p>
+            <p className="font-semibold">{caseQualityGateDetail.title}</p>
             <p className="mt-1 text-amber-200">{caseQualityGateDetail.message}</p>
             {caseQualityGateDetail.issues.length > 0 && (
               <ul className="mt-2 space-y-1">

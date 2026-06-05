@@ -209,6 +209,51 @@ describe("CasesPage", () => {
     expect(mockPush).toHaveBeenCalledWith("/sessions/session-reviewed");
   });
 
+  it("shows structured quality gate feedback when session start is blocked server-side", async () => {
+    vi.mocked(useSWR).mockReturnValue({
+      data: [
+        makeCase({
+          source_provenance: {
+            source_count: 2,
+            organizations: [
+              "American Heart Association",
+              "Society of Critical Care Medicine",
+            ],
+            review_status: "clinician_reviewed",
+            review_label: "Clinician reviewed",
+            requires_caution: false,
+            last_reviewed_at: "2026-06-02",
+            review_valid_until: "2027-06-02",
+            review_stale: false,
+            review_date_invalid: false,
+            review_content_changed: false,
+          },
+        }),
+      ],
+      error: undefined,
+      mutate: mockMutate,
+    } as unknown as ReturnType<typeof useSWR>);
+    mockCreateSession.mockRejectedValueOnce({
+      message: "Case quality gate blocks learner sessions",
+      detail: {
+        code: "case_quality_gate_blocked",
+        message: "Case quality gate blocks learner sessions",
+        issues: [
+          "clinical_sources[0].url must use a reputable clinical source domain",
+        ],
+      },
+    });
+
+    render(<CasesPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Start Session" }));
+    fireEvent.click(screen.getByRole("button", { name: "Acknowledge and Start" }));
+
+    expect(await screen.findByText("Case quality gate blocked session start")).toBeTruthy();
+    expect(screen.getByText("Case quality gate blocks learner sessions")).toBeTruthy();
+    expect(screen.getByText(/reputable clinical source domain/)).toBeTruthy();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
   it("highlights AI-generated unreviewed cases", () => {
     vi.mocked(useSWR).mockReturnValue({
       data: [
