@@ -1373,6 +1373,102 @@ const THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS = [
   "감염",
 ];
 
+const HEAT_STROKE_CONTEXT_TERMS = [
+  "classic heat stroke",
+  "exertional heat stroke",
+  "heat stroke",
+  "heatstroke",
+  "hyperthermia with altered mental status",
+  "열사병",
+];
+
+const HEAT_STROKE_CORE_TEMP_ACTION_TERMS = [
+  "core temperature",
+  "rectal temperature",
+  "temperature",
+  "thermometer",
+  "심부체온",
+  "직장체온",
+];
+
+const HEAT_STROKE_RAPID_COOLING_ACTION_TERMS = [
+  "cold water immersion",
+  "cool first",
+  "cooling",
+  "evaporative cooling",
+  "ice bath",
+  "ice water immersion",
+  "rapid cooling",
+  "whole-body cooling",
+  "냉각",
+];
+
+const HEAT_STROKE_ABC_FLUID_ACTION_TERMS = [
+  "airway",
+  "circulation",
+  "iv fluid",
+  "iv fluids",
+  "normal saline",
+  "oxygen",
+  "resuscitation",
+  "수액",
+];
+
+const HEAT_STROKE_ESCALATION_ACTION_TERMS = [
+  "critical care",
+  "ems",
+  "icu",
+  "organ failure",
+  "transfer",
+  "중환자",
+];
+
+const HEAT_STROKE_OVERCOOLING_SAFETY_TERMS = [
+  "38",
+  "39",
+  "cooling endpoint",
+  "core temperature",
+  "hypothermia",
+  "rectal temperature",
+  "stop cooling",
+  "target temperature",
+  "저체온",
+];
+
+const HEAT_STROKE_ORGAN_INJURY_SAFETY_TERMS = [
+  "aki",
+  "ck",
+  "coagulation",
+  "creatine kinase",
+  "dic",
+  "electrolyte",
+  "liver",
+  "renal",
+  "rhabdomyolysis",
+  "횡문근",
+  "신장",
+];
+
+const HEAT_STROKE_ANTIPYRETIC_SAFETY_TERMS = [
+  "acetaminophen",
+  "antipyretic",
+  "dantrolene",
+  "not recommended",
+  "nsaid",
+  "avoid",
+  "해열제",
+];
+
+const HEAT_STROKE_DIFFERENTIAL_SAFETY_TERMS = [
+  "malignant hyperthermia",
+  "meningitis",
+  "neuroleptic malignant",
+  "sepsis",
+  "serotonin syndrome",
+  "stimulant",
+  "감염",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -3407,6 +3503,64 @@ function hasThyroidStormTreatmentSafetyCheck(checks: string[]): boolean {
   return hasSequenceSafety && hasBetaBlockerSafety && hasDrugLiverSafety && hasTriggerMonitoringSafety;
 }
 
+function requiresHeatStrokeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return HEAT_STROKE_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasHeatStrokeTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCoreTemp = HEAT_STROKE_CORE_TEMP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRapidCooling = HEAT_STROKE_RAPID_COOLING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAbcFluid = HEAT_STROKE_ABC_FLUID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = HEAT_STROKE_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasCoreTemp && hasRapidCooling && hasAbcFluid && hasEscalation;
+}
+
+function hasHeatStrokeTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasOvercoolingSafety = HEAT_STROKE_OVERCOOLING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOrganInjurySafety = HEAT_STROKE_ORGAN_INJURY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntipyreticSafety = HEAT_STROKE_ANTIPYRETIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferentialSafety = HEAT_STROKE_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasOvercoolingSafety &&
+    hasOrganInjurySafety &&
+    hasAntipyreticSafety &&
+    hasDifferentialSafety
+  );
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -4304,6 +4458,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasThyroidStormTreatmentSafetyCheck,
       issue:
         "thyroid storm safety checks must include iodine-after-thionamide sequencing, beta-blocker contraindication review, thionamide pregnancy, liver, or agranulocytosis safety, and precipitant, arrhythmia, or ICU monitoring",
+    },
+    {
+      name: "heat_stroke_time_critical_actions",
+      label: "Heat stroke emergency actions",
+      applies: requiresHeatStrokeSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasHeatStrokeTimeCriticalActions,
+      issue:
+        "heat stroke time-critical actions must include core or rectal temperature confirmation, immediate rapid whole-body cooling, airway, oxygen, circulation, or IV-fluid resuscitation, and EMS, ICU, transfer, or organ-failure escalation",
+    },
+    {
+      name: "heat_stroke_treatment_safety",
+      label: "Heat stroke treatment safety",
+      applies: requiresHeatStrokeSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasHeatStrokeTreatmentSafetyCheck,
+      issue:
+        "heat stroke safety checks must include cooling endpoint or overcooling prevention, rhabdomyolysis, renal, liver, electrolyte, or coagulation monitoring, avoidance of antipyretic-centered management, and sepsis, malignant hyperthermia, serotonin syndrome, or other dangerous hyperthermia differential review",
     },
     {
       name: "dka_time_critical_actions",

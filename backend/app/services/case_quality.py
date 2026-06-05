@@ -1294,6 +1294,93 @@ THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS = (
     "trigger",
     "감염",
 )
+HEAT_STROKE_CONTEXT_TERMS = (
+    "classic heat stroke",
+    "exertional heat stroke",
+    "heat stroke",
+    "heatstroke",
+    "hyperthermia with altered mental status",
+    "열사병",
+)
+HEAT_STROKE_CORE_TEMP_ACTION_TERMS = (
+    "core temperature",
+    "rectal temperature",
+    "temperature",
+    "thermometer",
+    "심부체온",
+    "직장체온",
+)
+HEAT_STROKE_RAPID_COOLING_ACTION_TERMS = (
+    "cold water immersion",
+    "cool first",
+    "cooling",
+    "evaporative cooling",
+    "ice bath",
+    "ice water immersion",
+    "rapid cooling",
+    "whole-body cooling",
+    "냉각",
+)
+HEAT_STROKE_ABC_FLUID_ACTION_TERMS = (
+    "airway",
+    "circulation",
+    "iv fluid",
+    "iv fluids",
+    "normal saline",
+    "oxygen",
+    "resuscitation",
+    "수액",
+)
+HEAT_STROKE_ESCALATION_ACTION_TERMS = (
+    "critical care",
+    "ems",
+    "icu",
+    "organ failure",
+    "transfer",
+    "중환자",
+)
+HEAT_STROKE_OVERCOOLING_SAFETY_TERMS = (
+    "38",
+    "39",
+    "cooling endpoint",
+    "core temperature",
+    "hypothermia",
+    "rectal temperature",
+    "stop cooling",
+    "target temperature",
+    "저체온",
+)
+HEAT_STROKE_ORGAN_INJURY_SAFETY_TERMS = (
+    "aki",
+    "ck",
+    "coagulation",
+    "creatine kinase",
+    "dic",
+    "electrolyte",
+    "liver",
+    "renal",
+    "rhabdomyolysis",
+    "횡문근",
+    "신장",
+)
+HEAT_STROKE_ANTIPYRETIC_SAFETY_TERMS = (
+    "acetaminophen",
+    "antipyretic",
+    "dantrolene",
+    "not recommended",
+    "nsaid",
+    "avoid",
+    "해열제",
+)
+HEAT_STROKE_DIFFERENTIAL_SAFETY_TERMS = (
+    "malignant hyperthermia",
+    "meningitis",
+    "neuroleptic malignant",
+    "sepsis",
+    "serotonin syndrome",
+    "stimulant",
+    "감염",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -3072,6 +3159,31 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="heat_stroke_time_critical_actions",
+            applies=_requires_heat_stroke_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_heat_stroke_time_critical_actions,
+            issue=(
+                "heat stroke time-critical actions must include core or rectal "
+                "temperature confirmation, immediate rapid whole-body cooling, "
+                "airway, oxygen, circulation, or IV-fluid resuscitation, and EMS, "
+                "ICU, transfer, or organ-failure escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="heat_stroke_treatment_safety",
+            applies=_requires_heat_stroke_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_heat_stroke_treatment_safety_check,
+            issue=(
+                "heat stroke safety checks must include cooling endpoint or "
+                "overcooling prevention, rhabdomyolysis, renal, liver, electrolyte, "
+                "or coagulation monitoring, avoidance of antipyretic-centered "
+                "management, and sepsis, malignant hyperthermia, serotonin syndrome, "
+                "or other dangerous hyperthermia differential review"
+            ),
+        ),
+        DomainSafetyGate(
             name="dka_time_critical_actions",
             applies=_requires_dka_treatment_safety_check,
             field_name="time_critical_actions",
@@ -4130,6 +4242,80 @@ def _has_thyroid_storm_treatment_safety_check(checks: list[Any]) -> bool:
         and has_beta_blocker_safety
         and has_drug_liver_safety
         and has_trigger_monitoring_safety
+    )
+
+
+def _requires_heat_stroke_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in HEAT_STROKE_CONTEXT_TERMS
+    )
+
+
+def _has_heat_stroke_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_core_temp = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HEAT_STROKE_CORE_TEMP_ACTION_TERMS
+    )
+    has_rapid_cooling = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HEAT_STROKE_RAPID_COOLING_ACTION_TERMS
+    )
+    has_abc_fluid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HEAT_STROKE_ABC_FLUID_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HEAT_STROKE_ESCALATION_ACTION_TERMS
+    )
+    return has_core_temp and has_rapid_cooling and has_abc_fluid and has_escalation
+
+
+def _has_heat_stroke_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_overcooling_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HEAT_STROKE_OVERCOOLING_SAFETY_TERMS
+    )
+    has_organ_injury_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HEAT_STROKE_ORGAN_INJURY_SAFETY_TERMS
+    )
+    has_antipyretic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HEAT_STROKE_ANTIPYRETIC_SAFETY_TERMS
+    )
+    has_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HEAT_STROKE_DIFFERENTIAL_SAFETY_TERMS
+    )
+    return (
+        has_overcooling_safety
+        and has_organ_injury_safety
+        and has_antipyretic_safety
+        and has_differential_safety
     )
 
 

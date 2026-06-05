@@ -65,6 +65,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "malignant_hyperthermia_treatment_safety",
         "thyroid_storm_time_critical_actions",
         "thyroid_storm_treatment_safety",
+        "heat_stroke_time_critical_actions",
+        "heat_stroke_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
@@ -1370,6 +1372,137 @@ def test_quality_gate_requires_thyroid_storm_iodine_sequence_beta_blocker_drug_a
     assert not report.passed
     assert any(
         "thyroid storm safety checks must include iodine-after-thionamide" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_heat_stroke_core_temp_rapid_cooling_resuscitation_and_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Exertional heat stroke"
+    case["patient_demographics"] = {
+        "age": 19,
+        "sex": "male",
+        "weight_kg": 74,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Collapse with confusion during summer training"
+    case["history_of_present_illness"] = (
+        "Athlete collapses during hot-weather training with altered mental status, "
+        "seizure-like activity, hot skin, tachycardia, and suspected core temperature above 40 C."
+    )
+    case["key_teaching_points"] = [
+        "Heat stroke is hyperthermia with central nervous system dysfunction",
+        "Rapid whole-body cooling is the time-critical intervention",
+        "Exertional heat stroke can cause rhabdomyolysis, AKI, liver injury, DIC, and death",
+    ]
+    case["clinical_red_flags"] = [
+        "Altered mental status, seizure, coma, or collapse during heat exposure",
+        "Core temperature above 40 C with hypotension, anhidrosis or sweating, or organ injury signs",
+    ]
+    case["time_critical_actions"] = [
+        "Measure rectal temperature or core temperature immediately and monitor with a thermometer",
+        "Support airway, oxygen, circulation, and IV fluids with normal saline resuscitation",
+        "Activate EMS, critical care transfer, ICU escalation, and organ failure monitoring",
+    ]
+    case["contraindication_checks"] = [
+        "Track rectal temperature and stop cooling at target temperature 38 to 39 C to prevent hypothermia or overcooling",
+        "Monitor CK creatine kinase, rhabdomyolysis, AKI, renal function, liver injury, electrolytes, coagulation, and DIC",
+        "Avoid antipyretic-centered management because acetaminophen, NSAID, and dantrolene are not recommended for heat stroke",
+        "Review dangerous hyperthermia differentials including sepsis, meningitis, malignant hyperthermia, serotonin syndrome, neuroleptic malignant syndrome, and stimulant toxicity",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Heatstroke",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/heat-illness/heatstroke",
+            "supports": [
+                "exertional heat stroke diagnosis and risk stratification",
+                "heat stroke is hyperthermia with central nervous system dysfunction",
+                "rapid whole-body cooling is the time-critical intervention",
+                "exertional heat stroke can cause rhabdomyolysis, AKI, liver injury, DIC, and death",
+                "altered mental status, seizure, coma, or collapse during heat exposure as red flags",
+                "core temperature above 40 C with hypotension, anhidrosis or sweating, or organ injury signs as severity markers",
+                "rectal temperature or core temperature immediately and thermometer monitoring",
+                "airway, oxygen, circulation, and IV fluids with normal saline resuscitation",
+                "EMS, critical care transfer, ICU escalation, and organ failure monitoring",
+                "rectal temperature and stop cooling at target temperature 38 to 39 C to prevent hypothermia or overcooling",
+                "CK creatine kinase, rhabdomyolysis, AKI, renal function, liver injury, electrolytes, coagulation, and DIC monitoring",
+                "avoid antipyretic-centered management because acetaminophen, NSAID, and dantrolene are not recommended for heat stroke",
+                "sepsis, meningitis, malignant hyperthermia, serotonin syndrome, neuroleptic malignant syndrome, and stimulant toxicity dangerous hyperthermia differentials",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "heat stroke time-critical actions must include core or rectal temperature"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_heat_stroke_endpoint_organ_injury_antipyretic_and_differential_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Exertional heat stroke"
+    case["patient_demographics"] = {
+        "age": 19,
+        "sex": "male",
+        "weight_kg": 74,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Collapse with confusion during summer training"
+    case["history_of_present_illness"] = (
+        "Athlete collapses during hot-weather training with altered mental status, "
+        "seizure-like activity, hot skin, tachycardia, and suspected core temperature above 40 C."
+    )
+    case["key_teaching_points"] = [
+        "Heat stroke is hyperthermia with central nervous system dysfunction",
+        "Rapid whole-body cooling is the time-critical intervention",
+        "Exertional heat stroke can cause rhabdomyolysis, AKI, liver injury, DIC, and death",
+    ]
+    case["clinical_red_flags"] = [
+        "Altered mental status, seizure, coma, or collapse during heat exposure",
+        "Core temperature above 40 C with hypotension, anhidrosis or sweating, or organ injury signs",
+    ]
+    case["time_critical_actions"] = [
+        "Measure rectal temperature or core temperature immediately and monitor with a thermometer",
+        "Start immediate rapid cooling with cold water immersion, ice bath, evaporative cooling, or whole-body cooling",
+        "Support airway, oxygen, circulation, and IV fluids with normal saline resuscitation",
+        "Activate EMS, critical care transfer, ICU escalation, and organ failure monitoring",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Heatstroke",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/heat-illness/heatstroke",
+            "supports": [
+                "exertional heat stroke diagnosis and risk stratification",
+                "heat stroke is hyperthermia with central nervous system dysfunction",
+                "rapid whole-body cooling is the time-critical intervention",
+                "exertional heat stroke can cause rhabdomyolysis, AKI, liver injury, DIC, and death",
+                "altered mental status, seizure, coma, or collapse during heat exposure as red flags",
+                "core temperature above 40 C with hypotension, anhidrosis or sweating, or organ injury signs as severity markers",
+                "rectal temperature or core temperature immediately and thermometer monitoring",
+                "rapid cooling with cold water immersion, ice bath, evaporative cooling, or whole-body cooling",
+                "airway, oxygen, circulation, and IV fluids with normal saline resuscitation",
+                "EMS, critical care transfer, ICU escalation, and organ failure monitoring",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "heat stroke safety checks must include cooling endpoint" in issue
         for issue in report.critical_issues
     )
 
