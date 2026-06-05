@@ -250,6 +250,26 @@ def _safe_reasoning_map_list(value: Any, *, limit: int = 8) -> list[str]:
     ]
 
 
+def _safe_analysis_feedback_text(value: Any) -> str:
+    if not isinstance(value, str):
+        return ""
+    text = value.strip()
+    if not text or review_feedback_safety_violations(text):
+        return ""
+    return text
+
+
+def _safe_analysis_feedback_list(value: Any, *, limit: int = 8) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    feedback: list[str] = []
+    for item in value[:limit]:
+        safe_text = _safe_analysis_feedback_text(item)
+        if safe_text:
+            feedback.append(safe_text)
+    return feedback
+
+
 def _list_of_dicts(value: Any, *, limit: int = 100) -> list[dict[str, Any]]:
     if not isinstance(value, list):
         return []
@@ -346,13 +366,12 @@ def _sanitize_analysis_payload(raw: dict[str, Any]) -> dict[str, Any]:
         raw.get("score_breakdown"),
         raw.get("reasoning_score"),
     )
-    coach_insight = raw.get("coach_insight")
     return {
         "reasoning_score": score,
         "score_breakdown": breakdown,
         "biases_detected": _sanitize_biases(raw.get("biases_detected")),
         "reasoning_node": _sanitize_reasoning_node(raw.get("reasoning_node")),
-        "coach_insight": coach_insight.strip() if isinstance(coach_insight, str) else "",
-        "student_strengths": _list_of_strings(raw.get("student_strengths")),
-        "student_gaps": _list_of_strings(raw.get("student_gaps")),
+        "coach_insight": _safe_analysis_feedback_text(raw.get("coach_insight")),
+        "student_strengths": _safe_analysis_feedback_list(raw.get("student_strengths")),
+        "student_gaps": _safe_analysis_feedback_list(raw.get("student_gaps")),
     }

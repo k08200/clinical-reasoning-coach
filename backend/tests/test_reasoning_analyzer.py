@@ -175,6 +175,45 @@ def test_sanitize_analysis_payload_does_not_infer_missing_breakdown_from_score()
     assert result["reasoning_node"]["reasoning_quality"] == "systematic"
 
 
+def test_sanitize_analysis_payload_removes_unsafe_stored_feedback():
+    result = _sanitize_analysis_payload({
+        "score_breakdown": {
+            "systematic_approach": 20,
+            "evidence_integration": 20,
+            "prioritization": 20,
+            "mechanism_understanding": 20,
+        },
+        "biases_detected": [],
+        "reasoning_node": {
+            "hypothesis": "Keep a broad differential",
+            "supporting_evidence": ["serial ECG reasoning"],
+            "missing_evidence": ["You should give aspirin now."],
+            "reasoning_quality": "systematic",
+        },
+        "coach_insight": "Start heparin now after the ECG.",
+        "student_strengths": [
+            "Prioritized dangerous alternatives before narrowing.",
+            "Aspirin is indicated immediately.",
+        ],
+        "student_gaps": [
+            "Needs clearer safety checks before management.",
+            "Heparin can be 60 units/kg.",
+            "The patient can go home with outpatient follow-up.",
+        ],
+    })
+
+    assert result["coach_insight"] == ""
+    assert result["student_strengths"] == [
+        "Prioritized dangerous alternatives before narrowing."
+    ]
+    assert result["student_gaps"] == [
+        "Needs clearer safety checks before management."
+    ]
+    assert result["reasoning_node"]["missing_evidence"] == [
+        "Reasoning detail withheld because it resembled actionable medical advice."
+    ]
+
+
 def test_build_reasoning_map_first_turn():
     node = {
         "hypothesis": "MI",
