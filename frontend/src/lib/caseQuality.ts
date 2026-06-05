@@ -3163,6 +3163,102 @@ const ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS = [
   "호흡부전",
 ];
 
+const CARDIAC_TAMPONADE_CONTEXT_TERMS = [
+  "beck triad",
+  "beck's triad",
+  "cardiac tamponade",
+  "pericardial tamponade",
+  "pericardial effusion with shock",
+  "pulsus paradoxus",
+  "tamponade physiology",
+  "심장눌림증",
+  "심낭압전",
+];
+
+const CARDIAC_TAMPONADE_ECHO_ACTION_TERMS = [
+  "bedside echo",
+  "bedside ultrasound",
+  "cardiac pocus",
+  "echocardiography",
+  "echo",
+  "pocus",
+  "ultrasound",
+  "심초음파",
+  "초음파",
+];
+
+const CARDIAC_TAMPONADE_DRAINAGE_ACTION_TERMS = [
+  "pericardiocentesis",
+  "pericardial drainage",
+  "pericardial window",
+  "pericardiotomy",
+  "subxiphoid",
+  "심낭천자",
+  "심낭 배액",
+];
+
+const CARDIAC_TAMPONADE_SPECIALIST_ACTION_TERMS = [
+  "cardiology",
+  "cardiothoracic",
+  "ct surgery",
+  "emergency surgery",
+  "trauma surgery",
+  "thoracic surgery",
+  "흉부외과",
+  "심장내과",
+];
+
+const CARDIAC_TAMPONADE_HEMODYNAMIC_ACTION_TERMS = [
+  "blood pressure",
+  "fluid bolus",
+  "hemodynamic",
+  "hypotension",
+  "pressor",
+  "shock",
+  "vasopressor",
+  "수액",
+  "쇼크",
+  "혈압",
+];
+
+const CARDIAC_TAMPONADE_NO_DELAY_SAFETY_TERMS = [
+  "clinical diagnosis",
+  "do not delay",
+  "do not wait",
+  "immediate drainage",
+  "unstable",
+  "urgent drainage",
+  "지연",
+];
+
+const CARDIAC_TAMPONADE_ANTICOAG_REVERSAL_SAFETY_TERMS = [
+  "anticoagulant",
+  "anticoagulation",
+  "bleeding",
+  "coagulopathy",
+  "doac",
+  "inr",
+  "platelet",
+  "reversal",
+  "thrombolysis",
+  "warfarin",
+  "출혈",
+  "항응고",
+];
+
+const CARDIAC_TAMPONADE_CAUSE_COMPLICATION_SAFETY_TERMS = [
+  "aortic dissection",
+  "iatrogenic",
+  "malignancy",
+  "myocardial infarction",
+  "myocardial rupture",
+  "renal failure",
+  "trauma",
+  "uremia",
+  "감별",
+  "외상",
+];
+
 const TENSION_PNEUMOTHORAX_CONTEXT_TERMS = [
   "tension pneumothorax",
   "tension physiology",
@@ -5356,6 +5452,54 @@ function hasAcuteHeartFailureTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresCardiacTamponadeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return CARDIAC_TAMPONADE_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasCardiacTamponadeTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasEchoAction = CARDIAC_TAMPONADE_ECHO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDrainageAction = CARDIAC_TAMPONADE_DRAINAGE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSpecialistAction = CARDIAC_TAMPONADE_SPECIALIST_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHemodynamicAction = CARDIAC_TAMPONADE_HEMODYNAMIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasEchoAction && hasDrainageAction && hasSpecialistAction && hasHemodynamicAction;
+}
+
+function hasCardiacTamponadeTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNoDelaySafety = CARDIAC_TAMPONADE_NO_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAnticoagReversalSafety = CARDIAC_TAMPONADE_ANTICOAG_REVERSAL_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCauseComplicationSafety = CARDIAC_TAMPONADE_CAUSE_COMPLICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasNoDelaySafety && hasAnticoagReversalSafety && hasCauseComplicationSafety;
+}
+
 function requiresTensionPneumothoraxSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -6139,6 +6283,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAcuteHeartFailureTreatmentSafetyCheck,
       issue:
         "acute heart failure safety checks must include blood pressure or vasodilator contraindication review, renal and electrolyte monitoring during diuresis, trigger or cardiopulmonary differential review, and shock or respiratory-failure monitoring",
+    },
+    {
+      name: "cardiac_tamponade_time_critical_actions",
+      label: "Cardiac tamponade drainage actions",
+      applies: requiresCardiacTamponadeSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasCardiacTamponadeTimeCriticalActions,
+      issue:
+        "cardiac tamponade time-critical actions must include bedside echo, cardiac POCUS, or ultrasound assessment, immediate pericardiocentesis, pericardial drainage, pericardial window, or pericardiotomy planning, cardiology, cardiothoracic, thoracic, trauma, or emergency surgery escalation, and hemodynamic support with fluids, blood pressure, vasopressor, hypotension, or shock management",
+    },
+    {
+      name: "cardiac_tamponade_treatment_safety",
+      label: "Cardiac tamponade treatment safety",
+      applies: requiresCardiacTamponadeSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasCardiacTamponadeTreatmentSafetyCheck,
+      issue:
+        "cardiac tamponade safety checks must include unstable-patient do-not-delay or immediate-drainage planning, anticoagulant, thrombolysis, bleeding, coagulopathy, INR, platelet, or reversal review, and trauma, iatrogenic injury, myocardial infarction or rupture, aortic dissection, malignancy, uremia, or renal failure cause assessment",
     },
     {
       name: "tension_pneumothorax_time_critical_actions",
