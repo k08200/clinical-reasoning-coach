@@ -61,6 +61,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "neutropenic_fever_treatment_safety",
         "severe_hypoglycemia_time_critical_actions",
         "severe_hypoglycemia_treatment_safety",
+        "malignant_hyperthermia_time_critical_actions",
+        "malignant_hyperthermia_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
@@ -1105,6 +1107,137 @@ def test_quality_gate_requires_severe_hypoglycemia_airway_recurrence_cause_and_p
     assert not report.passed
     assert any(
         "severe hypoglycemia safety checks must include airway" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_malignant_hyperthermia_trigger_stop_dantrolene_cooling_and_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Malignant hyperthermia crisis during anesthesia"
+    case["patient_demographics"] = {
+        "age": 24,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Rapid hyperthermia and rigidity during anesthesia"
+    case["history_of_present_illness"] = (
+        "Patient under volatile anesthetic after succinylcholine develops rapidly rising "
+        "ETCO2, tachycardia, masseter rigidity, acidosis, hyperkalemia, and fever."
+    )
+    case["key_teaching_points"] = [
+        "Malignant hyperthermia is a life-threatening anesthesia emergency",
+        "Triggering volatile anesthetics and succinylcholine must be stopped immediately",
+        "Dantrolene plus active cooling and metabolic complication treatment are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Rapidly rising ETCO2 with tachycardia and masseter or generalized rigidity",
+        "Hyperthermia with acidosis, hyperkalemia, cola-colored urine, or rhabdomyolysis",
+    ]
+    case["time_critical_actions"] = [
+        "Stop triggering volatile agent and succinylcholine, halt procedure if possible, and ventilate with 100% oxygen using non-triggering anesthesia",
+        "Start active cooling with ice, cold saline, and temperature monitoring",
+        "Call for help, bring the MH cart, contact the malignant hyperthermia hotline, prepare ICU transfer, and monitor urine output",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor blood gas acidosis, potassium hyperkalemia, ECG arrhythmia, creatine kinase, calcium treatment need, and rhabdomyolysis",
+        "Track core temperature, ETCO2 end-tidal CO2, myoglobinuria, urine output, and vital signs",
+        "Review dantrolene dose, repeat dose need, weakness, recrudescence, and calcium channel blocker interaction risk",
+        "Document family history, RYR1 genetic susceptibility, medical alert need, and future trigger-free non-triggering anesthesia planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Malignant Hyperthermia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/heat-illness/malignant-hyperthermia",
+            "supports": [
+                "malignant hyperthermia crisis during anesthesia diagnosis and risk stratification",
+                "malignant hyperthermia is a life-threatening anesthesia emergency",
+                "triggering volatile anesthetics and succinylcholine must be stopped immediately",
+                "dantrolene plus active cooling and metabolic complication treatment are time critical",
+                "rapidly rising ETCO2 with tachycardia and masseter or generalized rigidity as red flags",
+                "hyperthermia with acidosis, hyperkalemia, cola-colored urine, or rhabdomyolysis as severity markers",
+                "stop triggering volatile agent and succinylcholine, halt procedure if possible, and ventilate with 100% oxygen using non-triggering anesthesia",
+                "active cooling with ice, cold saline, and temperature monitoring",
+                "call for help, MH cart, malignant hyperthermia hotline, ICU transfer, and urine output monitoring",
+                "blood gas acidosis, potassium hyperkalemia, ECG arrhythmia, creatine kinase, calcium treatment need, and rhabdomyolysis monitoring",
+                "core temperature, ETCO2 end-tidal CO2, myoglobinuria, urine output, and vital signs tracking",
+                "dantrolene dose, repeat dose need, weakness, recrudescence, and calcium channel blocker interaction risk",
+                "family history, RYR1 genetic susceptibility, medical alert need, and future trigger-free non-triggering anesthesia planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "malignant hyperthermia time-critical actions must include stopping triggering"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_malignant_hyperthermia_metabolic_monitoring_dantrolene_and_trigger_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Malignant hyperthermia crisis during anesthesia"
+    case["patient_demographics"] = {
+        "age": 24,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Rapid hyperthermia and rigidity during anesthesia"
+    case["history_of_present_illness"] = (
+        "Patient under volatile anesthetic after succinylcholine develops rapidly rising "
+        "ETCO2, tachycardia, masseter rigidity, acidosis, hyperkalemia, and fever."
+    )
+    case["key_teaching_points"] = [
+        "Malignant hyperthermia is a life-threatening anesthesia emergency",
+        "Triggering volatile anesthetics and succinylcholine must be stopped immediately",
+        "Dantrolene plus active cooling and metabolic complication treatment are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Rapidly rising ETCO2 with tachycardia and masseter or generalized rigidity",
+        "Hyperthermia with acidosis, hyperkalemia, cola-colored urine, or rhabdomyolysis",
+    ]
+    case["time_critical_actions"] = [
+        "Stop triggering volatile agent and succinylcholine, halt procedure if possible, and ventilate with 100% oxygen using non-triggering anesthesia",
+        "Give immediate dantrolene from the MH cart",
+        "Start active cooling with ice, cold saline, and temperature monitoring",
+        "Call for help, bring the MH cart, contact the malignant hyperthermia hotline, prepare ICU transfer, and monitor urine output",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Malignant Hyperthermia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/heat-illness/malignant-hyperthermia",
+            "supports": [
+                "malignant hyperthermia crisis during anesthesia diagnosis and risk stratification",
+                "malignant hyperthermia is a life-threatening anesthesia emergency",
+                "triggering volatile anesthetics and succinylcholine must be stopped immediately",
+                "dantrolene plus active cooling and metabolic complication treatment are time critical",
+                "rapidly rising ETCO2 with tachycardia and masseter or generalized rigidity as red flags",
+                "hyperthermia with acidosis, hyperkalemia, cola-colored urine, or rhabdomyolysis as severity markers",
+                "stop triggering volatile agent and succinylcholine, halt procedure if possible, and ventilate with 100% oxygen using non-triggering anesthesia",
+                "immediate dantrolene from the MH cart",
+                "active cooling with ice, cold saline, and temperature monitoring",
+                "call for help, MH cart, malignant hyperthermia hotline, ICU transfer, and urine output monitoring",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "malignant hyperthermia safety checks must include hyperkalemia" in issue
         for issue in report.critical_issues
     )
 

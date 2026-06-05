@@ -1541,5 +1541,65 @@
         }
       ]
     }
+  },
+  {
+    "name": "malignant_hyperthermia_requires_trigger_stop_dantrolene_cooling_and_escalation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "malignant hyperthermia time-critical actions must include stopping triggering"
+    ],
+    "overrides": {
+      "diagnosis": "Malignant hyperthermia crisis during anesthesia",
+      "patient_demographics": {
+        "age": 24,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Rapid hyperthermia and rigidity during anesthesia",
+      "history_of_present_illness": "Patient under volatile anesthetic after succinylcholine develops rapidly rising ETCO2, tachycardia, masseter rigidity, acidosis, hyperkalemia, and fever.",
+      "key_teaching_points": [
+        "Malignant hyperthermia is a life-threatening anesthesia emergency",
+        "Triggering volatile anesthetics and succinylcholine must be stopped immediately",
+        "Dantrolene plus active cooling and metabolic complication treatment are time critical"
+      ],
+      "clinical_red_flags": [
+        "Rapidly rising ETCO2 with tachycardia and masseter or generalized rigidity",
+        "Hyperthermia with acidosis, hyperkalemia, cola-colored urine, or rhabdomyolysis"
+      ],
+      "time_critical_actions": [
+        "Stop triggering volatile agent and succinylcholine, halt procedure if possible, and ventilate with 100% oxygen using non-triggering anesthesia",
+        "Start active cooling with ice, cold saline, and temperature monitoring",
+        "Call for help, bring the MH cart, contact the malignant hyperthermia hotline, prepare ICU transfer, and monitor urine output"
+      ],
+      "contraindication_checks": [
+        "Monitor blood gas acidosis, potassium hyperkalemia, ECG arrhythmia, creatine kinase, calcium treatment need, and rhabdomyolysis",
+        "Track core temperature, ETCO2 end-tidal CO2, myoglobinuria, urine output, and vital signs",
+        "Review dantrolene dose, repeat dose need, weakness, recrudescence, and calcium channel blocker interaction risk",
+        "Document family history, RYR1 genetic susceptibility, medical alert need, and future trigger-free non-triggering anesthesia planning"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Malignant Hyperthermia",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/injuries-poisoning/heat-illness/malignant-hyperthermia",
+          "supports": [
+            "malignant hyperthermia crisis during anesthesia diagnosis and risk stratification",
+            "malignant hyperthermia is a life-threatening anesthesia emergency",
+            "triggering volatile anesthetics and succinylcholine must be stopped immediately",
+            "dantrolene plus active cooling and metabolic complication treatment are time critical",
+            "rapidly rising ETCO2 with tachycardia and masseter or generalized rigidity as red flags",
+            "hyperthermia with acidosis, hyperkalemia, cola-colored urine, or rhabdomyolysis as severity markers",
+            "stop triggering volatile agent and succinylcholine, halt procedure if possible, and ventilate with 100% oxygen using non-triggering anesthesia",
+            "active cooling with ice, cold saline, and temperature monitoring",
+            "call for help, MH cart, malignant hyperthermia hotline, ICU transfer, and urine output monitoring",
+            "blood gas acidosis, potassium hyperkalemia, ECG arrhythmia, creatine kinase, calcium treatment need, and rhabdomyolysis monitoring",
+            "core temperature, ETCO2 end-tidal CO2, myoglobinuria, urine output, and vital signs tracking",
+            "dantrolene dose, repeat dose need, weakness, recrudescence, and calcium channel blocker interaction risk",
+            "family history, RYR1 genetic susceptibility, medical alert need, and future trigger-free non-triggering anesthesia planning"
+          ]
+        }
+      ]
+    }
   }
 ]

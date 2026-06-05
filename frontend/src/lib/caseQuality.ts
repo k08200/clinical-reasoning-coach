@@ -1177,6 +1177,103 @@ const SEVERE_HYPOGLYCEMIA_DISCHARGE_PREVENTION_SAFETY_TERMS = [
   "교육",
 ];
 
+const MALIGNANT_HYPERTHERMIA_CONTEXT_TERMS = [
+  "malignant hyperthermia",
+  "mh crisis",
+  "malignant hyperthermia crisis",
+  "anesthesia hyperthermia",
+  "succinylcholine hyperthermia",
+  "volatile anesthetic hyperthermia",
+  "악성고열",
+  "악성 고열",
+];
+
+const MALIGNANT_HYPERTHERMIA_TRIGGER_STOP_ACTION_TERMS = [
+  "discontinue volatile",
+  "halt procedure",
+  "non-triggering",
+  "stop succinylcholine",
+  "stop triggering",
+  "triggering agent",
+  "volatile agent",
+  "100% oxygen",
+  "산소",
+];
+
+const MALIGNANT_HYPERTHERMIA_DANTROLENE_ACTION_TERMS = [
+  "dantrium",
+  "dantrolene",
+  "revonto",
+  "ryanodex",
+  "단트롤렌",
+];
+
+const MALIGNANT_HYPERTHERMIA_COOLING_ACTION_TERMS = [
+  "active cooling",
+  "cold saline",
+  "cool",
+  "cooling",
+  "ice",
+  "temperature",
+  "냉각",
+];
+
+const MALIGNANT_HYPERTHERMIA_ESCALATION_ACTION_TERMS = [
+  "call for help",
+  "hotline",
+  "icu",
+  "intensive care",
+  "mh cart",
+  "mhaus",
+  "urine output",
+  "중환자",
+];
+
+const MALIGNANT_HYPERTHERMIA_METABOLIC_SAFETY_TERMS = [
+  "acidosis",
+  "arrhythmia",
+  "blood gas",
+  "calcium",
+  "ck",
+  "creatine kinase",
+  "hyperkalemia",
+  "potassium",
+  "rhabdomyolysis",
+  "횡문근",
+  "칼륨",
+];
+
+const MALIGNANT_HYPERTHERMIA_MONITORING_SAFETY_TERMS = [
+  "core temperature",
+  "etco2",
+  "end-tidal",
+  "myoglobin",
+  "urine output",
+  "vital signs",
+  "소변",
+];
+
+const MALIGNANT_HYPERTHERMIA_DANTROLENE_SAFETY_TERMS = [
+  "calcium channel blocker",
+  "dantrolene",
+  "dose",
+  "recrudescence",
+  "repeat dose",
+  "weakness",
+  "단트롤렌",
+];
+
+const MALIGNANT_HYPERTHERMIA_TRIGGER_PREVENTION_SAFETY_TERMS = [
+  "family history",
+  "genetic",
+  "medical alert",
+  "non-triggering anesthesia",
+  "ryr1",
+  "susceptible",
+  "trigger-free",
+  "유전",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -3103,6 +3200,61 @@ function hasSevereHypoglycemiaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresMalignantHyperthermiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return MALIGNANT_HYPERTHERMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasMalignantHyperthermiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasTriggerStop = MALIGNANT_HYPERTHERMIA_TRIGGER_STOP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDantrolene = MALIGNANT_HYPERTHERMIA_DANTROLENE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCooling = MALIGNANT_HYPERTHERMIA_COOLING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = MALIGNANT_HYPERTHERMIA_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasTriggerStop && hasDantrolene && hasCooling && hasEscalation;
+}
+
+function hasMalignantHyperthermiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasMetabolicSafety = MALIGNANT_HYPERTHERMIA_METABOLIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMonitoringSafety = MALIGNANT_HYPERTHERMIA_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDantroleneSafety = MALIGNANT_HYPERTHERMIA_DANTROLENE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTriggerPreventionSafety = MALIGNANT_HYPERTHERMIA_TRIGGER_PREVENTION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasMetabolicSafety && hasMonitoringSafety && hasDantroleneSafety && hasTriggerPreventionSafety;
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -3964,6 +4116,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSevereHypoglycemiaTreatmentSafetyCheck,
       issue:
         "severe hypoglycemia safety checks must include airway or swallow route safety, recurrent hypoglycemia risk from sulfonylurea or long-acting insulin with octreotide or observation planning, renal, hepatic, alcohol, sepsis, or adrenal cause review, and discharge prevention such as education, dose adjustment, meal access, or glucagon planning",
+    },
+    {
+      name: "malignant_hyperthermia_time_critical_actions",
+      label: "Malignant hyperthermia emergency actions",
+      applies: requiresMalignantHyperthermiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasMalignantHyperthermiaTimeCriticalActions,
+      issue:
+        "malignant hyperthermia time-critical actions must include stopping triggering anesthetics or succinylcholine with high-flow oxygen or non-triggering anesthesia, immediate dantrolene, active cooling, and MH cart, hotline, ICU, or urine-output escalation",
+    },
+    {
+      name: "malignant_hyperthermia_treatment_safety",
+      label: "Malignant hyperthermia treatment safety",
+      applies: requiresMalignantHyperthermiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasMalignantHyperthermiaTreatmentSafetyCheck,
+      issue:
+        "malignant hyperthermia safety checks must include hyperkalemia, acidosis, arrhythmia, or rhabdomyolysis monitoring, core temperature or ETCO2 and urine-output monitoring, dantrolene repeat-dose or interaction safety, and trigger-free anesthesia or susceptibility prevention planning",
     },
     {
       name: "dka_time_critical_actions",
