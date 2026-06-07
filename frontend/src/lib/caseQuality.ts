@@ -1989,6 +1989,136 @@ const OPEN_GLOBE_ENDOPHTHALMITIS_FOLLOWUP_SAFETY_TERMS = [
   "안내염",
 ];
 
+const ENDOPHTHALMITIS_DIRECT_CONTEXT_TERMS = [
+  "acute endophthalmitis",
+  "bacterial endophthalmitis",
+  "endogenous endophthalmitis",
+  "endophthalmitis",
+  "exogenous endophthalmitis",
+  "post-cataract endophthalmitis",
+  "post-injection endophthalmitis",
+  "postoperative endophthalmitis",
+  "안내염",
+];
+
+const ENDOPHTHALMITIS_RISK_CONTEXT_TERMS = [
+  "anti-vegf injection",
+  "cataract surgery",
+  "eye surgery",
+  "intravitreal injection",
+  "ocular surgery",
+  "penetrating trauma",
+  "post cataract",
+  "postoperative eye infection",
+  "recent eye procedure",
+  "trabeculectomy",
+  "백내장",
+  "수술",
+];
+
+const ENDOPHTHALMITIS_SYMPTOM_CONTEXT_TERMS = [
+  "decreased vision",
+  "eye pain",
+  "hypopyon",
+  "loss of red reflex",
+  "photophobia",
+  "red eye",
+  "severe ocular ache",
+  "vitritis",
+  "눈 통증",
+  "시력저하",
+];
+
+const ENDOPHTHALMITIS_URGENT_OPHTHO_ACTION_TERMS = [
+  "emergency ophthalmology",
+  "ophthalmology",
+  "retina",
+  "same-day",
+  "urgent ophthalmology",
+  "urgent referral",
+  "vitreoretinal",
+  "응급",
+  "안과",
+];
+
+const ENDOPHTHALMITIS_TAP_CULTURE_ACTION_TERMS = [
+  "aqueous culture",
+  "aqueous tap",
+  "culture",
+  "gram stain",
+  "tap and inject",
+  "vitreous aspirate",
+  "vitreous culture",
+  "vitreous tap",
+  "배양",
+];
+
+const ENDOPHTHALMITIS_INTRAVITREAL_ANTIBIOTIC_ACTION_TERMS = [
+  "ceftazidime",
+  "intravitreal antibiotic",
+  "intravitreal antimicrobials",
+  "intravitreal injection",
+  "tap and inject",
+  "vancomycin",
+  "안내 주사",
+  "항생제",
+];
+
+const ENDOPHTHALMITIS_SYSTEMIC_SEVERE_ACTION_TERMS = [
+  "blood culture",
+  "endogenous",
+  "iv antibiotic",
+  "iv antimicrobials",
+  "sepsis",
+  "systemic infection",
+  "urine culture",
+  "혈액배양",
+];
+
+const ENDOPHTHALMITIS_DELAY_DIFFERENTIAL_SAFETY_TERMS = [
+  "conjunctivitis",
+  "do not delay",
+  "emergency",
+  "not conjunctivitis",
+  "not delay",
+  "urgent",
+  "uveitis",
+  "지연",
+];
+
+const ENDOPHTHALMITIS_VITRECTOMY_SEVERITY_SAFETY_TERMS = [
+  "count fingers",
+  "light perception",
+  "poor vision",
+  "severe case",
+  "vitrectomy",
+  "vitreous opacity",
+  "유리체절제",
+];
+
+const ENDOPHTHALMITIS_FUNGAL_STEROID_SAFETY_TERMS = [
+  "corticosteroid",
+  "fungal",
+  "immunocompromised",
+  "intravenous drug",
+  "iv drug",
+  "steroid",
+  "voriconazole",
+  "진균",
+];
+
+const ENDOPHTHALMITIS_RESPONSE_MONITORING_SAFETY_TERMS = [
+  "culture sensitivity",
+  "daily exam",
+  "no improvement",
+  "repeat injection",
+  "repeat intravitreal",
+  "recheck",
+  "visual acuity",
+  "worsening",
+  "추적",
+];
+
 const NEUTROPENIC_FEVER_CONTEXT_TERMS = [
   "absolute neutrophil count",
   "anc below 500",
@@ -7277,6 +7407,69 @@ function hasOpenGlobeTreatmentSafetyCheck(checks: string[]): boolean {
   return hasNoPressure && hasNpoAntiemetic && hasForeignBodyMri && hasEndophthalmitisFollowup;
 }
 
+function requiresEndophthalmitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = ENDOPHTHALMITIS_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRiskContext = ENDOPHTHALMITIS_RISK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasSymptomContext = ENDOPHTHALMITIS_SYMPTOM_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasRiskContext && hasSymptomContext);
+}
+
+function hasEndophthalmitisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasUrgentOphtho = ENDOPHTHALMITIS_URGENT_OPHTHO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTapCulture = ENDOPHTHALMITIS_TAP_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIntravitrealAntibiotic = ENDOPHTHALMITIS_INTRAVITREAL_ANTIBIOTIC_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSystemicSevereAction = ENDOPHTHALMITIS_SYSTEMIC_SEVERE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasUrgentOphtho && hasTapCulture && hasIntravitrealAntibiotic && hasSystemicSevereAction;
+}
+
+function hasEndophthalmitisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDelayDifferential = ENDOPHTHALMITIS_DELAY_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVitrectomySeverity = ENDOPHTHALMITIS_VITRECTOMY_SEVERITY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFungalSteroidSafety = ENDOPHTHALMITIS_FUNGAL_STEROID_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasResponseMonitoring = ENDOPHTHALMITIS_RESPONSE_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasDelayDifferential && hasVitrectomySeverity && hasFungalSteroidSafety && hasResponseMonitoring;
+}
+
 function requiresNeutropenicFeverSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -9915,6 +10108,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasOpenGlobeTreatmentSafetyCheck,
       issue:
         "open globe safety checks must include avoiding pressure, eye patching, tonometry, ocular ultrasound, or manipulation that can extrude ocular contents, NPO, antiemetic, analgesia, vomiting, or pain-control planning, intraocular foreign-body precautions including do-not-remove, leave-in-place, metallic foreign body, or MRI avoidance review, and posttraumatic endophthalmitis, intravitreal antibiotic, sympathetic ophthalmia, infection, vision-prognosis, or close follow-up monitoring",
+    },
+    {
+      name: "endophthalmitis_time_critical_actions",
+      label: "Endophthalmitis emergency actions",
+      applies: requiresEndophthalmitisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasEndophthalmitisTimeCriticalActions,
+      issue:
+        "endophthalmitis time-critical actions must include emergency, same-day, urgent ophthalmology, retina, vitreoretinal, or urgent-referral escalation, aqueous tap, vitreous tap, vitreous aspirate, gram stain, culture, or tap-and-inject sampling, intravitreal antibiotics or antimicrobials such as vancomycin plus ceftazidime or intravitreal injection therapy, and systemic or endogenous infection evaluation with IV antibiotics, IV antimicrobials, blood culture, urine culture, sepsis, or systemic infection assessment when endogenous disease is possible",
+    },
+    {
+      name: "endophthalmitis_treatment_safety",
+      label: "Endophthalmitis treatment safety",
+      applies: requiresEndophthalmitisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasEndophthalmitisTreatmentSafetyCheck,
+      issue:
+        "endophthalmitis safety checks must include explicit do-not-delay or emergency review and differentiation from conjunctivitis or uveitis, vitrectomy or severe-vision review for light perception, count-fingers, poor vision, severe disease, or vitreous opacity, fungal, immunocompromised, IV-drug, voriconazole, steroid, or corticosteroid safety review, and monitoring for visual acuity, daily exam, culture sensitivity, repeat intravitreal injection, no improvement, worsening, or recheck response",
     },
     {
       name: "neutropenic_fever_time_critical_actions",

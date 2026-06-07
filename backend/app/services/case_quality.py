@@ -1858,6 +1858,125 @@ OPEN_GLOBE_ENDOPHTHALMITIS_FOLLOWUP_SAFETY_TERMS = (
     "감염",
     "안내염",
 )
+ENDOPHTHALMITIS_DIRECT_CONTEXT_TERMS = (
+    "acute endophthalmitis",
+    "bacterial endophthalmitis",
+    "endogenous endophthalmitis",
+    "endophthalmitis",
+    "exogenous endophthalmitis",
+    "post-cataract endophthalmitis",
+    "post-injection endophthalmitis",
+    "postoperative endophthalmitis",
+    "안내염",
+)
+ENDOPHTHALMITIS_RISK_CONTEXT_TERMS = (
+    "anti-vegf injection",
+    "cataract surgery",
+    "eye surgery",
+    "intravitreal injection",
+    "ocular surgery",
+    "penetrating trauma",
+    "post cataract",
+    "postoperative eye infection",
+    "recent eye procedure",
+    "trabeculectomy",
+    "백내장",
+    "수술",
+)
+ENDOPHTHALMITIS_SYMPTOM_CONTEXT_TERMS = (
+    "decreased vision",
+    "eye pain",
+    "hypopyon",
+    "loss of red reflex",
+    "photophobia",
+    "red eye",
+    "severe ocular ache",
+    "vitritis",
+    "눈 통증",
+    "시력저하",
+)
+ENDOPHTHALMITIS_URGENT_OPHTHO_ACTION_TERMS = (
+    "emergency ophthalmology",
+    "ophthalmology",
+    "retina",
+    "same-day",
+    "urgent ophthalmology",
+    "urgent referral",
+    "vitreoretinal",
+    "응급",
+    "안과",
+)
+ENDOPHTHALMITIS_TAP_CULTURE_ACTION_TERMS = (
+    "aqueous culture",
+    "aqueous tap",
+    "culture",
+    "gram stain",
+    "tap and inject",
+    "vitreous aspirate",
+    "vitreous culture",
+    "vitreous tap",
+    "배양",
+)
+ENDOPHTHALMITIS_INTRAVITREAL_ANTIBIOTIC_ACTION_TERMS = (
+    "ceftazidime",
+    "intravitreal antibiotic",
+    "intravitreal antimicrobials",
+    "intravitreal injection",
+    "tap and inject",
+    "vancomycin",
+    "안내 주사",
+    "항생제",
+)
+ENDOPHTHALMITIS_SYSTEMIC_SEVERE_ACTION_TERMS = (
+    "blood culture",
+    "endogenous",
+    "iv antibiotic",
+    "iv antimicrobials",
+    "sepsis",
+    "systemic infection",
+    "urine culture",
+    "혈액배양",
+)
+ENDOPHTHALMITIS_DELAY_DIFFERENTIAL_SAFETY_TERMS = (
+    "conjunctivitis",
+    "do not delay",
+    "emergency",
+    "not conjunctivitis",
+    "not delay",
+    "urgent",
+    "uveitis",
+    "지연",
+)
+ENDOPHTHALMITIS_VITRECTOMY_SEVERITY_SAFETY_TERMS = (
+    "count fingers",
+    "light perception",
+    "poor vision",
+    "severe case",
+    "vitrectomy",
+    "vitreous opacity",
+    "유리체절제",
+)
+ENDOPHTHALMITIS_FUNGAL_STEROID_SAFETY_TERMS = (
+    "corticosteroid",
+    "fungal",
+    "immunocompromised",
+    "intravenous drug",
+    "iv drug",
+    "steroid",
+    "voriconazole",
+    "진균",
+)
+ENDOPHTHALMITIS_RESPONSE_MONITORING_SAFETY_TERMS = (
+    "culture sensitivity",
+    "daily exam",
+    "no improvement",
+    "repeat injection",
+    "repeat intravitreal",
+    "recheck",
+    "visual acuity",
+    "worsening",
+    "추적",
+)
 NEUTROPENIC_FEVER_CONTEXT_TERMS = (
     "absolute neutrophil count",
     "anc below 500",
@@ -6506,6 +6625,39 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="endophthalmitis_time_critical_actions",
+            applies=_requires_endophthalmitis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_endophthalmitis_time_critical_actions,
+            issue=(
+                "endophthalmitis time-critical actions must include emergency, "
+                "same-day, urgent ophthalmology, retina, vitreoretinal, or "
+                "urgent-referral escalation, aqueous tap, vitreous tap, vitreous "
+                "aspirate, gram stain, culture, or tap-and-inject sampling, "
+                "intravitreal antibiotics or antimicrobials such as vancomycin "
+                "plus ceftazidime or intravitreal injection therapy, and systemic "
+                "or endogenous infection evaluation with IV antibiotics, IV "
+                "antimicrobials, blood culture, urine culture, sepsis, or systemic "
+                "infection assessment when endogenous disease is possible"
+            ),
+        ),
+        DomainSafetyGate(
+            name="endophthalmitis_treatment_safety",
+            applies=_requires_endophthalmitis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_endophthalmitis_treatment_safety_check,
+            issue=(
+                "endophthalmitis safety checks must include explicit do-not-delay "
+                "or emergency review and differentiation from conjunctivitis or "
+                "uveitis, vitrectomy or severe-vision review for light perception, "
+                "count-fingers, poor vision, severe disease, or vitreous opacity, "
+                "fungal, immunocompromised, IV-drug, voriconazole, steroid, or "
+                "corticosteroid safety review, and monitoring for visual acuity, "
+                "daily exam, culture sensitivity, repeat intravitreal injection, "
+                "no improvement, worsening, or recheck response"
+            ),
+        ),
+        DomainSafetyGate(
             name="neutropenic_fever_time_critical_actions",
             applies=_requires_neutropenic_fever_safety_check,
             field_name="time_critical_actions",
@@ -8839,6 +8991,95 @@ def _has_open_globe_treatment_safety_check(checks: list[Any]) -> bool:
         and has_npo_antiemetic
         and has_foreign_body_mri
         and has_endophthalmitis_followup
+    )
+
+
+def _requires_endophthalmitis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ENDOPHTHALMITIS_DIRECT_CONTEXT_TERMS
+    )
+    has_risk_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ENDOPHTHALMITIS_RISK_CONTEXT_TERMS
+    )
+    has_symptom_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ENDOPHTHALMITIS_SYMPTOM_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_risk_context and has_symptom_context)
+
+
+def _has_endophthalmitis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_urgent_ophtho = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ENDOPHTHALMITIS_URGENT_OPHTHO_ACTION_TERMS
+    )
+    has_tap_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ENDOPHTHALMITIS_TAP_CULTURE_ACTION_TERMS
+    )
+    has_intravitreal_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ENDOPHTHALMITIS_INTRAVITREAL_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_systemic_severe_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ENDOPHTHALMITIS_SYSTEMIC_SEVERE_ACTION_TERMS
+    )
+    return (
+        has_urgent_ophtho
+        and has_tap_culture
+        and has_intravitreal_antibiotic
+        and has_systemic_severe_action
+    )
+
+
+def _has_endophthalmitis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_delay_differential = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ENDOPHTHALMITIS_DELAY_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_vitrectomy_severity = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ENDOPHTHALMITIS_VITRECTOMY_SEVERITY_SAFETY_TERMS
+    )
+    has_fungal_steroid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ENDOPHTHALMITIS_FUNGAL_STEROID_SAFETY_TERMS
+    )
+    has_response_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ENDOPHTHALMITIS_RESPONSE_MONITORING_SAFETY_TERMS
+    )
+    return (
+        has_delay_differential
+        and has_vitrectomy_severity
+        and has_fungal_steroid_safety
+        and has_response_monitoring
     )
 
 
