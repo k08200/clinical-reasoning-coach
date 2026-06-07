@@ -99,6 +99,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "toxic_alcohol_treatment_safety",
         "salicylate_toxicity_time_critical_actions",
         "salicylate_toxicity_treatment_safety",
+        "carbon_monoxide_poisoning_time_critical_actions",
+        "carbon_monoxide_poisoning_treatment_safety",
         "opioid_toxicity_time_critical_actions",
         "opioid_toxicity_treatment_safety",
         "severe_asthma_time_critical_actions",
@@ -3605,6 +3607,138 @@ def test_quality_gate_requires_salicylate_dialysis_intubation_and_electrolyte_sa
     assert not report.passed
     assert any(
         "salicylate toxicity safety checks must include hemodialysis indication"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_carbon_monoxide_oxygen_cohb_hbo_and_cardiac_neuro_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Carbon monoxide poisoning"
+    case["patient_demographics"] = {
+        "age": 29,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Headache, dizziness, and syncope after generator exhaust exposure"
+    case["history_of_present_illness"] = (
+        "Patient was found after indoor generator exhaust exposure with headache, nausea, "
+        "dizziness, syncope, confusion, chest tightness, and suspected carbon monoxide poisoning."
+    )
+    case["key_teaching_points"] = [
+        "Pulse oximetry can be falsely normal in carbon monoxide poisoning",
+        "Carboxyhemoglobin by co-oximetry confirms exposure but treatment starts immediately",
+        "Hyperbaric oxygen should be considered for pregnancy, neurologic symptoms, loss of consciousness, acidosis, or cardiac ischemia",
+    ]
+    case["clinical_red_flags"] = [
+        "Syncope, altered mental status, seizure, chest pain, cardiac ischemia, or severe acidosis",
+        "Multiple exposed household members, generator exhaust, smoke inhalation, or pregnancy",
+    ]
+    case["time_critical_actions"] = [
+        "Remove from source and start 100% high-flow oxygen by non-rebreather immediately",
+        "Send venous blood gas with co-oximetry and carboxyhemoglobin COHb level",
+        "Obtain ECG, troponin, lactate, neurologic exam, and reassess altered mental status or syncope",
+    ]
+    case["contraindication_checks"] = [
+        "Document that normal pulse oximetry or SpO2 can be falsely normal and cannot exclude carbon monoxide poisoning",
+        "Review hyperbaric oxygen criteria including pregnancy, neurologic symptoms, loss of consciousness, syncope, acidosis, cardiac ischemia, or high carboxyhemoglobin COHb",
+        "Monitor cardiac ECG, troponin, lactate, metabolic acidosis, myocardial injury, delayed neurologic sequelae, and neurocognitive symptoms",
+        "Assess smoke inhalation, burn, fire exposure, cyanide co-toxicity, lactate elevation, and hydroxocobalamin need",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Carbon Monoxide Poisoning",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/poisoning/carbon-monoxide-poisoning",
+            "supports": [
+                "carbon monoxide poisoning diagnosis and risk stratification",
+                "pulse oximetry can be falsely normal in carbon monoxide poisoning",
+                "carboxyhemoglobin by co-oximetry confirms exposure but treatment starts immediately",
+                "hyperbaric oxygen should be considered for pregnancy, neurologic symptoms, loss of consciousness, acidosis, or cardiac ischemia",
+                "syncope, altered mental status, seizure, chest pain, cardiac ischemia, or severe acidosis as red flags",
+                "multiple exposed household members, generator exhaust, smoke inhalation, or pregnancy as severity markers",
+                "remove from source and start 100% high-flow oxygen by non-rebreather immediately",
+                "venous blood gas with co-oximetry and carboxyhemoglobin COHb level",
+                "ECG, troponin, lactate, neurologic exam, and altered mental status or syncope reassessment",
+                "normal pulse oximetry or SpO2 can be falsely normal and cannot exclude carbon monoxide poisoning",
+                "hyperbaric oxygen criteria including pregnancy, neurologic symptoms, loss of consciousness, syncope, acidosis, cardiac ischemia, or high carboxyhemoglobin COHb",
+                "cardiac ECG, troponin, lactate, metabolic acidosis, myocardial injury, delayed neurologic sequelae, and neurocognitive symptoms monitoring",
+                "smoke inhalation, burn, fire exposure, cyanide co-toxicity, lactate elevation, and hydroxocobalamin need",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "carbon monoxide poisoning time-critical actions must include source removal"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_carbon_monoxide_pulse_ox_hbo_complication_and_smoke_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Carbon monoxide poisoning"
+    case["patient_demographics"] = {
+        "age": 29,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Headache, dizziness, and syncope after generator exhaust exposure"
+    case["history_of_present_illness"] = (
+        "Patient was found after indoor generator exhaust exposure with headache, nausea, "
+        "dizziness, syncope, confusion, chest tightness, and suspected carbon monoxide poisoning."
+    )
+    case["key_teaching_points"] = [
+        "Pulse oximetry can be falsely normal in carbon monoxide poisoning",
+        "Carboxyhemoglobin by co-oximetry confirms exposure but treatment starts immediately",
+        "Hyperbaric oxygen should be considered for pregnancy, neurologic symptoms, loss of consciousness, acidosis, or cardiac ischemia",
+    ]
+    case["clinical_red_flags"] = [
+        "Syncope, altered mental status, seizure, chest pain, cardiac ischemia, or severe acidosis",
+        "Multiple exposed household members, generator exhaust, smoke inhalation, or pregnancy",
+    ]
+    case["time_critical_actions"] = [
+        "Remove from source and start 100% high-flow oxygen by non-rebreather immediately",
+        "Send venous blood gas with co-oximetry and carboxyhemoglobin COHb level",
+        "Call poison center and hyperbaric oxygen HBOT specialist for severe carbon monoxide poisoning",
+        "Obtain ECG, troponin, lactate, neurologic exam, and reassess altered mental status or syncope",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Carbon Monoxide Poisoning",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/poisoning/carbon-monoxide-poisoning",
+            "supports": [
+                "carbon monoxide poisoning diagnosis and risk stratification",
+                "pulse oximetry can be falsely normal in carbon monoxide poisoning",
+                "carboxyhemoglobin by co-oximetry confirms exposure but treatment starts immediately",
+                "hyperbaric oxygen should be considered for pregnancy, neurologic symptoms, loss of consciousness, acidosis, or cardiac ischemia",
+                "syncope, altered mental status, seizure, chest pain, cardiac ischemia, or severe acidosis as red flags",
+                "multiple exposed household members, generator exhaust, smoke inhalation, or pregnancy as severity markers",
+                "remove from source and start 100% high-flow oxygen by non-rebreather immediately",
+                "venous blood gas with co-oximetry and carboxyhemoglobin COHb level",
+                "poison center and hyperbaric oxygen HBOT specialist for severe carbon monoxide poisoning",
+                "ECG, troponin, lactate, neurologic exam, and altered mental status or syncope reassessment",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "carbon monoxide poisoning safety checks must include pulse oximetry"
         in issue
         for issue in report.critical_issues
     )

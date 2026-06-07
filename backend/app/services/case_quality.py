@@ -2693,6 +2693,98 @@ SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS = (
     "칼륨",
     "혈당",
 )
+CARBON_MONOXIDE_CONTEXT_TERMS = (
+    "carbon monoxide poisoning",
+    "carbon monoxide toxicity",
+    "carboxyhemoglobin",
+    "co poisoning",
+    "generator exhaust",
+    "smoke inhalation with headache",
+    "일산화탄소",
+)
+CARBON_MONOXIDE_REMOVAL_OXYGEN_ACTION_TERMS = (
+    "100% oxygen",
+    "high flow oxygen",
+    "high-flow oxygen",
+    "non-rebreather",
+    "oxygen",
+    "remove from source",
+    "source removal",
+    "산소",
+)
+CARBON_MONOXIDE_COHB_DIAGNOSTIC_ACTION_TERMS = (
+    "carboxyhemoglobin",
+    "co-oximetry",
+    "cohb",
+    "venous blood gas",
+    "vbg",
+    "혈중 일산화탄소",
+)
+CARBON_MONOXIDE_HYPERBARIC_ACTION_TERMS = (
+    "hyperbaric",
+    "hbo",
+    "hbot",
+    "poison center",
+    "poison control",
+    "toxicologist",
+    "고압산소",
+)
+CARBON_MONOXIDE_CARDIAC_NEURO_ACTION_TERMS = (
+    "altered mental status",
+    "cardiac",
+    "ecg",
+    "lactate",
+    "neurologic",
+    "seizure",
+    "syncope",
+    "troponin",
+    "의식",
+    "심전도",
+)
+CARBON_MONOXIDE_PULSE_OX_SAFETY_TERMS = (
+    "false normal",
+    "falsely normal",
+    "normal pulse ox",
+    "normal pulse oximetry",
+    "pulse ox",
+    "pulse oximetry",
+    "spo2",
+    "산소포화도",
+)
+CARBON_MONOXIDE_HBO_CRITERIA_SAFETY_TERMS = (
+    "acidosis",
+    "cardiac ischemia",
+    "carboxyhemoglobin",
+    "cohb",
+    "hyperbaric",
+    "loss of consciousness",
+    "neurologic",
+    "pregnancy",
+    "syncope",
+    "임신",
+)
+CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS = (
+    "arrhythmia",
+    "cardiac",
+    "delayed neurologic",
+    "ecg",
+    "lactate",
+    "metabolic acidosis",
+    "myocardial",
+    "neurocognitive",
+    "troponin",
+    "심근",
+    "신경",
+)
+CARBON_MONOXIDE_CYANIDE_SMOKE_SAFETY_TERMS = (
+    "burn",
+    "cyanide",
+    "hydroxocobalamin",
+    "lactate",
+    "smoke inhalation",
+    "화재",
+    "시안화",
+)
 OPIOID_TOXICITY_CONTEXT_TERMS = (
     "fentanyl overdose",
     "heroin overdose",
@@ -4629,6 +4721,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "pH-preservation planning with hyperventilation or bicarbonate "
                 "safeguards, and potassium, hypokalemia, glucose, hypoglycemia, "
                 "temperature, pulmonary edema, or cerebral edema monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="carbon_monoxide_poisoning_time_critical_actions",
+            applies=_requires_carbon_monoxide_poisoning_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_carbon_monoxide_poisoning_time_critical_actions,
+            issue=(
+                "carbon monoxide poisoning time-critical actions must include "
+                "source removal or 100% high-flow oxygen by non-rebreather, "
+                "carboxyhemoglobin, COHb, or co-oximetry diagnostic confirmation, "
+                "hyperbaric oxygen, HBOT, poison center, toxicologist, or "
+                "specialty escalation planning, and cardiac, ECG, troponin, "
+                "lactate, neurologic, altered mental status, syncope, or seizure "
+                "assessment"
+            ),
+        ),
+        DomainSafetyGate(
+            name="carbon_monoxide_poisoning_treatment_safety",
+            applies=_requires_carbon_monoxide_poisoning_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_carbon_monoxide_poisoning_treatment_safety_check,
+            issue=(
+                "carbon monoxide poisoning safety checks must include pulse "
+                "oximetry or SpO2 false-normal limitation review, hyperbaric "
+                "oxygen criteria review for pregnancy, neurologic symptoms, "
+                "loss of consciousness, syncope, acidosis, cardiac ischemia, "
+                "or high carboxyhemoglobin, cardiac, ECG, troponin, lactate, "
+                "metabolic acidosis, myocardial, delayed neurologic, or "
+                "neurocognitive complication monitoring, and smoke inhalation, "
+                "cyanide, hydroxocobalamin, burn, fire, or lactate co-toxicity "
+                "assessment"
             ),
         ),
         DomainSafetyGate(
@@ -6782,6 +6906,85 @@ def _has_salicylate_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         has_dialysis_indication_safety
         and has_intubation_ph_safety
         and has_electrolyte_glucose_safety
+    )
+
+
+def _requires_carbon_monoxide_poisoning_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in CARBON_MONOXIDE_CONTEXT_TERMS
+    )
+
+
+def _has_carbon_monoxide_poisoning_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_removal_oxygen_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CARBON_MONOXIDE_REMOVAL_OXYGEN_ACTION_TERMS
+    )
+    has_cohb_diagnostic_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CARBON_MONOXIDE_COHB_DIAGNOSTIC_ACTION_TERMS
+    )
+    has_hyperbaric_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CARBON_MONOXIDE_HYPERBARIC_ACTION_TERMS
+    )
+    has_cardiac_neuro_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CARBON_MONOXIDE_CARDIAC_NEURO_ACTION_TERMS
+    )
+    return (
+        has_removal_oxygen_action
+        and has_cohb_diagnostic_action
+        and has_hyperbaric_action
+        and has_cardiac_neuro_action
+    )
+
+
+def _has_carbon_monoxide_poisoning_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_pulse_ox_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARBON_MONOXIDE_PULSE_OX_SAFETY_TERMS
+    )
+    has_hbo_criteria_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARBON_MONOXIDE_HBO_CRITERIA_SAFETY_TERMS
+    )
+    has_complication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS
+    )
+    has_cyanide_smoke_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARBON_MONOXIDE_CYANIDE_SMOKE_SAFETY_TERMS
+    )
+    return (
+        has_pulse_ox_safety
+        and has_hbo_criteria_safety
+        and has_complication_safety
+        and has_cyanide_smoke_safety
     )
 
 

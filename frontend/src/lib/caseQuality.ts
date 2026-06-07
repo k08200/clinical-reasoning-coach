@@ -2895,6 +2895,107 @@ const SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS = [
   "혈당",
 ];
 
+const CARBON_MONOXIDE_CONTEXT_TERMS = [
+  "carbon monoxide poisoning",
+  "carbon monoxide toxicity",
+  "carboxyhemoglobin",
+  "co poisoning",
+  "generator exhaust",
+  "smoke inhalation with headache",
+  "일산화탄소",
+];
+
+const CARBON_MONOXIDE_REMOVAL_OXYGEN_ACTION_TERMS = [
+  "100% oxygen",
+  "high flow oxygen",
+  "high-flow oxygen",
+  "non-rebreather",
+  "oxygen",
+  "remove from source",
+  "source removal",
+  "산소",
+];
+
+const CARBON_MONOXIDE_COHB_DIAGNOSTIC_ACTION_TERMS = [
+  "carboxyhemoglobin",
+  "co-oximetry",
+  "cohb",
+  "venous blood gas",
+  "vbg",
+  "혈중 일산화탄소",
+];
+
+const CARBON_MONOXIDE_HYPERBARIC_ACTION_TERMS = [
+  "hyperbaric",
+  "hbo",
+  "hbot",
+  "poison center",
+  "poison control",
+  "toxicologist",
+  "고압산소",
+];
+
+const CARBON_MONOXIDE_CARDIAC_NEURO_ACTION_TERMS = [
+  "altered mental status",
+  "cardiac",
+  "ecg",
+  "lactate",
+  "neurologic",
+  "seizure",
+  "syncope",
+  "troponin",
+  "의식",
+  "심전도",
+];
+
+const CARBON_MONOXIDE_PULSE_OX_SAFETY_TERMS = [
+  "false normal",
+  "falsely normal",
+  "normal pulse ox",
+  "normal pulse oximetry",
+  "pulse ox",
+  "pulse oximetry",
+  "spo2",
+  "산소포화도",
+];
+
+const CARBON_MONOXIDE_HBO_CRITERIA_SAFETY_TERMS = [
+  "acidosis",
+  "cardiac ischemia",
+  "carboxyhemoglobin",
+  "cohb",
+  "hyperbaric",
+  "loss of consciousness",
+  "neurologic",
+  "pregnancy",
+  "syncope",
+  "임신",
+];
+
+const CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS = [
+  "arrhythmia",
+  "cardiac",
+  "delayed neurologic",
+  "ecg",
+  "lactate",
+  "metabolic acidosis",
+  "myocardial",
+  "neurocognitive",
+  "troponin",
+  "심근",
+  "신경",
+];
+
+const CARBON_MONOXIDE_CYANIDE_SMOKE_SAFETY_TERMS = [
+  "burn",
+  "cyanide",
+  "hydroxocobalamin",
+  "lactate",
+  "smoke inhalation",
+  "화재",
+  "시안화",
+];
+
 const OPIOID_TOXICITY_CONTEXT_TERMS = [
   "fentanyl overdose",
   "heroin overdose",
@@ -5535,6 +5636,66 @@ function hasSalicylateToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   return hasDialysisIndicationSafety && hasIntubationPhSafety && hasElectrolyteGlucoseSafety;
 }
 
+function requiresCarbonMonoxidePoisoningSafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return CARBON_MONOXIDE_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasCarbonMonoxidePoisoningTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasRemovalOxygenAction = CARBON_MONOXIDE_REMOVAL_OXYGEN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCohbDiagnosticAction = CARBON_MONOXIDE_COHB_DIAGNOSTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHyperbaricAction = CARBON_MONOXIDE_HYPERBARIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCardiacNeuroAction = CARBON_MONOXIDE_CARDIAC_NEURO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasRemovalOxygenAction &&
+    hasCohbDiagnosticAction &&
+    hasHyperbaricAction &&
+    hasCardiacNeuroAction
+  );
+}
+
+function hasCarbonMonoxidePoisoningTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasPulseOxSafety = CARBON_MONOXIDE_PULSE_OX_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHboCriteriaSafety = CARBON_MONOXIDE_HBO_CRITERIA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasComplicationSafety = CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCyanideSmokeSafety = CARBON_MONOXIDE_CYANIDE_SMOKE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasPulseOxSafety && hasHboCriteriaSafety && hasComplicationSafety && hasCyanideSmokeSafety;
+}
+
 function requiresOpioidToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -6540,6 +6701,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSalicylateToxicityTreatmentSafetyCheck,
       issue:
         "salicylate toxicity safety checks must include hemodialysis indication review for acidemia, severe acidosis, altered mental status, seizure, renal failure, kidney failure, pulmonary edema, or very high salicylate level, intubation or mechanical ventilation pH-preservation planning with hyperventilation or bicarbonate safeguards, and potassium, hypokalemia, glucose, hypoglycemia, temperature, pulmonary edema, or cerebral edema monitoring",
+    },
+    {
+      name: "carbon_monoxide_poisoning_time_critical_actions",
+      label: "Carbon monoxide oxygen, COHb, and HBO actions",
+      applies: requiresCarbonMonoxidePoisoningSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasCarbonMonoxidePoisoningTimeCriticalActions,
+      issue:
+        "carbon monoxide poisoning time-critical actions must include source removal or 100% high-flow oxygen by non-rebreather, carboxyhemoglobin, COHb, or co-oximetry diagnostic confirmation, hyperbaric oxygen, HBOT, poison center, toxicologist, or specialty escalation planning, and cardiac, ECG, troponin, lactate, neurologic, altered mental status, syncope, or seizure assessment",
+    },
+    {
+      name: "carbon_monoxide_poisoning_treatment_safety",
+      label: "Carbon monoxide HBO and complication safety",
+      applies: requiresCarbonMonoxidePoisoningSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasCarbonMonoxidePoisoningTreatmentSafetyCheck,
+      issue:
+        "carbon monoxide poisoning safety checks must include pulse oximetry or SpO2 false-normal limitation review, hyperbaric oxygen criteria review for pregnancy, neurologic symptoms, loss of consciousness, syncope, acidosis, cardiac ischemia, or high carboxyhemoglobin, cardiac, ECG, troponin, lactate, metabolic acidosis, myocardial, delayed neurologic, or neurocognitive complication monitoring, and smoke inhalation, cyanide, hydroxocobalamin, burn, fire, or lactate co-toxicity assessment",
     },
     {
       name: "opioid_toxicity_time_critical_actions",
