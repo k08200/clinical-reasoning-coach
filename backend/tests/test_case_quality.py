@@ -69,6 +69,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "acute_angle_closure_glaucoma_treatment_safety",
         "retinal_detachment_time_critical_actions",
         "retinal_detachment_treatment_safety",
+        "central_retinal_artery_occlusion_time_critical_actions",
+        "central_retinal_artery_occlusion_treatment_safety",
         "neutropenic_fever_time_critical_actions",
         "neutropenic_fever_treatment_safety",
         "obstructive_pyelonephritis_time_critical_actions",
@@ -1808,6 +1810,158 @@ def test_quality_gate_requires_retinal_detachment_delay_macula_differential_and_
     assert not report.passed
     assert any(
         "retinal detachment safety checks must include explicit do-not-delay"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_crao_onset_eye_confirmation_stroke_workup_and_reperfusion_review():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Central retinal artery occlusion"
+    case["patient_demographics"] = {
+        "age": 70,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden painless monocular vision loss"
+    case["history_of_present_illness"] = (
+        "Older patient with hypertension, diabetes, and atrial fibrillation has "
+        "abrupt painless loss of vision in one eye with severe acuity reduction "
+        "and a cherry red spot on fundus view."
+    )
+    case["key_teaching_points"] = [
+        "Acute retinal ischemia is treated as an ischemic stroke emergency",
+        "Fewer patients recover functional vision when triage and treatment are delayed",
+        "Acute ocular ischemia can signal future vascular events and needs secondary prevention",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden painless monocular vision loss, monocular blindness, or acute visual field loss",
+        "Atrial fibrillation, carotid disease, hypertension, diabetes, embolus, or vascular risk factors",
+    ]
+    case["time_critical_actions"] = [
+        "Document symptom onset and last known well, activate stroke code, and transfer to a stroke center or stroke pathway",
+        "Confirm with ophthalmology using visual acuity, dilated fundus exam, fundus photograph, cherry red spot, retinal whitening, and optic disc assessment",
+        "Begin stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
+    ]
+    case["contraindication_checks"] = [
+        "Review mimics including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
+        "Review thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
+        "Plan secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
+        "Screen for arteritic cause with ESR, CRP, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and steroid planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Management of Central Retinal Artery Occlusion",
+            "organization": "American Heart Association",
+            "url": "https://professional.heart.org/en/science-news/management-of-central-retinal-artery-occlusion",
+            "supports": [
+                "central retinal artery occlusion diagnosis and risk stratification",
+                "acute retinal ischemia is treated as an ischemic stroke emergency",
+                "fewer patients recover functional vision when triage and treatment are delayed",
+                "acute ocular ischemia can signal future vascular events and needs secondary prevention",
+                "sudden painless monocular vision loss, monocular blindness, or acute visual field loss as red flags",
+                "atrial fibrillation, carotid disease, hypertension, diabetes, embolus, or vascular risk factors",
+                "symptom onset and last known well, stroke code activation, stroke center transfer, and stroke pathway",
+                "ophthalmology confirmation using visual acuity, dilated fundus exam, fundus photograph, cherry red spot, retinal whitening, and optic disc assessment",
+                "stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
+                "mimic review including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
+                "thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
+                "secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
+                "arteritic cause screening with ESR, CRP, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and steroid planning",
+            ],
+        },
+        {
+            "title": "Central retinal artery occlusion: a stroke of the eye",
+            "organization": "Canadian Family Physician",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11306586/",
+            "supports": [
+                "central retinal artery occlusion is an ocular emergency analogous to ischemic stroke",
+                "acute monocular vision loss requires emergency stroke-oriented evaluation",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "central retinal artery occlusion time-critical actions must include symptom-onset"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_crao_mimic_thrombolysis_secondary_prevention_and_arteritic_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Central retinal artery occlusion"
+    case["patient_demographics"] = {
+        "age": 70,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden painless monocular vision loss"
+    case["history_of_present_illness"] = (
+        "Older patient with hypertension, diabetes, and atrial fibrillation has "
+        "abrupt painless loss of vision in one eye with severe acuity reduction "
+        "and a cherry red spot on fundus view."
+    )
+    case["key_teaching_points"] = [
+        "Acute retinal ischemia is treated as an ischemic stroke emergency",
+        "Fewer patients recover functional vision when triage and treatment are delayed",
+        "Acute ocular ischemia can signal future vascular events and needs secondary prevention",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden painless monocular vision loss, monocular blindness, or acute visual field loss",
+        "Atrial fibrillation, carotid disease, hypertension, diabetes, embolus, or vascular risk factors",
+    ]
+    case["time_critical_actions"] = [
+        "Document symptom onset and last known well, activate stroke code, and transfer to a stroke center or stroke pathway",
+        "Confirm with ophthalmology using visual acuity, dilated fundus exam, fundus photograph, cherry red spot, retinal whitening, and optic disc assessment",
+        "Begin stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
+        "Review reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Fall risk precautions while vision is impaired",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Management of Central Retinal Artery Occlusion",
+            "organization": "American Heart Association",
+            "url": "https://professional.heart.org/en/science-news/management-of-central-retinal-artery-occlusion",
+            "supports": [
+                "central retinal artery occlusion diagnosis and risk stratification",
+                "acute retinal ischemia is treated as an ischemic stroke emergency",
+                "fewer patients recover functional vision when triage and treatment are delayed",
+                "acute ocular ischemia can signal future vascular events and needs secondary prevention",
+                "sudden painless monocular vision loss, monocular blindness, or acute visual field loss as red flags",
+                "atrial fibrillation, carotid disease, hypertension, diabetes, embolus, or vascular risk factors",
+                "symptom onset and last known well, stroke code activation, stroke center transfer, and stroke pathway",
+                "ophthalmology confirmation using visual acuity, dilated fundus exam, fundus photograph, cherry red spot, retinal whitening, and optic disc assessment",
+                "stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
+                "reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+                "medication allergy before antiemetics",
+                "fall risk precautions while vision is impaired",
+            ],
+        },
+        {
+            "title": "Central retinal artery occlusion: a stroke of the eye",
+            "organization": "Canadian Family Physician",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11306586/",
+            "supports": [
+                "central retinal artery occlusion is an ocular emergency analogous to ischemic stroke",
+                "acute monocular vision loss requires emergency stroke-oriented evaluation",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "central retinal artery occlusion safety checks must include mimic review"
         in issue
         for issue in report.critical_issues
     )

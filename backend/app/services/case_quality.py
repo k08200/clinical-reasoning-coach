@@ -1603,6 +1603,139 @@ RETINAL_DETACHMENT_PRECAUTION_SAFETY_TERMS = (
     "금식",
     "악화",
 )
+CENTRAL_RETINAL_ARTERY_OCCLUSION_DIRECT_CONTEXT_TERMS = (
+    "branch retinal artery occlusion",
+    "brao",
+    "central retinal artery occlusion",
+    "crao",
+    "retinal artery occlusion",
+    "retinal infarction",
+    "retinal stroke",
+    "눈 중풍",
+    "망막동맥폐쇄",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_VISION_CONTEXT_TERMS = (
+    "acute monocular vision loss",
+    "acute painless vision loss",
+    "cherry red spot",
+    "monocular blindness",
+    "monocular vision loss",
+    "painless loss of vision",
+    "painless monocular vision loss",
+    "sudden blindness",
+    "sudden monocular vision loss",
+    "sudden painless vision loss",
+    "단안",
+    "무통",
+    "시력소실",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_STROKE_RISK_CONTEXT_TERMS = (
+    "atrial fibrillation",
+    "carotid",
+    "diabetes",
+    "embolus",
+    "hyperlipidemia",
+    "hypertension",
+    "stroke",
+    "thromboembolic",
+    "vascular risk",
+    "고혈압",
+    "당뇨",
+    "색전",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_ONSET_STROKE_ACTION_TERMS = (
+    "last known well",
+    "last-known-normal",
+    "last-known-well",
+    "onset",
+    "stroke activation",
+    "stroke center",
+    "stroke code",
+    "stroke pathway",
+    "symptom onset",
+    "증상 발생",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_OPHTHALMIC_CONFIRM_ACTION_TERMS = (
+    "cherry red spot",
+    "dilated fundus",
+    "fundus exam",
+    "fundus photograph",
+    "ophthalmology",
+    "optic disc",
+    "retinal exam",
+    "retinal whitening",
+    "visual acuity",
+    "안저",
+    "시력",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_VASCULAR_WORKUP_ACTION_TERMS = (
+    "brain imaging",
+    "carotid",
+    "cta",
+    "ct angiography",
+    "ecg",
+    "echocardiogram",
+    "embol",
+    "mra",
+    "mri",
+    "stroke workup",
+    "vascular imaging",
+    "혈관",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_ACTION_TERMS = (
+    "alteplase",
+    "fibrinolysis",
+    "reperfusion",
+    "thrombolysis",
+    "thrombolytic",
+    "tnk",
+    "tpa",
+    "혈전용해",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_MIMIC_SAFETY_TERMS = (
+    "acute optic neuropathy",
+    "gca",
+    "giant cell arteritis",
+    "migraine",
+    "optic neuritis",
+    "retinal detachment",
+    "vitreous hemorrhage",
+    "감별",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_THROMBOLYSIS_SAFETY_TERMS = (
+    "anticoagulant",
+    "bleeding",
+    "blood pressure",
+    "contraindication",
+    "hemorrhage",
+    "inr",
+    "platelet",
+    "recent surgery",
+    "thrombolysis eligibility",
+    "금기",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_SECONDARY_PREVENTION_SAFETY_TERMS = (
+    "antiplatelet",
+    "atrial fibrillation",
+    "carotid stenosis",
+    "risk factor",
+    "secondary prevention",
+    "statin",
+    "stroke prevention",
+    "vascular risk",
+    "예방",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_ARTERITIC_SAFETY_TERMS = (
+    "crp",
+    "esr",
+    "giant cell arteritis",
+    "jaw claudication",
+    "scalp tenderness",
+    "steroid",
+    "temporal arteritis",
+    "temporal headache",
+    "측두",
+)
 NEUTROPENIC_FEVER_CONTEXT_TERMS = (
     "absolute neutrophil count",
     "anc below 500",
@@ -6185,6 +6318,41 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="central_retinal_artery_occlusion_time_critical_actions",
+            applies=_requires_central_retinal_artery_occlusion_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_central_retinal_artery_occlusion_time_critical_actions,
+            issue=(
+                "central retinal artery occlusion time-critical actions must "
+                "include symptom-onset, last-known-well, stroke-code, stroke-center, "
+                "or stroke-pathway activation, ophthalmic confirmation with visual "
+                "acuity, fundus exam, dilated fundus, fundus photograph, cherry-red "
+                "spot, retinal whitening, optic-disc, or ophthalmology assessment, "
+                "brain, vascular, carotid, CTA, MRA, MRI, ECG, echocardiogram, "
+                "embolus, or stroke-workup evaluation, and reperfusion eligibility "
+                "review with alteplase, tPA, TNK, thrombolysis, fibrinolysis, or "
+                "thrombolytic planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="central_retinal_artery_occlusion_treatment_safety",
+            applies=_requires_central_retinal_artery_occlusion_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_central_retinal_artery_occlusion_treatment_safety_check,
+            issue=(
+                "central retinal artery occlusion safety checks must include "
+                "mimic review for retinal detachment, vitreous hemorrhage, acute "
+                "optic neuropathy, optic neuritis, migraine, giant cell arteritis, "
+                "or GCA, thrombolysis eligibility or contraindication review for "
+                "bleeding, hemorrhage, anticoagulant, INR, platelet, blood pressure, "
+                "or recent surgery, secondary stroke prevention for antiplatelet, "
+                "statin, atrial fibrillation, carotid stenosis, vascular risk, or "
+                "risk-factor control, and arteritic CRAO screening with ESR, CRP, "
+                "temporal arteritis, giant cell arteritis, jaw claudication, scalp "
+                "tenderness, temporal headache, or steroid planning"
+            ),
+        ),
+        DomainSafetyGate(
             name="neutropenic_fever_time_critical_actions",
             applies=_requires_neutropenic_fever_safety_check,
             field_name="time_critical_actions",
@@ -8329,6 +8497,101 @@ def _has_retinal_detachment_treatment_safety_check(checks: list[Any]) -> bool:
         and has_macula_safety
         and has_differential_safety
         and has_precaution_safety
+    )
+
+
+def _requires_central_retinal_artery_occlusion_safety_check(
+    data: dict[str, Any],
+) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_DIRECT_CONTEXT_TERMS
+    )
+    has_vision_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_VISION_CONTEXT_TERMS
+    )
+    has_stroke_risk_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_STROKE_RISK_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_vision_context and has_stroke_risk_context)
+
+
+def _has_central_retinal_artery_occlusion_time_critical_actions(
+    actions: list[Any],
+) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_onset_stroke_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_ONSET_STROKE_ACTION_TERMS
+    )
+    has_ophthalmic_confirmation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_OPHTHALMIC_CONFIRM_ACTION_TERMS
+    )
+    has_vascular_workup = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_VASCULAR_WORKUP_ACTION_TERMS
+    )
+    has_reperfusion_review = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_ACTION_TERMS
+    )
+    return (
+        has_onset_stroke_action
+        and has_ophthalmic_confirmation
+        and has_vascular_workup
+        and has_reperfusion_review
+    )
+
+
+def _has_central_retinal_artery_occlusion_treatment_safety_check(
+    checks: list[Any],
+) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_mimic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_MIMIC_SAFETY_TERMS
+    )
+    has_thrombolysis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_THROMBOLYSIS_SAFETY_TERMS
+    )
+    has_secondary_prevention = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_SECONDARY_PREVENTION_SAFETY_TERMS
+    )
+    has_arteritic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_ARTERITIC_SAFETY_TERMS
+    )
+    return (
+        has_mimic_safety
+        and has_thrombolysis_safety
+        and has_secondary_prevention
+        and has_arteritic_safety
     )
 
 
