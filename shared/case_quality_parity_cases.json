@@ -1490,6 +1490,75 @@
     }
   },
   {
+    "name": "giant_cell_arteritis_requires_steroids_labs_diagnostics_and_vision_escalation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "giant cell arteritis time-critical actions must include immediate high-dose glucocorticoid"
+    ],
+    "overrides": {
+      "diagnosis": "Suspected giant cell arteritis with transient vision loss",
+      "patient_demographics": {
+        "age": 74,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "New temporal headache, jaw claudication, and transient vision loss",
+      "history_of_present_illness": "Older patient presents with new headache, temporal artery tenderness, scalp tenderness, jaw claudication, amaurosis fugax, diplopia, and suspected giant cell arteritis.",
+      "key_teaching_points": [
+        "Giant cell arteritis can cause irreversible vision loss and stroke",
+        "Immediate high-dose glucocorticoids should begin when GCA is strongly suspected",
+        "Temporal artery biopsy or ultrasound supports diagnosis but must not delay treatment"
+      ],
+      "clinical_red_flags": [
+        "Amaurosis fugax, diplopia, visual disturbance, vision loss, or cranial ischemia",
+        "New temporal headache, scalp tenderness, temporal artery tenderness, jaw claudication, polymyalgia rheumatica, or stroke symptoms"
+      ],
+      "time_critical_actions": [
+        "Order ESR, CRP, CBC, platelet count, and inflammatory marker testing immediately",
+        "Arrange temporal artery biopsy, temporal artery ultrasound, color Doppler halo sign assessment, or diagnostic confirmation planning",
+        "Escalate same-day to ophthalmology and rheumatology for emergency visual symptom and vision loss assessment"
+      ],
+      "contraindication_checks": [
+        "Do not delay immediate steroid treatment before biopsy, ultrasound, labs, or specialist review when GCA is strongly suspected",
+        "Review amaurosis fugax, diplopia, cranial ischemia, visual disturbance, vision loss, and stroke risk",
+        "Mitigate steroid toxicity with glucose and diabetes monitoring, infection screening, osteoporosis fracture prevention, bone protection, PPI or GI risk review",
+        "Plan follow-up for taper, relapse, large vessel disease, vascular imaging, polymyalgia rheumatica symptoms, and tocilizumab consideration"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2021 ACR/VF Guideline for Management of Giant Cell Arteritis",
+          "organization": "American College of Rheumatology / Vasculitis Foundation",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12344504/",
+          "supports": [
+            "suspected giant cell arteritis with transient vision loss diagnosis and risk stratification",
+            "giant cell arteritis can cause irreversible vision loss and stroke",
+            "immediate high-dose glucocorticoids should begin when GCA is strongly suspected",
+            "temporal artery biopsy or ultrasound supports diagnosis but must not delay treatment",
+            "amaurosis fugax, diplopia, visual disturbance, vision loss, or cranial ischemia as red flags",
+            "new temporal headache, scalp tenderness, temporal artery tenderness, jaw claudication, polymyalgia rheumatica, or stroke symptoms as severity markers",
+            "ESR, CRP, CBC, platelet count, and inflammatory marker testing",
+            "temporal artery biopsy, temporal artery ultrasound, color Doppler halo sign assessment, or diagnostic confirmation planning",
+            "same-day ophthalmology and rheumatology escalation for emergency visual symptom and vision loss assessment",
+            "immediate steroid treatment before biopsy, ultrasound, labs, or specialist review when GCA is strongly suspected",
+            "amaurosis fugax, diplopia, cranial ischemia, visual disturbance, vision loss, and stroke risk review",
+            "steroid toxicity mitigation with glucose and diabetes monitoring, infection screening, osteoporosis fracture prevention, bone protection, PPI or GI risk review",
+            "follow-up for taper, relapse, large vessel disease, vascular imaging, polymyalgia rheumatica symptoms, and tocilizumab consideration"
+          ]
+        },
+        {
+          "title": "Giant Cell Arteritis",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/musculoskeletal-and-connective-tissue-disorders/vasculitis/giant-cell-arteritis",
+          "supports": [
+            "treatment should not be delayed for temporal artery biopsy",
+            "patients older than 50 with new headache, jaw claudication, visual disturbance, or temporal artery tenderness should receive immediate corticosteroid treatment"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "neutropenic_fever_requires_anc_cultures_antipseudomonal_and_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

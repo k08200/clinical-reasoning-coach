@@ -1099,6 +1099,127 @@ const HYPERTENSIVE_EMERGENCY_DISPOSITION_SAFETY_TERMS = [
   "중환자",
 ];
 
+const GIANT_CELL_ARTERITIS_DIRECT_CONTEXT_TERMS = [
+  "cranial arteritis",
+  "gca",
+  "giant cell arteritis",
+  "temporal arteritis",
+  "거대세포동맥염",
+  "측두동맥염",
+];
+
+const GIANT_CELL_ARTERITIS_HEADACHE_CONTEXT_TERMS = [
+  "new headache",
+  "scalp tenderness",
+  "temporal artery tenderness",
+  "temporal headache",
+  "temporal pain",
+  "두통",
+  "측두",
+];
+
+const GIANT_CELL_ARTERITIS_ISCHEMIC_CONTEXT_TERMS = [
+  "amaurosis fugax",
+  "diplopia",
+  "jaw claudication",
+  "transient vision loss",
+  "visual disturbance",
+  "vision loss",
+  "시력",
+  "턱",
+];
+
+const GIANT_CELL_ARTERITIS_STEROID_ACTION_TERMS = [
+  "corticosteroid",
+  "glucocorticoid",
+  "high-dose prednisone",
+  "iv methylprednisolone",
+  "methylprednisolone",
+  "prednisone",
+  "prednisolone",
+  "steroid",
+  "스테로이드",
+];
+
+const GIANT_CELL_ARTERITIS_LAB_ACTION_TERMS = [
+  "cbc",
+  "crp",
+  "erythrocyte sedimentation rate",
+  "esr",
+  "inflammatory marker",
+  "platelet",
+  "혈소판",
+];
+
+const GIANT_CELL_ARTERITIS_DIAGNOSTIC_ACTION_TERMS = [
+  "biopsy",
+  "color doppler",
+  "halo sign",
+  "temporal artery biopsy",
+  "temporal artery ultrasound",
+  "ultrasound",
+  "초음파",
+  "생검",
+];
+
+const GIANT_CELL_ARTERITIS_ESCALATION_ACTION_TERMS = [
+  "emergency",
+  "ophthalmology",
+  "rheumatology",
+  "same-day",
+  "urgent referral",
+  "vision loss",
+  "visual symptom",
+  "응급",
+  "안과",
+  "류마티스",
+];
+
+const GIANT_CELL_ARTERITIS_DO_NOT_DELAY_SAFETY_TERMS = [
+  "before biopsy",
+  "do not delay",
+  "do not wait",
+  "immediate",
+  "not delay",
+  "same day",
+  "지연",
+  "즉시",
+];
+
+const GIANT_CELL_ARTERITIS_VISION_ISCHEMIA_SAFETY_TERMS = [
+  "amaurosis fugax",
+  "cranial ischemia",
+  "diplopia",
+  "stroke",
+  "visual disturbance",
+  "vision loss",
+  "시력",
+];
+
+const GIANT_CELL_ARTERITIS_STEROID_RISK_SAFETY_TERMS = [
+  "bone protection",
+  "diabetes",
+  "fracture",
+  "glucose",
+  "infection",
+  "osteoporosis",
+  "ppi",
+  "steroid toxicity",
+  "위장",
+  "혈당",
+];
+
+const GIANT_CELL_ARTERITIS_FOLLOWUP_SAFETY_TERMS = [
+  "large vessel",
+  "polymyalgia rheumatica",
+  "relapse",
+  "taper",
+  "tocilizumab",
+  "vascular imaging",
+  "follow-up",
+  "추적",
+];
+
 const NEUTROPENIC_FEVER_CONTEXT_TERMS = [
   "absolute neutrophil count",
   "anc below 500",
@@ -5937,6 +6058,69 @@ function hasHypertensiveEmergencyTreatmentSafetyCheck(checks: string[]): boolean
   );
 }
 
+function requiresGiantCellArteritisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = GIANT_CELL_ARTERITIS_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasHeadacheContext = GIANT_CELL_ARTERITIS_HEADACHE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasIschemicContext = GIANT_CELL_ARTERITIS_ISCHEMIC_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasHeadacheContext && hasIschemicContext);
+}
+
+function hasGiantCellArteritisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasSteroid = GIANT_CELL_ARTERITIS_STEROID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLabs = GIANT_CELL_ARTERITIS_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDiagnosticConfirmation = GIANT_CELL_ARTERITIS_DIAGNOSTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = GIANT_CELL_ARTERITIS_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasSteroid && hasLabs && hasDiagnosticConfirmation && hasEscalation;
+}
+
+function hasGiantCellArteritisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDoNotDelay = GIANT_CELL_ARTERITIS_DO_NOT_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVisionIschemiaSafety = GIANT_CELL_ARTERITIS_VISION_ISCHEMIA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidRiskSafety = GIANT_CELL_ARTERITIS_STEROID_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFollowupSafety = GIANT_CELL_ARTERITIS_FOLLOWUP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasDoNotDelay && hasVisionIschemiaSafety && hasSteroidRiskSafety && hasFollowupSafety;
+}
+
 function requiresNeutropenicFeverSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -8449,6 +8633,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasHypertensiveEmergencyTreatmentSafetyCheck,
       issue:
         "hypertensive emergency safety checks must distinguish true emergency with acute target-organ damage from asymptomatic markedly elevated BP or hypertensive urgency, avoid overly rapid BP lowering, hypotension, cerebral hypoperfusion, or more-than-25% early reduction, review condition-specific medication choice or contraindications for aortic dissection, pulmonary edema, stroke, pregnancy, renal failure, heart failure, asthma, bradycardia, or beta-blocker use, and include ICU, monitored, continuous BP, arterial-line, telemetry, titration, or reassessment disposition",
+    },
+    {
+      name: "giant_cell_arteritis_time_critical_actions",
+      label: "Giant cell arteritis emergency actions",
+      applies: requiresGiantCellArteritisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasGiantCellArteritisTimeCriticalActions,
+      issue:
+        "giant cell arteritis time-critical actions must include immediate high-dose glucocorticoid or corticosteroid therapy such as prednisone, prednisolone, or IV methylprednisolone, ESR, CRP, CBC, platelet, or inflammatory-marker testing, temporal artery biopsy, temporal artery ultrasound, color Doppler, halo-sign, or diagnostic confirmation planning, and urgent ophthalmology, rheumatology, emergency, same-day, visual-symptom, or vision-loss escalation",
+    },
+    {
+      name: "giant_cell_arteritis_treatment_safety",
+      label: "Giant cell arteritis treatment safety",
+      applies: requiresGiantCellArteritisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasGiantCellArteritisTreatmentSafetyCheck,
+      issue:
+        "giant cell arteritis safety checks must include explicit do-not-delay, do-not-wait, immediate, same-day, or before-biopsy steroid planning, vision or cranial-ischemia risk review for amaurosis fugax, diplopia, visual disturbance, vision loss, or stroke, steroid-risk mitigation for glucose, diabetes, infection, osteoporosis, fracture, bone protection, PPI, GI, or toxicity, and follow-up planning for taper, relapse, large-vessel disease, vascular imaging, polymyalgia rheumatica, or tocilizumab",
     },
     {
       name: "neutropenic_fever_time_critical_actions",

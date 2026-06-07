@@ -1045,6 +1045,116 @@ HYPERTENSIVE_EMERGENCY_DISPOSITION_SAFETY_TERMS = (
     "titration",
     "중환자",
 )
+GIANT_CELL_ARTERITIS_DIRECT_CONTEXT_TERMS = (
+    "cranial arteritis",
+    "gca",
+    "giant cell arteritis",
+    "temporal arteritis",
+    "거대세포동맥염",
+    "측두동맥염",
+)
+GIANT_CELL_ARTERITIS_HEADACHE_CONTEXT_TERMS = (
+    "new headache",
+    "scalp tenderness",
+    "temporal artery tenderness",
+    "temporal headache",
+    "temporal pain",
+    "두통",
+    "측두",
+)
+GIANT_CELL_ARTERITIS_ISCHEMIC_CONTEXT_TERMS = (
+    "amaurosis fugax",
+    "diplopia",
+    "jaw claudication",
+    "transient vision loss",
+    "visual disturbance",
+    "vision loss",
+    "시력",
+    "턱",
+)
+GIANT_CELL_ARTERITIS_STEROID_ACTION_TERMS = (
+    "corticosteroid",
+    "glucocorticoid",
+    "high-dose prednisone",
+    "iv methylprednisolone",
+    "methylprednisolone",
+    "prednisone",
+    "prednisolone",
+    "steroid",
+    "스테로이드",
+)
+GIANT_CELL_ARTERITIS_LAB_ACTION_TERMS = (
+    "cbc",
+    "crp",
+    "erythrocyte sedimentation rate",
+    "esr",
+    "inflammatory marker",
+    "platelet",
+    "혈소판",
+)
+GIANT_CELL_ARTERITIS_DIAGNOSTIC_ACTION_TERMS = (
+    "biopsy",
+    "color doppler",
+    "halo sign",
+    "temporal artery biopsy",
+    "temporal artery ultrasound",
+    "ultrasound",
+    "초음파",
+    "생검",
+)
+GIANT_CELL_ARTERITIS_ESCALATION_ACTION_TERMS = (
+    "emergency",
+    "ophthalmology",
+    "rheumatology",
+    "same-day",
+    "urgent referral",
+    "vision loss",
+    "visual symptom",
+    "응급",
+    "안과",
+    "류마티스",
+)
+GIANT_CELL_ARTERITIS_DO_NOT_DELAY_SAFETY_TERMS = (
+    "before biopsy",
+    "do not delay",
+    "do not wait",
+    "immediate",
+    "not delay",
+    "same day",
+    "지연",
+    "즉시",
+)
+GIANT_CELL_ARTERITIS_VISION_ISCHEMIA_SAFETY_TERMS = (
+    "amaurosis fugax",
+    "cranial ischemia",
+    "diplopia",
+    "stroke",
+    "visual disturbance",
+    "vision loss",
+    "시력",
+)
+GIANT_CELL_ARTERITIS_STEROID_RISK_SAFETY_TERMS = (
+    "bone protection",
+    "diabetes",
+    "fracture",
+    "glucose",
+    "infection",
+    "osteoporosis",
+    "ppi",
+    "steroid toxicity",
+    "위장",
+    "혈당",
+)
+GIANT_CELL_ARTERITIS_FOLLOWUP_SAFETY_TERMS = (
+    "large vessel",
+    "polymyalgia rheumatica",
+    "relapse",
+    "taper",
+    "tocilizumab",
+    "vascular imaging",
+    "follow-up",
+    "추적",
+)
 NEUTROPENIC_FEVER_CONTEXT_TERMS = (
     "absolute neutrophil count",
     "anc below 500",
@@ -5463,6 +5573,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="giant_cell_arteritis_time_critical_actions",
+            applies=_requires_giant_cell_arteritis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_giant_cell_arteritis_time_critical_actions,
+            issue=(
+                "giant cell arteritis time-critical actions must include immediate "
+                "high-dose glucocorticoid or corticosteroid therapy such as "
+                "prednisone, prednisolone, or IV methylprednisolone, ESR, CRP, "
+                "CBC, platelet, or inflammatory-marker testing, temporal artery "
+                "biopsy, temporal artery ultrasound, color Doppler, halo-sign, "
+                "or diagnostic confirmation planning, and urgent ophthalmology, "
+                "rheumatology, emergency, same-day, visual-symptom, or vision-loss "
+                "escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="giant_cell_arteritis_treatment_safety",
+            applies=_requires_giant_cell_arteritis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_giant_cell_arteritis_treatment_safety_check,
+            issue=(
+                "giant cell arteritis safety checks must include explicit "
+                "do-not-delay, do-not-wait, immediate, same-day, or before-biopsy "
+                "steroid planning, vision or cranial-ischemia risk review for "
+                "amaurosis fugax, diplopia, visual disturbance, vision loss, or "
+                "stroke, steroid-risk mitigation for glucose, diabetes, infection, "
+                "osteoporosis, fracture, bone protection, PPI, GI, or toxicity, "
+                "and follow-up planning for taper, relapse, large-vessel disease, "
+                "vascular imaging, polymyalgia rheumatica, or tocilizumab"
+            ),
+        ),
+        DomainSafetyGate(
             name="neutropenic_fever_time_critical_actions",
             applies=_requires_neutropenic_fever_safety_check,
             field_name="time_critical_actions",
@@ -7163,6 +7305,92 @@ def _has_hypertensive_emergency_treatment_safety_check(
         and has_overlowering_safety
         and has_condition_med_safety
         and has_disposition_safety
+    )
+
+
+def _requires_giant_cell_arteritis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in GIANT_CELL_ARTERITIS_DIRECT_CONTEXT_TERMS
+    )
+    has_headache_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in GIANT_CELL_ARTERITIS_HEADACHE_CONTEXT_TERMS
+    )
+    has_ischemic_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in GIANT_CELL_ARTERITIS_ISCHEMIC_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_headache_context and has_ischemic_context)
+
+
+def _has_giant_cell_arteritis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_steroid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in GIANT_CELL_ARTERITIS_STEROID_ACTION_TERMS
+    )
+    has_labs = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in GIANT_CELL_ARTERITIS_LAB_ACTION_TERMS
+    )
+    has_diagnostic_confirmation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in GIANT_CELL_ARTERITIS_DIAGNOSTIC_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in GIANT_CELL_ARTERITIS_ESCALATION_ACTION_TERMS
+    )
+    return has_steroid and has_labs and has_diagnostic_confirmation and has_escalation
+
+
+def _has_giant_cell_arteritis_treatment_safety_check(
+    checks: list[Any],
+) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_do_not_delay = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in GIANT_CELL_ARTERITIS_DO_NOT_DELAY_SAFETY_TERMS
+    )
+    has_vision_ischemia_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in GIANT_CELL_ARTERITIS_VISION_ISCHEMIA_SAFETY_TERMS
+    )
+    has_steroid_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in GIANT_CELL_ARTERITIS_STEROID_RISK_SAFETY_TERMS
+    )
+    has_followup_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in GIANT_CELL_ARTERITIS_FOLLOWUP_SAFETY_TERMS
+    )
+    return (
+        has_do_not_delay
+        and has_vision_ischemia_safety
+        and has_steroid_risk_safety
+        and has_followup_safety
     )
 
 
