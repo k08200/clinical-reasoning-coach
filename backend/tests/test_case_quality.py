@@ -81,6 +81,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "septic_arthritis_treatment_safety",
         "upper_gi_bleed_time_critical_actions",
         "upper_gi_bleed_treatment_safety",
+        "acute_cholecystitis_time_critical_actions",
+        "acute_cholecystitis_treatment_safety",
         "acute_cholangitis_time_critical_actions",
         "acute_cholangitis_treatment_safety",
         "acute_pancreatitis_time_critical_actions",
@@ -2455,6 +2457,139 @@ def test_quality_gate_requires_upper_gi_bleed_airway_reversal_variceal_and_reble
     assert not report.passed
     assert any(
         "upper GI bleeding safety checks must include airway" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_cholecystitis_severity_antibiotics_imaging_and_source_control():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute calculous cholecystitis"
+    case["patient_demographics"] = {
+        "age": 71,
+        "sex": "male",
+        "weight_kg": 79,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Right upper quadrant pain and fever after fatty meal"
+    case["history_of_present_illness"] = (
+        "Older patient presents with persistent right upper quadrant pain, fever, "
+        "positive Murphy sign, leukocytosis, gallstones, gallbladder wall thickening, "
+        "and suspected acute cholecystitis."
+    )
+    case["key_teaching_points"] = [
+        "Acute cholecystitis requires severity grading and early source-control planning",
+        "Early laparoscopic cholecystectomy is recommended for suitable low-risk Grade I or II patients",
+        "High-risk, severe, or surgery-ineligible patients may need early or urgent gallbladder drainage",
+    ]
+    case["clinical_red_flags"] = [
+        "Sepsis, shock, organ dysfunction, gangrenous, emphysematous, perforation, or peritonitis",
+        "High CCI or ASA-PS, jaundice, neurologic dysfunction, respiratory dysfunction, or advanced-center need",
+    ]
+    case["time_critical_actions"] = [
+        "Apply Tokyo severity grade with organ dysfunction review and Charlson CCI plus ASA-PS risk assessment",
+        "Start broad-spectrum antibiotics such as ceftriaxone or piperacillin tazobactam and obtain blood culture; collect bile culture if an intervention occurs",
+        "Order RUQ ultrasound or CT to assess sonographic Murphy sign, gallbladder wall thickening, pericholecystic fluid, and gallstones; use HIDA scan if unclear",
+    ]
+    case["contraindication_checks"] = [
+        "Assess high-risk surgery status using ASA-PS, Charlson, high risk, and need for percutaneous gallbladder drainage, PTGBD, or cholecystostomy",
+        "Review complications including emphysematous cholecystitis, gangrenous gallbladder, perforation, peritonitis, sepsis, and shock",
+        "Prevent bile duct injury with critical view of safety CVS, bail-out, subtotal cholecystectomy, conversion, bile leak, and common bile duct review",
+        "Review differentials including cholangitis, choledocholithiasis, gallstone pancreatitis, pancreatitis, hepatitis, peptic ulcer disease, and myocardial infarction",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tokyo Guidelines 2018: Flowchart for the management of acute cholecystitis",
+            "organization": "Tokyo Guidelines 2018",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/29045062/",
+            "supports": [
+                "acute cholecystitis diagnosis and risk stratification",
+                "acute cholecystitis requires severity grading and early source-control planning",
+                "early laparoscopic cholecystectomy is recommended for suitable low-risk Grade I or II patients",
+                "high-risk, severe, or surgery-ineligible patients may need early or urgent gallbladder drainage",
+                "sepsis, shock, organ dysfunction, gangrenous, emphysematous, perforation, or peritonitis as red flags",
+                "high CCI or ASA-PS, jaundice, neurologic dysfunction, respiratory dysfunction, or advanced-center need as severity markers",
+                "Tokyo severity grade with organ dysfunction review and Charlson CCI plus ASA-PS risk assessment",
+                "broad-spectrum antibiotics such as ceftriaxone or piperacillin tazobactam, blood culture, and bile culture if drainage occurs",
+                "RUQ ultrasound or CT to assess sonographic Murphy sign, gallbladder wall thickening, pericholecystic fluid, gallstones, and HIDA scan if unclear",
+                "high-risk surgery status using ASA-PS, Charlson, high risk, and need for percutaneous gallbladder drainage, PTGBD, or cholecystostomy",
+                "emphysematous cholecystitis, gangrenous gallbladder, perforation, peritonitis, sepsis, and shock complication review",
+                "bile duct injury prevention with critical view of safety CVS, bail-out, subtotal cholecystectomy, conversion, bile leak, and common bile duct review",
+                "cholangitis, choledocholithiasis, gallstone pancreatitis, pancreatitis, hepatitis, peptic ulcer disease, and myocardial infarction differential review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute cholecystitis time-critical actions must include Tokyo" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_cholecystitis_high_risk_complication_bile_duct_and_differential_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute calculous cholecystitis"
+    case["patient_demographics"] = {
+        "age": 71,
+        "sex": "male",
+        "weight_kg": 79,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Right upper quadrant pain and fever after fatty meal"
+    case["history_of_present_illness"] = (
+        "Older patient presents with persistent right upper quadrant pain, fever, "
+        "positive Murphy sign, leukocytosis, gallstones, gallbladder wall thickening, "
+        "and suspected acute cholecystitis."
+    )
+    case["key_teaching_points"] = [
+        "Acute cholecystitis requires severity grading and early source-control planning",
+        "Early laparoscopic cholecystectomy is recommended for suitable low-risk Grade I or II patients",
+        "High-risk, severe, or surgery-ineligible patients may need early or urgent gallbladder drainage",
+    ]
+    case["clinical_red_flags"] = [
+        "Sepsis, shock, organ dysfunction, gangrenous, emphysematous, perforation, or peritonitis",
+        "High CCI or ASA-PS, jaundice, neurologic dysfunction, respiratory dysfunction, or advanced-center need",
+    ]
+    case["time_critical_actions"] = [
+        "Apply Tokyo severity grade with organ dysfunction review and Charlson CCI plus ASA-PS risk assessment",
+        "Start broad-spectrum antibiotics such as ceftriaxone or piperacillin tazobactam and obtain blood culture; collect bile culture if drainage occurs",
+        "Order RUQ ultrasound or CT to assess sonographic Murphy sign, gallbladder wall thickening, pericholecystic fluid, and gallstones; use HIDA scan if unclear",
+        "Consult surgery for early laparoscopic cholecystectomy, Lap-C, cholecystectomy, or gallbladder drainage with cholecystostomy, PTGBD, or percutaneous drainage source control",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antibiotic choice",
+        "Renal dosing before contrast imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tokyo Guidelines 2018: Flowchart for the management of acute cholecystitis",
+            "organization": "Tokyo Guidelines 2018",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/29045062/",
+            "supports": [
+                "acute cholecystitis diagnosis and risk stratification",
+                "acute cholecystitis requires severity grading and early source-control planning",
+                "early laparoscopic cholecystectomy is recommended for suitable low-risk Grade I or II patients",
+                "high-risk, severe, or surgery-ineligible patients may need early or urgent gallbladder drainage",
+                "sepsis, shock, organ dysfunction, gangrenous, emphysematous, perforation, or peritonitis as red flags",
+                "high CCI or ASA-PS, jaundice, neurologic dysfunction, respiratory dysfunction, or advanced-center need as severity markers",
+                "Tokyo severity grade with organ dysfunction review and Charlson CCI plus ASA-PS risk assessment",
+                "broad-spectrum antibiotics such as ceftriaxone or piperacillin tazobactam, blood culture, and bile culture if drainage occurs",
+                "RUQ ultrasound or CT to assess sonographic Murphy sign, gallbladder wall thickening, pericholecystic fluid, gallstones, and HIDA scan if unclear",
+                "early laparoscopic cholecystectomy, Lap-C, cholecystectomy, or gallbladder drainage with cholecystostomy, PTGBD, or percutaneous drainage source control",
+                "medication allergy before antibiotic choice",
+                "renal dosing before contrast imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute cholecystitis safety checks must include high-risk surgery"
+        in issue
         for issue in report.critical_issues
     )
 

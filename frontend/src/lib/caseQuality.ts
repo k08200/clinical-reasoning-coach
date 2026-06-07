@@ -2142,6 +2142,105 @@ const UPPER_GI_BLEED_REBLEED_DISPOSITION_SAFETY_TERMS = [
   "혈역학",
 ];
 
+const ACUTE_CHOLECYSTITIS_CONTEXT_TERMS = [
+  "acalculous cholecystitis",
+  "acute cholecystitis",
+  "emphysematous cholecystitis",
+  "gangrenous cholecystitis",
+  "perforated cholecystitis",
+  "suppurative cholecystitis",
+  "급성 담낭염",
+];
+
+const ACUTE_CHOLECYSTITIS_SEVERITY_ACTION_TERMS = [
+  "asa",
+  "cci",
+  "charlson",
+  "grade",
+  "organ dysfunction",
+  "severity",
+  "tokyo",
+  "중증도",
+];
+
+const ACUTE_CHOLECYSTITIS_ANTIBIOTIC_CULTURE_ACTION_TERMS = [
+  "antibiotic",
+  "bile culture",
+  "blood culture",
+  "broad-spectrum",
+  "ceftriaxone",
+  "culture",
+  "piperacillin",
+  "항생제",
+];
+
+const ACUTE_CHOLECYSTITIS_IMAGING_ACTION_TERMS = [
+  "ct",
+  "gallbladder wall",
+  "hidascan",
+  "murphy",
+  "pericholecystic",
+  "ruq ultrasound",
+  "sonographic",
+  "ultrasound",
+  "초음파",
+];
+
+const ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_ACTION_TERMS = [
+  "cholecystectomy",
+  "cholecystostomy",
+  "drainage",
+  "gallbladder drainage",
+  "laparoscopic",
+  "lap-c",
+  "percutaneous",
+  "ptgbd",
+  "담낭절제",
+];
+
+const ACUTE_CHOLECYSTITIS_HIGH_RISK_DRAINAGE_SAFETY_TERMS = [
+  "asa-ps",
+  "charlson",
+  "cholecystostomy",
+  "drainage",
+  "gallbladder drainage",
+  "high risk",
+  "percutaneous",
+  "ptgbd",
+];
+
+const ACUTE_CHOLECYSTITIS_COMPLICATION_SAFETY_TERMS = [
+  "emphysematous",
+  "gangrenous",
+  "perforation",
+  "peritonitis",
+  "sepsis",
+  "shock",
+  "심한",
+];
+
+const ACUTE_CHOLECYSTITIS_BILE_DUCT_SAFETY_TERMS = [
+  "bile duct injury",
+  "bile leak",
+  "bail-out",
+  "common bile duct",
+  "critical view",
+  "subtotal cholecystectomy",
+  "conversion",
+  "cvs",
+];
+
+const ACUTE_CHOLECYSTITIS_DIFFERENTIAL_SAFETY_TERMS = [
+  "cholangitis",
+  "choledocholithiasis",
+  "gallstone pancreatitis",
+  "hepatitis",
+  "myocardial infarction",
+  "pancreatitis",
+  "peptic ulcer",
+  "감별",
+];
+
 const ACUTE_CHOLANGITIS_CONTEXT_TERMS = [
   "acute cholangitis",
   "ascending cholangitis",
@@ -6014,6 +6113,54 @@ function hasUpperGiBleedTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresAcuteCholecystitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.diagnosis,
+    detail.coach_guidance,
+  ]
+    .join(" ")
+    .toLowerCase();
+  return ACUTE_CHOLECYSTITIS_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasAcuteCholecystitisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasSeverity = ACUTE_CHOLECYSTITIS_SEVERITY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibioticCulture = ACUTE_CHOLECYSTITIS_ANTIBIOTIC_CULTURE_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImaging = ACUTE_CHOLECYSTITIS_IMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSourceControl = ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasSeverity && hasAntibioticCulture && hasImaging && hasSourceControl;
+}
+
+function hasAcuteCholecystitisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasHighRiskDrainage = ACUTE_CHOLECYSTITIS_HIGH_RISK_DRAINAGE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasComplication = ACUTE_CHOLECYSTITIS_COMPLICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBileDuctSafety = ACUTE_CHOLECYSTITIS_BILE_DUCT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferential = ACUTE_CHOLECYSTITIS_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasHighRiskDrainage && hasComplication && hasBileDuctSafety && hasDifferential;
+}
+
 function requiresAcuteCholangitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -7867,6 +8014,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasUpperGiBleedTreatmentSafetyCheck,
       issue:
         "upper GI bleeding safety checks must include airway, aspiration, active hematemesis, vomiting blood, intubation, or altered mental status planning, anticoagulant, antiplatelet, warfarin, DOAC, INR, platelet, coagulopathy, or reversal review, variceal, cirrhosis, portal hypertension, TIPS, balloon tamponade, stent, or rescue therapy review, and rebleeding, repeat endoscopy, ICU, unstable, shock, or risk-stratification disposition monitoring",
+    },
+    {
+      name: "acute_cholecystitis_time_critical_actions",
+      label: "Acute cholecystitis source control",
+      applies: requiresAcuteCholecystitisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcuteCholecystitisTimeCriticalActions,
+      issue:
+        "acute cholecystitis time-critical actions must include Tokyo, severity, grade, organ dysfunction, Charlson, CCI, ASA, or ASA-PS risk assessment, broad-spectrum antibiotics plus blood culture, bile culture, ceftriaxone, piperacillin, or culture planning, RUQ ultrasound, CT, HIDA scan, sonographic Murphy, gallbladder wall, or pericholecystic imaging assessment, and early laparoscopic cholecystectomy, Lap-C, cholecystectomy, gallbladder drainage, cholecystostomy, PTGBD, percutaneous, or drainage source-control planning",
+    },
+    {
+      name: "acute_cholecystitis_treatment_safety",
+      label: "Acute cholecystitis severity and bile-duct safety",
+      applies: requiresAcuteCholecystitisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcuteCholecystitisTreatmentSafetyCheck,
+      issue:
+        "acute cholecystitis safety checks must include high-risk surgery or drainage planning for ASA-PS, Charlson, high risk, percutaneous gallbladder drainage, PTGBD, or cholecystostomy, complication review for emphysematous, gangrenous, perforation, peritonitis, sepsis, or shock, bile-duct injury prevention with critical view of safety, CVS, bail-out, subtotal cholecystectomy, conversion, bile leak, or common bile duct review, and differential review for cholangitis, choledocholithiasis, gallstone pancreatitis, pancreatitis, hepatitis, peptic ulcer, or myocardial infarction",
     },
     {
       name: "acute_cholangitis_time_critical_actions",
