@@ -1068,6 +1068,149 @@ const NEUTROPENIC_FEVER_REASSESSMENT_SAFETY_TERMS = [
   "재평가",
 ];
 
+const OBSTRUCTIVE_PYELONEPHRITIS_COMBINED_CONTEXT_TERMS = [
+  "infected obstructing stone",
+  "infected obstructive uropathy",
+  "infected ureteral stone",
+  "obstructed infected kidney",
+  "obstructive pyelonephritis",
+  "pyelonephritis with obstruction",
+  "septic obstructive uropathy",
+  "stone sepsis",
+  "urosepsis with hydronephrosis",
+  "폐쇄성 신우신염",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_INFECTION_CONTEXT_TERMS = [
+  "fever",
+  "infected",
+  "pyelonephritis",
+  "rigor",
+  "sepsis",
+  "septic shock",
+  "urinary tract infection",
+  "uti",
+  "urosepsis",
+  "발열",
+  "신우신염",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_OBSTRUCTION_CONTEXT_TERMS = [
+  "anuria",
+  "hydronephrosis",
+  "obstructed",
+  "obstructing",
+  "obstruction",
+  "obstructive uropathy",
+  "stone",
+  "ureteral stone",
+  "urolithiasis",
+  "수신증",
+  "요로결석",
+  "요로폐색",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_CULTURE_ANTIBIOTIC_ACTION_TERMS = [
+  "antibiotic",
+  "antibiotics",
+  "blood culture",
+  "cefepime",
+  "ceftriaxone",
+  "culture",
+  "piperacillin",
+  "urine culture",
+  "항생제",
+  "배양",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_IMAGING_OBSTRUCTION_ACTION_TERMS = [
+  "ct",
+  "hydronephrosis",
+  "obstruction",
+  "obstructive",
+  "stone",
+  "ultrasound",
+  "ureteral stone",
+  "urolithiasis",
+  "수신증",
+  "요로결석",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_ACTION_TERMS = [
+  "decompression",
+  "drainage",
+  "nephrostomy",
+  "pcn",
+  "percutaneous nephrostomy",
+  "stent",
+  "ureteral stent",
+  "urology",
+  "urgent decompression",
+  "배액",
+  "스텐트",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_SEPSIS_SUPPORT_ACTION_TERMS = [
+  "fluid",
+  "icu",
+  "lactate",
+  "sepsis",
+  "septic shock",
+  "shock",
+  "vasopressor",
+  "쇼크",
+  "수액",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_DELAY_STONE_SAFETY_TERMS = [
+  "defer",
+  "definitive stone",
+  "delay",
+  "lithotripsy",
+  "postpone",
+  "stone removal",
+  "until infection",
+  "until sepsis",
+  "지연",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_OPTION_SAFETY_TERMS = [
+  "decompression",
+  "drainage",
+  "nephrostomy",
+  "pcn",
+  "percutaneous nephrostomy",
+  "retrograde",
+  "stent",
+  "ureteral stent",
+  "배액",
+  "스텐트",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_SAFETY_TERMS = [
+  "antibiogram",
+  "antibiotic adjustment",
+  "culture result",
+  "renal dosing",
+  "reassess",
+  "resistance",
+  "source control",
+  "배양",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_COMPLICATION_RISK_SAFETY_TERMS = [
+  "acute kidney injury",
+  "aki",
+  "anuria",
+  "immunocompromised",
+  "pregnancy",
+  "renal failure",
+  "septic shock",
+  "solitary kidney",
+  "urosepsis",
+  "무뇨",
+];
+
 const SEVERE_HYPOGLYCEMIA_CONTEXT_TERMS = [
   "blood glucose 40",
   "blood glucose 50",
@@ -5503,6 +5646,82 @@ function hasNeutropenicFeverTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresObstructivePyelonephritisSafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasCombinedContext = OBSTRUCTIVE_PYELONEPHRITIS_COMBINED_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasInfectionContext = OBSTRUCTIVE_PYELONEPHRITIS_INFECTION_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasObstructionContext = OBSTRUCTIVE_PYELONEPHRITIS_OBSTRUCTION_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasCombinedContext || (hasInfectionContext && hasObstructionContext);
+}
+
+function hasObstructivePyelonephritisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAntibioticsAndCultures =
+    OBSTRUCTIVE_PYELONEPHRITIS_CULTURE_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasObstructionImaging =
+    OBSTRUCTIVE_PYELONEPHRITIS_IMAGING_OBSTRUCTION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasDecompression = OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSepsisSupport = OBSTRUCTIVE_PYELONEPHRITIS_SEPSIS_SUPPORT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAntibioticsAndCultures && hasObstructionImaging && hasDecompression && hasSepsisSupport;
+}
+
+function hasObstructivePyelonephritisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDelayedStoneTreatment =
+    OBSTRUCTIVE_PYELONEPHRITIS_DELAY_STONE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDrainageOptionReview =
+    OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_OPTION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAntibioticReassessment =
+    OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasComplicationRiskReview =
+    OBSTRUCTIVE_PYELONEPHRITIS_COMPLICATION_RISK_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasDelayedStoneTreatment &&
+    hasDrainageOptionReview &&
+    hasAntibioticReassessment &&
+    hasComplicationRiskReview
+  );
+}
+
 function requiresSevereHypoglycemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -7816,6 +8035,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasNeutropenicFeverTreatmentSafetyCheck,
       issue:
         "febrile neutropenia safety checks must include antibiotic allergy or renal/hepatic dosing review, central-line or resistant-organism coverage indications, validated risk/disposition assessment, and persistent fever or fungal-risk reassessment",
+    },
+    {
+      name: "obstructive_pyelonephritis_time_critical_actions",
+      label: "Obstructive pyelonephritis emergency actions",
+      applies: requiresObstructivePyelonephritisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasObstructivePyelonephritisTimeCriticalActions,
+      issue:
+        "obstructive pyelonephritis time-critical actions must include immediate antibiotics and urine or blood cultures, CT, ultrasound, hydronephrosis, obstruction, stone, or ureteral-stone imaging, urgent urology decompression with ureteral stent, percutaneous nephrostomy, PCN, nephrostomy, drainage, or decompression, and sepsis support with fluids, lactate, shock, vasopressor, ICU, or septic-shock monitoring",
+    },
+    {
+      name: "obstructive_pyelonephritis_treatment_safety",
+      label: "Obstructive pyelonephritis treatment safety",
+      applies: requiresObstructivePyelonephritisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasObstructivePyelonephritisTreatmentSafetyCheck,
+      issue:
+        "obstructive pyelonephritis safety checks must include delayed definitive stone removal until infection or sepsis resolves, drainage option review for ureteral stent, retrograde stent, percutaneous nephrostomy, PCN, or nephrostomy, antibiotic reassessment with culture result, antibiogram, resistance, renal dosing, or source-control review, and complication risk review for anuria, AKI, renal failure, solitary kidney, pregnancy, immunocompromised state, urosepsis, or septic shock",
     },
     {
       name: "severe_hypoglycemia_time_critical_actions",
