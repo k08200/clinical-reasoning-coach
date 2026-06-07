@@ -2777,5 +2777,65 @@
         }
       ]
     }
+  },
+  {
+    "name": "small_bowel_obstruction_requires_npo_fluids_ct_and_surgical_escalation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "small bowel obstruction time-critical actions must include bowel rest"
+    ],
+    "overrides": {
+      "diagnosis": "Closed-loop small bowel obstruction",
+      "patient_demographics": {
+        "age": 67,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Crampy abdominal pain, vomiting, and obstipation",
+      "history_of_present_illness": "Patient with prior laparotomy presents with worsening crampy abdominal pain, bilious vomiting, distension, obstipation, dehydration, and CT concern for high-grade small bowel obstruction with transition point and possible closed-loop obstruction.",
+      "key_teaching_points": [
+        "Small bowel obstruction requires bowel rest, nasogastric decompression, fluid resuscitation, and surgical involvement",
+        "Closed-loop obstruction, ischemia, strangulation, peritonitis, fever, leukocytosis, acidosis, or elevated lactate require urgent operative evaluation",
+        "Nonoperative management requires serial exams and reassessment; failure to resolve or complete obstruction should not be observed indefinitely"
+      ],
+      "clinical_red_flags": [
+        "Peritonitis, continuous pain, fever, tachycardia, leukocytosis, acidosis, elevated lactate, free fluid, or closed-loop obstruction",
+        "Incarcerated hernia, volvulus, malignancy, aspiration risk from vomiting, perforation, free air, sepsis, or shock"
+      ],
+      "time_critical_actions": [
+        "Keep NPO with bowel rest and place NG tube for nasogastric suction and decompression",
+        "Give IV crystalloid fluids for dehydration and monitor electrolytes, potassium, and urine output",
+        "Obtain CT abdomen to identify transition point, closed-loop obstruction, free fluid, ischemia, or strangulation"
+      ],
+      "contraindication_checks": [
+        "Review strangulation and ischemia red flags including peritonitis, continuous pain, fever, leukocytosis, acidosis, lactate elevation, and closed-loop obstruction",
+        "Define nonoperative conservative limits with serial exams, water-soluble contrast or Gastrografin challenge when appropriate, complete obstruction concern, failure to resolve, and 72-hour reassessment",
+        "If perforation, free air, bowel infarction, gangrene, or sepsis is suspected, start broad-spectrum antibiotics and plan urgent source control",
+        "Assess aspiration risk from vomiting and etiology including adhesions, hernia, incarcerated hernia, volvulus, tumor, or malignancy"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Bologna Guidelines for Diagnosis and Management of Adhesive Small Bowel Obstruction",
+          "organization": "World Society of Emergency Surgery",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6006983/",
+          "supports": [
+            "small bowel obstruction diagnosis and risk stratification",
+            "small bowel obstruction requires bowel rest, nasogastric decompression, fluid resuscitation, and surgical involvement",
+            "closed-loop obstruction, ischemia, strangulation, peritonitis, fever, leukocytosis, acidosis, or elevated lactate require urgent operative evaluation",
+            "nonoperative management requires serial exams and reassessment; failure to resolve or complete obstruction should not be observed indefinitely",
+            "peritonitis, continuous pain, fever, tachycardia, leukocytosis, acidosis, elevated lactate, free fluid, or closed-loop obstruction as red flags",
+            "incarcerated hernia, volvulus, malignancy, aspiration risk from vomiting, perforation, free air, sepsis, or shock as severity markers",
+            "NPO bowel rest, NG tube, nasogastric suction, and decompression",
+            "IV crystalloid fluids for dehydration and electrolytes, potassium, and urine output monitoring",
+            "CT abdomen to identify transition point, closed-loop obstruction, free fluid, ischemia, or strangulation",
+            "strangulation and ischemia red flags including peritonitis, continuous pain, fever, leukocytosis, acidosis, lactate elevation, and closed-loop obstruction",
+            "nonoperative conservative limits with serial exams, water-soluble contrast or Gastrografin challenge, complete obstruction concern, failure to resolve, and 72-hour reassessment",
+            "perforation, free air, bowel infarction, gangrene, sepsis, broad-spectrum antibiotics, and urgent source control",
+            "aspiration risk from vomiting and etiology including adhesions, hernia, incarcerated hernia, volvulus, tumor, or malignancy"
+          ]
+        }
+      ]
+    }
   }
 ]

@@ -2096,6 +2096,101 @@ ACUTE_PANCREATITIS_NECROSIS_PROCEDURE_SAFETY_TERMS = (
     "walled-off",
     "췌장괴사",
 )
+SMALL_BOWEL_OBSTRUCTION_CONTEXT_TERMS = (
+    "adhesive small bowel obstruction",
+    "bowel obstruction with vomiting",
+    "closed-loop bowel obstruction",
+    "closed-loop obstruction",
+    "high-grade small bowel obstruction",
+    "sbo",
+    "small bowel obstruction",
+    "strangulating obstruction",
+    "장폐색",
+)
+SMALL_BOWEL_OBSTRUCTION_NPO_NG_ACTION_TERMS = (
+    "bowel rest",
+    "decompression",
+    "ng tube",
+    "nil per os",
+    "npo",
+    "nasogastric",
+    "suction",
+    "금식",
+)
+SMALL_BOWEL_OBSTRUCTION_FLUID_ELECTROLYTE_ACTION_TERMS = (
+    "crystalloid",
+    "dehydration",
+    "electrolyte",
+    "fluid",
+    "fluids",
+    "potassium",
+    "urine output",
+    "수액",
+    "전해질",
+)
+SMALL_BOWEL_OBSTRUCTION_CT_TRANSITION_ACTION_TERMS = (
+    "closed-loop",
+    "ct",
+    "ct abdomen",
+    "free fluid",
+    "ischemia",
+    "strangulation",
+    "transition point",
+    "복부 ct",
+)
+SMALL_BOWEL_OBSTRUCTION_SURGERY_ACTION_TERMS = (
+    "exploration",
+    "laparotomy",
+    "operative",
+    "surgery",
+    "surgical consult",
+    "surgeon",
+    "외과",
+)
+SMALL_BOWEL_OBSTRUCTION_STRANGULATION_SAFETY_TERMS = (
+    "acidosis",
+    "closed-loop",
+    "continuous pain",
+    "fever",
+    "ischemia",
+    "lactate",
+    "leukocytosis",
+    "peritonitis",
+    "strangulation",
+    "복막염",
+)
+SMALL_BOWEL_OBSTRUCTION_NONOPERATIVE_LIMITS_SAFETY_TERMS = (
+    "72 hours",
+    "complete obstruction",
+    "conservative",
+    "failure to resolve",
+    "gastrografin",
+    "nonoperative",
+    "serial exam",
+    "water-soluble contrast",
+    "관찰",
+)
+SMALL_BOWEL_OBSTRUCTION_PERFORATION_SEPSIS_SAFETY_TERMS = (
+    "antibiotic",
+    "broad-spectrum",
+    "free air",
+    "gangrene",
+    "infarction",
+    "perforation",
+    "sepsis",
+    "항생제",
+)
+SMALL_BOWEL_OBSTRUCTION_ASPIRATION_ETIOLOGY_SAFETY_TERMS = (
+    "adhesion",
+    "aspiration",
+    "hernia",
+    "incarcerated hernia",
+    "malignancy",
+    "tumor",
+    "volvulus",
+    "vomiting",
+    "흡인",
+)
 ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = (
     "acute bowel ischemia",
     "acute intestinal ischemia",
@@ -5017,6 +5112,39 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="small_bowel_obstruction_time_critical_actions",
+            applies=_requires_small_bowel_obstruction_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_small_bowel_obstruction_time_critical_actions,
+            issue=(
+                "small bowel obstruction time-critical actions must include bowel "
+                "rest, NPO, nil per os, NG tube, nasogastric suction, or "
+                "decompression planning, IV crystalloid, fluid, dehydration, "
+                "electrolyte, potassium, or urine output resuscitation, CT "
+                "abdomen, transition point, closed-loop, free fluid, ischemia, "
+                "or strangulation assessment, and urgent surgery, surgeon, "
+                "surgical consult, operative, exploration, or laparotomy escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="small_bowel_obstruction_treatment_safety",
+            applies=_requires_small_bowel_obstruction_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_small_bowel_obstruction_treatment_safety_check,
+            issue=(
+                "small bowel obstruction safety checks must include strangulation "
+                "or ischemia red-flag review for peritonitis, continuous pain, "
+                "fever, leukocytosis, acidosis, lactate, or closed-loop "
+                "obstruction, nonoperative management limits with serial exams, "
+                "water-soluble contrast or Gastrografin, complete obstruction, "
+                "failure to resolve, conservative management, or 72-hour "
+                "reassessment, perforation, free air, infarction, gangrene, "
+                "sepsis, broad-spectrum antibiotics, or antibiotic planning, "
+                "and aspiration or etiology review for vomiting, adhesions, "
+                "hernia, incarcerated hernia, volvulus, tumor, or malignancy"
+            ),
+        ),
+        DomainSafetyGate(
             name="acute_mesenteric_ischemia_time_critical_actions",
             applies=_requires_acute_mesenteric_ischemia_safety_check,
             field_name="time_critical_actions",
@@ -7009,6 +7137,80 @@ def _has_acute_pancreatitis_treatment_safety_check(checks: list[Any]) -> bool:
         and has_antibiotic_safety
         and has_nutrition_safety
         and has_necrosis_procedure_safety
+    )
+
+
+def _requires_small_bowel_obstruction_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in SMALL_BOWEL_OBSTRUCTION_CONTEXT_TERMS
+    )
+
+
+def _has_small_bowel_obstruction_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_npo_ng = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SMALL_BOWEL_OBSTRUCTION_NPO_NG_ACTION_TERMS
+    )
+    has_fluid_electrolyte = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SMALL_BOWEL_OBSTRUCTION_FLUID_ELECTROLYTE_ACTION_TERMS
+    )
+    has_ct_transition = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SMALL_BOWEL_OBSTRUCTION_CT_TRANSITION_ACTION_TERMS
+    )
+    has_surgery = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SMALL_BOWEL_OBSTRUCTION_SURGERY_ACTION_TERMS
+    )
+    return has_npo_ng and has_fluid_electrolyte and has_ct_transition and has_surgery
+
+
+def _has_small_bowel_obstruction_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_strangulation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SMALL_BOWEL_OBSTRUCTION_STRANGULATION_SAFETY_TERMS
+    )
+    has_nonoperative_limits = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SMALL_BOWEL_OBSTRUCTION_NONOPERATIVE_LIMITS_SAFETY_TERMS
+    )
+    has_perforation_sepsis = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SMALL_BOWEL_OBSTRUCTION_PERFORATION_SEPSIS_SAFETY_TERMS
+    )
+    has_aspiration_etiology = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SMALL_BOWEL_OBSTRUCTION_ASPIRATION_ETIOLOGY_SAFETY_TERMS
+    )
+    return (
+        has_strangulation_safety
+        and has_nonoperative_limits
+        and has_perforation_sepsis
+        and has_aspiration_etiology
     )
 
 

@@ -83,6 +83,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "acute_cholangitis_treatment_safety",
         "acute_pancreatitis_time_critical_actions",
         "acute_pancreatitis_treatment_safety",
+        "small_bowel_obstruction_time_critical_actions",
+        "small_bowel_obstruction_treatment_safety",
         "acute_mesenteric_ischemia_time_critical_actions",
         "acute_mesenteric_ischemia_treatment_safety",
         "necrotizing_soft_tissue_infection_time_critical_actions",
@@ -2583,6 +2585,142 @@ def test_quality_gate_requires_acute_pancreatitis_ercp_antibiotic_nutrition_and_
     assert not report.passed
     assert any(
         "acute pancreatitis safety checks must include ERCP" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_small_bowel_obstruction_npo_fluids_ct_and_surgical_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Closed-loop small bowel obstruction"
+    case["patient_demographics"] = {
+        "age": 67,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Crampy abdominal pain, vomiting, and obstipation"
+    case["history_of_present_illness"] = (
+        "Patient with prior laparotomy presents with worsening crampy abdominal "
+        "pain, bilious vomiting, distension, obstipation, dehydration, and CT "
+        "concern for high-grade small bowel obstruction with transition point "
+        "and possible closed-loop obstruction."
+    )
+    case["key_teaching_points"] = [
+        "Small bowel obstruction requires bowel rest, nasogastric decompression, fluid resuscitation, and surgical involvement",
+        "Closed-loop obstruction, ischemia, strangulation, peritonitis, fever, leukocytosis, acidosis, or elevated lactate require urgent operative evaluation",
+        "Nonoperative management requires serial exams and reassessment; failure to resolve or complete obstruction should not be observed indefinitely",
+    ]
+    case["clinical_red_flags"] = [
+        "Peritonitis, continuous pain, fever, tachycardia, leukocytosis, acidosis, elevated lactate, free fluid, or closed-loop obstruction",
+        "Incarcerated hernia, volvulus, malignancy, aspiration risk from vomiting, perforation, free air, sepsis, or shock",
+    ]
+    case["time_critical_actions"] = [
+        "Keep NPO with bowel rest and place NG tube for nasogastric suction and decompression",
+        "Give IV crystalloid fluids for dehydration and monitor electrolytes, potassium, and urine output",
+        "Obtain CT abdomen to identify transition point, closed-loop obstruction, free fluid, ischemia, or strangulation",
+    ]
+    case["contraindication_checks"] = [
+        "Review strangulation and ischemia red flags including peritonitis, continuous pain, fever, leukocytosis, acidosis, lactate elevation, and closed-loop obstruction",
+        "Define nonoperative conservative limits with serial exams, water-soluble contrast or Gastrografin challenge when appropriate, complete obstruction concern, failure to resolve, and 72-hour reassessment",
+        "If perforation, free air, bowel infarction, gangrene, or sepsis is suspected, start broad-spectrum antibiotics and plan urgent source control",
+        "Assess aspiration risk from vomiting and etiology including adhesions, hernia, incarcerated hernia, volvulus, tumor, or malignancy",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Bologna Guidelines for Diagnosis and Management of Adhesive Small Bowel Obstruction",
+            "organization": "World Society of Emergency Surgery",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6006983/",
+            "supports": [
+                "small bowel obstruction diagnosis and risk stratification",
+                "small bowel obstruction requires bowel rest, nasogastric decompression, fluid resuscitation, and surgical involvement",
+                "closed-loop obstruction, ischemia, strangulation, peritonitis, fever, leukocytosis, acidosis, or elevated lactate require urgent operative evaluation",
+                "nonoperative management requires serial exams and reassessment; failure to resolve or complete obstruction should not be observed indefinitely",
+                "peritonitis, continuous pain, fever, tachycardia, leukocytosis, acidosis, elevated lactate, free fluid, or closed-loop obstruction as red flags",
+                "incarcerated hernia, volvulus, malignancy, aspiration risk from vomiting, perforation, free air, sepsis, or shock as severity markers",
+                "NPO bowel rest, NG tube, nasogastric suction, and decompression",
+                "IV crystalloid fluids for dehydration and electrolytes, potassium, and urine output monitoring",
+                "CT abdomen to identify transition point, closed-loop obstruction, free fluid, ischemia, or strangulation",
+                "strangulation and ischemia red flags including peritonitis, continuous pain, fever, leukocytosis, acidosis, lactate elevation, and closed-loop obstruction",
+                "nonoperative conservative limits with serial exams, water-soluble contrast or Gastrografin challenge, complete obstruction concern, failure to resolve, and 72-hour reassessment",
+                "perforation, free air, bowel infarction, gangrene, sepsis, broad-spectrum antibiotics, and urgent source control",
+                "aspiration risk from vomiting and etiology including adhesions, hernia, incarcerated hernia, volvulus, tumor, or malignancy",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "small bowel obstruction time-critical actions must include bowel rest"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_small_bowel_obstruction_strangulation_nonoperative_and_perforation_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Closed-loop small bowel obstruction"
+    case["patient_demographics"] = {
+        "age": 67,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Crampy abdominal pain, vomiting, and obstipation"
+    case["history_of_present_illness"] = (
+        "Patient with prior laparotomy presents with worsening crampy abdominal "
+        "pain, bilious vomiting, distension, obstipation, dehydration, and CT "
+        "concern for high-grade small bowel obstruction with transition point "
+        "and possible closed-loop obstruction."
+    )
+    case["key_teaching_points"] = [
+        "Small bowel obstruction requires bowel rest, nasogastric decompression, fluid resuscitation, and surgical involvement",
+        "Closed-loop obstruction, ischemia, strangulation, peritonitis, fever, leukocytosis, acidosis, or elevated lactate require urgent operative evaluation",
+        "Nonoperative management requires serial exams and reassessment; failure to resolve or complete obstruction should not be observed indefinitely",
+    ]
+    case["clinical_red_flags"] = [
+        "Peritonitis, continuous pain, fever, tachycardia, leukocytosis, acidosis, elevated lactate, free fluid, or closed-loop obstruction",
+        "Incarcerated hernia, volvulus, malignancy, aspiration risk from vomiting, perforation, free air, sepsis, or shock",
+    ]
+    case["time_critical_actions"] = [
+        "Keep NPO with bowel rest and place NG tube for nasogastric suction and decompression",
+        "Give IV crystalloid fluids for dehydration and monitor electrolytes, potassium, and urine output",
+        "Obtain CT abdomen to identify transition point, closed-loop obstruction, free fluid, ischemia, or strangulation",
+        "Call surgery for urgent surgical consult with surgeon evaluation and operative exploration or laparotomy escalation if closed-loop or strangulation signs persist",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before analgesia",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Bologna Guidelines for Diagnosis and Management of Adhesive Small Bowel Obstruction",
+            "organization": "World Society of Emergency Surgery",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6006983/",
+            "supports": [
+                "small bowel obstruction diagnosis and risk stratification",
+                "small bowel obstruction requires bowel rest, nasogastric decompression, fluid resuscitation, and surgical involvement",
+                "closed-loop obstruction, ischemia, strangulation, peritonitis, fever, leukocytosis, acidosis, or elevated lactate require urgent operative evaluation",
+                "nonoperative management requires serial exams and reassessment; failure to resolve or complete obstruction should not be observed indefinitely",
+                "peritonitis, continuous pain, fever, tachycardia, leukocytosis, acidosis, elevated lactate, free fluid, or closed-loop obstruction as red flags",
+                "incarcerated hernia, volvulus, malignancy, aspiration risk from vomiting, perforation, free air, sepsis, or shock as severity markers",
+                "NPO bowel rest, NG tube, nasogastric suction, and decompression",
+                "IV crystalloid fluids for dehydration and electrolytes, potassium, and urine output monitoring",
+                "CT abdomen to identify transition point, closed-loop obstruction, free fluid, ischemia, or strangulation",
+                "urgent surgery consult with surgeon evaluation and operative exploration or laparotomy escalation for closed-loop or strangulation signs",
+                "medication allergy before analgesia",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "small bowel obstruction safety checks must include strangulation"
+        in issue
         for issue in report.critical_issues
     )
 

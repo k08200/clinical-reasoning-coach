@@ -2250,6 +2250,110 @@ const ACUTE_PANCREATITIS_NECROSIS_PROCEDURE_SAFETY_TERMS = [
   "췌장괴사",
 ];
 
+const SMALL_BOWEL_OBSTRUCTION_CONTEXT_TERMS = [
+  "adhesive small bowel obstruction",
+  "bowel obstruction with vomiting",
+  "closed-loop bowel obstruction",
+  "closed-loop obstruction",
+  "high-grade small bowel obstruction",
+  "sbo",
+  "small bowel obstruction",
+  "strangulating obstruction",
+  "장폐색",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_NPO_NG_ACTION_TERMS = [
+  "bowel rest",
+  "decompression",
+  "ng tube",
+  "nil per os",
+  "npo",
+  "nasogastric",
+  "suction",
+  "금식",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_FLUID_ELECTROLYTE_ACTION_TERMS = [
+  "crystalloid",
+  "dehydration",
+  "electrolyte",
+  "fluid",
+  "fluids",
+  "potassium",
+  "urine output",
+  "수액",
+  "전해질",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_CT_TRANSITION_ACTION_TERMS = [
+  "closed-loop",
+  "ct",
+  "ct abdomen",
+  "free fluid",
+  "ischemia",
+  "strangulation",
+  "transition point",
+  "복부 ct",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_SURGERY_ACTION_TERMS = [
+  "exploration",
+  "laparotomy",
+  "operative",
+  "surgery",
+  "surgical consult",
+  "surgeon",
+  "외과",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_STRANGULATION_SAFETY_TERMS = [
+  "acidosis",
+  "closed-loop",
+  "continuous pain",
+  "fever",
+  "ischemia",
+  "lactate",
+  "leukocytosis",
+  "peritonitis",
+  "strangulation",
+  "복막염",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_NONOPERATIVE_LIMITS_SAFETY_TERMS = [
+  "72 hours",
+  "complete obstruction",
+  "conservative",
+  "failure to resolve",
+  "gastrografin",
+  "nonoperative",
+  "serial exam",
+  "water-soluble contrast",
+  "관찰",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_PERFORATION_SEPSIS_SAFETY_TERMS = [
+  "antibiotic",
+  "broad-spectrum",
+  "free air",
+  "gangrene",
+  "infarction",
+  "perforation",
+  "sepsis",
+  "항생제",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_ASPIRATION_ETIOLOGY_SAFETY_TERMS = [
+  "adhesion",
+  "aspiration",
+  "hernia",
+  "incarcerated hernia",
+  "malignancy",
+  "tumor",
+  "volvulus",
+  "vomiting",
+  "흡인",
+];
+
 const ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = [
   "acute bowel ischemia",
   "acute intestinal ischemia",
@@ -5755,6 +5859,67 @@ function hasAcutePancreatitisTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresSmallBowelObstructionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return SMALL_BOWEL_OBSTRUCTION_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasSmallBowelObstructionTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasNpoNg = SMALL_BOWEL_OBSTRUCTION_NPO_NG_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFluidElectrolyte = SMALL_BOWEL_OBSTRUCTION_FLUID_ELECTROLYTE_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCtTransition = SMALL_BOWEL_OBSTRUCTION_CT_TRANSITION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSurgery = SMALL_BOWEL_OBSTRUCTION_SURGERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasNpoNg && hasFluidElectrolyte && hasCtTransition && hasSurgery;
+}
+
+function hasSmallBowelObstructionTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasStrangulationSafety = SMALL_BOWEL_OBSTRUCTION_STRANGULATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNonoperativeLimits = SMALL_BOWEL_OBSTRUCTION_NONOPERATIVE_LIMITS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPerforationSepsis = SMALL_BOWEL_OBSTRUCTION_PERFORATION_SEPSIS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAspirationEtiology =
+    SMALL_BOWEL_OBSTRUCTION_ASPIRATION_ETIOLOGY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasStrangulationSafety &&
+    hasNonoperativeLimits &&
+    hasPerforationSepsis &&
+    hasAspirationEtiology
+  );
+}
+
 function requiresAcuteMesentericIschemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -7386,6 +7551,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAcutePancreatitisTreatmentSafetyCheck,
       issue:
         "acute pancreatitis safety checks must include ERCP or biliary obstruction review for cholangitis, jaundice, no-cholangitis, or without-cholangitis scenarios, avoidance of prophylactic antibiotics in sterile necrosis with antibiotic use reserved for infected necrosis or extrapancreatic infection, oral or enteral feeding, NG tube, TPN, parenteral, or nutrition planning, and infected necrosis, walled-off necrosis, delayed drainage, 4-week, or step-up procedure timing review",
+    },
+    {
+      name: "small_bowel_obstruction_time_critical_actions",
+      label: "Small bowel obstruction emergency actions",
+      applies: requiresSmallBowelObstructionSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSmallBowelObstructionTimeCriticalActions,
+      issue:
+        "small bowel obstruction time-critical actions must include bowel rest, NPO, nil per os, NG tube, nasogastric suction, or decompression planning, IV crystalloid, fluid, dehydration, electrolyte, potassium, or urine output resuscitation, CT abdomen, transition point, closed-loop, free fluid, ischemia, or strangulation assessment, and urgent surgery, surgeon, surgical consult, operative, exploration, or laparotomy escalation",
+    },
+    {
+      name: "small_bowel_obstruction_treatment_safety",
+      label: "Small bowel obstruction strangulation safety",
+      applies: requiresSmallBowelObstructionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSmallBowelObstructionTreatmentSafetyCheck,
+      issue:
+        "small bowel obstruction safety checks must include strangulation or ischemia red-flag review for peritonitis, continuous pain, fever, leukocytosis, acidosis, lactate, or closed-loop obstruction, nonoperative management limits with serial exams, water-soluble contrast or Gastrografin, complete obstruction, failure to resolve, conservative management, or 72-hour reassessment, perforation, free air, infarction, gangrene, sepsis, broad-spectrum antibiotics, or antibiotic planning, and aspiration or etiology review for vomiting, adhesions, hernia, incarcerated hernia, volvulus, tumor, or malignancy",
     },
     {
       name: "acute_mesenteric_ischemia_time_critical_actions",
