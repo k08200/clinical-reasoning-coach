@@ -566,6 +566,104 @@ ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS = (
     "재발",
     "관찰",
 )
+EPIGLOTTITIS_DIRECT_CONTEXT_TERMS = (
+    "acute epiglottitis",
+    "adult epiglottitis",
+    "epiglottitis",
+    "supraglottitis",
+    "급성 후두개염",
+    "후두개염",
+)
+EPIGLOTTITIS_AIRWAY_CONTEXT_TERMS = (
+    "airway obstruction",
+    "drooling",
+    "muffled voice",
+    "odynophagia",
+    "severe sore throat",
+    "stridor",
+    "tripod",
+    "삼각 자세",
+    "침흘림",
+)
+EPIGLOTTITIS_AIRWAY_ASSESSMENT_ACTION_TERMS = (
+    "airway",
+    "airway assessment",
+    "airway control",
+    "front-of-neck",
+    "intubation",
+    "surgical airway",
+    "tracheostomy",
+    "기도",
+    "기관삽관",
+)
+EPIGLOTTITIS_SPECIALIST_ACTION_TERMS = (
+    "anesthesia",
+    "anaesthesia",
+    "ent",
+    "icu",
+    "otolaryngology",
+    "operating room",
+    "어네스",
+    "이비인후과",
+    "중환자",
+)
+EPIGLOTTITIS_ANTIBIOTIC_ACTION_TERMS = (
+    "antibiotic",
+    "ceftriaxone",
+    "cefotaxime",
+    "clindamycin",
+    "culture",
+    "vancomycin",
+    "항생제",
+    "배양",
+)
+EPIGLOTTITIS_MONITORING_ACTION_TERMS = (
+    "close monitoring",
+    "continuous pulse oximetry",
+    "icu",
+    "monitor",
+    "observation",
+    "pulse oximetry",
+    "respiratory status",
+    "산소포화도",
+)
+EPIGLOTTITIS_AGITATION_SAFETY_TERMS = (
+    "avoid agitation",
+    "avoid unnecessary examination",
+    "avoid throat exam",
+    "do not agitate",
+    "no tongue depressor",
+    "sedation",
+    "tongue depressor",
+    "자극",
+)
+EPIGLOTTITIS_AIRWAY_BACKUP_SAFETY_TERMS = (
+    "anesthesia backup",
+    "ent backup",
+    "failed airway",
+    "front-of-neck access",
+    "surgical airway",
+    "tracheostomy",
+    "이비인후과",
+)
+EPIGLOTTITIS_STEROID_ADJUNCT_SAFETY_TERMS = (
+    "corticosteroid",
+    "dexamethasone",
+    "methylprednisolone",
+    "steroid",
+    "steroid adjunct",
+    "스테로이드",
+)
+EPIGLOTTITIS_COMPLICATION_RISK_SAFETY_TERMS = (
+    "abscess",
+    "airway compromise",
+    "diabetes",
+    "immunocompromised",
+    "rapid deterioration",
+    "respiratory failure",
+    "sepsis",
+    "기도폐쇄",
+)
 GI_BLEED_CONTEXT_TERMS = (
     "acute blood loss anemia",
     "gastrointestinal bleeding",
@@ -5553,6 +5651,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="epiglottitis_time_critical_actions",
+            applies=_requires_epiglottitis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_epiglottitis_time_critical_actions,
+            issue=(
+                "epiglottitis time-critical actions must include airway assessment "
+                "or airway-control planning with intubation, surgical airway, "
+                "tracheostomy, or front-of-neck access readiness, ENT, "
+                "otolaryngology, anesthesia, operating-room, ICU, or specialist "
+                "escalation, empiric IV antibiotics such as ceftriaxone, cefotaxime, "
+                "vancomycin, clindamycin, cultures, or antibiotic therapy, and close "
+                "monitoring with ICU, observation, pulse oximetry, respiratory-status, "
+                "or continuous-monitoring planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="epiglottitis_treatment_safety",
+            applies=_requires_epiglottitis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_epiglottitis_treatment_safety_check,
+            issue=(
+                "epiglottitis safety checks must include avoiding agitation, "
+                "unnecessary throat exam, tongue depressor, avoidable procedures, "
+                "or sedation that could precipitate airway collapse, anesthesia, "
+                "ENT, failed-airway, surgical-airway, tracheostomy, or front-of-neck "
+                "backup planning, corticosteroid, dexamethasone, methylprednisolone, "
+                "or steroid-adjunct consideration, and complication-risk review for "
+                "rapid deterioration, airway compromise, respiratory failure, "
+                "abscess, diabetes, immunocompromised state, sepsis, or airway obstruction"
+            ),
+        ),
+        DomainSafetyGate(
             name="gi_bleed_time_critical_actions",
             applies=_requires_gi_bleed_safety_check,
             field_name="time_critical_actions",
@@ -7093,6 +7223,91 @@ def _has_anaphylaxis_observation_safety_check(checks: list[Any]) -> bool:
         for term in ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS
     )
     return has_trigger_review and has_observation
+
+
+def _requires_epiglottitis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in EPIGLOTTITIS_DIRECT_CONTEXT_TERMS
+    )
+    has_airway_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in EPIGLOTTITIS_AIRWAY_CONTEXT_TERMS
+    )
+    return has_direct_context or has_airway_context
+
+
+def _has_epiglottitis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_airway_plan = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in EPIGLOTTITIS_AIRWAY_ASSESSMENT_ACTION_TERMS
+    )
+    has_specialist_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in EPIGLOTTITIS_SPECIALIST_ACTION_TERMS
+    )
+    has_antibiotics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in EPIGLOTTITIS_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in EPIGLOTTITIS_MONITORING_ACTION_TERMS
+    )
+    return (
+        has_airway_plan
+        and has_specialist_escalation
+        and has_antibiotics
+        and has_monitoring
+    )
+
+
+def _has_epiglottitis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_agitation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in EPIGLOTTITIS_AGITATION_SAFETY_TERMS
+    )
+    has_airway_backup = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in EPIGLOTTITIS_AIRWAY_BACKUP_SAFETY_TERMS
+    )
+    has_steroid_adjunct = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in EPIGLOTTITIS_STEROID_ADJUNCT_SAFETY_TERMS
+    )
+    has_complication_risk = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in EPIGLOTTITIS_COMPLICATION_RISK_SAFETY_TERMS
+    )
+    return (
+        has_agitation_safety
+        and has_airway_backup
+        and has_steroid_adjunct
+        and has_complication_risk
+    )
 
 
 def _requires_gi_bleed_safety_check(data: dict[str, Any]) -> bool:

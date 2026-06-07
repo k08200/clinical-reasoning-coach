@@ -49,6 +49,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "sepsis_resuscitation_actions",
         "anaphylaxis_time_critical_actions",
         "anaphylaxis_observation_safety",
+        "epiglottitis_time_critical_actions",
+        "epiglottitis_treatment_safety",
         "gi_bleed_time_critical_actions",
         "gi_bleed_transfusion_reversal_safety",
         "cns_infection_time_critical_actions",
@@ -443,6 +445,156 @@ def test_quality_gate_requires_anaphylaxis_trigger_and_observation_safety():
     assert not report.passed
     assert any(
         "anaphylaxis safety checks must include trigger or allergen exposure review" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_epiglottitis_airway_specialist_antibiotics_and_monitoring():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Adult epiglottitis with impending airway compromise"
+    case["patient_demographics"] = {
+        "age": 48,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe sore throat, muffled voice, drooling, and stridor"
+    case["history_of_present_illness"] = (
+        "Patient presents with acute epiglottitis, severe sore throat, odynophagia, "
+        "muffled voice, drooling, tripod posture, fever, stridor, and concern for "
+        "rapid airway obstruction."
+    )
+    case["key_teaching_points"] = [
+        "Adult epiglottitis is a life-threatening airway emergency",
+        "Airway protection and preparedness for failed airway are immediate priorities",
+        "Empiric IV antibiotics are required after airway risk is addressed",
+    ]
+    case["clinical_red_flags"] = [
+        "Stridor, drooling, tripod position, muffled voice, respiratory distress, or airway obstruction",
+        "Rapid deterioration, diabetes, immunocompromised state, epiglottic abscess, sepsis, or respiratory failure",
+    ]
+    case["time_critical_actions"] = [
+        "Escalate immediately to ENT otolaryngology, anesthesia, operating room team, and ICU specialist support",
+        "Start empiric IV antibiotics such as ceftriaxone or cefotaxime plus vancomycin or clindamycin and obtain cultures when safe",
+        "Provide ICU close monitoring, observation, continuous pulse oximetry, and respiratory status monitoring",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid agitation, unnecessary throat exam, tongue depressor use, avoidable procedures, and sedation that could precipitate airway collapse",
+        "Confirm anesthesia backup, ENT backup, failed airway plan, surgical airway, tracheostomy, and front-of-neck access readiness",
+        "Consider corticosteroid adjunct such as dexamethasone, methylprednisolone, or steroid adjunct therapy for airway edema",
+        "Review rapid deterioration, airway compromise, respiratory failure, epiglottic abscess, diabetes, immunocompromised state, sepsis, and airway obstruction risks",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Airway management of adult epiglottitis: a systematic review and meta-analysis",
+            "organization": "BJA Open",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10789606/",
+            "supports": [
+                "adult epiglottitis with impending airway compromise diagnosis and risk stratification",
+                "adult epiglottitis is a life-threatening airway emergency",
+                "airway protection and preparedness for failed airway are immediate priorities",
+                "empiric IV antibiotics are required after airway risk is addressed",
+                "stridor, drooling, tripod position, muffled voice, respiratory distress, or airway obstruction as red flags",
+                "rapid deterioration, diabetes, immunocompromised state, epiglottic abscess, sepsis, or respiratory failure as severity markers",
+                "ENT otolaryngology, anesthesia, operating room team, and ICU specialist support",
+                "empiric IV antibiotics such as ceftriaxone or cefotaxime plus vancomycin or clindamycin and cultures when safe",
+                "ICU close monitoring, observation, continuous pulse oximetry, and respiratory status monitoring",
+                "avoid agitation, unnecessary throat exam, tongue depressor use, avoidable procedures, and sedation that could precipitate airway collapse",
+                "anesthesia backup, ENT backup, failed airway plan, surgical airway, tracheostomy, and front-of-neck access readiness",
+                "corticosteroid adjunct such as dexamethasone, methylprednisolone, or steroid adjunct therapy for airway edema",
+                "rapid deterioration, airway compromise, respiratory failure, epiglottic abscess, diabetes, immunocompromised state, sepsis, and airway obstruction risk review",
+            ],
+        },
+        {
+            "title": "Epiglottitis",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/ear-nose-and-throat-disorders/oral-and-pharyngeal-disorders/epiglottitis",
+            "supports": [
+                "stridor and severe sore throat with normal-appearing pharynx should raise suspicion for epiglottitis",
+                "treatment includes airway protection and empiric beta-lactamase-resistant antibiotic therapy such as ceftriaxone",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "epiglottitis time-critical actions must include airway assessment" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_epiglottitis_agitation_airway_backup_steroid_and_complication_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Adult epiglottitis with impending airway compromise"
+    case["patient_demographics"] = {
+        "age": 48,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe sore throat, muffled voice, drooling, and stridor"
+    case["history_of_present_illness"] = (
+        "Patient presents with acute epiglottitis, severe sore throat, odynophagia, "
+        "muffled voice, drooling, tripod posture, fever, stridor, and concern for "
+        "rapid airway obstruction."
+    )
+    case["key_teaching_points"] = [
+        "Adult epiglottitis is a life-threatening airway emergency",
+        "Airway protection and preparedness for failed airway are immediate priorities",
+        "Empiric IV antibiotics are required after airway risk is addressed",
+    ]
+    case["clinical_red_flags"] = [
+        "Stridor, drooling, tripod position, muffled voice, respiratory distress, or airway obstruction",
+        "Rapid deterioration, diabetes, immunocompromised state, epiglottic abscess, sepsis, or respiratory failure",
+    ]
+    case["time_critical_actions"] = [
+        "Assess airway and plan airway control with intubation, surgical airway, tracheostomy, and front-of-neck access readiness",
+        "Escalate immediately to ENT otolaryngology, anesthesia, operating room team, and ICU specialist support",
+        "Start empiric IV antibiotics such as ceftriaxone or cefotaxime plus vancomycin or clindamycin and obtain cultures when safe",
+        "Provide ICU close monitoring, observation, continuous pulse oximetry, and respiratory status monitoring",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if relevant",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Airway management of adult epiglottitis: a systematic review and meta-analysis",
+            "organization": "BJA Open",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10789606/",
+            "supports": [
+                "adult epiglottitis with impending airway compromise diagnosis and risk stratification",
+                "adult epiglottitis is a life-threatening airway emergency",
+                "airway protection and preparedness for failed airway are immediate priorities",
+                "empiric IV antibiotics are required after airway risk is addressed",
+                "stridor, drooling, tripod position, muffled voice, respiratory distress, or airway obstruction as red flags",
+                "rapid deterioration, diabetes, immunocompromised state, epiglottic abscess, sepsis, or respiratory failure as severity markers",
+                "airway assessment and airway control with intubation, surgical airway, tracheostomy, and front-of-neck access readiness",
+                "ENT otolaryngology, anesthesia, operating room team, and ICU specialist support",
+                "empiric IV antibiotics such as ceftriaxone or cefotaxime plus vancomycin or clindamycin and cultures when safe",
+                "ICU close monitoring, observation, continuous pulse oximetry, and respiratory status monitoring",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if relevant",
+            ],
+        },
+        {
+            "title": "Epiglottitis",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/ear-nose-and-throat-disorders/oral-and-pharyngeal-disorders/epiglottitis",
+            "supports": [
+                "stridor and severe sore throat with normal-appearing pharynx should raise suspicion for epiglottitis",
+                "treatment includes airway protection and empiric beta-lactamase-resistant antibiotic therapy such as ceftriaxone",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "epiglottitis safety checks must include avoiding agitation" in issue
         for issue in report.critical_issues
     )
 

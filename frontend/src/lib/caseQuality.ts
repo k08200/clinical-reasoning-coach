@@ -579,6 +579,114 @@ const ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS = [
   "관찰",
 ];
 
+const EPIGLOTTITIS_DIRECT_CONTEXT_TERMS = [
+  "acute epiglottitis",
+  "adult epiglottitis",
+  "epiglottitis",
+  "supraglottitis",
+  "급성 후두개염",
+  "후두개염",
+];
+
+const EPIGLOTTITIS_AIRWAY_CONTEXT_TERMS = [
+  "airway obstruction",
+  "drooling",
+  "muffled voice",
+  "odynophagia",
+  "severe sore throat",
+  "stridor",
+  "tripod",
+  "삼각 자세",
+  "침흘림",
+];
+
+const EPIGLOTTITIS_AIRWAY_ASSESSMENT_ACTION_TERMS = [
+  "airway",
+  "airway assessment",
+  "airway control",
+  "front-of-neck",
+  "intubation",
+  "surgical airway",
+  "tracheostomy",
+  "기도",
+  "기관삽관",
+];
+
+const EPIGLOTTITIS_SPECIALIST_ACTION_TERMS = [
+  "anesthesia",
+  "anaesthesia",
+  "ent",
+  "icu",
+  "otolaryngology",
+  "operating room",
+  "어네스",
+  "이비인후과",
+  "중환자",
+];
+
+const EPIGLOTTITIS_ANTIBIOTIC_ACTION_TERMS = [
+  "antibiotic",
+  "ceftriaxone",
+  "cefotaxime",
+  "clindamycin",
+  "culture",
+  "vancomycin",
+  "항생제",
+  "배양",
+];
+
+const EPIGLOTTITIS_MONITORING_ACTION_TERMS = [
+  "close monitoring",
+  "continuous pulse oximetry",
+  "icu",
+  "monitor",
+  "observation",
+  "pulse oximetry",
+  "respiratory status",
+  "산소포화도",
+];
+
+const EPIGLOTTITIS_AGITATION_SAFETY_TERMS = [
+  "avoid agitation",
+  "avoid unnecessary examination",
+  "avoid throat exam",
+  "do not agitate",
+  "no tongue depressor",
+  "sedation",
+  "tongue depressor",
+  "자극",
+];
+
+const EPIGLOTTITIS_AIRWAY_BACKUP_SAFETY_TERMS = [
+  "anesthesia backup",
+  "ent backup",
+  "failed airway",
+  "front-of-neck access",
+  "surgical airway",
+  "tracheostomy",
+  "이비인후과",
+];
+
+const EPIGLOTTITIS_STEROID_ADJUNCT_SAFETY_TERMS = [
+  "corticosteroid",
+  "dexamethasone",
+  "methylprednisolone",
+  "steroid",
+  "steroid adjunct",
+  "스테로이드",
+];
+
+const EPIGLOTTITIS_COMPLICATION_RISK_SAFETY_TERMS = [
+  "abscess",
+  "airway compromise",
+  "diabetes",
+  "immunocompromised",
+  "rapid deterioration",
+  "respiratory failure",
+  "sepsis",
+  "기도폐쇄",
+];
+
 const GI_BLEED_CONTEXT_TERMS = [
   "acute blood loss anemia",
   "gastrointestinal bleeding",
@@ -5908,6 +6016,66 @@ function hasAnaphylaxisObservationSafetyCheck(checks: string[]): boolean {
   return hasTriggerReview && hasObservation;
 }
 
+function requiresEpiglottitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = EPIGLOTTITIS_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasAirwayContext = EPIGLOTTITIS_AIRWAY_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || hasAirwayContext;
+}
+
+function hasEpiglottitisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAirwayPlan = EPIGLOTTITIS_AIRWAY_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSpecialistEscalation = EPIGLOTTITIS_SPECIALIST_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibiotics = EPIGLOTTITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMonitoring = EPIGLOTTITIS_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAirwayPlan && hasSpecialistEscalation && hasAntibiotics && hasMonitoring;
+}
+
+function hasEpiglottitisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAgitationSafety = EPIGLOTTITIS_AGITATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAirwayBackup = EPIGLOTTITIS_AIRWAY_BACKUP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidAdjunct = EPIGLOTTITIS_STEROID_ADJUNCT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasComplicationRisk = EPIGLOTTITIS_COMPLICATION_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasAgitationSafety && hasAirwayBackup && hasSteroidAdjunct && hasComplicationRisk;
+}
+
 function requiresGiBleedSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -8725,6 +8893,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAnaphylaxisObservationSafetyCheck,
       issue:
         "anaphylaxis safety checks must include trigger or allergen exposure review and observation for biphasic reaction or recurrence",
+    },
+    {
+      name: "epiglottitis_time_critical_actions",
+      label: "Epiglottitis airway emergency actions",
+      applies: requiresEpiglottitisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasEpiglottitisTimeCriticalActions,
+      issue:
+        "epiglottitis time-critical actions must include airway assessment or airway-control planning with intubation, surgical airway, tracheostomy, or front-of-neck access readiness, ENT, otolaryngology, anesthesia, operating-room, ICU, or specialist escalation, empiric IV antibiotics such as ceftriaxone, cefotaxime, vancomycin, clindamycin, cultures, or antibiotic therapy, and close monitoring with ICU, observation, pulse oximetry, respiratory-status, or continuous-monitoring planning",
+    },
+    {
+      name: "epiglottitis_treatment_safety",
+      label: "Epiglottitis treatment safety",
+      applies: requiresEpiglottitisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasEpiglottitisTreatmentSafetyCheck,
+      issue:
+        "epiglottitis safety checks must include avoiding agitation, unnecessary throat exam, tongue depressor, avoidable procedures, or sedation that could precipitate airway collapse, anesthesia, ENT, failed-airway, surgical-airway, tracheostomy, or front-of-neck backup planning, corticosteroid, dexamethasone, methylprednisolone, or steroid-adjunct consideration, and complication-risk review for rapid deterioration, airway compromise, respiratory failure, abscess, diabetes, immunocompromised state, sepsis, or airway obstruction",
     },
     {
       name: "gi_bleed_time_critical_actions",
