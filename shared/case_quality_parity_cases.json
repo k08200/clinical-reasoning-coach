@@ -2837,5 +2837,66 @@
         }
       ]
     }
+  },
+  {
+    "name": "acute_appendicitis_requires_imaging_surgery_antibiotics_and_complication_assessment",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "acute appendicitis time-critical actions must include clinical risk score"
+    ],
+    "overrides": {
+      "diagnosis": "Acute appendicitis",
+      "patient_demographics": {
+        "age": 29,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Right lower quadrant abdominal pain with nausea",
+      "history_of_present_illness": "Patient has migratory periumbilical pain now localized to the right lower quadrant with anorexia, nausea, fever, guarding, leukocytosis, and suspected acute appendicitis.",
+      "key_teaching_points": [
+        "Acute appendicitis requires diagnostic risk stratification and imaging when appropriate",
+        "Appendectomy is the standard surgical pathway, while antibiotics-first nonoperative management is limited to selected uncomplicated disease",
+        "Complicated appendicitis with perforation, abscess, phlegmon, peritonitis, or sepsis requires antibiotics and source-control planning"
+      ],
+      "clinical_red_flags": [
+        "Diffuse or generalized peritonitis, perforation, rupture, abscess, phlegmon, sepsis, shock, or worsening pain",
+        "Older, pediatric, pregnancy, immunocompromised, and gynecologic mimic scenarios can change diagnostic strategy"
+      ],
+      "time_critical_actions": [
+        "Use Alvarado score, AIR score, Adult Appendicitis Score, and CT or ultrasound imaging to risk-stratify suspected appendicitis",
+        "Start preoperative broad-spectrum antibiotics such as ceftriaxone plus metronidazole or cefoxitin; use piperacillin tazobactam if severe sepsis is suspected",
+        "Assess for complicated appendicitis including perforation, peritonitis, abscess, phlegmon, drainage need, sepsis, and source control"
+      ],
+      "contraindication_checks": [
+        "Discuss antibiotics-first nonoperative management only for selected uncomplicated appendicitis, with appendicolith exclusion, shared decision-making, and recurrence risk counseling",
+        "For complicated appendicitis, abscess drainage or percutaneous drainage, source control, and postoperative antibiotic short course such as 2-3 days should be reviewed",
+        "Pregnancy and gynecologic mimics are not applicable for this male patient, but review pediatric, older, immunocompromised, terminal ileitis, renal colic, and other mimics",
+        "Escalate immediately for diffuse peritonitis, generalized peritonitis, perforation, rupture, sepsis, or shock"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Diagnosis and Treatment of Acute Appendicitis: 2025 Edition of the World Society of Emergency Surgery Jerusalem Guidelines",
+          "organization": "World Society of Emergency Surgery",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/41604201/",
+          "supports": [
+            "acute appendicitis diagnosis and risk stratification",
+            "right lower quadrant abdominal pain with nausea and migratory pain as appendicitis features",
+            "fever, guarding, leukocytosis, diffuse or generalized peritonitis, perforation, rupture, abscess, phlegmon, sepsis, shock, or worsening pain as red flags",
+            "older, pediatric, pregnancy, immunocompromised, and gynecologic mimic scenarios can change diagnostic strategy",
+            "acute appendicitis requires diagnostic risk stratification and imaging when appropriate",
+            "appendectomy is the standard surgical pathway, while antibiotics-first nonoperative management is limited to selected uncomplicated disease",
+            "complicated appendicitis with perforation, abscess, phlegmon, peritonitis, or sepsis requires antibiotics and source-control planning",
+            "Alvarado score, AIR score, Adult Appendicitis Score, CT, ultrasound, and imaging to risk-stratify suspected appendicitis",
+            "preoperative broad-spectrum antibiotics such as ceftriaxone plus metronidazole, cefoxitin, or piperacillin tazobactam if severe sepsis is suspected",
+            "complicated appendicitis assessment including perforation, peritonitis, abscess, phlegmon, drainage need, sepsis, and source control",
+            "antibiotics-first nonoperative management only for selected uncomplicated appendicitis, appendicolith exclusion, shared decision-making, and recurrence risk counseling",
+            "complicated appendicitis abscess drainage or percutaneous drainage, source control, and postoperative antibiotic short course such as 2-3 days",
+            "pregnancy and gynecologic mimics not applicable for this male patient, with pediatric, older, immunocompromised, terminal ileitis, renal colic, and other mimics reviewed",
+            "diffuse peritonitis, generalized peritonitis, perforation, rupture, sepsis, or shock immediate escalation"
+          ]
+        }
+      ]
+    }
   }
 ]
