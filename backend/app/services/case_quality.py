@@ -1736,6 +1736,128 @@ CENTRAL_RETINAL_ARTERY_OCCLUSION_ARTERITIC_SAFETY_TERMS = (
     "temporal headache",
     "측두",
 )
+OPEN_GLOBE_DIRECT_CONTEXT_TERMS = (
+    "globe laceration",
+    "globe perforation",
+    "globe rupture",
+    "intraocular foreign body",
+    "open globe",
+    "penetrating eye injury",
+    "ruptured globe",
+    "안구 관통상",
+    "안구파열",
+)
+OPEN_GLOBE_TRAUMA_CONTEXT_TERMS = (
+    "eye trauma",
+    "hammering",
+    "high-speed metal",
+    "metal on metal",
+    "projectile",
+    "puncture wound",
+    "sharp eye injury",
+    "vision loss after trauma",
+    "외상",
+)
+OPEN_GLOBE_SIGN_CONTEXT_TERMS = (
+    "aqueous leak",
+    "extruded ocular contents",
+    "irregular pupil",
+    "misshapen pupil",
+    "positive seidel",
+    "seidel sign",
+    "shallow anterior chamber",
+    "uveal prolapse",
+    "동공",
+)
+OPEN_GLOBE_SHIELD_ACTION_TERMS = (
+    "eye shield",
+    "protective shield",
+    "rigid shield",
+    "shield",
+    "안대",
+    "보호대",
+)
+OPEN_GLOBE_ANTIBIOTIC_TETANUS_ACTION_TERMS = (
+    "antibiotic",
+    "ceftazidime",
+    "fluoroquinolone",
+    "iv antibiotics",
+    "moxifloxacin",
+    "systemic antibiotic",
+    "tetanus",
+    "vancomycin",
+    "파상풍",
+    "항생제",
+)
+OPEN_GLOBE_TETANUS_ACTION_TERMS = (
+    "tdap",
+    "tetanus",
+    "tetanus prophylaxis",
+    "tetanus vaccine",
+    "파상풍",
+)
+OPEN_GLOBE_IMAGING_ACTION_TERMS = (
+    "ct",
+    "ct orbit",
+    "ct orbits",
+    "foreign body",
+    "intraocular foreign body",
+    "orbital ct",
+    "x-ray",
+    "영상",
+)
+OPEN_GLOBE_OPHTHALMOLOGY_SURGERY_ACTION_TERMS = (
+    "globe exploration",
+    "ophthalmology",
+    "operative repair",
+    "surgical repair",
+    "surgery",
+    "urgent ophthalmology",
+    "안과",
+    "수술",
+)
+OPEN_GLOBE_NO_PRESSURE_SAFETY_TERMS = (
+    "avoid pressure",
+    "do not press",
+    "no pressure",
+    "not patch",
+    "pressure patch",
+    "tonometry",
+    "ultrasound",
+    "압박",
+    "안압",
+)
+OPEN_GLOBE_NPO_ANTIEMETIC_SAFETY_TERMS = (
+    "analgesia",
+    "antiemetic",
+    "nausea",
+    "nothing by mouth",
+    "npo",
+    "pain control",
+    "vomiting",
+    "구토",
+    "금식",
+)
+OPEN_GLOBE_FOREIGN_BODY_MRI_SAFETY_TERMS = (
+    "do not remove",
+    "foreign body",
+    "intraocular foreign body",
+    "leave in place",
+    "metallic",
+    "mri",
+    "remove foreign body",
+    "금속",
+)
+OPEN_GLOBE_ENDOPHTHALMITIS_FOLLOWUP_SAFETY_TERMS = (
+    "endophthalmitis",
+    "intravitreal",
+    "posttraumatic infection",
+    "recheck",
+    "sympathetic ophthalmia",
+    "vision prognosis",
+    "감염",
+    "안내염",
+)
 NEUTROPENIC_FEVER_CONTEXT_TERMS = (
     "absolute neutrophil count",
     "anc below 500",
@@ -6353,6 +6475,37 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="open_globe_time_critical_actions",
+            applies=_requires_open_globe_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_open_globe_time_critical_actions,
+            issue=(
+                "open globe time-critical actions must include rigid eye shield, "
+                "protective shield, or eye-shield placement without pressure, "
+                "systemic or IV antibiotics such as vancomycin, ceftazidime, "
+                "moxifloxacin, fluoroquinolone, plus tetanus planning, CT orbit, "
+                "orbital CT, x-ray, foreign-body, or intraocular-foreign-body "
+                "imaging, and urgent ophthalmology, globe exploration, surgical "
+                "repair, operative repair, or surgery planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="open_globe_treatment_safety",
+            applies=_requires_open_globe_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_open_globe_treatment_safety_check,
+            issue=(
+                "open globe safety checks must include avoiding pressure, eye "
+                "patching, tonometry, ocular ultrasound, or manipulation that can "
+                "extrude ocular contents, NPO, antiemetic, analgesia, vomiting, "
+                "or pain-control planning, intraocular foreign-body precautions "
+                "including do-not-remove, leave-in-place, metallic foreign body, "
+                "or MRI avoidance review, and posttraumatic endophthalmitis, "
+                "intravitreal antibiotic, sympathetic ophthalmia, infection, "
+                "vision-prognosis, or close follow-up monitoring"
+            ),
+        ),
+        DomainSafetyGate(
             name="neutropenic_fever_time_critical_actions",
             applies=_requires_neutropenic_fever_safety_check,
             field_name="time_critical_actions",
@@ -8592,6 +8745,100 @@ def _has_central_retinal_artery_occlusion_treatment_safety_check(
         and has_thrombolysis_safety
         and has_secondary_prevention
         and has_arteritic_safety
+    )
+
+
+def _requires_open_globe_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in OPEN_GLOBE_DIRECT_CONTEXT_TERMS
+    )
+    has_trauma_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in OPEN_GLOBE_TRAUMA_CONTEXT_TERMS
+    )
+    has_sign_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in OPEN_GLOBE_SIGN_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_trauma_context and has_sign_context)
+
+
+def _has_open_globe_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_shield = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_GLOBE_SHIELD_ACTION_TERMS
+    )
+    has_antibiotic_tetanus = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_GLOBE_ANTIBIOTIC_TETANUS_ACTION_TERMS
+    )
+    has_tetanus = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_GLOBE_TETANUS_ACTION_TERMS
+    )
+    has_imaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_GLOBE_IMAGING_ACTION_TERMS
+    )
+    has_ophthalmology_surgery = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_GLOBE_OPHTHALMOLOGY_SURGERY_ACTION_TERMS
+    )
+    return (
+        has_shield
+        and has_antibiotic_tetanus
+        and has_tetanus
+        and has_imaging
+        and has_ophthalmology_surgery
+    )
+
+
+def _has_open_globe_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_no_pressure = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_NO_PRESSURE_SAFETY_TERMS
+    )
+    has_npo_antiemetic = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_NPO_ANTIEMETIC_SAFETY_TERMS
+    )
+    has_foreign_body_mri = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_FOREIGN_BODY_MRI_SAFETY_TERMS
+    )
+    has_endophthalmitis_followup = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_ENDOPHTHALMITIS_FOLLOWUP_SAFETY_TERMS
+    )
+    return (
+        has_no_pressure
+        and has_npo_antiemetic
+        and has_foreign_body_mri
+        and has_endophthalmitis_followup
     )
 
 

@@ -71,6 +71,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "retinal_detachment_treatment_safety",
         "central_retinal_artery_occlusion_time_critical_actions",
         "central_retinal_artery_occlusion_treatment_safety",
+        "open_globe_time_critical_actions",
+        "open_globe_treatment_safety",
         "neutropenic_fever_time_critical_actions",
         "neutropenic_fever_treatment_safety",
         "obstructive_pyelonephritis_time_critical_actions",
@@ -1963,6 +1965,156 @@ def test_quality_gate_requires_crao_mimic_thrombolysis_secondary_prevention_and_
     assert any(
         "central retinal artery occlusion safety checks must include mimic review"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_open_globe_shield_antibiotics_tetanus_imaging_and_surgery():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suspected globe rupture"
+    case["patient_demographics"] = {
+        "age": 44,
+        "sex": "male",
+        "weight_kg": 81,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe eye pain and vision loss after metal fragment injury"
+    case["history_of_present_illness"] = (
+        "Patient was hammering metal and developed eye trauma with severe pain, "
+        "decreased vision, irregular pupil, shallow anterior chamber, aqueous leak, "
+        "and positive Seidel sign."
+    )
+    case["key_teaching_points"] = [
+        "Suspected open globe is an ophthalmologic emergency requiring surgical repair",
+        "Avoid pressure because ocular contents can extrude through the wound",
+        "Eye shield, systemic antibiotics, tetanus prophylaxis, and CT orbit are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Penetrating mechanism, high-speed metal, projectile, or sharp eye trauma",
+        "Irregular or misshapen pupil, positive Seidel sign, aqueous leak, shallow anterior chamber, or uveal prolapse",
+    ]
+    case["time_critical_actions"] = [
+        "Place a rigid eye shield protective shield without pressure",
+        "Give IV antibiotics with vancomycin plus ceftazidime and update tetanus prophylaxis",
+        "Obtain CT orbit to assess intraocular foreign body and orbital injury",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid pressure, eye patching, tonometry, ocular ultrasound, and manipulation that could extrude ocular contents",
+        "Keep NPO, give antiemetic for vomiting or nausea, and provide analgesia and pain control",
+        "Do not remove a protruding foreign body, leave it in place, and avoid MRI if metallic intraocular foreign body is possible",
+        "Monitor for posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Globe Injury",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/eye-trauma/globe-injury",
+            "supports": [
+                "suspected globe rupture diagnosis and risk stratification",
+                "suspected open globe is an ophthalmologic emergency requiring surgical repair",
+                "avoid pressure because ocular contents can extrude through the wound",
+                "eye shield, systemic antibiotics, tetanus prophylaxis, and CT orbit are time critical",
+                "penetrating mechanism, high-speed metal, projectile, or sharp eye trauma as red flags",
+                "irregular or misshapen pupil, positive Seidel sign, aqueous leak, shallow anterior chamber, or uveal prolapse as severity markers",
+                "rigid eye shield protective shield without pressure",
+                "IV antibiotics with vancomycin plus ceftazidime and tetanus prophylaxis",
+                "CT orbit to assess intraocular foreign body and orbital injury",
+                "avoid pressure, eye patching, tonometry, ocular ultrasound, and manipulation that could extrude ocular contents",
+                "NPO, antiemetic for vomiting or nausea, analgesia, and pain control",
+                "do not remove a protruding foreign body, leave it in place, and avoid MRI if metallic intraocular foreign body is possible",
+                "posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
+            ],
+        },
+        {
+            "title": "Open Globe Injuries: Review of Evaluation, Management, and Surgical Pearls",
+            "organization": "Journal of Clinical Medicine",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9379121/",
+            "supports": [
+                "open globe diagnosis requires immediate surgical preparation and steps to avoid further injury",
+                "analgesia, antibiotics, and eye protection are necessary to limit IOP, prevent infection, and prevent further injury",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "open globe time-critical actions must include rigid eye shield" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_open_globe_no_pressure_npo_foreign_body_and_infection_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suspected globe rupture"
+    case["patient_demographics"] = {
+        "age": 44,
+        "sex": "male",
+        "weight_kg": 81,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe eye pain and vision loss after metal fragment injury"
+    case["history_of_present_illness"] = (
+        "Patient was hammering metal and developed eye trauma with severe pain, "
+        "decreased vision, irregular pupil, shallow anterior chamber, aqueous leak, "
+        "and positive Seidel sign."
+    )
+    case["key_teaching_points"] = [
+        "Suspected open globe is an ophthalmologic emergency requiring surgical repair",
+        "Avoid pressure because ocular contents can extrude through the wound",
+        "Eye shield, systemic antibiotics, tetanus prophylaxis, and CT orbit are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Penetrating mechanism, high-speed metal, projectile, or sharp eye trauma",
+        "Irregular or misshapen pupil, positive Seidel sign, aqueous leak, shallow anterior chamber, or uveal prolapse",
+    ]
+    case["time_critical_actions"] = [
+        "Place a rigid eye shield protective shield without pressure",
+        "Give IV antibiotics with vancomycin plus ceftazidime and update tetanus prophylaxis",
+        "Obtain CT orbit to assess intraocular foreign body and orbital injury",
+        "Consult urgent ophthalmology for globe exploration, surgical repair, operative repair, and surgery planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before analgesics",
+        "Fall risk precautions while vision is impaired",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Globe Injury",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/eye-trauma/globe-injury",
+            "supports": [
+                "suspected globe rupture diagnosis and risk stratification",
+                "suspected open globe is an ophthalmologic emergency requiring surgical repair",
+                "avoid pressure because ocular contents can extrude through the wound",
+                "eye shield, systemic antibiotics, tetanus prophylaxis, and CT orbit are time critical",
+                "penetrating mechanism, high-speed metal, projectile, or sharp eye trauma as red flags",
+                "irregular or misshapen pupil, positive Seidel sign, aqueous leak, shallow anterior chamber, or uveal prolapse as severity markers",
+                "rigid eye shield protective shield without pressure",
+                "IV antibiotics with vancomycin plus ceftazidime and tetanus prophylaxis",
+                "CT orbit to assess intraocular foreign body and orbital injury",
+                "urgent ophthalmology for globe exploration, surgical repair, operative repair, and surgery planning",
+                "medication allergy before analgesics",
+                "fall risk precautions while vision is impaired",
+            ],
+        },
+        {
+            "title": "Open Globe Injuries: Review of Evaluation, Management, and Surgical Pearls",
+            "organization": "Journal of Clinical Medicine",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9379121/",
+            "supports": [
+                "open globe diagnosis requires immediate surgical preparation and steps to avoid further injury",
+                "analgesia, antibiotics, and eye protection are necessary to limit IOP, prevent infection, and prevent further injury",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "open globe safety checks must include avoiding pressure" in issue
         for issue in report.critical_issues
     )
 

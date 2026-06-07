@@ -1855,6 +1855,140 @@ const CENTRAL_RETINAL_ARTERY_OCCLUSION_ARTERITIC_SAFETY_TERMS = [
   "측두",
 ];
 
+const OPEN_GLOBE_DIRECT_CONTEXT_TERMS = [
+  "globe laceration",
+  "globe perforation",
+  "globe rupture",
+  "intraocular foreign body",
+  "open globe",
+  "penetrating eye injury",
+  "ruptured globe",
+  "안구 관통상",
+  "안구파열",
+];
+
+const OPEN_GLOBE_TRAUMA_CONTEXT_TERMS = [
+  "eye trauma",
+  "hammering",
+  "high-speed metal",
+  "metal on metal",
+  "projectile",
+  "puncture wound",
+  "sharp eye injury",
+  "vision loss after trauma",
+  "외상",
+];
+
+const OPEN_GLOBE_SIGN_CONTEXT_TERMS = [
+  "aqueous leak",
+  "extruded ocular contents",
+  "irregular pupil",
+  "misshapen pupil",
+  "positive seidel",
+  "seidel sign",
+  "shallow anterior chamber",
+  "uveal prolapse",
+  "동공",
+];
+
+const OPEN_GLOBE_SHIELD_ACTION_TERMS = [
+  "eye shield",
+  "protective shield",
+  "rigid shield",
+  "shield",
+  "안대",
+  "보호대",
+];
+
+const OPEN_GLOBE_ANTIBIOTIC_TETANUS_ACTION_TERMS = [
+  "antibiotic",
+  "ceftazidime",
+  "fluoroquinolone",
+  "iv antibiotics",
+  "moxifloxacin",
+  "systemic antibiotic",
+  "tetanus",
+  "vancomycin",
+  "파상풍",
+  "항생제",
+];
+
+const OPEN_GLOBE_TETANUS_ACTION_TERMS = [
+  "tdap",
+  "tetanus",
+  "tetanus prophylaxis",
+  "tetanus vaccine",
+  "파상풍",
+];
+
+const OPEN_GLOBE_IMAGING_ACTION_TERMS = [
+  "ct",
+  "ct orbit",
+  "ct orbits",
+  "foreign body",
+  "intraocular foreign body",
+  "orbital ct",
+  "x-ray",
+  "영상",
+];
+
+const OPEN_GLOBE_OPHTHALMOLOGY_SURGERY_ACTION_TERMS = [
+  "globe exploration",
+  "ophthalmology",
+  "operative repair",
+  "surgical repair",
+  "surgery",
+  "urgent ophthalmology",
+  "안과",
+  "수술",
+];
+
+const OPEN_GLOBE_NO_PRESSURE_SAFETY_TERMS = [
+  "avoid pressure",
+  "do not press",
+  "no pressure",
+  "not patch",
+  "pressure patch",
+  "tonometry",
+  "ultrasound",
+  "압박",
+  "안압",
+];
+
+const OPEN_GLOBE_NPO_ANTIEMETIC_SAFETY_TERMS = [
+  "analgesia",
+  "antiemetic",
+  "nausea",
+  "nothing by mouth",
+  "npo",
+  "pain control",
+  "vomiting",
+  "구토",
+  "금식",
+];
+
+const OPEN_GLOBE_FOREIGN_BODY_MRI_SAFETY_TERMS = [
+  "do not remove",
+  "foreign body",
+  "intraocular foreign body",
+  "leave in place",
+  "metallic",
+  "mri",
+  "remove foreign body",
+  "금속",
+];
+
+const OPEN_GLOBE_ENDOPHTHALMITIS_FOLLOWUP_SAFETY_TERMS = [
+  "endophthalmitis",
+  "intravitreal",
+  "posttraumatic infection",
+  "recheck",
+  "sympathetic ophthalmia",
+  "vision prognosis",
+  "감염",
+  "안내염",
+];
+
 const NEUTROPENIC_FEVER_CONTEXT_TERMS = [
   "absolute neutrophil count",
   "anc below 500",
@@ -7077,6 +7211,72 @@ function hasCentralRetinalArteryOcclusionTreatmentSafetyCheck(checks: string[]):
   return hasMimicSafety && hasThrombolysisSafety && hasSecondaryPrevention && hasArteriticSafety;
 }
 
+function requiresOpenGlobeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = OPEN_GLOBE_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasTraumaContext = OPEN_GLOBE_TRAUMA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasSignContext = OPEN_GLOBE_SIGN_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasTraumaContext && hasSignContext);
+}
+
+function hasOpenGlobeTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasShield = OPEN_GLOBE_SHIELD_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibioticTetanus = OPEN_GLOBE_ANTIBIOTIC_TETANUS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTetanus = OPEN_GLOBE_TETANUS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImaging = OPEN_GLOBE_IMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOphthalmologySurgery = OPEN_GLOBE_OPHTHALMOLOGY_SURGERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasShield && hasAntibioticTetanus && hasTetanus && hasImaging && hasOphthalmologySurgery;
+}
+
+function hasOpenGlobeTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNoPressure = OPEN_GLOBE_NO_PRESSURE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNpoAntiemetic = OPEN_GLOBE_NPO_ANTIEMETIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasForeignBodyMri = OPEN_GLOBE_FOREIGN_BODY_MRI_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEndophthalmitisFollowup = OPEN_GLOBE_ENDOPHTHALMITIS_FOLLOWUP_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasNoPressure && hasNpoAntiemetic && hasForeignBodyMri && hasEndophthalmitisFollowup;
+}
+
 function requiresNeutropenicFeverSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -9697,6 +9897,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCentralRetinalArteryOcclusionTreatmentSafetyCheck,
       issue:
         "central retinal artery occlusion safety checks must include mimic review for retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, giant cell arteritis, or GCA, thrombolysis eligibility or contraindication review for bleeding, hemorrhage, anticoagulant, INR, platelet, blood pressure, or recent surgery, secondary stroke prevention for antiplatelet, statin, atrial fibrillation, carotid stenosis, vascular risk, or risk-factor control, and arteritic CRAO screening with ESR, CRP, temporal arteritis, giant cell arteritis, jaw claudication, scalp tenderness, temporal headache, or steroid planning",
+    },
+    {
+      name: "open_globe_time_critical_actions",
+      label: "Open globe emergency actions",
+      applies: requiresOpenGlobeSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasOpenGlobeTimeCriticalActions,
+      issue:
+        "open globe time-critical actions must include rigid eye shield, protective shield, or eye-shield placement without pressure, systemic or IV antibiotics such as vancomycin, ceftazidime, moxifloxacin, fluoroquinolone, plus tetanus planning, CT orbit, orbital CT, x-ray, foreign-body, or intraocular-foreign-body imaging, and urgent ophthalmology, globe exploration, surgical repair, operative repair, or surgery planning",
+    },
+    {
+      name: "open_globe_treatment_safety",
+      label: "Open globe treatment safety",
+      applies: requiresOpenGlobeSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasOpenGlobeTreatmentSafetyCheck,
+      issue:
+        "open globe safety checks must include avoiding pressure, eye patching, tonometry, ocular ultrasound, or manipulation that can extrude ocular contents, NPO, antiemetic, analgesia, vomiting, or pain-control planning, intraocular foreign-body precautions including do-not-remove, leave-in-place, metallic foreign body, or MRI avoidance review, and posttraumatic endophthalmitis, intravitreal antibiotic, sympathetic ophthalmia, infection, vision-prognosis, or close follow-up monitoring",
     },
     {
       name: "neutropenic_fever_time_critical_actions",
