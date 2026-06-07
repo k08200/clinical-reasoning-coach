@@ -101,6 +101,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "salicylate_toxicity_treatment_safety",
         "carbon_monoxide_poisoning_time_critical_actions",
         "carbon_monoxide_poisoning_treatment_safety",
+        "cyanide_poisoning_time_critical_actions",
+        "cyanide_poisoning_treatment_safety",
         "opioid_toxicity_time_critical_actions",
         "opioid_toxicity_treatment_safety",
         "severe_asthma_time_critical_actions",
@@ -3739,6 +3741,140 @@ def test_quality_gate_requires_carbon_monoxide_pulse_ox_hbo_complication_and_smo
     assert not report.passed
     assert any(
         "carbon monoxide poisoning safety checks must include pulse oximetry"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_cyanide_source_oxygen_antidote_lactate_and_poison_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Cyanide poisoning from smoke inhalation"
+    case["patient_demographics"] = {
+        "age": 48,
+        "sex": "male",
+        "weight_kg": 81,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion and shock after house fire smoke inhalation"
+    case["history_of_present_illness"] = (
+        "Patient rescued from enclosed-space fire has soot exposure, coma/confusion, "
+        "hypotension, severe lactic acidosis, high anion gap metabolic acidosis, and "
+        "suspected cyanide poisoning."
+    )
+    case["key_teaching_points"] = [
+        "Cyanide poisoning after smoke inhalation can cause rapid coma, shock, and severe lactic acidosis",
+        "Hydroxocobalamin or Cyanokit should be given empirically when severe cyanide poisoning is suspected",
+        "Cyanide levels are not rapidly available and treatment should not wait for confirmation",
+    ]
+    case["clinical_red_flags"] = [
+        "Smoke inhalation with coma, altered mental status, hypotension, shock, seizure, or cardiac arrest",
+        "Severe lactic acidosis, high anion gap metabolic acidosis, cardiovascular collapse, or soot exposure",
+    ]
+    case["time_critical_actions"] = [
+        "Remove from source and give 100% oxygen with respiratory support and circulatory support",
+        "Check lactate, ABG or VBG blood gas, pH, anion gap, and metabolic acidosis severity",
+        "Call poison center, toxicologist, ICU, and burn center for escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Do not wait for cyanide level; give empiric antidote when clinical suspicion is high and do not delay treatment",
+        "Assess smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and avoid nitrite-induced methemoglobinemia when oxygen delivery is impaired",
+        "Monitor shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status",
+        "Monitor hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Cyanide Poisoning",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/poisoning/cyanide-poisoning",
+            "supports": [
+                "cyanide poisoning diagnosis and risk stratification",
+                "cyanide poisoning after smoke inhalation can cause rapid coma, shock, and severe lactic acidosis",
+                "hydroxocobalamin or Cyanokit should be given empirically when severe cyanide poisoning is suspected",
+                "cyanide levels are not rapidly available and treatment should not wait for confirmation",
+                "smoke inhalation with coma, altered mental status, hypotension, shock, seizure, or cardiac arrest as red flags",
+                "severe lactic acidosis, high anion gap metabolic acidosis, cardiovascular collapse, or soot exposure as severity markers",
+                "remove from source and give 100% oxygen with respiratory support and circulatory support",
+                "lactate, ABG or VBG blood gas, pH, anion gap, and metabolic acidosis severity assessment",
+                "poison center, toxicologist, ICU, and burn center escalation",
+                "do not wait for cyanide level and give empiric antidote when clinical suspicion is high",
+                "smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and nitrite-induced methemoglobinemia review",
+                "shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status monitoring",
+                "hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "cyanide poisoning time-critical actions must include source removal"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_cyanide_level_smoke_shock_and_hydroxocobalamin_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Cyanide poisoning from smoke inhalation"
+    case["patient_demographics"] = {
+        "age": 48,
+        "sex": "male",
+        "weight_kg": 81,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion and shock after house fire smoke inhalation"
+    case["history_of_present_illness"] = (
+        "Patient rescued from enclosed-space fire has soot exposure, coma/confusion, "
+        "hypotension, severe lactic acidosis, high anion gap metabolic acidosis, and "
+        "suspected cyanide poisoning."
+    )
+    case["key_teaching_points"] = [
+        "Cyanide poisoning after smoke inhalation can cause rapid coma, shock, and severe lactic acidosis",
+        "Hydroxocobalamin or Cyanokit should be given empirically when severe cyanide poisoning is suspected",
+        "Cyanide levels are not rapidly available and treatment should not wait for confirmation",
+    ]
+    case["clinical_red_flags"] = [
+        "Smoke inhalation with coma, altered mental status, hypotension, shock, seizure, or cardiac arrest",
+        "Severe lactic acidosis, high anion gap metabolic acidosis, cardiovascular collapse, or soot exposure",
+    ]
+    case["time_critical_actions"] = [
+        "Remove from source and give 100% oxygen with respiratory support and circulatory support",
+        "Give hydroxocobalamin Cyanokit antidote immediately and consider sodium thiosulfate with toxicologist guidance",
+        "Check lactate, ABG or VBG blood gas, pH, anion gap, and metabolic acidosis severity",
+        "Call poison center, toxicologist, ICU, and burn center for escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Cyanide Poisoning",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/poisoning/cyanide-poisoning",
+            "supports": [
+                "cyanide poisoning diagnosis and risk stratification",
+                "cyanide poisoning after smoke inhalation can cause rapid coma, shock, and severe lactic acidosis",
+                "hydroxocobalamin or Cyanokit should be given empirically when severe cyanide poisoning is suspected",
+                "cyanide levels are not rapidly available and treatment should not wait for confirmation",
+                "smoke inhalation with coma, altered mental status, hypotension, shock, seizure, or cardiac arrest as red flags",
+                "severe lactic acidosis, high anion gap metabolic acidosis, cardiovascular collapse, or soot exposure as severity markers",
+                "remove from source and give 100% oxygen with respiratory support and circulatory support",
+                "hydroxocobalamin Cyanokit antidote immediately and sodium thiosulfate with toxicologist guidance",
+                "lactate, ABG or VBG blood gas, pH, anion gap, and metabolic acidosis severity assessment",
+                "poison center, toxicologist, ICU, and burn center escalation",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "cyanide poisoning safety checks must include empiric antidote"
         in issue
         for issue in report.critical_issues
     )

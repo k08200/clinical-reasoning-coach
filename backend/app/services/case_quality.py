@@ -2785,6 +2785,89 @@ CARBON_MONOXIDE_CYANIDE_SMOKE_SAFETY_TERMS = (
     "화재",
     "시안화",
 )
+CYANIDE_POISONING_CONTEXT_TERMS = (
+    "acetonitrile",
+    "cyanide poisoning",
+    "cyanide toxicity",
+    "hydrogen cyanide",
+    "smoke inhalation with lactic acidosis",
+    "smoke inhalation with shock",
+    "시안화",
+)
+CYANIDE_REMOVAL_OXYGEN_SUPPORT_ACTION_TERMS = (
+    "100% oxygen",
+    "circulatory support",
+    "high-flow oxygen",
+    "oxygen",
+    "remove from source",
+    "respiratory support",
+    "source removal",
+    "산소",
+)
+CYANIDE_HYDROXOCOBALAMIN_ACTION_TERMS = (
+    "cyanokit",
+    "hydroxocobalamin",
+    "sodium thiosulfate",
+    "thiosulfate",
+    "하이드록소코발라민",
+)
+CYANIDE_LACTATE_ACIDOSIS_ACTION_TERMS = (
+    "abg",
+    "anion gap",
+    "blood gas",
+    "lactate",
+    "metabolic acidosis",
+    "ph",
+    "vbg",
+    "젖산",
+    "산증",
+)
+CYANIDE_POISON_ESCALATION_ACTION_TERMS = (
+    "burn center",
+    "icu",
+    "poison center",
+    "poison control",
+    "toxicologist",
+    "중환자",
+)
+CYANIDE_DO_NOT_WAIT_LEVEL_SAFETY_TERMS = (
+    "cyanide level",
+    "do not delay",
+    "do not wait",
+    "empiric",
+    "not delay",
+    "지연",
+)
+CYANIDE_SMOKE_CO_NITRITE_SAFETY_TERMS = (
+    "carbon monoxide",
+    "co poisoning",
+    "carboxyhemoglobin",
+    "cohb",
+    "nitrite",
+    "smoke inhalation",
+    "시안화",
+    "일산화탄소",
+)
+CYANIDE_SHOCK_NEURO_SAFETY_TERMS = (
+    "altered mental status",
+    "cardiac arrest",
+    "coma",
+    "hypotension",
+    "seizure",
+    "shock",
+    "syncope",
+    "의식",
+    "쇼크",
+)
+CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS = (
+    "blood pressure",
+    "chromaturia",
+    "dialysis",
+    "hypertension",
+    "lab interference",
+    "red urine",
+    "혈압",
+)
 OPIOID_TOXICITY_CONTEXT_TERMS = (
     "fentanyl overdose",
     "heroin overdose",
@@ -4753,6 +4836,35 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "neurocognitive complication monitoring, and smoke inhalation, "
                 "cyanide, hydroxocobalamin, burn, fire, or lactate co-toxicity "
                 "assessment"
+            ),
+        ),
+        DomainSafetyGate(
+            name="cyanide_poisoning_time_critical_actions",
+            applies=_requires_cyanide_poisoning_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_cyanide_poisoning_time_critical_actions,
+            issue=(
+                "cyanide poisoning time-critical actions must include source "
+                "removal or 100% oxygen with respiratory or circulatory support, "
+                "hydroxocobalamin, Cyanokit, sodium thiosulfate, or thiosulfate "
+                "antidote planning, lactate, blood gas, ABG, VBG, pH, anion gap, "
+                "or metabolic acidosis assessment, and poison center, toxicologist, "
+                "ICU, or burn center escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="cyanide_poisoning_treatment_safety",
+            applies=_requires_cyanide_poisoning_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_cyanide_poisoning_treatment_safety_check,
+            issue=(
+                "cyanide poisoning safety checks must include empiric antidote "
+                "or do-not-wait cyanide-level planning, smoke inhalation, carbon "
+                "monoxide, COHb, carboxyhemoglobin, or nitrite-avoidance review, "
+                "shock, hypotension, cardiac arrest, coma, seizure, syncope, or "
+                "altered mental status monitoring, and hydroxocobalamin blood "
+                "pressure, red urine, chromaturia, lab-interference, or dialysis "
+                "interference safety"
             ),
         ),
         DomainSafetyGate(
@@ -6985,6 +7097,85 @@ def _has_carbon_monoxide_poisoning_treatment_safety_check(checks: list[Any]) -> 
         and has_hbo_criteria_safety
         and has_complication_safety
         and has_cyanide_smoke_safety
+    )
+
+
+def _requires_cyanide_poisoning_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in CYANIDE_POISONING_CONTEXT_TERMS
+    )
+
+
+def _has_cyanide_poisoning_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_removal_oxygen_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CYANIDE_REMOVAL_OXYGEN_SUPPORT_ACTION_TERMS
+    )
+    has_antidote_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CYANIDE_HYDROXOCOBALAMIN_ACTION_TERMS
+    )
+    has_lactate_acidosis_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CYANIDE_LACTATE_ACIDOSIS_ACTION_TERMS
+    )
+    has_poison_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CYANIDE_POISON_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_removal_oxygen_support
+        and has_antidote_action
+        and has_lactate_acidosis_action
+        and has_poison_escalation
+    )
+
+
+def _has_cyanide_poisoning_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_do_not_wait_level_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CYANIDE_DO_NOT_WAIT_LEVEL_SAFETY_TERMS
+    )
+    has_smoke_co_nitrite_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CYANIDE_SMOKE_CO_NITRITE_SAFETY_TERMS
+    )
+    has_shock_neuro_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CYANIDE_SHOCK_NEURO_SAFETY_TERMS
+    )
+    has_hydroxocobalamin_effect_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS
+    )
+    return (
+        has_do_not_wait_level_safety
+        and has_smoke_co_nitrite_safety
+        and has_shock_neuro_safety
+        and has_hydroxocobalamin_effect_safety
     )
 
 

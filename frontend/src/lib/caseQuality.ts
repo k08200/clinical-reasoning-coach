@@ -2996,6 +2996,98 @@ const CARBON_MONOXIDE_CYANIDE_SMOKE_SAFETY_TERMS = [
   "시안화",
 ];
 
+const CYANIDE_POISONING_CONTEXT_TERMS = [
+  "acetonitrile",
+  "cyanide poisoning",
+  "cyanide toxicity",
+  "hydrogen cyanide",
+  "smoke inhalation with lactic acidosis",
+  "smoke inhalation with shock",
+  "시안화",
+];
+
+const CYANIDE_REMOVAL_OXYGEN_SUPPORT_ACTION_TERMS = [
+  "100% oxygen",
+  "circulatory support",
+  "high-flow oxygen",
+  "oxygen",
+  "remove from source",
+  "respiratory support",
+  "source removal",
+  "산소",
+];
+
+const CYANIDE_HYDROXOCOBALAMIN_ACTION_TERMS = [
+  "cyanokit",
+  "hydroxocobalamin",
+  "sodium thiosulfate",
+  "thiosulfate",
+  "하이드록소코발라민",
+];
+
+const CYANIDE_LACTATE_ACIDOSIS_ACTION_TERMS = [
+  "abg",
+  "anion gap",
+  "blood gas",
+  "lactate",
+  "metabolic acidosis",
+  "ph",
+  "vbg",
+  "젖산",
+  "산증",
+];
+
+const CYANIDE_POISON_ESCALATION_ACTION_TERMS = [
+  "burn center",
+  "icu",
+  "poison center",
+  "poison control",
+  "toxicologist",
+  "중환자",
+];
+
+const CYANIDE_DO_NOT_WAIT_LEVEL_SAFETY_TERMS = [
+  "cyanide level",
+  "do not delay",
+  "do not wait",
+  "empiric",
+  "not delay",
+  "지연",
+];
+
+const CYANIDE_SMOKE_CO_NITRITE_SAFETY_TERMS = [
+  "carbon monoxide",
+  "co poisoning",
+  "carboxyhemoglobin",
+  "cohb",
+  "nitrite",
+  "smoke inhalation",
+  "시안화",
+  "일산화탄소",
+];
+
+const CYANIDE_SHOCK_NEURO_SAFETY_TERMS = [
+  "altered mental status",
+  "cardiac arrest",
+  "coma",
+  "hypotension",
+  "seizure",
+  "shock",
+  "syncope",
+  "의식",
+  "쇼크",
+];
+
+const CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS = [
+  "blood pressure",
+  "chromaturia",
+  "dialysis",
+  "hypertension",
+  "lab interference",
+  "red urine",
+  "혈압",
+];
+
 const OPIOID_TOXICITY_CONTEXT_TERMS = [
   "fentanyl overdose",
   "heroin overdose",
@@ -5696,6 +5788,69 @@ function hasCarbonMonoxidePoisoningTreatmentSafetyCheck(checks: string[]): boole
   return hasPulseOxSafety && hasHboCriteriaSafety && hasComplicationSafety && hasCyanideSmokeSafety;
 }
 
+function requiresCyanidePoisoningSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return CYANIDE_POISONING_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasCyanidePoisoningTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasRemovalOxygenSupport = CYANIDE_REMOVAL_OXYGEN_SUPPORT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntidoteAction = CYANIDE_HYDROXOCOBALAMIN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLactateAcidosisAction = CYANIDE_LACTATE_ACIDOSIS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPoisonEscalation = CYANIDE_POISON_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasRemovalOxygenSupport &&
+    hasAntidoteAction &&
+    hasLactateAcidosisAction &&
+    hasPoisonEscalation
+  );
+}
+
+function hasCyanidePoisoningTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDoNotWaitLevelSafety = CYANIDE_DO_NOT_WAIT_LEVEL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSmokeCoNitriteSafety = CYANIDE_SMOKE_CO_NITRITE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasShockNeuroSafety = CYANIDE_SHOCK_NEURO_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHydroxocobalaminEffectSafety = CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasDoNotWaitLevelSafety &&
+    hasSmokeCoNitriteSafety &&
+    hasShockNeuroSafety &&
+    hasHydroxocobalaminEffectSafety
+  );
+}
+
 function requiresOpioidToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -6719,6 +6874,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCarbonMonoxidePoisoningTreatmentSafetyCheck,
       issue:
         "carbon monoxide poisoning safety checks must include pulse oximetry or SpO2 false-normal limitation review, hyperbaric oxygen criteria review for pregnancy, neurologic symptoms, loss of consciousness, syncope, acidosis, cardiac ischemia, or high carboxyhemoglobin, cardiac, ECG, troponin, lactate, metabolic acidosis, myocardial, delayed neurologic, or neurocognitive complication monitoring, and smoke inhalation, cyanide, hydroxocobalamin, burn, fire, or lactate co-toxicity assessment",
+    },
+    {
+      name: "cyanide_poisoning_time_critical_actions",
+      label: "Cyanide poisoning antidote and support",
+      applies: requiresCyanidePoisoningSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasCyanidePoisoningTimeCriticalActions,
+      issue:
+        "cyanide poisoning time-critical actions must include source removal or 100% oxygen with respiratory or circulatory support, hydroxocobalamin, Cyanokit, sodium thiosulfate, or thiosulfate antidote planning, lactate, blood gas, ABG, VBG, pH, anion gap, or metabolic acidosis assessment, and poison center, toxicologist, ICU, or burn center escalation",
+    },
+    {
+      name: "cyanide_poisoning_treatment_safety",
+      label: "Cyanide poisoning smoke and antidote safety",
+      applies: requiresCyanidePoisoningSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasCyanidePoisoningTreatmentSafetyCheck,
+      issue:
+        "cyanide poisoning safety checks must include empiric antidote or do-not-wait cyanide-level planning, smoke inhalation, carbon monoxide, COHb, carboxyhemoglobin, or nitrite-avoidance review, shock, hypotension, cardiac arrest, coma, seizure, syncope, or altered mental status monitoring, and hydroxocobalamin blood pressure, red urine, chromaturia, lab-interference, or dialysis interference safety",
     },
     {
       name: "opioid_toxicity_time_critical_actions",
