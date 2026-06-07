@@ -77,6 +77,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "ovarian_torsion_treatment_safety",
         "spinal_epidural_abscess_time_critical_actions",
         "spinal_epidural_abscess_treatment_safety",
+        "upper_gi_bleed_time_critical_actions",
+        "upper_gi_bleed_treatment_safety",
         "acute_mesenteric_ischemia_time_critical_actions",
         "acute_mesenteric_ischemia_treatment_safety",
         "necrotizing_soft_tissue_infection_time_critical_actions",
@@ -2173,6 +2175,137 @@ def test_quality_gate_requires_spinal_epidural_abscess_neuro_risk_and_antibiotic
     assert any(
         "spinal epidural abscess safety checks must include neurologic deficit"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_upper_gi_bleed_resuscitation_labs_endoscopy_and_medical_therapy():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Upper GI bleeding with possible variceal hemorrhage"
+    case["patient_demographics"] = {
+        "age": 63,
+        "sex": "male",
+        "weight_kg": 74,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Large-volume hematemesis and melena"
+    case["history_of_present_illness"] = (
+        "Patient with cirrhosis and warfarin use presents with coffee ground emesis, "
+        "large-volume hematemesis, melena, tachycardia, hypotension, and suspected "
+        "upper GI bleed from peptic ulcer or variceal bleeding."
+    )
+    case["key_teaching_points"] = [
+        "Upper GI bleeding requires hemodynamic resuscitation before endoscopy",
+        "Early endoscopy within 24 hours is recommended after resuscitation for admitted upper GI bleeding",
+        "Suspected variceal bleeding needs vasoactive therapy such as octreotide plus antibiotic prophylaxis",
+    ]
+    case["clinical_red_flags"] = [
+        "Hematemesis, melena, syncope, shock, hypotension, tachycardia, or ongoing transfusion requirement",
+        "Cirrhosis, portal hypertension, anticoagulant use, coagulopathy, or active vomiting blood",
+    ]
+    case["time_critical_actions"] = [
+        "Establish two large-bore IV access lines and start hemodynamic resuscitation for shock with massive transfusion planning",
+        "Send CBC, hemoglobin, INR, type and screen, crossmatch, and prepare PRBC with restrictive transfusion strategy",
+    ]
+    case["contraindication_checks"] = [
+        "Assess airway aspiration risk from active hematemesis, vomiting blood, altered mental status, and intubation need before endoscopy",
+        "Review anticoagulant, warfarin, DOAC, antiplatelet, INR, platelet, coagulopathy, and reversal needs",
+        "For cirrhosis and portal hypertension, plan variceal rescue options including TIPS, balloon tamponade, stent, or rescue therapy",
+        "Monitor for rebleeding, unstable shock, repeat endoscopy need, ICU disposition, and risk stratification",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "ACG Clinical Guideline: Upper Gastrointestinal and Ulcer Bleeding",
+            "organization": "American College of Gastroenterology",
+            "url": "https://journals.lww.com/ajg/fulltext/2021/05000/acg_clinical_guideline__upper_gastrointestinal_and.14.aspx",
+            "supports": [
+                "upper GI bleeding diagnosis and risk stratification",
+                "upper GI bleeding requires hemodynamic resuscitation before endoscopy",
+                "early endoscopy within 24 hours is recommended after resuscitation for admitted upper GI bleeding",
+                "suspected variceal bleeding needs vasoactive therapy such as octreotide plus antibiotic prophylaxis",
+                "hematemesis, melena, syncope, shock, hypotension, tachycardia, or ongoing transfusion requirement as red flags",
+                "cirrhosis, portal hypertension, anticoagulant use, coagulopathy, or active vomiting blood as severity markers",
+                "two large-bore IV access lines and hemodynamic resuscitation for shock with massive transfusion planning",
+                "CBC, hemoglobin, INR, type and screen, crossmatch, PRBC, and restrictive transfusion strategy",
+                "airway aspiration risk from active hematemesis, vomiting blood, altered mental status, and intubation need before endoscopy",
+                "anticoagulant, warfarin, DOAC, antiplatelet, INR, platelet, coagulopathy, and reversal needs",
+                "cirrhosis and portal hypertension variceal rescue options including TIPS, balloon tamponade, stent, or rescue therapy",
+                "rebleeding, unstable shock, repeat endoscopy need, ICU disposition, and risk stratification monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "upper GI bleeding time-critical actions must include hemodynamic resuscitation"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_upper_gi_bleed_airway_reversal_variceal_and_rebleed_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Upper GI bleeding with possible variceal hemorrhage"
+    case["patient_demographics"] = {
+        "age": 63,
+        "sex": "male",
+        "weight_kg": 74,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Large-volume hematemesis and melena"
+    case["history_of_present_illness"] = (
+        "Patient with cirrhosis and warfarin use presents with coffee ground emesis, "
+        "large-volume hematemesis, melena, tachycardia, hypotension, and suspected "
+        "upper GI bleed from peptic ulcer or variceal bleeding."
+    )
+    case["key_teaching_points"] = [
+        "Upper GI bleeding requires hemodynamic resuscitation before endoscopy",
+        "Early endoscopy within 24 hours is recommended after resuscitation for admitted upper GI bleeding",
+        "Suspected variceal bleeding needs vasoactive therapy such as octreotide plus antibiotic prophylaxis",
+    ]
+    case["clinical_red_flags"] = [
+        "Hematemesis, melena, syncope, shock, hypotension, tachycardia, or ongoing transfusion requirement",
+        "Cirrhosis, portal hypertension, anticoagulant use, coagulopathy, or active vomiting blood",
+    ]
+    case["time_critical_actions"] = [
+        "Establish two large-bore IV access lines and start hemodynamic resuscitation for shock with massive transfusion planning",
+        "Send CBC, hemoglobin, INR, type and screen, crossmatch, and prepare PRBC with restrictive transfusion strategy",
+        "Call gastroenterology for early endoscopy, EGD, and endoscopic hemostasis within 24 hours after resuscitation",
+        "Start PPI proton pump inhibitor and, if variceal bleeding is suspected, octreotide vasoactive therapy plus ceftriaxone antibiotic prophylaxis",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Renal dosing before contrast imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "ACG Clinical Guideline: Upper Gastrointestinal and Ulcer Bleeding",
+            "organization": "American College of Gastroenterology",
+            "url": "https://journals.lww.com/ajg/fulltext/2021/05000/acg_clinical_guideline__upper_gastrointestinal_and.14.aspx",
+            "supports": [
+                "upper GI bleeding diagnosis and risk stratification",
+                "upper GI bleeding requires hemodynamic resuscitation before endoscopy",
+                "early endoscopy within 24 hours is recommended after resuscitation for admitted upper GI bleeding",
+                "suspected variceal bleeding needs vasoactive therapy such as octreotide plus antibiotic prophylaxis",
+                "hematemesis, melena, syncope, shock, hypotension, tachycardia, or ongoing transfusion requirement as red flags",
+                "cirrhosis, portal hypertension, anticoagulant use, coagulopathy, or active vomiting blood as severity markers",
+                "two large-bore IV access lines and hemodynamic resuscitation for shock with massive transfusion planning",
+                "CBC, hemoglobin, INR, type and screen, crossmatch, PRBC, and restrictive transfusion strategy",
+                "gastroenterology for early endoscopy, EGD, and endoscopic hemostasis within 24 hours after resuscitation",
+                "PPI proton pump inhibitor and variceal bleeding octreotide vasoactive therapy plus ceftriaxone antibiotic prophylaxis",
+                "medication allergy before antiemetics",
+                "renal dosing before contrast imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "upper GI bleeding safety checks must include airway" in issue
         for issue in report.critical_issues
     )
 

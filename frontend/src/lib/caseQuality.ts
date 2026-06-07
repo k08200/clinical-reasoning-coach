@@ -1927,6 +1927,113 @@ const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS = [
   "배양",
 ];
 
+const UPPER_GI_BLEED_CONTEXT_TERMS = [
+  "coffee ground emesis",
+  "esophageal variceal bleeding",
+  "hematemesis",
+  "melena",
+  "nonvariceal upper gi bleeding",
+  "peptic ulcer bleeding",
+  "upper gastrointestinal bleeding",
+  "upper gi bleed",
+  "upper gi bleeding",
+  "variceal bleeding",
+  "토혈",
+  "흑색변",
+];
+
+const UPPER_GI_BLEED_RESUSCITATION_ACTION_TERMS = [
+  "blood pressure",
+  "hemodynamic",
+  "iv access",
+  "large-bore",
+  "massive transfusion",
+  "resuscitation",
+  "shock",
+  "two large bore",
+  "수액",
+  "쇼크",
+];
+
+const UPPER_GI_BLEED_TRANSFUSION_LAB_ACTION_TERMS = [
+  "cbc",
+  "crossmatch",
+  "hemoglobin",
+  "inr",
+  "packed red blood",
+  "prbc",
+  "restrictive transfusion",
+  "transfusion",
+  "type and screen",
+  "수혈",
+];
+
+const UPPER_GI_BLEED_ENDOSCOPY_ACTION_TERMS = [
+  "early endoscopy",
+  "endoscopic hemostasis",
+  "endoscopy",
+  "egd",
+  "gastroenterology",
+  "gi consult",
+  "within 24 hours",
+  "내시경",
+];
+
+const UPPER_GI_BLEED_PPI_VARICEAL_ACTION_TERMS = [
+  "antibiotic",
+  "ceftriaxone",
+  "octreotide",
+  "ppi",
+  "proton pump",
+  "somatostatin",
+  "terlipressin",
+  "vasoactive",
+  "항생제",
+];
+
+const UPPER_GI_BLEED_AIRWAY_ASPIRATION_SAFETY_TERMS = [
+  "airway",
+  "altered mental status",
+  "aspiration",
+  "active hematemesis",
+  "intubation",
+  "vomiting blood",
+  "기도",
+];
+
+const UPPER_GI_BLEED_ANTITHROMBOTIC_REVERSAL_SAFETY_TERMS = [
+  "anticoagulant",
+  "antiplatelet",
+  "coagulopathy",
+  "doac",
+  "inr",
+  "platelet",
+  "reversal",
+  "warfarin",
+  "항응고",
+];
+
+const UPPER_GI_BLEED_VARICEAL_RESCUE_SAFETY_TERMS = [
+  "balloon tamponade",
+  "cirrhosis",
+  "portal hypertension",
+  "rescue",
+  "stent",
+  "tips",
+  "variceal",
+  "정맥류",
+];
+
+const UPPER_GI_BLEED_REBLEED_DISPOSITION_SAFETY_TERMS = [
+  "icu",
+  "rebleeding",
+  "repeat endoscopy",
+  "risk stratification",
+  "shock",
+  "unstable",
+  "혈역학",
+];
+
 const ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = [
   "acute bowel ischemia",
   "acute intestinal ischemia",
@@ -5140,6 +5247,66 @@ function hasSpinalEpiduralAbscessTreatmentSafetyCheck(checks: string[]): boolean
   return hasNeuroSepsisSafety && hasRiskSourceSafety && hasAntibioticTimingSafety;
 }
 
+function requiresUpperGiBleedSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return UPPER_GI_BLEED_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasUpperGiBleedTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasResuscitation = UPPER_GI_BLEED_RESUSCITATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTransfusionLab = UPPER_GI_BLEED_TRANSFUSION_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEndoscopy = UPPER_GI_BLEED_ENDOSCOPY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPpiVaricealAction = UPPER_GI_BLEED_PPI_VARICEAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasResuscitation && hasTransfusionLab && hasEndoscopy && hasPpiVaricealAction;
+}
+
+function hasUpperGiBleedTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAirwayAspirationSafety = UPPER_GI_BLEED_AIRWAY_ASPIRATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntithromboticReversalSafety =
+    UPPER_GI_BLEED_ANTITHROMBOTIC_REVERSAL_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasVaricealRescueSafety = UPPER_GI_BLEED_VARICEAL_RESCUE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRebleedDispositionSafety =
+    UPPER_GI_BLEED_REBLEED_DISPOSITION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasAirwayAspirationSafety &&
+    hasAntithromboticReversalSafety &&
+    hasVaricealRescueSafety &&
+    hasRebleedDispositionSafety
+  );
+}
+
 function requiresAcuteMesentericIschemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -6658,6 +6825,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSpinalEpiduralAbscessTreatmentSafetyCheck,
       issue:
         "spinal epidural abscess safety checks must include neurologic deficit, bowel or bladder dysfunction, serial neurologic exams, or sepsis monitoring, bacteremia, endocarditis, diabetes, IVDU, immunosuppression, recent spinal procedure, staphylococcal, or source-risk review, and culture-before-antibiotics, biopsy, or do-not-delay empiric antibiotics for unstable or neurologic compromise planning",
+    },
+    {
+      name: "upper_gi_bleed_time_critical_actions",
+      label: "Upper GI bleed resuscitation and endoscopy",
+      applies: requiresUpperGiBleedSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasUpperGiBleedTimeCriticalActions,
+      issue:
+        "upper GI bleeding time-critical actions must include hemodynamic resuscitation with large-bore IV access, shock, or massive transfusion planning, CBC, hemoglobin, INR, type and screen, crossmatch, PRBC, restrictive transfusion, or transfusion assessment, early endoscopy, EGD, endoscopic hemostasis, gastroenterology, GI consult, or within-24-hours endoscopy planning, and PPI, proton pump inhibitor, octreotide, terlipressin, somatostatin, vasoactive therapy, ceftriaxone, or antibiotic planning for ulcer or suspected variceal bleeding",
+    },
+    {
+      name: "upper_gi_bleed_treatment_safety",
+      label: "Upper GI bleed airway and reversal safety",
+      applies: requiresUpperGiBleedSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasUpperGiBleedTreatmentSafetyCheck,
+      issue:
+        "upper GI bleeding safety checks must include airway, aspiration, active hematemesis, vomiting blood, intubation, or altered mental status planning, anticoagulant, antiplatelet, warfarin, DOAC, INR, platelet, coagulopathy, or reversal review, variceal, cirrhosis, portal hypertension, TIPS, balloon tamponade, stent, or rescue therapy review, and rebleeding, repeat endoscopy, ICU, unstable, shock, or risk-stratification disposition monitoring",
     },
     {
       name: "acute_mesenteric_ischemia_time_critical_actions",

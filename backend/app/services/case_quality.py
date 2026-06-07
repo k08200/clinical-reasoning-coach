@@ -1801,6 +1801,104 @@ SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS = (
     "unstable",
     "배양",
 )
+UPPER_GI_BLEED_CONTEXT_TERMS = (
+    "coffee ground emesis",
+    "esophageal variceal bleeding",
+    "hematemesis",
+    "melena",
+    "nonvariceal upper gi bleeding",
+    "peptic ulcer bleeding",
+    "upper gastrointestinal bleeding",
+    "upper gi bleed",
+    "upper gi bleeding",
+    "variceal bleeding",
+    "토혈",
+    "흑색변",
+)
+UPPER_GI_BLEED_RESUSCITATION_ACTION_TERMS = (
+    "blood pressure",
+    "hemodynamic",
+    "iv access",
+    "large-bore",
+    "massive transfusion",
+    "resuscitation",
+    "shock",
+    "two large bore",
+    "수액",
+    "쇼크",
+)
+UPPER_GI_BLEED_TRANSFUSION_LAB_ACTION_TERMS = (
+    "cbc",
+    "crossmatch",
+    "hemoglobin",
+    "inr",
+    "packed red blood",
+    "prbc",
+    "restrictive transfusion",
+    "transfusion",
+    "type and screen",
+    "수혈",
+)
+UPPER_GI_BLEED_ENDOSCOPY_ACTION_TERMS = (
+    "early endoscopy",
+    "endoscopic hemostasis",
+    "endoscopy",
+    "egd",
+    "gastroenterology",
+    "gi consult",
+    "within 24 hours",
+    "내시경",
+)
+UPPER_GI_BLEED_PPI_VARICEAL_ACTION_TERMS = (
+    "antibiotic",
+    "ceftriaxone",
+    "octreotide",
+    "ppi",
+    "proton pump",
+    "somatostatin",
+    "terlipressin",
+    "vasoactive",
+    "항생제",
+)
+UPPER_GI_BLEED_AIRWAY_ASPIRATION_SAFETY_TERMS = (
+    "airway",
+    "altered mental status",
+    "aspiration",
+    "active hematemesis",
+    "intubation",
+    "vomiting blood",
+    "기도",
+)
+UPPER_GI_BLEED_ANTITHROMBOTIC_REVERSAL_SAFETY_TERMS = (
+    "anticoagulant",
+    "antiplatelet",
+    "coagulopathy",
+    "doac",
+    "inr",
+    "platelet",
+    "reversal",
+    "warfarin",
+    "항응고",
+)
+UPPER_GI_BLEED_VARICEAL_RESCUE_SAFETY_TERMS = (
+    "balloon tamponade",
+    "cirrhosis",
+    "portal hypertension",
+    "rescue",
+    "stent",
+    "tips",
+    "variceal",
+    "정맥류",
+)
+UPPER_GI_BLEED_REBLEED_DISPOSITION_SAFETY_TERMS = (
+    "icu",
+    "rebleeding",
+    "repeat endoscopy",
+    "risk stratification",
+    "shock",
+    "unstable",
+    "혈역학",
+)
 ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = (
     "acute bowel ischemia",
     "acute intestinal ischemia",
@@ -4528,6 +4626,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="upper_gi_bleed_time_critical_actions",
+            applies=_requires_upper_gi_bleed_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_upper_gi_bleed_time_critical_actions,
+            issue=(
+                "upper GI bleeding time-critical actions must include hemodynamic "
+                "resuscitation with large-bore IV access, shock, or massive "
+                "transfusion planning, CBC, hemoglobin, INR, type and screen, "
+                "crossmatch, PRBC, restrictive transfusion, or transfusion "
+                "assessment, early endoscopy, EGD, endoscopic hemostasis, "
+                "gastroenterology, GI consult, or within-24-hours endoscopy "
+                "planning, and PPI, proton pump inhibitor, octreotide, "
+                "terlipressin, somatostatin, vasoactive therapy, ceftriaxone, "
+                "or antibiotic planning for ulcer or suspected variceal bleeding"
+            ),
+        ),
+        DomainSafetyGate(
+            name="upper_gi_bleed_treatment_safety",
+            applies=_requires_upper_gi_bleed_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_upper_gi_bleed_treatment_safety_check,
+            issue=(
+                "upper GI bleeding safety checks must include airway, aspiration, "
+                "active hematemesis, vomiting blood, intubation, or altered "
+                "mental status planning, anticoagulant, antiplatelet, warfarin, "
+                "DOAC, INR, platelet, coagulopathy, or reversal review, variceal, "
+                "cirrhosis, portal hypertension, TIPS, balloon tamponade, stent, "
+                "or rescue therapy review, and rebleeding, repeat endoscopy, ICU, "
+                "unstable, shock, or risk-stratification disposition monitoring"
+            ),
+        ),
+        DomainSafetyGate(
             name="acute_mesenteric_ischemia_time_critical_actions",
             applies=_requires_acute_mesenteric_ischemia_safety_check,
             field_name="time_critical_actions",
@@ -6249,6 +6379,85 @@ def _has_spinal_epidural_abscess_treatment_safety_check(checks: list[Any]) -> bo
         has_neuro_sepsis_safety
         and has_risk_source_safety
         and has_antibiotic_timing_safety
+    )
+
+
+def _requires_upper_gi_bleed_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in UPPER_GI_BLEED_CONTEXT_TERMS
+    )
+
+
+def _has_upper_gi_bleed_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_resuscitation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UPPER_GI_BLEED_RESUSCITATION_ACTION_TERMS
+    )
+    has_transfusion_lab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UPPER_GI_BLEED_TRANSFUSION_LAB_ACTION_TERMS
+    )
+    has_endoscopy = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UPPER_GI_BLEED_ENDOSCOPY_ACTION_TERMS
+    )
+    has_ppi_variceal_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UPPER_GI_BLEED_PPI_VARICEAL_ACTION_TERMS
+    )
+    return (
+        has_resuscitation
+        and has_transfusion_lab
+        and has_endoscopy
+        and has_ppi_variceal_action
+    )
+
+
+def _has_upper_gi_bleed_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_airway_aspiration_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UPPER_GI_BLEED_AIRWAY_ASPIRATION_SAFETY_TERMS
+    )
+    has_antithrombotic_reversal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UPPER_GI_BLEED_ANTITHROMBOTIC_REVERSAL_SAFETY_TERMS
+    )
+    has_variceal_rescue_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UPPER_GI_BLEED_VARICEAL_RESCUE_SAFETY_TERMS
+    )
+    has_rebleed_disposition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UPPER_GI_BLEED_REBLEED_DISPOSITION_SAFETY_TERMS
+    )
+    return (
+        has_airway_aspiration_safety
+        and has_antithrombotic_reversal_safety
+        and has_variceal_rescue_safety
+        and has_rebleed_disposition_safety
     )
 
 
