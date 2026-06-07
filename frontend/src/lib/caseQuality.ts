@@ -1711,6 +1711,139 @@ const CAUDA_EQUINA_COMPRESSIVE_CAUSE_SAFETY_TERMS = [
   "외상",
 ];
 
+const ACUTE_COMPARTMENT_SYNDROME_CONTEXT_TERMS = [
+  "acute compartment syndrome",
+  "compartment syndrome",
+  "구획증후군",
+  "급성 구획증후군",
+];
+
+const ACUTE_COMPARTMENT_SYNDROME_RISK_CONTEXT_TERMS = [
+  "burn",
+  "cast",
+  "crush",
+  "fracture",
+  "high-energy injury",
+  "limb injury",
+  "reperfusion",
+  "splint",
+  "tight dressing",
+  "tibial fracture",
+  "vascular injury",
+  "골절",
+  "압궤",
+  "화상",
+];
+
+const ACUTE_COMPARTMENT_SYNDROME_SYMPTOM_CONTEXT_TERMS = [
+  "firm compartment",
+  "pain on passive stretch",
+  "pain out of proportion",
+  "passive stretch",
+  "severe limb pain",
+  "tense compartment",
+  "worsening pain",
+  "수동 신전",
+  "심한 통증",
+];
+
+const ACUTE_COMPARTMENT_SYNDROME_EXAM_ACTION_TERMS = [
+  "capillary refill",
+  "neurovascular",
+  "pain on passive stretch",
+  "pain out of proportion",
+  "passive stretch",
+  "pulse",
+  "serial exam",
+  "tense compartment",
+  "신경혈관",
+  "수동 신전",
+];
+
+const ACUTE_COMPARTMENT_SYNDROME_PRESSURE_ACTION_TERMS = [
+  "compartment pressure",
+  "delta pressure",
+  "diastolic",
+  "intracompartmental pressure",
+  "pressure measurement",
+  "pressure monitoring",
+  "압력",
+];
+
+const ACUTE_COMPARTMENT_SYNDROME_DECOMPRESSION_ACTION_TERMS = [
+  "fasciotomy",
+  "orthopedic",
+  "orthopaedic",
+  "surgical decompression",
+  "surgical emergency",
+  "surgery",
+  "urgent decompression",
+  "정형외과",
+  "근막절개",
+];
+
+const ACUTE_COMPARTMENT_SYNDROME_TEMPORIZE_ACTION_TERMS = [
+  "blood pressure",
+  "bivalve",
+  "cast removal",
+  "dressing release",
+  "heart level",
+  "hypotension",
+  "remove cast",
+  "remove dressing",
+  "splint removal",
+  "압박 해제",
+  "혈압",
+];
+
+const ACUTE_COMPARTMENT_SYNDROME_DELAY_SAFETY_TERMS = [
+  "do not delay",
+  "emergent",
+  "immediate",
+  "within 1 hour",
+  "urgent",
+  "지연",
+  "응급",
+];
+
+const ACUTE_COMPARTMENT_SYNDROME_MASKING_SAFETY_TERMS = [
+  "analgesia",
+  "consciousness",
+  "regional anesthesia",
+  "sedation",
+  "serial reassessment",
+  "unable to assess",
+  "무통",
+  "진정",
+];
+
+const ACUTE_COMPARTMENT_SYNDROME_COMPLICATION_SAFETY_TERMS = [
+  "acute kidney injury",
+  "aki",
+  "hyperkalemia",
+  "ischemia",
+  "limb loss",
+  "muscle necrosis",
+  "nerve injury",
+  "renal failure",
+  "rhabdomyolysis",
+  "괴사",
+  "신부전",
+];
+
+const ACUTE_COMPARTMENT_SYNDROME_CAUSE_SAFETY_TERMS = [
+  "burn",
+  "cast",
+  "crush",
+  "fracture",
+  "reperfusion",
+  "tight dressing",
+  "vascular injury",
+  "골절",
+  "압궤",
+  "화상",
+];
+
 const ACUTE_LIMB_ISCHEMIA_CONTEXT_TERMS = [
   "6 ps",
   "acute arterial occlusion",
@@ -5998,6 +6131,71 @@ function hasCaudaEquinaDelaySafetyCheck(checks: string[]): boolean {
   return hasRedFlagSafety && hasDelaySafety && hasCompressiveCauseSafety;
 }
 
+function requiresAcuteCompartmentSyndromeSafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = ACUTE_COMPARTMENT_SYNDROME_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRiskContext = ACUTE_COMPARTMENT_SYNDROME_RISK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasSymptomContext = ACUTE_COMPARTMENT_SYNDROME_SYMPTOM_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasRiskContext && hasSymptomContext);
+}
+
+function hasAcuteCompartmentSyndromeTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasLimbExam = ACUTE_COMPARTMENT_SYNDROME_EXAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPressurePathway = ACUTE_COMPARTMENT_SYNDROME_PRESSURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDecompression = ACUTE_COMPARTMENT_SYNDROME_DECOMPRESSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTemporizingRelease = ACUTE_COMPARTMENT_SYNDROME_TEMPORIZE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasLimbExam && hasPressurePathway && hasDecompression && hasTemporizingRelease;
+}
+
+function hasAcuteCompartmentSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDelaySafety = ACUTE_COMPARTMENT_SYNDROME_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMaskingSafety = ACUTE_COMPARTMENT_SYNDROME_MASKING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasComplicationSafety = ACUTE_COMPARTMENT_SYNDROME_COMPLICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCauseSafety = ACUTE_COMPARTMENT_SYNDROME_CAUSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasDelaySafety && hasMaskingSafety && hasComplicationSafety && hasCauseSafety;
+}
+
 function requiresAcuteLimbIschemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -8143,6 +8341,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCaudaEquinaDelaySafetyCheck,
       issue:
         "cauda equina safety checks must document bladder, bowel, saddle, sexual, or progressive neurologic red flags, avoid delayed outpatient or conservative low-back-pain management, and review spinal infection, malignancy, trauma, stenosis, or other compressive causes",
+    },
+    {
+      name: "acute_compartment_syndrome_time_critical_actions",
+      label: "Acute compartment syndrome emergency actions",
+      applies: requiresAcuteCompartmentSyndromeSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcuteCompartmentSyndromeTimeCriticalActions,
+      issue:
+        "acute compartment syndrome time-critical actions must include pain-out-of-proportion, passive-stretch, tense-compartment, pulse, capillary-refill, neurovascular, or serial limb exam, intracompartmental pressure, compartment pressure, delta pressure, diastolic pressure, pressure measurement, or pressure monitoring when diagnosis is uncertain, urgent orthopedic or orthopaedic surgery consultation, fasciotomy, surgical decompression, or urgent decompression, and temporizing removal or release of cast, splint, dressing, or circumferential compression with heart-level limb positioning and blood-pressure support",
+    },
+    {
+      name: "acute_compartment_syndrome_treatment_safety",
+      label: "Acute compartment syndrome treatment safety",
+      applies: requiresAcuteCompartmentSyndromeSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcuteCompartmentSyndromeTreatmentSafetyCheck,
+      issue:
+        "acute compartment syndrome safety checks must include explicit do-not-delay, emergent, immediate, urgent, or within-1-hour surgery planning, assessment of regional anesthesia, sedation, analgesia, consciousness, unable-to-assess status, or serial reassessment because symptoms can be masked, complication review for ischemia, muscle necrosis, nerve injury, limb loss, rhabdomyolysis, hyperkalemia, AKI, or renal failure, and cause review for fracture, crush injury, burn, cast, tight dressing, vascular injury, or reperfusion",
     },
     {
       name: "acute_limb_ischemia_time_critical_actions",

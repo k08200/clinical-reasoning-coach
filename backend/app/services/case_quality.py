@@ -1604,6 +1604,128 @@ CAUDA_EQUINA_COMPRESSIVE_CAUSE_SAFETY_TERMS = (
     "암",
     "외상",
 )
+ACUTE_COMPARTMENT_SYNDROME_CONTEXT_TERMS = (
+    "acute compartment syndrome",
+    "compartment syndrome",
+    "구획증후군",
+    "급성 구획증후군",
+)
+ACUTE_COMPARTMENT_SYNDROME_RISK_CONTEXT_TERMS = (
+    "burn",
+    "cast",
+    "crush",
+    "fracture",
+    "high-energy injury",
+    "limb injury",
+    "reperfusion",
+    "splint",
+    "tight dressing",
+    "tibial fracture",
+    "vascular injury",
+    "골절",
+    "압궤",
+    "화상",
+)
+ACUTE_COMPARTMENT_SYNDROME_SYMPTOM_CONTEXT_TERMS = (
+    "firm compartment",
+    "pain on passive stretch",
+    "pain out of proportion",
+    "passive stretch",
+    "severe limb pain",
+    "tense compartment",
+    "worsening pain",
+    "수동 신전",
+    "심한 통증",
+)
+ACUTE_COMPARTMENT_SYNDROME_EXAM_ACTION_TERMS = (
+    "capillary refill",
+    "neurovascular",
+    "pain on passive stretch",
+    "pain out of proportion",
+    "passive stretch",
+    "pulse",
+    "serial exam",
+    "tense compartment",
+    "신경혈관",
+    "수동 신전",
+)
+ACUTE_COMPARTMENT_SYNDROME_PRESSURE_ACTION_TERMS = (
+    "compartment pressure",
+    "delta pressure",
+    "diastolic",
+    "intracompartmental pressure",
+    "pressure measurement",
+    "pressure monitoring",
+    "압력",
+)
+ACUTE_COMPARTMENT_SYNDROME_DECOMPRESSION_ACTION_TERMS = (
+    "fasciotomy",
+    "orthopedic",
+    "orthopaedic",
+    "surgical decompression",
+    "surgical emergency",
+    "surgery",
+    "urgent decompression",
+    "정형외과",
+    "근막절개",
+)
+ACUTE_COMPARTMENT_SYNDROME_TEMPORIZE_ACTION_TERMS = (
+    "blood pressure",
+    "bivalve",
+    "cast removal",
+    "dressing release",
+    "heart level",
+    "hypotension",
+    "remove cast",
+    "remove dressing",
+    "splint removal",
+    "압박 해제",
+    "혈압",
+)
+ACUTE_COMPARTMENT_SYNDROME_DELAY_SAFETY_TERMS = (
+    "do not delay",
+    "emergent",
+    "immediate",
+    "within 1 hour",
+    "urgent",
+    "지연",
+    "응급",
+)
+ACUTE_COMPARTMENT_SYNDROME_MASKING_SAFETY_TERMS = (
+    "analgesia",
+    "consciousness",
+    "regional anesthesia",
+    "sedation",
+    "serial reassessment",
+    "unable to assess",
+    "무통",
+    "진정",
+)
+ACUTE_COMPARTMENT_SYNDROME_COMPLICATION_SAFETY_TERMS = (
+    "acute kidney injury",
+    "aki",
+    "hyperkalemia",
+    "ischemia",
+    "limb loss",
+    "muscle necrosis",
+    "nerve injury",
+    "renal failure",
+    "rhabdomyolysis",
+    "괴사",
+    "신부전",
+)
+ACUTE_COMPARTMENT_SYNDROME_CAUSE_SAFETY_TERMS = (
+    "burn",
+    "cast",
+    "crush",
+    "fracture",
+    "reperfusion",
+    "tight dressing",
+    "vascular injury",
+    "골절",
+    "압궤",
+    "화상",
+)
 ACUTE_LIMB_ISCHEMIA_CONTEXT_TERMS = (
     "6 ps",
     "acute arterial occlusion",
@@ -5352,6 +5474,42 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="acute_compartment_syndrome_time_critical_actions",
+            applies=_requires_acute_compartment_syndrome_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_acute_compartment_syndrome_time_critical_actions,
+            issue=(
+                "acute compartment syndrome time-critical actions must include "
+                "pain-out-of-proportion, passive-stretch, tense-compartment, "
+                "pulse, capillary-refill, neurovascular, or serial limb exam, "
+                "intracompartmental pressure, compartment pressure, delta "
+                "pressure, diastolic pressure, pressure measurement, or pressure "
+                "monitoring when diagnosis is uncertain, urgent orthopedic or "
+                "orthopaedic surgery consultation, fasciotomy, surgical "
+                "decompression, or urgent decompression, and temporizing removal "
+                "or release of cast, splint, dressing, or circumferential "
+                "compression with heart-level limb positioning and blood-pressure "
+                "support"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acute_compartment_syndrome_treatment_safety",
+            applies=_requires_acute_compartment_syndrome_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acute_compartment_syndrome_treatment_safety_check,
+            issue=(
+                "acute compartment syndrome safety checks must include explicit "
+                "do-not-delay, emergent, immediate, urgent, or within-1-hour "
+                "surgery planning, assessment of regional anesthesia, sedation, "
+                "analgesia, consciousness, unable-to-assess status, or serial "
+                "reassessment because symptoms can be masked, complication "
+                "review for ischemia, muscle necrosis, nerve injury, limb loss, "
+                "rhabdomyolysis, hyperkalemia, AKI, or renal failure, and cause "
+                "review for fracture, crush injury, burn, cast, tight dressing, "
+                "vascular injury, or reperfusion"
+            ),
+        ),
+        DomainSafetyGate(
             name="acute_limb_ischemia_time_critical_actions",
             applies=_requires_acute_limb_ischemia_safety_check,
             field_name="time_critical_actions",
@@ -7281,6 +7439,101 @@ def _has_cauda_equina_delay_safety_check(checks: list[Any]) -> bool:
         for term in CAUDA_EQUINA_COMPRESSIVE_CAUSE_SAFETY_TERMS
     )
     return has_red_flag_safety and has_delay_safety and has_compressive_cause_safety
+
+
+def _requires_acute_compartment_syndrome_safety_check(
+    data: dict[str, Any],
+) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_CONTEXT_TERMS
+    )
+    has_risk_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_RISK_CONTEXT_TERMS
+    )
+    has_symptom_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_SYMPTOM_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_risk_context and has_symptom_context)
+
+
+def _has_acute_compartment_syndrome_time_critical_actions(
+    actions: list[Any],
+) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_limb_exam = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_EXAM_ACTION_TERMS
+    )
+    has_pressure_pathway = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_PRESSURE_ACTION_TERMS
+    )
+    has_decompression = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_DECOMPRESSION_ACTION_TERMS
+    )
+    has_temporizing_release = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_TEMPORIZE_ACTION_TERMS
+    )
+    return (
+        has_limb_exam
+        and has_pressure_pathway
+        and has_decompression
+        and has_temporizing_release
+    )
+
+
+def _has_acute_compartment_syndrome_treatment_safety_check(
+    checks: list[Any],
+) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_DELAY_SAFETY_TERMS
+    )
+    has_masking_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_MASKING_SAFETY_TERMS
+    )
+    has_complication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_COMPLICATION_SAFETY_TERMS
+    )
+    has_cause_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_CAUSE_SAFETY_TERMS
+    )
+    return (
+        has_delay_safety
+        and has_masking_safety
+        and has_complication_safety
+        and has_cause_safety
+    )
 
 
 def _requires_acute_limb_ischemia_safety_check(data: dict[str, Any]) -> bool:

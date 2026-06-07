@@ -1781,6 +1781,75 @@
     }
   },
   {
+    "name": "acute_compartment_syndrome_requires_limb_exam_pressure_decompression_and_release",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "acute compartment syndrome time-critical actions must include pain-out-of-proportion"
+    ],
+    "overrides": {
+      "diagnosis": "Acute compartment syndrome after tibial fracture",
+      "patient_demographics": {
+        "age": 29,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Severe leg pain after tibial fracture and tight splint",
+      "history_of_present_illness": "Patient with high-energy tibial fracture and tight splint has worsening severe limb pain, pain out of proportion, pain on passive stretch, paresthesias, and a tense compartment concerning for acute compartment syndrome.",
+      "key_teaching_points": [
+        "Acute compartment syndrome is a surgical emergency",
+        "Pain out of proportion and pain on passive stretch are key early findings",
+        "Compartment pressure or delta pressure measurement helps when diagnosis is uncertain",
+        "Definitive treatment is urgent fasciotomy with complete surgical decompression"
+      ],
+      "clinical_red_flags": [
+        "Pain out of proportion, pain on passive stretch, tense compartment, paresthesia, or worsening pain despite analgesia",
+        "Fracture, crush injury, burn, tight dressing, cast, vascular injury, or reperfusion risk"
+      ],
+      "time_critical_actions": [
+        "Perform serial neurovascular limb exam for pain out of proportion, pain on passive stretch, tense compartment, pulse, and capillary refill",
+        "Remove dressing, remove cast or splint, bivalve circumferential compression, keep limb at heart level, and maintain blood pressure while avoiding hypotension"
+      ],
+      "contraindication_checks": [
+        "Do not delay urgent surgery and plan emergent fasciotomy within 1 hour when the decision to operate is made",
+        "Assess regional anesthesia, sedation, analgesia dose, consciousness, unable-to-assess status, and serial reassessment because symptoms can be masked",
+        "Monitor ischemia, muscle necrosis, nerve injury, limb loss, rhabdomyolysis, hyperkalemia, AKI, and renal failure",
+        "Review fracture, crush injury, burn, cast, tight dressing, vascular injury, and reperfusion causes"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Diagnosis and Management of Compartment Syndrome of the Limbs",
+          "organization": "British Orthopaedic Association Standards for Trauma",
+          "url": "https://www.boa.ac.uk/static/0d37694f-1cad-40d5-b4c1032eef7486ff/de4cfbe1-6ef3-443d-a7f2a0ee491d2229/diagnosis%20and%20management%20of%20compartment%20syndrome%20of%20the%20limbs.pdf",
+          "supports": [
+            "acute compartment syndrome after tibial fracture diagnosis and risk stratification",
+            "acute compartment syndrome is a surgical emergency",
+            "pain out of proportion and pain on passive stretch are key early findings",
+            "compartment pressure or delta pressure measurement helps when diagnosis is uncertain",
+            "definitive treatment is urgent fasciotomy with complete surgical decompression",
+            "pain out of proportion, pain on passive stretch, tense compartment, paresthesia, or worsening pain despite analgesia as red flags",
+            "fracture, crush injury, burn, tight dressing, cast, vascular injury, or reperfusion risk as causes",
+            "serial neurovascular limb exam for pain out of proportion, pain on passive stretch, tense compartment, pulse, and capillary refill",
+            "dressing release, cast removal, splint removal, bivalve circumferential compression, heart-level limb positioning, and blood pressure support",
+            "urgent surgery without delay and emergent fasciotomy within 1 hour when the decision to operate is made",
+            "regional anesthesia, sedation, analgesia dose, consciousness, unable-to-assess status, and serial reassessment because symptoms can be masked",
+            "ischemia, muscle necrosis, nerve injury, limb loss, rhabdomyolysis, hyperkalemia, AKI, and renal failure monitoring",
+            "fracture, crush injury, burn, cast, tight dressing, vascular injury, and reperfusion cause review"
+          ]
+        },
+        {
+          "title": "AAOS approves clinical practice guideline for management of acute compartment syndrome",
+          "organization": "American Academy of Orthopaedic Surgeons",
+          "url": "https://www.aaos.org/aaos-home/newsroom/press-releases/aaos-approves-guideline-management-acute-compartment-syndrome/",
+          "supports": [
+            "continuous or repeated compartment pressure measurements assist diagnosis when perfusion pressure is less than 30 mmHg",
+            "fasciotomy should result in complete decompression of the affected compartment"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "acute_limb_ischemia_requires_viability_heparin_and_revascularization",
     "expected_passed": false,
     "expected_issue_substrings": [
