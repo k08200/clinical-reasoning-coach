@@ -57,6 +57,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "ectopic_pregnancy_treatment_safety",
         "severe_preeclampsia_time_critical_actions",
         "severe_preeclampsia_treatment_safety",
+        "hypertensive_emergency_time_critical_actions",
+        "hypertensive_emergency_treatment_safety",
         "neutropenic_fever_time_critical_actions",
         "neutropenic_fever_treatment_safety",
         "obstructive_pyelonephritis_time_critical_actions",
@@ -896,6 +898,156 @@ def test_quality_gate_requires_severe_preeclampsia_magnesium_toxicity_bp_labs_an
     assert not report.passed
     assert any(
         "severe preeclampsia or eclampsia safety checks must include magnesium toxicity monitoring"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_hypertensive_emergency_monitoring_organ_assessment_iv_treatment_and_bp_target():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Hypertensive emergency with encephalopathy and acute kidney injury"
+    case["patient_demographics"] = {
+        "age": 62,
+        "sex": "male",
+        "weight_kg": 84,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe headache, confusion, and blood pressure 224/128"
+    case["history_of_present_illness"] = (
+        "Patient presents with severe hypertension, BP 224/128, confusion, severe "
+        "headache, papilledema, creatinine rise, proteinuria, and suspected "
+        "hypertensive encephalopathy with acute target-organ damage."
+    )
+    case["key_teaching_points"] = [
+        "Hypertensive emergency requires severe BP elevation with acute target-organ damage",
+        "Treatment should use titratable IV antihypertensive therapy in a monitored setting",
+        "BP should be reduced in a controlled way rather than abruptly overcorrected",
+    ]
+    case["clinical_red_flags"] = [
+        "Encephalopathy, seizure, neurologic deficit, papilledema, retinal hemorrhage, or stroke symptoms",
+        "Chest pain, myocardial ischemia, pulmonary edema, aortic dissection, acute kidney injury, or renal failure",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm repeat BP and place in ICU monitored setting with telemetry, continuous BP monitoring, and arterial line if needed",
+        "Assess acute target-organ damage with neurologic exam, fundoscopic exam, ECG, troponin, creatinine, urinalysis, CT head if encephalopathy, and chest x-ray for pulmonary edema or aortic dissection concern",
+    ]
+    case["contraindication_checks"] = [
+        "Distinguish true emergency with acute target-organ damage from asymptomatic markedly elevated BP or hypertensive urgency with no acute target-organ damage",
+        "Avoid rapid overcorrection, hypotension, cerebral hypoperfusion, and more than 25% early BP reduction; lower gradually and not abruptly",
+        "Review condition-specific medication choice and contraindications for aortic dissection, pulmonary edema, stroke, pregnancy, renal failure, heart failure, asthma, bradycardia, and beta blocker use",
+        "Admit to ICU or monitored unit for continuous BP, arterial line, telemetry, titration, and reassessment",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "The Management of Elevated Blood Pressure in the Acute Care Setting",
+            "organization": "American Heart Association",
+            "url": "https://professional.heart.org/en/science-news/management-of-elevated-blood-pressure-in-the-acute-care-setting",
+            "supports": [
+                "hypertensive emergency with encephalopathy and acute kidney injury diagnosis and risk stratification",
+                "hypertensive emergency requires severe BP elevation with acute target-organ damage",
+                "treatment should use titratable IV antihypertensive therapy in a monitored setting",
+                "BP should be reduced in a controlled way rather than abruptly overcorrected",
+                "encephalopathy, seizure, neurologic deficit, papilledema, retinal hemorrhage, or stroke symptoms as red flags",
+                "chest pain, myocardial ischemia, pulmonary edema, aortic dissection, acute kidney injury, or renal failure as target-organ damage",
+                "repeat BP confirmation and ICU monitored setting with telemetry, continuous BP monitoring, and arterial line if needed",
+                "acute target-organ damage assessment with neurologic exam, fundoscopic exam, ECG, troponin, creatinine, urinalysis, CT head, and chest x-ray",
+                "true emergency with acute target-organ damage distinguished from asymptomatic markedly elevated BP or hypertensive urgency",
+                "avoid rapid overcorrection, hypotension, cerebral hypoperfusion, and more than 25% early BP reduction",
+                "condition-specific medication choice and contraindications for aortic dissection, pulmonary edema, stroke, pregnancy, renal failure, heart failure, asthma, bradycardia, and beta blocker use",
+                "ICU or monitored unit for continuous BP, arterial line, telemetry, titration, and reassessment",
+            ],
+        },
+        {
+            "title": "Hypertensive Emergencies",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/cardiovascular-disorders/hypertension/hypertensive-emergencies",
+            "supports": [
+                "hypertensive emergency causes target-organ damage and requires intravenous therapy and hospitalization",
+                "reduce mean arterial pressure by about 20 to 25% over the first hour using a short-acting titratable IV medication",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "hypertensive emergency time-critical actions must include repeat BP confirmation"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_hypertensive_emergency_urgency_overlowering_condition_and_disposition_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Hypertensive emergency with encephalopathy and acute kidney injury"
+    case["patient_demographics"] = {
+        "age": 62,
+        "sex": "male",
+        "weight_kg": 84,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe headache, confusion, and blood pressure 224/128"
+    case["history_of_present_illness"] = (
+        "Patient presents with severe hypertension, BP 224/128, confusion, severe "
+        "headache, papilledema, creatinine rise, proteinuria, and suspected "
+        "hypertensive encephalopathy with acute target-organ damage."
+    )
+    case["key_teaching_points"] = [
+        "Hypertensive emergency requires severe BP elevation with acute target-organ damage",
+        "Treatment should use titratable IV antihypertensive therapy in a monitored setting",
+        "BP should be reduced in a controlled way rather than abruptly overcorrected",
+    ]
+    case["clinical_red_flags"] = [
+        "Encephalopathy, seizure, neurologic deficit, papilledema, retinal hemorrhage, or stroke symptoms",
+        "Chest pain, myocardial ischemia, pulmonary edema, aortic dissection, acute kidney injury, or renal failure",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm repeat BP and place in ICU monitored setting with telemetry, continuous BP monitoring, and arterial line if needed",
+        "Assess acute target-organ damage with neurologic exam, fundoscopic exam, ECG, troponin, creatinine, urinalysis, CT head if encephalopathy, and chest x-ray for pulmonary edema or aortic dissection concern",
+        "Start titratable IV antihypertensive therapy such as nicardipine, IV labetalol, clevidipine, esmolol, fenoldopam, nitroglycerin, or nitroprusside",
+        "Target controlled MAP mean arterial pressure reduction of about 20-25% in the first hour with gradual lowering, not abruptly",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if relevant",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "The Management of Elevated Blood Pressure in the Acute Care Setting",
+            "organization": "American Heart Association",
+            "url": "https://professional.heart.org/en/science-news/management-of-elevated-blood-pressure-in-the-acute-care-setting",
+            "supports": [
+                "hypertensive emergency with encephalopathy and acute kidney injury diagnosis and risk stratification",
+                "hypertensive emergency requires severe BP elevation with acute target-organ damage",
+                "treatment should use titratable IV antihypertensive therapy in a monitored setting",
+                "BP should be reduced in a controlled way rather than abruptly overcorrected",
+                "encephalopathy, seizure, neurologic deficit, papilledema, retinal hemorrhage, or stroke symptoms as red flags",
+                "chest pain, myocardial ischemia, pulmonary edema, aortic dissection, acute kidney injury, or renal failure as target-organ damage",
+                "repeat BP confirmation and ICU monitored setting with telemetry, continuous BP monitoring, and arterial line if needed",
+                "acute target-organ damage assessment with neurologic exam, fundoscopic exam, ECG, troponin, creatinine, urinalysis, CT head, and chest x-ray",
+                "titratable IV antihypertensive therapy such as nicardipine, IV labetalol, clevidipine, esmolol, fenoldopam, nitroglycerin, or nitroprusside",
+                "controlled MAP mean arterial pressure reduction of about 20-25% in the first hour with gradual lowering, not abruptly",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if relevant",
+            ],
+        },
+        {
+            "title": "Hypertensive Emergencies",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/cardiovascular-disorders/hypertension/hypertensive-emergencies",
+            "supports": [
+                "hypertensive emergency causes target-organ damage and requires intravenous therapy and hospitalization",
+                "reduce mean arterial pressure by about 20 to 25% over the first hour using a short-acting titratable IV medication",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "hypertensive emergency safety checks must distinguish true emergency"
         in issue
         for issue in report.critical_issues
     )

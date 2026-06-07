@@ -1423,6 +1423,73 @@
     }
   },
   {
+    "name": "hypertensive_emergency_requires_monitoring_organ_assessment_iv_treatment_and_bp_target",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "hypertensive emergency time-critical actions must include repeat BP confirmation"
+    ],
+    "overrides": {
+      "diagnosis": "Hypertensive emergency with encephalopathy and acute kidney injury",
+      "patient_demographics": {
+        "age": 62,
+        "sex": "male",
+        "weight_kg": 84,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Severe headache, confusion, and blood pressure 224/128",
+      "history_of_present_illness": "Patient presents with severe hypertension, BP 224/128, confusion, severe headache, papilledema, creatinine rise, proteinuria, and suspected hypertensive encephalopathy with acute target-organ damage.",
+      "key_teaching_points": [
+        "Hypertensive emergency requires severe BP elevation with acute target-organ damage",
+        "Treatment should use titratable IV antihypertensive therapy in a monitored setting",
+        "BP should be reduced in a controlled way rather than abruptly overcorrected"
+      ],
+      "clinical_red_flags": [
+        "Encephalopathy, seizure, neurologic deficit, papilledema, retinal hemorrhage, or stroke symptoms",
+        "Chest pain, myocardial ischemia, pulmonary edema, aortic dissection, acute kidney injury, or renal failure"
+      ],
+      "time_critical_actions": [
+        "Confirm repeat BP and place in ICU monitored setting with telemetry, continuous BP monitoring, and arterial line if needed",
+        "Assess acute target-organ damage with neurologic exam, fundoscopic exam, ECG, troponin, creatinine, urinalysis, CT head if encephalopathy, and chest x-ray for pulmonary edema or aortic dissection concern"
+      ],
+      "contraindication_checks": [
+        "Distinguish true emergency with acute target-organ damage from asymptomatic markedly elevated BP or hypertensive urgency with no acute target-organ damage",
+        "Avoid rapid overcorrection, hypotension, cerebral hypoperfusion, and more than 25% early BP reduction; lower gradually and not abruptly",
+        "Review condition-specific medication choice and contraindications for aortic dissection, pulmonary edema, stroke, pregnancy, renal failure, heart failure, asthma, bradycardia, and beta blocker use",
+        "Admit to ICU or monitored unit for continuous BP, arterial line, telemetry, titration, and reassessment"
+      ],
+      "clinical_sources": [
+        {
+          "title": "The Management of Elevated Blood Pressure in the Acute Care Setting",
+          "organization": "American Heart Association",
+          "url": "https://professional.heart.org/en/science-news/management-of-elevated-blood-pressure-in-the-acute-care-setting",
+          "supports": [
+            "hypertensive emergency with encephalopathy and acute kidney injury diagnosis and risk stratification",
+            "hypertensive emergency requires severe BP elevation with acute target-organ damage",
+            "treatment should use titratable IV antihypertensive therapy in a monitored setting",
+            "BP should be reduced in a controlled way rather than abruptly overcorrected",
+            "encephalopathy, seizure, neurologic deficit, papilledema, retinal hemorrhage, or stroke symptoms as red flags",
+            "chest pain, myocardial ischemia, pulmonary edema, aortic dissection, acute kidney injury, or renal failure as target-organ damage",
+            "repeat BP confirmation and ICU monitored setting with telemetry, continuous BP monitoring, and arterial line if needed",
+            "acute target-organ damage assessment with neurologic exam, fundoscopic exam, ECG, troponin, creatinine, urinalysis, CT head, and chest x-ray",
+            "true emergency with acute target-organ damage distinguished from asymptomatic markedly elevated BP or hypertensive urgency",
+            "avoid rapid overcorrection, hypotension, cerebral hypoperfusion, and more than 25% early BP reduction",
+            "condition-specific medication choice and contraindications for aortic dissection, pulmonary edema, stroke, pregnancy, renal failure, heart failure, asthma, bradycardia, and beta blocker use",
+            "ICU or monitored unit for continuous BP, arterial line, telemetry, titration, and reassessment"
+          ]
+        },
+        {
+          "title": "Hypertensive Emergencies",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/cardiovascular-disorders/hypertension/hypertensive-emergencies",
+          "supports": [
+            "hypertensive emergency causes target-organ damage and requires intravenous therapy and hospitalization",
+            "reduce mean arterial pressure by about 20 to 25% over the first hour using a short-acting titratable IV medication"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "neutropenic_fever_requires_anc_cultures_antipseudomonal_and_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

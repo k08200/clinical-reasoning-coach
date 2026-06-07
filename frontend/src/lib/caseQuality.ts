@@ -953,6 +953,152 @@ const SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS = [
   "폐부종",
 ];
 
+const HYPERTENSIVE_EMERGENCY_DIRECT_CONTEXT_TERMS = [
+  "hypertensive emergency",
+  "hypertensive encephalopathy",
+  "hypertensive pulmonary edema",
+  "malignant hypertension",
+  "severe hypertension with acute kidney injury",
+  "severe hypertension with end-organ damage",
+  "severe hypertension with organ damage",
+  "고혈압 응급",
+];
+
+const HYPERTENSIVE_EMERGENCY_BP_CONTEXT_TERMS = [
+  "bp 180",
+  "bp 200",
+  "blood pressure 180",
+  "blood pressure 200",
+  "dbp 120",
+  "sbp 180",
+  "sbp 200",
+  "severe hypertension",
+  "severely elevated blood pressure",
+  "수축기 180",
+  "혈압 180",
+];
+
+const HYPERTENSIVE_EMERGENCY_ORGAN_CONTEXT_TERMS = [
+  "acute kidney injury",
+  "acute pulmonary edema",
+  "aortic dissection",
+  "chest pain",
+  "encephalopathy",
+  "end-organ damage",
+  "heart failure",
+  "myocardial ischemia",
+  "neurologic deficit",
+  "papilledema",
+  "renal failure",
+  "retinal hemorrhage",
+  "seizure",
+  "target-organ damage",
+  "뇌병증",
+  "장기 손상",
+];
+
+const HYPERTENSIVE_EMERGENCY_BP_CONFIRM_MONITOR_ACTION_TERMS = [
+  "arterial line",
+  "blood pressure confirmation",
+  "continuous bp",
+  "icu",
+  "monitored setting",
+  "repeat bp",
+  "repeat blood pressure",
+  "telemetry",
+  "반복 혈압",
+  "중환자",
+];
+
+const HYPERTENSIVE_EMERGENCY_ORGAN_ASSESSMENT_ACTION_TERMS = [
+  "aki",
+  "aortic dissection",
+  "chest x-ray",
+  "creatinine",
+  "ct head",
+  "ecg",
+  "encephalopathy",
+  "fundoscopic",
+  "neurologic",
+  "pulmonary edema",
+  "renal",
+  "troponin",
+  "urinalysis",
+  "장기 손상",
+];
+
+const HYPERTENSIVE_EMERGENCY_IV_TREATMENT_ACTION_TERMS = [
+  "clevidipine",
+  "esmolol",
+  "fenoldopam",
+  "iv antihypertensive",
+  "iv labetalol",
+  "labetalol",
+  "nicardipine",
+  "nitroglycerin",
+  "nitroprusside",
+  "titrated infusion",
+  "정맥",
+];
+
+const HYPERTENSIVE_EMERGENCY_BP_TARGET_ACTION_TERMS = [
+  "20 to 25%",
+  "20-25%",
+  "25%",
+  "first hour",
+  "gradual",
+  "map",
+  "mean arterial pressure",
+  "not abruptly",
+  "첫 1시간",
+];
+
+const HYPERTENSIVE_EMERGENCY_URGENCY_DIFFERENTIATION_SAFETY_TERMS = [
+  "asymptomatic",
+  "markedly elevated",
+  "no acute target-organ damage",
+  "not emergency",
+  "urgency",
+  "무증상",
+];
+
+const HYPERTENSIVE_EMERGENCY_OVERLOWERING_SAFETY_TERMS = [
+  "avoid rapid",
+  "cerebral hypoperfusion",
+  "gradual",
+  "hypoperfusion",
+  "hypotension",
+  "no more than 25%",
+  "not abruptly",
+  "overcorrection",
+  "과교정",
+];
+
+const HYPERTENSIVE_EMERGENCY_CONDITION_MED_SAFETY_TERMS = [
+  "aortic dissection",
+  "asthma",
+  "beta blocker",
+  "bradycardia",
+  "heart failure",
+  "ischemic stroke",
+  "pregnancy",
+  "pulmonary edema",
+  "renal failure",
+  "stroke",
+  "금기",
+];
+
+const HYPERTENSIVE_EMERGENCY_DISPOSITION_SAFETY_TERMS = [
+  "arterial line",
+  "continuous",
+  "icu",
+  "monitored",
+  "reassessment",
+  "telemetry",
+  "titration",
+  "중환자",
+];
+
 const NEUTROPENIC_FEVER_CONTEXT_TERMS = [
   "absolute neutrophil count",
   "anc below 500",
@@ -5721,6 +5867,76 @@ function hasSeverePreeclampsiaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresHypertensiveEmergencySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = HYPERTENSIVE_EMERGENCY_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasSevereBpContext = HYPERTENSIVE_EMERGENCY_BP_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasOrganDamageContext = HYPERTENSIVE_EMERGENCY_ORGAN_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasSevereBpContext && hasOrganDamageContext);
+}
+
+function hasHypertensiveEmergencyTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasBpConfirmationMonitoring =
+    HYPERTENSIVE_EMERGENCY_BP_CONFIRM_MONITOR_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasOrganAssessment = HYPERTENSIVE_EMERGENCY_ORGAN_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIvTreatment = HYPERTENSIVE_EMERGENCY_IV_TREATMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBpTarget = HYPERTENSIVE_EMERGENCY_BP_TARGET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasBpConfirmationMonitoring && hasOrganAssessment && hasIvTreatment && hasBpTarget;
+}
+
+function hasHypertensiveEmergencyTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasUrgencyDifferentiation =
+    HYPERTENSIVE_EMERGENCY_URGENCY_DIFFERENTIATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasOverloweringSafety = HYPERTENSIVE_EMERGENCY_OVERLOWERING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasConditionMedSafety = HYPERTENSIVE_EMERGENCY_CONDITION_MED_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDispositionSafety = HYPERTENSIVE_EMERGENCY_DISPOSITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasUrgencyDifferentiation &&
+    hasOverloweringSafety &&
+    hasConditionMedSafety &&
+    hasDispositionSafety
+  );
+}
+
 function requiresNeutropenicFeverSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -8215,6 +8431,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSeverePreeclampsiaTreatmentSafetyCheck,
       issue:
         "severe preeclampsia or eclampsia safety checks must include magnesium toxicity monitoring, antihypertensive contraindication review, HELLP or renal-organ labs, and maternal-fetal severe-feature or delivery-risk monitoring",
+    },
+    {
+      name: "hypertensive_emergency_time_critical_actions",
+      label: "Hypertensive emergency actions",
+      applies: requiresHypertensiveEmergencySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasHypertensiveEmergencyTimeCriticalActions,
+      issue:
+        "hypertensive emergency time-critical actions must include repeat BP confirmation or monitored-setting/ICU/telemetry/arterial-line monitoring, acute target-organ damage assessment for neurologic, renal, cardiac, pulmonary-edema, aortic-dissection, fundoscopic, ECG, troponin, creatinine, urinalysis, CT-head, or chest-x-ray findings, titratable IV antihypertensive therapy such as nicardipine, labetalol, clevidipine, esmolol, fenoldopam, nitroglycerin, or nitroprusside, and a controlled BP-lowering target such as MAP or mean arterial pressure reduction by about 20-25% in the first hour without abrupt overcorrection",
+    },
+    {
+      name: "hypertensive_emergency_treatment_safety",
+      label: "Hypertensive emergency treatment safety",
+      applies: requiresHypertensiveEmergencySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasHypertensiveEmergencyTreatmentSafetyCheck,
+      issue:
+        "hypertensive emergency safety checks must distinguish true emergency with acute target-organ damage from asymptomatic markedly elevated BP or hypertensive urgency, avoid overly rapid BP lowering, hypotension, cerebral hypoperfusion, or more-than-25% early reduction, review condition-specific medication choice or contraindications for aortic dissection, pulmonary edema, stroke, pregnancy, renal failure, heart failure, asthma, bradycardia, or beta-blocker use, and include ICU, monitored, continuous BP, arterial-line, telemetry, titration, or reassessment disposition",
     },
     {
       name: "neutropenic_fever_time_critical_actions",

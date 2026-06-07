@@ -910,6 +910,141 @@ SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS = (
     "태아",
     "폐부종",
 )
+HYPERTENSIVE_EMERGENCY_DIRECT_CONTEXT_TERMS = (
+    "hypertensive emergency",
+    "hypertensive encephalopathy",
+    "hypertensive pulmonary edema",
+    "malignant hypertension",
+    "severe hypertension with acute kidney injury",
+    "severe hypertension with end-organ damage",
+    "severe hypertension with organ damage",
+    "고혈압 응급",
+)
+HYPERTENSIVE_EMERGENCY_BP_CONTEXT_TERMS = (
+    "bp 180",
+    "bp 200",
+    "blood pressure 180",
+    "blood pressure 200",
+    "dbp 120",
+    "sbp 180",
+    "sbp 200",
+    "severe hypertension",
+    "severely elevated blood pressure",
+    "수축기 180",
+    "혈압 180",
+)
+HYPERTENSIVE_EMERGENCY_ORGAN_CONTEXT_TERMS = (
+    "acute kidney injury",
+    "acute pulmonary edema",
+    "aortic dissection",
+    "chest pain",
+    "encephalopathy",
+    "end-organ damage",
+    "heart failure",
+    "myocardial ischemia",
+    "neurologic deficit",
+    "papilledema",
+    "renal failure",
+    "retinal hemorrhage",
+    "seizure",
+    "target-organ damage",
+    "뇌병증",
+    "장기 손상",
+)
+HYPERTENSIVE_EMERGENCY_BP_CONFIRM_MONITOR_ACTION_TERMS = (
+    "arterial line",
+    "blood pressure confirmation",
+    "continuous bp",
+    "icu",
+    "monitored setting",
+    "repeat bp",
+    "repeat blood pressure",
+    "telemetry",
+    "반복 혈압",
+    "중환자",
+)
+HYPERTENSIVE_EMERGENCY_ORGAN_ASSESSMENT_ACTION_TERMS = (
+    "aki",
+    "aortic dissection",
+    "chest x-ray",
+    "creatinine",
+    "ct head",
+    "ecg",
+    "encephalopathy",
+    "fundoscopic",
+    "neurologic",
+    "pulmonary edema",
+    "renal",
+    "troponin",
+    "urinalysis",
+    "장기 손상",
+)
+HYPERTENSIVE_EMERGENCY_IV_TREATMENT_ACTION_TERMS = (
+    "clevidipine",
+    "esmolol",
+    "fenoldopam",
+    "iv antihypertensive",
+    "iv labetalol",
+    "labetalol",
+    "nicardipine",
+    "nitroglycerin",
+    "nitroprusside",
+    "titrated infusion",
+    "정맥",
+)
+HYPERTENSIVE_EMERGENCY_BP_TARGET_ACTION_TERMS = (
+    "20 to 25%",
+    "20-25%",
+    "25%",
+    "first hour",
+    "gradual",
+    "map",
+    "mean arterial pressure",
+    "not abruptly",
+    "첫 1시간",
+)
+HYPERTENSIVE_EMERGENCY_URGENCY_DIFFERENTIATION_SAFETY_TERMS = (
+    "asymptomatic",
+    "markedly elevated",
+    "no acute target-organ damage",
+    "not emergency",
+    "urgency",
+    "무증상",
+)
+HYPERTENSIVE_EMERGENCY_OVERLOWERING_SAFETY_TERMS = (
+    "avoid rapid",
+    "cerebral hypoperfusion",
+    "gradual",
+    "hypoperfusion",
+    "hypotension",
+    "no more than 25%",
+    "not abruptly",
+    "overcorrection",
+    "과교정",
+)
+HYPERTENSIVE_EMERGENCY_CONDITION_MED_SAFETY_TERMS = (
+    "aortic dissection",
+    "asthma",
+    "beta blocker",
+    "bradycardia",
+    "heart failure",
+    "ischemic stroke",
+    "pregnancy",
+    "pulmonary edema",
+    "renal failure",
+    "stroke",
+    "금기",
+)
+HYPERTENSIVE_EMERGENCY_DISPOSITION_SAFETY_TERMS = (
+    "arterial line",
+    "continuous",
+    "icu",
+    "monitored",
+    "reassessment",
+    "telemetry",
+    "titration",
+    "중환자",
+)
 NEUTROPENIC_FEVER_CONTEXT_TERMS = (
     "absolute neutrophil count",
     "anc below 500",
@@ -5293,6 +5428,41 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="hypertensive_emergency_time_critical_actions",
+            applies=_requires_hypertensive_emergency_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_hypertensive_emergency_time_critical_actions,
+            issue=(
+                "hypertensive emergency time-critical actions must include repeat "
+                "BP confirmation or monitored-setting/ICU/telemetry/arterial-line "
+                "monitoring, acute target-organ damage assessment for neurologic, "
+                "renal, cardiac, pulmonary-edema, aortic-dissection, fundoscopic, "
+                "ECG, troponin, creatinine, urinalysis, CT-head, or chest-x-ray "
+                "findings, titratable IV antihypertensive therapy such as "
+                "nicardipine, labetalol, clevidipine, esmolol, fenoldopam, "
+                "nitroglycerin, or nitroprusside, and a controlled BP-lowering "
+                "target such as MAP or mean arterial pressure reduction by about "
+                "20-25% in the first hour without abrupt overcorrection"
+            ),
+        ),
+        DomainSafetyGate(
+            name="hypertensive_emergency_treatment_safety",
+            applies=_requires_hypertensive_emergency_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_hypertensive_emergency_treatment_safety_check,
+            issue=(
+                "hypertensive emergency safety checks must distinguish true "
+                "emergency with acute target-organ damage from asymptomatic "
+                "markedly elevated BP or hypertensive urgency, avoid overly rapid "
+                "BP lowering, hypotension, cerebral hypoperfusion, or more-than-25% "
+                "early reduction, review condition-specific medication choice or "
+                "contraindications for aortic dissection, pulmonary edema, stroke, "
+                "pregnancy, renal failure, heart failure, asthma, bradycardia, or "
+                "beta-blocker use, and include ICU, monitored, continuous BP, "
+                "arterial-line, telemetry, titration, or reassessment disposition"
+            ),
+        ),
+        DomainSafetyGate(
             name="neutropenic_fever_time_critical_actions",
             applies=_requires_neutropenic_fever_safety_check,
             field_name="time_critical_actions",
@@ -6900,6 +7070,99 @@ def _has_severe_preeclampsia_treatment_safety_check(checks: list[Any]) -> bool:
         and has_bp_med_safety
         and has_lab_organ_safety
         and has_maternal_fetal_safety
+    )
+
+
+def _requires_hypertensive_emergency_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in HYPERTENSIVE_EMERGENCY_DIRECT_CONTEXT_TERMS
+    )
+    has_severe_bp_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in HYPERTENSIVE_EMERGENCY_BP_CONTEXT_TERMS
+    )
+    has_organ_damage_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in HYPERTENSIVE_EMERGENCY_ORGAN_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_severe_bp_context and has_organ_damage_context)
+
+
+def _has_hypertensive_emergency_time_critical_actions(
+    actions: list[Any],
+) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_bp_confirmation_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERTENSIVE_EMERGENCY_BP_CONFIRM_MONITOR_ACTION_TERMS
+    )
+    has_organ_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERTENSIVE_EMERGENCY_ORGAN_ASSESSMENT_ACTION_TERMS
+    )
+    has_iv_treatment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERTENSIVE_EMERGENCY_IV_TREATMENT_ACTION_TERMS
+    )
+    has_bp_target = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERTENSIVE_EMERGENCY_BP_TARGET_ACTION_TERMS
+    )
+    return (
+        has_bp_confirmation_monitoring
+        and has_organ_assessment
+        and has_iv_treatment
+        and has_bp_target
+    )
+
+
+def _has_hypertensive_emergency_treatment_safety_check(
+    checks: list[Any],
+) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_urgency_differentiation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERTENSIVE_EMERGENCY_URGENCY_DIFFERENTIATION_SAFETY_TERMS
+    )
+    has_overlowering_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERTENSIVE_EMERGENCY_OVERLOWERING_SAFETY_TERMS
+    )
+    has_condition_med_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERTENSIVE_EMERGENCY_CONDITION_MED_SAFETY_TERMS
+    )
+    has_disposition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERTENSIVE_EMERGENCY_DISPOSITION_SAFETY_TERMS
+    )
+    return (
+        has_urgency_differentiation
+        and has_overlowering_safety
+        and has_condition_med_safety
+        and has_disposition_safety
     )
 
 
