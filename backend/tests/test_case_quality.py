@@ -51,6 +51,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "anaphylaxis_observation_safety",
         "epiglottitis_time_critical_actions",
         "epiglottitis_treatment_safety",
+        "orbital_cellulitis_time_critical_actions",
+        "orbital_cellulitis_treatment_safety",
         "gi_bleed_time_critical_actions",
         "gi_bleed_transfusion_reversal_safety",
         "cns_infection_time_critical_actions",
@@ -595,6 +597,156 @@ def test_quality_gate_requires_epiglottitis_agitation_airway_backup_steroid_and_
     assert not report.passed
     assert any(
         "epiglottitis safety checks must include avoiding agitation" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_orbital_cellulitis_orbital_assessment_imaging_antibiotics_and_specialists():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Orbital cellulitis with suspected subperiosteal abscess"
+    case["patient_demographics"] = {
+        "age": 38,
+        "sex": "female",
+        "weight_kg": 66,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Red swollen eye with proptosis and pain with eye movement"
+    case["history_of_present_illness"] = (
+        "Patient presents with fever, sinusitis, eyelid swelling, red swollen eye, "
+        "chemosis, proptosis, ophthalmoplegia, diplopia, pain with eye movement, "
+        "decreased vision, and concern for postseptal orbital cellulitis."
+    )
+    case["key_teaching_points"] = [
+        "Orbital cellulitis is an emergency that can cause vision loss and intracranial spread",
+        "Proptosis, ophthalmoplegia, pain with eye movement, and decreased vision distinguish orbital disease from preseptal cellulitis",
+        "CT orbit and sinus imaging plus IV antibiotics and ophthalmology/ENT source-control planning are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Proptosis, ophthalmoplegia, painful eye movement, restricted eye movement, diplopia, decreased vision, or vision loss",
+        "Subperiosteal abscess, orbital abscess, cavernous sinus thrombosis, meningitis, brain abscess, intracranial extension, or sepsis",
+    ]
+    case["time_critical_actions"] = [
+        "Assess orbital function with visual acuity, color vision, pupils, optic nerve exam, IOP, extraocular movements, eye movements, and ophthalmoplegia review",
+        "Start IV broad-spectrum antibiotics such as ampicillin-sulbactam, ceftriaxone, cefotaxime, vancomycin, or metronidazole and obtain cultures",
+    ]
+    case["contraindication_checks"] = [
+        "Differentiate postseptal orbital cellulitis from preseptal disease using proptosis, ophthalmoplegia, pain with eye movement, vision loss, and orbital septum review",
+        "Review subperiosteal abscess, orbital abscess, large abscess, worsening visual acuity, failure to improve, surgical drainage, and drainage need",
+        "Review cavernous sinus thrombosis, meningitis, brain abscess, intracranial extension, osteomyelitis, sepsis, and death risk",
+        "Monitor visual acuity, color vision, pupils, optic nerve, IOP, repeat exam, and daily vision status",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Emergency management: orbital cellulitis",
+            "organization": "Community Eye Health",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6253316/",
+            "supports": [
+                "orbital cellulitis with suspected subperiosteal abscess diagnosis and risk stratification",
+                "orbital cellulitis is an emergency that can cause vision loss and intracranial spread",
+                "proptosis, ophthalmoplegia, pain with eye movement, and decreased vision distinguish orbital disease from preseptal cellulitis",
+                "CT orbit and sinus imaging plus IV antibiotics and ophthalmology/ENT source-control planning are time critical",
+                "proptosis, ophthalmoplegia, painful eye movement, restricted eye movement, diplopia, decreased vision, or vision loss as red flags",
+                "subperiosteal abscess, orbital abscess, cavernous sinus thrombosis, meningitis, brain abscess, intracranial extension, or sepsis as complications",
+                "orbital function assessment with visual acuity, color vision, pupils, optic nerve exam, IOP, extraocular movements, eye movements, and ophthalmoplegia review",
+                "IV broad-spectrum antibiotics such as ampicillin-sulbactam, ceftriaxone, cefotaxime, vancomycin, or metronidazole and cultures",
+                "postseptal orbital cellulitis differentiated from preseptal disease using proptosis, ophthalmoplegia, pain with eye movement, vision loss, and orbital septum review",
+                "subperiosteal abscess, orbital abscess, large abscess, worsening visual acuity, failure to improve, surgical drainage, and drainage need",
+                "cavernous sinus thrombosis, meningitis, brain abscess, intracranial extension, osteomyelitis, sepsis, and death risk review",
+                "visual acuity, color vision, pupils, optic nerve, IOP, repeat exam, and daily vision monitoring",
+            ],
+        },
+        {
+            "title": "Preseptal and Orbital Cellulitis",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/en-ca/professional/eye-disorders/orbital-diseases/preseptal-and-orbital-cellulitis",
+            "supports": [
+                "orbital cellulitis symptoms include decreased ocular motility, pain with eye movements, decreased visual acuity, and proptosis",
+                "complications include vision loss, ophthalmoplegia, cavernous sinus thrombosis, meningitis, and brain abscess",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "orbital cellulitis time-critical actions must include orbital assessment"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_orbital_cellulitis_preseptal_abscess_intracranial_and_monitoring_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Orbital cellulitis with suspected subperiosteal abscess"
+    case["patient_demographics"] = {
+        "age": 38,
+        "sex": "female",
+        "weight_kg": 66,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Red swollen eye with proptosis and pain with eye movement"
+    case["history_of_present_illness"] = (
+        "Patient presents with fever, sinusitis, eyelid swelling, red swollen eye, "
+        "chemosis, proptosis, ophthalmoplegia, diplopia, pain with eye movement, "
+        "decreased vision, and concern for postseptal orbital cellulitis."
+    )
+    case["key_teaching_points"] = [
+        "Orbital cellulitis is an emergency that can cause vision loss and intracranial spread",
+        "Proptosis, ophthalmoplegia, pain with eye movement, and decreased vision distinguish orbital disease from preseptal cellulitis",
+        "CT orbit and sinus imaging plus IV antibiotics and ophthalmology/ENT source-control planning are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Proptosis, ophthalmoplegia, painful eye movement, restricted eye movement, diplopia, decreased vision, or vision loss",
+        "Subperiosteal abscess, orbital abscess, cavernous sinus thrombosis, meningitis, brain abscess, intracranial extension, or sepsis",
+    ]
+    case["time_critical_actions"] = [
+        "Assess orbital function with visual acuity, color vision, pupils, optic nerve exam, IOP, extraocular movements, eye movements, and ophthalmoplegia review",
+        "Order contrast CT orbit, CT orbits, CT sinus, CT brain, orbit imaging, sinus imaging, or MRI to evaluate abscess and intracranial extension",
+        "Start IV broad-spectrum antibiotics such as ampicillin-sulbactam, ceftriaxone, cefotaxime, vancomycin, or metronidazole and obtain cultures",
+        "Consult urgent ophthalmology, ENT otolaryngology, and surgery for source control, surgical drainage, and subperiosteal abscess planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if relevant",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Emergency management: orbital cellulitis",
+            "organization": "Community Eye Health",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6253316/",
+            "supports": [
+                "orbital cellulitis with suspected subperiosteal abscess diagnosis and risk stratification",
+                "orbital cellulitis is an emergency that can cause vision loss and intracranial spread",
+                "proptosis, ophthalmoplegia, pain with eye movement, and decreased vision distinguish orbital disease from preseptal cellulitis",
+                "CT orbit and sinus imaging plus IV antibiotics and ophthalmology/ENT source-control planning are time critical",
+                "proptosis, ophthalmoplegia, painful eye movement, restricted eye movement, diplopia, decreased vision, or vision loss as red flags",
+                "subperiosteal abscess, orbital abscess, cavernous sinus thrombosis, meningitis, brain abscess, intracranial extension, or sepsis as complications",
+                "orbital function assessment with visual acuity, color vision, pupils, optic nerve exam, IOP, extraocular movements, eye movements, and ophthalmoplegia review",
+                "contrast CT orbit, CT orbits, CT sinus, CT brain, orbit imaging, sinus imaging, or MRI to evaluate abscess and intracranial extension",
+                "IV broad-spectrum antibiotics such as ampicillin-sulbactam, ceftriaxone, cefotaxime, vancomycin, or metronidazole and cultures",
+                "urgent ophthalmology, ENT otolaryngology, and surgery for source control, surgical drainage, and subperiosteal abscess planning",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if relevant",
+            ],
+        },
+        {
+            "title": "Preseptal and Orbital Cellulitis",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/en-ca/professional/eye-disorders/orbital-diseases/preseptal-and-orbital-cellulitis",
+            "supports": [
+                "orbital cellulitis symptoms include decreased ocular motility, pain with eye movements, decreased visual acuity, and proptosis",
+                "complications include vision loss, ophthalmoplegia, cavernous sinus thrombosis, meningitis, and brain abscess",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "orbital cellulitis safety checks must include distinguishing postseptal"
+        in issue
         for issue in report.critical_issues
     )
 

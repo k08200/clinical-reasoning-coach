@@ -687,6 +687,131 @@ const EPIGLOTTITIS_COMPLICATION_RISK_SAFETY_TERMS = [
   "기도폐쇄",
 ];
 
+const ORBITAL_CELLULITIS_DIRECT_CONTEXT_TERMS = [
+  "orbital cellulitis",
+  "postseptal cellulitis",
+  "post-septal cellulitis",
+  "orbital abscess",
+  "안와 봉와직염",
+];
+
+const ORBITAL_CELLULITIS_EYE_CONTEXT_TERMS = [
+  "chemosis",
+  "eye swelling",
+  "eyelid swelling",
+  "pain with eye movement",
+  "proptosis",
+  "red swollen eye",
+  "안구 돌출",
+  "안구운동통",
+];
+
+const ORBITAL_CELLULITIS_ORBITAL_SIGNS_CONTEXT_TERMS = [
+  "decreased vision",
+  "diplopia",
+  "ophthalmoplegia",
+  "painful eye movement",
+  "proptosis",
+  "restricted eye movement",
+  "vision loss",
+  "시력저하",
+];
+
+const ORBITAL_CELLULITIS_ORBITAL_ASSESSMENT_ACTION_TERMS = [
+  "color vision",
+  "extraocular movement",
+  "eye movement",
+  "iop",
+  "ophthalmoplegia",
+  "optic nerve",
+  "pupil",
+  "visual acuity",
+  "시력",
+];
+
+const ORBITAL_CELLULITIS_IMAGING_ACTION_TERMS = [
+  "ct brain",
+  "ct orbit",
+  "ct orbits",
+  "ct sinus",
+  "ct sinuses",
+  "contrast ct",
+  "mri",
+  "orbit imaging",
+  "sinus imaging",
+  "영상",
+];
+
+const ORBITAL_CELLULITIS_ANTIBIOTIC_ACTION_TERMS = [
+  "ampicillin-sulbactam",
+  "antibiotic",
+  "broad-spectrum",
+  "ceftriaxone",
+  "cefotaxime",
+  "culture",
+  "iv antibiotics",
+  "metronidazole",
+  "vancomycin",
+  "항생제",
+];
+
+const ORBITAL_CELLULITIS_SPECIALIST_SOURCE_ACTION_TERMS = [
+  "ent",
+  "ophthalmology",
+  "otolaryngology",
+  "surgical drainage",
+  "surgery",
+  "source control",
+  "subperiosteal abscess",
+  "안과",
+  "이비인후과",
+];
+
+const ORBITAL_CELLULITIS_PRESEPTAL_DIFFERENTIATION_SAFETY_TERMS = [
+  "not preseptal",
+  "ophthalmoplegia",
+  "orbital septum",
+  "pain with eye movement",
+  "postseptal",
+  "preseptal",
+  "proptosis",
+  "vision loss",
+  "전중격",
+];
+
+const ORBITAL_CELLULITIS_ABSCESS_SURGERY_SAFETY_TERMS = [
+  "abscess",
+  "drainage",
+  "failure to improve",
+  "large abscess",
+  "surgical drainage",
+  "worsening visual acuity",
+  "배농",
+];
+
+const ORBITAL_CELLULITIS_INTRACRANIAL_SAFETY_TERMS = [
+  "brain abscess",
+  "cavernous sinus thrombosis",
+  "intracranial extension",
+  "meningitis",
+  "osteomyelitis",
+  "sepsis",
+  "해면정맥동",
+  "두개내",
+];
+
+const ORBITAL_CELLULITIS_MONITORING_SAFETY_TERMS = [
+  "color vision",
+  "daily",
+  "iop",
+  "optic nerve",
+  "pupil",
+  "repeat exam",
+  "visual acuity",
+  "vision",
+  "시력",
+];
+
 const GI_BLEED_CONTEXT_TERMS = [
   "acute blood loss anemia",
   "gastrointestinal bleeding",
@@ -6076,6 +6201,70 @@ function hasEpiglottitisTreatmentSafetyCheck(checks: string[]): boolean {
   return hasAgitationSafety && hasAirwayBackup && hasSteroidAdjunct && hasComplicationRisk;
 }
 
+function requiresOrbitalCellulitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = ORBITAL_CELLULITIS_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasEyeContext = ORBITAL_CELLULITIS_EYE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasOrbitalSigns = ORBITAL_CELLULITIS_ORBITAL_SIGNS_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasEyeContext && hasOrbitalSigns);
+}
+
+function hasOrbitalCellulitisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasOrbitalAssessment = ORBITAL_CELLULITIS_ORBITAL_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImaging = ORBITAL_CELLULITIS_IMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibiotics = ORBITAL_CELLULITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSpecialistSourceControl = ORBITAL_CELLULITIS_SPECIALIST_SOURCE_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return hasOrbitalAssessment && hasImaging && hasAntibiotics && hasSpecialistSourceControl;
+}
+
+function hasOrbitalCellulitisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasPreseptalDifferentiation =
+    ORBITAL_CELLULITIS_PRESEPTAL_DIFFERENTIATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAbscessSurgery = ORBITAL_CELLULITIS_ABSCESS_SURGERY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasIntracranialSafety = ORBITAL_CELLULITIS_INTRACRANIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMonitoring = ORBITAL_CELLULITIS_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasPreseptalDifferentiation && hasAbscessSurgery && hasIntracranialSafety && hasMonitoring;
+}
+
 function requiresGiBleedSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -8911,6 +9100,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasEpiglottitisTreatmentSafetyCheck,
       issue:
         "epiglottitis safety checks must include avoiding agitation, unnecessary throat exam, tongue depressor, avoidable procedures, or sedation that could precipitate airway collapse, anesthesia, ENT, failed-airway, surgical-airway, tracheostomy, or front-of-neck backup planning, corticosteroid, dexamethasone, methylprednisolone, or steroid-adjunct consideration, and complication-risk review for rapid deterioration, airway compromise, respiratory failure, abscess, diabetes, immunocompromised state, sepsis, or airway obstruction",
+    },
+    {
+      name: "orbital_cellulitis_time_critical_actions",
+      label: "Orbital cellulitis emergency actions",
+      applies: requiresOrbitalCellulitisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasOrbitalCellulitisTimeCriticalActions,
+      issue:
+        "orbital cellulitis time-critical actions must include orbital assessment with visual acuity, color vision, pupils, optic nerve, IOP, extraocular movements, eye movements, or ophthalmoplegia review, CT orbit, CT orbits, CT sinus, CT brain, contrast CT, MRI, orbit imaging, or sinus imaging, IV broad-spectrum antibiotics such as ampicillin-sulbactam, ceftriaxone, cefotaxime, vancomycin, metronidazole, cultures, or antibiotic therapy, and urgent ophthalmology, ENT, otolaryngology, source-control, surgery, surgical-drainage, or subperiosteal-abscess planning",
+    },
+    {
+      name: "orbital_cellulitis_treatment_safety",
+      label: "Orbital cellulitis treatment safety",
+      applies: requiresOrbitalCellulitisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasOrbitalCellulitisTreatmentSafetyCheck,
+      issue:
+        "orbital cellulitis safety checks must include distinguishing postseptal orbital cellulitis from preseptal disease using proptosis, ophthalmoplegia, pain with eye movement, vision loss, or orbital septum review, abscess or surgical-drainage review for subperiosteal or orbital abscess, worsening visual acuity, large abscess, failure to improve, or drainage need, intracranial or systemic complication review for cavernous sinus thrombosis, meningitis, brain abscess, intracranial extension, osteomyelitis, sepsis, or death risk, and visual acuity, color vision, pupil, optic nerve, IOP, repeat exam, or daily monitoring",
     },
     {
       name: "gi_bleed_time_critical_actions",

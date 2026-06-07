@@ -664,6 +664,120 @@ EPIGLOTTITIS_COMPLICATION_RISK_SAFETY_TERMS = (
     "sepsis",
     "기도폐쇄",
 )
+ORBITAL_CELLULITIS_DIRECT_CONTEXT_TERMS = (
+    "orbital cellulitis",
+    "postseptal cellulitis",
+    "post-septal cellulitis",
+    "orbital abscess",
+    "안와 봉와직염",
+)
+ORBITAL_CELLULITIS_EYE_CONTEXT_TERMS = (
+    "chemosis",
+    "eye swelling",
+    "eyelid swelling",
+    "pain with eye movement",
+    "proptosis",
+    "red swollen eye",
+    "안구 돌출",
+    "안구운동통",
+)
+ORBITAL_CELLULITIS_ORBITAL_SIGNS_CONTEXT_TERMS = (
+    "decreased vision",
+    "diplopia",
+    "ophthalmoplegia",
+    "painful eye movement",
+    "proptosis",
+    "restricted eye movement",
+    "vision loss",
+    "시력저하",
+)
+ORBITAL_CELLULITIS_ORBITAL_ASSESSMENT_ACTION_TERMS = (
+    "color vision",
+    "extraocular movement",
+    "eye movement",
+    "iop",
+    "ophthalmoplegia",
+    "optic nerve",
+    "pupil",
+    "visual acuity",
+    "시력",
+)
+ORBITAL_CELLULITIS_IMAGING_ACTION_TERMS = (
+    "ct brain",
+    "ct orbit",
+    "ct orbits",
+    "ct sinus",
+    "ct sinuses",
+    "contrast ct",
+    "mri",
+    "orbit imaging",
+    "sinus imaging",
+    "영상",
+)
+ORBITAL_CELLULITIS_ANTIBIOTIC_ACTION_TERMS = (
+    "ampicillin-sulbactam",
+    "antibiotic",
+    "broad-spectrum",
+    "ceftriaxone",
+    "cefotaxime",
+    "culture",
+    "iv antibiotics",
+    "metronidazole",
+    "vancomycin",
+    "항생제",
+)
+ORBITAL_CELLULITIS_SPECIALIST_SOURCE_ACTION_TERMS = (
+    "ent",
+    "ophthalmology",
+    "otolaryngology",
+    "surgical drainage",
+    "surgery",
+    "source control",
+    "subperiosteal abscess",
+    "안과",
+    "이비인후과",
+)
+ORBITAL_CELLULITIS_PRESEPTAL_DIFFERENTIATION_SAFETY_TERMS = (
+    "not preseptal",
+    "ophthalmoplegia",
+    "orbital septum",
+    "pain with eye movement",
+    "postseptal",
+    "preseptal",
+    "proptosis",
+    "vision loss",
+    "전중격",
+)
+ORBITAL_CELLULITIS_ABSCESS_SURGERY_SAFETY_TERMS = (
+    "abscess",
+    "drainage",
+    "failure to improve",
+    "large abscess",
+    "surgical drainage",
+    "worsening visual acuity",
+    "배농",
+)
+ORBITAL_CELLULITIS_INTRACRANIAL_SAFETY_TERMS = (
+    "brain abscess",
+    "cavernous sinus thrombosis",
+    "intracranial extension",
+    "meningitis",
+    "osteomyelitis",
+    "sepsis",
+    "해면정맥동",
+    "두개내",
+)
+ORBITAL_CELLULITIS_MONITORING_SAFETY_TERMS = (
+    "color vision",
+    "daily",
+    "iop",
+    "optic nerve",
+    "pupil",
+    "repeat exam",
+    "visual acuity",
+    "vision",
+    "시력",
+)
 GI_BLEED_CONTEXT_TERMS = (
     "acute blood loss anemia",
     "gastrointestinal bleeding",
@@ -5683,6 +5797,41 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="orbital_cellulitis_time_critical_actions",
+            applies=_requires_orbital_cellulitis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_orbital_cellulitis_time_critical_actions,
+            issue=(
+                "orbital cellulitis time-critical actions must include orbital "
+                "assessment with visual acuity, color vision, pupils, optic nerve, "
+                "IOP, extraocular movements, eye movements, or ophthalmoplegia "
+                "review, CT orbit, CT orbits, CT sinus, CT brain, contrast CT, MRI, "
+                "orbit imaging, or sinus imaging, IV broad-spectrum antibiotics "
+                "such as ampicillin-sulbactam, ceftriaxone, cefotaxime, "
+                "vancomycin, metronidazole, cultures, or antibiotic therapy, and "
+                "urgent ophthalmology, ENT, otolaryngology, source-control, surgery, "
+                "surgical-drainage, or subperiosteal-abscess planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="orbital_cellulitis_treatment_safety",
+            applies=_requires_orbital_cellulitis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_orbital_cellulitis_treatment_safety_check,
+            issue=(
+                "orbital cellulitis safety checks must include distinguishing "
+                "postseptal orbital cellulitis from preseptal disease using proptosis, "
+                "ophthalmoplegia, pain with eye movement, vision loss, or orbital "
+                "septum review, abscess or surgical-drainage review for subperiosteal "
+                "or orbital abscess, worsening visual acuity, large abscess, failure "
+                "to improve, or drainage need, intracranial or systemic complication "
+                "review for cavernous sinus thrombosis, meningitis, brain abscess, "
+                "intracranial extension, osteomyelitis, sepsis, or death risk, and "
+                "visual acuity, color vision, pupil, optic nerve, IOP, repeat exam, "
+                "or daily monitoring"
+            ),
+        ),
+        DomainSafetyGate(
             name="gi_bleed_time_critical_actions",
             applies=_requires_gi_bleed_safety_check,
             field_name="time_critical_actions",
@@ -7307,6 +7456,95 @@ def _has_epiglottitis_treatment_safety_check(checks: list[Any]) -> bool:
         and has_airway_backup
         and has_steroid_adjunct
         and has_complication_risk
+    )
+
+
+def _requires_orbital_cellulitis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ORBITAL_CELLULITIS_DIRECT_CONTEXT_TERMS
+    )
+    has_eye_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ORBITAL_CELLULITIS_EYE_CONTEXT_TERMS
+    )
+    has_orbital_signs = any(
+        _contains_safety_term(risk_text, term)
+        for term in ORBITAL_CELLULITIS_ORBITAL_SIGNS_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_eye_context and has_orbital_signs)
+
+
+def _has_orbital_cellulitis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_orbital_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ORBITAL_CELLULITIS_ORBITAL_ASSESSMENT_ACTION_TERMS
+    )
+    has_imaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ORBITAL_CELLULITIS_IMAGING_ACTION_TERMS
+    )
+    has_antibiotics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ORBITAL_CELLULITIS_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_specialist_source_control = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ORBITAL_CELLULITIS_SPECIALIST_SOURCE_ACTION_TERMS
+    )
+    return (
+        has_orbital_assessment
+        and has_imaging
+        and has_antibiotics
+        and has_specialist_source_control
+    )
+
+
+def _has_orbital_cellulitis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_preseptal_differentiation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ORBITAL_CELLULITIS_PRESEPTAL_DIFFERENTIATION_SAFETY_TERMS
+    )
+    has_abscess_surgery = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ORBITAL_CELLULITIS_ABSCESS_SURGERY_SAFETY_TERMS
+    )
+    has_intracranial_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ORBITAL_CELLULITIS_INTRACRANIAL_SAFETY_TERMS
+    )
+    has_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ORBITAL_CELLULITIS_MONITORING_SAFETY_TERMS
+    )
+    return (
+        has_preseptal_differentiation
+        and has_abscess_surgery
+        and has_intracranial_safety
+        and has_monitoring
     )
 
 
