@@ -1801,6 +1801,104 @@ SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS = (
     "unstable",
     "배양",
 )
+SEPTIC_ARTHRITIS_CONTEXT_TERMS = (
+    "acute septic arthritis",
+    "bacterial arthritis",
+    "hot swollen joint",
+    "native joint septic arthritis",
+    "septic arthritis",
+    "septic joint",
+    "septic monoarthritis",
+    "화농성 관절염",
+)
+SEPTIC_ARTHRITIS_ARTHROCENTESIS_ACTION_TERMS = (
+    "arthrocentesis",
+    "aspiration",
+    "joint aspiration",
+    "synovial aspiration",
+    "synovial fluid",
+    "tap",
+    "관절천자",
+)
+SEPTIC_ARTHRITIS_SYNOVIAL_STUDY_ACTION_TERMS = (
+    "cell count",
+    "crystal",
+    "culture",
+    "gram stain",
+    "leukocyte",
+    "microscopy",
+    "synovial",
+    "wbc",
+    "배양",
+)
+SEPTIC_ARTHRITIS_BLOOD_CULTURE_LAB_ACTION_TERMS = (
+    "blood culture",
+    "blood cultures",
+    "crp",
+    "esr",
+    "inflammatory marker",
+    "leukocytosis",
+    "배양",
+    "혈액배양",
+)
+SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS = (
+    "antibiotic",
+    "antibiotics",
+    "ceftriaxone",
+    "empiric",
+    "vancomycin",
+    "항생제",
+)
+SEPTIC_ARTHRITIS_DRAINAGE_ORTHO_ACTION_TERMS = (
+    "arthroscopy",
+    "drainage",
+    "irrigation",
+    "orthopedic",
+    "orthopedics",
+    "surgical washout",
+    "washout",
+    "정형외과",
+)
+SEPTIC_ARTHRITIS_CRYSTAL_LIMITATION_SAFETY_TERMS = (
+    "crystal",
+    "crystals do not exclude",
+    "gout",
+    "not exclude",
+    "pseudogout",
+    "still possible",
+    "통풍",
+)
+SEPTIC_ARTHRITIS_ANTIBIOTIC_TIMING_SAFETY_TERMS = (
+    "after aspiration",
+    "after blood cultures",
+    "before antibiotics",
+    "culture before",
+    "do not delay",
+    "empiric antibiotics",
+    "sepsis",
+    "unstable",
+    "배양",
+)
+SEPTIC_ARTHRITIS_PATHOGEN_RISK_SAFETY_TERMS = (
+    "gonococcal",
+    "gram-negative",
+    "immunocompromised",
+    "ivdu",
+    "mrsa",
+    "staphylococcus",
+    "vancomycin",
+    "임질",
+)
+SEPTIC_ARTHRITIS_COMPLICATION_SOURCE_SAFETY_TERMS = (
+    "bacteremia",
+    "endocarditis",
+    "osteomyelitis",
+    "prosthetic joint",
+    "sepsis",
+    "source",
+    "surgery",
+    "패혈증",
+)
 UPPER_GI_BLEED_CONTEXT_TERMS = (
     "coffee ground emesis",
     "esophageal variceal bleeding",
@@ -5112,6 +5210,39 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="septic_arthritis_time_critical_actions",
+            applies=_requires_septic_arthritis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_septic_arthritis_time_critical_actions,
+            issue=(
+                "septic arthritis time-critical actions must include urgent "
+                "arthrocentesis, joint aspiration, tap, synovial fluid, or "
+                "synovial aspiration, synovial WBC, leukocyte, cell count, "
+                "Gram stain, culture, microscopy, or crystal studies, blood "
+                "cultures, CRP, ESR, leukocytosis, or inflammatory marker "
+                "assessment, empiric antibiotics such as vancomycin or "
+                "ceftriaxone, and orthopedic, arthroscopy, irrigation, "
+                "drainage, surgical washout, or washout escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="septic_arthritis_treatment_safety",
+            applies=_requires_septic_arthritis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_septic_arthritis_treatment_safety_check,
+            issue=(
+                "septic arthritis safety checks must include gout, pseudogout, "
+                "crystals, not-exclude, crystals-do-not-exclude, or still-possible "
+                "review, antibiotic timing with aspiration or blood cultures before "
+                "antibiotics while not delaying empiric antibiotics in sepsis or "
+                "unstable patients, pathogen risk review for MRSA, Staphylococcus, "
+                "gonococcal, Gram-negative, IVDU, immunocompromised, vancomycin, "
+                "or ceftriaxone coverage, and complication or source review for "
+                "bacteremia, endocarditis, osteomyelitis, prosthetic joint, sepsis, "
+                "source, or surgery"
+            ),
+        ),
+        DomainSafetyGate(
             name="upper_gi_bleed_time_critical_actions",
             applies=_requires_upper_gi_bleed_safety_check,
             field_name="time_critical_actions",
@@ -7033,6 +7164,90 @@ def _has_spinal_epidural_abscess_treatment_safety_check(checks: list[Any]) -> bo
         has_neuro_sepsis_safety
         and has_risk_source_safety
         and has_antibiotic_timing_safety
+    )
+
+
+def _requires_septic_arthritis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in SEPTIC_ARTHRITIS_CONTEXT_TERMS
+    )
+
+
+def _has_septic_arthritis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_arthrocentesis = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEPTIC_ARTHRITIS_ARTHROCENTESIS_ACTION_TERMS
+    )
+    has_synovial_studies = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEPTIC_ARTHRITIS_SYNOVIAL_STUDY_ACTION_TERMS
+    )
+    has_blood_culture_lab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEPTIC_ARTHRITIS_BLOOD_CULTURE_LAB_ACTION_TERMS
+    )
+    has_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_drainage_ortho = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEPTIC_ARTHRITIS_DRAINAGE_ORTHO_ACTION_TERMS
+    )
+    return (
+        has_arthrocentesis
+        and has_synovial_studies
+        and has_blood_culture_lab
+        and has_antibiotic
+        and has_drainage_ortho
+    )
+
+
+def _has_septic_arthritis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_crystal_limitation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEPTIC_ARTHRITIS_CRYSTAL_LIMITATION_SAFETY_TERMS
+    )
+    has_antibiotic_timing = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEPTIC_ARTHRITIS_ANTIBIOTIC_TIMING_SAFETY_TERMS
+    )
+    has_pathogen_risk = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEPTIC_ARTHRITIS_PATHOGEN_RISK_SAFETY_TERMS
+    )
+    has_complication_source = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEPTIC_ARTHRITIS_COMPLICATION_SOURCE_SAFETY_TERMS
+    )
+    return (
+        has_crystal_limitation
+        and has_antibiotic_timing
+        and has_pathogen_risk
+        and has_complication_source
     )
 
 

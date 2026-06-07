@@ -1927,6 +1927,114 @@ const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS = [
   "배양",
 ];
 
+const SEPTIC_ARTHRITIS_CONTEXT_TERMS = [
+  "acute septic arthritis",
+  "bacterial arthritis",
+  "hot swollen joint",
+  "native joint septic arthritis",
+  "septic arthritis",
+  "septic joint",
+  "septic monoarthritis",
+  "화농성 관절염",
+];
+
+const SEPTIC_ARTHRITIS_ARTHROCENTESIS_ACTION_TERMS = [
+  "arthrocentesis",
+  "aspiration",
+  "joint aspiration",
+  "synovial aspiration",
+  "synovial fluid",
+  "tap",
+  "관절천자",
+];
+
+const SEPTIC_ARTHRITIS_SYNOVIAL_STUDY_ACTION_TERMS = [
+  "cell count",
+  "crystal",
+  "culture",
+  "gram stain",
+  "leukocyte",
+  "microscopy",
+  "synovial",
+  "wbc",
+  "배양",
+];
+
+const SEPTIC_ARTHRITIS_BLOOD_CULTURE_LAB_ACTION_TERMS = [
+  "blood culture",
+  "blood cultures",
+  "crp",
+  "esr",
+  "inflammatory marker",
+  "leukocytosis",
+  "배양",
+  "혈액배양",
+];
+
+const SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS = [
+  "antibiotic",
+  "antibiotics",
+  "ceftriaxone",
+  "empiric",
+  "vancomycin",
+  "항생제",
+];
+
+const SEPTIC_ARTHRITIS_DRAINAGE_ORTHO_ACTION_TERMS = [
+  "arthroscopy",
+  "drainage",
+  "irrigation",
+  "orthopedic",
+  "orthopedics",
+  "surgical washout",
+  "washout",
+  "정형외과",
+];
+
+const SEPTIC_ARTHRITIS_CRYSTAL_LIMITATION_SAFETY_TERMS = [
+  "crystal",
+  "crystals do not exclude",
+  "gout",
+  "not exclude",
+  "pseudogout",
+  "still possible",
+  "통풍",
+];
+
+const SEPTIC_ARTHRITIS_ANTIBIOTIC_TIMING_SAFETY_TERMS = [
+  "after aspiration",
+  "after blood cultures",
+  "before antibiotics",
+  "culture before",
+  "do not delay",
+  "empiric antibiotics",
+  "sepsis",
+  "unstable",
+  "배양",
+];
+
+const SEPTIC_ARTHRITIS_PATHOGEN_RISK_SAFETY_TERMS = [
+  "gonococcal",
+  "gram-negative",
+  "immunocompromised",
+  "ivdu",
+  "mrsa",
+  "staphylococcus",
+  "vancomycin",
+  "임질",
+];
+
+const SEPTIC_ARTHRITIS_COMPLICATION_SOURCE_SAFETY_TERMS = [
+  "bacteremia",
+  "endocarditis",
+  "osteomyelitis",
+  "prosthetic joint",
+  "sepsis",
+  "source",
+  "surgery",
+  "패혈증",
+];
+
 const UPPER_GI_BLEED_CONTEXT_TERMS = [
   "coffee ground emesis",
   "esophageal variceal bleeding",
@@ -5779,6 +5887,73 @@ function hasSpinalEpiduralAbscessTreatmentSafetyCheck(checks: string[]): boolean
   return hasNeuroSepsisSafety && hasRiskSourceSafety && hasAntibioticTimingSafety;
 }
 
+function requiresSepticArthritisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return SEPTIC_ARTHRITIS_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasSepticArthritisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasArthrocentesis = SEPTIC_ARTHRITIS_ARTHROCENTESIS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSynovialStudies = SEPTIC_ARTHRITIS_SYNOVIAL_STUDY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodCultureLab = SEPTIC_ARTHRITIS_BLOOD_CULTURE_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibiotic = SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDrainageOrtho = SEPTIC_ARTHRITIS_DRAINAGE_ORTHO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasArthrocentesis &&
+    hasSynovialStudies &&
+    hasBloodCultureLab &&
+    hasAntibiotic &&
+    hasDrainageOrtho
+  );
+}
+
+function hasSepticArthritisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasCrystalLimitation = SEPTIC_ARTHRITIS_CRYSTAL_LIMITATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntibioticTiming = SEPTIC_ARTHRITIS_ANTIBIOTIC_TIMING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPathogenRisk = SEPTIC_ARTHRITIS_PATHOGEN_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasComplicationSource = SEPTIC_ARTHRITIS_COMPLICATION_SOURCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasCrystalLimitation &&
+    hasAntibioticTiming &&
+    hasPathogenRisk &&
+    hasComplicationSource
+  );
+}
+
 function requiresUpperGiBleedSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -7656,6 +7831,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSpinalEpiduralAbscessTreatmentSafetyCheck,
       issue:
         "spinal epidural abscess safety checks must include neurologic deficit, bowel or bladder dysfunction, serial neurologic exams, or sepsis monitoring, bacteremia, endocarditis, diabetes, IVDU, immunosuppression, recent spinal procedure, staphylococcal, or source-risk review, and culture-before-antibiotics, biopsy, or do-not-delay empiric antibiotics for unstable or neurologic compromise planning",
+    },
+    {
+      name: "septic_arthritis_time_critical_actions",
+      label: "Septic arthritis aspiration and drainage",
+      applies: requiresSepticArthritisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSepticArthritisTimeCriticalActions,
+      issue:
+        "septic arthritis time-critical actions must include urgent arthrocentesis, joint aspiration, tap, synovial fluid, or synovial aspiration, synovial WBC, leukocyte, cell count, Gram stain, culture, microscopy, or crystal studies, blood cultures, CRP, ESR, leukocytosis, or inflammatory marker assessment, empiric antibiotics such as vancomycin or ceftriaxone, and orthopedic, arthroscopy, irrigation, drainage, surgical washout, or washout escalation",
+    },
+    {
+      name: "septic_arthritis_treatment_safety",
+      label: "Septic arthritis treatment safety",
+      applies: requiresSepticArthritisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSepticArthritisTreatmentSafetyCheck,
+      issue:
+        "septic arthritis safety checks must include gout, pseudogout, crystals, not-exclude, crystals-do-not-exclude, or still-possible review, antibiotic timing with aspiration or blood cultures before antibiotics while not delaying empiric antibiotics in sepsis or unstable patients, pathogen risk review for MRSA, Staphylococcus, gonococcal, Gram-negative, IVDU, immunocompromised, vancomycin, or ceftriaxone coverage, and complication or source review for bacteremia, endocarditis, osteomyelitis, prosthetic joint, sepsis, source, or surgery",
     },
     {
       name: "upper_gi_bleed_time_critical_actions",
