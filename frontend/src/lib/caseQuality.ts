@@ -1568,6 +1568,149 @@ const ACUTE_ANGLE_CLOSURE_GLAUCOMA_MONITORING_SAFETY_TERMS = [
   "안압 재측정",
 ];
 
+const RETINAL_DETACHMENT_DIRECT_CONTEXT_TERMS = [
+  "macula-off retinal detachment",
+  "macula-on retinal detachment",
+  "retinal detachment",
+  "retinal tear",
+  "rhegmatogenous retinal detachment",
+  "망막박리",
+  "망막 열공",
+];
+
+const RETINAL_DETACHMENT_SYMPTOM_CONTEXT_TERMS = [
+  "curtain",
+  "field loss",
+  "flashes",
+  "floaters",
+  "photopsia",
+  "shadow",
+  "sudden vision loss",
+  "veil",
+  "visual field defect",
+  "visual field loss",
+  "광시증",
+  "비문증",
+  "시야",
+  "시력",
+];
+
+const RETINAL_DETACHMENT_RISK_CONTEXT_TERMS = [
+  "cataract surgery",
+  "eye trauma",
+  "high myopia",
+  "lattice degeneration",
+  "posterior vitreous detachment",
+  "pvd",
+  "severe myopia",
+  "vitreous hemorrhage",
+  "고도근시",
+  "백내장 수술",
+  "외상",
+];
+
+const RETINAL_DETACHMENT_VISUAL_ASSESSMENT_ACTION_TERMS = [
+  "afferent pupillary defect",
+  "apd",
+  "dilated fundus",
+  "fundoscopy",
+  "pupil",
+  "red reflex",
+  "relative afferent pupillary defect",
+  "visual acuity",
+  "visual field",
+  "산동",
+  "시력",
+  "시야",
+];
+
+const RETINAL_DETACHMENT_RETINAL_EXAM_ACTION_TERMS = [
+  "b-scan",
+  "dilated exam",
+  "dilated retinal exam",
+  "indirect ophthalmoscopy",
+  "ocular ultrasound",
+  "ophthalmoscopy",
+  "retinal exam",
+  "slit lamp",
+  "ultrasound",
+  "안저",
+  "초음파",
+];
+
+const RETINAL_DETACHMENT_URGENT_SPECIALIST_ACTION_TERMS = [
+  "emergency department",
+  "emergency ophthalmology",
+  "ophthalmology",
+  "retina specialist",
+  "retinal surgery",
+  "same-day",
+  "urgent ophthalmology",
+  "urgent referral",
+  "vitreoretinal",
+  "응급",
+  "안과",
+];
+
+const RETINAL_DETACHMENT_DEFINITIVE_REPAIR_ACTION_TERMS = [
+  "cryotherapy",
+  "laser retinopexy",
+  "pneumatic retinopexy",
+  "retinal repair",
+  "scleral buckle",
+  "surgery",
+  "vitrectomy",
+  "레이저",
+  "수술",
+];
+
+const RETINAL_DETACHMENT_DELAY_SAFETY_TERMS = [
+  "do not delay",
+  "emergency",
+  "immediate",
+  "not delay",
+  "same day",
+  "urgent",
+  "응급",
+  "즉시",
+  "지연",
+];
+
+const RETINAL_DETACHMENT_MACULA_SAFETY_TERMS = [
+  "central vision",
+  "macula",
+  "macula off",
+  "macula on",
+  "macular involvement",
+  "visual field",
+  "중심시력",
+  "황반",
+];
+
+const RETINAL_DETACHMENT_DIFFERENTIAL_SAFETY_TERMS = [
+  "migraine",
+  "posterior vitreous detachment",
+  "pvd",
+  "retinal tear",
+  "vitreous hemorrhage",
+  "vitreous detachment",
+  "감별",
+  "망막 열공",
+];
+
+const RETINAL_DETACHMENT_PRECAUTION_SAFETY_TERMS = [
+  "avoid eye pressure",
+  "head position",
+  "nothing by mouth",
+  "npo",
+  "progression",
+  "recheck",
+  "return precautions",
+  "worsening vision",
+  "금식",
+  "악화",
+];
+
 const NEUTROPENIC_FEVER_CONTEXT_TERMS = [
   "absolute neutrophil count",
   "anc below 500",
@@ -6660,6 +6803,69 @@ function hasAcuteAngleClosureGlaucomaTreatmentSafetyCheck(checks: string[]): boo
   return hasMedContraSafety && hasPilocarpineSafety && hasFellowEyeSafety && hasMonitoringSafety;
 }
 
+function requiresRetinalDetachmentSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = RETINAL_DETACHMENT_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasSymptomContext = RETINAL_DETACHMENT_SYMPTOM_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRiskContext = RETINAL_DETACHMENT_RISK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasSymptomContext && hasRiskContext);
+}
+
+function hasRetinalDetachmentTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasVisualAssessment = RETINAL_DETACHMENT_VISUAL_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRetinalExam = RETINAL_DETACHMENT_RETINAL_EXAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUrgentSpecialist = RETINAL_DETACHMENT_URGENT_SPECIALIST_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDefinitiveRepair = RETINAL_DETACHMENT_DEFINITIVE_REPAIR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasVisualAssessment && hasRetinalExam && hasUrgentSpecialist && hasDefinitiveRepair;
+}
+
+function hasRetinalDetachmentTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDelaySafety = RETINAL_DETACHMENT_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMaculaSafety = RETINAL_DETACHMENT_MACULA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferentialSafety = RETINAL_DETACHMENT_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPrecautionSafety = RETINAL_DETACHMENT_PRECAUTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasDelaySafety && hasMaculaSafety && hasDifferentialSafety && hasPrecautionSafety;
+}
+
 function requiresNeutropenicFeverSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -9244,6 +9450,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAcuteAngleClosureGlaucomaTreatmentSafetyCheck,
       issue:
         "acute angle-closure glaucoma safety checks must include medication contraindication review for acetazolamide allergy, sulfa allergy, renal failure, timolol, asthma, COPD, bradycardia, or beta-blocker risk, pilocarpine timing or avoidance review for high IOP, corneal edema, lens-induced or phacomorphic angle closure, or pupil block, fellow-eye or bilateral prophylactic iridotomy planning, and visual acuity, optic-nerve, corneal-edema, vision-loss, repeat-IOP, or recheck-IOP monitoring",
+    },
+    {
+      name: "retinal_detachment_time_critical_actions",
+      label: "Retinal detachment emergency actions",
+      applies: requiresRetinalDetachmentSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasRetinalDetachmentTimeCriticalActions,
+      issue:
+        "retinal detachment time-critical actions must include visual acuity, visual-field, pupil, APD, red-reflex, or dilated assessment, dilated retinal exam, indirect ophthalmoscopy, fundoscopy, slit-lamp, ocular ultrasound, or B-scan evaluation, urgent ophthalmology, retina specialist, vitreoretinal, same-day, emergency-department, or urgent-referral escalation, and definitive repair planning such as laser retinopexy, cryotherapy, pneumatic retinopexy, scleral buckle, vitrectomy, retinal repair, or surgery",
+    },
+    {
+      name: "retinal_detachment_treatment_safety",
+      label: "Retinal detachment treatment safety",
+      applies: requiresRetinalDetachmentSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasRetinalDetachmentTreatmentSafetyCheck,
+      issue:
+        "retinal detachment safety checks must include explicit do-not-delay, same-day, immediate, urgent, or emergency ophthalmology planning, macula-on, macula-off, macular involvement, central-vision, or visual-field status review, differential review for retinal tear, posterior vitreous detachment, PVD, vitreous hemorrhage, or migraine, and precautions for worsening vision, progression, recheck, return precautions, NPO, head positioning, or avoiding eye pressure",
     },
     {
       name: "neutropenic_fever_time_critical_actions",

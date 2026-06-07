@@ -1764,6 +1764,71 @@
     }
   },
   {
+    "name": "retinal_detachment_requires_visual_exam_urgent_ophthalmology_and_repair_planning",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "retinal detachment time-critical actions must include visual acuity"
+    ],
+    "overrides": {
+      "diagnosis": "Macula-on retinal detachment",
+      "patient_demographics": {
+        "age": 62,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "New flashes, floaters, and a curtain over vision",
+      "history_of_present_illness": "Patient with high myopia and prior cataract surgery presents with sudden flashes, many new floaters, and a dark curtain or shadow crossing the peripheral visual field.",
+      "key_teaching_points": [
+        "Retinal detachment is an ophthalmic emergency that can cause permanent vision loss",
+        "Sudden flashes, floaters, curtain, shadow, or visual field loss require urgent evaluation",
+        "Macula-on status and timely repair planning affect visual outcome"
+      ],
+      "clinical_red_flags": [
+        "Sudden floaters, flashes, photopsia, curtain, veil, shadow, visual field defect, or vision loss",
+        "High myopia, prior cataract surgery, eye trauma, lattice degeneration, PVD, or vitreous hemorrhage"
+      ],
+      "time_critical_actions": [
+        "Check visual acuity, visual field, pupils, APD, red reflex, and dilated fundus assessment",
+        "Perform dilated retinal exam with indirect ophthalmoscopy, fundoscopy, slit lamp, and ocular ultrasound B-scan if view is limited"
+      ],
+      "contraindication_checks": [
+        "Do not delay same-day urgent emergency ophthalmology planning",
+        "Review macula-on, macula-off, macular involvement, central vision, and visual field status",
+        "Review retinal tear, posterior vitreous detachment PVD, vitreous hemorrhage, and migraine differential",
+        "Give worsening vision, progression, recheck, return precautions, NPO, head position, and avoid eye pressure instructions"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Retinal Detachment",
+          "organization": "National Eye Institute",
+          "url": "https://www.nei.nih.gov/learn-about-eye-health/eye-conditions-and-diseases/retinal-detachment",
+          "supports": [
+            "macula-on retinal detachment diagnosis and risk stratification",
+            "retinal detachment is an ophthalmic emergency that can cause permanent vision loss",
+            "sudden flashes, floaters, curtain, shadow, or visual field loss require urgent evaluation",
+            "sudden floaters, flashes, photopsia, curtain, veil, shadow, visual field defect, or vision loss as red flags",
+            "visual acuity, visual field, pupils, APD, red reflex, and dilated fundus assessment",
+            "same-day urgent emergency ophthalmology planning without delay",
+            "macula-on, macula-off, macular involvement, central vision, and visual field status review",
+            "worsening vision, progression, recheck, return precautions, NPO, head position, and avoiding eye pressure precautions"
+          ]
+        },
+        {
+          "title": "Retinal Detachment",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/eye-disorders/retinal-disorders/retinal-detachment",
+          "supports": [
+            "high myopia, prior cataract surgery, eye trauma, lattice degeneration, PVD, or vitreous hemorrhage as risk factors",
+            "macula-on status and timely repair planning affect visual outcome",
+            "dilated retinal exam with indirect ophthalmoscopy, fundoscopy, slit lamp, and ocular ultrasound B-scan if view is limited",
+            "retinal tear, posterior vitreous detachment PVD, vitreous hemorrhage, and migraine differential review"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "neutropenic_fever_requires_anc_cultures_antipseudomonal_and_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [
