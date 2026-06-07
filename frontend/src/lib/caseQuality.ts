@@ -2158,6 +2158,98 @@ const ACUTE_CHOLANGITIS_DIFFERENTIAL_SOURCE_SAFETY_TERMS = [
   "감별",
 ];
 
+const ACUTE_PANCREATITIS_CONTEXT_TERMS = [
+  "acute pancreatitis",
+  "biliary pancreatitis",
+  "gallstone pancreatitis",
+  "necrotizing pancreatitis",
+  "pancreatic necrosis",
+  "severe pancreatitis",
+  "췌장염",
+];
+
+const ACUTE_PANCREATITIS_FLUID_ACTION_TERMS = [
+  "crystalloid",
+  "fluid",
+  "fluids",
+  "goal-directed",
+  "lactated ringer",
+  "lr",
+  "resuscitation",
+  "수액",
+];
+
+const ACUTE_PANCREATITIS_ANALGESIA_SUPPORT_ACTION_TERMS = [
+  "analgesia",
+  "antiemetic",
+  "nausea",
+  "opioid",
+  "pain control",
+  "통증",
+];
+
+const ACUTE_PANCREATITIS_DIAGNOSTIC_ETIOLOGY_ACTION_TERMS = [
+  "alt",
+  "calcium",
+  "gallstone",
+  "lft",
+  "lipase",
+  "triglyceride",
+  "ultrasound",
+  "췌장효소",
+];
+
+const ACUTE_PANCREATITIS_SEVERITY_ORGAN_ACTION_TERMS = [
+  "bun",
+  "hematocrit",
+  "icu",
+  "organ failure",
+  "oxygen",
+  "renal",
+  "severity",
+  "shock",
+  "장기부전",
+];
+
+const ACUTE_PANCREATITIS_ERCP_CHOLANGITIS_SAFETY_TERMS = [
+  "biliary obstruction",
+  "cholangitis",
+  "ercp",
+  "jaundice",
+  "no cholangitis",
+  "without cholangitis",
+  "담관염",
+];
+
+const ACUTE_PANCREATITIS_ANTIBIOTIC_SAFETY_TERMS = [
+  "antibiotic",
+  "extrapancreatic infection",
+  "infected necrosis",
+  "prophylactic antibiotics",
+  "sterile necrosis",
+  "항생제",
+];
+
+const ACUTE_PANCREATITIS_NUTRITION_SAFETY_TERMS = [
+  "enteral",
+  "feeding",
+  "ng tube",
+  "oral feeding",
+  "parenteral",
+  "tpn",
+  "영양",
+];
+
+const ACUTE_PANCREATITIS_NECROSIS_PROCEDURE_SAFETY_TERMS = [
+  "4 weeks",
+  "drainage",
+  "infected necrosis",
+  "necrosis",
+  "step-up",
+  "walled-off",
+  "췌장괴사",
+];
+
 const ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = [
   "acute bowel ischemia",
   "acute intestinal ischemia",
@@ -5498,6 +5590,65 @@ function hasAcuteCholangitisTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresAcutePancreatitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return ACUTE_PANCREATITIS_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasAcutePancreatitisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasFluid = ACUTE_PANCREATITIS_FLUID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAnalgesiaSupport = ACUTE_PANCREATITIS_ANALGESIA_SUPPORT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDiagnosticEtiology = ACUTE_PANCREATITIS_DIAGNOSTIC_ETIOLOGY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSeverityOrgan = ACUTE_PANCREATITIS_SEVERITY_ORGAN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasFluid && hasAnalgesiaSupport && hasDiagnosticEtiology && hasSeverityOrgan;
+}
+
+function hasAcutePancreatitisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasErcpCholangitisSafety = ACUTE_PANCREATITIS_ERCP_CHOLANGITIS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntibioticSafety = ACUTE_PANCREATITIS_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNutritionSafety = ACUTE_PANCREATITIS_NUTRITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNecrosisProcedureSafety =
+    ACUTE_PANCREATITIS_NECROSIS_PROCEDURE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasErcpCholangitisSafety &&
+    hasAntibioticSafety &&
+    hasNutritionSafety &&
+    hasNecrosisProcedureSafety
+  );
+}
+
 function requiresAcuteMesentericIschemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -7052,6 +7203,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAcuteCholangitisTreatmentSafetyCheck,
       issue:
         "acute cholangitis safety checks must include Tokyo severity or organ dysfunction review for shock, disturbance of consciousness, acute dyspnea, renal dysfunction, DIC, or severe disease, early or emergency biliary drainage timing with do-not-delay, within-24 or within-48-hours, transfer, or advanced-center planning, ERCP procedure-risk review for anticoagulant, coagulopathy, sphincterotomy, pancreatitis, failed ERCP, altered anatomy, PTBD, or percutaneous drainage alternatives, and source-control or differential review for cholecystitis, pancreatitis, gallstone pancreatitis, malignant obstruction, stone, or bile culture",
+    },
+    {
+      name: "acute_pancreatitis_time_critical_actions",
+      label: "Acute pancreatitis fluids and severity",
+      applies: requiresAcutePancreatitisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcutePancreatitisTimeCriticalActions,
+      issue:
+        "acute pancreatitis time-critical actions must include early goal-directed crystalloid or lactated Ringer fluid resuscitation, analgesia, antiemetic, nausea, opioid, or pain-control support, lipase, ALT, LFT, ultrasound, gallstone, triglyceride, or calcium etiology assessment, and BUN, hematocrit, severity, oxygen, shock, renal, organ-failure, or ICU monitoring",
+    },
+    {
+      name: "acute_pancreatitis_treatment_safety",
+      label: "Acute pancreatitis ERCP, antibiotics, and nutrition",
+      applies: requiresAcutePancreatitisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcutePancreatitisTreatmentSafetyCheck,
+      issue:
+        "acute pancreatitis safety checks must include ERCP or biliary obstruction review for cholangitis, jaundice, no-cholangitis, or without-cholangitis scenarios, avoidance of prophylactic antibiotics in sterile necrosis with antibiotic use reserved for infected necrosis or extrapancreatic infection, oral or enteral feeding, NG tube, TPN, parenteral, or nutrition planning, and infected necrosis, walled-off necrosis, delayed drainage, 4-week, or step-up procedure timing review",
     },
     {
       name: "acute_mesenteric_ischemia_time_critical_actions",

@@ -2013,6 +2013,89 @@ ACUTE_CHOLANGITIS_DIFFERENTIAL_SOURCE_SAFETY_TERMS = (
     "stone",
     "감별",
 )
+ACUTE_PANCREATITIS_CONTEXT_TERMS = (
+    "acute pancreatitis",
+    "biliary pancreatitis",
+    "gallstone pancreatitis",
+    "necrotizing pancreatitis",
+    "pancreatic necrosis",
+    "severe pancreatitis",
+    "췌장염",
+)
+ACUTE_PANCREATITIS_FLUID_ACTION_TERMS = (
+    "crystalloid",
+    "fluid",
+    "fluids",
+    "goal-directed",
+    "lactated ringer",
+    "lr",
+    "resuscitation",
+    "수액",
+)
+ACUTE_PANCREATITIS_ANALGESIA_SUPPORT_ACTION_TERMS = (
+    "analgesia",
+    "antiemetic",
+    "nausea",
+    "opioid",
+    "pain control",
+    "통증",
+)
+ACUTE_PANCREATITIS_DIAGNOSTIC_ETIOLOGY_ACTION_TERMS = (
+    "alt",
+    "calcium",
+    "gallstone",
+    "lft",
+    "lipase",
+    "triglyceride",
+    "ultrasound",
+    "췌장효소",
+)
+ACUTE_PANCREATITIS_SEVERITY_ORGAN_ACTION_TERMS = (
+    "bun",
+    "hematocrit",
+    "icu",
+    "organ failure",
+    "oxygen",
+    "renal",
+    "severity",
+    "shock",
+    "장기부전",
+)
+ACUTE_PANCREATITIS_ERCP_CHOLANGITIS_SAFETY_TERMS = (
+    "biliary obstruction",
+    "cholangitis",
+    "ercp",
+    "jaundice",
+    "no cholangitis",
+    "without cholangitis",
+    "담관염",
+)
+ACUTE_PANCREATITIS_ANTIBIOTIC_SAFETY_TERMS = (
+    "antibiotic",
+    "extrapancreatic infection",
+    "infected necrosis",
+    "prophylactic antibiotics",
+    "sterile necrosis",
+    "항생제",
+)
+ACUTE_PANCREATITIS_NUTRITION_SAFETY_TERMS = (
+    "enteral",
+    "feeding",
+    "ng tube",
+    "oral feeding",
+    "parenteral",
+    "tpn",
+    "영양",
+)
+ACUTE_PANCREATITIS_NECROSIS_PROCEDURE_SAFETY_TERMS = (
+    "4 weeks",
+    "drainage",
+    "infected necrosis",
+    "necrosis",
+    "step-up",
+    "walled-off",
+    "췌장괴사",
+)
 ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = (
     "acute bowel ischemia",
     "acute intestinal ischemia",
@@ -4807,6 +4890,36 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="acute_pancreatitis_time_critical_actions",
+            applies=_requires_acute_pancreatitis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_acute_pancreatitis_time_critical_actions,
+            issue=(
+                "acute pancreatitis time-critical actions must include early "
+                "goal-directed crystalloid or lactated Ringer fluid resuscitation, "
+                "analgesia, antiemetic, nausea, opioid, or pain-control support, "
+                "lipase, ALT, LFT, ultrasound, gallstone, triglyceride, or calcium "
+                "etiology assessment, and BUN, hematocrit, severity, oxygen, shock, "
+                "renal, organ-failure, or ICU monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acute_pancreatitis_treatment_safety",
+            applies=_requires_acute_pancreatitis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acute_pancreatitis_treatment_safety_check,
+            issue=(
+                "acute pancreatitis safety checks must include ERCP or biliary "
+                "obstruction review for cholangitis, jaundice, no-cholangitis, "
+                "or without-cholangitis scenarios, avoidance of prophylactic "
+                "antibiotics in sterile necrosis with antibiotic use reserved "
+                "for infected necrosis or extrapancreatic infection, oral or "
+                "enteral feeding, NG tube, TPN, parenteral, or nutrition planning, "
+                "and infected necrosis, walled-off necrosis, delayed drainage, "
+                "4-week, or step-up procedure timing review"
+            ),
+        ),
+        DomainSafetyGate(
             name="acute_mesenteric_ischemia_time_critical_actions",
             applies=_requires_acute_mesenteric_ischemia_safety_check,
             field_name="time_critical_actions",
@@ -6691,6 +6804,80 @@ def _has_acute_cholangitis_treatment_safety_check(checks: list[Any]) -> bool:
         and has_drainage_timing_safety
         and has_procedure_risk_safety
         and has_differential_source_safety
+    )
+
+
+def _requires_acute_pancreatitis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_PANCREATITIS_CONTEXT_TERMS
+    )
+
+
+def _has_acute_pancreatitis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_fluid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_PANCREATITIS_FLUID_ACTION_TERMS
+    )
+    has_analgesia_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_PANCREATITIS_ANALGESIA_SUPPORT_ACTION_TERMS
+    )
+    has_diagnostic_etiology = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_PANCREATITIS_DIAGNOSTIC_ETIOLOGY_ACTION_TERMS
+    )
+    has_severity_organ = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_PANCREATITIS_SEVERITY_ORGAN_ACTION_TERMS
+    )
+    return has_fluid and has_analgesia_support and has_diagnostic_etiology and has_severity_organ
+
+
+def _has_acute_pancreatitis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_ercp_cholangitis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_PANCREATITIS_ERCP_CHOLANGITIS_SAFETY_TERMS
+    )
+    has_antibiotic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_PANCREATITIS_ANTIBIOTIC_SAFETY_TERMS
+    )
+    has_nutrition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_PANCREATITIS_NUTRITION_SAFETY_TERMS
+    )
+    has_necrosis_procedure_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_PANCREATITIS_NECROSIS_PROCEDURE_SAFETY_TERMS
+    )
+    return (
+        has_ercp_cholangitis_safety
+        and has_antibiotic_safety
+        and has_nutrition_safety
+        and has_necrosis_procedure_safety
     )
 
 
