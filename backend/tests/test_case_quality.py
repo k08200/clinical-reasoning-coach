@@ -61,6 +61,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "hypertensive_emergency_treatment_safety",
         "giant_cell_arteritis_time_critical_actions",
         "giant_cell_arteritis_treatment_safety",
+        "acute_angle_closure_glaucoma_time_critical_actions",
+        "acute_angle_closure_glaucoma_treatment_safety",
         "neutropenic_fever_time_critical_actions",
         "neutropenic_fever_treatment_safety",
         "obstructive_pyelonephritis_time_critical_actions",
@@ -1202,6 +1204,158 @@ def test_quality_gate_requires_giant_cell_arteritis_no_delay_vision_steroid_risk
     assert not report.passed
     assert any(
         "giant cell arteritis safety checks must include explicit do-not-delay"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_angle_closure_glaucoma_iop_drops_systemic_lowering_and_iridotomy():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute angle-closure glaucoma"
+    case["patient_demographics"] = {
+        "age": 67,
+        "sex": "female",
+        "weight_kg": 59,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Painful red eye with halos, nausea, and blurred vision"
+    case["history_of_present_illness"] = (
+        "Patient presents with severe eye pain, painful red eye, halos around lights, "
+        "nausea, vomiting, blurred vision, fixed mid-dilated pupil, shallow anterior "
+        "chamber, and intraocular pressure IOP 54 concerning for acute angle-closure glaucoma."
+    )
+    case["key_teaching_points"] = [
+        "Acute angle-closure glaucoma is an ophthalmic emergency that can cause rapid permanent vision loss",
+        "Immediate treatment lowers intraocular pressure before definitive laser peripheral iridotomy",
+        "Topical aqueous suppressants and systemic acetazolamide or osmotic therapy are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Painful red eye, halos, severe eye pain, nausea, vomiting, blurred vision, or vision loss",
+        "Fixed mid-dilated pupil, shallow anterior chamber, corneal edema, and markedly elevated IOP",
+    ]
+    case["time_critical_actions"] = [
+        "Measure intraocular pressure IOP with tonometry and perform slit lamp or gonioscopy assessment",
+        "Give topical aqueous suppression with timolol beta blocker, brimonidine or apraclonidine, and dorzolamide drops",
+        "Give systemic acetazolamide Diamox and consider osmotic therapy with mannitol, glycerol, or isosorbide if IOP remains high",
+    ]
+    case["contraindication_checks"] = [
+        "Review acetazolamide allergy, sulfa allergy, renal failure, timolol, asthma, COPD, bradycardia, and beta blocker risk",
+        "Review pilocarpine timing and avoid pilocarpine or defer pilocarpine if high IOP, corneal edema, lens-induced or phacomorphic angle closure, or pupil block concern",
+        "Plan fellow eye prophylactic iridotomy, bilateral assessment, both eyes review, or second eye prevention",
+        "Monitor visual acuity, optic nerve, corneal edema, vision loss, repeat IOP, and recheck IOP after treatment",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Angle-Closure Glaucoma",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/glaucoma/angle-closure-glaucoma",
+            "supports": [
+                "acute angle-closure glaucoma diagnosis and risk stratification",
+                "acute angle-closure glaucoma is an ophthalmic emergency that can cause rapid permanent vision loss",
+                "immediate treatment lowers intraocular pressure before definitive laser peripheral iridotomy",
+                "topical aqueous suppressants and systemic acetazolamide or osmotic therapy are time critical",
+                "painful red eye, halos, severe eye pain, nausea, vomiting, blurred vision, or vision loss as red flags",
+                "fixed mid-dilated pupil, shallow anterior chamber, corneal edema, and markedly elevated IOP as severity markers",
+                "intraocular pressure IOP measurement with tonometry and slit lamp or gonioscopy assessment",
+                "topical aqueous suppression with timolol beta blocker, brimonidine or apraclonidine, and dorzolamide drops",
+                "systemic acetazolamide Diamox and osmotic therapy with mannitol, glycerol, or isosorbide if IOP remains high",
+                "acetazolamide allergy, sulfa allergy, renal failure, timolol, asthma, COPD, bradycardia, and beta blocker risk review",
+                "pilocarpine timing and avoiding or deferring pilocarpine if high IOP, corneal edema, lens-induced or phacomorphic angle closure, or pupil block concern",
+                "fellow eye prophylactic iridotomy, bilateral assessment, both eyes review, or second eye prevention",
+                "visual acuity, optic nerve, corneal edema, vision loss, repeat IOP, and recheck IOP monitoring after treatment",
+            ],
+        },
+        {
+            "title": "Laser Peripheral Iridotomy",
+            "organization": "American Academy of Ophthalmology EyeWiki",
+            "url": "https://eyewiki.aao.org/Laser_Peripheral_Iridotomy",
+            "supports": [
+                "acute primary angle closure should receive aqueous suppressants before laser peripheral iridotomy",
+                "laser peripheral iridotomy with medical treatment is preferred definitive treatment for acute angle-closure glaucoma with pupillary block",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute angle-closure glaucoma time-critical actions must include IOP"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_angle_closure_glaucoma_med_pilocarpine_fellow_eye_and_monitoring_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute angle-closure glaucoma"
+    case["patient_demographics"] = {
+        "age": 67,
+        "sex": "female",
+        "weight_kg": 59,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Painful red eye with halos, nausea, and blurred vision"
+    case["history_of_present_illness"] = (
+        "Patient presents with severe eye pain, painful red eye, halos around lights, "
+        "nausea, vomiting, blurred vision, fixed mid-dilated pupil, shallow anterior "
+        "chamber, and intraocular pressure IOP 54 concerning for acute angle-closure glaucoma."
+    )
+    case["key_teaching_points"] = [
+        "Acute angle-closure glaucoma is an ophthalmic emergency that can cause rapid permanent vision loss",
+        "Immediate treatment lowers intraocular pressure before definitive laser peripheral iridotomy",
+        "Topical aqueous suppressants and systemic acetazolamide or osmotic therapy are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Painful red eye, halos, severe eye pain, nausea, vomiting, blurred vision, or vision loss",
+        "Fixed mid-dilated pupil, shallow anterior chamber, corneal edema, and markedly elevated IOP",
+    ]
+    case["time_critical_actions"] = [
+        "Measure intraocular pressure IOP with tonometry and perform slit lamp or gonioscopy assessment",
+        "Give topical aqueous suppression with timolol beta blocker, brimonidine or apraclonidine, and dorzolamide drops",
+        "Give systemic acetazolamide Diamox and consider osmotic therapy with mannitol, glycerol, or isosorbide if IOP remains high",
+        "Call urgent ophthalmology for laser peripheral iridotomy LPI, iridotomy, or iridectomy definitive planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if relevant",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Angle-Closure Glaucoma",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/glaucoma/angle-closure-glaucoma",
+            "supports": [
+                "acute angle-closure glaucoma diagnosis and risk stratification",
+                "acute angle-closure glaucoma is an ophthalmic emergency that can cause rapid permanent vision loss",
+                "immediate treatment lowers intraocular pressure before definitive laser peripheral iridotomy",
+                "topical aqueous suppressants and systemic acetazolamide or osmotic therapy are time critical",
+                "painful red eye, halos, severe eye pain, nausea, vomiting, blurred vision, or vision loss as red flags",
+                "fixed mid-dilated pupil, shallow anterior chamber, corneal edema, and markedly elevated IOP as severity markers",
+                "intraocular pressure IOP measurement with tonometry and slit lamp or gonioscopy assessment",
+                "topical aqueous suppression with timolol beta blocker, brimonidine or apraclonidine, and dorzolamide drops",
+                "systemic acetazolamide Diamox and osmotic therapy with mannitol, glycerol, or isosorbide if IOP remains high",
+                "urgent ophthalmology for laser peripheral iridotomy LPI, iridotomy, or iridectomy definitive planning",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if relevant",
+            ],
+        },
+        {
+            "title": "Laser Peripheral Iridotomy",
+            "organization": "American Academy of Ophthalmology EyeWiki",
+            "url": "https://eyewiki.aao.org/Laser_Peripheral_Iridotomy",
+            "supports": [
+                "acute primary angle closure should receive aqueous suppressants before laser peripheral iridotomy",
+                "laser peripheral iridotomy with medical treatment is preferred definitive treatment for acute angle-closure glaucoma with pupillary block",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute angle-closure glaucoma safety checks must include medication contraindication"
         in issue
         for issue in report.critical_issues
     )

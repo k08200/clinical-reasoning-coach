@@ -1220,6 +1220,121 @@ const GIANT_CELL_ARTERITIS_FOLLOWUP_SAFETY_TERMS = [
   "추적",
 ];
 
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_DIRECT_CONTEXT_TERMS = [
+  "acute angle closure",
+  "acute angle-closure glaucoma",
+  "acute closed-angle glaucoma",
+  "angle closure glaucoma",
+  "angle-closure glaucoma",
+  "closed-angle glaucoma",
+  "급성 폐쇄각 녹내장",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_RED_EYE_CONTEXT_TERMS = [
+  "painful red eye",
+  "red eye",
+  "severe eye pain",
+  "안구 통증",
+  "충혈",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_ANGLE_CONTEXT_TERMS = [
+  "fixed mid-dilated pupil",
+  "halos",
+  "intraocular pressure",
+  "iop",
+  "mid-dilated pupil",
+  "nausea",
+  "shallow anterior chamber",
+  "vomiting",
+  "안압",
+  "동공",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_ASSESSMENT_ACTION_TERMS = [
+  "gonioscopy",
+  "intraocular pressure",
+  "iop",
+  "slit lamp",
+  "tonometry",
+  "안압",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_AQUEOUS_SUPPRESSANT_ACTION_TERMS = [
+  "apraclonidine",
+  "beta blocker",
+  "brimonidine",
+  "dorzolamide",
+  "timolol",
+  "topical",
+  "점안",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_SYSTEMIC_IOP_ACTION_TERMS = [
+  "acetazolamide",
+  "diamox",
+  "glycerol",
+  "isosorbide",
+  "mannitol",
+  "osmotic",
+  "systemic",
+  "아세타졸아마이드",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_DEFINITIVE_ACTION_TERMS = [
+  "iridectomy",
+  "iridotomy",
+  "laser peripheral iridotomy",
+  "lpi",
+  "ophthalmology",
+  "urgent ophthalmology",
+  "안과",
+  "홍채절개",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_MED_CONTRA_SAFETY_TERMS = [
+  "acetazolamide allergy",
+  "asthma",
+  "bradycardia",
+  "copd",
+  "renal failure",
+  "sulfa allergy",
+  "timolol",
+  "금기",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_SAFETY_TERMS = [
+  "avoid pilocarpine",
+  "corneal edema",
+  "defer pilocarpine",
+  "high iop",
+  "lens-induced",
+  "pilocarpine",
+  "phacomorphic",
+  "pupil block",
+  "필로카르핀",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_SAFETY_TERMS = [
+  "bilateral",
+  "both eyes",
+  "fellow eye",
+  "prophylactic iridotomy",
+  "second eye",
+  "양안",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_MONITORING_SAFETY_TERMS = [
+  "corneal edema",
+  "optic nerve",
+  "recheck iop",
+  "repeat iop",
+  "visual acuity",
+  "vision loss",
+  "시력",
+  "안압 재측정",
+];
+
 const NEUTROPENIC_FEVER_CONTEXT_TERMS = [
   "absolute neutrophil count",
   "anc below 500",
@@ -6121,6 +6236,73 @@ function hasGiantCellArteritisTreatmentSafetyCheck(checks: string[]): boolean {
   return hasDoNotDelay && hasVisionIschemiaSafety && hasSteroidRiskSafety && hasFollowupSafety;
 }
 
+function requiresAcuteAngleClosureGlaucomaSafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = ACUTE_ANGLE_CLOSURE_GLAUCOMA_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRedEyeContext = ACUTE_ANGLE_CLOSURE_GLAUCOMA_RED_EYE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasAngleContext = ACUTE_ANGLE_CLOSURE_GLAUCOMA_ANGLE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasRedEyeContext && hasAngleContext);
+}
+
+function hasAcuteAngleClosureGlaucomaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasIopAssessment = ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAqueousSuppression =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_AQUEOUS_SUPPRESSANT_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasSystemicIopLowering =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_SYSTEMIC_IOP_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasDefinitivePlan = ACUTE_ANGLE_CLOSURE_GLAUCOMA_DEFINITIVE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasIopAssessment && hasAqueousSuppression && hasSystemicIopLowering && hasDefinitivePlan;
+}
+
+function hasAcuteAngleClosureGlaucomaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasMedContraSafety = ACUTE_ANGLE_CLOSURE_GLAUCOMA_MED_CONTRA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPilocarpineSafety = ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFellowEyeSafety = ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMonitoringSafety = ACUTE_ANGLE_CLOSURE_GLAUCOMA_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasMedContraSafety && hasPilocarpineSafety && hasFellowEyeSafety && hasMonitoringSafety;
+}
+
 function requiresNeutropenicFeverSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -8651,6 +8833,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasGiantCellArteritisTreatmentSafetyCheck,
       issue:
         "giant cell arteritis safety checks must include explicit do-not-delay, do-not-wait, immediate, same-day, or before-biopsy steroid planning, vision or cranial-ischemia risk review for amaurosis fugax, diplopia, visual disturbance, vision loss, or stroke, steroid-risk mitigation for glucose, diabetes, infection, osteoporosis, fracture, bone protection, PPI, GI, or toxicity, and follow-up planning for taper, relapse, large-vessel disease, vascular imaging, polymyalgia rheumatica, or tocilizumab",
+    },
+    {
+      name: "acute_angle_closure_glaucoma_time_critical_actions",
+      label: "Acute angle-closure glaucoma emergency actions",
+      applies: requiresAcuteAngleClosureGlaucomaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcuteAngleClosureGlaucomaTimeCriticalActions,
+      issue:
+        "acute angle-closure glaucoma time-critical actions must include IOP, intraocular-pressure, tonometry, slit-lamp, or gonioscopy assessment, topical aqueous suppression with timolol, beta blocker, brimonidine, apraclonidine, dorzolamide, or topical drops, systemic IOP lowering with acetazolamide, Diamox, osmotic agent, mannitol, glycerol, or isosorbide, and urgent ophthalmology plus laser peripheral iridotomy, LPI, iridotomy, or iridectomy definitive planning",
+    },
+    {
+      name: "acute_angle_closure_glaucoma_treatment_safety",
+      label: "Acute angle-closure glaucoma treatment safety",
+      applies: requiresAcuteAngleClosureGlaucomaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcuteAngleClosureGlaucomaTreatmentSafetyCheck,
+      issue:
+        "acute angle-closure glaucoma safety checks must include medication contraindication review for acetazolamide allergy, sulfa allergy, renal failure, timolol, asthma, COPD, bradycardia, or beta-blocker risk, pilocarpine timing or avoidance review for high IOP, corneal edema, lens-induced or phacomorphic angle closure, or pupil block, fellow-eye or bilateral prophylactic iridotomy planning, and visual acuity, optic-nerve, corneal-edema, vision-loss, repeat-IOP, or recheck-IOP monitoring",
     },
     {
       name: "neutropenic_fever_time_critical_actions",
