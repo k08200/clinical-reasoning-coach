@@ -3351,6 +3351,103 @@ SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS = (
     "전해질",
     "저칼륨",
 )
+SEVERE_CAP_CONTEXT_TERMS = (
+    "cap with hypoxemia",
+    "cap with respiratory failure",
+    "community-acquired pneumonia with hypoxemia",
+    "community-acquired pneumonia with sepsis",
+    "pneumonia with hypoxemia",
+    "pneumonia with respiratory failure",
+    "pneumonia with sepsis",
+    "severe cap",
+    "severe community-acquired pneumonia",
+    "severe pneumonia",
+    "중증 폐렴",
+)
+SEVERE_CAP_OXYGEN_VENTILATION_ACTION_TERMS = (
+    "airway",
+    "high-flow nasal cannula",
+    "hfnc",
+    "hypoxemia",
+    "intubation",
+    "oxygen",
+    "respiratory failure",
+    "ventilation",
+    "산소",
+    "저산소",
+)
+SEVERE_CAP_DIAGNOSTIC_CULTURE_ACTION_TERMS = (
+    "blood culture",
+    "blood cultures",
+    "chest x-ray",
+    "chest radiograph",
+    "legionella",
+    "respiratory culture",
+    "sputum culture",
+    "urinary antigen",
+    "배양",
+)
+SEVERE_CAP_EMPIRIC_ANTIBIOTIC_ACTION_TERMS = (
+    "antibiotic",
+    "azithromycin",
+    "beta-lactam",
+    "ceftriaxone",
+    "cefotaxime",
+    "ceftaroline",
+    "levofloxacin",
+    "macrolide",
+    "moxifloxacin",
+    "항생제",
+)
+SEVERE_CAP_SEPSIS_ESCALATION_ACTION_TERMS = (
+    "icu",
+    "lactate",
+    "sepsis",
+    "septic shock",
+    "shock",
+    "vasopressor",
+    "중환자",
+    "쇼크",
+)
+SEVERE_CAP_MRSA_PSEUDOMONAS_SAFETY_TERMS = (
+    "90 days",
+    "de-escalation",
+    "mrsa",
+    "pseudomonas",
+    "recent hospitalization",
+    "respiratory isolation",
+    "risk factor",
+    "vancomycin",
+)
+SEVERE_CAP_SEVERITY_DISPOSITION_SAFETY_TERMS = (
+    "curb-65",
+    "hypotension",
+    "icu",
+    "major criteria",
+    "minor criteria",
+    "psi",
+    "severity",
+    "shock",
+)
+SEVERE_CAP_EFFUSION_EMPYEMA_SAFETY_TERMS = (
+    "drainage",
+    "empyema",
+    "loculated",
+    "parapneumonic effusion",
+    "pleural effusion",
+    "thoracentesis",
+    "흉수",
+)
+SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS = (
+    "aspiration",
+    "covid",
+    "influenza",
+    "lung abscess",
+    "pulmonary embolism",
+    "viral",
+    "virus",
+    "흡인",
+)
 COPD_EXACERBATION_CONTEXT_TERMS = (
     "acute exacerbation of copd",
     "aecopd",
@@ -5304,6 +5401,40 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "response monitoring, impending respiratory failure or ventilation "
                 "risk review, and beta-agonist adverse-effect, electrolyte, or "
                 "trigger reassessment"
+            ),
+        ),
+        DomainSafetyGate(
+            name="severe_cap_time_critical_actions",
+            applies=_requires_severe_cap_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_severe_cap_time_critical_actions,
+            issue=(
+                "severe community-acquired pneumonia time-critical actions must "
+                "include oxygen, airway, HFNC, ventilation, intubation, "
+                "hypoxemia, or respiratory-failure support, chest x-ray, chest "
+                "radiograph, blood culture, sputum or respiratory culture, "
+                "Legionella, urinary antigen, or severe-CAP diagnostic testing, "
+                "empiric antibiotic therapy with beta-lactam, ceftriaxone, "
+                "cefotaxime, ceftaroline, macrolide, azithromycin, levofloxacin, "
+                "or moxifloxacin coverage, and sepsis, septic shock, lactate, "
+                "vasopressor, ICU, or shock escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="severe_cap_treatment_safety",
+            applies=_requires_severe_cap_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_severe_cap_treatment_safety_check,
+            issue=(
+                "severe community-acquired pneumonia safety checks must include "
+                "MRSA or Pseudomonas risk-factor review for prior respiratory "
+                "isolation, recent hospitalization or IV antibiotics within "
+                "90 days, vancomycin coverage, and de-escalation, severity or "
+                "disposition review with PSI, CURB-65, major/minor criteria, "
+                "shock, hypotension, or ICU need, parapneumonic effusion, "
+                "empyema, loculated effusion, thoracentesis, or drainage review, "
+                "and viral, influenza, COVID, aspiration, lung abscess, or "
+                "pulmonary embolism differential assessment"
             ),
         ),
         DomainSafetyGate(
@@ -7941,6 +8072,85 @@ def _has_severe_asthma_treatment_safety_check(checks: list[Any]) -> bool:
         has_response_monitoring
         and has_respiratory_failure_safety
         and has_treatment_adverse_safety
+    )
+
+
+def _requires_severe_cap_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in SEVERE_CAP_CONTEXT_TERMS
+    )
+
+
+def _has_severe_cap_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_oxygen_ventilation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_CAP_OXYGEN_VENTILATION_ACTION_TERMS
+    )
+    has_diagnostic_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_CAP_DIAGNOSTIC_CULTURE_ACTION_TERMS
+    )
+    has_empiric_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_CAP_EMPIRIC_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_sepsis_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_CAP_SEPSIS_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_oxygen_ventilation
+        and has_diagnostic_culture
+        and has_empiric_antibiotic
+        and has_sepsis_escalation
+    )
+
+
+def _has_severe_cap_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_mrsa_pseudomonas_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_MRSA_PSEUDOMONAS_SAFETY_TERMS
+    )
+    has_severity_disposition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_SEVERITY_DISPOSITION_SAFETY_TERMS
+    )
+    has_effusion_empyema_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_EFFUSION_EMPYEMA_SAFETY_TERMS
+    )
+    has_viral_aspiration_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS
+    )
+    return (
+        has_mrsa_pseudomonas_safety
+        and has_severity_disposition_safety
+        and has_effusion_empyema_safety
+        and has_viral_aspiration_differential_safety
     )
 
 

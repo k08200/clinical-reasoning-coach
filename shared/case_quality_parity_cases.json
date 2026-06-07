@@ -2717,5 +2717,65 @@
         }
       ]
     }
+  },
+  {
+    "name": "severe_cap_requires_oxygen_diagnostics_antibiotics_and_sepsis_escalation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "severe community-acquired pneumonia time-critical actions must include oxygen"
+    ],
+    "overrides": {
+      "diagnosis": "Severe community-acquired pneumonia with hypoxemia",
+      "patient_demographics": {
+        "age": 72,
+        "sex": "male",
+        "weight_kg": 78,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Fever, cough, confusion, and severe shortness of breath",
+      "history_of_present_illness": "Patient presents with severe community-acquired pneumonia, fever, productive cough, hypoxemia, confusion, hypotension, elevated lactate, and sepsis with possible respiratory failure.",
+      "key_teaching_points": [
+        "Severe CAP requires oxygenation support and early empiric antibiotics",
+        "Blood and sputum cultures are recommended for severe CAP before antibiotics when feasible",
+        "MRSA or Pseudomonas coverage should be based on validated risk factors and de-escalated when cultures are negative"
+      ],
+      "clinical_red_flags": [
+        "Hypoxemia, respiratory failure, hypotension, shock, confusion, multilobar infiltrates, or ICU need",
+        "Prior respiratory isolation of MRSA or Pseudomonas, recent hospitalization with IV antibiotics within 90 days, empyema, or septic shock"
+      ],
+      "time_critical_actions": [
+        "Give oxygen, assess airway, and escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
+        "Obtain chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella urinary antigen, and severe-CAP diagnostic testing",
+        "Treat sepsis and septic shock with lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment"
+      ],
+      "contraindication_checks": [
+        "Review MRSA and Pseudomonas risk factors including prior respiratory isolation, recent hospitalization with IV antibiotics within 90 days, vancomycin need, and de-escalation when cultures are negative",
+        "Use PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+        "Assess parapneumonic effusion, empyema, loculated pleural effusion, thoracentesis need, and drainage indications",
+        "Evaluate viral influenza, COVID, aspiration, lung abscess, and pulmonary embolism differential diagnoses"
+      ],
+      "clinical_sources": [
+        {
+          "title": "ATS/IDSA Community-Acquired Pneumonia Guideline",
+          "organization": "American Thoracic Society / Infectious Diseases Society of America",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6812437/",
+          "supports": [
+            "severe community-acquired pneumonia diagnosis and risk stratification",
+            "severe CAP requires oxygenation support and early empiric antibiotics",
+            "blood and sputum cultures are recommended for severe CAP before antibiotics when feasible",
+            "MRSA or Pseudomonas coverage should be based on validated risk factors and de-escalated when cultures are negative",
+            "hypoxemia, respiratory failure, hypotension, shock, confusion, multilobar infiltrates, or ICU need as red flags",
+            "prior respiratory isolation of MRSA or Pseudomonas, recent hospitalization with IV antibiotics within 90 days, empyema, or septic shock as severity markers",
+            "oxygen, airway assessment, HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
+            "chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella urinary antigen, and severe-CAP diagnostic testing",
+            "sepsis and septic shock lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment",
+            "MRSA and Pseudomonas risk factors including prior respiratory isolation, recent hospitalization with IV antibiotics within 90 days, vancomycin need, and de-escalation when cultures are negative",
+            "PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+            "parapneumonic effusion, empyema, loculated pleural effusion, thoracentesis need, and drainage indications",
+            "viral influenza, COVID, aspiration, lung abscess, and pulmonary embolism differential diagnoses"
+          ]
+        }
+      ]
+    }
   }
 ]

@@ -113,6 +113,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "opioid_toxicity_treatment_safety",
         "severe_asthma_time_critical_actions",
         "severe_asthma_treatment_safety",
+        "severe_cap_time_critical_actions",
+        "severe_cap_treatment_safety",
         "copd_exacerbation_time_critical_actions",
         "copd_exacerbation_treatment_safety",
         "acute_heart_failure_time_critical_actions",
@@ -4502,6 +4504,140 @@ def test_quality_gate_requires_severe_asthma_response_failure_and_treatment_safe
     assert not report.passed
     assert any(
         "severe asthma safety checks must include serial severity or response monitoring"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_cap_oxygen_diagnostics_antibiotics_and_sepsis_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe community-acquired pneumonia with hypoxemia"
+    case["patient_demographics"] = {
+        "age": 72,
+        "sex": "male",
+        "weight_kg": 78,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, cough, confusion, and severe shortness of breath"
+    case["history_of_present_illness"] = (
+        "Patient presents with severe community-acquired pneumonia, fever, productive "
+        "cough, hypoxemia, confusion, hypotension, elevated lactate, and sepsis with "
+        "possible respiratory failure."
+    )
+    case["key_teaching_points"] = [
+        "Severe CAP requires oxygenation support and early empiric antibiotics",
+        "Blood and sputum cultures are recommended for severe CAP before antibiotics when feasible",
+        "MRSA or Pseudomonas coverage should be based on validated risk factors and de-escalated when cultures are negative",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypoxemia, respiratory failure, hypotension, shock, confusion, multilobar infiltrates, or ICU need",
+        "Prior respiratory isolation of MRSA or Pseudomonas, recent hospitalization with IV antibiotics within 90 days, empyema, or septic shock",
+    ]
+    case["time_critical_actions"] = [
+        "Give oxygen, assess airway, and escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
+        "Obtain chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella urinary antigen, and severe-CAP diagnostic testing",
+        "Treat sepsis and septic shock with lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment",
+    ]
+    case["contraindication_checks"] = [
+        "Review MRSA and Pseudomonas risk factors including prior respiratory isolation, recent hospitalization with IV antibiotics within 90 days, vancomycin need, and de-escalation when cultures are negative",
+        "Use PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+        "Assess parapneumonic effusion, empyema, loculated pleural effusion, thoracentesis need, and drainage indications",
+        "Evaluate viral influenza, COVID, aspiration, lung abscess, and pulmonary embolism differential diagnoses",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "ATS/IDSA Community-Acquired Pneumonia Guideline",
+            "organization": "American Thoracic Society / Infectious Diseases Society of America",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6812437/",
+            "supports": [
+                "severe community-acquired pneumonia diagnosis and risk stratification",
+                "severe CAP requires oxygenation support and early empiric antibiotics",
+                "blood and sputum cultures are recommended for severe CAP before antibiotics when feasible",
+                "MRSA or Pseudomonas coverage should be based on validated risk factors and de-escalated when cultures are negative",
+                "hypoxemia, respiratory failure, hypotension, shock, confusion, multilobar infiltrates, or ICU need as red flags",
+                "prior respiratory isolation of MRSA or Pseudomonas, recent hospitalization with IV antibiotics within 90 days, empyema, or septic shock as severity markers",
+                "oxygen, airway assessment, HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
+                "chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella urinary antigen, and severe-CAP diagnostic testing",
+                "sepsis and septic shock lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment",
+                "MRSA and Pseudomonas risk factors including prior respiratory isolation, recent hospitalization with IV antibiotics within 90 days, vancomycin need, and de-escalation when cultures are negative",
+                "PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+                "parapneumonic effusion, empyema, loculated pleural effusion, thoracentesis need, and drainage indications",
+                "viral influenza, COVID, aspiration, lung abscess, and pulmonary embolism differential diagnoses",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe community-acquired pneumonia time-critical actions must include oxygen"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_cap_mrsa_severity_effusion_and_differential_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe community-acquired pneumonia with hypoxemia"
+    case["patient_demographics"] = {
+        "age": 72,
+        "sex": "male",
+        "weight_kg": 78,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, cough, confusion, and severe shortness of breath"
+    case["history_of_present_illness"] = (
+        "Patient presents with severe community-acquired pneumonia, fever, productive "
+        "cough, hypoxemia, confusion, hypotension, elevated lactate, and sepsis with "
+        "possible respiratory failure."
+    )
+    case["key_teaching_points"] = [
+        "Severe CAP requires oxygenation support and early empiric antibiotics",
+        "Blood and sputum cultures are recommended for severe CAP before antibiotics when feasible",
+        "MRSA or Pseudomonas coverage should be based on validated risk factors and de-escalated when cultures are negative",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypoxemia, respiratory failure, hypotension, shock, confusion, multilobar infiltrates, or ICU need",
+        "Prior respiratory isolation of MRSA or Pseudomonas, recent hospitalization with IV antibiotics within 90 days, empyema, or septic shock",
+    ]
+    case["time_critical_actions"] = [
+        "Give oxygen, assess airway, and escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
+        "Obtain chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella urinary antigen, and severe-CAP diagnostic testing",
+        "Start empiric antibiotic therapy with beta-lactam ceftriaxone plus azithromycin macrolide or levofloxacin coverage",
+        "Treat sepsis and septic shock with lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antibiotic selection",
+        "Renal dosing before contrast imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "ATS/IDSA Community-Acquired Pneumonia Guideline",
+            "organization": "American Thoracic Society / Infectious Diseases Society of America",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6812437/",
+            "supports": [
+                "severe community-acquired pneumonia diagnosis and risk stratification",
+                "severe CAP requires oxygenation support and early empiric antibiotics",
+                "blood and sputum cultures are recommended for severe CAP before antibiotics when feasible",
+                "MRSA or Pseudomonas coverage should be based on validated risk factors and de-escalated when cultures are negative",
+                "hypoxemia, respiratory failure, hypotension, shock, confusion, multilobar infiltrates, or ICU need as red flags",
+                "prior respiratory isolation of MRSA or Pseudomonas, recent hospitalization with IV antibiotics within 90 days, empyema, or septic shock as severity markers",
+                "oxygen, airway assessment, HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
+                "chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella urinary antigen, and severe-CAP diagnostic testing",
+                "empiric antibiotic therapy with beta-lactam ceftriaxone plus azithromycin macrolide or levofloxacin coverage",
+                "sepsis and septic shock lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment",
+                "medication allergy before antibiotic selection",
+                "renal dosing before contrast imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe community-acquired pneumonia safety checks must include MRSA"
         in issue
         for issue in report.critical_issues
     )

@@ -3615,6 +3615,112 @@ const SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS = [
   "저칼륨",
 ];
 
+const SEVERE_CAP_CONTEXT_TERMS = [
+  "cap with hypoxemia",
+  "cap with respiratory failure",
+  "community-acquired pneumonia with hypoxemia",
+  "community-acquired pneumonia with sepsis",
+  "pneumonia with hypoxemia",
+  "pneumonia with respiratory failure",
+  "pneumonia with sepsis",
+  "severe cap",
+  "severe community-acquired pneumonia",
+  "severe pneumonia",
+  "중증 폐렴",
+];
+
+const SEVERE_CAP_OXYGEN_VENTILATION_ACTION_TERMS = [
+  "airway",
+  "high-flow nasal cannula",
+  "hfnc",
+  "hypoxemia",
+  "intubation",
+  "oxygen",
+  "respiratory failure",
+  "ventilation",
+  "산소",
+  "저산소",
+];
+
+const SEVERE_CAP_DIAGNOSTIC_CULTURE_ACTION_TERMS = [
+  "blood culture",
+  "blood cultures",
+  "chest x-ray",
+  "chest radiograph",
+  "legionella",
+  "respiratory culture",
+  "sputum culture",
+  "urinary antigen",
+  "배양",
+];
+
+const SEVERE_CAP_EMPIRIC_ANTIBIOTIC_ACTION_TERMS = [
+  "antibiotic",
+  "azithromycin",
+  "beta-lactam",
+  "ceftriaxone",
+  "cefotaxime",
+  "ceftaroline",
+  "levofloxacin",
+  "macrolide",
+  "moxifloxacin",
+  "항생제",
+];
+
+const SEVERE_CAP_SEPSIS_ESCALATION_ACTION_TERMS = [
+  "icu",
+  "lactate",
+  "sepsis",
+  "septic shock",
+  "shock",
+  "vasopressor",
+  "중환자",
+  "쇼크",
+];
+
+const SEVERE_CAP_MRSA_PSEUDOMONAS_SAFETY_TERMS = [
+  "90 days",
+  "de-escalation",
+  "mrsa",
+  "pseudomonas",
+  "recent hospitalization",
+  "respiratory isolation",
+  "risk factor",
+  "vancomycin",
+];
+
+const SEVERE_CAP_SEVERITY_DISPOSITION_SAFETY_TERMS = [
+  "curb-65",
+  "hypotension",
+  "icu",
+  "major criteria",
+  "minor criteria",
+  "psi",
+  "severity",
+  "shock",
+];
+
+const SEVERE_CAP_EFFUSION_EMPYEMA_SAFETY_TERMS = [
+  "drainage",
+  "empyema",
+  "loculated",
+  "parapneumonic effusion",
+  "pleural effusion",
+  "thoracentesis",
+  "흉수",
+];
+
+const SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS = [
+  "aspiration",
+  "covid",
+  "influenza",
+  "lung abscess",
+  "pulmonary embolism",
+  "viral",
+  "virus",
+  "흡인",
+];
+
 const COPD_EXACERBATION_CONTEXT_TERMS = [
   "acute exacerbation of copd",
   "aecopd",
@@ -6453,6 +6559,65 @@ function hasSevereAsthmaTreatmentSafetyCheck(checks: string[]): boolean {
   return hasResponseMonitoring && hasRespiratoryFailureSafety && hasTreatmentAdverseSafety;
 }
 
+function requiresSevereCapSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return SEVERE_CAP_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasSevereCapTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasOxygenVentilation = SEVERE_CAP_OXYGEN_VENTILATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDiagnosticCulture = SEVERE_CAP_DIAGNOSTIC_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEmpiricAntibiotic = SEVERE_CAP_EMPIRIC_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSepsisEscalation = SEVERE_CAP_SEPSIS_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasOxygenVentilation && hasDiagnosticCulture && hasEmpiricAntibiotic && hasSepsisEscalation;
+}
+
+function hasSevereCapTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasMrsaPseudomonasSafety = SEVERE_CAP_MRSA_PSEUDOMONAS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSeverityDispositionSafety = SEVERE_CAP_SEVERITY_DISPOSITION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEffusionEmpyemaSafety = SEVERE_CAP_EFFUSION_EMPYEMA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasViralAspirationDifferentialSafety =
+    SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasMrsaPseudomonasSafety &&
+    hasSeverityDispositionSafety &&
+    hasEffusionEmpyemaSafety &&
+    hasViralAspirationDifferentialSafety
+  );
+}
+
 function requiresCopdExacerbationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -7491,6 +7656,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSevereAsthmaTreatmentSafetyCheck,
       issue:
         "severe asthma safety checks must include serial severity or response monitoring, impending respiratory failure or ventilation risk review, and beta-agonist adverse-effect, electrolyte, or trigger reassessment",
+    },
+    {
+      name: "severe_cap_time_critical_actions",
+      label: "Severe CAP oxygen, diagnostics, and antibiotics",
+      applies: requiresSevereCapSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSevereCapTimeCriticalActions,
+      issue:
+        "severe community-acquired pneumonia time-critical actions must include oxygen, airway, HFNC, ventilation, intubation, hypoxemia, or respiratory-failure support, chest x-ray, chest radiograph, blood culture, sputum or respiratory culture, Legionella, urinary antigen, or severe-CAP diagnostic testing, empiric antibiotic therapy with beta-lactam, ceftriaxone, cefotaxime, ceftaroline, macrolide, azithromycin, levofloxacin, or moxifloxacin coverage, and sepsis, septic shock, lactate, vasopressor, ICU, or shock escalation",
+    },
+    {
+      name: "severe_cap_treatment_safety",
+      label: "Severe CAP resistant pathogen and complication safety",
+      applies: requiresSevereCapSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSevereCapTreatmentSafetyCheck,
+      issue:
+        "severe community-acquired pneumonia safety checks must include MRSA or Pseudomonas risk-factor review for prior respiratory isolation, recent hospitalization or IV antibiotics within 90 days, vancomycin coverage, and de-escalation, severity or disposition review with PSI, CURB-65, major/minor criteria, shock, hypotension, or ICU need, parapneumonic effusion, empyema, loculated effusion, thoracentesis, or drainage review, and viral, influenza, COVID, aspiration, lung abscess, or pulmonary embolism differential assessment",
     },
     {
       name: "copd_exacerbation_time_critical_actions",
