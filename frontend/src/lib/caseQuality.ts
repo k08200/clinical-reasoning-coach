@@ -2034,6 +2034,130 @@ const UPPER_GI_BLEED_REBLEED_DISPOSITION_SAFETY_TERMS = [
   "혈역학",
 ];
 
+const ACUTE_CHOLANGITIS_CONTEXT_TERMS = [
+  "acute cholangitis",
+  "ascending cholangitis",
+  "biliary sepsis",
+  "choledocholithiasis with cholangitis",
+  "infected biliary obstruction",
+  "obstructive cholangitis",
+  "suppurative cholangitis",
+  "담관염",
+];
+
+const ACUTE_CHOLANGITIS_ANTIBIOTIC_SUPPORT_ACTION_TERMS = [
+  "antibiotic",
+  "antibiotics",
+  "broad-spectrum",
+  "cefepime",
+  "ceftriaxone",
+  "piperacillin",
+  "supportive care",
+  "tazobactam",
+  "항생제",
+];
+
+const ACUTE_CHOLANGITIS_CULTURE_LAB_ACTION_TERMS = [
+  "bilirubin",
+  "blood culture",
+  "blood cultures",
+  "bile culture",
+  "crp",
+  "inflammatory",
+  "lft",
+  "liver function",
+  "wbc",
+  "배양",
+  "빌리루빈",
+];
+
+const ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS = [
+  "biliary dilatation",
+  "biliary dilation",
+  "common bile duct",
+  "ct",
+  "mrcp",
+  "obstruction",
+  "stone",
+  "stricture",
+  "ultrasound",
+  "초음파",
+];
+
+const ACUTE_CHOLANGITIS_DRAINAGE_ACTION_TERMS = [
+  "biliary decompression",
+  "biliary drainage",
+  "drainage",
+  "ercp",
+  "nasobiliary",
+  "ptbd",
+  "stent",
+  "percutaneous transhepatic",
+  "담도 배액",
+];
+
+const ACUTE_CHOLANGITIS_ORGAN_SUPPORT_ACTION_TERMS = [
+  "circulatory",
+  "fluid",
+  "icu",
+  "organ support",
+  "respiratory",
+  "sepsis",
+  "shock",
+  "vasopressor",
+  "중환자",
+  "쇼크",
+];
+
+const ACUTE_CHOLANGITIS_SEVERITY_SAFETY_TERMS = [
+  "acute dyspnea",
+  "dic",
+  "disturbance of consciousness",
+  "organ dysfunction",
+  "renal dysfunction",
+  "severity",
+  "shock",
+  "tokyo",
+  "의식",
+  "장기부전",
+];
+
+const ACUTE_CHOLANGITIS_DRAINAGE_TIMING_SAFETY_TERMS = [
+  "48 hours",
+  "advanced center",
+  "do not delay",
+  "early drainage",
+  "emergency biliary drainage",
+  "transfer",
+  "within 24",
+  "within 48",
+  "지연",
+];
+
+const ACUTE_CHOLANGITIS_PROCEDURE_RISK_SAFETY_TERMS = [
+  "altered anatomy",
+  "anticoagulant",
+  "coagulopathy",
+  "failed ercp",
+  "pancreatitis",
+  "percutaneous drainage",
+  "ptbd",
+  "sphincterotomy",
+  "항응고",
+];
+
+const ACUTE_CHOLANGITIS_DIFFERENTIAL_SOURCE_SAFETY_TERMS = [
+  "acute cholecystitis",
+  "bile culture",
+  "cholecystitis",
+  "gallstone pancreatitis",
+  "malignant obstruction",
+  "pancreatitis",
+  "source control",
+  "stone",
+  "감별",
+];
+
 const ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = [
   "acute bowel ischemia",
   "acute intestinal ischemia",
@@ -5307,6 +5431,73 @@ function hasUpperGiBleedTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresAcuteCholangitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return ACUTE_CHOLANGITIS_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasAcuteCholangitisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAntibioticSupport = ACUTE_CHOLANGITIS_ANTIBIOTIC_SUPPORT_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCultureLab = ACUTE_CHOLANGITIS_CULTURE_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImagingObstruction = ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDrainage = ACUTE_CHOLANGITIS_DRAINAGE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOrganSupport = ACUTE_CHOLANGITIS_ORGAN_SUPPORT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasAntibioticSupport &&
+    hasCultureLab &&
+    hasImagingObstruction &&
+    hasDrainage &&
+    hasOrganSupport
+  );
+}
+
+function hasAcuteCholangitisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasSeveritySafety = ACUTE_CHOLANGITIS_SEVERITY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDrainageTimingSafety = ACUTE_CHOLANGITIS_DRAINAGE_TIMING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasProcedureRiskSafety = ACUTE_CHOLANGITIS_PROCEDURE_RISK_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferentialSourceSafety = ACUTE_CHOLANGITIS_DIFFERENTIAL_SOURCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasSeveritySafety &&
+    hasDrainageTimingSafety &&
+    hasProcedureRiskSafety &&
+    hasDifferentialSourceSafety
+  );
+}
+
 function requiresAcuteMesentericIschemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -6843,6 +7034,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasUpperGiBleedTreatmentSafetyCheck,
       issue:
         "upper GI bleeding safety checks must include airway, aspiration, active hematemesis, vomiting blood, intubation, or altered mental status planning, anticoagulant, antiplatelet, warfarin, DOAC, INR, platelet, coagulopathy, or reversal review, variceal, cirrhosis, portal hypertension, TIPS, balloon tamponade, stent, or rescue therapy review, and rebleeding, repeat endoscopy, ICU, unstable, shock, or risk-stratification disposition monitoring",
+    },
+    {
+      name: "acute_cholangitis_time_critical_actions",
+      label: "Acute cholangitis antibiotics and drainage",
+      applies: requiresAcuteCholangitisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcuteCholangitisTimeCriticalActions,
+      issue:
+        "acute cholangitis time-critical actions must include immediate broad-spectrum antibiotics and supportive care, blood culture, bile culture, WBC, CRP, bilirubin, LFT, or liver function assessment, ultrasound, CT, MRCP, biliary dilation, common bile duct, stone, stricture, or obstruction imaging, ERCP, biliary drainage, biliary decompression, stent, PTBD, nasobiliary, or percutaneous transhepatic drainage planning, and sepsis, shock, fluid, vasopressor, respiratory, circulatory, organ-support, or ICU escalation",
+    },
+    {
+      name: "acute_cholangitis_treatment_safety",
+      label: "Acute cholangitis severity and drainage safety",
+      applies: requiresAcuteCholangitisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcuteCholangitisTreatmentSafetyCheck,
+      issue:
+        "acute cholangitis safety checks must include Tokyo severity or organ dysfunction review for shock, disturbance of consciousness, acute dyspnea, renal dysfunction, DIC, or severe disease, early or emergency biliary drainage timing with do-not-delay, within-24 or within-48-hours, transfer, or advanced-center planning, ERCP procedure-risk review for anticoagulant, coagulopathy, sphincterotomy, pancreatitis, failed ERCP, altered anatomy, PTBD, or percutaneous drainage alternatives, and source-control or differential review for cholecystitis, pancreatitis, gallstone pancreatitis, malignant obstruction, stone, or bile culture",
     },
     {
       name: "acute_mesenteric_ischemia_time_critical_actions",

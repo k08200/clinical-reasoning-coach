@@ -1899,6 +1899,120 @@ UPPER_GI_BLEED_REBLEED_DISPOSITION_SAFETY_TERMS = (
     "unstable",
     "혈역학",
 )
+ACUTE_CHOLANGITIS_CONTEXT_TERMS = (
+    "acute cholangitis",
+    "ascending cholangitis",
+    "biliary sepsis",
+    "choledocholithiasis with cholangitis",
+    "infected biliary obstruction",
+    "obstructive cholangitis",
+    "suppurative cholangitis",
+    "담관염",
+)
+ACUTE_CHOLANGITIS_ANTIBIOTIC_SUPPORT_ACTION_TERMS = (
+    "antibiotic",
+    "antibiotics",
+    "broad-spectrum",
+    "cefepime",
+    "ceftriaxone",
+    "piperacillin",
+    "supportive care",
+    "tazobactam",
+    "항생제",
+)
+ACUTE_CHOLANGITIS_CULTURE_LAB_ACTION_TERMS = (
+    "bilirubin",
+    "blood culture",
+    "blood cultures",
+    "bile culture",
+    "crp",
+    "inflammatory",
+    "lft",
+    "liver function",
+    "wbc",
+    "배양",
+    "빌리루빈",
+)
+ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS = (
+    "biliary dilatation",
+    "biliary dilation",
+    "common bile duct",
+    "ct",
+    "mrcp",
+    "obstruction",
+    "stone",
+    "stricture",
+    "ultrasound",
+    "초음파",
+)
+ACUTE_CHOLANGITIS_DRAINAGE_ACTION_TERMS = (
+    "biliary decompression",
+    "biliary drainage",
+    "drainage",
+    "ercp",
+    "nasobiliary",
+    "ptbd",
+    "stent",
+    "percutaneous transhepatic",
+    "담도 배액",
+)
+ACUTE_CHOLANGITIS_ORGAN_SUPPORT_ACTION_TERMS = (
+    "circulatory",
+    "fluid",
+    "icu",
+    "organ support",
+    "respiratory",
+    "sepsis",
+    "shock",
+    "vasopressor",
+    "중환자",
+    "쇼크",
+)
+ACUTE_CHOLANGITIS_SEVERITY_SAFETY_TERMS = (
+    "acute dyspnea",
+    "dic",
+    "disturbance of consciousness",
+    "organ dysfunction",
+    "renal dysfunction",
+    "severity",
+    "shock",
+    "tokyo",
+    "의식",
+    "장기부전",
+)
+ACUTE_CHOLANGITIS_DRAINAGE_TIMING_SAFETY_TERMS = (
+    "48 hours",
+    "advanced center",
+    "do not delay",
+    "early drainage",
+    "emergency biliary drainage",
+    "transfer",
+    "within 24",
+    "within 48",
+    "지연",
+)
+ACUTE_CHOLANGITIS_PROCEDURE_RISK_SAFETY_TERMS = (
+    "altered anatomy",
+    "anticoagulant",
+    "coagulopathy",
+    "failed ercp",
+    "pancreatitis",
+    "percutaneous drainage",
+    "ptbd",
+    "sphincterotomy",
+    "항응고",
+)
+ACUTE_CHOLANGITIS_DIFFERENTIAL_SOURCE_SAFETY_TERMS = (
+    "acute cholecystitis",
+    "bile culture",
+    "cholecystitis",
+    "gallstone pancreatitis",
+    "malignant obstruction",
+    "pancreatitis",
+    "source control",
+    "stone",
+    "감별",
+)
 ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = (
     "acute bowel ischemia",
     "acute intestinal ischemia",
@@ -4658,6 +4772,41 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="acute_cholangitis_time_critical_actions",
+            applies=_requires_acute_cholangitis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_acute_cholangitis_time_critical_actions,
+            issue=(
+                "acute cholangitis time-critical actions must include immediate "
+                "broad-spectrum antibiotics and supportive care, blood culture, "
+                "bile culture, WBC, CRP, bilirubin, LFT, or liver function "
+                "assessment, ultrasound, CT, MRCP, biliary dilation, common "
+                "bile duct, stone, stricture, or obstruction imaging, ERCP, "
+                "biliary drainage, biliary decompression, stent, PTBD, "
+                "nasobiliary, or percutaneous transhepatic drainage planning, "
+                "and sepsis, shock, fluid, vasopressor, respiratory, circulatory, "
+                "organ-support, or ICU escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acute_cholangitis_treatment_safety",
+            applies=_requires_acute_cholangitis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acute_cholangitis_treatment_safety_check,
+            issue=(
+                "acute cholangitis safety checks must include Tokyo severity or "
+                "organ dysfunction review for shock, disturbance of consciousness, "
+                "acute dyspnea, renal dysfunction, DIC, or severe disease, early "
+                "or emergency biliary drainage timing with do-not-delay, within-24 "
+                "or within-48-hours, transfer, or advanced-center planning, ERCP "
+                "procedure-risk review for anticoagulant, coagulopathy, "
+                "sphincterotomy, pancreatitis, failed ERCP, altered anatomy, "
+                "PTBD, or percutaneous drainage alternatives, and source-control "
+                "or differential review for cholecystitis, pancreatitis, gallstone "
+                "pancreatitis, malignant obstruction, stone, or bile culture"
+            ),
+        ),
+        DomainSafetyGate(
             name="acute_mesenteric_ischemia_time_critical_actions",
             applies=_requires_acute_mesenteric_ischemia_safety_check,
             field_name="time_critical_actions",
@@ -6458,6 +6607,90 @@ def _has_upper_gi_bleed_treatment_safety_check(checks: list[Any]) -> bool:
         and has_antithrombotic_reversal_safety
         and has_variceal_rescue_safety
         and has_rebleed_disposition_safety
+    )
+
+
+def _requires_acute_cholangitis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_CHOLANGITIS_CONTEXT_TERMS
+    )
+
+
+def _has_acute_cholangitis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_antibiotic_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLANGITIS_ANTIBIOTIC_SUPPORT_ACTION_TERMS
+    )
+    has_culture_lab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLANGITIS_CULTURE_LAB_ACTION_TERMS
+    )
+    has_imaging_obstruction = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS
+    )
+    has_drainage = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLANGITIS_DRAINAGE_ACTION_TERMS
+    )
+    has_organ_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLANGITIS_ORGAN_SUPPORT_ACTION_TERMS
+    )
+    return (
+        has_antibiotic_support
+        and has_culture_lab
+        and has_imaging_obstruction
+        and has_drainage
+        and has_organ_support
+    )
+
+
+def _has_acute_cholangitis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_severity_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHOLANGITIS_SEVERITY_SAFETY_TERMS
+    )
+    has_drainage_timing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHOLANGITIS_DRAINAGE_TIMING_SAFETY_TERMS
+    )
+    has_procedure_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHOLANGITIS_PROCEDURE_RISK_SAFETY_TERMS
+    )
+    has_differential_source_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHOLANGITIS_DIFFERENTIAL_SOURCE_SAFETY_TERMS
+    )
+    return (
+        has_severity_safety
+        and has_drainage_timing_safety
+        and has_procedure_risk_safety
+        and has_differential_source_safety
     )
 
 
