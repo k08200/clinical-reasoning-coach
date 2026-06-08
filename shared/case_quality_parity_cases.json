@@ -2614,6 +2614,75 @@
     }
   },
   {
+    "name": "neuroleptic_malignant_syndrome_requires_stop_support_cooling_medication_and_complication_monitoring",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "neuroleptic malignant syndrome time-critical actions must include stopping"
+    ],
+    "overrides": {
+      "diagnosis": "Neuroleptic malignant syndrome",
+      "patient_demographics": {
+        "age": 45,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Fever, rigidity, and confusion after antipsychotic dose increase",
+      "history_of_present_illness": "Patient recently started high-potency haloperidol antipsychotic and presents with hyperthermia, altered mental status, severe lead-pipe muscle rigidity, diaphoresis, tachycardia, labile blood pressure, elevated CK, and AKI concerning for NMS.",
+      "key_teaching_points": [
+        "Neuroleptic malignant syndrome is a life-threatening dopamine-antagonist reaction",
+        "Exposure to antipsychotic or dopamine withdrawal with rigidity, hyperthermia, mental status change, and autonomic instability supports the diagnosis",
+        "Treatment requires stopping the offending drug, ICU supportive care, cooling, complication monitoring, and medication therapy consideration for severe disease"
+      ],
+      "clinical_red_flags": [
+        "Hyperthermia, lead-pipe rigidity, altered mental status, diaphoresis, tachycardia, or labile blood pressure",
+        "Elevated CK, rhabdomyolysis, AKI, renal failure, electrolyte abnormalities, respiratory failure, or shock"
+      ],
+      "time_critical_actions": [
+        "Stop antipsychotic neuroleptic dopamine antagonist haloperidol and remove offending medication",
+        "Admit to ICU for supportive care, IV fluids, vital signs, and cardiac monitoring",
+        "Start active cooling and aggressive cooling for hyperthermia with temperature monitoring",
+        "Trend CK creatine kinase, rhabdomyolysis, AKI, renal function, and electrolyte complications"
+      ],
+      "contraindication_checks": [
+        "Review differential diagnosis including serotonin syndrome, malignant hyperthermia, heat stroke, CNS infection, meningitis, and sympathomimetic toxicity",
+        "Avoid antipsychotic rechallenge or restart until recovery, wait an appropriate interval, and use lower potency if reintroduced",
+        "Review bromocriptine, amantadine, dantrolene, benzodiazepine, ECT electroconvulsive therapy, liver risk, and psychosis worsening safety"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Neuroleptic Malignant Syndrome",
+          "organization": "NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK482282/",
+          "supports": [
+            "neuroleptic malignant syndrome diagnosis and risk stratification",
+            "neuroleptic malignant syndrome is a life-threatening dopamine-antagonist reaction",
+            "exposure to antipsychotic or dopamine withdrawal with rigidity, hyperthermia, mental status change, and autonomic instability supports the diagnosis",
+            "treatment requires stopping the offending drug, ICU supportive care, cooling, complication monitoring, and medication therapy consideration for severe disease",
+            "hyperthermia, lead-pipe rigidity, altered mental status, diaphoresis, tachycardia, or labile blood pressure as red flags",
+            "elevated CK, rhabdomyolysis, AKI, renal failure, electrolyte abnormalities, respiratory failure, or shock as severity markers",
+            "stop antipsychotic neuroleptic dopamine antagonist haloperidol and remove offending medication",
+            "ICU supportive care, IV fluids, vital signs, and cardiac monitoring",
+            "active cooling and aggressive cooling for hyperthermia with temperature monitoring",
+            "CK creatine kinase, rhabdomyolysis, AKI, renal function, and electrolyte complication monitoring",
+            "serotonin syndrome, malignant hyperthermia, heat stroke, CNS infection, meningitis, and sympathomimetic toxicity differential diagnosis",
+            "avoid antipsychotic rechallenge or restart until recovery, wait an appropriate interval, and use lower potency if reintroduced",
+            "bromocriptine, amantadine, dantrolene, benzodiazepine, ECT electroconvulsive therapy, liver risk, and psychosis worsening safety"
+          ]
+        },
+        {
+          "title": "Neuroleptic Malignant Syndrome",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/injuries-poisoning/heat-illness/neuroleptic-malignant-syndrome",
+          "supports": [
+            "stop the causative medication, initiate rapid cooling, and begin aggressive supportive care in an ICU",
+            "bromocriptine or amantadine can restore dopaminergic activity and dantrolene or lorazepam may be used for rigidity"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "cauda_equina_requires_emergency_mri_bladder_neuro_exam_and_spine_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

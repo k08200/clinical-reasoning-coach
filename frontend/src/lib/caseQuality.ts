@@ -3274,6 +3274,131 @@ const SEROTONIN_SYNDROME_COMPLICATION_MONITORING_SAFETY_TERMS = [
   "횡문근",
 ];
 
+const NEUROLEPTIC_MALIGNANT_SYNDROME_DIRECT_CONTEXT_TERMS = [
+  "nms",
+  "neuroleptic malignant syndrome",
+  "neuroleptic malignant",
+  "malignant neuroleptic syndrome",
+  "신경이완제 악성 증후군",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_EXPOSURE_CONTEXT_TERMS = [
+  "antipsychotic",
+  "dopamine antagonist",
+  "dopamine withdrawal",
+  "haloperidol",
+  "metoclopramide",
+  "neuroleptic",
+  "olanzapine",
+  "risperidone",
+  "withdrawal of dopaminergic",
+  "항정신병",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_RIGIDITY_CONTEXT_TERMS = [
+  "lead pipe",
+  "muscle rigidity",
+  "rigidity",
+  "severe rigidity",
+  "stiffness",
+  "강직",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_AUTONOMIC_MENTAL_CONTEXT_TERMS = [
+  "altered mental status",
+  "autonomic instability",
+  "diaphoresis",
+  "fever",
+  "hyperthermia",
+  "labile blood pressure",
+  "tachycardia",
+  "혼돈",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_STOP_AGENT_ACTION_TERMS = [
+  "discontinue antipsychotic",
+  "discontinue dopamine antagonist",
+  "hold antipsychotic",
+  "hold neuroleptic",
+  "remove offending",
+  "stop antipsychotic",
+  "stop dopamine antagonist",
+  "stop neuroleptic",
+  "중단",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_SUPPORT_ACTION_TERMS = [
+  "cardiac monitoring",
+  "icu",
+  "intensive care",
+  "iv fluid",
+  "iv fluids",
+  "supportive care",
+  "vital signs",
+  "중환자",
+  "수액",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_COOLING_ACTION_TERMS = [
+  "active cooling",
+  "aggressive cooling",
+  "cooling",
+  "hyperthermia",
+  "temperature",
+  "냉각",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_ACTION_TERMS = [
+  "amantadine",
+  "benzodiazepine",
+  "bromocriptine",
+  "dantrolene",
+  "dopamine agonist",
+  "lorazepam",
+  "단트롤렌",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_COMPLICATION_ACTION_TERMS = [
+  "aki",
+  "ck",
+  "creatine kinase",
+  "electrolyte",
+  "renal",
+  "rhabdomyolysis",
+  "횡문근",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = [
+  "cns infection",
+  "heat stroke",
+  "malignant hyperthermia",
+  "meningitis",
+  "serotonin syndrome",
+  "sympathomimetic",
+  "감별",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_RESTART_SAFETY_TERMS = [
+  "avoid rechallenge",
+  "lower potency",
+  "restart",
+  "rechallenge",
+  "reintroduce",
+  "wait",
+  "재시작",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_SAFETY_TERMS = [
+  "amantadine",
+  "bromocriptine",
+  "dantrolene",
+  "ect",
+  "electroconvulsive",
+  "liver",
+  "psychosis",
+  "단트롤렌",
+];
+
 const CAUDA_EQUINA_CONTEXT_TERMS = [
   "back pain with urinary retention",
   "bladder dysfunction with sciatica",
@@ -8597,6 +8722,72 @@ function hasSerotoninSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresNeurolepticMalignantSyndromeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = NEUROLEPTIC_MALIGNANT_SYNDROME_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasExposureContext = NEUROLEPTIC_MALIGNANT_SYNDROME_EXPOSURE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRigidityContext = NEUROLEPTIC_MALIGNANT_SYNDROME_RIGIDITY_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasAutonomicMentalContext = NEUROLEPTIC_MALIGNANT_SYNDROME_AUTONOMIC_MENTAL_CONTEXT_TERMS.some(
+    (term) => containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasExposureContext && hasRigidityContext && hasAutonomicMentalContext);
+}
+
+function hasNeurolepticMalignantSyndromeTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasStopAgent = NEUROLEPTIC_MALIGNANT_SYNDROME_STOP_AGENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIcuSupport = NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_SUPPORT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCooling = NEUROLEPTIC_MALIGNANT_SYNDROME_COOLING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMedication = NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasComplicationMonitoring = NEUROLEPTIC_MALIGNANT_SYNDROME_COMPLICATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return hasStopAgent && hasIcuSupport && hasCooling && hasMedication && hasComplicationMonitoring;
+}
+
+function hasNeurolepticMalignantSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDifferentialSafety = NEUROLEPTIC_MALIGNANT_SYNDROME_DIFFERENTIAL_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRestartSafety = NEUROLEPTIC_MALIGNANT_SYNDROME_RESTART_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMedicationSafety = NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasDifferentialSafety && hasRestartSafety && hasMedicationSafety;
+}
+
 function requiresCaudaEquinaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -11073,6 +11264,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSerotoninSyndromeTreatmentSafetyCheck,
       issue:
         "serotonin syndrome safety checks must include differential review for NMS, malignant hyperthermia, anticholinergic, sympathomimetic, or sepsis mimics, avoidance of physical-restraint or antipyretic-centered management, severe-hyperthermia planning for intubation, mechanical ventilation, neuromuscular blockade, nondepolarizing paralysis, or temperature above 41 C, and monitoring for rhabdomyolysis, CK, renal injury, electrolytes, seizure, or AKI",
+    },
+    {
+      name: "neuroleptic_malignant_syndrome_time_critical_actions",
+      label: "Neuroleptic malignant syndrome emergency actions",
+      applies: requiresNeurolepticMalignantSyndromeSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasNeurolepticMalignantSyndromeTimeCriticalActions,
+      issue:
+        "neuroleptic malignant syndrome time-critical actions must include stopping dopamine-antagonist, neuroleptic, or antipsychotic agents, ICU, supportive care, IV fluids, vital-sign, or cardiac monitoring, active cooling or hyperthermia control, bromocriptine, amantadine, dantrolene, benzodiazepine, lorazepam, or dopamine-agonist therapy consideration, and CK, rhabdomyolysis, renal, AKI, or electrolyte complication monitoring",
+    },
+    {
+      name: "neuroleptic_malignant_syndrome_treatment_safety",
+      label: "Neuroleptic malignant syndrome treatment safety",
+      applies: requiresNeurolepticMalignantSyndromeSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasNeurolepticMalignantSyndromeTreatmentSafetyCheck,
+      issue:
+        "neuroleptic malignant syndrome safety checks must include differential review for serotonin syndrome, malignant hyperthermia, heat stroke, CNS infection, meningitis, or sympathomimetic mimics, antipsychotic rechallenge or restart prevention with waiting, lower-potency, or avoid-rechallenge planning, and bromocriptine, amantadine, dantrolene, ECT, liver, or psychosis medication-safety review",
     },
     {
       name: "cauda_equina_time_critical_actions",

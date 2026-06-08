@@ -95,6 +95,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "heat_stroke_treatment_safety",
         "serotonin_syndrome_time_critical_actions",
         "serotonin_syndrome_treatment_safety",
+        "neuroleptic_malignant_syndrome_time_critical_actions",
+        "neuroleptic_malignant_syndrome_treatment_safety",
         "cauda_equina_time_critical_actions",
         "cauda_equina_delay_safety",
         "acute_compartment_syndrome_time_critical_actions",
@@ -3669,6 +3671,160 @@ def test_quality_gate_requires_serotonin_syndrome_differential_restraint_hyperth
     assert not report.passed
     assert any(
         "serotonin syndrome safety checks must include differential review" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_neuroleptic_malignant_syndrome_stop_support_cooling_medication_and_complication_monitoring():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Neuroleptic malignant syndrome"
+    case["patient_demographics"] = {
+        "age": 45,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, rigidity, and confusion after antipsychotic dose increase"
+    case["history_of_present_illness"] = (
+        "Patient recently started high-potency haloperidol antipsychotic and presents with "
+        "hyperthermia, altered mental status, severe lead-pipe muscle rigidity, diaphoresis, "
+        "tachycardia, labile blood pressure, elevated CK, and AKI concerning for NMS."
+    )
+    case["key_teaching_points"] = [
+        "Neuroleptic malignant syndrome is a life-threatening dopamine-antagonist reaction",
+        "Exposure to antipsychotic or dopamine withdrawal with rigidity, hyperthermia, mental status change, and autonomic instability supports the diagnosis",
+        "Treatment requires stopping the offending drug, ICU supportive care, cooling, complication monitoring, and medication therapy consideration for severe disease",
+    ]
+    case["clinical_red_flags"] = [
+        "Hyperthermia, lead-pipe rigidity, altered mental status, diaphoresis, tachycardia, or labile blood pressure",
+        "Elevated CK, rhabdomyolysis, AKI, renal failure, electrolyte abnormalities, respiratory failure, or shock",
+    ]
+    case["time_critical_actions"] = [
+        "Stop antipsychotic neuroleptic dopamine antagonist haloperidol and remove offending medication",
+        "Admit to ICU for supportive care, IV fluids, vital signs, and cardiac monitoring",
+        "Start active cooling and aggressive cooling for hyperthermia with temperature monitoring",
+        "Trend CK creatine kinase, rhabdomyolysis, AKI, renal function, and electrolyte complications",
+    ]
+    case["contraindication_checks"] = [
+        "Review differential diagnosis including serotonin syndrome, malignant hyperthermia, heat stroke, CNS infection, meningitis, and sympathomimetic toxicity",
+        "Avoid antipsychotic rechallenge or restart until recovery, wait an appropriate interval, and use lower potency if reintroduced",
+        "Review bromocriptine, amantadine, dantrolene, benzodiazepine, ECT electroconvulsive therapy, liver risk, and psychosis worsening safety",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Neuroleptic Malignant Syndrome",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK482282/",
+            "supports": [
+                "neuroleptic malignant syndrome diagnosis and risk stratification",
+                "neuroleptic malignant syndrome is a life-threatening dopamine-antagonist reaction",
+                "exposure to antipsychotic or dopamine withdrawal with rigidity, hyperthermia, mental status change, and autonomic instability supports the diagnosis",
+                "treatment requires stopping the offending drug, ICU supportive care, cooling, complication monitoring, and medication therapy consideration for severe disease",
+                "hyperthermia, lead-pipe rigidity, altered mental status, diaphoresis, tachycardia, or labile blood pressure as red flags",
+                "elevated CK, rhabdomyolysis, AKI, renal failure, electrolyte abnormalities, respiratory failure, or shock as severity markers",
+                "stop antipsychotic neuroleptic dopamine antagonist haloperidol and remove offending medication",
+                "ICU supportive care, IV fluids, vital signs, and cardiac monitoring",
+                "active cooling and aggressive cooling for hyperthermia with temperature monitoring",
+                "CK creatine kinase, rhabdomyolysis, AKI, renal function, and electrolyte complication monitoring",
+                "serotonin syndrome, malignant hyperthermia, heat stroke, CNS infection, meningitis, and sympathomimetic toxicity differential diagnosis",
+                "avoid antipsychotic rechallenge or restart until recovery, wait an appropriate interval, and use lower potency if reintroduced",
+                "bromocriptine, amantadine, dantrolene, benzodiazepine, ECT electroconvulsive therapy, liver risk, and psychosis worsening safety",
+            ],
+        },
+        {
+            "title": "Neuroleptic Malignant Syndrome",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/heat-illness/neuroleptic-malignant-syndrome",
+            "supports": [
+                "stop the causative medication, initiate rapid cooling, and begin aggressive supportive care in an ICU",
+                "bromocriptine or amantadine can restore dopaminergic activity and dantrolene or lorazepam may be used for rigidity",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "neuroleptic malignant syndrome time-critical actions must include stopping"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_neuroleptic_malignant_syndrome_differential_restart_and_medication_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Neuroleptic malignant syndrome"
+    case["patient_demographics"] = {
+        "age": 45,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, rigidity, and confusion after antipsychotic dose increase"
+    case["history_of_present_illness"] = (
+        "Patient recently started high-potency haloperidol antipsychotic and presents with "
+        "hyperthermia, altered mental status, severe lead-pipe muscle rigidity, diaphoresis, "
+        "tachycardia, labile blood pressure, elevated CK, and AKI concerning for NMS."
+    )
+    case["key_teaching_points"] = [
+        "Neuroleptic malignant syndrome is a life-threatening dopamine-antagonist reaction",
+        "Exposure to antipsychotic or dopamine withdrawal with rigidity, hyperthermia, mental status change, and autonomic instability supports the diagnosis",
+        "Treatment requires stopping the offending drug, ICU supportive care, cooling, complication monitoring, and medication therapy consideration for severe disease",
+    ]
+    case["clinical_red_flags"] = [
+        "Hyperthermia, lead-pipe rigidity, altered mental status, diaphoresis, tachycardia, or labile blood pressure",
+        "Elevated CK, rhabdomyolysis, AKI, renal failure, electrolyte abnormalities, respiratory failure, or shock",
+    ]
+    case["time_critical_actions"] = [
+        "Stop antipsychotic neuroleptic dopamine antagonist haloperidol and remove offending medication",
+        "Admit to ICU for supportive care, IV fluids, vital signs, and cardiac monitoring",
+        "Start active cooling and aggressive cooling for hyperthermia with temperature monitoring",
+        "Consider bromocriptine dopamine agonist, amantadine, dantrolene, benzodiazepine, or lorazepam for severe rigidity",
+        "Trend CK creatine kinase, rhabdomyolysis, AKI, renal function, and electrolyte complications",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if relevant",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Neuroleptic Malignant Syndrome",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK482282/",
+            "supports": [
+                "neuroleptic malignant syndrome diagnosis and risk stratification",
+                "neuroleptic malignant syndrome is a life-threatening dopamine-antagonist reaction",
+                "exposure to antipsychotic or dopamine withdrawal with rigidity, hyperthermia, mental status change, and autonomic instability supports the diagnosis",
+                "treatment requires stopping the offending drug, ICU supportive care, cooling, complication monitoring, and medication therapy consideration for severe disease",
+                "hyperthermia, lead-pipe rigidity, altered mental status, diaphoresis, tachycardia, or labile blood pressure as red flags",
+                "elevated CK, rhabdomyolysis, AKI, renal failure, electrolyte abnormalities, respiratory failure, or shock as severity markers",
+                "stop antipsychotic neuroleptic dopamine antagonist haloperidol and remove offending medication",
+                "ICU supportive care, IV fluids, vital signs, and cardiac monitoring",
+                "active cooling and aggressive cooling for hyperthermia with temperature monitoring",
+                "bromocriptine dopamine agonist, amantadine, dantrolene, benzodiazepine, or lorazepam for severe rigidity",
+                "CK creatine kinase, rhabdomyolysis, AKI, renal function, and electrolyte complication monitoring",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if relevant",
+            ],
+        },
+        {
+            "title": "An Approach to the Pharmacotherapy of Neuroleptic Malignant Syndrome",
+            "organization": "Psychopharmacology Bulletin",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6386430/",
+            "supports": [
+                "bromocriptine and amantadine are dopamine agonists used in neuroleptic malignant syndrome",
+                "dantrolene and electroconvulsive therapy may be considered in selected severe or refractory cases",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "neuroleptic malignant syndrome safety checks must include differential review"
+        in issue
         for issue in report.critical_issues
     )
 

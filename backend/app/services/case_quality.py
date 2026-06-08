@@ -3028,6 +3028,119 @@ SEROTONIN_SYNDROME_COMPLICATION_MONITORING_SAFETY_TERMS = (
     "seizure",
     "횡문근",
 )
+NEUROLEPTIC_MALIGNANT_SYNDROME_DIRECT_CONTEXT_TERMS = (
+    "nms",
+    "neuroleptic malignant syndrome",
+    "neuroleptic malignant",
+    "malignant neuroleptic syndrome",
+    "신경이완제 악성 증후군",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_EXPOSURE_CONTEXT_TERMS = (
+    "antipsychotic",
+    "dopamine antagonist",
+    "dopamine withdrawal",
+    "haloperidol",
+    "metoclopramide",
+    "neuroleptic",
+    "olanzapine",
+    "risperidone",
+    "withdrawal of dopaminergic",
+    "항정신병",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_RIGIDITY_CONTEXT_TERMS = (
+    "lead pipe",
+    "muscle rigidity",
+    "rigidity",
+    "severe rigidity",
+    "stiffness",
+    "강직",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_AUTONOMIC_MENTAL_CONTEXT_TERMS = (
+    "altered mental status",
+    "autonomic instability",
+    "diaphoresis",
+    "fever",
+    "hyperthermia",
+    "labile blood pressure",
+    "tachycardia",
+    "혼돈",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_STOP_AGENT_ACTION_TERMS = (
+    "discontinue antipsychotic",
+    "discontinue dopamine antagonist",
+    "hold antipsychotic",
+    "hold neuroleptic",
+    "remove offending",
+    "stop antipsychotic",
+    "stop dopamine antagonist",
+    "stop neuroleptic",
+    "중단",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_SUPPORT_ACTION_TERMS = (
+    "cardiac monitoring",
+    "icu",
+    "intensive care",
+    "iv fluid",
+    "iv fluids",
+    "supportive care",
+    "vital signs",
+    "중환자",
+    "수액",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_COOLING_ACTION_TERMS = (
+    "active cooling",
+    "aggressive cooling",
+    "cooling",
+    "hyperthermia",
+    "temperature",
+    "냉각",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_ACTION_TERMS = (
+    "amantadine",
+    "benzodiazepine",
+    "bromocriptine",
+    "dantrolene",
+    "dopamine agonist",
+    "lorazepam",
+    "단트롤렌",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_COMPLICATION_ACTION_TERMS = (
+    "aki",
+    "ck",
+    "creatine kinase",
+    "electrolyte",
+    "renal",
+    "rhabdomyolysis",
+    "횡문근",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = (
+    "cns infection",
+    "heat stroke",
+    "malignant hyperthermia",
+    "meningitis",
+    "serotonin syndrome",
+    "sympathomimetic",
+    "감별",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_RESTART_SAFETY_TERMS = (
+    "avoid rechallenge",
+    "lower potency",
+    "restart",
+    "rechallenge",
+    "reintroduce",
+    "wait",
+    "재시작",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_SAFETY_TERMS = (
+    "amantadine",
+    "bromocriptine",
+    "dantrolene",
+    "ect",
+    "electroconvulsive",
+    "liver",
+    "psychosis",
+    "단트롤렌",
+)
 CAUDA_EQUINA_CONTEXT_TERMS = (
     "back pain with urinary retention",
     "bladder dysfunction with sciatica",
@@ -7380,6 +7493,36 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="neuroleptic_malignant_syndrome_time_critical_actions",
+            applies=_requires_neuroleptic_malignant_syndrome_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_neuroleptic_malignant_syndrome_time_critical_actions,
+            issue=(
+                "neuroleptic malignant syndrome time-critical actions must include "
+                "stopping dopamine-antagonist, neuroleptic, or antipsychotic agents, "
+                "ICU, supportive care, IV fluids, vital-sign, or cardiac monitoring, "
+                "active cooling or hyperthermia control, bromocriptine, amantadine, "
+                "dantrolene, benzodiazepine, lorazepam, or dopamine-agonist therapy "
+                "consideration, and CK, rhabdomyolysis, renal, AKI, or electrolyte "
+                "complication monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="neuroleptic_malignant_syndrome_treatment_safety",
+            applies=_requires_neuroleptic_malignant_syndrome_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_neuroleptic_malignant_syndrome_treatment_safety_check,
+            issue=(
+                "neuroleptic malignant syndrome safety checks must include "
+                "differential review for serotonin syndrome, malignant hyperthermia, "
+                "heat stroke, CNS infection, meningitis, or sympathomimetic mimics, "
+                "antipsychotic rechallenge or restart prevention with waiting, "
+                "lower-potency, or avoid-rechallenge planning, and bromocriptine, "
+                "amantadine, dantrolene, ECT, liver, or psychosis medication-safety "
+                "review"
+            ),
+        ),
+        DomainSafetyGate(
             name="cauda_equina_time_critical_actions",
             applies=_requires_cauda_equina_safety_check,
             field_name="time_critical_actions",
@@ -10487,6 +10630,103 @@ def _has_serotonin_syndrome_treatment_safety_check(checks: list[Any]) -> bool:
         and has_severe_hyperthermia_safety
         and has_complication_monitoring
     )
+
+
+def _requires_neuroleptic_malignant_syndrome_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_DIRECT_CONTEXT_TERMS
+    )
+    has_exposure_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_EXPOSURE_CONTEXT_TERMS
+    )
+    has_rigidity_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_RIGIDITY_CONTEXT_TERMS
+    )
+    has_autonomic_mental_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_AUTONOMIC_MENTAL_CONTEXT_TERMS
+    )
+    return has_direct_context or (
+        has_exposure_context
+        and has_rigidity_context
+        and has_autonomic_mental_context
+    )
+
+
+def _has_neuroleptic_malignant_syndrome_time_critical_actions(
+    actions: list[Any],
+) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_stop_agent = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_STOP_AGENT_ACTION_TERMS
+    )
+    has_icu_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_SUPPORT_ACTION_TERMS
+    )
+    has_cooling = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_COOLING_ACTION_TERMS
+    )
+    has_medication = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_ACTION_TERMS
+    )
+    has_complication_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_COMPLICATION_ACTION_TERMS
+    )
+    return (
+        has_stop_agent
+        and has_icu_support
+        and has_cooling
+        and has_medication
+        and has_complication_monitoring
+    )
+
+
+def _has_neuroleptic_malignant_syndrome_treatment_safety_check(
+    checks: list[Any],
+) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_restart_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_RESTART_SAFETY_TERMS
+    )
+    has_medication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_SAFETY_TERMS
+    )
+    return has_differential_safety and has_restart_safety and has_medication_safety
 
 
 def _requires_cauda_equina_safety_check(data: dict[str, Any]) -> bool:
