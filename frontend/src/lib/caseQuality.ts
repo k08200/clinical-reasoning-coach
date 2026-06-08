@@ -2243,6 +2243,126 @@ const TTP_MONITORING_COMPLICATION_SAFETY_TERMS = [
   "혈소판",
 ];
 
+const ACUTE_LIVER_FAILURE_DIRECT_CONTEXT_TERMS = [
+  "acute hepatic failure",
+  "acute liver failure",
+  "alf",
+  "fulminant hepatic failure",
+  "fulminant liver failure",
+  "급성 간부전",
+];
+
+const ACUTE_LIVER_FAILURE_INJURY_CONTEXT_TERMS = [
+  "acute hepatitis",
+  "alt 1000",
+  "ast 1000",
+  "coagulopathy",
+  "inr 1.5",
+  "inr 2",
+  "marked transaminitis",
+  "severe acute liver injury",
+  "transaminases",
+  "응고장애",
+];
+
+const ACUTE_LIVER_FAILURE_ENCEPHALOPATHY_CONTEXT_TERMS = [
+  "altered mental status",
+  "asterixis",
+  "confusion",
+  "encephalopathy",
+  "hepatic encephalopathy",
+  "somnolence",
+  "혼돈",
+];
+
+const ACUTE_LIVER_FAILURE_ICU_ACTION_TERMS = [
+  "icu",
+  "intensive care",
+  "high-acuity",
+  "중환자",
+];
+
+const ACUTE_LIVER_FAILURE_TRANSPLANT_ACTION_TERMS = [
+  "early transfer",
+  "liver transplant",
+  "status 1a",
+  "transfer to liver",
+  "transfer to transplant",
+  "transplant center",
+  "transplant service",
+  "transplant evaluation",
+  "이식",
+];
+
+const ACUTE_LIVER_FAILURE_NAC_ACTION_TERMS = [
+  "acetylcysteine",
+  "n-acetylcysteine",
+  "nac",
+  "엔아세틸시스테인",
+];
+
+const ACUTE_LIVER_FAILURE_ETIOLOGY_WORKUP_ACTION_TERMS = [
+  "acetaminophen",
+  "autoimmune",
+  "hepatitis serologies",
+  "hsv",
+  "toxicology",
+  "viral hepatitis",
+  "wilson",
+  "원인",
+];
+
+const ACUTE_LIVER_FAILURE_MONITORING_ACTION_TERMS = [
+  "ammonia",
+  "glucose",
+  "inr",
+  "lactate",
+  "meld",
+  "neurologic",
+  "ph",
+  "renal",
+  "혈당",
+];
+
+const ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_SAFETY_TERMS = [
+  "cerebral edema",
+  "head elevation",
+  "hypertonic saline",
+  "intracranial pressure",
+  "mannitol",
+  "seizure",
+  "뇌부종",
+];
+
+const ACUTE_LIVER_FAILURE_COAGULOPATHY_SAFETY_TERMS = [
+  "avoid ffp",
+  "bleeding",
+  "coagulopathy",
+  "ffp",
+  "fresh frozen plasma",
+  "procedure",
+  "응고",
+];
+
+const ACUTE_LIVER_FAILURE_HYPOGLYCEMIA_SAFETY_TERMS = [
+  "dextrose",
+  "glucose",
+  "hypoglycemia",
+  "monitor glucose",
+  "혈당",
+  "저혈당",
+];
+
+const ACUTE_LIVER_FAILURE_PROGNOSIS_TRANSFER_SAFETY_TERMS = [
+  "king's college",
+  "kings college",
+  "listing",
+  "status 1a",
+  "transplant criteria",
+  "transplant-free",
+  "전원",
+];
+
 const NEUTROPENIC_FEVER_CONTEXT_TERMS = [
   "absolute neutrophil count",
   "anc below 500",
@@ -7660,6 +7780,72 @@ function hasTtpTreatmentSafetyCheck(checks: string[]): boolean {
   return hasDoNotWait && hasPlateletTransfusionSafety && hasDifferentialSafety && hasMonitoringSafety;
 }
 
+function requiresAcuteLiverFailureSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = ACUTE_LIVER_FAILURE_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasInjuryContext = ACUTE_LIVER_FAILURE_INJURY_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasEncephalopathyContext = ACUTE_LIVER_FAILURE_ENCEPHALOPATHY_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasInjuryContext && hasEncephalopathyContext);
+}
+
+function hasAcuteLiverFailureTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasIcu = ACUTE_LIVER_FAILURE_ICU_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTransplant = ACUTE_LIVER_FAILURE_TRANSPLANT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNac = ACUTE_LIVER_FAILURE_NAC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEtiologyWorkup = ACUTE_LIVER_FAILURE_ETIOLOGY_WORKUP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMonitoring = ACUTE_LIVER_FAILURE_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasIcu && hasTransplant && hasNac && hasEtiologyWorkup && hasMonitoring;
+}
+
+function hasAcuteLiverFailureTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasCerebralEdema = ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCoagulopathySafety = ACUTE_LIVER_FAILURE_COAGULOPATHY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHypoglycemiaSafety = ACUTE_LIVER_FAILURE_HYPOGLYCEMIA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPrognosisTransfer = ACUTE_LIVER_FAILURE_PROGNOSIS_TRANSFER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasCerebralEdema && hasCoagulopathySafety && hasHypoglycemiaSafety && hasPrognosisTransfer;
+}
+
 function requiresNeutropenicFeverSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -10334,6 +10520,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasTtpTreatmentSafetyCheck,
       issue:
         "TTP safety checks must include explicit do-not-wait, do-not-delay, pending-ADAMTS13, before-ADAMTS13, or empiric-treatment planning, platelet transfusion avoidance except life-threatening bleeding or procedure need, differential review for DIC, HUS, aHUS, ITP, HELLP, sepsis, or disseminated intravascular coagulation, and monitoring for platelet recovery, LDH, hemolysis, AKI, renal, neurologic, bleeding, thrombosis, or complications",
+    },
+    {
+      name: "acute_liver_failure_time_critical_actions",
+      label: "Acute liver failure emergency actions",
+      applies: requiresAcuteLiverFailureSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcuteLiverFailureTimeCriticalActions,
+      issue:
+        "acute liver failure time-critical actions must include ICU, intensive-care, or high-acuity monitoring planning, liver-transplant, transplant-center, transplant-service, transplant-evaluation, or transplant-transfer involvement, N-acetylcysteine, NAC, or acetylcysteine therapy, etiology workup for acetaminophen, toxicology, viral hepatitis, hepatitis serologies, HSV, Wilson, or autoimmune causes, and serial monitoring of INR, ammonia, glucose, lactate, pH, renal function, MELD, or neurologic status",
+    },
+    {
+      name: "acute_liver_failure_treatment_safety",
+      label: "Acute liver failure treatment safety",
+      applies: requiresAcuteLiverFailureSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcuteLiverFailureTreatmentSafetyCheck,
+      issue:
+        "acute liver failure safety checks must include cerebral-edema or intracranial-pressure planning with head elevation, seizure monitoring, mannitol, or hypertonic saline, coagulopathy safety including avoiding FFP or fresh frozen plasma unless bleeding or procedure need, hypoglycemia monitoring or dextrose support, and prognosis or transfer review using King's College, transplant criteria, Status 1A listing, transplant-free survival, or early transplant-center transfer",
     },
     {
       name: "neutropenic_fever_time_critical_actions",

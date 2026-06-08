@@ -2089,6 +2089,114 @@ TTP_MONITORING_COMPLICATION_SAFETY_TERMS = (
     "thrombosis",
     "혈소판",
 )
+ACUTE_LIVER_FAILURE_DIRECT_CONTEXT_TERMS = (
+    "acute hepatic failure",
+    "acute liver failure",
+    "alf",
+    "fulminant hepatic failure",
+    "fulminant liver failure",
+    "급성 간부전",
+)
+ACUTE_LIVER_FAILURE_INJURY_CONTEXT_TERMS = (
+    "acute hepatitis",
+    "alt 1000",
+    "ast 1000",
+    "coagulopathy",
+    "inr 1.5",
+    "inr 2",
+    "marked transaminitis",
+    "severe acute liver injury",
+    "transaminases",
+    "응고장애",
+)
+ACUTE_LIVER_FAILURE_ENCEPHALOPATHY_CONTEXT_TERMS = (
+    "altered mental status",
+    "asterixis",
+    "confusion",
+    "encephalopathy",
+    "hepatic encephalopathy",
+    "somnolence",
+    "혼돈",
+)
+ACUTE_LIVER_FAILURE_ICU_ACTION_TERMS = (
+    "icu",
+    "intensive care",
+    "high-acuity",
+    "중환자",
+)
+ACUTE_LIVER_FAILURE_TRANSPLANT_ACTION_TERMS = (
+    "early transfer",
+    "liver transplant",
+    "status 1a",
+    "transfer to liver",
+    "transfer to transplant",
+    "transplant center",
+    "transplant service",
+    "transplant evaluation",
+    "이식",
+)
+ACUTE_LIVER_FAILURE_NAC_ACTION_TERMS = (
+    "acetylcysteine",
+    "n-acetylcysteine",
+    "nac",
+    "엔아세틸시스테인",
+)
+ACUTE_LIVER_FAILURE_ETIOLOGY_WORKUP_ACTION_TERMS = (
+    "acetaminophen",
+    "autoimmune",
+    "hepatitis serologies",
+    "hsv",
+    "toxicology",
+    "viral hepatitis",
+    "wilson",
+    "원인",
+)
+ACUTE_LIVER_FAILURE_MONITORING_ACTION_TERMS = (
+    "ammonia",
+    "glucose",
+    "inr",
+    "lactate",
+    "meld",
+    "neurologic",
+    "ph",
+    "renal",
+    "혈당",
+)
+ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_SAFETY_TERMS = (
+    "cerebral edema",
+    "head elevation",
+    "hypertonic saline",
+    "intracranial pressure",
+    "mannitol",
+    "seizure",
+    "뇌부종",
+)
+ACUTE_LIVER_FAILURE_COAGULOPATHY_SAFETY_TERMS = (
+    "avoid ffp",
+    "bleeding",
+    "coagulopathy",
+    "ffp",
+    "fresh frozen plasma",
+    "procedure",
+    "응고",
+)
+ACUTE_LIVER_FAILURE_HYPOGLYCEMIA_SAFETY_TERMS = (
+    "dextrose",
+    "glucose",
+    "hypoglycemia",
+    "monitor glucose",
+    "혈당",
+    "저혈당",
+)
+ACUTE_LIVER_FAILURE_PROGNOSIS_TRANSFER_SAFETY_TERMS = (
+    "king's college",
+    "kings college",
+    "listing",
+    "status 1a",
+    "transplant criteria",
+    "transplant-free",
+    "전원",
+)
 NEUTROPENIC_FEVER_CONTEXT_TERMS = (
     "absolute neutrophil count",
     "anc below 500",
@@ -6800,6 +6908,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="acute_liver_failure_time_critical_actions",
+            applies=_requires_acute_liver_failure_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_acute_liver_failure_time_critical_actions,
+            issue=(
+                "acute liver failure time-critical actions must include ICU, "
+                "intensive-care, or high-acuity monitoring planning, liver-transplant, "
+                "transplant-center, transplant-service, transplant-evaluation, "
+                "or transplant-transfer involvement, N-acetylcysteine, NAC, "
+                "or acetylcysteine therapy, etiology workup for acetaminophen, "
+                "toxicology, viral hepatitis, hepatitis serologies, HSV, Wilson, "
+                "or autoimmune causes, and serial monitoring of INR, ammonia, "
+                "glucose, lactate, pH, renal function, MELD, or neurologic status"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acute_liver_failure_treatment_safety",
+            applies=_requires_acute_liver_failure_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acute_liver_failure_treatment_safety_check,
+            issue=(
+                "acute liver failure safety checks must include cerebral-edema "
+                "or intracranial-pressure planning with head elevation, seizure "
+                "monitoring, mannitol, or hypertonic saline, coagulopathy safety "
+                "including avoiding FFP or fresh frozen plasma unless bleeding or "
+                "procedure need, hypoglycemia monitoring or dextrose support, and "
+                "prognosis or transfer review using King's College, transplant "
+                "criteria, Status 1A listing, transplant-free survival, or early "
+                "transplant-center transfer"
+            ),
+        ),
+        DomainSafetyGate(
             name="neutropenic_fever_time_critical_actions",
             applies=_requires_neutropenic_fever_safety_check,
             field_name="time_critical_actions",
@@ -9314,6 +9454,94 @@ def _has_ttp_treatment_safety_check(checks: list[Any]) -> bool:
         and has_platelet_transfusion_safety
         and has_differential_safety
         and has_monitoring_safety
+    )
+
+
+def _requires_acute_liver_failure_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_LIVER_FAILURE_DIRECT_CONTEXT_TERMS
+    )
+    has_injury_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_LIVER_FAILURE_INJURY_CONTEXT_TERMS
+    )
+    has_encephalopathy_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_LIVER_FAILURE_ENCEPHALOPATHY_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_injury_context and has_encephalopathy_context)
+
+
+def _has_acute_liver_failure_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_icu = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_ICU_ACTION_TERMS
+    )
+    has_transplant = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_TRANSPLANT_ACTION_TERMS
+    )
+    has_nac = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_NAC_ACTION_TERMS
+    )
+    has_etiology_workup = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_ETIOLOGY_WORKUP_ACTION_TERMS
+    )
+    has_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_MONITORING_ACTION_TERMS
+    )
+    return has_icu and has_transplant and has_nac and has_etiology_workup and has_monitoring
+
+
+def _has_acute_liver_failure_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_cerebral_edema = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_SAFETY_TERMS
+    )
+    has_coagulopathy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIVER_FAILURE_COAGULOPATHY_SAFETY_TERMS
+    )
+    has_hypoglycemia_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIVER_FAILURE_HYPOGLYCEMIA_SAFETY_TERMS
+    )
+    has_prognosis_transfer = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIVER_FAILURE_PROGNOSIS_TRANSFER_SAFETY_TERMS
+    )
+    return (
+        has_cerebral_edema
+        and has_coagulopathy_safety
+        and has_hypoglycemia_safety
+        and has_prognosis_transfer
     )
 
 

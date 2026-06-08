@@ -77,6 +77,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "endophthalmitis_treatment_safety",
         "ttp_time_critical_actions",
         "ttp_treatment_safety",
+        "acute_liver_failure_time_critical_actions",
+        "acute_liver_failure_treatment_safety",
         "neutropenic_fever_time_critical_actions",
         "neutropenic_fever_treatment_safety",
         "obstructive_pyelonephritis_time_critical_actions",
@@ -2417,6 +2419,156 @@ def test_quality_gate_requires_ttp_no_wait_platelet_differential_and_monitoring_
     assert not report.passed
     assert any(
         "TTP safety checks must include explicit do-not-wait" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_liver_failure_icu_transplant_nac_workup_and_monitoring():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute liver failure"
+    case["patient_demographics"] = {
+        "age": 38,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion, jaundice, and severe hepatitis labs"
+    case["history_of_present_illness"] = (
+        "Patient has acute hepatitis with marked transaminitis, AST 1000, ALT 1000, "
+        "INR 2.6 coagulopathy, confusion, asterixis, somnolence, hypoglycemia, "
+        "lactate elevation, and acute kidney injury without known chronic liver disease."
+    )
+    case["key_teaching_points"] = [
+        "Acute liver failure is severe acute liver injury with coagulopathy and hepatic encephalopathy",
+        "Early transplant-center involvement is time critical because deterioration can be rapid",
+        "Empiric N-acetylcysteine is commonly started while etiology workup is pending",
+    ]
+    case["clinical_red_flags"] = [
+        "INR elevation, coagulopathy, encephalopathy, confusion, asterixis, or somnolence",
+        "Hypoglycemia, high ammonia, lactate elevation, renal failure, cerebral edema, or multiorgan failure",
+    ]
+    case["time_critical_actions"] = [
+        "Admit to ICU for high-acuity monitoring and contact liver transplant center for transfer and transplant evaluation",
+        "Start N-acetylcysteine NAC acetylcysteine therapy while workup is pending",
+        "Send etiology workup including acetaminophen level, toxicology, viral hepatitis serologies, HSV testing, Wilson disease testing, and autoimmune markers",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor for cerebral edema and intracranial pressure risk with head elevation, seizure monitoring, mannitol, or hypertonic saline planning",
+        "Avoid FFP fresh frozen plasma for coagulopathy correction unless bleeding or procedure need",
+        "Monitor glucose frequently and give dextrose support for hypoglycemia",
+        "Review prognosis and transfer using King's College criteria, transplant criteria, Status 1A listing, transplant-free survival, and early transplant-center transfer",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Management of Acute Liver Failure: Update 2022",
+            "organization": "Seminars in Liver Disease",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10576953/",
+            "supports": [
+                "acute liver failure diagnosis and risk stratification",
+                "acute liver failure is severe acute liver injury with coagulopathy and hepatic encephalopathy",
+                "early transplant-center involvement is time critical because deterioration can be rapid",
+                "empiric N-acetylcysteine is commonly started while etiology workup is pending",
+                "INR elevation, coagulopathy, encephalopathy, confusion, asterixis, or somnolence as red flags",
+                "hypoglycemia, high ammonia, lactate elevation, renal failure, cerebral edema, or multiorgan failure as severity markers",
+                "ICU high-acuity monitoring and liver transplant center transfer plus transplant evaluation",
+                "N-acetylcysteine NAC acetylcysteine therapy while workup is pending",
+                "etiology workup including acetaminophen level, toxicology, viral hepatitis serologies, HSV testing, Wilson disease testing, and autoimmune markers",
+                "cerebral edema and intracranial pressure risk with head elevation, seizure monitoring, mannitol, or hypertonic saline planning",
+                "FFP fresh frozen plasma avoidance for coagulopathy correction unless bleeding or procedure need",
+                "glucose monitoring and dextrose support for hypoglycemia",
+                "prognosis and transfer using King's College criteria, transplant criteria, Status 1A listing, transplant-free survival, and early transplant-center transfer",
+            ],
+        },
+        {
+            "title": "Acute Liver Failure",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK482374/",
+            "supports": [
+                "treatment with N-acetylcysteine is recommended for most patients with acute liver failure",
+                "early discussion with a liver transplant center is essential to assess transfer need",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute liver failure time-critical actions must include ICU" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_liver_failure_cerebral_edema_coagulopathy_glucose_and_transfer_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute liver failure"
+    case["patient_demographics"] = {
+        "age": 38,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion, jaundice, and severe hepatitis labs"
+    case["history_of_present_illness"] = (
+        "Patient has acute hepatitis with marked transaminitis, AST 1000, ALT 1000, "
+        "INR 2.6 coagulopathy, confusion, asterixis, somnolence, hypoglycemia, "
+        "lactate elevation, and acute kidney injury without known chronic liver disease."
+    )
+    case["key_teaching_points"] = [
+        "Acute liver failure is severe acute liver injury with coagulopathy and hepatic encephalopathy",
+        "Early transplant-center involvement is time critical because deterioration can be rapid",
+        "Empiric N-acetylcysteine is commonly started while etiology workup is pending",
+    ]
+    case["clinical_red_flags"] = [
+        "INR elevation, coagulopathy, encephalopathy, confusion, asterixis, or somnolence",
+        "Hypoglycemia, high ammonia, lactate elevation, renal failure, cerebral edema, or multiorgan failure",
+    ]
+    case["time_critical_actions"] = [
+        "Admit to ICU for high-acuity monitoring and contact liver transplant center for transfer and transplant evaluation",
+        "Start N-acetylcysteine NAC acetylcysteine therapy while workup is pending",
+        "Send etiology workup including acetaminophen level, toxicology, viral hepatitis serologies, HSV testing, Wilson disease testing, and autoimmune markers",
+        "Trend serial INR, ammonia, glucose, lactate, pH, renal function, MELD, and neurologic status",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if relevant",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Management of Acute Liver Failure: Update 2022",
+            "organization": "Seminars in Liver Disease",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10576953/",
+            "supports": [
+                "acute liver failure diagnosis and risk stratification",
+                "acute liver failure is severe acute liver injury with coagulopathy and hepatic encephalopathy",
+                "early transplant-center involvement is time critical because deterioration can be rapid",
+                "empiric N-acetylcysteine is commonly started while etiology workup is pending",
+                "INR elevation, coagulopathy, encephalopathy, confusion, asterixis, or somnolence as red flags",
+                "hypoglycemia, high ammonia, lactate elevation, renal failure, cerebral edema, or multiorgan failure as severity markers",
+                "ICU high-acuity monitoring and liver transplant center transfer plus transplant evaluation",
+                "N-acetylcysteine NAC acetylcysteine therapy while workup is pending",
+                "etiology workup including acetaminophen level, toxicology, viral hepatitis serologies, HSV testing, Wilson disease testing, and autoimmune markers",
+                "serial INR, ammonia, glucose, lactate, pH, renal function, MELD, and neurologic status monitoring",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if relevant",
+            ],
+        },
+        {
+            "title": "Acute Liver Failure",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK482374/",
+            "supports": [
+                "treatment with N-acetylcysteine is recommended for most patients with acute liver failure",
+                "early discussion with a liver transplant center is essential to assess transfer need",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute liver failure safety checks must include cerebral-edema" in issue
         for issue in report.critical_issues
     )
 
