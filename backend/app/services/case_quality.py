@@ -1977,6 +1977,118 @@ ENDOPHTHALMITIS_RESPONSE_MONITORING_SAFETY_TERMS = (
     "worsening",
     "추적",
 )
+TTP_DIRECT_CONTEXT_TERMS = (
+    "acquired ttp",
+    "immune ttp",
+    "ittp",
+    "thrombotic thrombocytopenic purpura",
+    "ttp",
+    "혈전성 혈소판감소성 자반증",
+)
+TTP_MAHA_CONTEXT_TERMS = (
+    "hemolysis",
+    "hemolytic anemia",
+    "maha",
+    "microangiopathic",
+    "schistocyte",
+    "schistocytes",
+    "thrombotic microangiopathy",
+    "tma",
+    "용혈",
+)
+TTP_THROMBOCYTOPENIA_CONTEXT_TERMS = (
+    "low platelets",
+    "platelet count",
+    "platelets 10",
+    "platelets 20",
+    "platelets 30",
+    "severe thrombocytopenia",
+    "thrombocytopenia",
+    "혈소판",
+)
+TTP_ORGAN_CONTEXT_TERMS = (
+    "acute kidney injury",
+    "confusion",
+    "fever",
+    "neurologic",
+    "renal injury",
+    "seizure",
+    "stroke",
+    "신경",
+    "신장",
+)
+TTP_PEX_ACTION_TERMS = (
+    "hematology",
+    "plasma exchange",
+    "plasma-exchange",
+    "plasmapheresis",
+    "therapeutic plasma exchange",
+    "tpe",
+    "혈장교환",
+)
+TTP_ADAMTS13_LAB_ACTION_TERMS = (
+    "adamts13",
+    "blood smear",
+    "hemolysis labs",
+    "ldh",
+    "peripheral smear",
+    "schistocyte",
+    "schistocytes",
+    "혈액도말",
+)
+TTP_STEROID_ACTION_TERMS = (
+    "corticosteroid",
+    "glucocorticoid",
+    "methylprednisolone",
+    "prednisone",
+    "steroid",
+    "스테로이드",
+)
+TTP_ANTIVWF_ACTION_TERMS = (
+    "caplacizumab",
+    "rituximab",
+    "anti-vwf",
+    "immunosuppression",
+    "카플라시주맙",
+)
+TTP_DO_NOT_WAIT_SAFETY_TERMS = (
+    "before adamts13",
+    "do not delay",
+    "do not wait",
+    "not delay",
+    "pending adamts13",
+    "treat empirically",
+    "지연",
+)
+TTP_PLATELET_TRANSFUSION_SAFETY_TERMS = (
+    "avoid platelet",
+    "life-threatening bleeding",
+    "platelet transfusion",
+    "transfusion only",
+    "avoid transfusion",
+    "혈소판 수혈",
+)
+TTP_DIFFERENTIAL_SAFETY_TERMS = (
+    "ahus",
+    "dic",
+    "disseminated intravascular coagulation",
+    "hellp",
+    "hus",
+    "itp",
+    "sepsis",
+    "감별",
+)
+TTP_MONITORING_COMPLICATION_SAFETY_TERMS = (
+    "aki",
+    "bleeding",
+    "hemolysis",
+    "ldh",
+    "neurologic",
+    "platelet recovery",
+    "renal",
+    "thrombosis",
+    "혈소판",
+)
 NEUTROPENIC_FEVER_CONTEXT_TERMS = (
     "absolute neutrophil count",
     "anc below 500",
@@ -6658,6 +6770,36 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="ttp_time_critical_actions",
+            applies=_requires_ttp_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_ttp_time_critical_actions,
+            issue=(
+                "TTP time-critical actions must include urgent hematology, "
+                "therapeutic plasma exchange, plasma exchange, plasmapheresis, "
+                "or TPE planning, ADAMTS13 sampling plus hemolysis labs, LDH, "
+                "peripheral smear, blood smear, schistocyte, or schistocytes "
+                "assessment, corticosteroid, glucocorticoid, methylprednisolone, "
+                "prednisone, or steroid therapy, and caplacizumab, anti-VWF, "
+                "rituximab, or immunosuppression consideration"
+            ),
+        ),
+        DomainSafetyGate(
+            name="ttp_treatment_safety",
+            applies=_requires_ttp_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_ttp_treatment_safety_check,
+            issue=(
+                "TTP safety checks must include explicit do-not-wait, do-not-delay, "
+                "pending-ADAMTS13, before-ADAMTS13, or empiric-treatment planning, "
+                "platelet transfusion avoidance except life-threatening bleeding "
+                "or procedure need, differential review for DIC, HUS, aHUS, ITP, "
+                "HELLP, sepsis, or disseminated intravascular coagulation, and "
+                "monitoring for platelet recovery, LDH, hemolysis, AKI, renal, "
+                "neurologic, bleeding, thrombosis, or complications"
+            ),
+        ),
+        DomainSafetyGate(
             name="neutropenic_fever_time_critical_actions",
             applies=_requires_neutropenic_fever_safety_check,
             field_name="time_critical_actions",
@@ -9080,6 +9222,98 @@ def _has_endophthalmitis_treatment_safety_check(checks: list[Any]) -> bool:
         and has_vitrectomy_severity
         and has_fungal_steroid_safety
         and has_response_monitoring
+    )
+
+
+def _requires_ttp_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in TTP_DIRECT_CONTEXT_TERMS
+    )
+    has_maha_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in TTP_MAHA_CONTEXT_TERMS
+    )
+    has_thrombocytopenia_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in TTP_THROMBOCYTOPENIA_CONTEXT_TERMS
+    )
+    has_organ_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in TTP_ORGAN_CONTEXT_TERMS
+    )
+    return has_direct_context or (
+        has_maha_context
+        and has_thrombocytopenia_context
+        and has_organ_context
+    )
+
+
+def _has_ttp_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_pex = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TTP_PEX_ACTION_TERMS
+    )
+    has_adamts13_labs = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TTP_ADAMTS13_LAB_ACTION_TERMS
+    )
+    has_steroid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TTP_STEROID_ACTION_TERMS
+    )
+    has_antivwf = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TTP_ANTIVWF_ACTION_TERMS
+    )
+    return has_pex and has_adamts13_labs and has_steroid and has_antivwf
+
+
+def _has_ttp_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_do_not_wait = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TTP_DO_NOT_WAIT_SAFETY_TERMS
+    )
+    has_platelet_transfusion_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TTP_PLATELET_TRANSFUSION_SAFETY_TERMS
+    )
+    has_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TTP_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TTP_MONITORING_COMPLICATION_SAFETY_TERMS
+    )
+    return (
+        has_do_not_wait
+        and has_platelet_transfusion_safety
+        and has_differential_safety
+        and has_monitoring_safety
     )
 
 

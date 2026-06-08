@@ -2119,6 +2119,130 @@ const ENDOPHTHALMITIS_RESPONSE_MONITORING_SAFETY_TERMS = [
   "추적",
 ];
 
+const TTP_DIRECT_CONTEXT_TERMS = [
+  "acquired ttp",
+  "immune ttp",
+  "ittp",
+  "thrombotic thrombocytopenic purpura",
+  "ttp",
+  "혈전성 혈소판감소성 자반증",
+];
+
+const TTP_MAHA_CONTEXT_TERMS = [
+  "hemolysis",
+  "hemolytic anemia",
+  "maha",
+  "microangiopathic",
+  "schistocyte",
+  "schistocytes",
+  "thrombotic microangiopathy",
+  "tma",
+  "용혈",
+];
+
+const TTP_THROMBOCYTOPENIA_CONTEXT_TERMS = [
+  "low platelets",
+  "platelet count",
+  "platelets 10",
+  "platelets 20",
+  "platelets 30",
+  "severe thrombocytopenia",
+  "thrombocytopenia",
+  "혈소판",
+];
+
+const TTP_ORGAN_CONTEXT_TERMS = [
+  "acute kidney injury",
+  "confusion",
+  "fever",
+  "neurologic",
+  "renal injury",
+  "seizure",
+  "stroke",
+  "신경",
+  "신장",
+];
+
+const TTP_PEX_ACTION_TERMS = [
+  "hematology",
+  "plasma exchange",
+  "plasma-exchange",
+  "plasmapheresis",
+  "therapeutic plasma exchange",
+  "tpe",
+  "혈장교환",
+];
+
+const TTP_ADAMTS13_LAB_ACTION_TERMS = [
+  "adamts13",
+  "blood smear",
+  "hemolysis labs",
+  "ldh",
+  "peripheral smear",
+  "schistocyte",
+  "schistocytes",
+  "혈액도말",
+];
+
+const TTP_STEROID_ACTION_TERMS = [
+  "corticosteroid",
+  "glucocorticoid",
+  "methylprednisolone",
+  "prednisone",
+  "steroid",
+  "스테로이드",
+];
+
+const TTP_ANTIVWF_ACTION_TERMS = [
+  "caplacizumab",
+  "rituximab",
+  "anti-vwf",
+  "immunosuppression",
+  "카플라시주맙",
+];
+
+const TTP_DO_NOT_WAIT_SAFETY_TERMS = [
+  "before adamts13",
+  "do not delay",
+  "do not wait",
+  "not delay",
+  "pending adamts13",
+  "treat empirically",
+  "지연",
+];
+
+const TTP_PLATELET_TRANSFUSION_SAFETY_TERMS = [
+  "avoid platelet",
+  "life-threatening bleeding",
+  "platelet transfusion",
+  "transfusion only",
+  "avoid transfusion",
+  "혈소판 수혈",
+];
+
+const TTP_DIFFERENTIAL_SAFETY_TERMS = [
+  "ahus",
+  "dic",
+  "disseminated intravascular coagulation",
+  "hellp",
+  "hus",
+  "itp",
+  "sepsis",
+  "감별",
+];
+
+const TTP_MONITORING_COMPLICATION_SAFETY_TERMS = [
+  "aki",
+  "bleeding",
+  "hemolysis",
+  "ldh",
+  "neurologic",
+  "platelet recovery",
+  "renal",
+  "thrombosis",
+  "혈소판",
+];
+
 const NEUTROPENIC_FEVER_CONTEXT_TERMS = [
   "absolute neutrophil count",
   "anc below 500",
@@ -7470,6 +7594,72 @@ function hasEndophthalmitisTreatmentSafetyCheck(checks: string[]): boolean {
   return hasDelayDifferential && hasVitrectomySeverity && hasFungalSteroidSafety && hasResponseMonitoring;
 }
 
+function requiresTtpSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = TTP_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasMahaContext = TTP_MAHA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasThrombocytopeniaContext = TTP_THROMBOCYTOPENIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasOrganContext = TTP_ORGAN_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasMahaContext && hasThrombocytopeniaContext && hasOrganContext);
+}
+
+function hasTtpTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasPex = TTP_PEX_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAdamts13Labs = TTP_ADAMTS13_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSteroid = TTP_STEROID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntivwf = TTP_ANTIVWF_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasPex && hasAdamts13Labs && hasSteroid && hasAntivwf;
+}
+
+function hasTtpTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDoNotWait = TTP_DO_NOT_WAIT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPlateletTransfusionSafety = TTP_PLATELET_TRANSFUSION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferentialSafety = TTP_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMonitoringSafety = TTP_MONITORING_COMPLICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasDoNotWait && hasPlateletTransfusionSafety && hasDifferentialSafety && hasMonitoringSafety;
+}
+
 function requiresNeutropenicFeverSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -10126,6 +10316,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasEndophthalmitisTreatmentSafetyCheck,
       issue:
         "endophthalmitis safety checks must include explicit do-not-delay or emergency review and differentiation from conjunctivitis or uveitis, vitrectomy or severe-vision review for light perception, count-fingers, poor vision, severe disease, or vitreous opacity, fungal, immunocompromised, IV-drug, voriconazole, steroid, or corticosteroid safety review, and monitoring for visual acuity, daily exam, culture sensitivity, repeat intravitreal injection, no improvement, worsening, or recheck response",
+    },
+    {
+      name: "ttp_time_critical_actions",
+      label: "TTP emergency actions",
+      applies: requiresTtpSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasTtpTimeCriticalActions,
+      issue:
+        "TTP time-critical actions must include urgent hematology, therapeutic plasma exchange, plasma exchange, plasmapheresis, or TPE planning, ADAMTS13 sampling plus hemolysis labs, LDH, peripheral smear, blood smear, schistocyte, or schistocytes assessment, corticosteroid, glucocorticoid, methylprednisolone, prednisone, or steroid therapy, and caplacizumab, anti-VWF, rituximab, or immunosuppression consideration",
+    },
+    {
+      name: "ttp_treatment_safety",
+      label: "TTP treatment safety",
+      applies: requiresTtpSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasTtpTreatmentSafetyCheck,
+      issue:
+        "TTP safety checks must include explicit do-not-wait, do-not-delay, pending-ADAMTS13, before-ADAMTS13, or empiric-treatment planning, platelet transfusion avoidance except life-threatening bleeding or procedure need, differential review for DIC, HUS, aHUS, ITP, HELLP, sepsis, or disseminated intravascular coagulation, and monitoring for platelet recovery, LDH, hemolysis, AKI, renal, neurologic, bleeding, thrombosis, or complications",
     },
     {
       name: "neutropenic_fever_time_critical_actions",
