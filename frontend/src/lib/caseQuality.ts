@@ -2926,6 +2926,124 @@ const THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS = [
   "감염",
 ];
 
+const MYXEDEMA_COMA_DIRECT_CONTEXT_TERMS = [
+  "hypothyroid crisis",
+  "myxedema coma",
+  "myxedema crisis",
+  "myxoedema coma",
+  "myxoedema crisis",
+  "점액수종 혼수",
+];
+
+const MYXEDEMA_COMA_HYPOTHYROID_CONTEXT_TERMS = [
+  "hypothyroidism",
+  "hypothyroid",
+  "levothyroxine nonadherence",
+  "severe hypothyroidism",
+  "갑상샘저하",
+  "갑상선저하",
+];
+
+const MYXEDEMA_COMA_DECOMPENSATION_CONTEXT_TERMS = [
+  "altered mental status",
+  "bradycardia",
+  "coma",
+  "confusion",
+  "hypothermia",
+  "hypoventilation",
+  "hyponatremia",
+  "obtundation",
+  "혼돈",
+  "저체온",
+];
+
+const MYXEDEMA_COMA_ICU_SUPPORT_ACTION_TERMS = [
+  "airway",
+  "icu",
+  "intensive care",
+  "oxygen",
+  "respiratory support",
+  "ventilation",
+  "vasopressor",
+  "중환자",
+  "기도",
+];
+
+const MYXEDEMA_COMA_STEROID_ACTION_TERMS = [
+  "cortisol",
+  "glucocorticoid",
+  "hydrocortisone",
+  "steroid",
+  "스테로이드",
+];
+
+const MYXEDEMA_COMA_THYROID_HORMONE_ACTION_TERMS = [
+  "iv levothyroxine",
+  "levothyroxine",
+  "liothyronine",
+  "thyroid hormone",
+  "갑상샘호르몬",
+  "갑상선호르몬",
+];
+
+const MYXEDEMA_COMA_PRECIPITANT_WORKUP_ACTION_TERMS = [
+  "antibiotic",
+  "cortisol",
+  "culture",
+  "free t4",
+  "infection",
+  "precipitant",
+  "sepsis",
+  "tsh",
+  "감염",
+];
+
+const MYXEDEMA_COMA_STEROID_SEQUENCE_SAFETY_TERMS = [
+  "adrenal crisis",
+  "adrenal insufficiency",
+  "before thyroid",
+  "cortisol",
+  "hydrocortisone",
+  "prior to thyroid",
+  "steroid",
+  "부신",
+];
+
+const MYXEDEMA_COMA_REWARMING_SAFETY_TERMS = [
+  "aggressive rewarming",
+  "blanket",
+  "hypothermia",
+  "passive rewarming",
+  "rewarming",
+  "temperature",
+  "warming",
+  "저체온",
+];
+
+const MYXEDEMA_COMA_METABOLIC_RESPIRATORY_SAFETY_TERMS = [
+  "glucose",
+  "hypercapnia",
+  "hypoglycemia",
+  "hyponatremia",
+  "oxygen",
+  "sodium",
+  "ventilation",
+  "혈당",
+  "나트륨",
+];
+
+const MYXEDEMA_COMA_CARDIAC_DOSING_SAFETY_TERMS = [
+  "arrhythmia",
+  "cardiac",
+  "coronary",
+  "elderly",
+  "ischemia",
+  "lower dose",
+  "myocardial infarction",
+  "telemetry",
+  "심장",
+];
+
 const HEAT_STROKE_CONTEXT_TERMS = [
   "classic heat stroke",
   "exertional heat stroke",
@@ -8148,6 +8266,71 @@ function hasThyroidStormTreatmentSafetyCheck(checks: string[]): boolean {
   return hasSequenceSafety && hasBetaBlockerSafety && hasDrugLiverSafety && hasTriggerMonitoringSafety;
 }
 
+function requiresMyxedemaComaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = MYXEDEMA_COMA_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasHypothyroidContext = MYXEDEMA_COMA_HYPOTHYROID_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasDecompensationContext = MYXEDEMA_COMA_DECOMPENSATION_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasHypothyroidContext && hasDecompensationContext);
+}
+
+function hasMyxedemaComaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasIcuSupport = MYXEDEMA_COMA_ICU_SUPPORT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSteroid = MYXEDEMA_COMA_STEROID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasThyroidHormone = MYXEDEMA_COMA_THYROID_HORMONE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPrecipitantWorkup = MYXEDEMA_COMA_PRECIPITANT_WORKUP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasIcuSupport && hasSteroid && hasThyroidHormone && hasPrecipitantWorkup;
+}
+
+function hasMyxedemaComaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasSteroidSequence = MYXEDEMA_COMA_STEROID_SEQUENCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRewarmingSafety = MYXEDEMA_COMA_REWARMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMetabolicRespiratorySafety = MYXEDEMA_COMA_METABOLIC_RESPIRATORY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCardiacDosingSafety = MYXEDEMA_COMA_CARDIAC_DOSING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasSteroidSequence && hasRewarmingSafety && hasMetabolicRespiratorySafety && hasCardiacDosingSafety
+  );
+}
+
 function requiresHeatStrokeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -10628,6 +10811,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasThyroidStormTreatmentSafetyCheck,
       issue:
         "thyroid storm safety checks must include iodine-after-thionamide sequencing, beta-blocker contraindication review, thionamide pregnancy, liver, or agranulocytosis safety, and precipitant, arrhythmia, or ICU monitoring",
+    },
+    {
+      name: "myxedema_coma_time_critical_actions",
+      label: "Myxedema coma emergency actions",
+      applies: requiresMyxedemaComaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasMyxedemaComaTimeCriticalActions,
+      issue:
+        "myxedema coma time-critical actions must include ICU, airway, oxygen, ventilation, vasopressor, or intensive-care support, stress-dose hydrocortisone, steroid, glucocorticoid, or cortisol coverage, IV levothyroxine, liothyronine, or thyroid-hormone therapy, and precipitant or endocrine workup including TSH, free T4, infection, culture, sepsis, antibiotic, or cortisol assessment",
+    },
+    {
+      name: "myxedema_coma_treatment_safety",
+      label: "Myxedema coma treatment safety",
+      applies: requiresMyxedemaComaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasMyxedemaComaTreatmentSafetyCheck,
+      issue:
+        "myxedema coma safety checks must include adrenal-insufficiency or hydrocortisone-before-thyroid-hormone sequencing, passive rewarming or avoidance of aggressive rewarming for hypothermia, hyponatremia, hypoglycemia, glucose, sodium, oxygen, hypercapnia, or ventilation monitoring, and elderly, coronary, ischemia, arrhythmia, telemetry, or lower-dose thyroid-hormone cardiac safety",
     },
     {
       name: "heat_stroke_time_critical_actions",

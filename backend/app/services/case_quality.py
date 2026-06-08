@@ -2713,6 +2713,113 @@ THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS = (
     "trigger",
     "감염",
 )
+MYXEDEMA_COMA_DIRECT_CONTEXT_TERMS = (
+    "hypothyroid crisis",
+    "myxedema coma",
+    "myxedema crisis",
+    "myxoedema coma",
+    "myxoedema crisis",
+    "점액수종 혼수",
+)
+MYXEDEMA_COMA_HYPOTHYROID_CONTEXT_TERMS = (
+    "hypothyroidism",
+    "hypothyroid",
+    "levothyroxine nonadherence",
+    "severe hypothyroidism",
+    "갑상샘저하",
+    "갑상선저하",
+)
+MYXEDEMA_COMA_DECOMPENSATION_CONTEXT_TERMS = (
+    "altered mental status",
+    "bradycardia",
+    "coma",
+    "confusion",
+    "hypothermia",
+    "hypoventilation",
+    "hyponatremia",
+    "obtundation",
+    "혼돈",
+    "저체온",
+)
+MYXEDEMA_COMA_ICU_SUPPORT_ACTION_TERMS = (
+    "airway",
+    "icu",
+    "intensive care",
+    "oxygen",
+    "respiratory support",
+    "ventilation",
+    "vasopressor",
+    "중환자",
+    "기도",
+)
+MYXEDEMA_COMA_STEROID_ACTION_TERMS = (
+    "cortisol",
+    "glucocorticoid",
+    "hydrocortisone",
+    "steroid",
+    "스테로이드",
+)
+MYXEDEMA_COMA_THYROID_HORMONE_ACTION_TERMS = (
+    "iv levothyroxine",
+    "levothyroxine",
+    "liothyronine",
+    "thyroid hormone",
+    "갑상샘호르몬",
+    "갑상선호르몬",
+)
+MYXEDEMA_COMA_PRECIPITANT_WORKUP_ACTION_TERMS = (
+    "antibiotic",
+    "cortisol",
+    "culture",
+    "free t4",
+    "infection",
+    "precipitant",
+    "sepsis",
+    "tsh",
+    "감염",
+)
+MYXEDEMA_COMA_STEROID_SEQUENCE_SAFETY_TERMS = (
+    "adrenal crisis",
+    "adrenal insufficiency",
+    "before thyroid",
+    "cortisol",
+    "hydrocortisone",
+    "prior to thyroid",
+    "steroid",
+    "부신",
+)
+MYXEDEMA_COMA_REWARMING_SAFETY_TERMS = (
+    "aggressive rewarming",
+    "blanket",
+    "hypothermia",
+    "passive rewarming",
+    "rewarming",
+    "temperature",
+    "warming",
+    "저체온",
+)
+MYXEDEMA_COMA_METABOLIC_RESPIRATORY_SAFETY_TERMS = (
+    "glucose",
+    "hypercapnia",
+    "hypoglycemia",
+    "hyponatremia",
+    "oxygen",
+    "sodium",
+    "ventilation",
+    "혈당",
+    "나트륨",
+)
+MYXEDEMA_COMA_CARDIAC_DOSING_SAFETY_TERMS = (
+    "arrhythmia",
+    "cardiac",
+    "coronary",
+    "elderly",
+    "ischemia",
+    "lower dose",
+    "myocardial infarction",
+    "telemetry",
+    "심장",
+)
 HEAT_STROKE_CONTEXT_TERMS = (
     "classic heat stroke",
     "exertional heat stroke",
@@ -7070,6 +7177,34 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="myxedema_coma_time_critical_actions",
+            applies=_requires_myxedema_coma_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_myxedema_coma_time_critical_actions,
+            issue=(
+                "myxedema coma time-critical actions must include ICU, airway, "
+                "oxygen, ventilation, vasopressor, or intensive-care support, "
+                "stress-dose hydrocortisone, steroid, glucocorticoid, or cortisol "
+                "coverage, IV levothyroxine, liothyronine, or thyroid-hormone "
+                "therapy, and precipitant or endocrine workup including TSH, free T4, "
+                "infection, culture, sepsis, antibiotic, or cortisol assessment"
+            ),
+        ),
+        DomainSafetyGate(
+            name="myxedema_coma_treatment_safety",
+            applies=_requires_myxedema_coma_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_myxedema_coma_treatment_safety_check,
+            issue=(
+                "myxedema coma safety checks must include adrenal-insufficiency "
+                "or hydrocortisone-before-thyroid-hormone sequencing, passive "
+                "rewarming or avoidance of aggressive rewarming for hypothermia, "
+                "hyponatremia, hypoglycemia, glucose, sodium, oxygen, hypercapnia, "
+                "or ventilation monitoring, and elderly, coronary, ischemia, "
+                "arrhythmia, telemetry, or lower-dose thyroid-hormone cardiac safety"
+            ),
+        ),
+        DomainSafetyGate(
             name="heat_stroke_time_critical_actions",
             applies=_requires_heat_stroke_safety_check,
             field_name="time_critical_actions",
@@ -9941,6 +10076,90 @@ def _has_thyroid_storm_treatment_safety_check(checks: list[Any]) -> bool:
         and has_beta_blocker_safety
         and has_drug_liver_safety
         and has_trigger_monitoring_safety
+    )
+
+
+def _requires_myxedema_coma_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in MYXEDEMA_COMA_DIRECT_CONTEXT_TERMS
+    )
+    has_hypothyroid_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in MYXEDEMA_COMA_HYPOTHYROID_CONTEXT_TERMS
+    )
+    has_decompensation_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in MYXEDEMA_COMA_DECOMPENSATION_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_hypothyroid_context and has_decompensation_context)
+
+
+def _has_myxedema_coma_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_icu_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYXEDEMA_COMA_ICU_SUPPORT_ACTION_TERMS
+    )
+    has_steroid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYXEDEMA_COMA_STEROID_ACTION_TERMS
+    )
+    has_thyroid_hormone = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYXEDEMA_COMA_THYROID_HORMONE_ACTION_TERMS
+    )
+    has_precipitant_workup = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYXEDEMA_COMA_PRECIPITANT_WORKUP_ACTION_TERMS
+    )
+    return has_icu_support and has_steroid and has_thyroid_hormone and has_precipitant_workup
+
+
+def _has_myxedema_coma_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_steroid_sequence = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYXEDEMA_COMA_STEROID_SEQUENCE_SAFETY_TERMS
+    )
+    has_rewarming_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYXEDEMA_COMA_REWARMING_SAFETY_TERMS
+    )
+    has_metabolic_respiratory_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYXEDEMA_COMA_METABOLIC_RESPIRATORY_SAFETY_TERMS
+    )
+    has_cardiac_dosing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYXEDEMA_COMA_CARDIAC_DOSING_SAFETY_TERMS
+    )
+    return (
+        has_steroid_sequence
+        and has_rewarming_safety
+        and has_metabolic_respiratory_safety
+        and has_cardiac_dosing_safety
     )
 
 
