@@ -4715,6 +4715,124 @@ SUBARACHNOID_HEMORRHAGE_COMPLICATION_SAFETY_TERMS = (
     "수두증",
     "혈관연축",
 )
+BB_CCB_OVERDOSE_DIRECT_CONTEXT_TERMS = (
+    "beta blocker overdose",
+    "beta-blocker overdose",
+    "beta blocker toxicity",
+    "beta-blocker toxicity",
+    "calcium channel blocker overdose",
+    "calcium-channel blocker overdose",
+    "calcium channel blocker toxicity",
+    "ccb overdose",
+    "ccb toxicity",
+    "cardioactive drug overdose",
+    "심장약 과다복용",
+)
+BB_CCB_OVERDOSE_DRUG_CONTEXT_TERMS = (
+    "amlodipine",
+    "atenolol",
+    "beta blocker",
+    "beta-blocker",
+    "calcium channel blocker",
+    "calcium-channel blocker",
+    "carvedilol",
+    "diltiazem",
+    "metoprolol",
+    "propranolol",
+    "verapamil",
+)
+BB_CCB_OVERDOSE_SHOCK_CONTEXT_TERMS = (
+    "av block",
+    "bradycardia",
+    "cardiogenic shock",
+    "hypotension",
+    "junctional rhythm",
+    "shock",
+    "wide qrs",
+    "서맥",
+    "쇼크",
+)
+BB_CCB_OVERDOSE_ECG_MONITOR_ACTION_TERMS = (
+    "cardiac monitoring",
+    "ecg",
+    "ekg",
+    "telemetry",
+    "vital signs",
+    "심전도",
+)
+BB_CCB_OVERDOSE_CALCIUM_GLUCAGON_ATROPINE_ACTION_TERMS = (
+    "atropine",
+    "calcium chloride",
+    "calcium gluconate",
+    "glucagon",
+    "칼슘",
+    "글루카곤",
+)
+BB_CCB_OVERDOSE_HIE_ACTION_TERMS = (
+    "euglycemia",
+    "hie",
+    "hiet",
+    "high-dose insulin",
+    "hyperinsulinemia",
+    "hyperinsulinaemia",
+    "insulin",
+    "인슐린",
+)
+BB_CCB_OVERDOSE_VASOPRESSOR_ACTION_TERMS = (
+    "epinephrine",
+    "inotrope",
+    "norepinephrine",
+    "shock",
+    "vasopressor",
+    "승압제",
+)
+BB_CCB_OVERDOSE_ESCALATION_ACTION_TERMS = (
+    "ecmo",
+    "intra-aortic balloon",
+    "lipid emulsion",
+    "mechanical circulatory",
+    "pacing",
+    "poison center",
+    "toxicologist",
+    "체외순환",
+)
+BB_CCB_OVERDOSE_HIE_MONITORING_SAFETY_TERMS = (
+    "dextrose",
+    "glucose",
+    "hypoglycemia",
+    "potassium",
+    "serum glucose",
+    "혈당",
+    "칼륨",
+)
+BB_CCB_OVERDOSE_AIRWAY_SEIZURE_QRS_SAFETY_TERMS = (
+    "airway",
+    "benzodiazepine",
+    "intubation",
+    "qrs",
+    "seizure",
+    "sodium bicarbonate",
+    "wide qrs",
+    "기도",
+)
+BB_CCB_OVERDOSE_DECONTAMINATION_SAFETY_TERMS = (
+    "activated charcoal",
+    "bowel irrigation",
+    "decontamination",
+    "extended release",
+    "sustained release",
+    "whole bowel",
+    "서방형",
+)
+BB_CCB_OVERDOSE_ESCALATION_SAFETY_TERMS = (
+    "ecmo",
+    "fat overload",
+    "lipid emulsion",
+    "pancreatitis",
+    "pacing",
+    "vasopressor",
+    "체외순환",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -8038,6 +8156,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "rebleeding or unsecured-aneurysm blood-pressure safeguards, "
                 "and hydrocephalus, vasospasm, delayed cerebral ischemia, seizure, "
                 "EVD, ICU, or neurocritical complication monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="bb_ccb_overdose_time_critical_actions",
+            applies=_requires_bb_ccb_overdose_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_bb_ccb_overdose_time_critical_actions,
+            issue=(
+                "beta-blocker or calcium-channel blocker overdose time-critical "
+                "actions must include ECG, EKG, telemetry, vital-sign, or cardiac "
+                "monitoring, calcium, glucagon, or atropine early therapy, "
+                "high-dose insulin, hyperinsulinemia, HIE, HIET, or euglycemia "
+                "therapy, vasopressor, inotrope, epinephrine, norepinephrine, "
+                "or shock support, and poison-center, toxicology, lipid-emulsion, "
+                "ECMO, mechanical-circulatory-support, intra-aortic balloon, or "
+                "pacing escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="bb_ccb_overdose_treatment_safety",
+            applies=_requires_bb_ccb_overdose_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_bb_ccb_overdose_treatment_safety_check,
+            issue=(
+                "beta-blocker or calcium-channel blocker overdose safety checks "
+                "must include glucose, dextrose, hypoglycemia, and potassium "
+                "monitoring during high-dose insulin euglycemia therapy, airway, "
+                "intubation, seizure, benzodiazepine, wide-QRS, QRS, or sodium-"
+                "bicarbonate safety review, activated-charcoal, decontamination, "
+                "whole-bowel irrigation, sustained-release, or extended-release "
+                "planning, and lipid-emulsion, pancreatitis, fat-overload, "
+                "vasopressor, pacing, or ECMO escalation safety"
             ),
         ),
         DomainSafetyGate(
@@ -11970,6 +12120,100 @@ def _has_subarachnoid_hemorrhage_treatment_safety_check(checks: list[Any]) -> bo
         has_anticoag_reversal_safety
         and has_rebleed_bp_safety
         and has_complication_safety
+    )
+
+
+def _requires_bb_ccb_overdose_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in BB_CCB_OVERDOSE_DIRECT_CONTEXT_TERMS
+    )
+    has_drug_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in BB_CCB_OVERDOSE_DRUG_CONTEXT_TERMS
+    )
+    has_shock_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in BB_CCB_OVERDOSE_SHOCK_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_drug_context and has_shock_context)
+
+
+def _has_bb_ccb_overdose_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_ecg_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BB_CCB_OVERDOSE_ECG_MONITOR_ACTION_TERMS
+    )
+    has_calcium_glucagon_atropine = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BB_CCB_OVERDOSE_CALCIUM_GLUCAGON_ATROPINE_ACTION_TERMS
+    )
+    has_hie = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BB_CCB_OVERDOSE_HIE_ACTION_TERMS
+    )
+    has_vasopressor = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BB_CCB_OVERDOSE_VASOPRESSOR_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BB_CCB_OVERDOSE_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_ecg_monitoring
+        and has_calcium_glucagon_atropine
+        and has_hie
+        and has_vasopressor
+        and has_escalation
+    )
+
+
+def _has_bb_ccb_overdose_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_hie_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BB_CCB_OVERDOSE_HIE_MONITORING_SAFETY_TERMS
+    )
+    has_airway_seizure_qrs_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BB_CCB_OVERDOSE_AIRWAY_SEIZURE_QRS_SAFETY_TERMS
+    )
+    has_decontamination_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BB_CCB_OVERDOSE_DECONTAMINATION_SAFETY_TERMS
+    )
+    has_escalation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BB_CCB_OVERDOSE_ESCALATION_SAFETY_TERMS
+    )
+    return (
+        has_hie_monitoring
+        and has_airway_seizure_qrs_safety
+        and has_decontamination_safety
+        and has_escalation_safety
     )
 
 

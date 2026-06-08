@@ -5122,6 +5122,136 @@ const SUBARACHNOID_HEMORRHAGE_COMPLICATION_SAFETY_TERMS = [
   "혈관연축",
 ];
 
+const BB_CCB_OVERDOSE_DIRECT_CONTEXT_TERMS = [
+  "beta blocker overdose",
+  "beta-blocker overdose",
+  "beta blocker toxicity",
+  "beta-blocker toxicity",
+  "calcium channel blocker overdose",
+  "calcium-channel blocker overdose",
+  "calcium channel blocker toxicity",
+  "ccb overdose",
+  "ccb toxicity",
+  "cardioactive drug overdose",
+  "심장약 과다복용",
+];
+
+const BB_CCB_OVERDOSE_DRUG_CONTEXT_TERMS = [
+  "amlodipine",
+  "atenolol",
+  "beta blocker",
+  "beta-blocker",
+  "calcium channel blocker",
+  "calcium-channel blocker",
+  "carvedilol",
+  "diltiazem",
+  "metoprolol",
+  "propranolol",
+  "verapamil",
+];
+
+const BB_CCB_OVERDOSE_SHOCK_CONTEXT_TERMS = [
+  "av block",
+  "bradycardia",
+  "cardiogenic shock",
+  "hypotension",
+  "junctional rhythm",
+  "shock",
+  "wide qrs",
+  "서맥",
+  "쇼크",
+];
+
+const BB_CCB_OVERDOSE_ECG_MONITOR_ACTION_TERMS = [
+  "cardiac monitoring",
+  "ecg",
+  "ekg",
+  "telemetry",
+  "vital signs",
+  "심전도",
+];
+
+const BB_CCB_OVERDOSE_CALCIUM_GLUCAGON_ATROPINE_ACTION_TERMS = [
+  "atropine",
+  "calcium chloride",
+  "calcium gluconate",
+  "glucagon",
+  "칼슘",
+  "글루카곤",
+];
+
+const BB_CCB_OVERDOSE_HIE_ACTION_TERMS = [
+  "euglycemia",
+  "hie",
+  "hiet",
+  "high-dose insulin",
+  "hyperinsulinemia",
+  "hyperinsulinaemia",
+  "insulin",
+  "인슐린",
+];
+
+const BB_CCB_OVERDOSE_VASOPRESSOR_ACTION_TERMS = [
+  "epinephrine",
+  "inotrope",
+  "norepinephrine",
+  "shock",
+  "vasopressor",
+  "승압제",
+];
+
+const BB_CCB_OVERDOSE_ESCALATION_ACTION_TERMS = [
+  "ecmo",
+  "intra-aortic balloon",
+  "lipid emulsion",
+  "mechanical circulatory",
+  "pacing",
+  "poison center",
+  "toxicologist",
+  "체외순환",
+];
+
+const BB_CCB_OVERDOSE_HIE_MONITORING_SAFETY_TERMS = [
+  "dextrose",
+  "glucose",
+  "hypoglycemia",
+  "potassium",
+  "serum glucose",
+  "혈당",
+  "칼륨",
+];
+
+const BB_CCB_OVERDOSE_AIRWAY_SEIZURE_QRS_SAFETY_TERMS = [
+  "airway",
+  "benzodiazepine",
+  "intubation",
+  "qrs",
+  "seizure",
+  "sodium bicarbonate",
+  "wide qrs",
+  "기도",
+];
+
+const BB_CCB_OVERDOSE_DECONTAMINATION_SAFETY_TERMS = [
+  "activated charcoal",
+  "bowel irrigation",
+  "decontamination",
+  "extended release",
+  "sustained release",
+  "whole bowel",
+  "서방형",
+];
+
+const BB_CCB_OVERDOSE_ESCALATION_SAFETY_TERMS = [
+  "ecmo",
+  "fat overload",
+  "lipid emulsion",
+  "pancreatitis",
+  "pacing",
+  "vasopressor",
+  "체외순환",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -9757,6 +9887,84 @@ function hasSubarachnoidHemorrhageTreatmentSafetyCheck(checks: string[]): boolea
   return hasAnticoagReversalSafety && hasRebleedBpSafety && hasComplicationSafety;
 }
 
+function requiresBbCcbOverdoseSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = BB_CCB_OVERDOSE_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasDrugContext = BB_CCB_OVERDOSE_DRUG_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasShockContext = BB_CCB_OVERDOSE_SHOCK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasDrugContext && hasShockContext);
+}
+
+function hasBbCcbOverdoseTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasEcgMonitoring = BB_CCB_OVERDOSE_ECG_MONITOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCalciumGlucagonAtropine =
+    BB_CCB_OVERDOSE_CALCIUM_GLUCAGON_ATROPINE_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasHie = BB_CCB_OVERDOSE_HIE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVasopressor = BB_CCB_OVERDOSE_VASOPRESSOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = BB_CCB_OVERDOSE_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasEcgMonitoring &&
+    hasCalciumGlucagonAtropine &&
+    hasHie &&
+    hasVasopressor &&
+    hasEscalation
+  );
+}
+
+function hasBbCcbOverdoseTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasHieMonitoring = BB_CCB_OVERDOSE_HIE_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAirwaySeizureQrsSafety = BB_CCB_OVERDOSE_AIRWAY_SEIZURE_QRS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDecontaminationSafety = BB_CCB_OVERDOSE_DECONTAMINATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEscalationSafety = BB_CCB_OVERDOSE_ESCALATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasHieMonitoring &&
+    hasAirwaySeizureQrsSafety &&
+    hasDecontaminationSafety &&
+    hasEscalationSafety
+  );
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -11588,6 +11796,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSubarachnoidHemorrhageTreatmentSafetyCheck,
       issue:
         "subarachnoid hemorrhage safety checks must include anticoagulant, antiplatelet, INR, platelet, coagulopathy, or reversal review, rebleeding or unsecured-aneurysm blood-pressure safeguards, and hydrocephalus, vasospasm, delayed cerebral ischemia, seizure, EVD, ICU, or neurocritical complication monitoring",
+    },
+    {
+      name: "bb_ccb_overdose_time_critical_actions",
+      label: "BB/CCB overdose emergency actions",
+      applies: requiresBbCcbOverdoseSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasBbCcbOverdoseTimeCriticalActions,
+      issue:
+        "beta-blocker or calcium-channel blocker overdose time-critical actions must include ECG, EKG, telemetry, vital-sign, or cardiac monitoring, calcium, glucagon, or atropine early therapy, high-dose insulin, hyperinsulinemia, HIE, HIET, or euglycemia therapy, vasopressor, inotrope, epinephrine, norepinephrine, or shock support, and poison-center, toxicology, lipid-emulsion, ECMO, mechanical-circulatory-support, intra-aortic balloon, or pacing escalation",
+    },
+    {
+      name: "bb_ccb_overdose_treatment_safety",
+      label: "BB/CCB overdose treatment safety",
+      applies: requiresBbCcbOverdoseSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasBbCcbOverdoseTreatmentSafetyCheck,
+      issue:
+        "beta-blocker or calcium-channel blocker overdose safety checks must include glucose, dextrose, hypoglycemia, and potassium monitoring during high-dose insulin euglycemia therapy, airway, intubation, seizure, benzodiazepine, wide-QRS, QRS, or sodium-bicarbonate safety review, activated-charcoal, decontamination, whole-bowel irrigation, sustained-release, or extended-release planning, and lipid-emulsion, pancreatitis, fat-overload, vasopressor, pacing, or ECMO escalation safety",
     },
     {
       name: "dka_time_critical_actions",
