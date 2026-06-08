@@ -2907,6 +2907,127 @@ HEAT_STROKE_DIFFERENTIAL_SAFETY_TERMS = (
     "stimulant",
     "감염",
 )
+SEROTONIN_SYNDROME_DIRECT_CONTEXT_TERMS = (
+    "serotonin syndrome",
+    "serotonin toxicity",
+    "serotonergic syndrome",
+    "serotonergic toxicity",
+    "세로토닌 증후군",
+)
+SEROTONIN_SYNDROME_EXPOSURE_CONTEXT_TERMS = (
+    "dextromethorphan",
+    "fentanyl",
+    "linezolid",
+    "maoi",
+    "mdma",
+    "meperidine",
+    "serotonergic",
+    "snri",
+    "ssri",
+    "tramadol",
+    "triptan",
+)
+SEROTONIN_SYNDROME_NEUROMUSCULAR_CONTEXT_TERMS = (
+    "clonus",
+    "hyperreflexia",
+    "myoclonus",
+    "ocular clonus",
+    "rigidity",
+    "tremor",
+    "클로누스",
+)
+SEROTONIN_SYNDROME_AUTONOMIC_MENTAL_CONTEXT_TERMS = (
+    "agitation",
+    "altered mental status",
+    "diaphoresis",
+    "diarrhea",
+    "hyperthermia",
+    "hypertension",
+    "tachycardia",
+    "혼돈",
+)
+SEROTONIN_SYNDROME_STOP_AGENT_ACTION_TERMS = (
+    "discontinue",
+    "hold serotonergic",
+    "remove offending",
+    "stop serotonergic",
+    "withdraw serotonergic",
+    "중단",
+)
+SEROTONIN_SYNDROME_SUPPORTIVE_CARE_ACTION_TERMS = (
+    "cardiac monitoring",
+    "iv fluid",
+    "iv fluids",
+    "oxygen",
+    "supportive care",
+    "vital signs",
+    "수액",
+    "산소",
+)
+SEROTONIN_SYNDROME_BENZODIAZEPINE_ACTION_TERMS = (
+    "benzodiazepine",
+    "chemical sedation",
+    "diazepam",
+    "lorazepam",
+    "midazolam",
+    "sedation",
+    "벤조",
+)
+SEROTONIN_SYNDROME_COOLING_ACTION_TERMS = (
+    "active cooling",
+    "cooling",
+    "external cooling",
+    "hyperthermia",
+    "temperature",
+    "냉각",
+)
+SEROTONIN_SYNDROME_ANTAGONIST_ESCALATION_ACTION_TERMS = (
+    "cyproheptadine",
+    "icu",
+    "intubation",
+    "nondepolarizing",
+    "paralysis",
+    "poison center",
+    "toxicologist",
+    "중환자",
+)
+SEROTONIN_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = (
+    "anticholinergic",
+    "malignant hyperthermia",
+    "neuroleptic malignant",
+    "nms",
+    "sepsis",
+    "sympathomimetic",
+    "감별",
+)
+SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS = (
+    "acetaminophen",
+    "antipyretic",
+    "avoid physical restraint",
+    "physical restraint",
+    "restraint",
+    "해열제",
+)
+SEROTONIN_SYNDROME_SEVERE_HYPERTHERMIA_SAFETY_TERMS = (
+    "41",
+    "intubation",
+    "mechanical ventilation",
+    "neuromuscular blockade",
+    "nondepolarizing",
+    "paralysis",
+    "severe hyperthermia",
+    "삽관",
+)
+SEROTONIN_SYNDROME_COMPLICATION_MONITORING_SAFETY_TERMS = (
+    "aki",
+    "ck",
+    "creatine kinase",
+    "electrolyte",
+    "renal",
+    "rhabdomyolysis",
+    "seizure",
+    "횡문근",
+)
 CAUDA_EQUINA_CONTEXT_TERMS = (
     "back pain with urinary retention",
     "bladder dysfunction with sciatica",
@@ -7230,6 +7351,35 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="serotonin_syndrome_time_critical_actions",
+            applies=_requires_serotonin_syndrome_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_serotonin_syndrome_time_critical_actions,
+            issue=(
+                "serotonin syndrome time-critical actions must include stopping "
+                "serotonergic or offending agents, supportive care with oxygen, "
+                "IV fluids, vital-sign, or cardiac monitoring, benzodiazepine "
+                "or chemical sedation, active cooling or hyperthermia control, "
+                "and cyproheptadine, poison-center, toxicology, ICU, intubation, "
+                "or nondepolarizing paralysis escalation for severe disease"
+            ),
+        ),
+        DomainSafetyGate(
+            name="serotonin_syndrome_treatment_safety",
+            applies=_requires_serotonin_syndrome_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_serotonin_syndrome_treatment_safety_check,
+            issue=(
+                "serotonin syndrome safety checks must include differential review "
+                "for NMS, malignant hyperthermia, anticholinergic, sympathomimetic, "
+                "or sepsis mimics, avoidance of physical-restraint or antipyretic-"
+                "centered management, severe-hyperthermia planning for intubation, "
+                "mechanical ventilation, neuromuscular blockade, nondepolarizing "
+                "paralysis, or temperature above 41 C, and monitoring for "
+                "rhabdomyolysis, CK, renal injury, electrolytes, seizure, or AKI"
+            ),
+        ),
+        DomainSafetyGate(
             name="cauda_equina_time_critical_actions",
             applies=_requires_cauda_equina_safety_check,
             field_name="time_critical_actions",
@@ -10234,6 +10384,108 @@ def _has_heat_stroke_treatment_safety_check(checks: list[Any]) -> bool:
         and has_organ_injury_safety
         and has_antipyretic_safety
         and has_differential_safety
+    )
+
+
+def _requires_serotonin_syndrome_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SEROTONIN_SYNDROME_DIRECT_CONTEXT_TERMS
+    )
+    has_exposure_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SEROTONIN_SYNDROME_EXPOSURE_CONTEXT_TERMS
+    )
+    has_neuromuscular_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SEROTONIN_SYNDROME_NEUROMUSCULAR_CONTEXT_TERMS
+    )
+    has_autonomic_mental_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SEROTONIN_SYNDROME_AUTONOMIC_MENTAL_CONTEXT_TERMS
+    )
+    return has_direct_context or (
+        has_exposure_context
+        and has_neuromuscular_context
+        and has_autonomic_mental_context
+    )
+
+
+def _has_serotonin_syndrome_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_stop_agent = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEROTONIN_SYNDROME_STOP_AGENT_ACTION_TERMS
+    )
+    has_supportive_care = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEROTONIN_SYNDROME_SUPPORTIVE_CARE_ACTION_TERMS
+    )
+    has_benzodiazepine = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEROTONIN_SYNDROME_BENZODIAZEPINE_ACTION_TERMS
+    )
+    has_cooling = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEROTONIN_SYNDROME_COOLING_ACTION_TERMS
+    )
+    has_antagonist_or_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEROTONIN_SYNDROME_ANTAGONIST_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_stop_agent
+        and has_supportive_care
+        and has_benzodiazepine
+        and has_cooling
+        and has_antagonist_or_escalation
+    )
+
+
+def _has_serotonin_syndrome_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEROTONIN_SYNDROME_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_restraint_antipyretic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS
+    )
+    has_severe_hyperthermia_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEROTONIN_SYNDROME_SEVERE_HYPERTHERMIA_SAFETY_TERMS
+    )
+    has_complication_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEROTONIN_SYNDROME_COMPLICATION_MONITORING_SAFETY_TERMS
+    )
+    return (
+        has_differential_safety
+        and has_restraint_antipyretic_safety
+        and has_severe_hyperthermia_safety
+        and has_complication_monitoring
     )
 
 

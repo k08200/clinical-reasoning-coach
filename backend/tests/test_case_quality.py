@@ -93,6 +93,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "myxedema_coma_treatment_safety",
         "heat_stroke_time_critical_actions",
         "heat_stroke_treatment_safety",
+        "serotonin_syndrome_time_critical_actions",
+        "serotonin_syndrome_treatment_safety",
         "cauda_equina_time_critical_actions",
         "cauda_equina_delay_safety",
         "acute_compartment_syndrome_time_critical_actions",
@@ -3513,6 +3515,160 @@ def test_quality_gate_requires_heat_stroke_endpoint_organ_injury_antipyretic_and
     assert not report.passed
     assert any(
         "heat stroke safety checks must include cooling endpoint" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_serotonin_syndrome_stop_support_sedation_cooling_and_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Serotonin syndrome"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Agitation, fever, tremor, and clonus after medication change"
+    case["history_of_present_illness"] = (
+        "Patient taking SSRI and tramadol after linezolid exposure presents with agitation, "
+        "diaphoresis, diarrhea, tachycardia, hypertension, hyperthermia, tremor, "
+        "hyperreflexia, and inducible ocular clonus concerning for serotonin toxicity."
+    )
+    case["key_teaching_points"] = [
+        "Serotonin syndrome is a potentially life-threatening serotonergic toxicity",
+        "Clonus, hyperreflexia, tremor, agitation, autonomic instability, and hyperthermia support the diagnosis",
+        "Treatment centers on stopping serotonergic agents, supportive care, sedation, cooling, and escalation for severe disease",
+    ]
+    case["clinical_red_flags"] = [
+        "Spontaneous, inducible, or ocular clonus with agitation, tremor, hyperreflexia, or rigidity",
+        "Hyperthermia, diaphoresis, diarrhea, tachycardia, hypertension, seizure, or altered mental status",
+    ]
+    case["time_critical_actions"] = [
+        "Stop serotonergic offending agents including SSRI, tramadol, linezolid, MAOI, triptan, and dextromethorphan",
+        "Provide supportive care with oxygen, IV fluids, vital signs, and cardiac monitoring",
+        "Give benzodiazepine chemical sedation with diazepam, lorazepam, or midazolam for agitation and muscle activity",
+        "Start active cooling and external cooling for hyperthermia with temperature monitoring",
+    ]
+    case["contraindication_checks"] = [
+        "Review differential diagnosis including NMS, neuroleptic malignant syndrome, malignant hyperthermia, anticholinergic toxicity, sympathomimetic toxicity, and sepsis",
+        "Avoid physical restraint and avoid antipyretic-centered management with acetaminophen for serotonin hyperthermia",
+        "Plan intubation, mechanical ventilation, neuromuscular blockade, and nondepolarizing paralysis if severe hyperthermia or temperature above 41 C develops",
+        "Monitor CK creatine kinase, rhabdomyolysis, AKI, renal injury, electrolytes, and seizure complications",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Serotonin Syndrome",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK482377/",
+            "supports": [
+                "serotonin syndrome diagnosis and risk stratification",
+                "serotonin syndrome is a potentially life-threatening serotonergic toxicity",
+                "clonus, hyperreflexia, tremor, agitation, autonomic instability, and hyperthermia support the diagnosis",
+                "treatment centers on stopping serotonergic agents, supportive care, sedation, cooling, and escalation for severe disease",
+                "spontaneous, inducible, or ocular clonus with agitation, tremor, hyperreflexia, or rigidity as red flags",
+                "hyperthermia, diaphoresis, diarrhea, tachycardia, hypertension, seizure, or altered mental status as severity markers",
+                "stop serotonergic offending agents including SSRI, tramadol, linezolid, MAOI, triptan, and dextromethorphan",
+                "supportive care with oxygen, IV fluids, vital signs, and cardiac monitoring",
+                "benzodiazepine chemical sedation with diazepam, lorazepam, or midazolam for agitation and muscle activity",
+                "active cooling and external cooling for hyperthermia with temperature monitoring",
+                "NMS, neuroleptic malignant syndrome, malignant hyperthermia, anticholinergic toxicity, sympathomimetic toxicity, and sepsis differential diagnosis",
+                "avoid physical restraint and avoid antipyretic-centered management with acetaminophen for serotonin hyperthermia",
+                "intubation, mechanical ventilation, neuromuscular blockade, and nondepolarizing paralysis if severe hyperthermia or temperature above 41 C develops",
+                "CK creatine kinase, rhabdomyolysis, AKI, renal injury, electrolytes, and seizure complications monitoring",
+            ],
+        },
+        {
+            "title": "Serotonin Syndrome",
+            "organization": "Ochsner Journal",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3865832/",
+            "supports": [
+                "keys to management are discontinuing serotonergic agents, supportive care, benzodiazepines, and serotonin antagonists when needed",
+                "severe cases require sedation, paralysis, intubation, ventilation, and ICU care",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "serotonin syndrome time-critical actions must include stopping" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_serotonin_syndrome_differential_restraint_hyperthermia_and_complication_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Serotonin syndrome"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Agitation, fever, tremor, and clonus after medication change"
+    case["history_of_present_illness"] = (
+        "Patient taking SSRI and tramadol after linezolid exposure presents with agitation, "
+        "diaphoresis, diarrhea, tachycardia, hypertension, hyperthermia, tremor, "
+        "hyperreflexia, and inducible ocular clonus concerning for serotonin toxicity."
+    )
+    case["key_teaching_points"] = [
+        "Serotonin syndrome is a potentially life-threatening serotonergic toxicity",
+        "Clonus, hyperreflexia, tremor, agitation, autonomic instability, and hyperthermia support the diagnosis",
+        "Treatment centers on stopping serotonergic agents, supportive care, sedation, cooling, and escalation for severe disease",
+    ]
+    case["clinical_red_flags"] = [
+        "Spontaneous, inducible, or ocular clonus with agitation, tremor, hyperreflexia, or rigidity",
+        "Hyperthermia, diaphoresis, diarrhea, tachycardia, hypertension, seizure, or altered mental status",
+    ]
+    case["time_critical_actions"] = [
+        "Stop serotonergic offending agents including SSRI, tramadol, linezolid, MAOI, triptan, and dextromethorphan",
+        "Provide supportive care with oxygen, IV fluids, vital signs, and cardiac monitoring",
+        "Give benzodiazepine chemical sedation with diazepam, lorazepam, or midazolam for agitation and muscle activity",
+        "Start active cooling and external cooling for hyperthermia with temperature monitoring",
+        "Consult poison center and toxicologist; give cyproheptadine and escalate to ICU, intubation, and nondepolarizing paralysis for severe disease",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Serotonin Syndrome",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK482377/",
+            "supports": [
+                "serotonin syndrome diagnosis and risk stratification",
+                "serotonin syndrome is a potentially life-threatening serotonergic toxicity",
+                "clonus, hyperreflexia, tremor, agitation, autonomic instability, and hyperthermia support the diagnosis",
+                "treatment centers on stopping serotonergic agents, supportive care, sedation, cooling, and escalation for severe disease",
+                "spontaneous, inducible, or ocular clonus with agitation, tremor, hyperreflexia, or rigidity as red flags",
+                "hyperthermia, diaphoresis, diarrhea, tachycardia, hypertension, seizure, or altered mental status as severity markers",
+                "stop serotonergic offending agents including SSRI, tramadol, linezolid, MAOI, triptan, and dextromethorphan",
+                "supportive care with oxygen, IV fluids, vital signs, and cardiac monitoring",
+                "benzodiazepine chemical sedation with diazepam, lorazepam, or midazolam for agitation and muscle activity",
+                "active cooling and external cooling for hyperthermia with temperature monitoring",
+                "poison center and toxicologist consultation, cyproheptadine, ICU, intubation, and nondepolarizing paralysis for severe disease",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if needed",
+            ],
+        },
+        {
+            "title": "Management of serotonin syndrome (toxicity)",
+            "organization": "British Journal of Clinical Pharmacology",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11862804/",
+            "supports": [
+                "management should focus on ceasing the offending agent, supportive care, benzodiazepines, and aggressive hyperthermia management",
+                "severe hyperthermia and rigidity require intubation, paralysis, and active cooling",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "serotonin syndrome safety checks must include differential review" in issue
         for issue in report.critical_issues
     )
 

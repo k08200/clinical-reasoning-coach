@@ -3140,6 +3140,140 @@ const HEAT_STROKE_DIFFERENTIAL_SAFETY_TERMS = [
   "감염",
 ];
 
+const SEROTONIN_SYNDROME_DIRECT_CONTEXT_TERMS = [
+  "serotonin syndrome",
+  "serotonin toxicity",
+  "serotonergic syndrome",
+  "serotonergic toxicity",
+  "세로토닌 증후군",
+];
+
+const SEROTONIN_SYNDROME_EXPOSURE_CONTEXT_TERMS = [
+  "dextromethorphan",
+  "fentanyl",
+  "linezolid",
+  "maoi",
+  "mdma",
+  "meperidine",
+  "serotonergic",
+  "snri",
+  "ssri",
+  "tramadol",
+  "triptan",
+];
+
+const SEROTONIN_SYNDROME_NEUROMUSCULAR_CONTEXT_TERMS = [
+  "clonus",
+  "hyperreflexia",
+  "myoclonus",
+  "ocular clonus",
+  "rigidity",
+  "tremor",
+  "클로누스",
+];
+
+const SEROTONIN_SYNDROME_AUTONOMIC_MENTAL_CONTEXT_TERMS = [
+  "agitation",
+  "altered mental status",
+  "diaphoresis",
+  "diarrhea",
+  "hyperthermia",
+  "hypertension",
+  "tachycardia",
+  "혼돈",
+];
+
+const SEROTONIN_SYNDROME_STOP_AGENT_ACTION_TERMS = [
+  "discontinue",
+  "hold serotonergic",
+  "remove offending",
+  "stop serotonergic",
+  "withdraw serotonergic",
+  "중단",
+];
+
+const SEROTONIN_SYNDROME_SUPPORTIVE_CARE_ACTION_TERMS = [
+  "cardiac monitoring",
+  "iv fluid",
+  "iv fluids",
+  "oxygen",
+  "supportive care",
+  "vital signs",
+  "수액",
+  "산소",
+];
+
+const SEROTONIN_SYNDROME_BENZODIAZEPINE_ACTION_TERMS = [
+  "benzodiazepine",
+  "chemical sedation",
+  "diazepam",
+  "lorazepam",
+  "midazolam",
+  "sedation",
+  "벤조",
+];
+
+const SEROTONIN_SYNDROME_COOLING_ACTION_TERMS = [
+  "active cooling",
+  "cooling",
+  "external cooling",
+  "hyperthermia",
+  "temperature",
+  "냉각",
+];
+
+const SEROTONIN_SYNDROME_ANTAGONIST_ESCALATION_ACTION_TERMS = [
+  "cyproheptadine",
+  "icu",
+  "intubation",
+  "nondepolarizing",
+  "paralysis",
+  "poison center",
+  "toxicologist",
+  "중환자",
+];
+
+const SEROTONIN_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = [
+  "anticholinergic",
+  "malignant hyperthermia",
+  "neuroleptic malignant",
+  "nms",
+  "sepsis",
+  "sympathomimetic",
+  "감별",
+];
+
+const SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS = [
+  "acetaminophen",
+  "antipyretic",
+  "avoid physical restraint",
+  "physical restraint",
+  "restraint",
+  "해열제",
+];
+
+const SEROTONIN_SYNDROME_SEVERE_HYPERTHERMIA_SAFETY_TERMS = [
+  "41",
+  "intubation",
+  "mechanical ventilation",
+  "neuromuscular blockade",
+  "nondepolarizing",
+  "paralysis",
+  "severe hyperthermia",
+  "삽관",
+];
+
+const SEROTONIN_SYNDROME_COMPLICATION_MONITORING_SAFETY_TERMS = [
+  "aki",
+  "ck",
+  "creatine kinase",
+  "electrolyte",
+  "renal",
+  "rhabdomyolysis",
+  "seizure",
+  "횡문근",
+];
+
 const CAUDA_EQUINA_CONTEXT_TERMS = [
   "back pain with urinary retention",
   "bladder dysfunction with sciatica",
@@ -8389,6 +8523,80 @@ function hasHeatStrokeTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresSerotoninSyndromeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = SEROTONIN_SYNDROME_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasExposureContext = SEROTONIN_SYNDROME_EXPOSURE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasNeuromuscularContext = SEROTONIN_SYNDROME_NEUROMUSCULAR_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasAutonomicMentalContext = SEROTONIN_SYNDROME_AUTONOMIC_MENTAL_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasExposureContext && hasNeuromuscularContext && hasAutonomicMentalContext);
+}
+
+function hasSerotoninSyndromeTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasStopAgent = SEROTONIN_SYNDROME_STOP_AGENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSupportiveCare = SEROTONIN_SYNDROME_SUPPORTIVE_CARE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBenzodiazepine = SEROTONIN_SYNDROME_BENZODIAZEPINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCooling = SEROTONIN_SYNDROME_COOLING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntagonistOrEscalation = SEROTONIN_SYNDROME_ANTAGONIST_ESCALATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return hasStopAgent && hasSupportiveCare && hasBenzodiazepine && hasCooling && hasAntagonistOrEscalation;
+}
+
+function hasSerotoninSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDifferentialSafety = SEROTONIN_SYNDROME_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRestraintAntipyreticSafety = SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSevereHyperthermiaSafety = SEROTONIN_SYNDROME_SEVERE_HYPERTHERMIA_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasComplicationMonitoring = SEROTONIN_SYNDROME_COMPLICATION_MONITORING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasDifferentialSafety &&
+    hasRestraintAntipyreticSafety &&
+    hasSevereHyperthermiaSafety &&
+    hasComplicationMonitoring
+  );
+}
+
 function requiresCaudaEquinaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -10847,6 +11055,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasHeatStrokeTreatmentSafetyCheck,
       issue:
         "heat stroke safety checks must include cooling endpoint or overcooling prevention, rhabdomyolysis, renal, liver, electrolyte, or coagulation monitoring, avoidance of antipyretic-centered management, and sepsis, malignant hyperthermia, serotonin syndrome, or other dangerous hyperthermia differential review",
+    },
+    {
+      name: "serotonin_syndrome_time_critical_actions",
+      label: "Serotonin syndrome emergency actions",
+      applies: requiresSerotoninSyndromeSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSerotoninSyndromeTimeCriticalActions,
+      issue:
+        "serotonin syndrome time-critical actions must include stopping serotonergic or offending agents, supportive care with oxygen, IV fluids, vital-sign, or cardiac monitoring, benzodiazepine or chemical sedation, active cooling or hyperthermia control, and cyproheptadine, poison-center, toxicology, ICU, intubation, or nondepolarizing paralysis escalation for severe disease",
+    },
+    {
+      name: "serotonin_syndrome_treatment_safety",
+      label: "Serotonin syndrome treatment safety",
+      applies: requiresSerotoninSyndromeSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSerotoninSyndromeTreatmentSafetyCheck,
+      issue:
+        "serotonin syndrome safety checks must include differential review for NMS, malignant hyperthermia, anticholinergic, sympathomimetic, or sepsis mimics, avoidance of physical-restraint or antipyretic-centered management, severe-hyperthermia planning for intubation, mechanical ventilation, neuromuscular blockade, nondepolarizing paralysis, or temperature above 41 C, and monitoring for rhabdomyolysis, CK, renal injury, electrolytes, seizure, or AKI",
     },
     {
       name: "cauda_equina_time_critical_actions",
