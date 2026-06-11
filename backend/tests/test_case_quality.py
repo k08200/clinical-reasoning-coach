@@ -85,6 +85,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "obstructive_pyelonephritis_treatment_safety",
         "severe_hypoglycemia_time_critical_actions",
         "severe_hypoglycemia_treatment_safety",
+        "insulin_sulfonylurea_toxicity_time_critical_actions",
+        "insulin_sulfonylurea_toxicity_treatment_safety",
         "malignant_hyperthermia_time_critical_actions",
         "malignant_hyperthermia_treatment_safety",
         "thyroid_storm_time_critical_actions",
@@ -2989,6 +2991,181 @@ def test_quality_gate_requires_severe_hypoglycemia_airway_recurrence_cause_and_p
     assert not report.passed
     assert any(
         "severe hypoglycemia safety checks must include airway" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_insulin_sulfonylurea_glucose_dextrose_nutrition_octreotide_and_electrolytes():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sulfonylurea toxicity with recurrent hypoglycemia"
+    case["patient_demographics"] = {
+        "age": 74,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion and seizure after glipizide overdose"
+    case["history_of_present_illness"] = (
+        "Elderly non-diabetic patient presents after glipizide sulfonylurea overdose "
+        "with diaphoresis, confusion, recurrent hypoglycemia, seizure, and blood "
+        "glucose 32 mg/dL."
+    )
+    case["past_medical_history"] = "Chronic kidney disease and accidental access to family sulfonylurea tablets"
+    case["physical_exam"] = {
+        "vitals": {"bp": "104/62", "hr": 112, "rr": 18, "temp_c": 35.9, "spo2": 96},
+        "general": "Diaphoretic and confused",
+        "cardiovascular": "Tachycardic",
+        "pulmonary": "Protecting airway after brief seizure",
+        "abdomen": "No abdominal tenderness",
+        "neuro": "Postictal with recurrent neuroglycopenic symptoms",
+        "other": "Pill count suggests modified release sulfonylurea exposure",
+    }
+    case["initial_labs"] = {
+        "glucose": "32 mg/dL",
+        "potassium": "3.2 mEq/L",
+        "creatinine": "2.0 mg/dL",
+        "ecg": "Sinus tachycardia",
+    }
+    case["key_teaching_points"] = [
+        "Sulfonylurea toxicity can cause profound and prolonged recurrent hypoglycemia",
+        "Dextrose is temporizing and octreotide helps stop sulfonylurea-driven insulin release",
+        "Renal impairment, elderly patients, non-diabetic exposure, and one tablet in children increase risk",
+    ]
+    case["clinical_red_flags"] = [
+        "Seizure, coma, confusion, recurrent hypoglycemia, or blood glucose below 40 mg/dL",
+        "Extended release sulfonylurea, delayed hypoglycemia, renal impairment, or non-diabetic ingestion",
+    ]
+    case["time_critical_actions"] = [
+        "Check serial glucose with point-of-care glucose every 15 minutes during resuscitation then hourly once stable",
+        "Give IV dextrose D50 bolus and start D10 continuous glucose infusion for recurrent hypoglycemia",
+        "Allow feeding, meal, nutrition, and complex carbohydrate once awake and safe to swallow",
+        "Start octreotide and call poison center toxicologist; admit to ICU or HDU for recurrent sulfonylurea hypoglycemia",
+    ]
+    case["contraindication_checks"] = [
+        "Observe for delayed recurrent hypoglycemia from extended release sulfonylurea for at least 12 hours and after stopping dextrose",
+        "Review high-dose dextrose infusion safety including D10, D25 or D50 concentration, central line need, hyponatremia, taper, and wean plan",
+        "Supplement potassium to low-to-normal range and monitor magnesium, phosphate, and other electrolyte shifts",
+        "Review high-risk patient factors including elderly, non-diabetic exposure, renal impairment, hepatic dysfunction, and one tablet risk in a child",
+        "Plan admission or ICU/HDU disposition until normal diet is tolerated and euglycemia persists after octreotide discontinuation; consider endocrine review if therapeutic dosing caused hypoglycemia",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Sulfonylurea toxicity",
+            "organization": "LITFL Toxicology Library",
+            "url": "https://litfl.com/sulfonylurea-toxicity/",
+            "supports": [
+                "sulfonylurea toxicity with recurrent hypoglycemia diagnosis and risk stratification",
+                "glipizide sulfonylurea overdose can cause diaphoresis, confusion, recurrent hypoglycemia, seizure, and blood glucose 32 mg/dL",
+                "sulfonylurea toxicity can cause profound and prolonged recurrent hypoglycemia",
+                "dextrose is temporizing and octreotide helps stop sulfonylurea-driven insulin release",
+                "renal impairment, elderly patients, non-diabetic exposure, and one tablet in children increase risk",
+                "seizure, coma, confusion, recurrent hypoglycemia, or blood glucose below 40 mg/dL as red flags",
+                "extended release sulfonylurea, delayed hypoglycemia, renal impairment, or non-diabetic ingestion as severity markers",
+                "serial glucose with point-of-care glucose every 15 minutes during resuscitation then hourly once stable",
+                "IV dextrose D50 bolus and D10 continuous glucose infusion for recurrent hypoglycemia",
+                "feeding, meal, nutrition, and complex carbohydrate once awake and safe to swallow",
+                "octreotide and poison center toxicologist; ICU or HDU admission for recurrent sulfonylurea hypoglycemia",
+                "delayed recurrent hypoglycemia from extended release sulfonylurea for at least 12 hours and after stopping dextrose",
+                "high-dose dextrose infusion safety including D10, D25 or D50 concentration, central line need, hyponatremia, taper, and wean plan",
+                "potassium to low-to-normal range and magnesium, phosphate, and other electrolyte shift monitoring",
+                "elderly, non-diabetic exposure, renal impairment, hepatic dysfunction, and one tablet risk in a child",
+                "admission or ICU/HDU disposition until normal diet is tolerated and euglycemia persists after octreotide discontinuation; endocrine review if therapeutic dosing caused hypoglycemia",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "insulin or sulfonylurea toxicity time-critical actions must include serial"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_insulin_sulfonylurea_recurrence_dextrose_electrolyte_risk_and_disposition_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Insulin overdose with prolonged hypoglycemia"
+    case["patient_demographics"] = {
+        "age": 29,
+        "sex": "male",
+        "weight_kg": 78,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Coma after long-acting insulin overdose"
+    case["history_of_present_illness"] = (
+        "Patient presents after deliberate long-acting insulin overdose with coma, "
+        "seizure, recurrent hypoglycemia, blood glucose 28 mg/dL, and high dextrose "
+        "requirements."
+    )
+    case["past_medical_history"] = "Type 1 diabetes using insulin glargine and rapid acting insulin"
+    case["physical_exam"] = {
+        "vitals": {"bp": "96/58", "hr": 118, "rr": 10, "temp_c": 35.7, "spo2": 94},
+        "general": "Obtunded and diaphoretic",
+        "cardiovascular": "Tachycardic",
+        "pulmonary": "Poor airway protection during seizure",
+        "abdomen": "Soft",
+        "neuro": "Comatose with intermittent seizure activity",
+        "other": "Large subcutaneous depot suspected",
+    }
+    case["initial_labs"] = {
+        "glucose": "28 mg/dL",
+        "potassium": "3.0 mEq/L",
+        "phosphate": "2.1 mg/dL",
+        "magnesium": "1.6 mg/dL",
+        "ecg": "Sinus tachycardia",
+    }
+    case["key_teaching_points"] = [
+        "Insulin overdose can produce prolonged unpredictable hypoglycemia lasting days",
+        "Persistent untreated hypoglycemia can cause permanent neurologic injury or death",
+        "High dextrose requirements may need ICU care, central access, and electrolyte monitoring",
+    ]
+    case["clinical_red_flags"] = [
+        "Coma, seizure, delayed presentation, recurrent hypoglycemia, or inability to maintain euglycemia",
+        "Large long-acting insulin depot, hypokalemia, hypophosphatemia, hypomagnesemia, or high dextrose infusion requirement",
+    ]
+    case["time_critical_actions"] = [
+        "Check serial glucose and point-of-care glucose every 15 minutes during resuscitation then every 1 to 2 hours once stable",
+        "Give IV dextrose D50 bolus and D10 continuous glucose infusion; use higher concentration dextrose if needed",
+        "Give feeding, meal, nutrition, and complex carbohydrate once awake and able to eat safely",
+        "Call poison center toxicologist and admit to ICU or HDU for high-dose dextrose infusion and prolonged monitoring",
+        "Monitor potassium, magnesium, phosphate, EUC, and electrolyte shifts during glucose and insulin treatment",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Insulin toxicity",
+            "organization": "LITFL Toxicology Library",
+            "url": "https://litfl.com/insulin-toxicity/",
+            "supports": [
+                "insulin overdose with prolonged hypoglycemia diagnosis and risk stratification",
+                "long-acting insulin overdose can cause coma, seizure, recurrent hypoglycemia, blood glucose 28 mg/dL, and high dextrose requirements",
+                "insulin overdose can produce prolonged unpredictable hypoglycemia lasting days",
+                "persistent untreated hypoglycemia can cause permanent neurologic injury or death",
+                "high dextrose requirements may need ICU care, central access, and electrolyte monitoring",
+                "coma, seizure, delayed presentation, recurrent hypoglycemia, or inability to maintain euglycemia as red flags",
+                "large long-acting insulin depot, hypokalemia, hypophosphatemia, hypomagnesemia, or high dextrose infusion requirement as severity markers",
+                "serial glucose and point-of-care glucose every 15 minutes during resuscitation then every 1 to 2 hours once stable",
+                "IV dextrose D50 bolus and D10 continuous glucose infusion with higher concentration dextrose if needed",
+                "feeding, meal, nutrition, and complex carbohydrate once awake and able to eat safely",
+                "poison center toxicologist and ICU or HDU admission for high-dose dextrose infusion and prolonged monitoring",
+                "potassium, magnesium, phosphate, EUC, and electrolyte shift monitoring during glucose and insulin treatment",
+                "medication allergy before antiemetics",
+                "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "insulin or sulfonylurea toxicity safety checks must include recurrent"
+        in issue
         for issue in report.critical_issues
     )
 

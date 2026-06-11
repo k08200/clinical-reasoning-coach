@@ -2731,6 +2731,147 @@ const SEVERE_HYPOGLYCEMIA_DISCHARGE_PREVENTION_SAFETY_TERMS = [
   "교육",
 ];
 
+const INSULIN_SULFONYLUREA_TOXICITY_DIRECT_CONTEXT_TERMS = [
+  "glibenclamide overdose",
+  "glibenclamide poisoning",
+  "gliclazide overdose",
+  "glimepiride overdose",
+  "glipizide overdose",
+  "glyburide overdose",
+  "insulin overdose",
+  "insulin poisoning",
+  "insulin toxicity",
+  "sulfonylurea overdose",
+  "sulfonylurea poisoning",
+  "sulfonylurea toxicity",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_DRUG_CONTEXT_TERMS = [
+  "glibenclamide",
+  "gliclazide",
+  "glimepiride",
+  "glipizide",
+  "glyburide",
+  "insulin",
+  "sulfonylurea",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_RISK_CONTEXT_TERMS = [
+  "blood glucose 28",
+  "blood glucose 32",
+  "blood glucose 40",
+  "blood glucose 50",
+  "coma",
+  "low blood glucose",
+  "overdose",
+  "poisoning",
+  "recurrent hypoglycemia",
+  "seizure",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_GLUCOSE_MONITOR_ACTION_TERMS = [
+  "15 minutes",
+  "blood glucose",
+  "bsl",
+  "every 15",
+  "fingerstick",
+  "glucose monitoring",
+  "hourly",
+  "point-of-care glucose",
+  "poc glucose",
+  "serial glucose",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_DEXTROSE_ACTION_TERMS = [
+  "d10",
+  "d50",
+  "dextrose",
+  "glucose infusion",
+  "glucose IV",
+  "iv glucose",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_NUTRITION_ACTION_TERMS = [
+  "complex carbohydrate",
+  "eat",
+  "feeding",
+  "meal",
+  "nutrition",
+  "oral carbohydrate",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_OCTREOTIDE_ESCALATION_ACTION_TERMS = [
+  "admit",
+  "hdu",
+  "icu",
+  "octreotide",
+  "poison center",
+  "poison control",
+  "toxicologist",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_ELECTROLYTE_ACTION_TERMS = [
+  "electrolyte",
+  "euc",
+  "magnesium",
+  "phosphate",
+  "potassium",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_RECURRENCE_OBSERVATION_SAFETY_TERMS = [
+  "12 hours",
+  "6 hours",
+  "delayed",
+  "euglycemia",
+  "euglycaemia",
+  "extended release",
+  "long-acting",
+  "observation",
+  "recurrent",
+  "stopping dextrose",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_DEXTROSE_SAFETY_TERMS = [
+  "central line",
+  "d10",
+  "d25",
+  "d50",
+  "dextrose infusion",
+  "high concentration",
+  "hyponatremia",
+  "taper",
+  "wean",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_POTASSIUM_ELECTROLYTE_SAFETY_TERMS = [
+  "electrolyte",
+  "low-to-normal",
+  "magnesium",
+  "phosphate",
+  "potassium",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_RISK_GROUP_SAFETY_TERMS = [
+  "child",
+  "elderly",
+  "hepatic",
+  "liver",
+  "non-diabetic",
+  "one tablet",
+  "renal",
+];
+
+const INSULIN_SULFONYLUREA_TOXICITY_DISPOSITION_SAFETY_TERMS = [
+  "admission",
+  "endocrine",
+  "hdu",
+  "icu",
+  "medical clearance",
+  "normal diet",
+  "octreotide discontinuation",
+  "therapeutic dosing",
+];
+
 const MALIGNANT_HYPERTHERMIA_CONTEXT_TERMS = [
   "malignant hyperthermia",
   "mh crisis",
@@ -9415,6 +9556,95 @@ function hasSevereHypoglycemiaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresInsulinSulfonylureaToxicitySafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = INSULIN_SULFONYLUREA_TOXICITY_DIRECT_CONTEXT_TERMS.some(
+    (term) => containsSafetyTerm(riskText, term),
+  );
+  const hasDrugContext = INSULIN_SULFONYLUREA_TOXICITY_DRUG_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRiskContext = INSULIN_SULFONYLUREA_TOXICITY_RISK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasDrugContext && hasRiskContext);
+}
+
+function hasInsulinSulfonylureaToxicityTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasGlucoseMonitoring =
+    INSULIN_SULFONYLUREA_TOXICITY_GLUCOSE_MONITOR_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasDextrose = INSULIN_SULFONYLUREA_TOXICITY_DEXTROSE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNutrition = INSULIN_SULFONYLUREA_TOXICITY_NUTRITION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOctreotideEscalation =
+    INSULIN_SULFONYLUREA_TOXICITY_OCTREOTIDE_ESCALATION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasElectrolyte = INSULIN_SULFONYLUREA_TOXICITY_ELECTROLYTE_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasGlucoseMonitoring &&
+    hasDextrose &&
+    hasNutrition &&
+    hasOctreotideEscalation &&
+    hasElectrolyte
+  );
+}
+
+function hasInsulinSulfonylureaToxicityTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasRecurrenceObservation =
+    INSULIN_SULFONYLUREA_TOXICITY_RECURRENCE_OBSERVATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDextroseSafety = INSULIN_SULFONYLUREA_TOXICITY_DEXTROSE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPotassiumElectrolyteSafety =
+    INSULIN_SULFONYLUREA_TOXICITY_POTASSIUM_ELECTROLYTE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasRiskGroupSafety =
+    INSULIN_SULFONYLUREA_TOXICITY_RISK_GROUP_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDispositionSafety =
+    INSULIN_SULFONYLUREA_TOXICITY_DISPOSITION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasRecurrenceObservation &&
+    hasDextroseSafety &&
+    hasPotassiumElectrolyteSafety &&
+    hasRiskGroupSafety &&
+    hasDispositionSafety
+  );
+}
+
 function requiresMalignantHyperthermiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -12758,6 +12988,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSevereHypoglycemiaTreatmentSafetyCheck,
       issue:
         "severe hypoglycemia safety checks must include airway or swallow route safety, recurrent hypoglycemia risk from sulfonylurea or long-acting insulin with octreotide or observation planning, renal, hepatic, alcohol, sepsis, or adrenal cause review, and discharge prevention such as education, dose adjustment, meal access, or glucagon planning",
+    },
+    {
+      name: "insulin_sulfonylurea_toxicity_time_critical_actions",
+      label: "Insulin or sulfonylurea toxicity glucose rescue",
+      applies: requiresInsulinSulfonylureaToxicitySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasInsulinSulfonylureaToxicityTimeCriticalActions,
+      issue:
+        "insulin or sulfonylurea toxicity time-critical actions must include serial or frequent glucose monitoring, IV dextrose bolus or continuous dextrose/glucose infusion, complex carbohydrate, meal, feeding, or nutrition once safe, octreotide, poison-center, toxicologist, ICU, HDU, or admission escalation, and potassium, magnesium, phosphate, EUC, or electrolyte monitoring",
+    },
+    {
+      name: "insulin_sulfonylurea_toxicity_treatment_safety",
+      label: "Insulin or sulfonylurea recurrent hypoglycemia safety",
+      applies: requiresInsulinSulfonylureaToxicitySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasInsulinSulfonylureaToxicityTreatmentSafetyCheck,
+      issue:
+        "insulin or sulfonylurea toxicity safety checks must include recurrent or delayed hypoglycemia observation for long-acting, extended-release, euglycemia, post-dextrose stopping, 6-hour, or 12-hour monitoring, high-dose or concentrated dextrose safety with central-line, D10, D25, D50, hyponatremia, tapering, or weaning review, potassium, magnesium, phosphate, low-to-normal, or other electrolyte monitoring, high-risk patient review for child, elderly, non-diabetic, one-tablet, renal, hepatic, or liver risk, and disposition review for admission, ICU, HDU, normal diet, octreotide discontinuation, medical clearance, endocrine review, or therapeutic dosing cause",
     },
     {
       name: "malignant_hyperthermia_time_critical_actions",
