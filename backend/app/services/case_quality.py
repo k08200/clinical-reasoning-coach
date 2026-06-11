@@ -6539,6 +6539,125 @@ STATUS_EPILEPTICUS_ASM_SAFETY_TERMS = (
     "임신",
     "체중",
 )
+SEVERE_ALCOHOL_WITHDRAWAL_CONTEXT_TERMS = (
+    "alcohol withdrawal",
+    "alcohol withdrawal seizure",
+    "benzodiazepine-resistant alcohol withdrawal",
+    "delirium tremens",
+    "refractory alcohol withdrawal",
+    "severe alcohol withdrawal",
+    "withdrawal delirium",
+    "금단 섬망",
+    "알코올 금단",
+)
+SEVERE_ALCOHOL_WITHDRAWAL_RISK_TERMS = (
+    "agitation",
+    "autonomic instability",
+    "confusion",
+    "delirium",
+    "diaphoresis",
+    "fever",
+    "hallucination",
+    "hypertension",
+    "prior delirium tremens",
+    "prior withdrawal seizure",
+    "seizure",
+    "tachycardia",
+    "tremor",
+)
+SEVERE_ALCOHOL_WITHDRAWAL_ASSESSMENT_ACTION_TERMS = (
+    "ciwa",
+    "last drink",
+    "rass",
+    "severity",
+    "telemetry",
+    "vital signs",
+    "withdrawal history",
+)
+SEVERE_ALCOHOL_WITHDRAWAL_BENZO_ACTION_TERMS = (
+    "benzodiazepine",
+    "chlordiazepoxide",
+    "diazepam",
+    "lorazepam",
+    "midazolam",
+    "벤조디아제핀",
+    "로라제팜",
+)
+SEVERE_ALCOHOL_WITHDRAWAL_THIAMINE_ACTION_TERMS = (
+    "dextrose",
+    "glucose",
+    "multivitamin",
+    "thiamine",
+    "wernicke",
+    "티아민",
+    "혈당",
+)
+SEVERE_ALCOHOL_WITHDRAWAL_ELECTROLYTE_ACTION_TERMS = (
+    "electrolyte",
+    "hypokalemia",
+    "hypomagnesemia",
+    "hypophosphatemia",
+    "magnesium",
+    "phosphate",
+    "potassium",
+    "마그네슘",
+    "전해질",
+)
+SEVERE_ALCOHOL_WITHDRAWAL_ESCALATION_ACTION_TERMS = (
+    "airway",
+    "continuous infusion",
+    "dexmedetomidine",
+    "icu",
+    "intubation",
+    "phenobarbital",
+    "propofol",
+    "refractory",
+    "중환자",
+)
+SEVERE_ALCOHOL_WITHDRAWAL_RESPIRATORY_SEDATION_SAFETY_TERMS = (
+    "airway",
+    "aspiration",
+    "intubation",
+    "oversedation",
+    "pulse oximetry",
+    "rass",
+    "respiratory depression",
+    "호흡억제",
+)
+SEVERE_ALCOHOL_WITHDRAWAL_DIFFERENTIAL_SAFETY_TERMS = (
+    "co-ingestion",
+    "coingestion",
+    "head trauma",
+    "hypoglycemia",
+    "hyponatremia",
+    "intracranial hemorrhage",
+    "meningitis",
+    "sepsis",
+    "toxic alcohol",
+    "감별",
+)
+SEVERE_ALCOHOL_WITHDRAWAL_HEPATIC_MED_SAFETY_TERMS = (
+    "chlordiazepoxide",
+    "cirrhosis",
+    "drug interaction",
+    "hepatic",
+    "liver disease",
+    "lorazepam",
+    "oxazepam",
+    "phenobarbital",
+    "간질환",
+)
+SEVERE_ALCOHOL_WITHDRAWAL_DISPOSITION_SAFETY_TERMS = (
+    "admission",
+    "delirium tremens",
+    "icu",
+    "prior delirium tremens",
+    "refractory",
+    "unstable vital",
+    "withdrawal seizure",
+    "입원",
+    "중환자",
+)
 ADRENAL_CRISIS_CONTEXT_TERMS = (
     "acute adrenal insufficiency",
     "addisonian crisis",
@@ -10963,6 +11082,31 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "status epilepticus safety checks must include glucose or thiamine "
                 "assessment, respiratory depression or aspiration safeguards, and "
                 "second-line antiseizure dosing or contraindication review"
+            ),
+        ),
+        DomainSafetyGate(
+            name="severe_alcohol_withdrawal_time_critical_actions",
+            applies=_requires_severe_alcohol_withdrawal_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_severe_alcohol_withdrawal_time_critical_actions,
+            issue=(
+                "severe alcohol withdrawal time-critical actions must include "
+                "withdrawal severity assessment, benzodiazepine treatment, "
+                "thiamine or glucose support, electrolyte repletion, and ICU or "
+                "refractory withdrawal escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="severe_alcohol_withdrawal_treatment_safety",
+            applies=_requires_severe_alcohol_withdrawal_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_severe_alcohol_withdrawal_treatment_safety_check,
+            issue=(
+                "severe alcohol withdrawal safety checks must include "
+                "respiratory depression or oversedation safeguards, seizure or "
+                "delirium mimics and co-ingestion differential, hepatic disease "
+                "or medication safety review, and admission or ICU disposition "
+                "criteria"
             ),
         ),
         DomainSafetyGate(
@@ -16560,6 +16704,91 @@ def _has_status_epilepticus_treatment_safety_check(checks: list[Any]) -> bool:
         for term in STATUS_EPILEPTICUS_ASM_SAFETY_TERMS
     )
     return has_glucose_safety and has_respiratory_safety and has_asm_safety
+
+
+def _requires_severe_alcohol_withdrawal_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SEVERE_ALCOHOL_WITHDRAWAL_CONTEXT_TERMS
+    )
+    has_severe_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in SEVERE_ALCOHOL_WITHDRAWAL_RISK_TERMS
+    )
+    return has_context and has_severe_risk
+
+
+def _has_severe_alcohol_withdrawal_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ALCOHOL_WITHDRAWAL_ASSESSMENT_ACTION_TERMS
+    )
+    has_benzo = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ALCOHOL_WITHDRAWAL_BENZO_ACTION_TERMS
+    )
+    has_thiamine = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ALCOHOL_WITHDRAWAL_THIAMINE_ACTION_TERMS
+    )
+    has_electrolyte = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ALCOHOL_WITHDRAWAL_ELECTROLYTE_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ALCOHOL_WITHDRAWAL_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_assessment
+        and has_benzo
+        and has_thiamine
+        and has_electrolyte
+        and has_escalation
+    )
+
+
+def _has_severe_alcohol_withdrawal_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_respiratory_sedation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ALCOHOL_WITHDRAWAL_RESPIRATORY_SEDATION_SAFETY_TERMS
+    )
+    has_differential = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ALCOHOL_WITHDRAWAL_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_hepatic_med_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ALCOHOL_WITHDRAWAL_HEPATIC_MED_SAFETY_TERMS
+    )
+    has_disposition = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ALCOHOL_WITHDRAWAL_DISPOSITION_SAFETY_TERMS
+    )
+    return (
+        has_respiratory_sedation
+        and has_differential
+        and has_hepatic_med_safety
+        and has_disposition
+    )
 
 
 def _requires_adrenal_crisis_safety_check(data: dict[str, Any]) -> bool:

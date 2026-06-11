@@ -7126,6 +7126,136 @@ const STATUS_EPILEPTICUS_ASM_SAFETY_TERMS = [
   "체중",
 ];
 
+const SEVERE_ALCOHOL_WITHDRAWAL_CONTEXT_TERMS = [
+  "alcohol withdrawal",
+  "alcohol withdrawal seizure",
+  "benzodiazepine-resistant alcohol withdrawal",
+  "delirium tremens",
+  "refractory alcohol withdrawal",
+  "severe alcohol withdrawal",
+  "withdrawal delirium",
+  "금단 섬망",
+  "알코올 금단",
+];
+
+const SEVERE_ALCOHOL_WITHDRAWAL_RISK_TERMS = [
+  "agitation",
+  "autonomic instability",
+  "confusion",
+  "delirium",
+  "diaphoresis",
+  "fever",
+  "hallucination",
+  "hypertension",
+  "prior delirium tremens",
+  "prior withdrawal seizure",
+  "seizure",
+  "tachycardia",
+  "tremor",
+];
+
+const SEVERE_ALCOHOL_WITHDRAWAL_ASSESSMENT_ACTION_TERMS = [
+  "ciwa",
+  "last drink",
+  "rass",
+  "severity",
+  "telemetry",
+  "vital signs",
+  "withdrawal history",
+];
+
+const SEVERE_ALCOHOL_WITHDRAWAL_BENZO_ACTION_TERMS = [
+  "benzodiazepine",
+  "chlordiazepoxide",
+  "diazepam",
+  "lorazepam",
+  "midazolam",
+  "벤조디아제핀",
+  "로라제팜",
+];
+
+const SEVERE_ALCOHOL_WITHDRAWAL_THIAMINE_ACTION_TERMS = [
+  "dextrose",
+  "glucose",
+  "multivitamin",
+  "thiamine",
+  "wernicke",
+  "티아민",
+  "혈당",
+];
+
+const SEVERE_ALCOHOL_WITHDRAWAL_ELECTROLYTE_ACTION_TERMS = [
+  "electrolyte",
+  "hypokalemia",
+  "hypomagnesemia",
+  "hypophosphatemia",
+  "magnesium",
+  "phosphate",
+  "potassium",
+  "마그네슘",
+  "전해질",
+];
+
+const SEVERE_ALCOHOL_WITHDRAWAL_ESCALATION_ACTION_TERMS = [
+  "airway",
+  "continuous infusion",
+  "dexmedetomidine",
+  "icu",
+  "intubation",
+  "phenobarbital",
+  "propofol",
+  "refractory",
+  "중환자",
+];
+
+const SEVERE_ALCOHOL_WITHDRAWAL_RESPIRATORY_SEDATION_SAFETY_TERMS = [
+  "airway",
+  "aspiration",
+  "intubation",
+  "oversedation",
+  "pulse oximetry",
+  "rass",
+  "respiratory depression",
+  "호흡억제",
+];
+
+const SEVERE_ALCOHOL_WITHDRAWAL_DIFFERENTIAL_SAFETY_TERMS = [
+  "co-ingestion",
+  "coingestion",
+  "head trauma",
+  "hypoglycemia",
+  "hyponatremia",
+  "intracranial hemorrhage",
+  "meningitis",
+  "sepsis",
+  "toxic alcohol",
+  "감별",
+];
+
+const SEVERE_ALCOHOL_WITHDRAWAL_HEPATIC_MED_SAFETY_TERMS = [
+  "chlordiazepoxide",
+  "cirrhosis",
+  "drug interaction",
+  "hepatic",
+  "liver disease",
+  "lorazepam",
+  "oxazepam",
+  "phenobarbital",
+  "간질환",
+];
+
+const SEVERE_ALCOHOL_WITHDRAWAL_DISPOSITION_SAFETY_TERMS = [
+  "admission",
+  "delirium tremens",
+  "icu",
+  "prior delirium tremens",
+  "refractory",
+  "unstable vital",
+  "withdrawal seizure",
+  "입원",
+  "중환자",
+];
+
 const ADRENAL_CRISIS_CONTEXT_TERMS = [
   "acute adrenal insufficiency",
   "addisonian crisis",
@@ -13647,6 +13777,65 @@ function hasStatusEpilepticusTreatmentSafetyCheck(checks: string[]): boolean {
   return hasGlucoseSafety && hasRespiratorySafety && hasAsmSafety;
 }
 
+function requiresSevereAlcoholWithdrawalSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = SEVERE_ALCOHOL_WITHDRAWAL_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasSevereRisk = SEVERE_ALCOHOL_WITHDRAWAL_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasSevereRisk;
+}
+
+function hasSevereAlcoholWithdrawalTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAssessment = SEVERE_ALCOHOL_WITHDRAWAL_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBenzo = SEVERE_ALCOHOL_WITHDRAWAL_BENZO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasThiamine = SEVERE_ALCOHOL_WITHDRAWAL_THIAMINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasElectrolyte = SEVERE_ALCOHOL_WITHDRAWAL_ELECTROLYTE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = SEVERE_ALCOHOL_WITHDRAWAL_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAssessment && hasBenzo && hasThiamine && hasElectrolyte && hasEscalation;
+}
+
+function hasSevereAlcoholWithdrawalTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasRespiratorySedation =
+    SEVERE_ALCOHOL_WITHDRAWAL_RESPIRATORY_SEDATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDifferential = SEVERE_ALCOHOL_WITHDRAWAL_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHepaticMedSafety = SEVERE_ALCOHOL_WITHDRAWAL_HEPATIC_MED_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDisposition = SEVERE_ALCOHOL_WITHDRAWAL_DISPOSITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasRespiratorySedation && hasDifferential && hasHepaticMedSafety && hasDisposition;
+}
+
 function requiresAdrenalCrisisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -16136,6 +16325,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasStatusEpilepticusTreatmentSafetyCheck,
       issue:
         "status epilepticus safety checks must include glucose or thiamine assessment, respiratory depression or aspiration safeguards, and second-line antiseizure dosing or contraindication review",
+    },
+    {
+      name: "severe_alcohol_withdrawal_time_critical_actions",
+      label: "Severe alcohol withdrawal acute treatment",
+      applies: requiresSevereAlcoholWithdrawalSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSevereAlcoholWithdrawalTimeCriticalActions,
+      issue:
+        "severe alcohol withdrawal time-critical actions must include withdrawal severity assessment, benzodiazepine treatment, thiamine or glucose support, electrolyte repletion, and ICU or refractory withdrawal escalation",
+    },
+    {
+      name: "severe_alcohol_withdrawal_treatment_safety",
+      label: "Severe alcohol withdrawal safety checks",
+      applies: requiresSevereAlcoholWithdrawalSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSevereAlcoholWithdrawalTreatmentSafetyCheck,
+      issue:
+        "severe alcohol withdrawal safety checks must include respiratory depression or oversedation safeguards, seizure or delirium mimics and co-ingestion differential, hepatic disease or medication safety review, and admission or ICU disposition criteria",
     },
     {
       name: "adrenal_crisis_time_critical_actions",

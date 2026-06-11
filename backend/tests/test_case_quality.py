@@ -165,6 +165,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "hyperkalemia_treatment_safety",
         "status_epilepticus_time_critical_actions",
         "status_epilepticus_treatment_safety",
+        "severe_alcohol_withdrawal_time_critical_actions",
+        "severe_alcohol_withdrawal_treatment_safety",
         "adrenal_crisis_time_critical_actions",
         "adrenal_crisis_treatment_safety",
         "acetaminophen_toxicity_time_critical_actions",
@@ -8860,6 +8862,133 @@ def test_quality_gate_requires_status_epilepticus_glucose_respiratory_and_asm_sa
     assert not report.passed
     assert any(
         "status epilepticus safety checks must include glucose or thiamine" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_alcohol_withdrawal_severity_benzo_thiamine_electrolytes_and_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe alcohol withdrawal with delirium tremens"
+    case["chief_complaint"] = "Agitation, tremor, hallucinations, and seizure"
+    case["history_of_present_illness"] = (
+        "Patient with heavy alcohol use and last drink 48 hours ago presents "
+        "with autonomic instability, tachycardia, hypertension, fever, "
+        "diaphoresis, confusion, hallucinations, and a generalized withdrawal "
+        "seizure. They have a prior delirium tremens and withdrawal seizure history."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "178/102", "hr": 132, "rr": 24, "temp_c": 38.2, "spo2": 95},
+        "general": "Tremulous, diaphoretic, and agitated",
+        "neuro": "Disoriented and responding to visual hallucinations",
+        "other": "Severe alcohol withdrawal with autonomic instability",
+    }
+    case["initial_labs"] = {
+        "magnesium": "1.1 mg/dL",
+        "potassium": "3.1 mmol/L",
+        "phosphate": "1.9 mg/dL",
+        "glucose": "72 mg/dL",
+        "ast_alt": "Mildly elevated",
+    }
+    case["key_teaching_points"] = [
+        "Severe alcohol withdrawal and delirium tremens can cause seizures, delirium, and autonomic instability",
+        "Benzodiazepines are first-line treatment for severe alcohol withdrawal",
+        "Thiamine and electrolyte repletion reduce Wernicke and arrhythmia complications",
+    ]
+    case["clinical_red_flags"] = [
+        "Withdrawal seizure with delirium, hallucinations, fever, tachycardia, and hypertension",
+        "Prior delirium tremens and prior withdrawal seizure increase risk of complicated withdrawal",
+    ]
+    case["time_critical_actions"] = [
+        "Assess withdrawal severity with CIWA-Ar or RASS, last drink timing, withdrawal history, vital signs, and telemetry",
+        "Give symptom-triggered or front-loaded IV lorazepam or diazepam for severe alcohol withdrawal",
+        "Give thiamine before or with dextrose or glucose and add multivitamin support",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor respiratory depression and oversedation with pulse oximetry, RASS, airway, aspiration, and intubation readiness",
+        "Evaluate seizure and delirium mimics including head trauma, intracranial hemorrhage, hypoglycemia, hyponatremia, sepsis, meningitis, toxic alcohol, and co-ingestion",
+        "Review liver disease or cirrhosis and choose lorazepam or oxazepam when hepatic metabolism is a concern; review phenobarbital drug interaction risk",
+        "Admit to ICU or monitored admission for delirium tremens, withdrawal seizure, refractory symptoms, or unstable vital signs",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "The ASAM Clinical Practice Guideline on Alcohol Withdrawal Management",
+            "organization": "American Society of Addiction Medicine",
+            "url": "https://downloads.asam.org/sitefinity-production-blobs/docs/default-source/quality-science/the_asam_clinical_practice_guideline_on_alcohol-1.pdf",
+            "supports": [
+                "severe alcohol withdrawal with delirium tremens diagnosis and risk stratification",
+                "withdrawal seizure with delirium, hallucinations, fever, tachycardia, and hypertension as red flags",
+                "CIWA-Ar or RASS severity assessment, last drink timing, withdrawal history, vital signs, and telemetry",
+                "symptom-triggered or front-loaded lorazepam or diazepam for severe alcohol withdrawal",
+                "thiamine before or with glucose support",
+                "respiratory depression and oversedation monitoring during benzodiazepine treatment",
+                "evaluation for delirium mimics and accompanying conditions",
+                "liver disease review and benzodiazepine selection with less hepatic metabolism",
+                "ICU or monitored admission for delirium tremens, withdrawal seizure, refractory symptoms, or unstable vital signs",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe alcohol withdrawal time-critical actions must include withdrawal severity" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_alcohol_withdrawal_respiratory_differential_hepatic_and_disposition_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Alcohol withdrawal seizure with delirium tremens risk"
+    case["chief_complaint"] = "Withdrawal seizure and severe agitation"
+    case["history_of_present_illness"] = (
+        "Patient stopped heavy alcohol intake 36 hours ago and now has a "
+        "generalized withdrawal seizure, tremor, severe agitation, tachycardia, "
+        "hypertension, diaphoresis, hallucinations, confusion, and prior "
+        "delirium tremens."
+    )
+    case["key_teaching_points"] = [
+        "Alcohol withdrawal seizure and delirium tremens risk require inpatient emergency management",
+        "Benzodiazepines are first-line treatment and resistant alcohol withdrawal needs ICU escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "Withdrawal seizure, hallucinations, confusion, fever, tachycardia, hypertension, and diaphoresis",
+    ]
+    case["time_critical_actions"] = [
+        "Assess CIWA-Ar or RASS severity, last drink, withdrawal history, vital signs, and telemetry",
+        "Give front-loaded benzodiazepine treatment with lorazepam or diazepam",
+        "Give thiamine before glucose or dextrose and provide multivitamin support",
+        "Replete electrolytes including magnesium, potassium, and phosphate",
+        "Escalate refractory alcohol withdrawal to ICU with phenobarbital, dexmedetomidine, propofol, airway, or intubation planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before sedative therapy",
+        "Renal function before electrolyte replacement",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "The ASAM Clinical Practice Guideline on Alcohol Withdrawal Management",
+            "organization": "American Society of Addiction Medicine",
+            "url": "https://downloads.asam.org/sitefinity-production-blobs/docs/default-source/quality-science/the_asam_clinical_practice_guideline_on_alcohol-1.pdf",
+            "supports": [
+                "alcohol withdrawal seizure with delirium tremens risk diagnosis",
+                "withdrawal seizure, hallucinations, confusion, fever, tachycardia, hypertension, and diaphoresis as red flags",
+                "CIWA-Ar or RASS severity assessment, last drink, withdrawal history, vital signs, and telemetry",
+                "front-loaded benzodiazepine treatment with lorazepam or diazepam",
+                "thiamine before glucose or dextrose",
+                "magnesium, potassium, and phosphate electrolyte repletion",
+                "ICU escalation with phenobarbital, dexmedetomidine, propofol, airway, or intubation planning for refractory alcohol withdrawal",
+                "medication allergy before sedative therapy",
+                "renal function before electrolyte replacement",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe alcohol withdrawal safety checks must include respiratory depression" in issue
         for issue in report.critical_issues
     )
 
