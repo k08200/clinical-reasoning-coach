@@ -1489,6 +1489,81 @@
     }
   },
   {
+    "name": "hypocalcemia_requires_calcium_ecg_iv_calcium_infusion_and_cause_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "severe hypocalcemia time-critical actions must include serum"
+    ],
+    "overrides": {
+      "diagnosis": "Severe hypocalcemia after thyroidectomy",
+      "chief_complaint": "Carpopedal spasm and seizure",
+      "history_of_present_illness": "Patient two days after thyroidectomy presents with symptomatic hypocalcemia, perioral paresthesias, carpopedal spasm, tetany, generalized seizure, corrected calcium 6.1 mg/dL, ionized calcium 0.82 mmol/L, and prolonged QT.",
+      "initial_labs": {
+        "corrected_calcium": "6.1 mg/dL",
+        "ionized_calcium": "0.82 mmol/L",
+        "magnesium": "1.1 mg/dL",
+        "phosphate": "5.8 mg/dL",
+        "pth": "low"
+      },
+      "key_teaching_points": [
+        "Acute severe hypocalcemia can cause tetany, seizures, laryngospasm, arrhythmia, and altered mental status",
+        "Ionized or albumin-corrected calcium should be confirmed while ECG is monitored for QT prolongation",
+        "Symptomatic tetany requires IV calcium gluconate and may need repeated boluses or continuous infusion"
+      ],
+      "clinical_red_flags": [
+        "Tetany, carpopedal spasm, seizure, laryngospasm, paresthesia, prolonged QT, arrhythmia, or heart failure",
+        "Post-thyroidectomy hypoparathyroidism, hypomagnesemia, hyperphosphatemia, renal disease, or vitamin D deficiency"
+      ],
+      "time_critical_actions": [
+        "Confirm serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+        "Obtain ECG for prolonged QT and place on telemetry cardiac monitoring",
+        "Treat seizure and airway risk while checking magnesium, phosphate, PTH, vitamin D, renal function, and alkaline phosphatase"
+      ],
+      "contraindication_checks": [
+        "Give calcium slowly with continuous ECG monitoring, especially with digoxin exposure, and correct hypokalemia first",
+        "Prefer calcium gluconate peripherally; review calcium chloride central line need, local irritation, extravasation, and soft tissue injury",
+        "Check phosphate and calcium-phosphate product to prevent hyperphosphatemia-related soft tissue calcification",
+        "Replete magnesium with magnesium sulfate because hypomagnesemia and PTH resistance can prevent calcium correction",
+        "Transition to oral calcium, vitamin D, calcitriol, or chronic hypoparathyroidism therapy once stable"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hypocalcemia",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/nephrology/electrolyte-disorders/hypocalcemia",
+          "supports": [
+            "severe hypocalcemia after thyroidectomy diagnosis and risk stratification",
+            "symptomatic hypocalcemia, perioral paresthesias, carpopedal spasm, tetany, generalized seizure, corrected calcium 6.1 mg/dL, ionized calcium 0.82 mmol/L, and prolonged QT",
+            "acute severe hypocalcemia can cause tetany, seizures, laryngospasm, arrhythmia, and altered mental status",
+            "ionized or albumin-corrected calcium should be confirmed while ECG is monitored for QT prolongation",
+            "symptomatic tetany requires IV calcium gluconate and may need repeated boluses or continuous infusion",
+            "tetany, carpopedal spasm, seizure, laryngospasm, paresthesia, prolonged QT, arrhythmia, or heart failure as red flags",
+            "post-thyroidectomy hypoparathyroidism, hypomagnesemia, hyperphosphatemia, renal disease, or vitamin D deficiency as severity markers",
+            "serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+            "ECG for prolonged QT and telemetry cardiac monitoring",
+            "magnesium, phosphate, PTH, vitamin D, renal function, and alkaline phosphatase evaluation",
+            "calcium slowly with continuous ECG monitoring, especially with digoxin exposure, and hypokalemia correction",
+            "calcium gluconate peripherally; calcium chloride central line need, local irritation, extravasation, and soft tissue injury review",
+            "phosphate and calcium-phosphate product to prevent hyperphosphatemia-related soft tissue calcification",
+            "magnesium sulfate repletion because hypomagnesemia and PTH resistance can prevent calcium correction",
+            "oral calcium, vitamin D, calcitriol, or chronic hypoparathyroidism therapy once stable"
+          ]
+        },
+        {
+          "title": "Hypocalcemia: Diagnosis and Treatment",
+          "organization": "Endotext / NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK279022/",
+          "supports": [
+            "acute hypocalcemia can be life-threatening with tetany, seizures, cardiac arrhythmias, laryngeal spasm, or altered mental status",
+            "calcium gluconate is the preferred intravenous calcium salt",
+            "persistent hypocalcemia may require calcium gluconate drip and ionized calcium monitoring",
+            "rapid intravenous calcium may cause arrhythmias and should be carefully monitored"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "status_epilepticus_requires_airway_benzo_second_line_and_refractory_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

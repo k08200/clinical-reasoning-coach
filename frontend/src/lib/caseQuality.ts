@@ -6579,6 +6579,116 @@ const HYPERCALCEMIA_REFRACTORY_DIALYSIS_SAFETY_TERMS = [
   "renal failure",
 ];
 
+const HYPOCALCEMIA_CONTEXT_TERMS = [
+  "acute hypocalcemia",
+  "calcium 6",
+  "ca 6",
+  "corrected calcium 6",
+  "hypocalcaemia",
+  "hypocalcemia",
+  "hypocalcemic crisis",
+  "hypocalcemic tetany",
+  "ionized calcium 0.",
+  "low calcium",
+  "post-thyroidectomy hypocalcemia",
+  "severe hypocalcemia",
+  "symptomatic hypocalcemia",
+  "저칼슘혈증",
+];
+
+const HYPOCALCEMIA_SEVERE_RISK_TERMS = [
+  "arrhythmia",
+  "carpopedal spasm",
+  "chvostek",
+  "laryngospasm",
+  "paresthesia",
+  "prolonged qt",
+  "qt prolongation",
+  "seizure",
+  "tetany",
+  "trousseau",
+];
+
+const HYPOCALCEMIA_CALCIUM_CONFIRMATION_ACTION_TERMS = [
+  "albumin",
+  "corrected calcium",
+  "ionized calcium",
+  "repeat calcium",
+  "serum calcium",
+];
+
+const HYPOCALCEMIA_ECG_MONITOR_ACTION_TERMS = [
+  "cardiac monitor",
+  "ecg",
+  "ekg",
+  "prolonged qt",
+  "qt",
+  "telemetry",
+];
+
+const HYPOCALCEMIA_IV_CALCIUM_ACTION_TERMS = [
+  "calcium chloride",
+  "calcium gluconate",
+  "iv calcium",
+  "intravenous calcium",
+];
+
+const HYPOCALCEMIA_INFUSION_MONITOR_ACTION_TERMS = [
+  "calcium infusion",
+  "continuous infusion",
+  "drip",
+  "repeat bolus",
+  "serial ionized",
+];
+
+const HYPOCALCEMIA_MAGNESIUM_CAUSE_ACTION_TERMS = [
+  "alkaline phosphatase",
+  "magnesium",
+  "phosphate",
+  "pth",
+  "renal",
+  "vitamin d",
+];
+
+const HYPOCALCEMIA_DIGOXIN_ECG_SAFETY_TERMS = [
+  "continuous ecg",
+  "digoxin",
+  "hypokalemia",
+  "slowly",
+  "slow infusion",
+];
+
+const HYPOCALCEMIA_EXTRAVASATION_SAFETY_TERMS = [
+  "calcium chloride",
+  "central line",
+  "extravasation",
+  "local irritation",
+  "soft tissue",
+];
+
+const HYPOCALCEMIA_PHOSPHATE_PRODUCT_SAFETY_TERMS = [
+  "calcium-phosphate",
+  "ca x phosphate",
+  "hyperphosphatemia",
+  "phosphate",
+  "soft tissue calcification",
+];
+
+const HYPOCALCEMIA_MAGNESIUM_REPLETION_SAFETY_TERMS = [
+  "hypomagnesemia",
+  "magnesium repletion",
+  "magnesium sulfate",
+  "pth resistance",
+  "replete magnesium",
+];
+
+const HYPOCALCEMIA_TRANSITION_SAFETY_TERMS = [
+  "calcitriol",
+  "oral calcium",
+  "vitamin d",
+  "transition",
+];
+
 const HYPERKALEMIA_CONTEXT_TERMS = [
   "ecg changes from hyperkalemia",
   "hyperkalemic emergency",
@@ -12533,6 +12643,86 @@ function hasHypercalcemiaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresHypocalcemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const directContext = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.diagnosis,
+  ]
+    .join(" ")
+    .toLowerCase();
+  const riskText = [
+    directContext,
+    ...nestedStrings(detail.initial_labs),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.key_teaching_points),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasHypocalcemiaContext = HYPOCALCEMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(directContext, term),
+  );
+  const hasSevereRisk = HYPOCALCEMIA_SEVERE_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasHypocalcemiaContext && hasSevereRisk;
+}
+
+function hasHypocalcemiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCalciumConfirmation = HYPOCALCEMIA_CALCIUM_CONFIRMATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEcgMonitoring = HYPOCALCEMIA_ECG_MONITOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIvCalcium = HYPOCALCEMIA_IV_CALCIUM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasInfusionMonitoring = HYPOCALCEMIA_INFUSION_MONITOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMagnesiumCause = HYPOCALCEMIA_MAGNESIUM_CAUSE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasCalciumConfirmation &&
+    hasEcgMonitoring &&
+    hasIvCalcium &&
+    hasInfusionMonitoring &&
+    hasMagnesiumCause
+  );
+}
+
+function hasHypocalcemiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDigoxinEcgSafety = HYPOCALCEMIA_DIGOXIN_ECG_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasExtravasationSafety = HYPOCALCEMIA_EXTRAVASATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPhosphateProductSafety = HYPOCALCEMIA_PHOSPHATE_PRODUCT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMagnesiumRepletionSafety = HYPOCALCEMIA_MAGNESIUM_REPLETION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTransitionSafety = HYPOCALCEMIA_TRANSITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasDigoxinEcgSafety &&
+    hasExtravasationSafety &&
+    hasPhosphateProductSafety &&
+    hasMagnesiumRepletionSafety &&
+    hasTransitionSafety
+  );
+}
+
 function requiresHyperkalemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -14770,6 +14960,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasHypercalcemiaTreatmentSafetyCheck,
       issue:
         "severe hypercalcemia safety checks must include cardiac, heart-failure, renal, or volume-overload caution during saline hydration, loop-diuretic safety with furosemide only after rehydration, urine-output monitoring, or avoiding volume depletion, antiresorptive renal safety including severe renal impairment, denosumab alternative, vitamin D, or hypocalcemia risk, stopping or reviewing calcium supplements, vitamin D, vitamin A, thiazide, or lithium contributors, and refractory hypercalcemia dialysis planning for renal insufficiency or renal failure",
+    },
+    {
+      name: "hypocalcemia_time_critical_actions",
+      label: "Severe hypocalcemia emergency actions",
+      applies: requiresHypocalcemiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasHypocalcemiaTimeCriticalActions,
+      issue:
+        "severe hypocalcemia time-critical actions must include serum, corrected, repeat, albumin-adjusted, or ionized calcium confirmation, ECG, EKG, telemetry, cardiac monitoring, QT, or prolonged-QT assessment, IV calcium such as calcium gluconate, calcium chloride, or intravenous calcium, repeat bolus, calcium infusion, continuous infusion, drip, or serial ionized calcium monitoring, and magnesium, phosphate, PTH, vitamin D, renal, or alkaline-phosphatase cause evaluation",
+    },
+    {
+      name: "hypocalcemia_treatment_safety",
+      label: "Severe hypocalcemia treatment safety",
+      applies: requiresHypocalcemiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasHypocalcemiaTreatmentSafetyCheck,
+      issue:
+        "severe hypocalcemia safety checks must include digoxin, continuous ECG, slow calcium infusion, or hypokalemia correction safety, calcium-chloride, central-line, extravasation, local-irritation, or soft-tissue injury review, calcium-phosphate product, phosphate, hyperphosphatemia, or soft-tissue calcification review, hypomagnesemia or magnesium repletion with magnesium sulfate or PTH-resistance review, and transition to oral calcium, vitamin D, calcitriol, or chronic therapy",
     },
     {
       name: "hyperkalemia_time_critical_actions",

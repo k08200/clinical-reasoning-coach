@@ -155,6 +155,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "rhabdomyolysis_treatment_safety",
         "hypercalcemia_time_critical_actions",
         "hypercalcemia_treatment_safety",
+        "hypocalcemia_time_critical_actions",
+        "hypocalcemia_treatment_safety",
         "hyperkalemia_time_critical_actions",
         "hyperkalemia_treatment_safety",
         "status_epilepticus_time_critical_actions",
@@ -8172,6 +8174,168 @@ def test_quality_gate_requires_hypercalcemia_fluid_diuretic_renal_antiresorptive
     assert not report.passed
     assert any(
         "severe hypercalcemia safety checks must include cardiac" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_hypocalcemia_calcium_ecg_iv_calcium_infusion_and_cause_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe hypocalcemia after thyroidectomy"
+    case["chief_complaint"] = "Carpopedal spasm and seizure"
+    case["history_of_present_illness"] = (
+        "Patient two days after thyroidectomy presents with symptomatic hypocalcemia, "
+        "perioral paresthesias, carpopedal spasm, tetany, generalized seizure, "
+        "corrected calcium 6.1 mg/dL, ionized calcium 0.82 mmol/L, and prolonged QT."
+    )
+    case["initial_labs"] = {
+        "corrected_calcium": "6.1 mg/dL",
+        "ionized_calcium": "0.82 mmol/L",
+        "magnesium": "1.1 mg/dL",
+        "phosphate": "5.8 mg/dL",
+        "pth": "low",
+    }
+    case["key_teaching_points"] = [
+        "Acute severe hypocalcemia can cause tetany, seizures, laryngospasm, arrhythmia, and altered mental status",
+        "Ionized or albumin-corrected calcium should be confirmed while ECG is monitored for QT prolongation",
+        "Symptomatic tetany requires IV calcium gluconate and may need repeated boluses or continuous infusion",
+    ]
+    case["clinical_red_flags"] = [
+        "Tetany, carpopedal spasm, seizure, laryngospasm, paresthesia, prolonged QT, arrhythmia, or heart failure",
+        "Post-thyroidectomy hypoparathyroidism, hypomagnesemia, hyperphosphatemia, renal disease, or vitamin D deficiency",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+        "Obtain ECG for prolonged QT and place on telemetry cardiac monitoring",
+        "Treat seizure and airway risk while checking magnesium, phosphate, PTH, vitamin D, renal function, and alkaline phosphatase",
+    ]
+    case["contraindication_checks"] = [
+        "Give calcium slowly with continuous ECG monitoring, especially with digoxin exposure, and correct hypokalemia first",
+        "Prefer calcium gluconate peripherally; review calcium chloride central line need, local irritation, extravasation, and soft tissue injury",
+        "Check phosphate and calcium-phosphate product to prevent hyperphosphatemia-related soft tissue calcification",
+        "Replete magnesium with magnesium sulfate because hypomagnesemia and PTH resistance can prevent calcium correction",
+        "Transition to oral calcium, vitamin D, calcitriol, or chronic hypoparathyroidism therapy once stable",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hypocalcemia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/nephrology/electrolyte-disorders/hypocalcemia",
+            "supports": [
+                "severe hypocalcemia after thyroidectomy diagnosis and risk stratification",
+                "symptomatic hypocalcemia, perioral paresthesias, carpopedal spasm, tetany, generalized seizure, corrected calcium 6.1 mg/dL, ionized calcium 0.82 mmol/L, and prolonged QT",
+                "acute severe hypocalcemia can cause tetany, seizures, laryngospasm, arrhythmia, and altered mental status",
+                "ionized or albumin-corrected calcium should be confirmed while ECG is monitored for QT prolongation",
+                "symptomatic tetany requires IV calcium gluconate and may need repeated boluses or continuous infusion",
+                "tetany, carpopedal spasm, seizure, laryngospasm, paresthesia, prolonged QT, arrhythmia, or heart failure as red flags",
+                "post-thyroidectomy hypoparathyroidism, hypomagnesemia, hyperphosphatemia, renal disease, or vitamin D deficiency as severity markers",
+                "serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+                "ECG for prolonged QT and telemetry cardiac monitoring",
+                "magnesium, phosphate, PTH, vitamin D, renal function, and alkaline phosphatase evaluation",
+                "calcium slowly with continuous ECG monitoring, especially with digoxin exposure, and hypokalemia correction",
+                "calcium gluconate peripherally; calcium chloride central line need, local irritation, extravasation, and soft tissue injury review",
+                "phosphate and calcium-phosphate product to prevent hyperphosphatemia-related soft tissue calcification",
+                "magnesium sulfate repletion because hypomagnesemia and PTH resistance can prevent calcium correction",
+                "oral calcium, vitamin D, calcitriol, or chronic hypoparathyroidism therapy once stable",
+            ],
+        },
+        {
+            "title": "Hypocalcemia: Diagnosis and Treatment",
+            "organization": "Endotext / NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK279022/",
+            "supports": [
+                "acute hypocalcemia can be life-threatening with tetany, seizures, cardiac arrhythmias, laryngeal spasm, or altered mental status",
+                "calcium gluconate is the preferred intravenous calcium salt",
+                "persistent hypocalcemia may require calcium gluconate drip and ionized calcium monitoring",
+                "rapid intravenous calcium may cause arrhythmias and should be carefully monitored",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hypocalcemia time-critical actions must include serum" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_hypocalcemia_digoxin_extravasation_phosphate_magnesium_and_transition_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute hypocalcemia with tetany"
+    case["chief_complaint"] = "Tetany and laryngospasm"
+    case["history_of_present_illness"] = (
+        "Patient after massive transfusion and pancreatitis presents with acute "
+        "hypocalcemia, tetany, laryngospasm, seizure, prolonged QT, corrected "
+        "calcium 6.4 mg/dL, ionized calcium 0.86 mmol/L, hypomagnesemia, and "
+        "hyperphosphatemia."
+    )
+    case["initial_labs"] = {
+        "corrected_calcium": "6.4 mg/dL",
+        "ionized_calcium": "0.86 mmol/L",
+        "magnesium": "0.9 mg/dL",
+        "phosphate": "6.3 mg/dL",
+        "creatinine": "1.8 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Acute hypocalcemia with tetany or laryngospasm can be life-threatening",
+        "IV calcium gluconate should be given with ECG monitoring and repeated or infused if symptoms persist",
+        "Hypomagnesemia must be corrected for durable calcium correction",
+    ]
+    case["clinical_red_flags"] = [
+        "Tetany, seizure, laryngospasm, carpopedal spasm, paresthesia, prolonged QT, or arrhythmia",
+        "Massive transfusion citrate load, pancreatitis, renal disease, hypomagnesemia, or hyperphosphatemia",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+        "Obtain ECG or EKG for prolonged QT and start telemetry cardiac monitor",
+        "Give IV calcium gluconate or calcium chloride for symptomatic hypocalcemia",
+        "Repeat bolus and start calcium infusion continuous infusion drip with serial ionized calcium monitoring if symptoms persist",
+        "Check magnesium, phosphate, PTH, vitamin D, renal function, and alkaline phosphatase causes",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetic",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hypocalcemia: Diagnosis and Treatment",
+            "organization": "Endotext / NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK279022/",
+            "supports": [
+                "acute hypocalcemia with tetany diagnosis and risk stratification",
+                "acute hypocalcemia, tetany, laryngospasm, seizure, prolonged QT, corrected calcium 6.4 mg/dL, ionized calcium 0.86 mmol/L, hypomagnesemia, and hyperphosphatemia",
+                "acute hypocalcemia with tetany or laryngospasm can be life-threatening",
+                "IV calcium gluconate should be given with ECG monitoring and repeated or infused if symptoms persist",
+                "hypomagnesemia must be corrected for durable calcium correction",
+                "tetany, seizure, laryngospasm, carpopedal spasm, paresthesia, prolonged QT, or arrhythmia as red flags",
+                "massive transfusion citrate load, pancreatitis, renal disease, hypomagnesemia, or hyperphosphatemia as severity markers",
+                "serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+                "ECG or EKG for prolonged QT and telemetry cardiac monitor",
+                "IV calcium gluconate or calcium chloride for symptomatic hypocalcemia",
+                "repeat bolus and calcium infusion continuous infusion drip with serial ionized calcium monitoring if symptoms persist",
+                "magnesium, phosphate, PTH, vitamin D, renal function, and alkaline phosphatase causes",
+                "medication allergy before antiemetic",
+                "renal function before contrast imaging",
+            ],
+        },
+        {
+            "title": "Hypocalcemia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/nephrology/electrolyte-disorders/hypocalcemia",
+            "supports": [
+                "calcium infusions are hazardous in digoxin and need slow infusion with continuous ECG monitoring and hypokalemia correction",
+                "hypomagnesemic tetany requires magnesium repletion",
+                "chronic hypocalcemia therapy includes oral calcium and vitamin D",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hypocalcemia safety checks must include digoxin" in issue
         for issue in report.critical_issues
     )
 

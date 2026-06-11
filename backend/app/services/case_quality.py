@@ -6042,6 +6042,104 @@ HYPERCALCEMIA_REFRACTORY_DIALYSIS_SAFETY_TERMS = (
     "renal insufficiency",
     "renal failure",
 )
+HYPOCALCEMIA_CONTEXT_TERMS = (
+    "acute hypocalcemia",
+    "calcium 6",
+    "ca 6",
+    "corrected calcium 6",
+    "hypocalcaemia",
+    "hypocalcemia",
+    "hypocalcemic crisis",
+    "hypocalcemic tetany",
+    "ionized calcium 0.",
+    "low calcium",
+    "post-thyroidectomy hypocalcemia",
+    "severe hypocalcemia",
+    "symptomatic hypocalcemia",
+    "저칼슘혈증",
+)
+HYPOCALCEMIA_SEVERE_RISK_TERMS = (
+    "arrhythmia",
+    "carpopedal spasm",
+    "chvostek",
+    "laryngospasm",
+    "paresthesia",
+    "prolonged qt",
+    "qt prolongation",
+    "seizure",
+    "tetany",
+    "trousseau",
+)
+HYPOCALCEMIA_CALCIUM_CONFIRMATION_ACTION_TERMS = (
+    "albumin",
+    "corrected calcium",
+    "ionized calcium",
+    "repeat calcium",
+    "serum calcium",
+)
+HYPOCALCEMIA_ECG_MONITOR_ACTION_TERMS = (
+    "cardiac monitor",
+    "ecg",
+    "ekg",
+    "prolonged qt",
+    "qt",
+    "telemetry",
+)
+HYPOCALCEMIA_IV_CALCIUM_ACTION_TERMS = (
+    "calcium chloride",
+    "calcium gluconate",
+    "iv calcium",
+    "intravenous calcium",
+)
+HYPOCALCEMIA_INFUSION_MONITOR_ACTION_TERMS = (
+    "calcium infusion",
+    "continuous infusion",
+    "drip",
+    "repeat bolus",
+    "serial ionized",
+)
+HYPOCALCEMIA_MAGNESIUM_CAUSE_ACTION_TERMS = (
+    "alkaline phosphatase",
+    "magnesium",
+    "phosphate",
+    "pth",
+    "renal",
+    "vitamin d",
+)
+HYPOCALCEMIA_DIGOXIN_ECG_SAFETY_TERMS = (
+    "continuous ecg",
+    "digoxin",
+    "hypokalemia",
+    "slowly",
+    "slow infusion",
+)
+HYPOCALCEMIA_EXTRAVASATION_SAFETY_TERMS = (
+    "calcium chloride",
+    "central line",
+    "extravasation",
+    "local irritation",
+    "soft tissue",
+)
+HYPOCALCEMIA_PHOSPHATE_PRODUCT_SAFETY_TERMS = (
+    "calcium-phosphate",
+    "ca x phosphate",
+    "hyperphosphatemia",
+    "phosphate",
+    "soft tissue calcification",
+)
+HYPOCALCEMIA_MAGNESIUM_REPLETION_SAFETY_TERMS = (
+    "hypomagnesemia",
+    "magnesium repletion",
+    "magnesium sulfate",
+    "pth resistance",
+    "replete magnesium",
+)
+HYPOCALCEMIA_TRANSITION_SAFETY_TERMS = (
+    "calcitriol",
+    "oral calcium",
+    "vitamin d",
+    "transition",
+)
 HYPERKALEMIA_CONTEXT_TERMS = (
     "ecg changes from hyperkalemia",
     "hyperkalemic emergency",
@@ -10090,6 +10188,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "vitamin A, thiazide, or lithium contributors, and refractory "
                 "hypercalcemia dialysis planning for renal insufficiency or renal "
                 "failure"
+            ),
+        ),
+        DomainSafetyGate(
+            name="hypocalcemia_time_critical_actions",
+            applies=_requires_hypocalcemia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_hypocalcemia_time_critical_actions,
+            issue=(
+                "severe hypocalcemia time-critical actions must include serum, "
+                "corrected, repeat, albumin-adjusted, or ionized calcium "
+                "confirmation, ECG, EKG, telemetry, cardiac monitoring, QT, or "
+                "prolonged-QT assessment, IV calcium such as calcium gluconate, "
+                "calcium chloride, or intravenous calcium, repeat bolus, calcium "
+                "infusion, continuous infusion, drip, or serial ionized calcium "
+                "monitoring, and magnesium, phosphate, PTH, vitamin D, renal, or "
+                "alkaline-phosphatase cause evaluation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="hypocalcemia_treatment_safety",
+            applies=_requires_hypocalcemia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_hypocalcemia_treatment_safety_check,
+            issue=(
+                "severe hypocalcemia safety checks must include digoxin, "
+                "continuous ECG, slow calcium infusion, or hypokalemia correction "
+                "safety, calcium-chloride, central-line, extravasation, local-"
+                "irritation, or soft-tissue injury review, calcium-phosphate "
+                "product, phosphate, hyperphosphatemia, or soft-tissue "
+                "calcification review, hypomagnesemia or magnesium repletion "
+                "with magnesium sulfate or PTH-resistance review, and transition "
+                "to oral calcium, vitamin D, calcitriol, or chronic therapy"
             ),
         ),
         DomainSafetyGate(
@@ -15262,6 +15392,98 @@ def _has_hypercalcemia_treatment_safety_check(checks: list[Any]) -> bool:
         and has_renal_antiresorptive_safety
         and has_offending_agent_safety
         and has_refractory_dialysis_safety
+    )
+
+
+def _requires_hypocalcemia_safety_check(data: dict[str, Any]) -> bool:
+    direct_context = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in (
+            "chief_complaint",
+            "history_of_present_illness",
+            "diagnosis",
+        )
+    )
+    risk_text = direct_context
+    for field_name in (
+        "initial_labs",
+        "physical_exam",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "key_teaching_points",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_hypocalcemia_context = any(
+        _contains_safety_term(direct_context, term)
+        for term in HYPOCALCEMIA_CONTEXT_TERMS
+    )
+    has_severe_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in HYPOCALCEMIA_SEVERE_RISK_TERMS
+    )
+    return has_hypocalcemia_context and has_severe_risk
+
+
+def _has_hypocalcemia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_calcium_confirmation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPOCALCEMIA_CALCIUM_CONFIRMATION_ACTION_TERMS
+    )
+    has_ecg_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPOCALCEMIA_ECG_MONITOR_ACTION_TERMS
+    )
+    has_iv_calcium = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPOCALCEMIA_IV_CALCIUM_ACTION_TERMS
+    )
+    has_infusion_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPOCALCEMIA_INFUSION_MONITOR_ACTION_TERMS
+    )
+    has_magnesium_cause = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPOCALCEMIA_MAGNESIUM_CAUSE_ACTION_TERMS
+    )
+    return (
+        has_calcium_confirmation
+        and has_ecg_monitoring
+        and has_iv_calcium
+        and has_infusion_monitoring
+        and has_magnesium_cause
+    )
+
+
+def _has_hypocalcemia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_digoxin_ecg_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPOCALCEMIA_DIGOXIN_ECG_SAFETY_TERMS
+    )
+    has_extravasation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPOCALCEMIA_EXTRAVASATION_SAFETY_TERMS
+    )
+    has_phosphate_product_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPOCALCEMIA_PHOSPHATE_PRODUCT_SAFETY_TERMS
+    )
+    has_magnesium_repletion_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPOCALCEMIA_MAGNESIUM_REPLETION_SAFETY_TERMS
+    )
+    has_transition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPOCALCEMIA_TRANSITION_SAFETY_TERMS
+    )
+    return (
+        has_digoxin_ecg_safety
+        and has_extravasation_safety
+        and has_phosphate_product_safety
+        and has_magnesium_repletion_safety
+        and has_transition_safety
     )
 
 
