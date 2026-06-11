@@ -149,6 +149,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "adrenal_crisis_treatment_safety",
         "acetaminophen_toxicity_time_critical_actions",
         "acetaminophen_toxicity_treatment_safety",
+        "valproate_toxicity_time_critical_actions",
+        "valproate_toxicity_treatment_safety",
         "toxic_alcohol_time_critical_actions",
         "toxic_alcohol_treatment_safety",
         "lithium_toxicity_time_critical_actions",
@@ -7441,6 +7443,189 @@ def test_quality_gate_requires_acetaminophen_timing_nac_and_liver_failure_safety
     assert not report.passed
     assert any(
         "acetaminophen toxicity safety checks must include ingestion timing" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_valproate_levels_labs_stabilization_decon_carnitine_and_dialysis_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Valproate toxicity with hyperammonemic encephalopathy"
+    case["patient_demographics"] = {
+        "age": 32,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Somnolence and vomiting after divalproex overdose"
+    case["history_of_present_illness"] = (
+        "Patient presents after a large divalproex valproate overdose with vomiting, "
+        "somnolence, confusion, respiratory depression, hyperammonemia, metabolic "
+        "acidosis, thrombocytopenia, and concern for valproate toxicity."
+    )
+    case["past_medical_history"] = "Bipolar disorder treated with divalproex"
+    case["physical_exam"] = {
+        "vitals": {"bp": "88/54", "hr": 122, "rr": 8, "temp_c": 36.5, "spo2": 90},
+        "general": "Somnolent and vomiting",
+        "cardiovascular": "Tachycardic and hypotensive",
+        "pulmonary": "Bradypnea with shallow respirations",
+        "abdomen": "Mild epigastric tenderness",
+        "neuro": "Confused with depressed mental status and intermittent seizure activity",
+        "other": "Possible enteric-coated tablets in ingestion history",
+    }
+    case["initial_labs"] = {
+        "valproate": "850 mg/L",
+        "ammonia": "156 umol/L",
+        "ph": "7.18",
+        "ast": "182 U/L",
+        "alt": "166 U/L",
+        "platelets": "92k",
+        "glucose": "62 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Valproate toxicity commonly causes hyperammonemia, encephalopathy, and hepatotoxicity",
+        "Total valproate level can underestimate toxicity when free or unbound valproate is elevated",
+        "Severe valproate poisoning may require L-carnitine and hemodialysis or ECTR escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "Respiratory depression, coma, seizure, hypotension, shock, metabolic acidosis, or cerebral edema",
+        "Hyperammonemia, hepatotoxicity, thrombocytopenia, hypoglycemia, pancreatitis, or elevated valproate concentration",
+    ]
+    case["time_critical_actions"] = [
+        "Trend serial valproate level or valproate concentration every 2 to 4 hours and send ammonia plus free valproate or unbound valproate level",
+        "Send CMP, LFT liver function tests, CBC, glucose, electrolytes, acetaminophen and salicylate co-ingestant screen, and pregnancy test",
+        "Stabilize airway, breathing, and circulation with intubation or mechanical ventilation, IV fluids, vasopressor support, and benzodiazepine for seizure",
+        "Give activated charcoal for early overdose and consider delayed charcoal or gastric lavage for enteric-coated or extended-release ingestion when airway and swallow are safe",
+        "Call poison center toxicologist and nephrology for hemodialysis, dialysis, or ECTR escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Review dialysis indication for valproate concentration >1300 mg/L, shock, cerebral edema, severe acidosis, pH < 7.10, hemodialysis, ECTR, or dialysis criteria",
+        "Use L-carnitine or levocarnitine 100 mg/kg loading then 50 mg/kg every 8 hours with ammonia-response monitoring",
+        "Interpret free level or unbound level when hypoalbuminemia, low albumin, protein binding changes, or normal total level discordance is present",
+        "Review enteric-coated or extended-release timing, within 2 hours charcoal, swallow safety, and airway protection before decontamination",
+        "Monitor hepatotoxicity, thrombocytopenia, cerebral edema, pancreatitis, pregnancy, and teratogen risks",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Valproate Toxicity",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK560898/",
+            "supports": [
+                "valproate toxicity with hyperammonemic encephalopathy diagnosis and risk stratification",
+                "divalproex valproate overdose can cause vomiting, somnolence, confusion, respiratory depression, hyperammonemia, metabolic acidosis, thrombocytopenia, and valproate toxicity",
+                "valproate toxicity commonly causes hyperammonemia, encephalopathy, and hepatotoxicity",
+                "total valproate level can underestimate toxicity when free or unbound valproate is elevated",
+                "severe valproate poisoning may require L-carnitine and hemodialysis or ECTR escalation",
+                "respiratory depression, coma, seizure, hypotension, shock, metabolic acidosis, or cerebral edema as red flags",
+                "hyperammonemia, hepatotoxicity, thrombocytopenia, hypoglycemia, pancreatitis, or elevated valproate concentration as severity markers",
+                "serial valproate level or valproate concentration every 2 to 4 hours with ammonia plus free valproate or unbound valproate level",
+                "CMP, LFT liver function tests, CBC, glucose, electrolytes, acetaminophen and salicylate co-ingestant screen, and pregnancy test",
+                "airway, breathing, and circulation stabilization with intubation or mechanical ventilation, IV fluids, vasopressor support, and benzodiazepine for seizure",
+                "activated charcoal for early overdose and delayed charcoal or gastric lavage for enteric-coated or extended-release ingestion when airway and swallow are safe",
+                "poison center toxicologist and nephrology for hemodialysis, dialysis, or ECTR escalation",
+                "dialysis indication for valproate concentration >1300 mg/L, shock, cerebral edema, severe acidosis, pH < 7.10, hemodialysis, ECTR, or dialysis criteria",
+                "L-carnitine or levocarnitine 100 mg/kg loading then 50 mg/kg every 8 hours with ammonia-response monitoring",
+                "free level or unbound level when hypoalbuminemia, low albumin, protein binding changes, or normal total level discordance is present",
+                "enteric-coated or extended-release timing, within 2 hours charcoal, swallow safety, and airway protection before decontamination",
+                "hepatotoxicity, thrombocytopenia, cerebral edema, pancreatitis, pregnancy, and teratogen risk monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "valproate toxicity time-critical actions must include serial valproate level"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_valproate_dialysis_carnitine_free_level_decon_and_complication_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Valproic acid toxicity with coma"
+    case["patient_demographics"] = {
+        "age": 32,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Coma after valproic acid overdose"
+    case["history_of_present_illness"] = (
+        "Patient presents after valproic acid overdose with coma, respiratory "
+        "depression, hypotension, hyperammonemia, metabolic acidosis, and high "
+        "valproate concentration."
+    )
+    case["past_medical_history"] = "Epilepsy treated with valproic acid"
+    case["physical_exam"] = {
+        "vitals": {"bp": "82/48", "hr": 130, "rr": 7, "temp_c": 36.3, "spo2": 88},
+        "general": "Comatose and unable to protect airway",
+        "cardiovascular": "Tachycardic with shock physiology",
+        "pulmonary": "Hypoventilation requiring airway support",
+        "abdomen": "Vomiting with epigastric tenderness",
+        "neuro": "Coma with possible cerebral edema risk",
+        "other": "Concern for extended-release tablets",
+    }
+    case["initial_labs"] = {
+        "valproate": "1320 mg/L",
+        "ammonia": "210 umol/L",
+        "ph": "7.06",
+        "ast": "240 U/L",
+        "alt": "219 U/L",
+        "platelets": "78k",
+        "glucose": "58 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Valproate toxicity may present with hyperammonemic encephalopathy and severe CNS depression",
+        "Serial total and unbound valproate levels help identify peak concentration and protein-binding discordance",
+        "Severe valproate toxicity with shock, cerebral edema, or very high concentration requires dialysis planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Coma, respiratory depression, mechanical ventilation need, shock, cerebral edema, seizure, or severe acidosis",
+        "Hyperammonemia, hepatotoxicity, thrombocytopenia, hypoglycemia, pancreatitis, or teratogenic pregnancy risk",
+    ]
+    case["time_critical_actions"] = [
+        "Trend serial valproate level, valproate concentration, ammonia, and free or unbound valproate level until declining",
+        "Send CMP, LFT, liver function tests, CBC, glucose, electrolytes, acetaminophen and salicylate co-ingestant screen, and pregnancy test",
+        "Manage airway, breathing, and circulation with intubation, mechanical ventilation, IV fluids, vasopressor support, and benzodiazepine if seizure occurs",
+        "Give activated charcoal when appropriate and consider enteric-coated or extended-release delayed absorption with gastric lavage if indicated and airway protected",
+        "Start L-carnitine or levocarnitine for altered mental status and hyperammonemia",
+        "Call poison center toxicologist and nephrology for hemodialysis, dialysis, or ECTR escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Volume status before additional fluids",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Valproate Toxicity",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK560898/",
+            "supports": [
+                "valproic acid toxicity with coma diagnosis and risk stratification",
+                "valproic acid overdose can cause coma, respiratory depression, hypotension, hyperammonemia, metabolic acidosis, and high valproate concentration",
+                "valproate toxicity may present with hyperammonemic encephalopathy and severe CNS depression",
+                "serial total and unbound valproate levels help identify peak concentration and protein-binding discordance",
+                "severe valproate toxicity with shock, cerebral edema, or very high concentration requires dialysis planning",
+                "coma, respiratory depression, mechanical ventilation need, shock, cerebral edema, seizure, or severe acidosis as red flags",
+                "hyperammonemia, hepatotoxicity, thrombocytopenia, hypoglycemia, pancreatitis, or teratogenic pregnancy risk as severity markers",
+                "serial valproate level, valproate concentration, ammonia, and free or unbound valproate level until declining",
+                "CMP, LFT, liver function tests, CBC, glucose, electrolytes, acetaminophen and salicylate co-ingestant screen, and pregnancy test",
+                "airway, breathing, and circulation management with intubation, mechanical ventilation, IV fluids, vasopressor support, and benzodiazepine if seizure occurs",
+                "activated charcoal when appropriate and enteric-coated or extended-release delayed absorption with gastric lavage if indicated and airway protected",
+                "L-carnitine or levocarnitine for altered mental status and hyperammonemia",
+                "poison center toxicologist and nephrology for hemodialysis, dialysis, or ECTR escalation",
+                "medication allergy before antiemetics",
+                "volume status before additional fluids",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "valproate toxicity safety checks must include dialysis indication" in issue
         for issue in report.critical_issues
     )
 
