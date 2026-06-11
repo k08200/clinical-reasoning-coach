@@ -6003,6 +6003,125 @@ const HHS_RESOLUTION_DISPOSITION_SAFETY_TERMS = [
   "urine output",
 ];
 
+const HYPONATREMIA_CONTEXT_TERMS = [
+  "acute hyponatremia",
+  "hyponatremic seizure",
+  "low sodium with seizure",
+  "na 112",
+  "na 115",
+  "severe hyponatremia",
+  "sodium 112",
+  "sodium 115",
+  "symptomatic hyponatremia",
+  "저나트륨혈증",
+];
+
+const HYPONATREMIA_SEVERE_RISK_TERMS = [
+  "altered mental status",
+  "brain edema",
+  "cerebral edema",
+  "coma",
+  "confusion",
+  "obtundation",
+  "seizure",
+  "somnolence",
+];
+
+const HYPONATREMIA_SODIUM_OSM_ACTION_TERMS = [
+  "hypotonic",
+  "osmolality",
+  "osmolar",
+  "serum sodium",
+  "sodium",
+];
+
+const HYPONATREMIA_HYPERTONIC_ACTION_TERMS = [
+  "3 percent",
+  "3%",
+  "hypertonic saline",
+  "hypertonic sodium chloride",
+  "sodium chloride bolus",
+  "고장성 식염수",
+];
+
+const HYPONATREMIA_NEURO_ESCALATION_ACTION_TERMS = [
+  "airway",
+  "coma",
+  "high dependency",
+  "icu",
+  "intubation",
+  "neurologic",
+  "seizure",
+];
+
+const HYPONATREMIA_MONITORING_ACTION_TERMS = [
+  "correction",
+  "every 2",
+  "frequent sodium",
+  "q2",
+  "repeat sodium",
+  "serial sodium",
+];
+
+const HYPONATREMIA_CAUSE_EVALUATION_ACTION_TERMS = [
+  "adrenal",
+  "diuretic",
+  "siadh",
+  "thyroid",
+  "urine osmolality",
+  "urine sodium",
+  "volume status",
+];
+
+const HYPONATREMIA_CORRECTION_LIMIT_SAFETY_TERMS = [
+  "6-8",
+  "6 to 8",
+  "8 mmol",
+  "10 mmol",
+  "24 hours",
+  "no more than 8",
+  "no more than 10",
+  "ods",
+  "osmotic demyelination",
+];
+
+const HYPONATREMIA_HIGH_RISK_SAFETY_TERMS = [
+  "alcohol",
+  "chronic",
+  "hypokalemia",
+  "liver disease",
+  "malnutrition",
+  "unknown duration",
+];
+
+const HYPONATREMIA_OVERCORRECTION_RESCUE_SAFETY_TERMS = [
+  "d5w",
+  "ddavp",
+  "desmopressin",
+  "hypotonic fluid",
+  "overcorrection",
+  "relowering",
+];
+
+const HYPONATREMIA_VOLUME_CAUSE_SAFETY_TERMS = [
+  "euvolemic",
+  "fluid restriction",
+  "hypervolemic",
+  "hypovolemic",
+  "normal saline",
+  "offending medication",
+  "stop thiazide",
+];
+
+const HYPONATREMIA_DISPOSITION_MONITORING_SAFETY_TERMS = [
+  "close monitoring",
+  "frequent sodium",
+  "high dependency",
+  "icu",
+  "q2",
+  "serial sodium",
+];
+
 const HYPERKALEMIA_CONTEXT_TERMS = [
   "ecg changes from hyperkalemia",
   "hyperkalemic emergency",
@@ -11574,6 +11693,84 @@ function hasHhsTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresHyponatremiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasHyponatremiaContext = HYPONATREMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasSevereRisk = HYPONATREMIA_SEVERE_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasHyponatremiaContext && hasSevereRisk;
+}
+
+function hasHyponatremiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasSodiumOsm = HYPONATREMIA_SODIUM_OSM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHypertonic = HYPONATREMIA_HYPERTONIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeuroEscalation = HYPONATREMIA_NEURO_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMonitoring = HYPONATREMIA_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCauseEvaluation = HYPONATREMIA_CAUSE_EVALUATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasSodiumOsm &&
+    hasHypertonic &&
+    hasNeuroEscalation &&
+    hasMonitoring &&
+    hasCauseEvaluation
+  );
+}
+
+function hasHyponatremiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasCorrectionLimit = HYPONATREMIA_CORRECTION_LIMIT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHighRiskReview = HYPONATREMIA_HIGH_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOvercorrectionRescue = HYPONATREMIA_OVERCORRECTION_RESCUE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVolumeCauseSafety = HYPONATREMIA_VOLUME_CAUSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDispositionMonitoring = HYPONATREMIA_DISPOSITION_MONITORING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasCorrectionLimit &&
+    hasHighRiskReview &&
+    hasOvercorrectionRescue &&
+    hasVolumeCauseSafety &&
+    hasDispositionMonitoring
+  );
+}
+
 function requiresHyperkalemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -13721,6 +13918,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasHhsTreatmentSafetyCheck,
       issue:
         "HHS safety checks must include controlled osmolality, sodium, glucose-fall, rapid-correction, cerebral-edema, 3-to-8 mOsm/kg/hour, or sodium no-more-than-10 mmol/L/day review, fluids-first insulin timing with insulin after glucose stops falling, 0.05 units/kg/h, defer-insulin, or osmotic-shift review, potassium plus renal, CKD, frailty, cardiac-failure, or fluid safety review, thrombosis, VTE, infection, stroke, myocardial infarction, or precipitant review, and resolution or disposition review for osmolality below 300, urine output, cognitive status, euglycemia, or ICU",
+    },
+    {
+      name: "hyponatremia_time_critical_actions",
+      label: "Severe hyponatremia emergency actions",
+      applies: requiresHyponatremiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasHyponatremiaTimeCriticalActions,
+      issue:
+        "severe hyponatremia time-critical actions must include serum sodium, osmolality, hypotonic, or osmolar confirmation, hypertonic saline, 3% sodium chloride, or sodium-chloride bolus planning, seizure, coma, airway, neurologic, ICU, or high-dependency escalation, frequent, serial, repeat, q2, or every-2 sodium correction monitoring, and urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, or diuretic cause evaluation",
+    },
+    {
+      name: "hyponatremia_treatment_safety",
+      label: "Severe hyponatremia correction safety",
+      applies: requiresHyponatremiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasHyponatremiaTreatmentSafetyCheck,
+      issue:
+        "severe hyponatremia safety checks must include correction limit review such as 6-8 mmol/L, 8 mmol/L, 10 mmol/L, 24-hour, ODS, or osmotic-demyelination safeguards, high-risk review for chronic or unknown duration, alcohol use, malnutrition, liver disease, or hypokalemia, overcorrection rescue with DDAVP, desmopressin, D5W, hypotonic fluid, or relowering planning, hypovolemic, euvolemic, hypervolemic, fluid-restriction, normal-saline, stop-thiazide, or offending-medication cause safety, and ICU, high-dependency, close, frequent, q2, or serial sodium monitoring disposition",
     },
     {
       name: "hyperkalemia_time_critical_actions",

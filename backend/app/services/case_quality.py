@@ -5524,6 +5524,113 @@ HHS_RESOLUTION_DISPOSITION_SAFETY_TERMS = (
     "osmolality below 300",
     "urine output",
 )
+HYPONATREMIA_CONTEXT_TERMS = (
+    "acute hyponatremia",
+    "hyponatremic seizure",
+    "low sodium with seizure",
+    "na 112",
+    "na 115",
+    "severe hyponatremia",
+    "sodium 112",
+    "sodium 115",
+    "symptomatic hyponatremia",
+    "저나트륨혈증",
+)
+HYPONATREMIA_SEVERE_RISK_TERMS = (
+    "altered mental status",
+    "brain edema",
+    "cerebral edema",
+    "coma",
+    "confusion",
+    "obtundation",
+    "seizure",
+    "somnolence",
+)
+HYPONATREMIA_SODIUM_OSM_ACTION_TERMS = (
+    "hypotonic",
+    "osmolality",
+    "osmolar",
+    "serum sodium",
+    "sodium",
+)
+HYPONATREMIA_HYPERTONIC_ACTION_TERMS = (
+    "3 percent",
+    "3%",
+    "hypertonic saline",
+    "hypertonic sodium chloride",
+    "sodium chloride bolus",
+    "고장성 식염수",
+)
+HYPONATREMIA_NEURO_ESCALATION_ACTION_TERMS = (
+    "airway",
+    "coma",
+    "high dependency",
+    "icu",
+    "intubation",
+    "neurologic",
+    "seizure",
+)
+HYPONATREMIA_MONITORING_ACTION_TERMS = (
+    "correction",
+    "every 2",
+    "frequent sodium",
+    "q2",
+    "repeat sodium",
+    "serial sodium",
+)
+HYPONATREMIA_CAUSE_EVALUATION_ACTION_TERMS = (
+    "adrenal",
+    "diuretic",
+    "siadh",
+    "thyroid",
+    "urine osmolality",
+    "urine sodium",
+    "volume status",
+)
+HYPONATREMIA_CORRECTION_LIMIT_SAFETY_TERMS = (
+    "6-8",
+    "6 to 8",
+    "8 mmol",
+    "10 mmol",
+    "24 hours",
+    "no more than 8",
+    "no more than 10",
+    "ods",
+    "osmotic demyelination",
+)
+HYPONATREMIA_HIGH_RISK_SAFETY_TERMS = (
+    "alcohol",
+    "chronic",
+    "hypokalemia",
+    "liver disease",
+    "malnutrition",
+    "unknown duration",
+)
+HYPONATREMIA_OVERCORRECTION_RESCUE_SAFETY_TERMS = (
+    "d5w",
+    "ddavp",
+    "desmopressin",
+    "hypotonic fluid",
+    "overcorrection",
+    "relowering",
+)
+HYPONATREMIA_VOLUME_CAUSE_SAFETY_TERMS = (
+    "euvolemic",
+    "fluid restriction",
+    "hypervolemic",
+    "hypovolemic",
+    "normal saline",
+    "offending medication",
+    "stop thiazide",
+)
+HYPONATREMIA_DISPOSITION_MONITORING_SAFETY_TERMS = (
+    "close monitoring",
+    "frequent sodium",
+    "high dependency",
+    "icu",
+    "q2",
+    "serial sodium",
+)
 HYPERKALEMIA_CONTEXT_TERMS = (
     "ecg changes from hyperkalemia",
     "hyperkalemic emergency",
@@ -9398,6 +9505,40 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "infarction, or precipitant review, and resolution or disposition "
                 "review for osmolality below 300, urine output, cognitive status, "
                 "euglycemia, or ICU"
+            ),
+        ),
+        DomainSafetyGate(
+            name="hyponatremia_time_critical_actions",
+            applies=_requires_hyponatremia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_hyponatremia_time_critical_actions,
+            issue=(
+                "severe hyponatremia time-critical actions must include serum "
+                "sodium, osmolality, hypotonic, or osmolar confirmation, "
+                "hypertonic saline, 3% sodium chloride, or sodium-chloride bolus "
+                "planning, seizure, coma, airway, neurologic, ICU, or high-"
+                "dependency escalation, frequent, serial, repeat, q2, or every-2 "
+                "sodium correction monitoring, and urine osmolality, urine sodium, "
+                "volume status, SIADH, adrenal, thyroid, or diuretic cause "
+                "evaluation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="hyponatremia_treatment_safety",
+            applies=_requires_hyponatremia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_hyponatremia_treatment_safety_check,
+            issue=(
+                "severe hyponatremia safety checks must include correction limit "
+                "review such as 6-8 mmol/L, 8 mmol/L, 10 mmol/L, 24-hour, ODS, "
+                "or osmotic-demyelination safeguards, high-risk review for "
+                "chronic or unknown duration, alcohol use, malnutrition, liver "
+                "disease, or hypokalemia, overcorrection rescue with DDAVP, "
+                "desmopressin, D5W, hypotonic fluid, or relowering planning, "
+                "hypovolemic, euvolemic, hypervolemic, fluid-restriction, normal-"
+                "saline, stop-thiazide, or offending-medication cause safety, and "
+                "ICU, high-dependency, close, frequent, q2, or serial sodium "
+                "monitoring disposition"
             ),
         ),
         DomainSafetyGate(
@@ -14105,6 +14246,101 @@ def _has_hhs_treatment_safety_check(checks: list[Any]) -> bool:
         and has_potassium_renal_fluid_safety
         and has_thrombosis_precipitant_safety
         and has_resolution_disposition_safety
+    )
+
+
+def _requires_hyponatremia_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_hyponatremia_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in HYPONATREMIA_CONTEXT_TERMS
+    )
+    has_severe_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in HYPONATREMIA_SEVERE_RISK_TERMS
+    )
+    return has_hyponatremia_context and has_severe_risk
+
+
+def _has_hyponatremia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_sodium_osm = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPONATREMIA_SODIUM_OSM_ACTION_TERMS
+    )
+    has_hypertonic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPONATREMIA_HYPERTONIC_ACTION_TERMS
+    )
+    has_neuro_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPONATREMIA_NEURO_ESCALATION_ACTION_TERMS
+    )
+    has_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPONATREMIA_MONITORING_ACTION_TERMS
+    )
+    has_cause_evaluation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPONATREMIA_CAUSE_EVALUATION_ACTION_TERMS
+    )
+    return (
+        has_sodium_osm
+        and has_hypertonic
+        and has_neuro_escalation
+        and has_monitoring
+        and has_cause_evaluation
+    )
+
+
+def _has_hyponatremia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_correction_limit = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPONATREMIA_CORRECTION_LIMIT_SAFETY_TERMS
+    )
+    has_high_risk_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPONATREMIA_HIGH_RISK_SAFETY_TERMS
+    )
+    has_overcorrection_rescue = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPONATREMIA_OVERCORRECTION_RESCUE_SAFETY_TERMS
+    )
+    has_volume_cause_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPONATREMIA_VOLUME_CAUSE_SAFETY_TERMS
+    )
+    has_disposition_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPONATREMIA_DISPOSITION_MONITORING_SAFETY_TERMS
+    )
+    return (
+        has_correction_limit
+        and has_high_risk_review
+        and has_overcorrection_rescue
+        and has_volume_cause_safety
+        and has_disposition_monitoring
     )
 
 
