@@ -5548,6 +5548,153 @@ const TCA_TOXICITY_DIALYSIS_LEVEL_SAFETY_TERMS = [
   "toxicity correlation",
 ];
 
+const ORGANOPHOSPHATE_TOXICITY_DIRECT_CONTEXT_TERMS = [
+  "acetylcholinesterase inhibitor poisoning",
+  "cholinergic crisis",
+  "cholinergic toxidrome",
+  "nerve agent poisoning",
+  "organophosphate exposure",
+  "organophosphate poisoning",
+  "organophosphate toxicity",
+  "organophosphorus poisoning",
+  "organophosphorus toxicity",
+  "pesticide poisoning",
+  "유기인산",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_EXPOSURE_CONTEXT_TERMS = [
+  "chlorpyrifos",
+  "diazinon",
+  "dichlorvos",
+  "insecticide",
+  "malathion",
+  "nerve agent",
+  "organophosphate",
+  "organophosphorus",
+  "parathion",
+  "pesticide",
+  "sarin",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_CHOLINERGIC_CONTEXT_TERMS = [
+  "bronchorrhea",
+  "bronchospasm",
+  "diaphoresis",
+  "fasciculation",
+  "fasciculations",
+  "lacrimation",
+  "miosis",
+  "pinpoint pupils",
+  "salivation",
+  "secretions",
+  "seizure",
+  "wheezing",
+  "기관지분비",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_PPE_DECON_ACTION_TERMS = [
+  "clothing removal",
+  "decontamination",
+  "personal protective equipment",
+  "ppe",
+  "soap and water",
+  "wash",
+  "보호구",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_AIRWAY_SECRETION_ACTION_TERMS = [
+  "airway",
+  "bronchorrhea",
+  "bronchospasm",
+  "intubation",
+  "oxygen",
+  "respiratory failure",
+  "secretions",
+  "ventilation",
+  "기도",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_ATROPINE_ACTION_TERMS = [
+  "atropine",
+  "atropinization",
+  "bronchoconstriction",
+  "dry secretions",
+  "doubling",
+  "secretions clear",
+  "아트로핀",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_PRALIDOXIME_ACTION_TERMS = [
+  "2-pam",
+  "aging",
+  "oxime",
+  "pralidoxime",
+  "reactivation",
+  "프랄리독심",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_SEIZURE_ICU_ACTION_TERMS = [
+  "benzodiazepine",
+  "cardiac monitoring",
+  "diazepam",
+  "icu",
+  "lorazepam",
+  "midazolam",
+  "poison center",
+  "seizure",
+  "toxicologist",
+  "toxicology",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_SUCCINYLCHOLINE_SAFETY_TERMS = [
+  "avoid succinylcholine",
+  "prolonged paralysis",
+  "succinylcholine",
+  "석시닐콜린",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_LAB_DIAGNOSIS_SAFETY_TERMS = [
+  "ache",
+  "arterial blood gas",
+  "bche",
+  "butyrylcholinesterase",
+  "cholinesterase",
+  "do not wait",
+  "rbc ache",
+  "treat before",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_PRALIDOXIME_ORDER_SAFETY_TERMS = [
+  "after atropine",
+  "atropine before",
+  "cardiac arrest",
+  "infusion",
+  "pralidoxime",
+  "rapid administration",
+  "slow infusion",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_MONITORING_SAFETY_TERMS = [
+  "48 hours",
+  "icu",
+  "intermediate syndrome",
+  "negative inspiratory force",
+  "recurring",
+  "respiratory failure",
+  "tidal volume",
+  "ventilatory support",
+];
+
+const ORGANOPHOSPHATE_TOXICITY_DECON_DELAY_SAFETY_TERMS = [
+  "bodily secretions",
+  "clothing",
+  "decontamination",
+  "do not delay",
+  "ppe",
+  "soap and water",
+  "vomit",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -10424,6 +10571,92 @@ function hasTcaToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresOrganophosphateToxicitySafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = ORGANOPHOSPHATE_TOXICITY_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasExposureContext = ORGANOPHOSPHATE_TOXICITY_EXPOSURE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasCholinergicContext = ORGANOPHOSPHATE_TOXICITY_CHOLINERGIC_CONTEXT_TERMS.some(
+    (term) => containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasExposureContext && hasCholinergicContext);
+}
+
+function hasOrganophosphateToxicityTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasPpeDecon = ORGANOPHOSPHATE_TOXICITY_PPE_DECON_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAirwaySecretionSupport =
+    ORGANOPHOSPHATE_TOXICITY_AIRWAY_SECRETION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasAtropine = ORGANOPHOSPHATE_TOXICITY_ATROPINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPralidoxime = ORGANOPHOSPHATE_TOXICITY_PRALIDOXIME_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSeizureIcuEscalation = ORGANOPHOSPHATE_TOXICITY_SEIZURE_ICU_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasPpeDecon &&
+    hasAirwaySecretionSupport &&
+    hasAtropine &&
+    hasPralidoxime &&
+    hasSeizureIcuEscalation
+  );
+}
+
+function hasOrganophosphateToxicityTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasSuccinylcholineSafety =
+    ORGANOPHOSPHATE_TOXICITY_SUCCINYLCHOLINE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasLabDiagnosisSafety = ORGANOPHOSPHATE_TOXICITY_LAB_DIAGNOSIS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPralidoximeOrderSafety =
+    ORGANOPHOSPHATE_TOXICITY_PRALIDOXIME_ORDER_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasMonitoringSafety = ORGANOPHOSPHATE_TOXICITY_MONITORING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDeconDelaySafety = ORGANOPHOSPHATE_TOXICITY_DECON_DELAY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasSuccinylcholineSafety &&
+    hasLabDiagnosisSafety &&
+    hasPralidoximeOrderSafety &&
+    hasMonitoringSafety &&
+    hasDeconDelaySafety
+  );
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -12309,6 +12542,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasTcaToxicityTreatmentSafetyCheck,
       issue:
         "TCA toxicity safety checks must include activated-charcoal, decontamination, airway-protected, within-2-hour, or ipecac-avoidance review, avoidance of physostigmine, flumazenil, class IA, class IC, class III, antiarrhythmic, or anti-dysrhythmic agents, serum pH, pH 7.5 to 7.55, sodium, hypernatremia, alkalemia, or alkalosis monitoring, continuous monitoring, observation, ICU, serial ECG, repeat ECG, 6-hour, or 24-hour disposition planning, and dialysis, hemoperfusion, serum-level, drug-level, TCA-level, not-effective, or toxicity-correlation review",
+    },
+    {
+      name: "organophosphate_toxicity_time_critical_actions",
+      label: "Organophosphate toxicity emergency actions",
+      applies: requiresOrganophosphateToxicitySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasOrganophosphateToxicityTimeCriticalActions,
+      issue:
+        "organophosphate toxicity time-critical actions must include PPE, personal-protective-equipment, clothing-removal, soap-and-water, wash, or decontamination planning, airway, oxygen, intubation, ventilation, bronchorrhea, bronchospasm, secretions, or respiratory-failure support, atropine, atropinization, doubling doses, bronchoconstriction, secretions-clear, or dry-secretions endpoint, pralidoxime, 2-PAM, oxime, aging, or acetylcholinesterase reactivation planning, and seizure, benzodiazepine, diazepam, lorazepam, midazolam, ICU, cardiac monitoring, poison-center, toxicology, or toxicologist escalation",
+    },
+    {
+      name: "organophosphate_toxicity_treatment_safety",
+      label: "Organophosphate toxicity treatment safety",
+      applies: requiresOrganophosphateToxicitySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasOrganophosphateToxicityTreatmentSafetyCheck,
+      issue:
+        "organophosphate toxicity safety checks must include succinylcholine avoidance or prolonged-paralysis airway safety, cholinesterase, RBC AChE, BuChE, arterial-blood-gas, treat-before-labs, or do-not-wait laboratory safety, atropine-before-pralidoxime, pralidoxime infusion, slow-infusion, rapid-administration, or cardiac-arrest risk review, ICU, 48-hour, recurring, intermediate-syndrome, tidal-volume, negative-inspiratory-force, respiratory-failure, or ventilatory-support monitoring, and decontamination not delaying care plus clothing, PPE, soap-and-water, vomit, or bodily-secretion contamination precautions",
     },
     {
       name: "dka_time_critical_actions",

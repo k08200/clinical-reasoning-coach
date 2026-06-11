@@ -137,6 +137,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "digoxin_toxicity_treatment_safety",
         "tca_toxicity_time_critical_actions",
         "tca_toxicity_treatment_safety",
+        "organophosphate_toxicity_time_critical_actions",
+        "organophosphate_toxicity_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
@@ -6614,6 +6616,179 @@ def test_quality_gate_requires_tca_toxicity_decontamination_avoidance_ph_observa
     assert not report.passed
     assert any(
         "TCA toxicity safety checks must include activated-charcoal" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_organophosphate_toxicity_ppe_airway_atropine_pralidoxime_and_icu_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Organophosphate poisoning with cholinergic crisis"
+    case["patient_demographics"] = {
+        "age": 38,
+        "sex": "male",
+        "weight_kg": 72,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Respiratory distress after pesticide exposure"
+    case["history_of_present_illness"] = (
+        "Patient presents after chlorpyrifos pesticide exposure with miosis, "
+        "diaphoresis, bronchorrhea, bronchospasm, salivation, lacrimation, "
+        "vomiting, diarrhea, fasciculations, seizure, and respiratory distress "
+        "concerning for organophosphate toxicity."
+    )
+    case["past_medical_history"] = "No chronic disease; works with insecticides"
+    case["physical_exam"] = {
+        "vitals": {"bp": "92/54", "hr": 48, "rr": 30, "temp_c": 36.8, "spo2": 88},
+        "general": "Diaphoretic, vomiting, and covered with pesticide-contaminated clothing",
+        "cardiovascular": "Bradycardic with weak pulses",
+        "pulmonary": "Wheezing, bronchorrhea, bronchospasm, and copious secretions",
+        "abdomen": "Cramping with diarrhea",
+        "neuro": "Pinpoint pupils, fasciculations, and postictal after seizure",
+        "other": "Lacrimation and salivation",
+    }
+    case["initial_labs"] = {
+        "abg": "Hypoxemia with early ventilatory failure",
+        "rbc_ache": "Pending RBC AChE level",
+        "bche": "Pending butyrylcholinesterase level",
+        "glucose": "132",
+    }
+    case["key_teaching_points"] = [
+        "Organophosphate toxicity causes a cholinergic toxidrome with muscarinic, nicotinic, and CNS findings",
+        "Bronchorrhea, bronchospasm, and respiratory failure are immediately life-threatening",
+        "Atropine treats muscarinic secretions while pralidoxime or 2-PAM reactivates acetylcholinesterase before aging",
+    ]
+    case["clinical_red_flags"] = [
+        "Bronchorrhea, bronchospasm, wheezing, hypoxemia, respiratory failure, seizure, bradycardia, or hypotension",
+        "Miosis, salivation, lacrimation, vomiting, diarrhea, diaphoresis, fasciculations, or altered mental status",
+    ]
+    case["time_critical_actions"] = [
+        "Don PPE or personal protective equipment, remove contaminated clothing, wash with soap and water, and start decontamination without delaying critical care",
+        "Secure airway with oxygen, suction secretions, and use intubation or ventilation for bronchorrhea, bronchospasm, and respiratory failure",
+        "Give atropine with repeated doubling doses until secretions clear, bronchoconstriction resolves, and atropinization or dry secretions endpoint is achieved",
+        "Treat seizure with diazepam or lorazepam benzodiazepine, start cardiac monitoring, admit ICU, and call poison center toxicology or toxicologist",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid succinylcholine because organophosphate toxicity can cause prolonged paralysis",
+        "Do not wait for cholinesterase, RBC AChE, BuChE, or arterial blood gas confirmation; treat before labs return",
+        "Give atropine before pralidoxime and use pralidoxime slow infusion to avoid rapid administration cardiac arrest risk",
+        "Use ICU observation for 48 hours with recurring symptoms, intermediate syndrome, tidal volume, negative inspiratory force, respiratory failure, and ventilatory support monitoring",
+        "Decontamination must not delay critical care; protect staff from contaminated clothing, PPE exposure, soap and water wash needs, vomit, and bodily secretions",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Organophosphate Toxicity",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK470430/",
+            "supports": [
+                "organophosphate poisoning with cholinergic crisis diagnosis and risk stratification",
+                "chlorpyrifos pesticide exposure can cause miosis, diaphoresis, bronchorrhea, bronchospasm, salivation, lacrimation, vomiting, diarrhea, fasciculations, seizure, and respiratory distress",
+                "organophosphate toxicity causes a cholinergic toxidrome with muscarinic, nicotinic, and CNS findings",
+                "bronchorrhea, bronchospasm, and respiratory failure are immediately life-threatening",
+                "atropine treats muscarinic secretions while pralidoxime or 2-PAM reactivates acetylcholinesterase before aging",
+                "bronchorrhea, bronchospasm, wheezing, hypoxemia, respiratory failure, seizure, bradycardia, or hypotension as red flags",
+                "miosis, salivation, lacrimation, vomiting, diarrhea, diaphoresis, fasciculations, or altered mental status as severity markers",
+                "PPE or personal protective equipment, clothing removal, soap and water wash, and decontamination without delaying critical care",
+                "airway oxygen, secretion suction, intubation, or ventilation for bronchorrhea, bronchospasm, and respiratory failure",
+                "atropine with repeated doubling doses until secretions clear, bronchoconstriction resolves, and atropinization or dry secretions endpoint",
+                "seizure treatment with diazepam or lorazepam benzodiazepine, cardiac monitoring, ICU admission, and poison center toxicology consultation",
+                "succinylcholine avoidance because organophosphate toxicity can cause prolonged paralysis",
+                "do not wait for cholinesterase, RBC AChE, BuChE, or arterial blood gas confirmation; treat before labs return",
+                "atropine before pralidoxime and pralidoxime slow infusion to avoid rapid administration cardiac arrest risk",
+                "ICU observation for 48 hours with recurring symptoms, intermediate syndrome, tidal volume, negative inspiratory force, respiratory failure, and ventilatory support monitoring",
+                "decontamination must not delay critical care; contaminated clothing, PPE exposure, soap and water wash needs, vomit, and bodily secretions precautions",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "organophosphate toxicity time-critical actions must include PPE" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_organophosphate_toxicity_succinylcholine_labs_pralidoxime_monitoring_and_decon_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Organophosphate toxicity with cholinergic toxidrome"
+    case["patient_demographics"] = {
+        "age": 38,
+        "sex": "male",
+        "weight_kg": 72,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Weakness and secretions after insecticide exposure"
+    case["history_of_present_illness"] = (
+        "Patient presents after organophosphate insecticide exposure with miosis, "
+        "bronchorrhea, bronchospasm, diaphoresis, salivation, lacrimation, "
+        "fasciculations, seizure, and worsening respiratory failure."
+    )
+    case["past_medical_history"] = "Agricultural worker exposed to pesticide"
+    case["physical_exam"] = {
+        "vitals": {"bp": "94/58", "hr": 52, "rr": 32, "temp_c": 36.7, "spo2": 87},
+        "general": "Diaphoretic and actively vomiting",
+        "cardiovascular": "Bradycardic and borderline hypotensive",
+        "pulmonary": "Copious secretions with wheezing and bronchospasm",
+        "abdomen": "Diarrhea and abdominal cramping",
+        "neuro": "Miosis, fasciculations, and recent seizure",
+        "other": "Pesticide odor on clothing",
+    }
+    case["initial_labs"] = {
+        "abg": "Respiratory acidosis with hypoxemia",
+        "rbc_ache": "Pending",
+        "bche": "Pending",
+        "glucose": "128",
+    }
+    case["key_teaching_points"] = [
+        "Organophosphate toxicity can rapidly progress to cholinergic respiratory failure",
+        "Atropine is titrated to drying secretions and relieving bronchoconstriction",
+        "Pralidoxime or 2-PAM should be started early with atropine before aging limits acetylcholinesterase reactivation",
+    ]
+    case["clinical_red_flags"] = [
+        "Bronchorrhea, bronchospasm, respiratory failure, seizure, bradycardia, hypotension, or altered mental status",
+        "Miosis, salivation, lacrimation, vomiting, diarrhea, diaphoresis, fasciculations, or wheezing",
+    ]
+    case["time_critical_actions"] = [
+        "Don PPE or personal protective equipment, remove contaminated clothing, wash with soap and water, and begin decontamination without delaying resuscitation",
+        "Secure airway with oxygen, suction secretions, intubation, and ventilation for bronchorrhea, bronchospasm, and respiratory failure",
+        "Give atropine with repeated doubling doses until secretions clear, bronchoconstriction improves, and atropinization or dry secretions endpoint is reached",
+        "Start pralidoxime or 2-PAM oxime therapy early before aging to support acetylcholinesterase reactivation",
+        "Treat seizure with diazepam or lorazepam benzodiazepine, start cardiac monitoring, admit ICU, and call poison center toxicology or toxicologist",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Volume status before additional fluids",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Organophosphate Toxicity",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK470430/",
+            "supports": [
+                "organophosphate toxicity with cholinergic toxidrome diagnosis and risk stratification",
+                "organophosphate insecticide exposure can cause miosis, bronchorrhea, bronchospasm, diaphoresis, salivation, lacrimation, fasciculations, seizure, and worsening respiratory failure",
+                "organophosphate toxicity can rapidly progress to cholinergic respiratory failure",
+                "atropine is titrated to drying secretions and relieving bronchoconstriction",
+                "pralidoxime or 2-PAM should be started early with atropine before aging limits acetylcholinesterase reactivation",
+                "bronchorrhea, bronchospasm, respiratory failure, seizure, bradycardia, hypotension, or altered mental status as red flags",
+                "miosis, salivation, lacrimation, vomiting, diarrhea, diaphoresis, fasciculations, or wheezing as severity markers",
+                "PPE or personal protective equipment, clothing removal, soap and water wash, and decontamination without delaying resuscitation",
+                "airway oxygen, secretion suction, intubation, and ventilation for bronchorrhea, bronchospasm, and respiratory failure",
+                "atropine with repeated doubling doses until secretions clear, bronchoconstriction improves, and atropinization or dry secretions endpoint",
+                "pralidoxime or 2-PAM oxime therapy before aging to support acetylcholinesterase reactivation",
+                "seizure treatment with diazepam or lorazepam benzodiazepine, cardiac monitoring, ICU admission, and poison center toxicology consultation",
+                "medication allergy before antiemetics",
+                "volume status before additional fluids",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "organophosphate toxicity safety checks must include succinylcholine" in issue
         for issue in report.critical_issues
     )
 

@@ -3535,6 +3535,93 @@
     }
   },
   {
+    "name": "organophosphate_toxicity_requires_ppe_airway_atropine_pralidoxime_and_icu_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "organophosphate toxicity time-critical actions must include PPE"
+    ],
+    "overrides": {
+      "diagnosis": "Organophosphate poisoning with cholinergic crisis",
+      "patient_demographics": {
+        "age": 38,
+        "sex": "male",
+        "weight_kg": 72,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Respiratory distress after pesticide exposure",
+      "history_of_present_illness": "Patient presents after chlorpyrifos pesticide exposure with miosis, diaphoresis, bronchorrhea, bronchospasm, salivation, lacrimation, vomiting, diarrhea, fasciculations, seizure, and respiratory distress concerning for organophosphate toxicity.",
+      "past_medical_history": "No chronic disease; works with insecticides",
+      "physical_exam": {
+        "vitals": {
+          "bp": "92/54",
+          "hr": 48,
+          "rr": 30,
+          "temp_c": 36.8,
+          "spo2": 88
+        },
+        "general": "Diaphoretic, vomiting, and covered with pesticide-contaminated clothing",
+        "cardiovascular": "Bradycardic with weak pulses",
+        "pulmonary": "Wheezing, bronchorrhea, bronchospasm, and copious secretions",
+        "abdomen": "Cramping with diarrhea",
+        "neuro": "Pinpoint pupils, fasciculations, and postictal after seizure",
+        "other": "Lacrimation and salivation"
+      },
+      "initial_labs": {
+        "abg": "Hypoxemia with early ventilatory failure",
+        "rbc_ache": "Pending RBC AChE level",
+        "bche": "Pending butyrylcholinesterase level",
+        "glucose": "132"
+      },
+      "key_teaching_points": [
+        "Organophosphate toxicity causes a cholinergic toxidrome with muscarinic, nicotinic, and CNS findings",
+        "Bronchorrhea, bronchospasm, and respiratory failure are immediately life-threatening",
+        "Atropine treats muscarinic secretions while pralidoxime or 2-PAM reactivates acetylcholinesterase before aging"
+      ],
+      "clinical_red_flags": [
+        "Bronchorrhea, bronchospasm, wheezing, hypoxemia, respiratory failure, seizure, bradycardia, or hypotension",
+        "Miosis, salivation, lacrimation, vomiting, diarrhea, diaphoresis, fasciculations, or altered mental status"
+      ],
+      "time_critical_actions": [
+        "Don PPE or personal protective equipment, remove contaminated clothing, wash with soap and water, and start decontamination without delaying critical care",
+        "Secure airway with oxygen, suction secretions, and use intubation or ventilation for bronchorrhea, bronchospasm, and respiratory failure",
+        "Give atropine with repeated doubling doses until secretions clear, bronchoconstriction resolves, and atropinization or dry secretions endpoint is achieved",
+        "Treat seizure with diazepam or lorazepam benzodiazepine, start cardiac monitoring, admit ICU, and call poison center toxicology or toxicologist"
+      ],
+      "contraindication_checks": [
+        "Avoid succinylcholine because organophosphate toxicity can cause prolonged paralysis",
+        "Do not wait for cholinesterase, RBC AChE, BuChE, or arterial blood gas confirmation; treat before labs return",
+        "Give atropine before pralidoxime and use pralidoxime slow infusion to avoid rapid administration cardiac arrest risk",
+        "Use ICU observation for 48 hours with recurring symptoms, intermediate syndrome, tidal volume, negative inspiratory force, respiratory failure, and ventilatory support monitoring",
+        "Decontamination must not delay critical care; protect staff from contaminated clothing, PPE exposure, soap and water wash needs, vomit, and bodily secretions"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Organophosphate Toxicity",
+          "organization": "NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK470430/",
+          "supports": [
+            "organophosphate poisoning with cholinergic crisis diagnosis and risk stratification",
+            "chlorpyrifos pesticide exposure can cause miosis, diaphoresis, bronchorrhea, bronchospasm, salivation, lacrimation, vomiting, diarrhea, fasciculations, seizure, and respiratory distress",
+            "organophosphate toxicity causes a cholinergic toxidrome with muscarinic, nicotinic, and CNS findings",
+            "bronchorrhea, bronchospasm, and respiratory failure are immediately life-threatening",
+            "atropine treats muscarinic secretions while pralidoxime or 2-PAM reactivates acetylcholinesterase before aging",
+            "bronchorrhea, bronchospasm, wheezing, hypoxemia, respiratory failure, seizure, bradycardia, or hypotension as red flags",
+            "miosis, salivation, lacrimation, vomiting, diarrhea, diaphoresis, fasciculations, or altered mental status as severity markers",
+            "PPE or personal protective equipment, clothing removal, soap and water wash, and decontamination without delaying critical care",
+            "airway oxygen, secretion suction, intubation, or ventilation for bronchorrhea, bronchospasm, and respiratory failure",
+            "atropine with repeated doubling doses until secretions clear, bronchoconstriction resolves, and atropinization or dry secretions endpoint",
+            "seizure treatment with diazepam or lorazepam benzodiazepine, cardiac monitoring, ICU admission, and poison center toxicology consultation",
+            "succinylcholine avoidance because organophosphate toxicity can cause prolonged paralysis",
+            "do not wait for cholinesterase, RBC AChE, BuChE, or arterial blood gas confirmation; treat before labs return",
+            "atropine before pralidoxime and pralidoxime slow infusion to avoid rapid administration cardiac arrest risk",
+            "ICU observation for 48 hours with recurring symptoms, intermediate syndrome, tidal volume, negative inspiratory force, respiratory failure, and ventilatory support monitoring",
+            "decontamination must not delay critical care; contaminated clothing, PPE exposure, soap and water wash needs, vomit, and bodily secretions precautions"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "cardiac_tamponade_requires_echo_drainage_specialist_and_hemodynamic_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

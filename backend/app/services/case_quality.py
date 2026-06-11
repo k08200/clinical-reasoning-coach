@@ -5103,6 +5103,140 @@ TCA_TOXICITY_DIALYSIS_LEVEL_SAFETY_TERMS = (
     "tca level",
     "toxicity correlation",
 )
+ORGANOPHOSPHATE_TOXICITY_DIRECT_CONTEXT_TERMS = (
+    "acetylcholinesterase inhibitor poisoning",
+    "cholinergic crisis",
+    "cholinergic toxidrome",
+    "nerve agent poisoning",
+    "organophosphate exposure",
+    "organophosphate poisoning",
+    "organophosphate toxicity",
+    "organophosphorus poisoning",
+    "organophosphorus toxicity",
+    "pesticide poisoning",
+    "유기인산",
+)
+ORGANOPHOSPHATE_TOXICITY_EXPOSURE_CONTEXT_TERMS = (
+    "chlorpyrifos",
+    "diazinon",
+    "dichlorvos",
+    "insecticide",
+    "malathion",
+    "nerve agent",
+    "organophosphate",
+    "organophosphorus",
+    "parathion",
+    "pesticide",
+    "sarin",
+)
+ORGANOPHOSPHATE_TOXICITY_CHOLINERGIC_CONTEXT_TERMS = (
+    "bronchorrhea",
+    "bronchospasm",
+    "diaphoresis",
+    "fasciculation",
+    "fasciculations",
+    "lacrimation",
+    "miosis",
+    "pinpoint pupils",
+    "salivation",
+    "secretions",
+    "seizure",
+    "wheezing",
+    "기관지분비",
+)
+ORGANOPHOSPHATE_TOXICITY_PPE_DECON_ACTION_TERMS = (
+    "clothing removal",
+    "decontamination",
+    "personal protective equipment",
+    "ppe",
+    "soap and water",
+    "wash",
+    "보호구",
+)
+ORGANOPHOSPHATE_TOXICITY_AIRWAY_SECRETION_ACTION_TERMS = (
+    "airway",
+    "bronchorrhea",
+    "bronchospasm",
+    "intubation",
+    "oxygen",
+    "respiratory failure",
+    "secretions",
+    "ventilation",
+    "기도",
+)
+ORGANOPHOSPHATE_TOXICITY_ATROPINE_ACTION_TERMS = (
+    "atropine",
+    "atropinization",
+    "bronchoconstriction",
+    "dry secretions",
+    "doubling",
+    "secretions clear",
+    "아트로핀",
+)
+ORGANOPHOSPHATE_TOXICITY_PRALIDOXIME_ACTION_TERMS = (
+    "2-pam",
+    "aging",
+    "oxime",
+    "pralidoxime",
+    "reactivation",
+    "프랄리독심",
+)
+ORGANOPHOSPHATE_TOXICITY_SEIZURE_ICU_ACTION_TERMS = (
+    "benzodiazepine",
+    "cardiac monitoring",
+    "diazepam",
+    "icu",
+    "lorazepam",
+    "midazolam",
+    "poison center",
+    "seizure",
+    "toxicologist",
+    "toxicology",
+)
+ORGANOPHOSPHATE_TOXICITY_SUCCINYLCHOLINE_SAFETY_TERMS = (
+    "avoid succinylcholine",
+    "prolonged paralysis",
+    "succinylcholine",
+    "석시닐콜린",
+)
+ORGANOPHOSPHATE_TOXICITY_LAB_DIAGNOSIS_SAFETY_TERMS = (
+    "ache",
+    "arterial blood gas",
+    "bche",
+    "butyrylcholinesterase",
+    "cholinesterase",
+    "do not wait",
+    "rbc ache",
+    "treat before",
+)
+ORGANOPHOSPHATE_TOXICITY_PRALIDOXIME_ORDER_SAFETY_TERMS = (
+    "after atropine",
+    "atropine before",
+    "cardiac arrest",
+    "infusion",
+    "pralidoxime",
+    "rapid administration",
+    "slow infusion",
+)
+ORGANOPHOSPHATE_TOXICITY_MONITORING_SAFETY_TERMS = (
+    "48 hours",
+    "icu",
+    "intermediate syndrome",
+    "negative inspiratory force",
+    "recurring",
+    "respiratory failure",
+    "tidal volume",
+    "ventilatory support",
+)
+ORGANOPHOSPHATE_TOXICITY_DECON_DELAY_SAFETY_TERMS = (
+    "bodily secretions",
+    "clothing",
+    "decontamination",
+    "do not delay",
+    "ppe",
+    "soap and water",
+    "vomit",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -8524,6 +8658,42 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "or 24-hour disposition planning, and dialysis, hemoperfusion, "
                 "serum-level, drug-level, TCA-level, not-effective, or toxicity-"
                 "correlation review"
+            ),
+        ),
+        DomainSafetyGate(
+            name="organophosphate_toxicity_time_critical_actions",
+            applies=_requires_organophosphate_toxicity_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_organophosphate_toxicity_time_critical_actions,
+            issue=(
+                "organophosphate toxicity time-critical actions must include PPE, "
+                "personal-protective-equipment, clothing-removal, soap-and-water, "
+                "wash, or decontamination planning, airway, oxygen, intubation, "
+                "ventilation, bronchorrhea, bronchospasm, secretions, or respiratory-"
+                "failure support, atropine, atropinization, doubling doses, "
+                "bronchoconstriction, secretions-clear, or dry-secretions endpoint, "
+                "pralidoxime, 2-PAM, oxime, aging, or acetylcholinesterase "
+                "reactivation planning, and seizure, benzodiazepine, diazepam, "
+                "lorazepam, midazolam, ICU, cardiac monitoring, poison-center, "
+                "toxicology, or toxicologist escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="organophosphate_toxicity_treatment_safety",
+            applies=_requires_organophosphate_toxicity_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_organophosphate_toxicity_treatment_safety_check,
+            issue=(
+                "organophosphate toxicity safety checks must include succinylcholine "
+                "avoidance or prolonged-paralysis airway safety, cholinesterase, "
+                "RBC AChE, BuChE, arterial-blood-gas, treat-before-labs, or do-not-"
+                "wait laboratory safety, atropine-before-pralidoxime, pralidoxime "
+                "infusion, slow-infusion, rapid-administration, or cardiac-arrest "
+                "risk review, ICU, 48-hour, recurring, intermediate-syndrome, tidal-"
+                "volume, negative-inspiratory-force, respiratory-failure, or "
+                "ventilatory-support monitoring, and decontamination not delaying "
+                "care plus clothing, PPE, soap-and-water, vomit, or bodily-secretion "
+                "contamination precautions"
             ),
         ),
         DomainSafetyGate(
@@ -12748,6 +12918,105 @@ def _has_tca_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         and has_ph_sodium_safety
         and has_observation_safety
         and has_dialysis_level_safety
+    )
+
+
+def _requires_organophosphate_toxicity_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_DIRECT_CONTEXT_TERMS
+    )
+    has_exposure_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_EXPOSURE_CONTEXT_TERMS
+    )
+    has_cholinergic_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_CHOLINERGIC_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_exposure_context and has_cholinergic_context)
+
+
+def _has_organophosphate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_ppe_decon = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_PPE_DECON_ACTION_TERMS
+    )
+    has_airway_secretion_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_AIRWAY_SECRETION_ACTION_TERMS
+    )
+    has_atropine = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_ATROPINE_ACTION_TERMS
+    )
+    has_pralidoxime = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_PRALIDOXIME_ACTION_TERMS
+    )
+    has_seizure_icu_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_SEIZURE_ICU_ACTION_TERMS
+    )
+    return (
+        has_ppe_decon
+        and has_airway_secretion_support
+        and has_atropine
+        and has_pralidoxime
+        and has_seizure_icu_escalation
+    )
+
+
+def _has_organophosphate_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_succinylcholine_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_SUCCINYLCHOLINE_SAFETY_TERMS
+    )
+    has_lab_diagnosis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_LAB_DIAGNOSIS_SAFETY_TERMS
+    )
+    has_pralidoxime_order_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_PRALIDOXIME_ORDER_SAFETY_TERMS
+    )
+    has_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_MONITORING_SAFETY_TERMS
+    )
+    has_decon_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ORGANOPHOSPHATE_TOXICITY_DECON_DELAY_SAFETY_TERMS
+    )
+    return (
+        has_succinylcholine_safety
+        and has_lab_diagnosis_safety
+        and has_pralidoxime_order_safety
+        and has_monitoring_safety
+        and has_decon_delay_safety
     )
 
 
