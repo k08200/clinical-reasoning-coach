@@ -6462,6 +6462,123 @@ const RHABDOMYOLYSIS_COMPARTMENT_DIC_SAFETY_TERMS = [
   "pt",
 ];
 
+const HYPERCALCEMIA_CONTEXT_TERMS = [
+  "calcium 14",
+  "calcium >14",
+  "ca 14",
+  "ca >14",
+  "corrected calcium",
+  "hypercalcemic crisis",
+  "hypercalcemia",
+  "hypercalcaemia",
+  "ionized calcium",
+  "malignancy-associated hypercalcemia",
+  "severe hypercalcemia",
+  "symptomatic hypercalcemia",
+  "고칼슘혈증",
+];
+
+const HYPERCALCEMIA_SEVERE_RISK_TERMS = [
+  "aki",
+  "arrhythmia",
+  "coma",
+  "confusion",
+  "dehydration",
+  "delirium",
+  "kidney injury",
+  "qt shortening",
+  "renal failure",
+  "stupor",
+];
+
+const HYPERCALCEMIA_CALCIUM_CONFIRMATION_ACTION_TERMS = [
+  "albumin",
+  "corrected calcium",
+  "ionized calcium",
+  "repeat calcium",
+  "serum calcium",
+];
+
+const HYPERCALCEMIA_ECG_RENAL_ACTION_TERMS = [
+  "bun",
+  "creatinine",
+  "ecg",
+  "ekg",
+  "kidney",
+  "renal",
+  "short qt",
+];
+
+const HYPERCALCEMIA_SALINE_ACTION_TERMS = [
+  "0.9% saline",
+  "fluid",
+  "hydration",
+  "isotonic saline",
+  "normal saline",
+  "saline",
+];
+
+const HYPERCALCEMIA_CALCITONIN_ACTION_TERMS = [
+  "calcitonin",
+  "rapid onset",
+  "tachyphylaxis",
+];
+
+const HYPERCALCEMIA_ANTIRESORPTIVE_ACTION_TERMS = [
+  "bisphosphonate",
+  "denosumab",
+  "pamidronate",
+  "zoledronic",
+  "zoledronate",
+];
+
+const HYPERCALCEMIA_CAUSE_DIALYSIS_ACTION_TERMS = [
+  "dialysis",
+  "malignancy",
+  "pth",
+  "pthrp",
+  "vitamin d",
+];
+
+const HYPERCALCEMIA_FLUID_SAFETY_TERMS = [
+  "cardiac",
+  "heart failure",
+  "renal",
+  "volume overload",
+];
+
+const HYPERCALCEMIA_LOOP_DIURETIC_SAFETY_TERMS = [
+  "after rehydration",
+  "avoid volume depletion",
+  "furosemide",
+  "loop diuretic",
+  "urine output",
+];
+
+const HYPERCALCEMIA_RENAL_ANTIRESORPTIVE_SAFETY_TERMS = [
+  "denosumab",
+  "hypocalcemia",
+  "renal impairment",
+  "severe renal",
+  "vitamin d",
+];
+
+const HYPERCALCEMIA_OFFENDING_AGENT_SAFETY_TERMS = [
+  "calcium supplement",
+  "lithium",
+  "thiazide",
+  "vitamin a",
+  "vitamin d",
+];
+
+const HYPERCALCEMIA_REFRACTORY_DIALYSIS_SAFETY_TERMS = [
+  "dialysis",
+  "hemodialysis",
+  "refractory",
+  "renal insufficiency",
+  "renal failure",
+];
+
 const HYPERKALEMIA_CONTEXT_TERMS = [
   "ecg changes from hyperkalemia",
   "hyperkalemic emergency",
@@ -12332,6 +12449,90 @@ function hasRhabdomyolysisTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresHypercalcemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const directContext = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.diagnosis,
+  ]
+    .join(" ")
+    .toLowerCase();
+  const riskText = [
+    directContext,
+    ...nestedStrings(detail.initial_labs),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.key_teaching_points),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasHypercalcemiaContext = HYPERCALCEMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(directContext, term),
+  );
+  const hasSevereRisk = HYPERCALCEMIA_SEVERE_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasHypercalcemiaContext && hasSevereRisk;
+}
+
+function hasHypercalcemiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCalciumConfirmation = HYPERCALCEMIA_CALCIUM_CONFIRMATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEcgRenal = HYPERCALCEMIA_ECG_RENAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSaline = HYPERCALCEMIA_SALINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCalcitonin = HYPERCALCEMIA_CALCITONIN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntiresorptive = HYPERCALCEMIA_ANTIRESORPTIVE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCauseDialysis = HYPERCALCEMIA_CAUSE_DIALYSIS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasCalciumConfirmation &&
+    hasEcgRenal &&
+    hasSaline &&
+    hasCalcitonin &&
+    hasAntiresorptive &&
+    hasCauseDialysis
+  );
+}
+
+function hasHypercalcemiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasFluidSafety = HYPERCALCEMIA_FLUID_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLoopDiureticSafety = HYPERCALCEMIA_LOOP_DIURETIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRenalAntiresorptiveSafety = HYPERCALCEMIA_RENAL_ANTIRESORPTIVE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOffendingAgentSafety = HYPERCALCEMIA_OFFENDING_AGENT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRefractoryDialysisSafety = HYPERCALCEMIA_REFRACTORY_DIALYSIS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasFluidSafety &&
+    hasLoopDiureticSafety &&
+    hasRenalAntiresorptiveSafety &&
+    hasOffendingAgentSafety &&
+    hasRefractoryDialysisSafety
+  );
+}
+
 function requiresHyperkalemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -14551,6 +14752,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasRhabdomyolysisTreatmentSafetyCheck,
       issue:
         "rhabdomyolysis safety checks must include renal, AKI, volume-overload, or fluid-overload monitoring, bicarbonate, alkalinization, urine-pH, pH-7.5, mannitol, oliguria, or diuretic-limit safety, dialysis or hemodialysis indications for anuria, refractory hyperkalemia, severe acidosis, uremia, or volume overload, potassium, hyperkalemia, hypocalcemia, hypercalcemia, or calcium-caution electrolyte safety, and compartment-syndrome, neurovascular, fasciotomy, DIC, platelet, or PT complication monitoring",
+    },
+    {
+      name: "hypercalcemia_time_critical_actions",
+      label: "Severe hypercalcemia emergency actions",
+      applies: requiresHypercalcemiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasHypercalcemiaTimeCriticalActions,
+      issue:
+        "severe hypercalcemia time-critical actions must include serum, corrected, repeat, albumin-adjusted, or ionized calcium confirmation, ECG, short-QT, creatinine, BUN, kidney, or renal assessment, isotonic saline, normal saline, 0.9% saline, fluid, or hydration resuscitation, calcitonin for rapid onset or tachyphylaxis-aware bridging, bisphosphonate, zoledronate, pamidronate, or denosumab antiresorptive therapy, and cause or dialysis planning for PTH, PTHrP, vitamin D, malignancy, refractory disease, or renal failure",
+    },
+    {
+      name: "hypercalcemia_treatment_safety",
+      label: "Severe hypercalcemia treatment safety",
+      applies: requiresHypercalcemiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasHypercalcemiaTreatmentSafetyCheck,
+      issue:
+        "severe hypercalcemia safety checks must include cardiac, heart-failure, renal, or volume-overload caution during saline hydration, loop-diuretic safety with furosemide only after rehydration, urine-output monitoring, or avoiding volume depletion, antiresorptive renal safety including severe renal impairment, denosumab alternative, vitamin D, or hypocalcemia risk, stopping or reviewing calcium supplements, vitamin D, vitamin A, thiazide, or lithium contributors, and refractory hypercalcemia dialysis planning for renal insufficiency or renal failure",
     },
     {
       name: "hyperkalemia_time_critical_actions",
