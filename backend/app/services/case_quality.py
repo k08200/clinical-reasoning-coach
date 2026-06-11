@@ -7381,6 +7381,154 @@ OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS = (
     "금단",
     "폐부종",
 )
+ACUTE_CHEST_SYNDROME_CONTEXT_TERMS = (
+    "acute chest syndrome",
+    "sickle acute chest",
+    "sickle cell acute chest",
+    "sickle cell disease",
+    "sickle cell anemia",
+    "sickle cell anaemia",
+    "sickle crisis with chest",
+    "hbss",
+    "sickle cell",
+    "겸상적혈구",
+)
+ACUTE_CHEST_SYNDROME_RISK_TERMS = (
+    "new infiltrate",
+    "pulmonary infiltrate",
+    "hypoxemia",
+    "hypoxia",
+    "chest pain",
+    "cough",
+    "fever",
+    "tachypnea",
+    "wheezing",
+    "dyspnea",
+    "low spo2",
+    "multilobar",
+    "vaso-occlusive",
+    "pain crisis",
+)
+ACUTE_CHEST_SYNDROME_EXPLICIT_CONTEXT_TERMS = (
+    "acute chest syndrome",
+    "sickle acute chest",
+    "sickle cell acute chest",
+)
+ACUTE_CHEST_SYNDROME_PULMONARY_RISK_TERMS = (
+    "new infiltrate",
+    "pulmonary infiltrate",
+    "hypoxemia",
+    "hypoxia",
+    "chest pain",
+    "cough",
+    "tachypnea",
+    "wheezing",
+    "dyspnea",
+    "low spo2",
+    "multilobar",
+)
+ACUTE_CHEST_SYNDROME_CXR_LAB_ACTION_TERMS = (
+    "blood culture",
+    "cbc",
+    "chest x-ray",
+    "chest xray",
+    "ct chest",
+    "cxr",
+    "new infiltrate",
+    "reticulocyte",
+    "sputum culture",
+)
+ACUTE_CHEST_SYNDROME_OXYGEN_ACTION_TERMS = (
+    "co-oximetry",
+    "hypoxemia",
+    "oxygen",
+    "pao2",
+    "pulse oximetry",
+    "spo2",
+)
+ACUTE_CHEST_SYNDROME_ANTIBIOTIC_ACTION_TERMS = (
+    "antibiotic",
+    "azithromycin",
+    "ceftriaxone",
+    "cefotaxime",
+    "fluoroquinolone",
+    "macrolide",
+    "vancomycin",
+)
+ACUTE_CHEST_SYNDROME_SPIROMETRY_PAIN_ACTION_TERMS = (
+    "analgesia",
+    "every 2 hours",
+    "incentive spirometry",
+    "ketorolac",
+    "opioid",
+    "pain control",
+    "pca",
+    "q2",
+    "spirometry",
+)
+ACUTE_CHEST_SYNDROME_TRANSFUSION_ACTION_TERMS = (
+    "exchange transfusion",
+    "haematology",
+    "hematology",
+    "hbs",
+    "packed red blood",
+    "prbc",
+    "transfusion",
+)
+ACUTE_CHEST_SYNDROME_RESPIRATORY_ESCALATION_ACTION_TERMS = (
+    "bipap",
+    "ecmo",
+    "icu",
+    "intubation",
+    "multilobar",
+    "respiratory failure",
+    "worsening hypoxemia",
+)
+ACUTE_CHEST_SYNDROME_FLUID_OPIOID_SAFETY_TERMS = (
+    "avoid overhydration",
+    "fluid overload",
+    "hydration status",
+    "hypoventilation",
+    "opioid",
+    "oversedation",
+    "pulmonary edema",
+)
+ACUTE_CHEST_SYNDROME_TRANSFUSION_SAFETY_TERMS = (
+    "exchange transfusion",
+    "hematology",
+    "hbs <30",
+    "hemoglobin 10",
+    "hct 30",
+    "hyperviscosity",
+    "sickle hemoglobin",
+)
+ACUTE_CHEST_SYNDROME_BRONCHODILATOR_STEROID_SAFETY_TERMS = (
+    "asthma",
+    "bronchodilator",
+    "bronchospasm",
+    "readmission",
+    "rebound",
+    "steroid",
+    "vaso-occlusive",
+)
+ACUTE_CHEST_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = (
+    "acute coronary",
+    "ards",
+    "empyema",
+    "myocardial infarction",
+    "pneumonia",
+    "pneumothorax",
+    "pulmonary embolism",
+)
+ACUTE_CHEST_SYNDROME_DISPOSITION_SAFETY_TERMS = (
+    "baseline oxygen",
+    "hematology",
+    "icu",
+    "multilobar",
+    "respiratory failure",
+    "severe hypoxemia",
+    "worsening radiographic",
+)
 SEVERE_ASTHMA_CONTEXT_TERMS = (
     "acute asthma exacerbation",
     "asthma attack",
@@ -10712,6 +10860,31 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "renarcotization observation, co-ingestion or alternate-cause "
                 "assessment, and naloxone titration, withdrawal, aspiration, or "
                 "pulmonary-edema safeguards"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acute_chest_syndrome_time_critical_actions",
+            applies=_requires_acute_chest_syndrome_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_acute_chest_syndrome_time_critical_actions,
+            issue=(
+                "acute chest syndrome time-critical actions must include chest imaging "
+                "or infiltrate confirmation, oxygenation monitoring or support, empiric "
+                "antibiotics, incentive spirometry with pain control, transfusion or "
+                "exchange-transfusion planning, and respiratory failure escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acute_chest_syndrome_treatment_safety",
+            applies=_requires_acute_chest_syndrome_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acute_chest_syndrome_treatment_safety_check,
+            issue=(
+                "acute chest syndrome safety checks must include fluid and opioid "
+                "overhydration or hypoventilation safeguards, transfusion hyperviscosity "
+                "or exchange-transfusion targets, bronchodilator and steroid caution, "
+                "alternate cardiopulmonary diagnoses, and ICU or hematology disposition "
+                "criteria"
             ),
         ),
         DomainSafetyGate(
@@ -16629,6 +16802,111 @@ def _has_opioid_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         has_long_acting_rebound_safety
         and has_coingestion_or_differential_safety
         and has_naloxone_adverse_safety
+    )
+
+
+def _requires_acute_chest_syndrome_safety_check(data: dict[str, Any]) -> bool:
+    direct_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "diagnosis",
+    ]
+    direct_context = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in direct_text_fields
+    )
+    risk_text = direct_context
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(direct_context, term)
+        for term in ACUTE_CHEST_SYNDROME_CONTEXT_TERMS
+    )
+    has_explicit_context = any(
+        _contains_safety_term(direct_context, term)
+        for term in ACUTE_CHEST_SYNDROME_EXPLICIT_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_CHEST_SYNDROME_RISK_TERMS
+    )
+    has_pulmonary_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in ACUTE_CHEST_SYNDROME_PULMONARY_RISK_TERMS
+    )
+    return (has_explicit_context and has_risk) or (has_context and has_pulmonary_risk)
+
+
+def _has_acute_chest_syndrome_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_cxr_or_lab_actions = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHEST_SYNDROME_CXR_LAB_ACTION_TERMS
+    )
+    has_oxygen_actions = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHEST_SYNDROME_OXYGEN_ACTION_TERMS
+    )
+    has_antibiotic_actions = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHEST_SYNDROME_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_spirometry_pain_actions = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHEST_SYNDROME_SPIROMETRY_PAIN_ACTION_TERMS
+    )
+    has_transfusion_actions = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHEST_SYNDROME_TRANSFUSION_ACTION_TERMS
+    )
+    has_respiratory_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHEST_SYNDROME_RESPIRATORY_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_cxr_or_lab_actions
+        and has_oxygen_actions
+        and has_antibiotic_actions
+        and has_spirometry_pain_actions
+        and has_transfusion_actions
+        and has_respiratory_escalation
+    )
+
+
+def _has_acute_chest_syndrome_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_fluid_opioid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHEST_SYNDROME_FLUID_OPIOID_SAFETY_TERMS
+    )
+    has_transfusion_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHEST_SYNDROME_TRANSFUSION_SAFETY_TERMS
+    )
+    has_bronchodilator_steroid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHEST_SYNDROME_BRONCHODILATOR_STEROID_SAFETY_TERMS
+    )
+    has_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHEST_SYNDROME_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_disposition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHEST_SYNDROME_DISPOSITION_SAFETY_TERMS
+    )
+    return (
+        has_fluid_opioid_safety
+        and has_transfusion_safety
+        and has_bronchodilator_steroid_safety
+        and has_differential_safety
+        and has_disposition_safety
     )
 
 

@@ -2091,6 +2091,81 @@
     }
   },
   {
+    "name": "acute_chest_syndrome_requires_imaging_oxygen_antibiotics_spirometry_transfusion_and_escalation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "acute chest syndrome time-critical actions must include chest imaging"
+    ],
+    "overrides": {
+      "diagnosis": "Sickle cell acute chest syndrome",
+      "chief_complaint": "Chest pain, fever, and hypoxemia",
+      "history_of_present_illness": "Patient with sickle cell disease HbSS and vaso-occlusive pain crisis has fever, cough, chest pain, tachypnea, SpO2 88%, and a new pulmonary infiltrate on CXR with concern for multilobar acute chest syndrome.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "104/62",
+          "hr": 124,
+          "rr": 30,
+          "temp_c": 38.8,
+          "spo2": 88
+        },
+        "general": "Ill appearing with severe pain",
+        "pulmonary": "Tachypnea, crackles, and splinting",
+        "cardiovascular": "Tachycardic",
+        "neuro": "Alert but anxious"
+      },
+      "initial_labs": {
+        "hemoglobin": "7.1 g/dL from baseline 9 g/dL",
+        "reticulocytes": "12%",
+        "wbc": "19 K/uL",
+        "bilirubin": "3.4 mg/dL"
+      },
+      "key_teaching_points": [
+        "Acute chest syndrome is new infiltrate plus respiratory symptoms or fever in sickle cell disease",
+        "Acute chest syndrome can progress rapidly and is a leading cause of death in sickle cell disease",
+        "Management requires oxygen, antibiotics, incentive spirometry, and transfusion escalation"
+      ],
+      "clinical_red_flags": [
+        "New infiltrate, hypoxemia, multilobar disease, falling hemoglobin, respiratory failure, or severe pain",
+        "Fever, cough, chest pain, tachypnea, wheezing, dyspnea, or low SpO2"
+      ],
+      "time_critical_actions": [
+        "Obtain chest x-ray CXR and CBC, reticulocyte count, blood culture, and sputum culture",
+        "Give supplemental oxygen with pulse oximetry and co-oximetry, target SpO2 above 92 or near baseline",
+        "Start incentive spirometry every 2 hours while awake and pain control with ketorolac/PCA while avoiding hypoventilation"
+      ],
+      "contraindication_checks": [
+        "Avoid overhydration and large-volume IV fluids; monitor hydration status, pulmonary edema, and fluid overload, and avoid opioid oversedation or hypoventilation",
+        "Plan transfusion or exchange transfusion with hematology; avoid hemoglobin 10, Hct 30, and hyperviscosity while targeting sickle hemoglobin HbS <30 when exchange is needed",
+        "Use bronchodilator only for asthma or bronchospasm and review steroid rebound vaso-occlusive crisis, readmission, and fat embolism risk",
+        "Review pulmonary embolism, pneumonia, pneumothorax, acute coronary myocardial infarction, ARDS, and empyema in the differential",
+        "Escalate to ICU and hematology for multilobar disease, severe hypoxemia, respiratory failure, worsening radiographic signs, or oxygen need above baseline oxygen"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Acute Chest Syndrome",
+          "organization": "NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK441872/",
+          "supports": [
+            "sickle cell acute chest syndrome diagnosis and risk stratification",
+            "acute chest syndrome is new infiltrate plus respiratory symptoms or fever in sickle cell disease",
+            "acute chest syndrome can progress rapidly and is a leading cause of death in sickle cell disease",
+            "oxygen, antibiotics, incentive spirometry, and transfusion escalation management",
+            "new infiltrate, hypoxemia, multilobar disease, falling hemoglobin, respiratory failure, and severe pain as red flags",
+            "fever, cough, chest pain, tachypnea, wheezing, dyspnea, and low SpO2 as severity markers",
+            "chest x-ray CXR and CBC, reticulocyte count, blood culture, and sputum culture",
+            "supplemental oxygen with pulse oximetry and co-oximetry targeting SpO2 above 92 or near baseline",
+            "incentive spirometry every 2 hours while awake and pain control with ketorolac/PCA while avoiding hypoventilation",
+            "avoid overhydration and large-volume IV fluids; monitor hydration status, pulmonary edema, and fluid overload, and avoid opioid oversedation or hypoventilation",
+            "transfusion or exchange transfusion with hematology; avoid hemoglobin 10, Hct 30, and hyperviscosity while targeting sickle hemoglobin HbS <30",
+            "bronchodilator only for asthma or bronchospasm and steroid rebound vaso-occlusive crisis, readmission, and fat embolism risk",
+            "pulmonary embolism, pneumonia, pneumothorax, acute coronary myocardial infarction, ARDS, and empyema differential",
+            "ICU and hematology for multilobar disease, severe hypoxemia, respiratory failure, worsening radiographic signs, or oxygen need above baseline oxygen"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "severe_asthma_requires_oxygen_bronchodilators_steroids_and_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

@@ -8053,6 +8053,169 @@ const OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS = [
   "폐부종",
 ];
 
+const ACUTE_CHEST_SYNDROME_CONTEXT_TERMS = [
+  "acute chest syndrome",
+  "sickle acute chest",
+  "sickle cell acute chest",
+  "sickle cell disease",
+  "sickle cell anemia",
+  "sickle cell anaemia",
+  "sickle crisis with chest",
+  "hbss",
+  "sickle cell",
+  "겸상적혈구",
+];
+
+const ACUTE_CHEST_SYNDROME_RISK_TERMS = [
+  "new infiltrate",
+  "pulmonary infiltrate",
+  "hypoxemia",
+  "hypoxia",
+  "chest pain",
+  "cough",
+  "fever",
+  "tachypnea",
+  "wheezing",
+  "dyspnea",
+  "low spo2",
+  "multilobar",
+  "vaso-occlusive",
+  "pain crisis",
+];
+
+const ACUTE_CHEST_SYNDROME_EXPLICIT_CONTEXT_TERMS = [
+  "acute chest syndrome",
+  "sickle acute chest",
+  "sickle cell acute chest",
+];
+
+const ACUTE_CHEST_SYNDROME_PULMONARY_RISK_TERMS = [
+  "new infiltrate",
+  "pulmonary infiltrate",
+  "hypoxemia",
+  "hypoxia",
+  "chest pain",
+  "cough",
+  "tachypnea",
+  "wheezing",
+  "dyspnea",
+  "low spo2",
+  "multilobar",
+];
+
+const ACUTE_CHEST_SYNDROME_CXR_LAB_ACTION_TERMS = [
+  "blood culture",
+  "cbc",
+  "chest x-ray",
+  "chest xray",
+  "ct chest",
+  "cxr",
+  "new infiltrate",
+  "reticulocyte",
+  "sputum culture",
+];
+
+const ACUTE_CHEST_SYNDROME_OXYGEN_ACTION_TERMS = [
+  "co-oximetry",
+  "hypoxemia",
+  "oxygen",
+  "pao2",
+  "pulse oximetry",
+  "spo2",
+];
+
+const ACUTE_CHEST_SYNDROME_ANTIBIOTIC_ACTION_TERMS = [
+  "antibiotic",
+  "azithromycin",
+  "ceftriaxone",
+  "cefotaxime",
+  "fluoroquinolone",
+  "macrolide",
+  "vancomycin",
+];
+
+const ACUTE_CHEST_SYNDROME_SPIROMETRY_PAIN_ACTION_TERMS = [
+  "analgesia",
+  "every 2 hours",
+  "incentive spirometry",
+  "ketorolac",
+  "opioid",
+  "pain control",
+  "pca",
+  "q2",
+  "spirometry",
+];
+
+const ACUTE_CHEST_SYNDROME_TRANSFUSION_ACTION_TERMS = [
+  "exchange transfusion",
+  "haematology",
+  "hematology",
+  "hbs",
+  "packed red blood",
+  "prbc",
+  "transfusion",
+];
+
+const ACUTE_CHEST_SYNDROME_RESPIRATORY_ESCALATION_ACTION_TERMS = [
+  "bipap",
+  "ecmo",
+  "icu",
+  "intubation",
+  "multilobar",
+  "respiratory failure",
+  "worsening hypoxemia",
+];
+
+const ACUTE_CHEST_SYNDROME_FLUID_OPIOID_SAFETY_TERMS = [
+  "avoid overhydration",
+  "fluid overload",
+  "hydration status",
+  "hypoventilation",
+  "opioid",
+  "oversedation",
+  "pulmonary edema",
+];
+
+const ACUTE_CHEST_SYNDROME_TRANSFUSION_SAFETY_TERMS = [
+  "exchange transfusion",
+  "hematology",
+  "hbs <30",
+  "hemoglobin 10",
+  "hct 30",
+  "hyperviscosity",
+  "sickle hemoglobin",
+];
+
+const ACUTE_CHEST_SYNDROME_BRONCHODILATOR_STEROID_SAFETY_TERMS = [
+  "asthma",
+  "bronchodilator",
+  "bronchospasm",
+  "readmission",
+  "rebound",
+  "steroid",
+  "vaso-occlusive",
+];
+
+const ACUTE_CHEST_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = [
+  "acute coronary",
+  "ards",
+  "empyema",
+  "myocardial infarction",
+  "pneumonia",
+  "pneumothorax",
+  "pulmonary embolism",
+];
+
+const ACUTE_CHEST_SYNDROME_DISPOSITION_SAFETY_TERMS = [
+  "baseline oxygen",
+  "hematology",
+  "icu",
+  "multilobar",
+  "respiratory failure",
+  "severe hypoxemia",
+  "worsening radiographic",
+];
+
 const SEVERE_ASTHMA_CONTEXT_TERMS = [
   "acute asthma exacerbation",
   "asthma attack",
@@ -13639,6 +13802,97 @@ function hasOpioidToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   return hasLongActingReboundSafety && hasCoingestionOrDifferentialSafety && hasNaloxoneAdverseSafety;
 }
 
+function requiresAcuteChestSyndromeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const directContext = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.diagnosis,
+  ]
+    .join(" ")
+    .toLowerCase();
+  const riskText = [
+    directContext,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = ACUTE_CHEST_SYNDROME_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(directContext, term),
+  );
+  const hasExplicitContext = ACUTE_CHEST_SYNDROME_EXPLICIT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(directContext, term),
+  );
+  const hasRisk = ACUTE_CHEST_SYNDROME_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasPulmonaryRisk = ACUTE_CHEST_SYNDROME_PULMONARY_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return (hasExplicitContext && hasRisk) || (hasContext && hasPulmonaryRisk);
+}
+
+function hasAcuteChestSyndromeTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCxrOrLabActions = ACUTE_CHEST_SYNDROME_CXR_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOxygenActions = ACUTE_CHEST_SYNDROME_OXYGEN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibioticActions = ACUTE_CHEST_SYNDROME_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSpirometryPainActions = ACUTE_CHEST_SYNDROME_SPIROMETRY_PAIN_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTransfusionActions = ACUTE_CHEST_SYNDROME_TRANSFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRespiratoryEscalation =
+    ACUTE_CHEST_SYNDROME_RESPIRATORY_ESCALATION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  return (
+    hasCxrOrLabActions &&
+    hasOxygenActions &&
+    hasAntibioticActions &&
+    hasSpirometryPainActions &&
+    hasTransfusionActions &&
+    hasRespiratoryEscalation
+  );
+}
+
+function hasAcuteChestSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasFluidOpioidSafety = ACUTE_CHEST_SYNDROME_FLUID_OPIOID_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTransfusionSafety = ACUTE_CHEST_SYNDROME_TRANSFUSION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBronchodilatorSteroidSafety =
+    ACUTE_CHEST_SYNDROME_BRONCHODILATOR_STEROID_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDifferentialSafety = ACUTE_CHEST_SYNDROME_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDispositionSafety = ACUTE_CHEST_SYNDROME_DISPOSITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasFluidOpioidSafety &&
+    hasTransfusionSafety &&
+    hasBronchodilatorSteroidSafety &&
+    hasDifferentialSafety &&
+    hasDispositionSafety
+  );
+}
+
 function requiresSevereAsthmaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -15415,6 +15669,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasOpioidToxicityTreatmentSafetyCheck,
       issue:
         "opioid toxicity safety checks must include long-acting opioid or renarcotization observation, co-ingestion or alternate-cause assessment, and naloxone titration, withdrawal, aspiration, or pulmonary-edema safeguards",
+    },
+    {
+      name: "acute_chest_syndrome_time_critical_actions",
+      label: "Acute chest syndrome emergency actions",
+      applies: requiresAcuteChestSyndromeSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAcuteChestSyndromeTimeCriticalActions,
+      issue:
+        "acute chest syndrome time-critical actions must include chest imaging or infiltrate confirmation, oxygenation monitoring or support, empiric antibiotics, incentive spirometry with pain control, transfusion or exchange-transfusion planning, and respiratory failure escalation",
+    },
+    {
+      name: "acute_chest_syndrome_treatment_safety",
+      label: "Acute chest syndrome treatment safety",
+      applies: requiresAcuteChestSyndromeSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcuteChestSyndromeTreatmentSafetyCheck,
+      issue:
+        "acute chest syndrome safety checks must include fluid and opioid overhydration or hypoventilation safeguards, transfusion hyperviscosity or exchange-transfusion targets, bronchodilator and steroid caution, alternate cardiopulmonary diagnoses, and ICU or hematology disposition criteria",
     },
     {
       name: "severe_asthma_time_critical_actions",
