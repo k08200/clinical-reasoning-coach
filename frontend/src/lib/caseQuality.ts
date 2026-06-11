@@ -9046,6 +9046,144 @@ const UNSTABLE_TACHYARRHYTHMIA_CAUSE_DISPOSITION_SAFETY_TERMS = [
   "toxin",
 ];
 
+const SYMPTOMATIC_BRADYCARDIA_CONTEXT_TERMS = [
+  "bradycardia with hypotension",
+  "complete heart block",
+  "high grade av block",
+  "high-grade av block",
+  "mobitz ii",
+  "second-degree type ii",
+  "symptomatic bradycardia",
+  "third degree av block",
+  "third-degree av block",
+  "unstable bradycardia",
+  "완전 방실 차단",
+  "증상성 서맥",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_RISK_TERMS = [
+  "acute heart failure",
+  "altered mental status",
+  "chest pain",
+  "heart block",
+  "hypoperfusion",
+  "hypotension",
+  "ischemia",
+  "shock",
+  "syncope",
+  "weak pulse",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_MONITOR_ACTION_TERMS = [
+  "12-lead ecg",
+  "cardiac monitor",
+  "ecg",
+  "ekg",
+  "iv access",
+  "monitor",
+  "oxygen",
+  "telemetry",
+  "심전도",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_INSTABILITY_ACTION_TERMS = [
+  "acute heart failure",
+  "altered mental status",
+  "chest pain",
+  "hypoperfusion",
+  "hypotension",
+  "ischemia",
+  "pulse check",
+  "shock",
+  "unstable",
+  "불안정",
+  "저혈압",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_ATROPINE_ACTION_TERMS = ["atropine", "아트로핀"];
+
+const SYMPTOMATIC_BRADYCARDIA_PACING_ACTION_TERMS = [
+  "capture",
+  "pacing",
+  "transcutaneous pacing",
+  "transvenous pacing",
+  "tcp",
+  "temporary pacemaker",
+  "박동조율",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ACTION_TERMS = [
+  "dopamine",
+  "epinephrine",
+  "chronotropic",
+  "infusion",
+  "pressor",
+  "드파민",
+  "에피네프린",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_REVERSIBLE_CAUSE_ACTION_TERMS = [
+  "acute coronary syndrome",
+  "beta blocker",
+  "calcium channel blocker",
+  "digoxin",
+  "electrolyte",
+  "hyperkalemia",
+  "hypoxia",
+  "inferior mi",
+  "potassium",
+  "toxin",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_NO_DELAY_PACING_SAFETY_TERMS = [
+  "do not delay",
+  "high-grade",
+  "mobitz ii",
+  "pacing",
+  "transcutaneous",
+  "unstable",
+  "지연",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_ATROPINE_LIMIT_SAFETY_TERMS = [
+  "atropine",
+  "heart transplant",
+  "high-grade av block",
+  "ineffective",
+  "mobitz ii",
+  "third-degree",
+  "transplanted",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_PACING_SEDATION_SAFETY_TERMS = [
+  "analgesia",
+  "capture",
+  "mechanical capture",
+  "sedation",
+  "transcutaneous pacing",
+  "transvenous pacing",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_SAFETY_TERMS = [
+  "arrhythmia",
+  "dopamine",
+  "epinephrine",
+  "extravasation",
+  "ischemia",
+  "tachyarrhythmia",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_CAUSE_DISPOSITION_SAFETY_TERMS = [
+  "acute coronary syndrome",
+  "cardiology",
+  "electrolyte",
+  "hyperkalemia",
+  "hypothermia",
+  "hypoxia",
+  "pacemaker",
+  "toxin",
+];
+
 const TENSION_PNEUMOTHORAX_CONTEXT_TERMS = [
   "tension pneumothorax",
   "tension physiology",
@@ -14574,6 +14712,89 @@ function hasUnstableTachyarrhythmiaTreatmentSafetyCheck(checks: string[]): boole
   );
 }
 
+function requiresSymptomaticBradycardiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = SYMPTOMATIC_BRADYCARDIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = SYMPTOMATIC_BRADYCARDIA_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasSymptomaticBradycardiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasMonitorAction = SYMPTOMATIC_BRADYCARDIA_MONITOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasInstabilityAction = SYMPTOMATIC_BRADYCARDIA_INSTABILITY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAtropineAction = SYMPTOMATIC_BRADYCARDIA_ATROPINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPacingAction = SYMPTOMATIC_BRADYCARDIA_PACING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasChronotropeAction = SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasReversibleCauseAction =
+    SYMPTOMATIC_BRADYCARDIA_REVERSIBLE_CAUSE_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  return (
+    hasMonitorAction &&
+    hasInstabilityAction &&
+    hasAtropineAction &&
+    hasPacingAction &&
+    hasChronotropeAction &&
+    hasReversibleCauseAction
+  );
+}
+
+function hasSymptomaticBradycardiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNoDelayPacingSafety = SYMPTOMATIC_BRADYCARDIA_NO_DELAY_PACING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAtropineLimitSafety = SYMPTOMATIC_BRADYCARDIA_ATROPINE_LIMIT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPacingSedationSafety =
+    SYMPTOMATIC_BRADYCARDIA_PACING_SEDATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasChronotropeSafety = SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCauseDispositionSafety =
+    SYMPTOMATIC_BRADYCARDIA_CAUSE_DISPOSITION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasNoDelayPacingSafety &&
+    hasAtropineLimitSafety &&
+    hasPacingSedationSafety &&
+    hasChronotropeSafety &&
+    hasCauseDispositionSafety
+  );
+}
+
 function requiresTensionPneumothoraxSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -16221,6 +16442,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasUnstableTachyarrhythmiaTreatmentSafetyCheck,
       issue:
         "unstable tachyarrhythmia safety checks must include sedation without delaying shock and synchronized versus unsynchronized shock review, AV-nodal blocker avoidance in pre-excitation or irregular wide-complex rhythms, antiarrhythmic QT, torsades, magnesium, or hypotension cautions, and reversible-cause or disposition review",
+    },
+    {
+      name: "symptomatic_bradycardia_time_critical_actions",
+      label: "Symptomatic bradycardia emergency actions",
+      applies: requiresSymptomaticBradycardiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSymptomaticBradycardiaTimeCriticalActions,
+      issue:
+        "symptomatic bradycardia time-critical actions must include ECG or cardiac monitoring, pulse and instability assessment, atropine, transcutaneous or transvenous pacing readiness, dopamine or epinephrine chronotropic infusion planning, and reversible-cause review",
+    },
+    {
+      name: "symptomatic_bradycardia_treatment_safety",
+      label: "Symptomatic bradycardia treatment safety",
+      applies: requiresSymptomaticBradycardiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSymptomaticBradycardiaTreatmentSafetyCheck,
+      issue:
+        "symptomatic bradycardia safety checks must include not delaying pacing for unstable high-grade block, atropine limitation review, pacing capture plus sedation or analgesia safeguards, dopamine or epinephrine adverse-effect monitoring, and reversible-cause or cardiology/pacemaker disposition review",
     },
     {
       name: "tension_pneumothorax_time_critical_actions",

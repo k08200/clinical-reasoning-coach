@@ -199,6 +199,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "cardiac_tamponade_treatment_safety",
         "unstable_tachyarrhythmia_time_critical_actions",
         "unstable_tachyarrhythmia_treatment_safety",
+        "symptomatic_bradycardia_time_critical_actions",
+        "symptomatic_bradycardia_treatment_safety",
         "tension_pneumothorax_time_critical_actions",
         "tension_pneumothorax_treatment_safety",
         "stroke_time_critical_actions",
@@ -11215,6 +11217,172 @@ def test_quality_gate_requires_unstable_tachyarrhythmia_shock_av_nodal_qt_and_ca
     assert not report.passed
     assert any(
         "unstable tachyarrhythmia safety checks must include sedation without delaying shock"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_symptomatic_bradycardia_monitor_instability_atropine_pacing_chronotrope_and_causes():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Symptomatic bradycardia with hypotension"
+    case["patient_demographics"] = {
+        "age": 77,
+        "sex": "male",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Syncope, chest pain, and slow pulse"
+    case["history_of_present_illness"] = (
+        "Patient with coronary disease develops syncope, chest pain, altered mental "
+        "status, weak pulse, hypotension, hypoperfusion, and symptomatic bradycardia "
+        "with heart rate 32/min after possible inferior MI."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "76/44", "hr": 32, "rr": 18, "temp_c": 36.5, "spo2": 95},
+        "general": "Pale, cool, and intermittently confused",
+        "cardiovascular": "Marked bradycardia with weak peripheral pulses",
+        "pulmonary": "Bibasilar crackles suggesting acute heart failure",
+        "neuro": "Altered mental status after syncope",
+    }
+    case["initial_labs"] = {
+        "potassium": "5.4 mmol/L",
+        "glucose": "104 mg/dL",
+        "troponin": "pending",
+        "ecg": "Sinus bradycardia with possible inferior ischemia",
+    }
+    case["key_teaching_points"] = [
+        "Symptomatic bradycardia with hypotension, ischemic chest pain, or altered mental status needs ACLS treatment",
+        "Atropine is first-line while preparing pacing and chronotropic infusion if ineffective",
+        "Reversible causes include ischemia, hypoxia, hyperkalemia, medications, toxins, and inferior MI",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension, shock, altered mental status, syncope, chest pain, ischemia, acute heart failure, or hypoperfusion",
+        "Weak pulse, heart block, bradycardia with hypotension, medication toxicity, hyperkalemia, or inferior MI",
+    ]
+    case["time_critical_actions"] = [
+        "Place on cardiac monitor and telemetry, obtain 12-lead ECG/EKG, establish IV access, and give oxygen if hypoxemic",
+        "Assess pulse check, instability, hypotension, shock, chest pain, ischemia, altered mental status, acute heart failure, and hypoperfusion",
+        "Give atropine immediately for symptomatic bradycardia",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay transcutaneous pacing for unstable high-grade AV block or Mobitz II; prepare pacing while atropine is attempted",
+        "Review atropine limitations because atropine may be ineffective in high-grade AV block, third-degree block, Mobitz II, transplanted heart, or heart transplant patients",
+        "Confirm electrical and mechanical capture with transcutaneous pacing or transvenous pacing and provide sedation or analgesia when feasible",
+        "Monitor dopamine or epinephrine chronotropic infusion for ischemia, tachyarrhythmia, arrhythmia, and extravasation",
+        "Review reversible causes and disposition including acute coronary syndrome, hypoxia, hyperkalemia, electrolyte abnormality, hypothermia, toxin, cardiology, and pacemaker need",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Adult Basic and Advanced Life Support",
+            "organization": "American Heart Association",
+            "url": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000000916",
+            "supports": [
+                "symptomatic bradycardia with hypotension diagnosis and risk stratification",
+                "symptomatic bradycardia with hypotension, ischemic chest pain, or altered mental status needs ACLS treatment",
+                "atropine is first-line while preparing pacing and chronotropic infusion if ineffective",
+                "reversible causes include ischemia, hypoxia, hyperkalemia, medications, toxins, and inferior MI",
+                "hypotension, shock, altered mental status, syncope, chest pain, ischemia, acute heart failure, or hypoperfusion as red flags",
+                "weak pulse, heart block, bradycardia with hypotension, medication toxicity, hyperkalemia, or inferior MI as severity markers",
+                "cardiac monitor and telemetry, 12-lead ECG/EKG, IV access, and oxygen if hypoxemic",
+                "pulse check, instability, hypotension, shock, chest pain, ischemia, altered mental status, acute heart failure, and hypoperfusion assessment",
+                "atropine immediately for symptomatic bradycardia",
+                "do not delay transcutaneous pacing for unstable high-grade AV block or Mobitz II; prepare pacing while atropine is attempted",
+                "atropine limitations because atropine may be ineffective in high-grade AV block, third-degree block, Mobitz II, transplanted heart, or heart transplant patients",
+                "electrical and mechanical capture with transcutaneous pacing or transvenous pacing and sedation or analgesia when feasible",
+                "dopamine or epinephrine chronotropic infusion monitoring for ischemia, tachyarrhythmia, arrhythmia, and extravasation",
+                "reversible causes and disposition including acute coronary syndrome, hypoxia, hyperkalemia, electrolyte abnormality, hypothermia, toxin, cardiology, and pacemaker need",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "symptomatic bradycardia time-critical actions must include ECG"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_symptomatic_bradycardia_no_delay_pacing_atropine_limits_capture_chronotrope_and_disposition_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "High-grade AV block with unstable bradycardia"
+    case["patient_demographics"] = {
+        "age": 69,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Near-syncope and hypotension with complete heart block"
+    case["history_of_present_illness"] = (
+        "Patient presents with complete heart block, high-grade AV block, heart rate "
+        "28/min, hypotension, syncope, weak pulse, hypoperfusion, and chest pain after "
+        "recent beta blocker dose increase."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "70/38", "hr": 28, "rr": 20, "temp_c": 36.4, "spo2": 93},
+        "general": "Cool, clammy, and near-syncopal",
+        "cardiovascular": "Complete heart block with weak pulse",
+        "pulmonary": "Mild pulmonary edema",
+        "neuro": "Slow responses but follows commands",
+    }
+    case["initial_labs"] = {
+        "potassium": "4.9 mmol/L",
+        "glucose": "99 mg/dL",
+        "troponin": "pending",
+        "ecg": "Complete heart block with ventricular escape rhythm",
+    }
+    case["key_teaching_points"] = [
+        "High-grade AV block with unstable bradycardia needs pacing readiness and expert escalation",
+        "Atropine may be ineffective in infranodal or complete heart block",
+        "Dopamine or epinephrine infusion can support perfusion while pacing is arranged",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension, shock, altered mental status, syncope, chest pain, ischemia, acute heart failure, or hypoperfusion",
+        "Complete heart block, high-grade AV block, Mobitz II, weak pulse, beta blocker exposure, or pacemaker need",
+    ]
+    case["time_critical_actions"] = [
+        "Place on cardiac monitor, obtain 12-lead ECG/EKG, establish IV access, and give oxygen",
+        "Assess pulse check, instability, hypotension, shock, chest pain, ischemia, altered mental status, and hypoperfusion",
+        "Give atropine while preparing definitive support",
+        "Prepare transcutaneous pacing TCP and transvenous pacing with capture check and temporary pacemaker readiness",
+        "Start dopamine infusion or epinephrine chronotropic infusion if atropine is ineffective or pacing is delayed",
+        "Review reversible causes including beta blocker, calcium channel blocker, digoxin, toxin, hyperkalemia, potassium, hypoxia, electrolyte abnormality, inferior MI, and acute coronary syndrome",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before sedation",
+        "Renal function before contrast imaging if needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Adult Basic and Advanced Life Support",
+            "organization": "American Heart Association",
+            "url": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000000916",
+            "supports": [
+                "high-grade AV block with unstable bradycardia diagnosis and risk stratification",
+                "high-grade AV block with unstable bradycardia needs pacing readiness and expert escalation",
+                "atropine may be ineffective in infranodal or complete heart block",
+                "dopamine or epinephrine infusion can support perfusion while pacing is arranged",
+                "hypotension, shock, altered mental status, syncope, chest pain, ischemia, acute heart failure, or hypoperfusion as red flags",
+                "complete heart block, high-grade AV block, Mobitz II, weak pulse, beta blocker exposure, or pacemaker need as severity markers",
+                "cardiac monitor, 12-lead ECG/EKG, IV access, and oxygen",
+                "pulse check, instability, hypotension, shock, chest pain, ischemia, altered mental status, and hypoperfusion assessment",
+                "atropine while preparing definitive support",
+                "transcutaneous pacing TCP and transvenous pacing with capture check and temporary pacemaker readiness",
+                "dopamine infusion or epinephrine chronotropic infusion if atropine is ineffective or pacing is delayed",
+                "reversible causes including beta blocker, calcium channel blocker, digoxin, toxin, hyperkalemia, potassium, hypoxia, electrolyte abnormality, inferior MI, and acute coronary syndrome",
+                "medication allergy before sedation",
+                "renal function before contrast imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "symptomatic bradycardia safety checks must include not delaying pacing"
         in issue
         for issue in report.critical_issues
     )

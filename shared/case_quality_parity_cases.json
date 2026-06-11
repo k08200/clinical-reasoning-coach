@@ -2319,6 +2319,87 @@
     }
   },
   {
+    "name": "symptomatic_bradycardia_requires_monitor_instability_atropine_pacing_chronotrope_and_causes",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "symptomatic bradycardia time-critical actions must include ECG"
+    ],
+    "overrides": {
+      "diagnosis": "Symptomatic bradycardia with hypotension",
+      "patient_demographics": {
+        "age": 77,
+        "sex": "male",
+        "weight_kg": 70,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Syncope, chest pain, and slow pulse",
+      "history_of_present_illness": "Patient with coronary disease develops syncope, chest pain, altered mental status, weak pulse, hypotension, hypoperfusion, and symptomatic bradycardia with heart rate 32/min after possible inferior MI.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "76/44",
+          "hr": 32,
+          "rr": 18,
+          "temp_c": 36.5,
+          "spo2": 95
+        },
+        "general": "Pale, cool, and intermittently confused",
+        "cardiovascular": "Marked bradycardia with weak peripheral pulses",
+        "pulmonary": "Bibasilar crackles suggesting acute heart failure",
+        "neuro": "Altered mental status after syncope"
+      },
+      "initial_labs": {
+        "potassium": "5.4 mmol/L",
+        "glucose": "104 mg/dL",
+        "troponin": "pending",
+        "ecg": "Sinus bradycardia with possible inferior ischemia"
+      },
+      "key_teaching_points": [
+        "Symptomatic bradycardia with hypotension, ischemic chest pain, or altered mental status needs ACLS treatment",
+        "Atropine is first-line while preparing pacing and chronotropic infusion if ineffective",
+        "Reversible causes include ischemia, hypoxia, hyperkalemia, medications, toxins, and inferior MI"
+      ],
+      "clinical_red_flags": [
+        "Hypotension, shock, altered mental status, syncope, chest pain, ischemia, acute heart failure, or hypoperfusion",
+        "Weak pulse, heart block, bradycardia with hypotension, medication toxicity, hyperkalemia, or inferior MI"
+      ],
+      "time_critical_actions": [
+        "Place on cardiac monitor and telemetry, obtain 12-lead ECG/EKG, establish IV access, and give oxygen if hypoxemic",
+        "Assess pulse check, instability, hypotension, shock, chest pain, ischemia, altered mental status, acute heart failure, and hypoperfusion",
+        "Give atropine immediately for symptomatic bradycardia"
+      ],
+      "contraindication_checks": [
+        "Do not delay transcutaneous pacing for unstable high-grade AV block or Mobitz II; prepare pacing while atropine is attempted",
+        "Review atropine limitations because atropine may be ineffective in high-grade AV block, third-degree block, Mobitz II, transplanted heart, or heart transplant patients",
+        "Confirm electrical and mechanical capture with transcutaneous pacing or transvenous pacing and provide sedation or analgesia when feasible",
+        "Monitor dopamine or epinephrine chronotropic infusion for ischemia, tachyarrhythmia, arrhythmia, and extravasation",
+        "Review reversible causes and disposition including acute coronary syndrome, hypoxia, hyperkalemia, electrolyte abnormality, hypothermia, toxin, cardiology, and pacemaker need"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Adult Basic and Advanced Life Support",
+          "organization": "American Heart Association",
+          "url": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000000916",
+          "supports": [
+            "symptomatic bradycardia with hypotension diagnosis and risk stratification",
+            "symptomatic bradycardia with hypotension, ischemic chest pain, or altered mental status needs ACLS treatment",
+            "atropine is first-line while preparing pacing and chronotropic infusion if ineffective",
+            "reversible causes include ischemia, hypoxia, hyperkalemia, medications, toxins, and inferior MI",
+            "hypotension, shock, altered mental status, syncope, chest pain, ischemia, acute heart failure, or hypoperfusion as red flags",
+            "weak pulse, heart block, bradycardia with hypotension, medication toxicity, hyperkalemia, or inferior MI as severity markers",
+            "cardiac monitor and telemetry, 12-lead ECG/EKG, IV access, and oxygen if hypoxemic",
+            "pulse check, instability, hypotension, shock, chest pain, ischemia, altered mental status, acute heart failure, and hypoperfusion assessment",
+            "atropine immediately for symptomatic bradycardia",
+            "do not delay transcutaneous pacing for unstable high-grade AV block or Mobitz II; prepare pacing while atropine is attempted",
+            "atropine limitations because atropine may be ineffective in high-grade AV block, third-degree block, Mobitz II, transplanted heart, or heart transplant patients",
+            "electrical and mechanical capture with transcutaneous pacing or transvenous pacing and sedation or analgesia when feasible",
+            "dopamine or epinephrine chronotropic infusion monitoring for ischemia, tachyarrhythmia, arrhythmia, and extravasation",
+            "reversible causes and disposition including acute coronary syndrome, hypoxia, hyperkalemia, electrolyte abnormality, hypothermia, toxin, cardiology, and pacemaker need"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "tension_pneumothorax_requires_decompression_chest_tube_and_reassessment",
     "expected_passed": false,
     "expected_issue_substrings": [
