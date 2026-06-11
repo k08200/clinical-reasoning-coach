@@ -4319,6 +4319,82 @@
     }
   },
   {
+    "name": "intracerebral_hemorrhage_requires_ct_bp_reversal_and_neuro_icu_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "intracerebral hemorrhage time-critical actions must include urgent noncontrast head CT"
+    ],
+    "overrides": {
+      "diagnosis": "Warfarin-associated intracerebral hemorrhage",
+      "patient_demographics": {
+        "age": 72,
+        "sex": "male",
+        "weight_kg": 74,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Right-sided weakness and altered mental status",
+      "history_of_present_illness": "Patient on warfarin for atrial fibrillation develops sudden headache, vomiting, aphasia, right hemiparesis, severe hypertension, and CT-confirmed left basal ganglia intracerebral hemorrhage with intraventricular extension.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "218/116",
+          "hr": 96,
+          "rr": 20,
+          "temp_c": 36.9,
+          "spo2": 96
+        },
+        "general": "Somnolent but arousable",
+        "neuro": "Aphasia, right hemiparesis, and left gaze preference",
+        "cardiovascular": "Irregular rhythm"
+      },
+      "initial_labs": {
+        "inr": "3.4",
+        "platelets": "178 K/uL",
+        "glucose": "118 mg/dL",
+        "creatinine": "1.1 mg/dL"
+      },
+      "key_teaching_points": [
+        "Spontaneous intracerebral hemorrhage is a neurologic emergency with risk of hematoma expansion",
+        "Initial treatment requires urgent neuroimaging, blood pressure control, and anticoagulant reversal",
+        "Intraventricular hemorrhage or hydrocephalus needs neurocritical and neurosurgical escalation"
+      ],
+      "clinical_red_flags": [
+        "Altered mental status, headache, vomiting, seizure, hemiparesis, aphasia, or neurologic deficit",
+        "Warfarin anticoagulation, elevated INR, severe hypertension, intraventricular hemorrhage, or hydrocephalus risk"
+      ],
+      "time_critical_actions": [
+        "Obtain urgent noncontrast CT head and repeat CT imaging if neurologic status worsens",
+        "Start acute blood pressure control with nicardipine or labetalol and target systolic BP range"
+      ],
+      "contraindication_checks": [
+        "Use smooth blood pressure target range and avoid hypotension, too rapid or excessive lowering, BP variability, and cerebral perfusion compromise",
+        "Reverse warfarin with 4-factor PCC plus vitamin K; review DOAC, factor Xa, andexanet, idarucizumab, antiplatelet, platelet transfusion, and thrombotic risk",
+        "Use intermittent pneumatic compression mechanical prophylaxis for VTE and plan heparin timing, thrombosis risk, DVT prevention, and anticoagulation restart",
+        "Monitor hematoma expansion, intraventricular hemorrhage, hydrocephalus, seizure, mass effect, herniation, cerebellar bleed, EVD, or external ventricular drain need"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2022 Guideline for the Management of Patients With Spontaneous Intracerebral Hemorrhage",
+          "organization": "American Heart Association / American Stroke Association",
+          "url": "https://www.ahajournals.org/doi/10.1161/STR.0000000000000407",
+          "supports": [
+            "warfarin-associated intracerebral hemorrhage diagnosis and risk stratification",
+            "spontaneous intracerebral hemorrhage is a neurologic emergency with risk of hematoma expansion",
+            "initial treatment requires urgent neuroimaging, blood pressure control, and anticoagulant reversal",
+            "intraventricular hemorrhage or hydrocephalus needs neurocritical and neurosurgical escalation",
+            "altered mental status, headache, vomiting, seizure, hemiparesis, aphasia, or neurologic deficit as red flags",
+            "warfarin anticoagulation, elevated INR, severe hypertension, intraventricular hemorrhage, or hydrocephalus risk as severity markers",
+            "urgent noncontrast CT head and repeat CT imaging if neurologic status worsens",
+            "acute blood pressure control with nicardipine or labetalol and target systolic BP range",
+            "smooth blood pressure target range and avoid hypotension, too rapid or excessive lowering, BP variability, and cerebral perfusion compromise",
+            "warfarin reversal with 4-factor PCC plus vitamin K and review DOAC, factor Xa, andexanet, idarucizumab, antiplatelet, platelet transfusion, and thrombotic risk",
+            "intermittent pneumatic compression mechanical prophylaxis for VTE and heparin timing, thrombosis risk, DVT prevention, and anticoagulation restart",
+            "hematoma expansion, intraventricular hemorrhage, hydrocephalus, seizure, mass effect, herniation, cerebellar bleed, EVD, or external ventricular drain need monitoring"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "bb_ccb_overdose_requires_ecg_calcium_hie_vasopressor_and_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

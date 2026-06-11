@@ -5052,6 +5052,133 @@ SUBARACHNOID_HEMORRHAGE_COMPLICATION_SAFETY_TERMS = (
     "수두증",
     "혈관연축",
 )
+INTRACEREBRAL_HEMORRHAGE_CONTEXT_TERMS = (
+    "basal ganglia hemorrhage",
+    "brain hemorrhage",
+    "cerebral haemorrhage",
+    "cerebral hemorrhage",
+    "doac-associated ich",
+    "hemorrhagic stroke",
+    "intracerebral haemorrhage",
+    "intracerebral hemorrhage",
+    "intraparenchymal haemorrhage",
+    "intraparenchymal hemorrhage",
+    "lobar hemorrhage",
+    "warfarin-associated ich",
+    "뇌내 출혈",
+    "뇌내출혈",
+    "출혈성 뇌졸중",
+)
+INTRACEREBRAL_HEMORRHAGE_RISK_TERMS = (
+    "altered mental status",
+    "anticoagulant",
+    "anticoagulation",
+    "aphasia",
+    "ataxia",
+    "headache",
+    "hemiparesis",
+    "hypertension",
+    "intraventricular",
+    "neurologic deficit",
+    "seizure",
+    "vomiting",
+    "weakness",
+)
+INTRACEREBRAL_HEMORRHAGE_CT_ACTION_TERMS = (
+    "ct head",
+    "head ct",
+    "non contrast ct",
+    "non-contrast ct",
+    "noncontrast ct",
+    "repeat ct",
+    "뇌 ct",
+    "두부 ct",
+)
+INTRACEREBRAL_HEMORRHAGE_BP_ACTION_TERMS = (
+    "blood pressure",
+    "bp",
+    "clevidipine",
+    "labetalol",
+    "nicardipine",
+    "sbp",
+    "systolic",
+    "혈압",
+)
+INTRACEREBRAL_HEMORRHAGE_COAG_REVERSAL_ACTION_TERMS = (
+    "4-factor pcc",
+    "andexanet",
+    "anticoagulant",
+    "coagulopathy",
+    "doac",
+    "factor xa",
+    "idarucizumab",
+    "inr",
+    "pcc",
+    "prothrombin complex",
+    "reversal",
+    "vitamin k",
+    "warfarin",
+    "항응고",
+    "역전",
+)
+INTRACEREBRAL_HEMORRHAGE_NEURO_ICP_ACTION_TERMS = (
+    "evd",
+    "external ventricular",
+    "hydrocephalus",
+    "hypertonic saline",
+    "icu",
+    "intracranial pressure",
+    "mannitol",
+    "neurocritical",
+    "neurosurgery",
+    "신경외과",
+    "중환자",
+)
+INTRACEREBRAL_HEMORRHAGE_BP_SAFETY_TERMS = (
+    "avoid hypotension",
+    "bp variability",
+    "cerebral perfusion",
+    "excessive lowering",
+    "smooth",
+    "target range",
+    "too rapid",
+    "저혈압",
+)
+INTRACEREBRAL_HEMORRHAGE_REVERSAL_SAFETY_TERMS = (
+    "4-factor pcc",
+    "andexanet",
+    "antiplatelet",
+    "doac",
+    "factor xa",
+    "idarucizumab",
+    "platelet transfusion",
+    "pcc",
+    "thrombotic",
+    "vitamin k",
+    "warfarin",
+)
+INTRACEREBRAL_HEMORRHAGE_VTE_RESTART_SAFETY_TERMS = (
+    "anticoagulation restart",
+    "dvt",
+    "heparin timing",
+    "intermittent pneumatic",
+    "mechanical prophylaxis",
+    "restart anticoagulation",
+    "thrombosis",
+    "venous thromboembolism",
+    "vte",
+)
+INTRACEREBRAL_HEMORRHAGE_COMPLICATION_SAFETY_TERMS = (
+    "cerebellar",
+    "evd",
+    "external ventricular",
+    "hematoma expansion",
+    "herniation",
+    "hydrocephalus",
+    "intraventricular",
+    "mass effect",
+    "seizure",
+)
 BB_CCB_OVERDOSE_DIRECT_CONTEXT_TERMS = (
     "beta blocker overdose",
     "beta-blocker overdose",
@@ -10162,6 +10289,31 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="intracerebral_hemorrhage_time_critical_actions",
+            applies=_requires_intracerebral_hemorrhage_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_intracerebral_hemorrhage_time_critical_actions,
+            issue=(
+                "intracerebral hemorrhage time-critical actions must include "
+                "urgent noncontrast head CT or repeat imaging, acute blood-pressure "
+                "control, anticoagulant or coagulopathy reversal planning, and "
+                "neurocritical, neurosurgical, hydrocephalus, or ICP escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="intracerebral_hemorrhage_treatment_safety",
+            applies=_requires_intracerebral_hemorrhage_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_intracerebral_hemorrhage_treatment_safety_check,
+            issue=(
+                "intracerebral hemorrhage safety checks must include blood-pressure "
+                "target range or hypotension safeguards, reversal-agent and platelet "
+                "transfusion cautions, VTE prophylaxis or anticoagulation restart "
+                "planning, and hematoma expansion, intraventricular hemorrhage, "
+                "hydrocephalus, seizure, or mass-effect monitoring"
+            ),
+        ),
+        DomainSafetyGate(
             name="bb_ccb_overdose_time_critical_actions",
             applies=_requires_bb_ccb_overdose_safety_check,
             field_name="time_critical_actions",
@@ -14849,6 +15001,90 @@ def _has_subarachnoid_hemorrhage_treatment_safety_check(checks: list[Any]) -> bo
     return (
         has_anticoag_reversal_safety
         and has_rebleed_bp_safety
+        and has_complication_safety
+    )
+
+
+def _requires_intracerebral_hemorrhage_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in INTRACEREBRAL_HEMORRHAGE_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in INTRACEREBRAL_HEMORRHAGE_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_intracerebral_hemorrhage_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_ct_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in INTRACEREBRAL_HEMORRHAGE_CT_ACTION_TERMS
+    )
+    has_bp_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in INTRACEREBRAL_HEMORRHAGE_BP_ACTION_TERMS
+    )
+    has_coag_reversal_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in INTRACEREBRAL_HEMORRHAGE_COAG_REVERSAL_ACTION_TERMS
+    )
+    has_neuro_icu_or_icp_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in INTRACEREBRAL_HEMORRHAGE_NEURO_ICP_ACTION_TERMS
+    )
+    return (
+        has_ct_action
+        and has_bp_action
+        and has_coag_reversal_action
+        and has_neuro_icu_or_icp_action
+    )
+
+
+def _has_intracerebral_hemorrhage_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_bp_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in INTRACEREBRAL_HEMORRHAGE_BP_SAFETY_TERMS
+    )
+    has_reversal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in INTRACEREBRAL_HEMORRHAGE_REVERSAL_SAFETY_TERMS
+    )
+    has_vte_restart_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in INTRACEREBRAL_HEMORRHAGE_VTE_RESTART_SAFETY_TERMS
+    )
+    has_complication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in INTRACEREBRAL_HEMORRHAGE_COMPLICATION_SAFETY_TERMS
+    )
+    return (
+        has_bp_safety
+        and has_reversal_safety
+        and has_vte_restart_safety
         and has_complication_safety
     )
 

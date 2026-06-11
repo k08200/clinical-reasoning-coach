@@ -5493,6 +5493,143 @@ const SUBARACHNOID_HEMORRHAGE_COMPLICATION_SAFETY_TERMS = [
   "혈관연축",
 ];
 
+const INTRACEREBRAL_HEMORRHAGE_CONTEXT_TERMS = [
+  "basal ganglia hemorrhage",
+  "brain hemorrhage",
+  "cerebral haemorrhage",
+  "cerebral hemorrhage",
+  "doac-associated ich",
+  "hemorrhagic stroke",
+  "intracerebral haemorrhage",
+  "intracerebral hemorrhage",
+  "intraparenchymal haemorrhage",
+  "intraparenchymal hemorrhage",
+  "lobar hemorrhage",
+  "warfarin-associated ich",
+  "뇌내 출혈",
+  "뇌내출혈",
+  "출혈성 뇌졸중",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_RISK_TERMS = [
+  "altered mental status",
+  "anticoagulant",
+  "anticoagulation",
+  "aphasia",
+  "ataxia",
+  "headache",
+  "hemiparesis",
+  "hypertension",
+  "intraventricular",
+  "neurologic deficit",
+  "seizure",
+  "vomiting",
+  "weakness",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_CT_ACTION_TERMS = [
+  "ct head",
+  "head ct",
+  "non contrast ct",
+  "non-contrast ct",
+  "noncontrast ct",
+  "repeat ct",
+  "뇌 ct",
+  "두부 ct",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_BP_ACTION_TERMS = [
+  "blood pressure",
+  "bp",
+  "clevidipine",
+  "labetalol",
+  "nicardipine",
+  "sbp",
+  "systolic",
+  "혈압",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_COAG_REVERSAL_ACTION_TERMS = [
+  "4-factor pcc",
+  "andexanet",
+  "anticoagulant",
+  "coagulopathy",
+  "doac",
+  "factor xa",
+  "idarucizumab",
+  "inr",
+  "pcc",
+  "prothrombin complex",
+  "reversal",
+  "vitamin k",
+  "warfarin",
+  "항응고",
+  "역전",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_NEURO_ICP_ACTION_TERMS = [
+  "evd",
+  "external ventricular",
+  "hydrocephalus",
+  "hypertonic saline",
+  "icu",
+  "intracranial pressure",
+  "mannitol",
+  "neurocritical",
+  "neurosurgery",
+  "신경외과",
+  "중환자",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_BP_SAFETY_TERMS = [
+  "avoid hypotension",
+  "bp variability",
+  "cerebral perfusion",
+  "excessive lowering",
+  "smooth",
+  "target range",
+  "too rapid",
+  "저혈압",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_REVERSAL_SAFETY_TERMS = [
+  "4-factor pcc",
+  "andexanet",
+  "antiplatelet",
+  "doac",
+  "factor xa",
+  "idarucizumab",
+  "platelet transfusion",
+  "pcc",
+  "thrombotic",
+  "vitamin k",
+  "warfarin",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_VTE_RESTART_SAFETY_TERMS = [
+  "anticoagulation restart",
+  "dvt",
+  "heparin timing",
+  "intermittent pneumatic",
+  "mechanical prophylaxis",
+  "restart anticoagulation",
+  "thrombosis",
+  "venous thromboembolism",
+  "vte",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_COMPLICATION_SAFETY_TERMS = [
+  "cerebellar",
+  "evd",
+  "external ventricular",
+  "hematoma expansion",
+  "herniation",
+  "hydrocephalus",
+  "intraventricular",
+  "mass effect",
+  "seizure",
+];
+
 const BB_CCB_OVERDOSE_DIRECT_CONTEXT_TERMS = [
   "beta blocker overdose",
   "beta-blocker overdose",
@@ -12222,6 +12359,65 @@ function hasSubarachnoidHemorrhageTreatmentSafetyCheck(checks: string[]): boolea
   return hasAnticoagReversalSafety && hasRebleedBpSafety && hasComplicationSafety;
 }
 
+function requiresIntracerebralHemorrhageSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = INTRACEREBRAL_HEMORRHAGE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = INTRACEREBRAL_HEMORRHAGE_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasIntracerebralHemorrhageTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCtAction = INTRACEREBRAL_HEMORRHAGE_CT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBpAction = INTRACEREBRAL_HEMORRHAGE_BP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCoagReversalAction = INTRACEREBRAL_HEMORRHAGE_COAG_REVERSAL_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeuroIcuOrIcpAction = INTRACEREBRAL_HEMORRHAGE_NEURO_ICP_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return hasCtAction && hasBpAction && hasCoagReversalAction && hasNeuroIcuOrIcpAction;
+}
+
+function hasIntracerebralHemorrhageTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasBpSafety = INTRACEREBRAL_HEMORRHAGE_BP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasReversalSafety = INTRACEREBRAL_HEMORRHAGE_REVERSAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVteRestartSafety = INTRACEREBRAL_HEMORRHAGE_VTE_RESTART_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasComplicationSafety = INTRACEREBRAL_HEMORRHAGE_COMPLICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasBpSafety && hasReversalSafety && hasVteRestartSafety && hasComplicationSafety;
+}
+
 function requiresBbCcbOverdoseSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -15255,6 +15451,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSubarachnoidHemorrhageTreatmentSafetyCheck,
       issue:
         "subarachnoid hemorrhage safety checks must include anticoagulant, antiplatelet, INR, platelet, coagulopathy, or reversal review, rebleeding or unsecured-aneurysm blood-pressure safeguards, and hydrocephalus, vasospasm, delayed cerebral ischemia, seizure, EVD, ICU, or neurocritical complication monitoring",
+    },
+    {
+      name: "intracerebral_hemorrhage_time_critical_actions",
+      label: "Intracerebral hemorrhage emergency actions",
+      applies: requiresIntracerebralHemorrhageSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasIntracerebralHemorrhageTimeCriticalActions,
+      issue:
+        "intracerebral hemorrhage time-critical actions must include urgent noncontrast head CT or repeat imaging, acute blood-pressure control, anticoagulant or coagulopathy reversal planning, and neurocritical, neurosurgical, hydrocephalus, or ICP escalation",
+    },
+    {
+      name: "intracerebral_hemorrhage_treatment_safety",
+      label: "Intracerebral hemorrhage treatment safety",
+      applies: requiresIntracerebralHemorrhageSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasIntracerebralHemorrhageTreatmentSafetyCheck,
+      issue:
+        "intracerebral hemorrhage safety checks must include blood-pressure target range or hypotension safeguards, reversal-agent and platelet transfusion cautions, VTE prophylaxis or anticoagulation restart planning, and hematoma expansion, intraventricular hemorrhage, hydrocephalus, seizure, or mass-effect monitoring",
     },
     {
       name: "bb_ccb_overdose_time_critical_actions",

@@ -137,6 +137,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "ruptured_aaa_treatment_safety",
         "subarachnoid_hemorrhage_time_critical_actions",
         "subarachnoid_hemorrhage_treatment_safety",
+        "intracerebral_hemorrhage_time_critical_actions",
+        "intracerebral_hemorrhage_treatment_safety",
         "bb_ccb_overdose_time_critical_actions",
         "bb_ccb_overdose_treatment_safety",
         "digoxin_toxicity_time_critical_actions",
@@ -6634,6 +6636,161 @@ def test_quality_gate_requires_sah_reversal_rebleeding_and_complication_safety()
     assert not report.passed
     assert any(
         "subarachnoid hemorrhage safety checks must include anticoagulant"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_intracerebral_hemorrhage_ct_bp_reversal_and_neuro_icu_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Warfarin-associated intracerebral hemorrhage"
+    case["patient_demographics"] = {
+        "age": 72,
+        "sex": "male",
+        "weight_kg": 74,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Right-sided weakness and altered mental status"
+    case["history_of_present_illness"] = (
+        "Patient on warfarin for atrial fibrillation develops sudden headache, "
+        "vomiting, aphasia, right hemiparesis, severe hypertension, and CT-confirmed "
+        "left basal ganglia intracerebral hemorrhage with intraventricular extension."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "218/116", "hr": 96, "rr": 20, "temp_c": 36.9, "spo2": 96},
+        "general": "Somnolent but arousable",
+        "neuro": "Aphasia, right hemiparesis, and left gaze preference",
+        "cardiovascular": "Irregular rhythm",
+    }
+    case["initial_labs"] = {
+        "inr": "3.4",
+        "platelets": "178 K/uL",
+        "glucose": "118 mg/dL",
+        "creatinine": "1.1 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Spontaneous intracerebral hemorrhage is a neurologic emergency with risk of hematoma expansion",
+        "Initial treatment requires urgent neuroimaging, blood pressure control, and anticoagulant reversal",
+        "Intraventricular hemorrhage or hydrocephalus needs neurocritical and neurosurgical escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "Altered mental status, headache, vomiting, seizure, hemiparesis, aphasia, or neurologic deficit",
+        "Warfarin anticoagulation, elevated INR, severe hypertension, intraventricular hemorrhage, or hydrocephalus risk",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain urgent noncontrast CT head and repeat CT imaging if neurologic status worsens",
+        "Start acute blood pressure control with nicardipine or labetalol and target systolic BP range",
+    ]
+    case["contraindication_checks"] = [
+        "Use smooth blood pressure target range and avoid hypotension, too rapid or excessive lowering, BP variability, and cerebral perfusion compromise",
+        "Reverse warfarin with 4-factor PCC plus vitamin K; review DOAC, factor Xa, andexanet, idarucizumab, antiplatelet, platelet transfusion, and thrombotic risk",
+        "Use intermittent pneumatic compression mechanical prophylaxis for VTE and plan heparin timing, thrombosis risk, DVT prevention, and anticoagulation restart",
+        "Monitor hematoma expansion, intraventricular hemorrhage, hydrocephalus, seizure, mass effect, herniation, cerebellar bleed, EVD, or external ventricular drain need",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "2022 Guideline for the Management of Patients With Spontaneous Intracerebral Hemorrhage",
+            "organization": "American Heart Association / American Stroke Association",
+            "url": "https://www.ahajournals.org/doi/10.1161/STR.0000000000000407",
+            "supports": [
+                "warfarin-associated intracerebral hemorrhage diagnosis and risk stratification",
+                "spontaneous intracerebral hemorrhage is a neurologic emergency with risk of hematoma expansion",
+                "initial treatment requires urgent neuroimaging, blood pressure control, and anticoagulant reversal",
+                "intraventricular hemorrhage or hydrocephalus needs neurocritical and neurosurgical escalation",
+                "altered mental status, headache, vomiting, seizure, hemiparesis, aphasia, or neurologic deficit as red flags",
+                "warfarin anticoagulation, elevated INR, severe hypertension, intraventricular hemorrhage, or hydrocephalus risk as severity markers",
+                "urgent noncontrast CT head and repeat CT imaging if neurologic status worsens",
+                "acute blood pressure control with nicardipine or labetalol and target systolic BP range",
+                "smooth blood pressure target range and avoid hypotension, too rapid or excessive lowering, BP variability, and cerebral perfusion compromise",
+                "warfarin reversal with 4-factor PCC plus vitamin K and review DOAC, factor Xa, andexanet, idarucizumab, antiplatelet, platelet transfusion, and thrombotic risk",
+                "intermittent pneumatic compression mechanical prophylaxis for VTE and heparin timing, thrombosis risk, DVT prevention, and anticoagulation restart",
+                "hematoma expansion, intraventricular hemorrhage, hydrocephalus, seizure, mass effect, herniation, cerebellar bleed, EVD, or external ventricular drain need monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "intracerebral hemorrhage time-critical actions must include urgent noncontrast head CT"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_intracerebral_hemorrhage_bp_reversal_vte_and_complication_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "DOAC-associated intracerebral hemorrhage"
+    case["patient_demographics"] = {
+        "age": 68,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Headache, vomiting, and left-sided weakness"
+    case["history_of_present_illness"] = (
+        "Patient taking apixaban develops abrupt headache, vomiting, left weakness, "
+        "ataxia, severe hypertension, and right cerebellar intraparenchymal hemorrhage "
+        "with mass effect and hydrocephalus concern."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "204/108", "hr": 88, "rr": 18, "temp_c": 36.8, "spo2": 97},
+        "general": "Drowsy with repeated vomiting",
+        "neuro": "Left weakness, ataxia, dysarthria, and worsening headache",
+    }
+    case["initial_labs"] = {
+        "inr": "1.2",
+        "platelets": "214 K/uL",
+        "creatinine": "0.9 mg/dL",
+        "anti_xa": "pending",
+    }
+    case["key_teaching_points"] = [
+        "DOAC-associated intracerebral hemorrhage can expand early and requires immediate reversal planning",
+        "Cerebellar hemorrhage with mass effect or hydrocephalus needs urgent neurosurgical review",
+        "Blood pressure should be lowered with a controlled target while avoiding hypotension",
+    ]
+    case["clinical_red_flags"] = [
+        "Altered mental status, headache, vomiting, seizure, hemiparesis, ataxia, or neurologic deficit",
+        "DOAC anticoagulant exposure, severe hypertension, cerebellar hemorrhage, mass effect, hydrocephalus, or herniation risk",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain urgent noncontrast CT head and repeat CT imaging for deterioration or hematoma expansion",
+        "Start acute blood pressure control with nicardipine infusion and systolic BP target range",
+        "Assess anticoagulant exposure, DOAC timing, factor Xa inhibitor use, coagulopathy, INR, and reversal with andexanet or 4-factor PCC; use idarucizumab for dabigatran",
+        "Admit to ICU neurocritical care, call neurosurgery, and prepare EVD external ventricular drainage, hypertonic saline, mannitol, or ICP treatment for hydrocephalus",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "2022 Guideline for the Management of Patients With Spontaneous Intracerebral Hemorrhage",
+            "organization": "American Heart Association / American Stroke Association",
+            "url": "https://www.ahajournals.org/doi/10.1161/STR.0000000000000407",
+            "supports": [
+                "DOAC-associated intracerebral hemorrhage diagnosis and risk stratification",
+                "DOAC-associated intracerebral hemorrhage can expand early and requires immediate reversal planning",
+                "cerebellar hemorrhage with mass effect or hydrocephalus needs urgent neurosurgical review",
+                "blood pressure should be lowered with a controlled target while avoiding hypotension",
+                "altered mental status, headache, vomiting, seizure, hemiparesis, ataxia, or neurologic deficit as red flags",
+                "DOAC anticoagulant exposure, severe hypertension, cerebellar hemorrhage, mass effect, hydrocephalus, or herniation risk as severity markers",
+                "urgent noncontrast CT head and repeat CT imaging for deterioration or hematoma expansion",
+                "acute blood pressure control with nicardipine infusion and systolic BP target range",
+                "anticoagulant exposure, DOAC timing, factor Xa inhibitor use, coagulopathy, INR, and reversal with andexanet or 4-factor PCC; idarucizumab for dabigatran",
+                "ICU neurocritical care, neurosurgery, EVD external ventricular drainage, hypertonic saline, mannitol, or ICP treatment for hydrocephalus",
+                "medication allergy before antiemetics",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "intracerebral hemorrhage safety checks must include blood-pressure target range"
         in issue
         for issue in report.critical_issues
     )
