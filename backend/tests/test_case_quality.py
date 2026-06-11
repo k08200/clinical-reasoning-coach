@@ -147,6 +147,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "hhs_treatment_safety",
         "hyponatremia_time_critical_actions",
         "hyponatremia_treatment_safety",
+        "rhabdomyolysis_time_critical_actions",
+        "rhabdomyolysis_treatment_safety",
         "hyperkalemia_time_critical_actions",
         "hyperkalemia_treatment_safety",
         "status_epilepticus_time_critical_actions",
@@ -7523,6 +7525,150 @@ def test_quality_gate_requires_hyponatremia_correction_limits_overcorrection_res
     assert not report.passed
     assert any(
         "severe hyponatremia safety checks must include correction limit" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_rhabdomyolysis_ck_fluids_urine_output_electrolytes_and_cause_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Traumatic rhabdomyolysis with crush syndrome"
+    case["chief_complaint"] = "Crush injury with dark urine and leg pain"
+    case["history_of_present_illness"] = (
+        "Patient trapped under debris for 6 hours presents with crush injury, "
+        "severe leg swelling, tea-colored urine, suspected rhabdomyolysis, CK "
+        "42000 U/L, myoglobinuria, hyperkalemia, and rising creatinine."
+    )
+    case["initial_labs"] = {
+        "ck": "42000 U/L",
+        "potassium": "6.2 mmol/L",
+        "creatinine": "2.1 mg/dL",
+        "phosphate": "6.8 mg/dL",
+        "calcium": "7.2 mg/dL",
+        "urinalysis": "heme positive with few RBCs, myoglobinuria suspected",
+    }
+    case["key_teaching_points"] = [
+        "Rhabdomyolysis releases myoglobin, creatine kinase, potassium, phosphate, and uric acid",
+        "Early isotonic fluid resuscitation reduces pigment-induced AKI risk",
+        "Crush syndrome can cause hyperkalemia, compartment syndrome, DIC, and renal failure",
+    ]
+    case["clinical_red_flags"] = [
+        "CK 42000 U/L, myoglobinuria, dark urine, AKI, hyperkalemia, or oliguria",
+        "Severe swelling, neurovascular compromise, compartment syndrome, DIC, or shock",
+    ]
+    case["time_critical_actions"] = [
+        "Send CK creatine kinase trend, serum myoglobin, urinalysis, renal function, and CMP",
+        "Place Foley catheter and monitor urine output toward 200-300 mL/hour target",
+        "Check potassium, calcium, phosphate, electrolytes, ECG, and treat hyperkalemia immediately",
+        "Remove compression, address crush trauma, stop offending agent if present, and assess compartment syndrome and DIC",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor renal function, AKI progression, volume overload, and fluid overload during aggressive resuscitation",
+        "Use bicarbonate alkalinization only with urine pH and serum pH 7.5 safeguards; avoid mannitol in oliguria or AKI",
+        "Review hemodialysis indications for anuric AKI, refractory hyperkalemia, severe acidosis, uremia, or volume overload",
+        "Treat hyperkalemia while reviewing hypocalcemia, later hypercalcemia, potassium trend, and calcium caution",
+        "Perform serial neurovascular exams for compartment syndrome, fasciotomy need, DIC, platelet count, and PT changes",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Rhabdomyolysis",
+            "organization": "StatPearls / NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK448168/",
+            "supports": [
+                "traumatic rhabdomyolysis with crush syndrome diagnosis and risk stratification",
+                "crush injury, severe leg swelling, tea-colored urine, suspected rhabdomyolysis, CK 42000 U/L, myoglobinuria, hyperkalemia, and rising creatinine",
+                "rhabdomyolysis releases myoglobin, creatine kinase, potassium, phosphate, and uric acid",
+                "early isotonic fluid resuscitation reduces pigment-induced AKI risk",
+                "crush syndrome can cause hyperkalemia, compartment syndrome, DIC, and renal failure",
+                "CK 42000 U/L, myoglobinuria, dark urine, AKI, hyperkalemia, or oliguria as red flags",
+                "severe swelling, neurovascular compromise, compartment syndrome, DIC, or shock as severity markers",
+                "CK creatine kinase trend, serum myoglobin, urinalysis, renal function, and CMP",
+                "Foley catheter and urine output toward 200-300 mL/hour target",
+                "potassium, calcium, phosphate, electrolytes, ECG, and hyperkalemia treatment",
+                "compression removal, crush trauma management, offending agent removal, compartment syndrome assessment, and DIC assessment",
+                "renal function, AKI progression, volume overload, and fluid overload during aggressive resuscitation",
+                "bicarbonate alkalinization only with urine pH and serum pH 7.5 safeguards; avoid mannitol in oliguria or AKI",
+                "hemodialysis indications for anuric AKI, refractory hyperkalemia, severe acidosis, uremia, or volume overload",
+                "hyperkalemia treatment with hypocalcemia, later hypercalcemia, potassium trend, and calcium caution",
+                "serial neurovascular exams for compartment syndrome, fasciotomy need, DIC, platelet count, and PT changes",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "rhabdomyolysis time-critical actions must include CK" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_rhabdomyolysis_renal_bicarbonate_dialysis_electrolyte_and_compartment_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Exertional rhabdomyolysis with AKI"
+    case["chief_complaint"] = "Severe muscle pain and cola-colored urine after exertion"
+    case["history_of_present_illness"] = (
+        "Patient presents after intense exercise in heat with exertional "
+        "rhabdomyolysis, cola-colored urine, CK 68000 U/L, myoglobinuria, "
+        "hyperkalemia, oliguria, and acute kidney injury."
+    )
+    case["initial_labs"] = {
+        "ck": "68000 U/L",
+        "potassium": "6.5 mmol/L",
+        "creatinine": "2.9 mg/dL",
+        "phosphate": "7.5 mg/dL",
+        "calcium": "6.9 mg/dL",
+        "urinalysis": "large heme without RBCs",
+    }
+    case["key_teaching_points"] = [
+        "Rhabdomyolysis is diagnosed by elevated CK and can cause pigment-induced AKI",
+        "Treatment requires isotonic fluids titrated to urine output",
+        "Severe cases require electrolyte, renal, compartment, and DIC complication monitoring",
+    ]
+    case["clinical_red_flags"] = [
+        "CK 68000 U/L, myoglobinuria, dark urine, AKI, hyperkalemia, oliguria, or anuria",
+        "Compartment syndrome, DIC, severe acidosis, uremia, or volume overload",
+    ]
+    case["time_critical_actions"] = [
+        "Send CK creatine kinase trend, serum myoglobin, urinalysis, renal function, and CMP",
+        "Start aggressive isotonic saline IV fluids for hydration and renal perfusion",
+        "Place Foley catheter and monitor urine output toward 200-300 mL/hour target",
+        "Check potassium, calcium, phosphate, electrolytes, ECG, and treat hyperkalemia immediately",
+        "Stop exertional trigger and offending agent if present; assess compartment syndrome, trauma, and DIC",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before analgesia",
+        "Pregnancy status before imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Rhabdomyolysis",
+            "organization": "StatPearls / NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK448168/",
+            "supports": [
+                "exertional rhabdomyolysis with AKI diagnosis and risk stratification",
+                "exertional rhabdomyolysis, cola-colored urine, CK 68000 U/L, myoglobinuria, hyperkalemia, oliguria, and acute kidney injury",
+                "rhabdomyolysis is diagnosed by elevated CK and can cause pigment-induced AKI",
+                "treatment requires isotonic fluids titrated to urine output",
+                "severe cases require electrolyte, renal, compartment, and DIC complication monitoring",
+                "CK 68000 U/L, myoglobinuria, dark urine, AKI, hyperkalemia, oliguria, or anuria as red flags",
+                "compartment syndrome, DIC, severe acidosis, uremia, or volume overload as severity markers",
+                "CK creatine kinase trend, serum myoglobin, urinalysis, renal function, and CMP",
+                "aggressive isotonic saline IV fluids for hydration and renal perfusion",
+                "Foley catheter and urine output toward 200-300 mL/hour target",
+                "potassium, calcium, phosphate, electrolytes, ECG, and hyperkalemia treatment",
+                "exertional trigger and offending agent removal; compartment syndrome, trauma, and DIC assessment",
+                "medication allergy before analgesia",
+                "pregnancy status before imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "rhabdomyolysis safety checks must include renal" in issue
         for issue in report.critical_issues
     )
 

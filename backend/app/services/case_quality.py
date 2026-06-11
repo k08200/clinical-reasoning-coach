@@ -5631,6 +5631,105 @@ HYPONATREMIA_DISPOSITION_MONITORING_SAFETY_TERMS = (
     "q2",
     "serial sodium",
 )
+RHABDOMYOLYSIS_CONTEXT_TERMS = (
+    "crush syndrome",
+    "exertional rhabdomyolysis",
+    "rhabdomyolysis",
+    "rhabdo",
+    "suspected rhabdomyolysis",
+    "traumatic rhabdomyolysis",
+    "횡문근융해",
+)
+RHABDOMYOLYSIS_SEVERE_RISK_TERMS = (
+    "aki",
+    "ck 5000",
+    "ck >5000",
+    "cola-colored urine",
+    "creatine kinase",
+    "crush injury",
+    "dark urine",
+    "hyperkalemia",
+    "myoglobinuria",
+    "tea-colored urine",
+)
+RHABDOMYOLYSIS_CK_MYOGLOBIN_ACTION_TERMS = (
+    "ck",
+    "cPK",
+    "creatine kinase",
+    "myoglobin",
+    "myoglobinuria",
+    "urinalysis",
+)
+RHABDOMYOLYSIS_FLUID_ACTION_TERMS = (
+    "crystalloid",
+    "fluid",
+    "hydration",
+    "isotonic saline",
+    "iv fluids",
+    "lactated ringer",
+    "normal saline",
+)
+RHABDOMYOLYSIS_URINE_OUTPUT_ACTION_TERMS = (
+    "200 to 300",
+    "200-300",
+    "foley",
+    "urine output",
+    "urine-output",
+)
+RHABDOMYOLYSIS_ELECTROLYTE_ECG_ACTION_TERMS = (
+    "calcium",
+    "ecg",
+    "electrolyte",
+    "hyperkalemia",
+    "phosphate",
+    "potassium",
+)
+RHABDOMYOLYSIS_CAUSE_COMPLICATION_ACTION_TERMS = (
+    "compartment",
+    "crush",
+    "dic",
+    "offending agent",
+    "remove stimulus",
+    "stop statin",
+    "trauma",
+)
+RHABDOMYOLYSIS_VOLUME_RENAL_SAFETY_TERMS = (
+    "aki",
+    "fluid overload",
+    "renal",
+    "volume overload",
+)
+RHABDOMYOLYSIS_BICARB_MANNITOL_SAFETY_TERMS = (
+    "alkalinization",
+    "bicarbonate",
+    "mannitol",
+    "oliguria",
+    "ph 7.5",
+    "urine ph",
+)
+RHABDOMYOLYSIS_DIALYSIS_SAFETY_TERMS = (
+    "anuric",
+    "dialysis",
+    "hemodialysis",
+    "refractory hyperkalemia",
+    "severe acidosis",
+    "uremia",
+)
+RHABDOMYOLYSIS_CALCIUM_ELECTROLYTE_SAFETY_TERMS = (
+    "calcium caution",
+    "hypercalcemia",
+    "hyperkalemia",
+    "hypocalcemia",
+    "potassium",
+)
+RHABDOMYOLYSIS_COMPARTMENT_DIC_SAFETY_TERMS = (
+    "compartment syndrome",
+    "dic",
+    "fasciotomy",
+    "neurovascular",
+    "platelet",
+    "pt",
+)
 HYPERKALEMIA_CONTEXT_TERMS = (
     "ecg changes from hyperkalemia",
     "hyperkalemic emergency",
@@ -9539,6 +9638,39 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "saline, stop-thiazide, or offending-medication cause safety, and "
                 "ICU, high-dependency, close, frequent, q2, or serial sodium "
                 "monitoring disposition"
+            ),
+        ),
+        DomainSafetyGate(
+            name="rhabdomyolysis_time_critical_actions",
+            applies=_requires_rhabdomyolysis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_rhabdomyolysis_time_critical_actions,
+            issue=(
+                "rhabdomyolysis time-critical actions must include CK, CPK, "
+                "creatine-kinase, myoglobin, myoglobinuria, or urinalysis "
+                "assessment, isotonic crystalloid, normal saline, lactated "
+                "Ringer, hydration, fluid, or IV-fluid resuscitation, urine-output "
+                "or Foley monitoring with 200-300 mL/hour target, electrolyte, "
+                "potassium, hyperkalemia, calcium, phosphate, or ECG assessment, "
+                "and cause or complication control including crush, trauma, "
+                "offending-agent removal, stop-statin, compartment, or DIC review"
+            ),
+        ),
+        DomainSafetyGate(
+            name="rhabdomyolysis_treatment_safety",
+            applies=_requires_rhabdomyolysis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_rhabdomyolysis_treatment_safety_check,
+            issue=(
+                "rhabdomyolysis safety checks must include renal, AKI, volume-"
+                "overload, or fluid-overload monitoring, bicarbonate, "
+                "alkalinization, urine-pH, pH-7.5, mannitol, oliguria, or "
+                "diuretic-limit safety, dialysis or hemodialysis indications for "
+                "anuria, refractory hyperkalemia, severe acidosis, uremia, or "
+                "volume overload, potassium, hyperkalemia, hypocalcemia, "
+                "hypercalcemia, or calcium-caution electrolyte safety, and "
+                "compartment-syndrome, neurovascular, fasciotomy, DIC, platelet, "
+                "or PT complication monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -14341,6 +14473,97 @@ def _has_hyponatremia_treatment_safety_check(checks: list[Any]) -> bool:
         and has_overcorrection_rescue
         and has_volume_cause_safety
         and has_disposition_monitoring
+    )
+
+
+def _requires_rhabdomyolysis_safety_check(data: dict[str, Any]) -> bool:
+    direct_context = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in (
+            "chief_complaint",
+            "history_of_present_illness",
+            "diagnosis",
+        )
+    )
+    risk_text = direct_context
+    for field_name in (
+        "initial_labs",
+        "physical_exam",
+        "time_critical_actions",
+        "clinical_red_flags",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_rhabdomyolysis_context = any(
+        _contains_safety_term(direct_context, term)
+        for term in RHABDOMYOLYSIS_CONTEXT_TERMS
+    )
+    has_severe_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in RHABDOMYOLYSIS_SEVERE_RISK_TERMS
+    )
+    return has_rhabdomyolysis_context and has_severe_risk
+
+
+def _has_rhabdomyolysis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_ck_myoglobin = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RHABDOMYOLYSIS_CK_MYOGLOBIN_ACTION_TERMS
+    )
+    has_fluid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RHABDOMYOLYSIS_FLUID_ACTION_TERMS
+    )
+    has_urine_output = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RHABDOMYOLYSIS_URINE_OUTPUT_ACTION_TERMS
+    )
+    has_electrolyte_ecg = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RHABDOMYOLYSIS_ELECTROLYTE_ECG_ACTION_TERMS
+    )
+    has_cause_complication = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RHABDOMYOLYSIS_CAUSE_COMPLICATION_ACTION_TERMS
+    )
+    return (
+        has_ck_myoglobin
+        and has_fluid
+        and has_urine_output
+        and has_electrolyte_ecg
+        and has_cause_complication
+    )
+
+
+def _has_rhabdomyolysis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_volume_renal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RHABDOMYOLYSIS_VOLUME_RENAL_SAFETY_TERMS
+    )
+    has_bicarb_mannitol_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RHABDOMYOLYSIS_BICARB_MANNITOL_SAFETY_TERMS
+    )
+    has_dialysis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RHABDOMYOLYSIS_DIALYSIS_SAFETY_TERMS
+    )
+    has_calcium_electrolyte_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RHABDOMYOLYSIS_CALCIUM_ELECTROLYTE_SAFETY_TERMS
+    )
+    has_compartment_dic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RHABDOMYOLYSIS_COMPARTMENT_DIC_SAFETY_TERMS
+    )
+    return (
+        has_volume_renal_safety
+        and has_bicarb_mannitol_safety
+        and has_dialysis_safety
+        and has_calcium_electrolyte_safety
+        and has_compartment_dic_safety
     )
 
 
