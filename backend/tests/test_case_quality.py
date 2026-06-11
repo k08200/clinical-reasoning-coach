@@ -151,6 +151,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "acetaminophen_toxicity_treatment_safety",
         "toxic_alcohol_time_critical_actions",
         "toxic_alcohol_treatment_safety",
+        "lithium_toxicity_time_critical_actions",
+        "lithium_toxicity_treatment_safety",
         "salicylate_toxicity_time_critical_actions",
         "salicylate_toxicity_treatment_safety",
         "carbon_monoxide_poisoning_time_critical_actions",
@@ -7569,6 +7571,179 @@ def test_quality_gate_requires_toxic_alcohol_dialysis_organ_and_differential_saf
     assert any(
         "toxic alcohol safety checks must include hemodialysis indication"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_lithium_serial_levels_renal_fluids_decontamination_and_dialysis_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Lithium toxicity with acute kidney injury"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "female",
+        "weight_kg": 66,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion, tremor, and vomiting while taking lithium"
+    case["history_of_present_illness"] = (
+        "Patient on chronic lithium carbonate presents after vomiting and dehydration "
+        "with confusion, coarse tremor, ataxia, hyperreflexia, AKI, and elevated "
+        "lithium level concerning for lithium toxicity."
+    )
+    case["past_medical_history"] = "Bipolar disorder on lithium and recent thiazide diuretic use"
+    case["physical_exam"] = {
+        "vitals": {"bp": "98/62", "hr": 54, "rr": 18, "temp_c": 37.2, "spo2": 97},
+        "general": "Vomiting, dehydrated, and confused",
+        "cardiovascular": "Bradycardic with possible conduction delay",
+        "pulmonary": "Clear lungs without respiratory distress",
+        "abdomen": "Mild diffuse tenderness after emesis",
+        "neuro": "Coarse tremor, ataxia, hyperreflexia, and fluctuating mental status",
+        "other": "Dry mucous membranes",
+    }
+    case["initial_labs"] = {
+        "lithium": "3.8 mEq/L",
+        "creatinine": "2.4 mg/dL",
+        "bun": "44 mg/dL",
+        "sodium": "132 mEq/L",
+        "ecg": "Sinus bradycardia with T-wave flattening",
+    }
+    case["key_teaching_points"] = [
+        "Lithium toxicity symptoms may not conform to the measured lithium level, especially in chronic toxicity",
+        "Renal impairment, dehydration, sodium depletion, and interacting medications can reduce lithium clearance",
+        "Severe lithium poisoning may require hemodialysis or other extracorporeal treatment",
+    ]
+    case["clinical_red_flags"] = [
+        "Confusion, ataxia, coarse tremor, hyperreflexia, seizure, coma, or decreased level of consciousness",
+        "AKI, renal failure, dehydration, bradycardia, dysrhythmia, sodium depletion, or elevated lithium level",
+    ]
+    case["time_critical_actions"] = [
+        "Hold lithium and give normal saline IV fluids to correct dehydration and volume depletion",
+        "Trend serial serum lithium level or lithium concentration every 6 hours with repeat level monitoring until clearly falling",
+        "Check renal function, creatinine, BUN, electrolytes, sodium, ECG, cardiac monitoring, and urine output",
+        "Consider whole bowel irrigation for sustained-release or massive ingestion and remember activated charcoal is not effective unless co-ingestant exposure is possible",
+    ]
+    case["contraindication_checks"] = [
+        "Review dialysis indication and ECTR criteria: impaired kidney function with Li > 4, level > 5, decreased level of consciousness, seizure, dysrhythmia, confusion, or expected time to level <1.0 over 36 hours",
+        "Plan rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent",
+        "Review precipitants including NSAID, ACE inhibitor, ARB, diuretic, thiazide, dehydration, sodium depletion, low sodium diet, renal insufficiency, and nephrogenic diabetes insipidus",
+        "Disposition by clinical status because signs do not conform to lithium level: admit symptomatic despite normal level, ICU for moderate or severe symptoms, and discharge only when asymptomatic with level less than 1.5",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Lithium Toxicity",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK499992/",
+            "supports": [
+                "lithium toxicity with acute kidney injury diagnosis and risk stratification",
+                "chronic lithium carbonate with vomiting, dehydration, confusion, coarse tremor, ataxia, hyperreflexia, AKI, and elevated lithium level",
+                "lithium toxicity symptoms may not conform to the measured lithium level, especially in chronic toxicity",
+                "renal impairment, dehydration, sodium depletion, and interacting medications can reduce lithium clearance",
+                "severe lithium poisoning may require hemodialysis or other extracorporeal treatment",
+                "confusion, ataxia, coarse tremor, hyperreflexia, seizure, coma, or decreased level of consciousness as red flags",
+                "AKI, renal failure, dehydration, bradycardia, dysrhythmia, sodium depletion, or elevated lithium level as severity markers",
+                "hold lithium and normal saline IV fluids to correct dehydration and volume depletion",
+                "serial serum lithium level or lithium concentration every 6 hours with repeat level monitoring until clearly falling",
+                "renal function, creatinine, BUN, electrolytes, sodium, ECG, cardiac monitoring, and urine output assessment",
+                "whole bowel irrigation for sustained-release or massive ingestion and activated charcoal is not effective unless co-ingestant exposure is possible",
+                "dialysis indication and ECTR criteria: impaired kidney function with Li > 4, level > 5, decreased level of consciousness, seizure, dysrhythmia, confusion, or expected time to level <1.0 over 36 hours",
+                "rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent",
+                "NSAID, ACE inhibitor, ARB, diuretic, thiazide, dehydration, sodium depletion, low sodium diet, renal insufficiency, and nephrogenic diabetes insipidus precipitant review",
+                "clinical status disposition because signs do not conform to lithium level: admit symptomatic despite normal level, ICU for moderate or severe symptoms, and discharge only when asymptomatic with level less than 1.5",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "lithium toxicity time-critical actions must include serial serum lithium level"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_lithium_dialysis_rebound_precipitant_and_disposition_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Lithium poisoning with neurologic toxicity"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "female",
+        "weight_kg": 66,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion and ataxia with elevated lithium concentration"
+    case["history_of_present_illness"] = (
+        "Patient taking lithium carbonate presents with vomiting, dehydration, "
+        "confusion, ataxia, tremor, hyperreflexia, acute kidney injury, and "
+        "elevated lithium concentration."
+    )
+    case["past_medical_history"] = "Bipolar disorder treated with lithium; recent NSAID and ACE inhibitor use"
+    case["physical_exam"] = {
+        "vitals": {"bp": "96/58", "hr": 52, "rr": 17, "temp_c": 37.0, "spo2": 98},
+        "general": "Confused and dehydrated",
+        "cardiovascular": "Bradycardia with T-wave flattening",
+        "pulmonary": "No respiratory distress",
+        "abdomen": "Vomiting without peritonitis",
+        "neuro": "Coarse tremor, ataxia, hyperreflexia, and intermittent agitation",
+        "other": "Dry mucous membranes",
+    }
+    case["initial_labs"] = {
+        "lithium": "4.4 mEq/L",
+        "creatinine": "2.8 mg/dL",
+        "bun": "52 mg/dL",
+        "sodium": "130 mEq/L",
+        "ecg": "Sinus bradycardia and QT prolongation",
+    }
+    case["key_teaching_points"] = [
+        "Lithium toxicity signs can be more severe in chronic exposure and may not match the serum level",
+        "Sodium and volume depletion increase renal lithium reabsorption",
+        "Severe neurologic toxicity, renal failure, or high lithium levels need early poison center and nephrology involvement",
+    ]
+    case["clinical_red_flags"] = [
+        "Confusion, ataxia, tremor, hyperreflexia, seizure, decreased level of consciousness, or coma",
+        "AKI, renal failure, dehydration, sodium depletion, bradycardia, dysrhythmia, or elevated lithium concentration",
+    ]
+    case["time_critical_actions"] = [
+        "Stop lithium and give isotonic saline or normal saline IV fluids for dehydration and volume depletion",
+        "Trend serial serum lithium level or lithium concentration every 6 hours with repeat level monitoring",
+        "Check renal function, creatinine, BUN, electrolytes, sodium, ECG, cardiac monitoring, and urine output",
+        "Use whole bowel irrigation for sustained-release or massive ingestion and note activated charcoal is not effective unless co-ingestant exposure is possible",
+        "Call poison center toxicologist and nephrology for hemodialysis, dialysis, ECTR, or extracorporeal escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Volume status before additional fluids",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Lithium Toxicity",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK499992/",
+            "supports": [
+                "lithium poisoning with neurologic toxicity diagnosis and risk stratification",
+                "lithium carbonate exposure with vomiting, dehydration, confusion, ataxia, tremor, hyperreflexia, acute kidney injury, and elevated lithium concentration",
+                "lithium toxicity signs can be more severe in chronic exposure and may not match the serum level",
+                "sodium and volume depletion increase renal lithium reabsorption",
+                "severe neurologic toxicity, renal failure, or high lithium levels need early poison center and nephrology involvement",
+                "confusion, ataxia, tremor, hyperreflexia, seizure, decreased level of consciousness, or coma as red flags",
+                "AKI, renal failure, dehydration, sodium depletion, bradycardia, dysrhythmia, or elevated lithium concentration as severity markers",
+                "stop lithium and isotonic saline or normal saline IV fluids for dehydration and volume depletion",
+                "serial serum lithium level or lithium concentration every 6 hours with repeat level monitoring",
+                "renal function, creatinine, BUN, electrolytes, sodium, ECG, cardiac monitoring, and urine output assessment",
+                "whole bowel irrigation for sustained-release or massive ingestion and activated charcoal is not effective unless co-ingestant exposure is possible",
+                "poison center toxicologist and nephrology for hemodialysis, dialysis, ECTR, or extracorporeal escalation",
+                "medication allergy before antiemetics",
+                "volume status before additional fluids",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "lithium toxicity safety checks must include dialysis indication" in issue
         for issue in report.critical_issues
     )
 
