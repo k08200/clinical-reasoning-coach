@@ -3051,6 +3051,112 @@ MYXEDEMA_COMA_CARDIAC_DOSING_SAFETY_TERMS = (
     "telemetry",
     "심장",
 )
+SEVERE_HYPOTHERMIA_CONTEXT_TERMS = (
+    "accidental hypothermia",
+    "avalanche burial",
+    "cold exposure",
+    "cold immersion",
+    "core temperature 27",
+    "core temperature 28",
+    "exposure hypothermia",
+    "severe hypothermia",
+    "temperature 27",
+    "temperature 28",
+    "저체온증",
+)
+SEVERE_HYPOTHERMIA_RISK_TERMS = (
+    "asystole",
+    "bradycardia",
+    "cardiac arrest",
+    "coma",
+    "confusion",
+    "hypotension",
+    "osborn",
+    "ventricular fibrillation",
+    "vf",
+)
+SEVERE_HYPOTHERMIA_CORE_TEMP_ACTION_TERMS = (
+    "core temperature",
+    "esophageal",
+    "low-reading",
+    "rectal",
+    "temperature",
+    "thermometer",
+)
+SEVERE_HYPOTHERMIA_GENTLE_ABC_ACTION_TERMS = (
+    "airway",
+    "gentle handling",
+    "insulation",
+    "oxygen",
+    "remove wet clothing",
+    "ventilation",
+)
+SEVERE_HYPOTHERMIA_REWARMING_ACTION_TERMS = (
+    "active core rewarming",
+    "active external rewarming",
+    "ecmo",
+    "extracorporeal",
+    "forced air",
+    "heated humidified oxygen",
+    "heated lavage",
+    "rewarming",
+    "warm iv fluid",
+)
+SEVERE_HYPOTHERMIA_ECG_LAB_ACTION_TERMS = (
+    "ecg",
+    "electrolyte",
+    "glucose",
+    "osborn",
+    "potassium",
+    "trauma",
+    "toxin",
+)
+SEVERE_HYPOTHERMIA_ARREST_ESCALATION_ACTION_TERMS = (
+    "cardiac arrest",
+    "cpr",
+    "defibrillation",
+    "ecmo",
+    "ecls",
+    "extracorporeal",
+    "va-ecmo",
+)
+SEVERE_HYPOTHERMIA_AFTERDROP_SAFETY_TERMS = (
+    "afterdrop",
+    "extremities",
+    "gentle handling",
+    "rewarming collapse",
+    "thorax",
+)
+SEVERE_HYPOTHERMIA_ACLS_TEMP_SAFETY_TERMS = (
+    "30 c",
+    "30°c",
+    "acls medications",
+    "defer defibrillation",
+    "epinephrine",
+    "vasopressor",
+)
+SEVERE_HYPOTHERMIA_PERFUSING_RHYTHM_SAFETY_TERMS = (
+    "bradycardia expected",
+    "cpr",
+    "perfusing rhythm",
+    "pulse check",
+    "ultrasound",
+)
+SEVERE_HYPOTHERMIA_ECMO_TERMINATION_SAFETY_TERMS = (
+    "ecmo",
+    "ecls",
+    "extracorporeal",
+    "hyperkalemia",
+    "potassium > 12",
+    "rewarm before termination",
+)
+SEVERE_HYPOTHERMIA_SECONDARY_CAUSE_SAFETY_TERMS = (
+    "hypoglycemia",
+    "myxedema",
+    "sepsis",
+    "trauma",
+    "toxin",
+)
 HEAT_STROKE_CONTEXT_TERMS = (
     "classic heat stroke",
     "exertional heat stroke",
@@ -8956,6 +9062,42 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="severe_hypothermia_time_critical_actions",
+            applies=_requires_severe_hypothermia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_severe_hypothermia_time_critical_actions,
+            issue=(
+                "severe hypothermia time-critical actions must include core "
+                "temperature measurement with rectal, esophageal, low-reading "
+                "thermometer, or temperature confirmation, gentle handling, wet-"
+                "clothing removal, insulation, airway, oxygen, or ventilation "
+                "support, active external or active core rewarming such as forced "
+                "air, heated humidified oxygen, warm IV fluid, heated lavage, ECMO, "
+                "ECLS, or extracorporeal rewarming, ECG plus glucose, electrolyte, "
+                "potassium, Osborn-wave, trauma, or toxin assessment, and cardiac-"
+                "arrest escalation with CPR, defibrillation, ECMO, ECLS, VA-ECMO, "
+                "or extracorporeal support"
+            ),
+        ),
+        DomainSafetyGate(
+            name="severe_hypothermia_treatment_safety",
+            applies=_requires_severe_hypothermia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_severe_hypothermia_treatment_safety_check,
+            issue=(
+                "severe hypothermia safety checks must include afterdrop or "
+                "rewarming-collapse prevention with gentle handling, thorax-focused "
+                "warming, or avoiding extremity-first rewarming, temperature-"
+                "dependent ACLS review for 30 C, deferred repeated defibrillation, "
+                "epinephrine, vasopressor, or ACLS medications, perfusing-rhythm "
+                "safety with pulse check, ultrasound, bradycardia-expected, CPR "
+                "avoidance, or CPR only for nonperfusing rhythm, ECMO, ECLS, "
+                "extracorporeal rewarming, rewarm-before-termination, hyperkalemia, "
+                "or potassium >12 review, and secondary-cause review for "
+                "hypoglycemia, myxedema, sepsis, trauma, or toxin exposure"
+            ),
+        ),
+        DomainSafetyGate(
             name="heat_stroke_time_critical_actions",
             applies=_requires_heat_stroke_safety_check,
             field_name="time_critical_actions",
@@ -12511,6 +12653,97 @@ def _has_myxedema_coma_treatment_safety_check(checks: list[Any]) -> bool:
         and has_rewarming_safety
         and has_metabolic_respiratory_safety
         and has_cardiac_dosing_safety
+    )
+
+
+def _requires_severe_hypothermia_safety_check(data: dict[str, Any]) -> bool:
+    direct_context = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in (
+            "chief_complaint",
+            "history_of_present_illness",
+            "diagnosis",
+        )
+    )
+    risk_text = direct_context
+    for field_name in (
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+        "time_critical_actions",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_context = any(
+        _contains_safety_term(direct_context, term)
+        for term in SEVERE_HYPOTHERMIA_CONTEXT_TERMS
+    )
+    has_severe_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in SEVERE_HYPOTHERMIA_RISK_TERMS
+    )
+    return has_context and has_severe_risk
+
+
+def _has_severe_hypothermia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_core_temp = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOTHERMIA_CORE_TEMP_ACTION_TERMS
+    )
+    has_gentle_abc = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOTHERMIA_GENTLE_ABC_ACTION_TERMS
+    )
+    has_rewarming = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOTHERMIA_REWARMING_ACTION_TERMS
+    )
+    has_ecg_labs = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOTHERMIA_ECG_LAB_ACTION_TERMS
+    )
+    has_arrest_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOTHERMIA_ARREST_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_core_temp
+        and has_gentle_abc
+        and has_rewarming
+        and has_ecg_labs
+        and has_arrest_escalation
+    )
+
+
+def _has_severe_hypothermia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_afterdrop_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_HYPOTHERMIA_AFTERDROP_SAFETY_TERMS
+    )
+    has_acls_temp_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_HYPOTHERMIA_ACLS_TEMP_SAFETY_TERMS
+    )
+    has_perfusing_rhythm_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_HYPOTHERMIA_PERFUSING_RHYTHM_SAFETY_TERMS
+    )
+    has_ecmo_termination_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_HYPOTHERMIA_ECMO_TERMINATION_SAFETY_TERMS
+    )
+    has_secondary_cause_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_HYPOTHERMIA_SECONDARY_CAUSE_SAFETY_TERMS
+    )
+    return (
+        has_afterdrop_safety
+        and has_acls_temp_safety
+        and has_perfusing_rhythm_safety
+        and has_ecmo_termination_safety
+        and has_secondary_cause_safety
     )
 
 

@@ -95,6 +95,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "thyroid_storm_treatment_safety",
         "myxedema_coma_time_critical_actions",
         "myxedema_coma_treatment_safety",
+        "severe_hypothermia_time_critical_actions",
+        "severe_hypothermia_treatment_safety",
         "heat_stroke_time_critical_actions",
         "heat_stroke_treatment_safety",
         "serotonin_syndrome_time_critical_actions",
@@ -3750,6 +3752,175 @@ def test_quality_gate_requires_myxedema_coma_steroid_rewarming_metabolic_and_car
     assert not report.passed
     assert any(
         "myxedema coma safety checks must include adrenal-insufficiency" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_hypothermia_core_temp_gentle_rewarming_labs_and_arrest_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe accidental hypothermia"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "male",
+        "weight_kg": 80,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Found confused after cold exposure"
+    case["history_of_present_illness"] = (
+        "Patient found outdoors after prolonged cold exposure with wet clothing, "
+        "confusion, bradycardia, hypotension, Osborn waves, and core temperature "
+        "27.5 C concerning for severe hypothermia."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "84/48", "hr": 38, "rr": 8, "temp_c": 27.5, "spo2": 88},
+        "general": "Confused, cold, and shivering has stopped",
+        "cardiovascular": "Bradycardic with weak pulses",
+        "pulmonary": "Slow respirations",
+        "neuro": "Obtunded but withdraws to pain",
+        "other": "Wet clothing and cold skin",
+    }
+    case["initial_labs"] = {
+        "glucose": "54 mg/dL",
+        "potassium": "4.9 mmol/L",
+        "ph": "7.22",
+        "lactate": "4.8 mmol/L",
+    }
+    case["key_teaching_points"] = [
+        "Severe hypothermia can cause bradycardia, Osborn waves, ventricular fibrillation, and cardiac arrest",
+        "Core temperature should be measured with an appropriate low-reading rectal or esophageal thermometer",
+        "Rewarming must be paired with gentle handling and resuscitation because afterdrop and dysrhythmia can occur",
+    ]
+    case["clinical_red_flags"] = [
+        "Core temperature below 28 C, coma, hypotension, bradycardia, Osborn waves, ventricular fibrillation, or asystole",
+        "Hypoglycemia, trauma, toxin exposure, sepsis, myxedema, or electrolyte disturbance",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm core temperature with a low-reading rectal or esophageal thermometer",
+        "Use gentle handling, remove wet clothing, insulate, support airway, oxygen, and ventilation",
+        "Obtain ECG for Osborn waves and check glucose, electrolytes, potassium, trauma, and toxin causes",
+        "Prepare CPR and defibrillation if cardiac arrest or ventricular fibrillation develops",
+    ]
+    case["contraindication_checks"] = [
+        "Prevent afterdrop and rewarming collapse with gentle handling, thorax-focused warming, and avoidance of extremity-first rewarming",
+        "Review temperature-dependent ACLS: defer repeated defibrillation and epinephrine or vasopressor ACLS medications until about 30 C",
+        "Confirm perfusing rhythm with pulse check and ultrasound; bradycardia is expected and CPR is for nonperfusing rhythm only",
+        "Plan ECMO ECLS extracorporeal rewarming and rewarm before termination unless hyperkalemia potassium > 12 indicates futility",
+        "Review secondary causes including hypoglycemia, myxedema, sepsis, trauma, and toxin exposure",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hypothermia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/cold-injury/hypothermia",
+            "supports": [
+                "severe accidental hypothermia diagnosis and risk stratification",
+                "prolonged cold exposure with wet clothing, confusion, bradycardia, hypotension, Osborn waves, and core temperature 27.5 C",
+                "severe hypothermia can cause bradycardia, Osborn waves, ventricular fibrillation, and cardiac arrest",
+                "core temperature measurement with appropriate low-reading rectal or esophageal thermometer",
+                "rewarming paired with gentle handling and resuscitation because afterdrop and dysrhythmia can occur",
+                "core temperature below 28 C, coma, hypotension, bradycardia, Osborn waves, ventricular fibrillation, or asystole as red flags",
+                "hypoglycemia, trauma, toxin exposure, sepsis, myxedema, or electrolyte disturbance as severity markers",
+                "core temperature with a low-reading rectal or esophageal thermometer",
+                "gentle handling, wet clothing removal, insulation, airway, oxygen, and ventilation",
+                "ECG for Osborn waves and glucose, electrolytes, potassium, trauma, and toxin causes",
+                "CPR and defibrillation if cardiac arrest or ventricular fibrillation develops",
+                "afterdrop and rewarming collapse prevention with gentle handling, thorax-focused warming, and avoidance of extremity-first rewarming",
+                "temperature-dependent ACLS: defer repeated defibrillation and epinephrine or vasopressor ACLS medications until about 30 C",
+                "perfusing rhythm with pulse check and ultrasound; bradycardia expected and CPR for nonperfusing rhythm only",
+                "ECMO ECLS extracorporeal rewarming and rewarm before termination unless hyperkalemia potassium > 12 indicates futility",
+                "secondary causes including hypoglycemia, myxedema, sepsis, trauma, and toxin exposure",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hypothermia time-critical actions must include core temperature"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_hypothermia_afterdrop_acls_perfusing_rhythm_ecmo_and_secondary_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe accidental hypothermia with cardiac arrest risk"
+    case["patient_demographics"] = {
+        "age": 44,
+        "sex": "female",
+        "weight_kg": 63,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Cold immersion with coma and bradycardia"
+    case["history_of_present_illness"] = (
+        "Patient rescued after cold immersion with coma, bradycardia, hypotension, "
+        "core temperature 26.8 C, Osborn waves, and intermittent ventricular "
+        "fibrillation concerning for severe hypothermia."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "70/40", "hr": 32, "rr": 6, "temp_c": 26.8, "spo2": 84},
+        "general": "Comatose and cold",
+        "cardiovascular": "Profound bradycardia with intermittent nonperfusing rhythm concern",
+        "pulmonary": "Hypoventilation",
+        "neuro": "Coma",
+        "other": "Cold immersion exposure",
+    }
+    case["initial_labs"] = {
+        "glucose": "48 mg/dL",
+        "potassium": "5.6 mmol/L",
+        "ph": "7.12",
+        "lactate": "7.2 mmol/L",
+    }
+    case["key_teaching_points"] = [
+        "Severe hypothermia below 28 C needs active core rewarming and ECMO or ECLS consideration when unstable",
+        "Repeated defibrillation and ACLS medications may be deferred until core temperature approaches 30 C",
+        "Do not terminate resuscitation before rewarming unless lethal injury or extreme hyperkalemia is present",
+    ]
+    case["clinical_red_flags"] = [
+        "Coma, hypotension, bradycardia, ventricular fibrillation, asystole, Osborn waves, or cardiac arrest",
+        "Hypoglycemia, sepsis, trauma, toxin exposure, myxedema, or potassium > 12 as poor prognostic marker",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm core temperature with low-reading esophageal or rectal thermometer",
+        "Use gentle handling, remove wet clothing, insulate, and support airway, oxygen, and ventilation",
+        "Start active external rewarming plus active core rewarming with forced air, heated humidified oxygen, warm IV fluid, heated lavage, and ECMO ECLS extracorporeal consultation",
+        "Obtain ECG for Osborn waves and check glucose, electrolytes, potassium, trauma, and toxin causes",
+        "Escalate cardiac arrest risk with CPR, defibrillation, VA-ECMO, ECLS, or extracorporeal support planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antibiotics",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hypothermia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/cold-injury/hypothermia",
+            "supports": [
+                "severe accidental hypothermia with cardiac arrest risk diagnosis and risk stratification",
+                "cold immersion with coma, bradycardia, hypotension, core temperature 26.8 C, Osborn waves, and intermittent ventricular fibrillation",
+                "severe hypothermia below 28 C needs active core rewarming and ECMO or ECLS consideration when unstable",
+                "repeated defibrillation and ACLS medications may be deferred until core temperature approaches 30 C",
+                "do not terminate resuscitation before rewarming unless lethal injury or extreme hyperkalemia is present",
+                "coma, hypotension, bradycardia, ventricular fibrillation, asystole, Osborn waves, or cardiac arrest as red flags",
+                "hypoglycemia, sepsis, trauma, toxin exposure, myxedema, or potassium > 12 as poor prognostic marker",
+                "core temperature with low-reading esophageal or rectal thermometer",
+                "gentle handling, wet clothing removal, insulation, airway, oxygen, and ventilation",
+                "active external rewarming plus active core rewarming with forced air, heated humidified oxygen, warm IV fluid, heated lavage, and ECMO ECLS extracorporeal consultation",
+                "ECG for Osborn waves and glucose, electrolytes, potassium, trauma, and toxin causes",
+                "cardiac arrest risk with CPR, defibrillation, VA-ECMO, ECLS, or extracorporeal support planning",
+                "medication allergy before antibiotics",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hypothermia safety checks must include afterdrop" in issue
         for issue in report.critical_issues
     )
 

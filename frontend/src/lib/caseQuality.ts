@@ -3297,6 +3297,124 @@ const MYXEDEMA_COMA_CARDIAC_DOSING_SAFETY_TERMS = [
   "심장",
 ];
 
+const SEVERE_HYPOTHERMIA_CONTEXT_TERMS = [
+  "accidental hypothermia",
+  "avalanche burial",
+  "cold exposure",
+  "cold immersion",
+  "core temperature 27",
+  "core temperature 28",
+  "exposure hypothermia",
+  "severe hypothermia",
+  "temperature 27",
+  "temperature 28",
+  "저체온증",
+];
+
+const SEVERE_HYPOTHERMIA_RISK_TERMS = [
+  "asystole",
+  "bradycardia",
+  "cardiac arrest",
+  "coma",
+  "confusion",
+  "hypotension",
+  "osborn",
+  "ventricular fibrillation",
+  "vf",
+];
+
+const SEVERE_HYPOTHERMIA_CORE_TEMP_ACTION_TERMS = [
+  "core temperature",
+  "esophageal",
+  "low-reading",
+  "rectal",
+  "temperature",
+  "thermometer",
+];
+
+const SEVERE_HYPOTHERMIA_GENTLE_ABC_ACTION_TERMS = [
+  "airway",
+  "gentle handling",
+  "insulation",
+  "oxygen",
+  "remove wet clothing",
+  "ventilation",
+];
+
+const SEVERE_HYPOTHERMIA_REWARMING_ACTION_TERMS = [
+  "active core rewarming",
+  "active external rewarming",
+  "ecmo",
+  "extracorporeal",
+  "forced air",
+  "heated humidified oxygen",
+  "heated lavage",
+  "rewarming",
+  "warm iv fluid",
+];
+
+const SEVERE_HYPOTHERMIA_ECG_LAB_ACTION_TERMS = [
+  "ecg",
+  "electrolyte",
+  "glucose",
+  "osborn",
+  "potassium",
+  "trauma",
+  "toxin",
+];
+
+const SEVERE_HYPOTHERMIA_ARREST_ESCALATION_ACTION_TERMS = [
+  "cardiac arrest",
+  "cpr",
+  "defibrillation",
+  "ecmo",
+  "ecls",
+  "extracorporeal",
+  "va-ecmo",
+];
+
+const SEVERE_HYPOTHERMIA_AFTERDROP_SAFETY_TERMS = [
+  "afterdrop",
+  "extremities",
+  "gentle handling",
+  "rewarming collapse",
+  "thorax",
+];
+
+const SEVERE_HYPOTHERMIA_ACLS_TEMP_SAFETY_TERMS = [
+  "30 c",
+  "30°c",
+  "acls medications",
+  "defer defibrillation",
+  "epinephrine",
+  "vasopressor",
+];
+
+const SEVERE_HYPOTHERMIA_PERFUSING_RHYTHM_SAFETY_TERMS = [
+  "bradycardia expected",
+  "cpr",
+  "perfusing rhythm",
+  "pulse check",
+  "ultrasound",
+];
+
+const SEVERE_HYPOTHERMIA_ECMO_TERMINATION_SAFETY_TERMS = [
+  "ecmo",
+  "ecls",
+  "extracorporeal",
+  "hyperkalemia",
+  "potassium > 12",
+  "rewarm before termination",
+];
+
+const SEVERE_HYPOTHERMIA_SECONDARY_CAUSE_SAFETY_TERMS = [
+  "hypoglycemia",
+  "myxedema",
+  "sepsis",
+  "trauma",
+  "toxin",
+];
+
 const HEAT_STROKE_CONTEXT_TERMS = [
   "classic heat stroke",
   "exertional heat stroke",
@@ -10349,6 +10467,79 @@ function hasMyxedemaComaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresSevereHypothermiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const directContext = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.diagnosis,
+  ]
+    .join(" ")
+    .toLowerCase();
+  const riskText = [
+    directContext,
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+    ...nestedStrings(detail.time_critical_actions),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasContext = SEVERE_HYPOTHERMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(directContext, term),
+  );
+  const hasSevereRisk = SEVERE_HYPOTHERMIA_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasSevereRisk;
+}
+
+function hasSevereHypothermiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCoreTemp = SEVERE_HYPOTHERMIA_CORE_TEMP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasGentleAbc = SEVERE_HYPOTHERMIA_GENTLE_ABC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRewarming = SEVERE_HYPOTHERMIA_REWARMING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEcgLabs = SEVERE_HYPOTHERMIA_ECG_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasArrestEscalation = SEVERE_HYPOTHERMIA_ARREST_ESCALATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return hasCoreTemp && hasGentleAbc && hasRewarming && hasEcgLabs && hasArrestEscalation;
+}
+
+function hasSevereHypothermiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAfterdropSafety = SEVERE_HYPOTHERMIA_AFTERDROP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAclsTempSafety = SEVERE_HYPOTHERMIA_ACLS_TEMP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPerfusingRhythmSafety = SEVERE_HYPOTHERMIA_PERFUSING_RHYTHM_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEcmoTerminationSafety = SEVERE_HYPOTHERMIA_ECMO_TERMINATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSecondaryCauseSafety = SEVERE_HYPOTHERMIA_SECONDARY_CAUSE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasAfterdropSafety &&
+    hasAclsTempSafety &&
+    hasPerfusingRhythmSafety &&
+    hasEcmoTerminationSafety &&
+    hasSecondaryCauseSafety
+  );
+}
+
 function requiresHeatStrokeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -13838,6 +14029,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasMyxedemaComaTreatmentSafetyCheck,
       issue:
         "myxedema coma safety checks must include adrenal-insufficiency or hydrocortisone-before-thyroid-hormone sequencing, passive rewarming or avoidance of aggressive rewarming for hypothermia, hyponatremia, hypoglycemia, glucose, sodium, oxygen, hypercapnia, or ventilation monitoring, and elderly, coronary, ischemia, arrhythmia, telemetry, or lower-dose thyroid-hormone cardiac safety",
+    },
+    {
+      name: "severe_hypothermia_time_critical_actions",
+      label: "Severe hypothermia rewarming actions",
+      applies: requiresSevereHypothermiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSevereHypothermiaTimeCriticalActions,
+      issue:
+        "severe hypothermia time-critical actions must include core temperature measurement with rectal, esophageal, low-reading thermometer, or temperature confirmation, gentle handling, wet-clothing removal, insulation, airway, oxygen, or ventilation support, active external or active core rewarming such as forced air, heated humidified oxygen, warm IV fluid, heated lavage, ECMO, ECLS, or extracorporeal rewarming, ECG plus glucose, electrolyte, potassium, Osborn-wave, trauma, or toxin assessment, and cardiac-arrest escalation with CPR, defibrillation, ECMO, ECLS, VA-ECMO, or extracorporeal support",
+    },
+    {
+      name: "severe_hypothermia_treatment_safety",
+      label: "Severe hypothermia arrest safety",
+      applies: requiresSevereHypothermiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSevereHypothermiaTreatmentSafetyCheck,
+      issue:
+        "severe hypothermia safety checks must include afterdrop or rewarming-collapse prevention with gentle handling, thorax-focused warming, or avoiding extremity-first rewarming, temperature-dependent ACLS review for 30 C, deferred repeated defibrillation, epinephrine, vasopressor, or ACLS medications, perfusing-rhythm safety with pulse check, ultrasound, bradycardia-expected, CPR avoidance, or CPR only for nonperfusing rhythm, ECMO, ECLS, extracorporeal rewarming, rewarm-before-termination, hyperkalemia, or potassium >12 review, and secondary-cause review for hypoglycemia, myxedema, sepsis, trauma, or toxin exposure",
     },
     {
       name: "heat_stroke_time_critical_actions",
