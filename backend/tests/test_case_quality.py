@@ -135,6 +135,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "bb_ccb_overdose_treatment_safety",
         "digoxin_toxicity_time_critical_actions",
         "digoxin_toxicity_treatment_safety",
+        "tca_toxicity_time_critical_actions",
+        "tca_toxicity_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "hyperkalemia_time_critical_actions",
@@ -6440,6 +6442,178 @@ def test_quality_gate_requires_digoxin_toxicity_potassium_rebound_levels_cardiov
     assert not report.passed
     assert any(
         "digoxin toxicity safety checks must include potassium" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_tca_toxicity_ecg_bicarb_airway_seizure_and_escalation_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Tricyclic antidepressant overdose with QRS prolongation"
+    case["patient_demographics"] = {
+        "age": 45,
+        "sex": "male",
+        "weight_kg": 78,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Found somnolent after amitriptyline overdose"
+    case["history_of_present_illness"] = (
+        "Patient was found after a large amitriptyline overdose with anticholinergic "
+        "toxidrome, coma, hypotension, seizure, ventricular dysrhythmia risk, "
+        "and QRS 132 ms concerning for TCA toxicity."
+    )
+    case["past_medical_history"] = "Depression treated with amitriptyline"
+    case["physical_exam"] = {
+        "vitals": {"bp": "84/48", "hr": 128, "rr": 10, "temp_c": 38.0, "spo2": 92},
+        "general": "Somnolent, dry, flushed, and difficult to arouse",
+        "cardiovascular": "Tachycardic and hypotensive with delayed capillary refill",
+        "pulmonary": "Hypoventilation with shallow respirations",
+        "abdomen": "Decreased bowel sounds and urinary retention",
+        "neuro": "Depressed mental status after witnessed seizure",
+        "other": "Dilated pupils and dry mucous membranes",
+    }
+    case["initial_labs"] = {
+        "ecg": "QRS 132 ms with terminal R wave in aVR",
+        "vbg": "pH 7.21 with metabolic and respiratory acidosis",
+        "na": "139",
+        "k": "4.0",
+        "glucose": "118",
+    }
+    case["key_teaching_points"] = [
+        "TCA toxicity causes sodium channel blockade with QRS prolongation and ventricular dysrhythmia risk",
+        "Sodium bicarbonate is indicated for QRS prolongation, seizures, or hemodynamic instability",
+        "Severe tricyclic overdose requires airway support, benzodiazepines for seizures, and poison center escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "QRS prolongation, aVR terminal R wave, hypotension, seizure, coma, respiratory depression, or cardiac arrest",
+        "Anticholinergic toxidrome, hyperthermia, ventricular dysrhythmia, acidosis, or refractory shock",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain 12-lead ECG with QRS and aVR assessment and place on telemetry cardiac monitoring",
+        "Protect airway with intubation and ventilation, manage ABCs, correct acidosis, and admit to ICU",
+        "Treat seizure with lorazepam or another benzodiazepine",
+        "Give IV fluids and norepinephrine vasopressor for hypotension; call poison center toxicology and consider lipid emulsion for refractory shock",
+    ]
+    case["contraindication_checks"] = [
+        "Give activated charcoal only when the airway is protected, avoid ipecac, and consider decontamination within two hours",
+        "Avoid physostigmine, flumazenil, class IA, class IC, class III, and other antiarrhythmic or anti-dysrhythmic agents",
+        "Monitor serum pH target 7.5 to 7.55, sodium, hypernatremia, alkalemia, and alkalosis during sodium bicarbonate therapy",
+        "Use ICU observation with continuous monitoring, serial ECG, repeat ECG, and at least 6-hour to 24-hour disposition planning",
+        "Recognize dialysis and hemoperfusion are not effective and serum TCA drug level does not correlate with toxicity",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tricyclic Antidepressant Toxicity",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK430931/",
+            "supports": [
+                "tricyclic antidepressant overdose with QRS prolongation diagnosis and risk stratification",
+                "TCA toxicity causes sodium channel blockade with QRS prolongation and ventricular dysrhythmia risk",
+                "sodium bicarbonate is indicated for QRS prolongation, seizures, or hemodynamic instability",
+                "severe tricyclic overdose requires airway support, benzodiazepines for seizures, and poison center escalation",
+                "QRS prolongation, aVR terminal R wave, hypotension, seizure, coma, respiratory depression, or cardiac arrest as red flags",
+                "anticholinergic toxidrome, hyperthermia, ventricular dysrhythmia, acidosis, or refractory shock as severity markers",
+                "12-lead ECG with QRS and aVR assessment and telemetry cardiac monitoring",
+                "airway intubation and ventilation, ABCs, acidosis correction, and ICU admission",
+                "seizure treatment with lorazepam or another benzodiazepine",
+                "IV fluids and norepinephrine vasopressor for hypotension; poison center toxicology and lipid emulsion for refractory shock",
+                "activated charcoal only when the airway is protected, ipecac avoidance, and decontamination within two hours",
+                "avoid physostigmine, flumazenil, class IA, class IC, class III, and other antiarrhythmic or anti-dysrhythmic agents",
+                "serum pH target 7.5 to 7.55, sodium, hypernatremia, alkalemia, and alkalosis monitoring during sodium bicarbonate therapy",
+                "ICU observation with continuous monitoring, serial ECG, repeat ECG, and 6-hour to 24-hour disposition planning",
+                "dialysis and hemoperfusion are not effective and serum TCA drug level does not correlate with toxicity",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "TCA toxicity time-critical actions must include 12-lead" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_tca_toxicity_decontamination_avoidance_ph_observation_and_dialysis_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Amitriptyline overdose with sodium channel blockade"
+    case["patient_demographics"] = {
+        "age": 45,
+        "sex": "male",
+        "weight_kg": 78,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Intentional amitriptyline overdose"
+    case["history_of_present_illness"] = (
+        "Patient presents after amitriptyline overdose with anticholinergic toxidrome, "
+        "hypotension, seizure, coma, QRS 146 ms, and sodium channel blockade "
+        "concerning for TCA toxicity."
+    )
+    case["past_medical_history"] = "Depression and chronic pain treated with amitriptyline"
+    case["physical_exam"] = {
+        "vitals": {"bp": "82/46", "hr": 134, "rr": 9, "temp_c": 38.2, "spo2": 91},
+        "general": "Comatose and flushed with dry skin",
+        "cardiovascular": "Tachycardic, hypotensive, poor peripheral perfusion",
+        "pulmonary": "Hypoventilation requiring airway support",
+        "abdomen": "Absent bowel sounds",
+        "neuro": "Postictal with depressed mental status",
+        "other": "Dilated pupils and urinary retention",
+    }
+    case["initial_labs"] = {
+        "ecg": "QRS 146 ms with R wave in aVR",
+        "abg": "pH 7.18 with acidosis",
+        "na": "140",
+        "k": "4.3",
+        "glucose": "122",
+    }
+    case["key_teaching_points"] = [
+        "Amitriptyline overdose can cause anticholinergic toxicity, seizures, hypotension, coma, and sodium channel blockade",
+        "Sodium bicarbonate bolus and infusion target QRS narrowing and serum alkalinization",
+        "Refractory TCA shock may require norepinephrine, toxicology consultation, and lipid emulsion consideration",
+    ]
+    case["clinical_red_flags"] = [
+        "QRS over 100 ms, aVR abnormality, seizure, hypotension, coma, respiratory depression, or ventricular dysrhythmia",
+        "Acidosis, hyperthermia, anticholinergic toxidrome, cardiac arrest, or refractory shock",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain 12-lead ECG with QRS and aVR assessment and place on telemetry cardiac monitoring",
+        "Give sodium bicarbonate bolus followed by infusion for QRS widening and alkalinization",
+        "Protect airway with intubation and ventilation, manage ABCs, correct acidosis, and admit to ICU",
+        "Treat seizure with lorazepam or another benzodiazepine",
+        "Give IV fluids and norepinephrine vasopressor for hypotension; call poison center toxicology and consider intralipid lipid emulsion for refractory shock",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before sedatives",
+        "Volume status before additional fluids",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tricyclic Antidepressant Toxicity",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK430931/",
+            "supports": [
+                "amitriptyline overdose with sodium channel blockade diagnosis and risk stratification",
+                "amitriptyline overdose can cause anticholinergic toxicity, seizures, hypotension, coma, and sodium channel blockade",
+                "sodium bicarbonate bolus and infusion target QRS narrowing and serum alkalinization",
+                "refractory TCA shock may require norepinephrine, toxicology consultation, and lipid emulsion consideration",
+                "QRS over 100 ms, aVR abnormality, seizure, hypotension, coma, respiratory depression, or ventricular dysrhythmia as red flags",
+                "acidosis, hyperthermia, anticholinergic toxidrome, cardiac arrest, or refractory shock as severity markers",
+                "12-lead ECG with QRS and aVR assessment and telemetry cardiac monitoring",
+                "sodium bicarbonate bolus followed by infusion for QRS widening and alkalinization",
+                "airway intubation and ventilation, ABCs, acidosis correction, and ICU admission",
+                "seizure treatment with lorazepam or another benzodiazepine",
+                "IV fluids and norepinephrine vasopressor for hypotension; poison center toxicology and intralipid lipid emulsion for refractory shock",
+                "medication allergy before sedatives",
+                "volume status before additional fluids",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "TCA toxicity safety checks must include activated-charcoal" in issue
         for issue in report.critical_issues
     )
 

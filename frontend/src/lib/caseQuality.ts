@@ -5395,6 +5395,159 @@ const DIGOXIN_TOXICITY_DECONTAMINATION_SAFETY_TERMS = [
   "활성탄",
 ];
 
+const TCA_TOXICITY_DIRECT_CONTEXT_TERMS = [
+  "amitriptyline overdose",
+  "amitriptyline toxicity",
+  "tca overdose",
+  "tca poisoning",
+  "tca toxicity",
+  "tricyclic antidepressant overdose",
+  "tricyclic antidepressant poisoning",
+  "tricyclic antidepressant toxicity",
+  "tricyclic overdose",
+  "tricyclic toxicity",
+  "삼환계",
+];
+
+const TCA_TOXICITY_DRUG_CONTEXT_TERMS = [
+  "amitriptyline",
+  "amoxapine",
+  "clomipramine",
+  "desipramine",
+  "doxepin",
+  "imipramine",
+  "nortriptyline",
+  "protriptyline",
+  "trimipramine",
+  "tricyclic",
+];
+
+const TCA_TOXICITY_RISK_CONTEXT_TERMS = [
+  "anticholinergic",
+  "arrhythmia",
+  "cardiac arrest",
+  "coma",
+  "hypotension",
+  "qrs",
+  "seizure",
+  "sodium channel blockade",
+  "ventricular dysrhythmia",
+  "wide qrs",
+  "경련",
+  "저혈압",
+];
+
+const TCA_TOXICITY_ECG_QRS_ACTION_TERMS = [
+  "12-lead",
+  "av r",
+  "avr",
+  "cardiac monitoring",
+  "ecg",
+  "ekg",
+  "qrs",
+  "telemetry",
+  "심전도",
+];
+
+const TCA_TOXICITY_BICARB_ACTION_TERMS = [
+  "alkalinization",
+  "bicarbonate",
+  "sodium bicarbonate",
+  "sodium bicarb",
+  "중탄산",
+];
+
+const TCA_TOXICITY_AIRWAY_ACIDOSIS_ACTION_TERMS = [
+  "abc",
+  "acidosis",
+  "airway",
+  "arterial ph",
+  "blood gas",
+  "icu",
+  "intubation",
+  "ph",
+  "ventilation",
+  "기도",
+];
+
+const TCA_TOXICITY_SEIZURE_BENZO_ACTION_TERMS = [
+  "benzodiazepine",
+  "diazepam",
+  "lorazepam",
+  "midazolam",
+  "seizure",
+  "경련",
+];
+
+const TCA_TOXICITY_HYPOTENSION_ESCALATION_ACTION_TERMS = [
+  "fluid",
+  "fluids",
+  "intralipid",
+  "lipid emulsion",
+  "norepinephrine",
+  "poison center",
+  "toxicologist",
+  "toxicology",
+  "vasopressor",
+  "승압제",
+];
+
+const TCA_TOXICITY_DECONTAMINATION_SAFETY_TERMS = [
+  "activated charcoal",
+  "airway protected",
+  "charcoal",
+  "decontamination",
+  "ipecac",
+  "within 2 hours",
+  "within two hours",
+  "활성탄",
+];
+
+const TCA_TOXICITY_AVOIDANCE_SAFETY_TERMS = [
+  "anti-dysrhythmic",
+  "antiarrhythmic",
+  "class 1a",
+  "class 1c",
+  "class 3",
+  "class ia",
+  "class ic",
+  "class iii",
+  "flumazenil",
+  "physostigmine",
+  "avoid",
+];
+
+const TCA_TOXICITY_PH_SODIUM_SAFETY_TERMS = [
+  "alkalemia",
+  "alkalosis",
+  "hypernatremia",
+  "ph 7.5",
+  "ph 7.55",
+  "serum ph",
+  "sodium",
+];
+
+const TCA_TOXICITY_OBSERVATION_SAFETY_TERMS = [
+  "24 hours",
+  "6 hours",
+  "continuous monitoring",
+  "icu",
+  "observation",
+  "repeat ecg",
+  "repeat ekg",
+  "serial ecg",
+];
+
+const TCA_TOXICITY_DIALYSIS_LEVEL_SAFETY_TERMS = [
+  "dialysis",
+  "drug level",
+  "hemoperfusion",
+  "not effective",
+  "serum level",
+  "tca level",
+  "toxicity correlation",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -10190,6 +10343,87 @@ function hasDigoxinToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresTcaToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = TCA_TOXICITY_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasDrugContext = TCA_TOXICITY_DRUG_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRiskContext = TCA_TOXICITY_RISK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasDrugContext && hasRiskContext);
+}
+
+function hasTcaToxicityTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasEcgQrs = TCA_TOXICITY_ECG_QRS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBicarbonate = TCA_TOXICITY_BICARB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAirwayAcidosisSupport = TCA_TOXICITY_AIRWAY_ACIDOSIS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSeizureBenzo = TCA_TOXICITY_SEIZURE_BENZO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHypotensionEscalation = TCA_TOXICITY_HYPOTENSION_ESCALATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasEcgQrs &&
+    hasBicarbonate &&
+    hasAirwayAcidosisSupport &&
+    hasSeizureBenzo &&
+    hasHypotensionEscalation
+  );
+}
+
+function hasTcaToxicityTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDecontaminationSafety = TCA_TOXICITY_DECONTAMINATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAvoidanceSafety = TCA_TOXICITY_AVOIDANCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPhSodiumSafety = TCA_TOXICITY_PH_SODIUM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasObservationSafety = TCA_TOXICITY_OBSERVATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDialysisLevelSafety = TCA_TOXICITY_DIALYSIS_LEVEL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasDecontaminationSafety &&
+    hasAvoidanceSafety &&
+    hasPhSodiumSafety &&
+    hasObservationSafety &&
+    hasDialysisLevelSafety
+  );
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -12057,6 +12291,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasDigoxinToxicityTreatmentSafetyCheck,
       issue:
         "digoxin toxicity safety checks must include potassium, magnesium, hypokalemia, or serum-potassium monitoring during Fab treatment, rebound, recurrent-toxicity, renal-failure, renal-impairment, or repeat-monitoring review, post-Fab total digoxin, serum digoxin, free-digoxin, unbound-digoxin, or unreliable-level interpretation, calcium, cardioversion, defibrillation, low-energy shock, or pacing caution, and activated-charcoal, decontamination, early-ingestion, or within-2-hour review",
+    },
+    {
+      name: "tca_toxicity_time_critical_actions",
+      label: "TCA toxicity emergency actions",
+      applies: requiresTcaToxicitySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasTcaToxicityTimeCriticalActions,
+      issue:
+        "TCA toxicity time-critical actions must include 12-lead ECG, EKG, telemetry, QRS, aVR, or cardiac monitoring, sodium bicarbonate, bicarbonate, sodium-bicarb, or alkalinization therapy, airway, ventilation, intubation, pH, blood-gas, acidosis, ABC, or ICU support, benzodiazepine, lorazepam, midazolam, diazepam, or seizure treatment, and fluids, vasopressor, norepinephrine, toxicology, poison-center, lipid-emulsion, or intralipid escalation",
+    },
+    {
+      name: "tca_toxicity_treatment_safety",
+      label: "TCA toxicity treatment safety",
+      applies: requiresTcaToxicitySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasTcaToxicityTreatmentSafetyCheck,
+      issue:
+        "TCA toxicity safety checks must include activated-charcoal, decontamination, airway-protected, within-2-hour, or ipecac-avoidance review, avoidance of physostigmine, flumazenil, class IA, class IC, class III, antiarrhythmic, or anti-dysrhythmic agents, serum pH, pH 7.5 to 7.55, sodium, hypernatremia, alkalemia, or alkalosis monitoring, continuous monitoring, observation, ICU, serial ECG, repeat ECG, 6-hour, or 24-hour disposition planning, and dialysis, hemoperfusion, serum-level, drug-level, TCA-level, not-effective, or toxicity-correlation review",
     },
     {
       name: "dka_time_critical_actions",

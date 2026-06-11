@@ -4963,6 +4963,146 @@ DIGOXIN_TOXICITY_DECONTAMINATION_SAFETY_TERMS = (
     "within two hours",
     "활성탄",
 )
+TCA_TOXICITY_DIRECT_CONTEXT_TERMS = (
+    "amitriptyline overdose",
+    "amitriptyline toxicity",
+    "tca overdose",
+    "tca poisoning",
+    "tca toxicity",
+    "tricyclic antidepressant overdose",
+    "tricyclic antidepressant poisoning",
+    "tricyclic antidepressant toxicity",
+    "tricyclic overdose",
+    "tricyclic toxicity",
+    "삼환계",
+)
+TCA_TOXICITY_DRUG_CONTEXT_TERMS = (
+    "amitriptyline",
+    "amoxapine",
+    "clomipramine",
+    "desipramine",
+    "doxepin",
+    "imipramine",
+    "nortriptyline",
+    "protriptyline",
+    "trimipramine",
+    "tricyclic",
+)
+TCA_TOXICITY_RISK_CONTEXT_TERMS = (
+    "anticholinergic",
+    "arrhythmia",
+    "cardiac arrest",
+    "coma",
+    "hypotension",
+    "qrs",
+    "seizure",
+    "sodium channel blockade",
+    "ventricular dysrhythmia",
+    "wide qrs",
+    "경련",
+    "저혈압",
+)
+TCA_TOXICITY_ECG_QRS_ACTION_TERMS = (
+    "12-lead",
+    "av r",
+    "avr",
+    "cardiac monitoring",
+    "ecg",
+    "ekg",
+    "qrs",
+    "telemetry",
+    "심전도",
+)
+TCA_TOXICITY_BICARB_ACTION_TERMS = (
+    "alkalinization",
+    "bicarbonate",
+    "sodium bicarbonate",
+    "sodium bicarb",
+    "중탄산",
+)
+TCA_TOXICITY_AIRWAY_ACIDOSIS_ACTION_TERMS = (
+    "abc",
+    "acidosis",
+    "airway",
+    "arterial ph",
+    "blood gas",
+    "icu",
+    "intubation",
+    "ph",
+    "ventilation",
+    "기도",
+)
+TCA_TOXICITY_SEIZURE_BENZO_ACTION_TERMS = (
+    "benzodiazepine",
+    "diazepam",
+    "lorazepam",
+    "midazolam",
+    "seizure",
+    "경련",
+)
+TCA_TOXICITY_HYPOTENSION_ESCALATION_ACTION_TERMS = (
+    "fluid",
+    "fluids",
+    "intralipid",
+    "lipid emulsion",
+    "norepinephrine",
+    "poison center",
+    "toxicologist",
+    "toxicology",
+    "vasopressor",
+    "승압제",
+)
+TCA_TOXICITY_DECONTAMINATION_SAFETY_TERMS = (
+    "activated charcoal",
+    "airway protected",
+    "charcoal",
+    "decontamination",
+    "ipecac",
+    "within 2 hours",
+    "within two hours",
+    "활성탄",
+)
+TCA_TOXICITY_AVOIDANCE_SAFETY_TERMS = (
+    "anti-dysrhythmic",
+    "antiarrhythmic",
+    "class 1a",
+    "class 1c",
+    "class 3",
+    "class ia",
+    "class ic",
+    "class iii",
+    "flumazenil",
+    "physostigmine",
+    "avoid",
+)
+TCA_TOXICITY_PH_SODIUM_SAFETY_TERMS = (
+    "alkalemia",
+    "alkalosis",
+    "hypernatremia",
+    "ph 7.5",
+    "ph 7.55",
+    "serum ph",
+    "sodium",
+)
+TCA_TOXICITY_OBSERVATION_SAFETY_TERMS = (
+    "24 hours",
+    "6 hours",
+    "continuous monitoring",
+    "icu",
+    "observation",
+    "repeat ecg",
+    "repeat ekg",
+    "serial ecg",
+)
+TCA_TOXICITY_DIALYSIS_LEVEL_SAFETY_TERMS = (
+    "dialysis",
+    "drug level",
+    "hemoperfusion",
+    "not effective",
+    "serum level",
+    "tca level",
+    "toxicity correlation",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -8350,6 +8490,40 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "interpretation, calcium, cardioversion, defibrillation, low-"
                 "energy shock, or pacing caution, and activated-charcoal, "
                 "decontamination, early-ingestion, or within-2-hour review"
+            ),
+        ),
+        DomainSafetyGate(
+            name="tca_toxicity_time_critical_actions",
+            applies=_requires_tca_toxicity_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_tca_toxicity_time_critical_actions,
+            issue=(
+                "TCA toxicity time-critical actions must include 12-lead ECG, "
+                "EKG, telemetry, QRS, aVR, or cardiac monitoring, sodium "
+                "bicarbonate, bicarbonate, sodium-bicarb, or alkalinization "
+                "therapy, airway, ventilation, intubation, pH, blood-gas, "
+                "acidosis, ABC, or ICU support, benzodiazepine, lorazepam, "
+                "midazolam, diazepam, or seizure treatment, and fluids, "
+                "vasopressor, norepinephrine, toxicology, poison-center, lipid-"
+                "emulsion, or intralipid escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="tca_toxicity_treatment_safety",
+            applies=_requires_tca_toxicity_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_tca_toxicity_treatment_safety_check,
+            issue=(
+                "TCA toxicity safety checks must include activated-charcoal, "
+                "decontamination, airway-protected, within-2-hour, or ipecac-"
+                "avoidance review, avoidance of physostigmine, flumazenil, "
+                "class IA, class IC, class III, antiarrhythmic, or anti-"
+                "dysrhythmic agents, serum pH, pH 7.5 to 7.55, sodium, "
+                "hypernatremia, alkalemia, or alkalosis monitoring, continuous "
+                "monitoring, observation, ICU, serial ECG, repeat ECG, 6-hour, "
+                "or 24-hour disposition planning, and dialysis, hemoperfusion, "
+                "serum-level, drug-level, TCA-level, not-effective, or toxicity-"
+                "correlation review"
             ),
         ),
         DomainSafetyGate(
@@ -12475,6 +12649,105 @@ def _has_digoxin_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         and has_post_fab_level_safety
         and has_calcium_cardioversion_safety
         and has_decontamination_safety
+    )
+
+
+def _requires_tca_toxicity_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in TCA_TOXICITY_DIRECT_CONTEXT_TERMS
+    )
+    has_drug_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in TCA_TOXICITY_DRUG_CONTEXT_TERMS
+    )
+    has_risk_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in TCA_TOXICITY_RISK_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_drug_context and has_risk_context)
+
+
+def _has_tca_toxicity_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_ecg_qrs = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TCA_TOXICITY_ECG_QRS_ACTION_TERMS
+    )
+    has_bicarbonate = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TCA_TOXICITY_BICARB_ACTION_TERMS
+    )
+    has_airway_acidosis_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TCA_TOXICITY_AIRWAY_ACIDOSIS_ACTION_TERMS
+    )
+    has_seizure_benzo = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TCA_TOXICITY_SEIZURE_BENZO_ACTION_TERMS
+    )
+    has_hypotension_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TCA_TOXICITY_HYPOTENSION_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_ecg_qrs
+        and has_bicarbonate
+        and has_airway_acidosis_support
+        and has_seizure_benzo
+        and has_hypotension_escalation
+    )
+
+
+def _has_tca_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_decontamination_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TCA_TOXICITY_DECONTAMINATION_SAFETY_TERMS
+    )
+    has_avoidance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TCA_TOXICITY_AVOIDANCE_SAFETY_TERMS
+    )
+    has_ph_sodium_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TCA_TOXICITY_PH_SODIUM_SAFETY_TERMS
+    )
+    has_observation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TCA_TOXICITY_OBSERVATION_SAFETY_TERMS
+    )
+    has_dialysis_level_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TCA_TOXICITY_DIALYSIS_LEVEL_SAFETY_TERMS
+    )
+    return (
+        has_decontamination_safety
+        and has_avoidance_safety
+        and has_ph_sodium_safety
+        and has_observation_safety
+        and has_dialysis_level_safety
     )
 
 
