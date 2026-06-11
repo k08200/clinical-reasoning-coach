@@ -5886,6 +5886,123 @@ const DKA_OSMOLAR_SAFETY_TERMS = [
   "수액",
 ];
 
+const HHS_CONTEXT_TERMS = [
+  "hhs with",
+  "hhns",
+  "honk",
+  "hyperglycemic hyperosmolar",
+  "hyperosmolar hyperglycemic",
+  "hyperosmolar hyperglycaemic",
+  "hyperosmolar nonketotic",
+  "hyperosmolar state",
+  "suspected hhs",
+];
+
+const HHS_HYPEROSMOLAR_RISK_TERMS = [
+  "altered mental status",
+  "coma",
+  "confusion",
+  "dehydration",
+  "glucose >600",
+  "glucose 600",
+  "hyperglycemia",
+  "hyperosmolality",
+  "osmolality >320",
+  "osmolality 320",
+  "seizure",
+];
+
+const HHS_FLUID_PERFUSION_ACTION_TERMS = [
+  "crystalloid",
+  "fluid",
+  "fluids",
+  "isotonic saline",
+  "normal saline",
+  "perfusion",
+  "ringer",
+  "volume",
+];
+
+const HHS_OSMOLALITY_SODIUM_ACTION_TERMS = [
+  "effective osmolality",
+  "osmolality",
+  "osmolar",
+  "sodium",
+];
+
+const HHS_GLUCOSE_KETONE_ACIDBASE_ACTION_TERMS = [
+  "beta-hydroxybutyrate",
+  "blood gas",
+  "bicarbonate",
+  "glucose",
+  "ketone",
+  "ph",
+];
+
+const HHS_INSULIN_POTASSIUM_ACTION_TERMS = [
+  "0.05",
+  "insulin",
+  "potassium",
+  "defer insulin",
+];
+
+const HHS_PRECIPITANT_ESCALATION_ACTION_TERMS = [
+  "culture",
+  "infection",
+  "icu",
+  "myocardial infarction",
+  "precipitant",
+  "sepsis",
+  "stroke",
+];
+
+const HHS_OSMOLAR_CORRECTION_SAFETY_TERMS = [
+  "3 and 8",
+  "cerebral edema",
+  "glucose fall",
+  "no more than 10",
+  "osmolality",
+  "rapid correction",
+  "sodium",
+];
+
+const HHS_INSULIN_TIMING_SAFETY_TERMS = [
+  "0.05",
+  "defer insulin",
+  "fluids first",
+  "glucose stops falling",
+  "insulin after fluids",
+  "osmotic shift",
+];
+
+const HHS_POTASSIUM_RENAL_FLUID_SAFETY_TERMS = [
+  "cardiac failure",
+  "ckd",
+  "defer insulin",
+  "frailty",
+  "kidney",
+  "potassium",
+  "renal",
+];
+
+const HHS_THROMBOSIS_PRECIPITANT_SAFETY_TERMS = [
+  "infection",
+  "mi",
+  "myocardial infarction",
+  "precipitant",
+  "stroke",
+  "thrombosis",
+  "vte",
+];
+
+const HHS_RESOLUTION_DISPOSITION_SAFETY_TERMS = [
+  "cognitive status",
+  "euglycemia",
+  "icu",
+  "osmolality below 300",
+  "urine output",
+];
+
 const HYPERKALEMIA_CONTEXT_TERMS = [
   "ecg changes from hyperkalemia",
   "hyperkalemic emergency",
@@ -11381,6 +11498,82 @@ function hasDkaContraindicationSafetyCheck(checks: string[]): boolean {
   return hasPotassiumSafety && hasOsmolarSafety;
 }
 
+function requiresHhsSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasHhsContext = HHS_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  const hasHyperosmolarRisk = HHS_HYPEROSMOLAR_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasHhsContext && hasHyperosmolarRisk;
+}
+
+function hasHhsTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasFluidPerfusion = HHS_FLUID_PERFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOsmolalitySodium = HHS_OSMOLALITY_SODIUM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasGlucoseKetoneAcidbase = HHS_GLUCOSE_KETONE_ACIDBASE_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasInsulinPotassium = HHS_INSULIN_POTASSIUM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPrecipitantEscalation = HHS_PRECIPITANT_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasFluidPerfusion &&
+    hasOsmolalitySodium &&
+    hasGlucoseKetoneAcidbase &&
+    hasInsulinPotassium &&
+    hasPrecipitantEscalation
+  );
+}
+
+function hasHhsTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasOsmolarCorrectionSafety = HHS_OSMOLAR_CORRECTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInsulinTimingSafety = HHS_INSULIN_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPotassiumRenalFluidSafety = HHS_POTASSIUM_RENAL_FLUID_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasThrombosisPrecipitantSafety = HHS_THROMBOSIS_PRECIPITANT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasResolutionDispositionSafety = HHS_RESOLUTION_DISPOSITION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasOsmolarCorrectionSafety &&
+    hasInsulinTimingSafety &&
+    hasPotassiumRenalFluidSafety &&
+    hasThrombosisPrecipitantSafety &&
+    hasResolutionDispositionSafety
+  );
+}
+
 function requiresHyperkalemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -13510,6 +13703,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasDkaContraindicationSafetyCheck,
       issue:
         "DKA safety checks must include potassium threshold and osmolar-shift or cerebral-edema risk before insulin therapy",
+    },
+    {
+      name: "hhs_time_critical_actions",
+      label: "HHS fluids, osmolality, insulin, and precipitant actions",
+      applies: requiresHhsSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasHhsTimeCriticalActions,
+      issue:
+        "HHS time-critical actions must include isotonic crystalloid, normal saline, fluid, volume, or perfusion resuscitation, osmolality plus sodium monitoring, glucose, ketone, beta-hydroxybutyrate, blood-gas, pH, or bicarbonate assessment, potassium review with cautious or deferred insulin such as 0.05 units/kg/h, and precipitant or ICU escalation for infection, culture, sepsis, stroke, or myocardial infarction",
+    },
+    {
+      name: "hhs_treatment_safety",
+      label: "HHS controlled correction and thrombosis safety",
+      applies: requiresHhsSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasHhsTreatmentSafetyCheck,
+      issue:
+        "HHS safety checks must include controlled osmolality, sodium, glucose-fall, rapid-correction, cerebral-edema, 3-to-8 mOsm/kg/hour, or sodium no-more-than-10 mmol/L/day review, fluids-first insulin timing with insulin after glucose stops falling, 0.05 units/kg/h, defer-insulin, or osmotic-shift review, potassium plus renal, CKD, frailty, cardiac-failure, or fluid safety review, thrombosis, VTE, infection, stroke, myocardial infarction, or precipitant review, and resolution or disposition review for osmolality below 300, urine output, cognitive status, euglycemia, or ICU",
     },
     {
       name: "hyperkalemia_time_critical_actions",

@@ -143,6 +143,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "organophosphate_toxicity_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
+        "hhs_time_critical_actions",
+        "hhs_treatment_safety",
         "hyperkalemia_time_critical_actions",
         "hyperkalemia_treatment_safety",
         "status_epilepticus_time_critical_actions",
@@ -7195,6 +7197,187 @@ def test_quality_gate_requires_dka_potassium_and_osmolar_safety_checks():
     assert not report.passed
     assert any(
         "DKA safety checks must include potassium threshold" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_hhs_fluids_osmolality_labs_cautious_insulin_and_precipitant_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Hyperosmolar hyperglycemic state"
+    case["patient_demographics"] = {
+        "age": 76,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion, weakness, and severe hyperglycemia"
+    case["history_of_present_illness"] = (
+        "Older patient with type 2 diabetes presents after days of polyuria, "
+        "poor intake, dehydration, confusion, glucose 782 mg/dL, sodium 158, "
+        "effective osmolality 336 mOsm/kg, and suspected HHS without significant "
+        "ketoacidosis."
+    )
+    case["past_medical_history"] = "Type 2 diabetes, CKD, frailty, and recent pneumonia symptoms"
+    case["physical_exam"] = {
+        "vitals": {"bp": "88/52", "hr": 122, "rr": 22, "temp_c": 38.0, "spo2": 94},
+        "general": "Severely dehydrated and confused",
+        "cardiovascular": "Tachycardic with poor perfusion",
+        "pulmonary": "Dry mucous membranes and possible pneumonia",
+        "abdomen": "Soft and nontender",
+        "neuro": "Lethargic without focal deficit",
+        "other": "Marked volume depletion",
+    }
+    case["initial_labs"] = {
+        "glucose": "782 mg/dL",
+        "sodium": "158 mmol/L",
+        "osmolality": "336 mOsm/kg",
+        "ph": "7.36",
+        "bicarbonate": "20 mmol/L",
+        "beta_hydroxybutyrate": "1.1 mmol/L",
+        "potassium": "4.6 mmol/L",
+        "creatinine": "2.4 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "HHS is characterized by severe hyperglycemia, hyperosmolality, dehydration, and absent significant acidosis",
+        "Fluid replacement alone can lower glucose and osmolality, so insulin should be cautious and often delayed",
+        "Infection, stroke, myocardial infarction, medications, and poor intake are common precipitants",
+    ]
+    case["clinical_red_flags"] = [
+        "Altered mental status, seizure, coma, severe hypotension, hypernatremia, or effective osmolality above 320",
+        "AKI, severe dehydration, infection, thrombosis, VTE, stroke mimic, or myocardial infarction trigger",
+    ]
+    case["time_critical_actions"] = [
+        "Start isotonic normal saline crystalloid fluid resuscitation to restore volume and perfusion",
+        "Trend effective osmolality, osmolar status, corrected sodium, and serum sodium during therapy",
+        "Check glucose, beta-hydroxybutyrate ketone, blood gas pH, bicarbonate, and metabolic panel",
+        "Review potassium before insulin and defer insulin initially; if needed use cautious 0.05 units/kg/h insulin infusion",
+    ]
+    case["contraindication_checks"] = [
+        "Control osmolality fall at 3 and 8 mOsm/kg/hour, avoid rapid correction and cerebral edema, and keep sodium fall no more than 10 mmol/L/day",
+        "Use fluids first and start insulin after glucose stops falling to avoid osmotic shift; use 0.05 units/kg/h and defer insulin if potassium is unsafe",
+        "Review potassium, renal impairment, CKD, frailty, cardiac failure, kidney function, and fluid safety before aggressive replacement",
+        "Assess thrombosis and VTE risk plus precipitant infection, stroke, sepsis, and myocardial infarction",
+        "Disposition to ICU until osmolality below 300, urine output improves, cognitive status improves, and euglycemia is stable",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hyperglycemic Crises",
+            "organization": "Endotext / NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK279052/",
+            "supports": [
+                "hyperosmolar hyperglycemic state diagnosis and risk stratification",
+                "HHS with glucose 782 mg/dL, sodium 158, effective osmolality 336 mOsm/kg, dehydration, confusion, and no significant ketoacidosis",
+                "HHS is characterized by severe hyperglycemia, hyperosmolality, dehydration, and absent significant acidosis",
+                "fluid replacement alone can lower glucose and osmolality, so insulin should be cautious and often delayed",
+                "infection, stroke, myocardial infarction, medications, and poor intake are common precipitants",
+                "altered mental status, seizure, coma, severe hypotension, hypernatremia, or effective osmolality above 320 as red flags",
+                "AKI, severe dehydration, infection, thrombosis, VTE, stroke mimic, or myocardial infarction trigger as severity markers",
+                "isotonic normal saline crystalloid fluid resuscitation to restore volume and perfusion",
+                "effective osmolality, osmolar status, corrected sodium, and serum sodium trend during therapy",
+                "glucose, beta-hydroxybutyrate ketone, blood gas pH, bicarbonate, and metabolic panel",
+                "potassium before insulin and defer insulin initially; cautious 0.05 units/kg/h insulin infusion if needed",
+                "osmolality fall at 3 and 8 mOsm/kg/hour, avoid rapid correction and cerebral edema, and sodium fall no more than 10 mmol/L/day",
+                "fluids first and insulin after glucose stops falling to avoid osmotic shift; 0.05 units/kg/h and defer insulin if potassium is unsafe",
+                "potassium, renal impairment, CKD, frailty, cardiac failure, kidney function, and fluid safety before aggressive replacement",
+                "thrombosis and VTE risk plus precipitant infection, stroke, sepsis, and myocardial infarction",
+                "ICU until osmolality below 300, urine output improves, cognitive status improves, and euglycemia is stable",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "HHS time-critical actions must include isotonic crystalloid" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_hhs_controlled_correction_insulin_potassium_thrombosis_and_resolution_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "HHS with hyperosmolality and coma"
+    case["patient_demographics"] = {
+        "age": 76,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Coma and severe dehydration with glucose above 600"
+    case["history_of_present_illness"] = (
+        "Patient with type 2 diabetes presents with hyperosmolar hyperglycemic "
+        "state, coma, severe dehydration, glucose 910 mg/dL, effective osmolality "
+        "354 mOsm/kg, hypernatremia, AKI, and possible infection."
+    )
+    case["past_medical_history"] = "Type 2 diabetes, chronic kidney disease, heart failure, and frailty"
+    case["physical_exam"] = {
+        "vitals": {"bp": "82/46", "hr": 128, "rr": 24, "temp_c": 38.2, "spo2": 93},
+        "general": "Comatose and profoundly dehydrated",
+        "cardiovascular": "Tachycardic with weak pulses",
+        "pulmonary": "Possible pneumonia",
+        "abdomen": "Soft",
+        "neuro": "Coma without meningismus",
+        "other": "High VTE risk due to HHS and immobility",
+    }
+    case["initial_labs"] = {
+        "glucose": "910 mg/dL",
+        "sodium": "162 mmol/L",
+        "osmolality": "354 mOsm/kg",
+        "ph": "7.34",
+        "bicarbonate": "19 mmol/L",
+        "beta_hydroxybutyrate": "1.6 mmol/L",
+        "potassium": "3.4 mmol/L",
+        "creatinine": "2.8 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "HHS has higher mortality than DKA and requires careful controlled correction",
+        "Rapid osmolar correction can worsen neurologic injury or cerebral edema",
+        "Treatment requires precipitant search and thrombosis risk assessment",
+    ]
+    case["clinical_red_flags"] = [
+        "Coma, seizure, severe dehydration, severe hypotension, osmolality greater than 320, or multiorgan failure",
+        "AKI, hypernatremia, infection, stroke, myocardial infarction, thrombosis, or VTE risk",
+    ]
+    case["time_critical_actions"] = [
+        "Start isotonic saline crystalloid fluids for volume depletion and perfusion while monitoring heart failure risk",
+        "Trend effective osmolality and sodium frequently during correction",
+        "Send glucose, ketone beta-hydroxybutyrate, blood gas pH, bicarbonate, and metabolic panel",
+        "Check potassium before insulin, defer insulin if potassium is unsafe, and use cautious 0.05 units/kg/h insulin after fluids if glucose stops falling",
+        "Search precipitant with infection cultures, sepsis evaluation, stroke assessment, myocardial infarction ECG and troponin, and ICU escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antibiotics",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hyperglycemic Crises",
+            "organization": "Endotext / NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK279052/",
+            "supports": [
+                "HHS with hyperosmolality and coma diagnosis and risk stratification",
+                "hyperosmolar hyperglycemic state with coma, severe dehydration, glucose 910 mg/dL, effective osmolality 354 mOsm/kg, hypernatremia, AKI, and possible infection",
+                "HHS has higher mortality than DKA and requires careful controlled correction",
+                "rapid osmolar correction can worsen neurologic injury or cerebral edema",
+                "treatment requires precipitant search and thrombosis risk assessment",
+                "coma, seizure, severe dehydration, severe hypotension, osmolality greater than 320, or multiorgan failure as red flags",
+                "AKI, hypernatremia, infection, stroke, myocardial infarction, thrombosis, or VTE risk as severity markers",
+                "isotonic saline crystalloid fluids for volume depletion and perfusion while monitoring heart failure risk",
+                "effective osmolality and sodium frequent trend during correction",
+                "glucose, ketone beta-hydroxybutyrate, blood gas pH, bicarbonate, and metabolic panel",
+                "potassium before insulin, defer insulin if potassium is unsafe, and cautious 0.05 units/kg/h insulin after fluids if glucose stops falling",
+                "precipitant search with infection cultures, sepsis evaluation, stroke assessment, myocardial infarction ECG and troponin, and ICU escalation",
+                "medication allergy before antibiotics",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "HHS safety checks must include controlled osmolality" in issue
         for issue in report.critical_issues
     )
 

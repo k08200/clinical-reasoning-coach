@@ -427,6 +427,97 @@
     }
   },
   {
+    "name": "hhs_requires_fluids_osmolality_labs_cautious_insulin_and_precipitant_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "HHS time-critical actions must include isotonic crystalloid"
+    ],
+    "overrides": {
+      "diagnosis": "Hyperosmolar hyperglycemic state",
+      "patient_demographics": {
+        "age": 76,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Confusion, weakness, and severe hyperglycemia",
+      "history_of_present_illness": "Older patient with type 2 diabetes presents after days of polyuria, poor intake, dehydration, confusion, glucose 782 mg/dL, sodium 158, effective osmolality 336 mOsm/kg, and suspected HHS without significant ketoacidosis.",
+      "past_medical_history": "Type 2 diabetes, CKD, frailty, and recent pneumonia symptoms",
+      "physical_exam": {
+        "vitals": {
+          "bp": "88/52",
+          "hr": 122,
+          "rr": 22,
+          "temp_c": 38.0,
+          "spo2": 94
+        },
+        "general": "Severely dehydrated and confused",
+        "cardiovascular": "Tachycardic with poor perfusion",
+        "pulmonary": "Dry mucous membranes and possible pneumonia",
+        "abdomen": "Soft and nontender",
+        "neuro": "Lethargic without focal deficit",
+        "other": "Marked volume depletion"
+      },
+      "initial_labs": {
+        "glucose": "782 mg/dL",
+        "sodium": "158 mmol/L",
+        "osmolality": "336 mOsm/kg",
+        "ph": "7.36",
+        "bicarbonate": "20 mmol/L",
+        "beta_hydroxybutyrate": "1.1 mmol/L",
+        "potassium": "4.6 mmol/L",
+        "creatinine": "2.4 mg/dL"
+      },
+      "key_teaching_points": [
+        "HHS is characterized by severe hyperglycemia, hyperosmolality, dehydration, and absent significant acidosis",
+        "Fluid replacement alone can lower glucose and osmolality, so insulin should be cautious and often delayed",
+        "Infection, stroke, myocardial infarction, medications, and poor intake are common precipitants"
+      ],
+      "clinical_red_flags": [
+        "Altered mental status, seizure, coma, severe hypotension, hypernatremia, or effective osmolality above 320",
+        "AKI, severe dehydration, infection, thrombosis, VTE, stroke mimic, or myocardial infarction trigger"
+      ],
+      "time_critical_actions": [
+        "Start isotonic normal saline crystalloid fluid resuscitation to restore volume and perfusion",
+        "Trend effective osmolality, osmolar status, corrected sodium, and serum sodium during therapy",
+        "Check glucose, beta-hydroxybutyrate ketone, blood gas pH, bicarbonate, and metabolic panel",
+        "Review potassium before insulin and defer insulin initially; if needed use cautious 0.05 units/kg/h insulin infusion"
+      ],
+      "contraindication_checks": [
+        "Control osmolality fall at 3 and 8 mOsm/kg/hour, avoid rapid correction and cerebral edema, and keep sodium fall no more than 10 mmol/L/day",
+        "Use fluids first and start insulin after glucose stops falling to avoid osmotic shift; use 0.05 units/kg/h and defer insulin if potassium is unsafe",
+        "Review potassium, renal impairment, CKD, frailty, cardiac failure, kidney function, and fluid safety before aggressive replacement",
+        "Assess thrombosis and VTE risk plus precipitant infection, stroke, sepsis, and myocardial infarction",
+        "Disposition to ICU until osmolality below 300, urine output improves, cognitive status improves, and euglycemia is stable"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hyperglycemic Crises",
+          "organization": "Endotext / NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK279052/",
+          "supports": [
+            "hyperosmolar hyperglycemic state diagnosis and risk stratification",
+            "HHS with glucose 782 mg/dL, sodium 158, effective osmolality 336 mOsm/kg, dehydration, confusion, and no significant ketoacidosis",
+            "HHS is characterized by severe hyperglycemia, hyperosmolality, dehydration, and absent significant acidosis",
+            "fluid replacement alone can lower glucose and osmolality, so insulin should be cautious and often delayed",
+            "infection, stroke, myocardial infarction, medications, and poor intake are common precipitants",
+            "altered mental status, seizure, coma, severe hypotension, hypernatremia, or effective osmolality above 320 as red flags",
+            "AKI, severe dehydration, infection, thrombosis, VTE, stroke mimic, or myocardial infarction trigger as severity markers",
+            "isotonic normal saline crystalloid fluid resuscitation to restore volume and perfusion",
+            "effective osmolality, osmolar status, corrected sodium, and serum sodium trend during therapy",
+            "glucose, beta-hydroxybutyrate ketone, blood gas pH, bicarbonate, and metabolic panel",
+            "potassium before insulin and defer insulin initially; cautious 0.05 units/kg/h insulin infusion if needed",
+            "osmolality fall at 3 and 8 mOsm/kg/hour, avoid rapid correction and cerebral edema, and sodium fall no more than 10 mmol/L/day",
+            "fluids first and insulin after glucose stops falling to avoid osmotic shift; 0.05 units/kg/h and defer insulin if potassium is unsafe",
+            "potassium, renal impairment, CKD, frailty, cardiac failure, kidney function, and fluid safety before aggressive replacement",
+            "thrombosis and VTE risk plus precipitant infection, stroke, sepsis, and myocardial infarction",
+            "ICU until osmolality below 300, urine output improves, cognitive status improves, and euglycemia is stable"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "stroke_requires_last_known_normal_and_imaging_actions",
     "expected_passed": false,
     "expected_issue_substrings": [
