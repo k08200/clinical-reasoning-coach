@@ -8169,6 +8169,130 @@ CARDIAC_TAMPONADE_CAUSE_COMPLICATION_SAFETY_TERMS = (
     "감별",
     "외상",
 )
+UNSTABLE_TACHYARRHYTHMIA_CONTEXT_TERMS = (
+    "af with rvr",
+    "atrial fibrillation with rapid ventricular response",
+    "monomorphic vt",
+    "polymorphic vt",
+    "supraventricular tachycardia with instability",
+    "svt with instability",
+    "unstable tachyarrhythmia",
+    "unstable tachycardia",
+    "ventricular tachycardia",
+    "vt with pulse",
+    "wide complex tachycardia",
+    "wide-complex tachycardia",
+    "불안정 빈맥",
+    "심실빈맥",
+)
+UNSTABLE_TACHYARRHYTHMIA_RISK_TERMS = (
+    "altered mental status",
+    "chest pain",
+    "heart failure",
+    "hypoperfusion",
+    "hypotension",
+    "ischemia",
+    "pulmonary edema",
+    "shock",
+    "syncope",
+    "weak pulse",
+)
+UNSTABLE_TACHYARRHYTHMIA_MONITOR_ACTION_TERMS = (
+    "12-lead ecg",
+    "cardiac monitor",
+    "defibrillator pads",
+    "ecg",
+    "ekg",
+    "iv access",
+    "monitor",
+    "telemetry",
+    "심전도",
+)
+UNSTABLE_TACHYARRHYTHMIA_PULSE_INSTABILITY_ACTION_TERMS = (
+    "altered mental status",
+    "chest pain",
+    "hypotension",
+    "instability",
+    "ischemia",
+    "pulse check",
+    "pulmonary edema",
+    "shock",
+    "unstable",
+    "맥박",
+    "불안정",
+)
+UNSTABLE_TACHYARRHYTHMIA_CARDIOVERSION_ACTION_TERMS = (
+    "cardioversion",
+    "synchronized cardioversion",
+    "synchronized shock",
+    "synchronised cardioversion",
+    "sync mode",
+    "동기화",
+    "전기적 심율동전환",
+)
+UNSTABLE_TACHYARRHYTHMIA_REVERSIBLE_CAUSE_ACTION_TERMS = (
+    "calcium",
+    "electrolyte",
+    "hypokalemia",
+    "hypoxia",
+    "ischemia",
+    "magnesium",
+    "potassium",
+    "qtc",
+    "torsades",
+    "전해질",
+)
+UNSTABLE_TACHYARRHYTHMIA_ESCALATION_ACTION_TERMS = (
+    "acls",
+    "cardiology",
+    "defibrillation",
+    "expert consultation",
+    "icu",
+    "pulseless",
+    "sedation",
+    "전문가",
+    "중환자",
+)
+UNSTABLE_TACHYARRHYTHMIA_SHOCK_SEDATION_SAFETY_TERMS = (
+    "do not delay",
+    "sedation",
+    "synchronized",
+    "unstable",
+    "unsynchronized",
+    "지연",
+    "진정",
+)
+UNSTABLE_TACHYARRHYTHMIA_WIDE_IRREGULAR_SAFETY_TERMS = (
+    "av nodal blocker",
+    "beta blocker",
+    "diltiazem",
+    "digoxin",
+    "irregular wide",
+    "pre-excitation",
+    "preexcited",
+    "verapamil",
+    "wpw",
+)
+UNSTABLE_TACHYARRHYTHMIA_ANTIARRHYTHMIC_SAFETY_TERMS = (
+    "amiodarone",
+    "hypotension",
+    "magnesium",
+    "procainamide",
+    "prolonged qt",
+    "qtc",
+    "sotalol",
+    "torsades",
+)
+UNSTABLE_TACHYARRHYTHMIA_CAUSE_DISPOSITION_SAFETY_TERMS = (
+    "acute coronary syndrome",
+    "electrolyte",
+    "hypoxia",
+    "ischemia",
+    "magnesium",
+    "potassium",
+    "thyroid",
+    "toxin",
+)
 TENSION_PNEUMOTHORAX_CONTEXT_TERMS = (
     "tension pneumothorax",
     "tension physiology",
@@ -11172,6 +11296,32 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "review, and trauma, iatrogenic injury, myocardial infarction or "
                 "rupture, aortic dissection, malignancy, uremia, or renal failure "
                 "cause assessment"
+            ),
+        ),
+        DomainSafetyGate(
+            name="unstable_tachyarrhythmia_time_critical_actions",
+            applies=_requires_unstable_tachyarrhythmia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_unstable_tachyarrhythmia_time_critical_actions,
+            issue=(
+                "unstable tachyarrhythmia time-critical actions must include ECG "
+                "or monitor/defibrillator setup, pulse and instability assessment, "
+                "synchronized cardioversion for unstable tachycardia with a pulse, "
+                "electrolyte, ischemia, hypoxia, or torsades cause review, and ACLS, "
+                "cardiology, sedation, or pulseless-defibrillation escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="unstable_tachyarrhythmia_treatment_safety",
+            applies=_requires_unstable_tachyarrhythmia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_unstable_tachyarrhythmia_treatment_safety_check,
+            issue=(
+                "unstable tachyarrhythmia safety checks must include sedation "
+                "without delaying shock and synchronized versus unsynchronized shock "
+                "review, AV-nodal blocker avoidance in pre-excitation or irregular "
+                "wide-complex rhythms, antiarrhythmic QT, torsades, magnesium, or "
+                "hypotension cautions, and reversible-cause or disposition review"
             ),
         ),
         DomainSafetyGate(
@@ -17519,6 +17669,94 @@ def _has_cardiac_tamponade_treatment_safety_check(checks: list[Any]) -> bool:
         has_no_delay_safety
         and has_anticoag_reversal_safety
         and has_cause_complication_safety
+    )
+
+
+def _requires_unstable_tachyarrhythmia_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_unstable_tachyarrhythmia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_monitor_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_MONITOR_ACTION_TERMS
+    )
+    has_pulse_instability_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_PULSE_INSTABILITY_ACTION_TERMS
+    )
+    has_cardioversion_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_CARDIOVERSION_ACTION_TERMS
+    )
+    has_reversible_cause_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_REVERSIBLE_CAUSE_ACTION_TERMS
+    )
+    has_escalation_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_monitor_action
+        and has_pulse_instability_action
+        and has_cardioversion_action
+        and has_reversible_cause_action
+        and has_escalation_action
+    )
+
+
+def _has_unstable_tachyarrhythmia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_shock_sedation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_SHOCK_SEDATION_SAFETY_TERMS
+    )
+    has_wide_irregular_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_WIDE_IRREGULAR_SAFETY_TERMS
+    )
+    has_antiarrhythmic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_ANTIARRHYTHMIC_SAFETY_TERMS
+    )
+    has_cause_disposition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_CAUSE_DISPOSITION_SAFETY_TERMS
+    )
+    return (
+        has_shock_sedation_safety
+        and has_wide_irregular_safety
+        and has_antiarrhythmic_safety
+        and has_cause_disposition_safety
     )
 
 

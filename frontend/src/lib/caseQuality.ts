@@ -8911,6 +8911,141 @@ const CARDIAC_TAMPONADE_CAUSE_COMPLICATION_SAFETY_TERMS = [
   "외상",
 ];
 
+const UNSTABLE_TACHYARRHYTHMIA_CONTEXT_TERMS = [
+  "af with rvr",
+  "atrial fibrillation with rapid ventricular response",
+  "monomorphic vt",
+  "polymorphic vt",
+  "supraventricular tachycardia with instability",
+  "svt with instability",
+  "unstable tachyarrhythmia",
+  "unstable tachycardia",
+  "ventricular tachycardia",
+  "vt with pulse",
+  "wide complex tachycardia",
+  "wide-complex tachycardia",
+  "불안정 빈맥",
+  "심실빈맥",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_RISK_TERMS = [
+  "altered mental status",
+  "chest pain",
+  "heart failure",
+  "hypoperfusion",
+  "hypotension",
+  "ischemia",
+  "pulmonary edema",
+  "shock",
+  "syncope",
+  "weak pulse",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_MONITOR_ACTION_TERMS = [
+  "12-lead ecg",
+  "cardiac monitor",
+  "defibrillator pads",
+  "ecg",
+  "ekg",
+  "iv access",
+  "monitor",
+  "telemetry",
+  "심전도",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_PULSE_INSTABILITY_ACTION_TERMS = [
+  "altered mental status",
+  "chest pain",
+  "hypotension",
+  "instability",
+  "ischemia",
+  "pulse check",
+  "pulmonary edema",
+  "shock",
+  "unstable",
+  "맥박",
+  "불안정",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_CARDIOVERSION_ACTION_TERMS = [
+  "cardioversion",
+  "synchronized cardioversion",
+  "synchronized shock",
+  "synchronised cardioversion",
+  "sync mode",
+  "동기화",
+  "전기적 심율동전환",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_REVERSIBLE_CAUSE_ACTION_TERMS = [
+  "calcium",
+  "electrolyte",
+  "hypokalemia",
+  "hypoxia",
+  "ischemia",
+  "magnesium",
+  "potassium",
+  "qtc",
+  "torsades",
+  "전해질",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_ESCALATION_ACTION_TERMS = [
+  "acls",
+  "cardiology",
+  "defibrillation",
+  "expert consultation",
+  "icu",
+  "pulseless",
+  "sedation",
+  "전문가",
+  "중환자",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_SHOCK_SEDATION_SAFETY_TERMS = [
+  "do not delay",
+  "sedation",
+  "synchronized",
+  "unstable",
+  "unsynchronized",
+  "지연",
+  "진정",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_WIDE_IRREGULAR_SAFETY_TERMS = [
+  "av nodal blocker",
+  "beta blocker",
+  "diltiazem",
+  "digoxin",
+  "irregular wide",
+  "pre-excitation",
+  "preexcited",
+  "verapamil",
+  "wpw",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_ANTIARRHYTHMIC_SAFETY_TERMS = [
+  "amiodarone",
+  "hypotension",
+  "magnesium",
+  "procainamide",
+  "prolonged qt",
+  "qtc",
+  "sotalol",
+  "torsades",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_CAUSE_DISPOSITION_SAFETY_TERMS = [
+  "acute coronary syndrome",
+  "electrolyte",
+  "hypoxia",
+  "ischemia",
+  "magnesium",
+  "potassium",
+  "thyroid",
+  "toxin",
+];
+
 const TENSION_PNEUMOTHORAX_CONTEXT_TERMS = [
   "tension pneumothorax",
   "tension physiology",
@@ -14362,6 +14497,83 @@ function hasCardiacTamponadeTreatmentSafetyCheck(checks: string[]): boolean {
   return hasNoDelaySafety && hasAnticoagReversalSafety && hasCauseComplicationSafety;
 }
 
+function requiresUnstableTachyarrhythmiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = UNSTABLE_TACHYARRHYTHMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = UNSTABLE_TACHYARRHYTHMIA_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasUnstableTachyarrhythmiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasMonitorAction = UNSTABLE_TACHYARRHYTHMIA_MONITOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPulseInstabilityAction =
+    UNSTABLE_TACHYARRHYTHMIA_PULSE_INSTABILITY_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasCardioversionAction = UNSTABLE_TACHYARRHYTHMIA_CARDIOVERSION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasReversibleCauseAction =
+    UNSTABLE_TACHYARRHYTHMIA_REVERSIBLE_CAUSE_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasEscalationAction = UNSTABLE_TACHYARRHYTHMIA_ESCALATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasMonitorAction &&
+    hasPulseInstabilityAction &&
+    hasCardioversionAction &&
+    hasReversibleCauseAction &&
+    hasEscalationAction
+  );
+}
+
+function hasUnstableTachyarrhythmiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasShockSedationSafety = UNSTABLE_TACHYARRHYTHMIA_SHOCK_SEDATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasWideIrregularSafety =
+    UNSTABLE_TACHYARRHYTHMIA_WIDE_IRREGULAR_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAntiarrhythmicSafety =
+    UNSTABLE_TACHYARRHYTHMIA_ANTIARRHYTHMIC_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCauseDispositionSafety =
+    UNSTABLE_TACHYARRHYTHMIA_CAUSE_DISPOSITION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasShockSedationSafety &&
+    hasWideIrregularSafety &&
+    hasAntiarrhythmicSafety &&
+    hasCauseDispositionSafety
+  );
+}
+
 function requiresTensionPneumothoraxSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -15991,6 +16203,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCardiacTamponadeTreatmentSafetyCheck,
       issue:
         "cardiac tamponade safety checks must include unstable-patient do-not-delay or immediate-drainage planning, anticoagulant, thrombolysis, bleeding, coagulopathy, INR, platelet, or reversal review, and trauma, iatrogenic injury, myocardial infarction or rupture, aortic dissection, malignancy, uremia, or renal failure cause assessment",
+    },
+    {
+      name: "unstable_tachyarrhythmia_time_critical_actions",
+      label: "Unstable tachyarrhythmia emergency actions",
+      applies: requiresUnstableTachyarrhythmiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasUnstableTachyarrhythmiaTimeCriticalActions,
+      issue:
+        "unstable tachyarrhythmia time-critical actions must include ECG or monitor/defibrillator setup, pulse and instability assessment, synchronized cardioversion for unstable tachycardia with a pulse, electrolyte, ischemia, hypoxia, or torsades cause review, and ACLS, cardiology, sedation, or pulseless-defibrillation escalation",
+    },
+    {
+      name: "unstable_tachyarrhythmia_treatment_safety",
+      label: "Unstable tachyarrhythmia treatment safety",
+      applies: requiresUnstableTachyarrhythmiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasUnstableTachyarrhythmiaTreatmentSafetyCheck,
+      issue:
+        "unstable tachyarrhythmia safety checks must include sedation without delaying shock and synchronized versus unsynchronized shock review, AV-nodal blocker avoidance in pre-excitation or irregular wide-complex rhythms, antiarrhythmic QT, torsades, magnesium, or hypotension cautions, and reversible-cause or disposition review",
     },
     {
       name: "tension_pneumothorax_time_critical_actions",
