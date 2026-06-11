@@ -59,6 +59,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "cns_infection_lp_steroid_safety",
         "ectopic_pregnancy_time_critical_actions",
         "ectopic_pregnancy_treatment_safety",
+        "postpartum_hemorrhage_time_critical_actions",
+        "postpartum_hemorrhage_treatment_safety",
         "severe_preeclampsia_time_critical_actions",
         "severe_preeclampsia_treatment_safety",
         "hypertensive_emergency_time_critical_actions",
@@ -1115,6 +1117,171 @@ def test_quality_gate_requires_ectopic_pregnancy_rh_mtx_and_rupture_safety():
     assert not report.passed
     assert any(
         "ectopic pregnancy safety checks must include Rh status" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_postpartum_hemorrhage_resuscitation_uterotonic_txa_source_and_escalation_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Postpartum hemorrhage from uterine atony"
+    case["patient_demographics"] = {
+        "age": 31,
+        "sex": "female",
+        "weight_kg": 72,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Heavy vaginal bleeding after delivery"
+    case["history_of_present_illness"] = (
+        "Patient has postpartum hemorrhage 30 minutes after vaginal delivery with "
+        "heavy vaginal bleeding, boggy uterus, tachycardia, hypotension, and "
+        "suspected uterine atony."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "82/48", "hr": 132, "rr": 24, "temp_c": 36.8, "spo2": 96},
+        "general": "Pale, diaphoretic, and anxious",
+        "abdomen": "Boggy enlarged uterus with ongoing bleeding",
+        "pelvic": "Heavy vaginal bleeding with clots after delivery",
+        "other": "Estimated blood loss 1500 mL",
+    }
+    case["initial_labs"] = {
+        "hemoglobin": "8.1 g/dL",
+        "platelets": "115000/uL",
+        "fibrinogen": "185 mg/dL",
+        "inr": "1.4",
+    }
+    case["key_teaching_points"] = [
+        "Postpartum hemorrhage can rapidly progress to shock and coagulopathy",
+        "Uterine atony is treated with uterine massage and uterotonic therapy",
+        "Escalation requires identifying the 4 Ts: tone, trauma, tissue, and thrombin",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension, tachycardia, massive bleeding, shock, boggy uterus, or coagulopathy",
+        "Retained placenta, laceration, uterine rupture, inversion, or DIC",
+    ]
+    case["time_critical_actions"] = [
+        "Activate obstetric hemorrhage protocol with two large-bore IVs, type and screen, crossmatch, transfusion, blood products, and massive transfusion readiness",
+        "Perform uterine massage and fundal massage while giving oxytocin uterotonic therapy",
+        "Assess 4 Ts including tone atony, trauma laceration, tissue retained placenta, and thrombin coagulopathy",
+    ]
+    case["contraindication_checks"] = [
+        "Review methylergonovine hypertension and preeclampsia risk, carboprost asthma risk, and misoprostol adverse effects before additional uterotonics",
+        "Give TXA tranexamic acid within 3 hours if no thromboembolism contraindication",
+        "Monitor shock index, coagulopathy, fibrinogen, platelet count, INR, and viscoelastic transfusion targets",
+        "Evaluate retained placenta, retained tissue, manual removal need, genital tract laceration, uterine inversion, and rupture",
+        "Escalate to balloon tamponade, packing, surgical laparotomy, or interventional radiology if bleeding persists",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Updated WHO recommendation on tranexamic acid for the treatment of postpartum haemorrhage",
+            "organization": "World Health Organization",
+            "url": "https://www.who.int/publications/i/item/9789241550154",
+            "supports": [
+                "postpartum hemorrhage from uterine atony diagnosis and risk stratification",
+                "postpartum hemorrhage 30 minutes after vaginal delivery with heavy vaginal bleeding, boggy uterus, tachycardia, hypotension, and suspected uterine atony",
+                "postpartum hemorrhage can rapidly progress to shock and coagulopathy",
+                "uterine atony is treated with uterine massage and uterotonic therapy",
+                "escalation requires identifying the 4 Ts: tone, trauma, tissue, and thrombin",
+                "hypotension, tachycardia, massive bleeding, shock, boggy uterus, or coagulopathy as red flags",
+                "retained placenta, laceration, uterine rupture, inversion, or DIC as severity markers",
+                "obstetric hemorrhage protocol with two large-bore IVs, type and screen, crossmatch, transfusion, blood products, and massive transfusion readiness",
+                "uterine massage and fundal massage while giving oxytocin uterotonic therapy",
+                "4 Ts including tone atony, trauma laceration, tissue retained placenta, and thrombin coagulopathy",
+                "methylergonovine hypertension and preeclampsia risk, carboprost asthma risk, and misoprostol adverse effects before additional uterotonics",
+                "TXA tranexamic acid within 3 hours if no thromboembolism contraindication",
+                "shock index, coagulopathy, fibrinogen, platelet count, INR, and viscoelastic transfusion targets",
+                "retained placenta, retained tissue, manual removal need, genital tract laceration, uterine inversion, and rupture",
+                "balloon tamponade, packing, surgical laparotomy, or interventional radiology if bleeding persists",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "postpartum hemorrhage time-critical actions must include hemorrhage protocol"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_postpartum_hemorrhage_uterotonic_txa_coag_retained_and_escalation_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Postpartum hemorrhage with retained placenta"
+    case["patient_demographics"] = {
+        "age": 35,
+        "sex": "female",
+        "weight_kg": 80,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Massive bleeding after delivery"
+    case["history_of_present_illness"] = (
+        "Patient has postpartum hemorrhage after delivery with retained placenta, "
+        "continued vaginal bleeding, tachycardia, hypotension, shock, and concern "
+        "for massive obstetric hemorrhage."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "76/42", "hr": 144, "rr": 26, "temp_c": 36.4, "spo2": 95},
+        "general": "Pale and lethargic",
+        "abdomen": "Uterus remains enlarged with ongoing bleeding",
+        "pelvic": "Placenta incomplete with heavy vaginal bleeding",
+        "other": "Estimated blood loss 2200 mL",
+    }
+    case["initial_labs"] = {
+        "hemoglobin": "7.4 g/dL",
+        "platelets": "98000/uL",
+        "fibrinogen": "140 mg/dL",
+        "inr": "1.7",
+    }
+    case["key_teaching_points"] = [
+        "Massive postpartum hemorrhage requires simultaneous resuscitation and source control",
+        "Retained placenta and genital tract trauma must be actively assessed",
+        "TXA is time-sensitive and should be considered early with standard care",
+    ]
+    case["clinical_red_flags"] = [
+        "Massive bleeding, shock, hypotension, tachycardia, coagulopathy, or low fibrinogen",
+        "Retained placenta, uterine inversion, rupture, laceration, DIC, or failed uterotonic response",
+    ]
+    case["time_critical_actions"] = [
+        "Activate hemorrhage protocol with large-bore access, type and screen, crossmatch, blood product transfusion, and massive transfusion readiness",
+        "Perform uterine massage and give oxytocin plus additional uterotonic therapy",
+        "Give tranexamic acid TXA immediately",
+        "Assess 4 Ts including tone atony, trauma laceration, tissue retained placenta, and thrombin coagulopathy",
+        "Escalate to obstetric operating room, Bakri balloon tamponade, B-Lynch surgery, uterine tamponade, or hysterectomy planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antibiotics",
+        "Pregnancy status before imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "WHO recommendation on uterine balloon tamponade for the treatment of postpartum haemorrhage",
+            "organization": "World Health Organization",
+            "url": "https://www.who.int/publications/i/item/9789240013841",
+            "supports": [
+                "postpartum hemorrhage with retained placenta diagnosis and risk stratification",
+                "postpartum hemorrhage after delivery with retained placenta, continued vaginal bleeding, tachycardia, hypotension, shock, and concern for massive obstetric hemorrhage",
+                "massive postpartum hemorrhage requires simultaneous resuscitation and source control",
+                "retained placenta and genital tract trauma must be actively assessed",
+                "TXA is time-sensitive and should be considered early with standard care",
+                "massive bleeding, shock, hypotension, tachycardia, coagulopathy, or low fibrinogen as red flags",
+                "retained placenta, uterine inversion, rupture, laceration, DIC, or failed uterotonic response as severity markers",
+                "hemorrhage protocol with large-bore access, type and screen, crossmatch, blood product transfusion, and massive transfusion readiness",
+                "uterine massage and oxytocin plus additional uterotonic therapy",
+                "tranexamic acid TXA immediately",
+                "4 Ts including tone atony, trauma laceration, tissue retained placenta, and thrombin coagulopathy",
+                "obstetric operating room, Bakri balloon tamponade, B-Lynch surgery, uterine tamponade, or hysterectomy planning",
+                "medication allergy before antibiotics",
+                "pregnancy status before imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "postpartum hemorrhage safety checks must include uterotonic" in issue
         for issue in report.critical_issues
     )
 

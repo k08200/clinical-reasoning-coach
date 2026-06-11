@@ -1082,6 +1082,117 @@ const ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS = [
   "혈역학",
 ];
 
+const POSTPARTUM_HEMORRHAGE_CONTEXT_TERMS = [
+  "massive obstetric hemorrhage",
+  "post-partum hemorrhage",
+  "postpartum haemorrhage",
+  "postpartum hemorrhage",
+  "pph",
+  "retained placenta",
+  "uterine atony",
+  "산후출혈",
+];
+
+const POSTPARTUM_HEMORRHAGE_SEVERE_RISK_TERMS = [
+  "boggy uterus",
+  "hemorrhage",
+  "hypotension",
+  "massive bleeding",
+  "shock",
+  "tachycardia",
+  "uterine atony",
+  "vaginal bleeding",
+];
+
+const POSTPARTUM_HEMORRHAGE_RESUSCITATION_ACTION_TERMS = [
+  "blood product",
+  "crossmatch",
+  "hemorrhage protocol",
+  "large-bore",
+  "massive transfusion",
+  "transfusion",
+  "type and screen",
+];
+
+const POSTPARTUM_HEMORRHAGE_UTEROTONIC_ACTION_TERMS = [
+  "fundal massage",
+  "methylergonovine",
+  "misoprostol",
+  "oxytocin",
+  "uterine massage",
+  "uterotonic",
+];
+
+const POSTPARTUM_HEMORRHAGE_TXA_ACTION_TERMS = ["tranexamic acid", "txa"];
+
+const POSTPARTUM_HEMORRHAGE_SOURCE_ACTION_TERMS = [
+  "4 ts",
+  "atony",
+  "laceration",
+  "retained placenta",
+  "retained tissue",
+  "thrombin",
+  "tissue",
+  "tone",
+  "trauma",
+];
+
+const POSTPARTUM_HEMORRHAGE_ESCALATION_ACTION_TERMS = [
+  "bakri",
+  "balloon tamponade",
+  "b-lynch",
+  "hysterectomy",
+  "obstetric",
+  "operating room",
+  "surgery",
+  "uterine tamponade",
+];
+
+const POSTPARTUM_HEMORRHAGE_UTEROTONIC_SAFETY_TERMS = [
+  "asthma",
+  "carboprost",
+  "hypertension",
+  "methylergonovine",
+  "misoprostol",
+  "preeclampsia",
+];
+
+const POSTPARTUM_HEMORRHAGE_TXA_SAFETY_TERMS = [
+  "3 hours",
+  "contraindication",
+  "thromboembolism",
+  "tranexamic acid",
+  "txa",
+];
+
+const POSTPARTUM_HEMORRHAGE_COAG_TRANSFUSION_SAFETY_TERMS = [
+  "coagulopathy",
+  "fibrinogen",
+  "inr",
+  "platelet",
+  "shock index",
+  "viscoelastic",
+];
+
+const POSTPARTUM_HEMORRHAGE_RETAINED_TRAUMA_SAFETY_TERMS = [
+  "genital tract",
+  "laceration",
+  "manual removal",
+  "retained placenta",
+  "retained tissue",
+  "rupture",
+  "uterine inversion",
+];
+
+const POSTPARTUM_HEMORRHAGE_ESCALATION_SAFETY_TERMS = [
+  "balloon",
+  "interventional radiology",
+  "laparotomy",
+  "packing",
+  "surgical",
+  "tamponade",
+];
+
 const SEVERE_PREECLAMPSIA_CONTEXT_TERMS = [
   "eclampsia",
   "postpartum preeclampsia",
@@ -9058,6 +9169,79 @@ function hasEctopicPregnancyTreatmentSafetyCheck(checks: string[]): boolean {
   return hasRhSafety && hasMtxSafety && hasHemodynamicSafety;
 }
 
+function requiresPostpartumHemorrhageSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const directContext = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.diagnosis,
+  ]
+    .join(" ")
+    .toLowerCase();
+  const riskText = [
+    directContext,
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+    ...nestedStrings(detail.time_critical_actions),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasPphContext = POSTPARTUM_HEMORRHAGE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(directContext, term),
+  );
+  const hasSevereRisk = POSTPARTUM_HEMORRHAGE_SEVERE_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasPphContext && hasSevereRisk;
+}
+
+function hasPostpartumHemorrhageTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasResuscitation = POSTPARTUM_HEMORRHAGE_RESUSCITATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUterotonic = POSTPARTUM_HEMORRHAGE_UTEROTONIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTxa = POSTPARTUM_HEMORRHAGE_TXA_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSourceControl = POSTPARTUM_HEMORRHAGE_SOURCE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = POSTPARTUM_HEMORRHAGE_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasResuscitation && hasUterotonic && hasTxa && hasSourceControl && hasEscalation;
+}
+
+function hasPostpartumHemorrhageTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasUterotonicSafety = POSTPARTUM_HEMORRHAGE_UTEROTONIC_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTxaSafety = POSTPARTUM_HEMORRHAGE_TXA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCoagTransfusionSafety = POSTPARTUM_HEMORRHAGE_COAG_TRANSFUSION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRetainedTraumaSafety = POSTPARTUM_HEMORRHAGE_RETAINED_TRAUMA_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEscalationSafety = POSTPARTUM_HEMORRHAGE_ESCALATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasUterotonicSafety &&
+    hasTxaSafety &&
+    hasCoagTransfusionSafety &&
+    hasRetainedTraumaSafety &&
+    hasEscalationSafety
+  );
+}
+
 function requiresSeverePreeclampsiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -13330,6 +13514,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasEctopicPregnancyTreatmentSafetyCheck,
       issue:
         "ectopic pregnancy safety checks must include Rh status or anti-D planning, methotrexate eligibility or contraindications, and hemodynamic or rupture risk",
+    },
+    {
+      name: "postpartum_hemorrhage_time_critical_actions",
+      label: "Postpartum hemorrhage emergency actions",
+      applies: requiresPostpartumHemorrhageSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasPostpartumHemorrhageTimeCriticalActions,
+      issue:
+        "postpartum hemorrhage time-critical actions must include hemorrhage protocol, large-bore access, type-and-screen, crossmatch, transfusion, blood-product, or massive-transfusion resuscitation, uterine massage, fundal massage, oxytocin, uterotonic, methylergonovine, carboprost, or misoprostol therapy, tranexamic acid or TXA, source assessment for 4 Ts, tone, trauma, tissue, thrombin, atony, laceration, retained placenta, or retained tissue, and escalation with OB, operating room, surgery, Bakri, balloon tamponade, B-Lynch, uterine tamponade, or hysterectomy planning",
+    },
+    {
+      name: "postpartum_hemorrhage_treatment_safety",
+      label: "Postpartum hemorrhage treatment safety",
+      applies: requiresPostpartumHemorrhageSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasPostpartumHemorrhageTreatmentSafetyCheck,
+      issue:
+        "postpartum hemorrhage safety checks must include uterotonic contraindication review such as asthma, hypertension, preeclampsia, methylergonovine, carboprost, or misoprostol, TXA timing or contraindication review including 3-hours, thromboembolism, tranexamic acid, or TXA, coagulopathy, fibrinogen, platelet, INR, shock-index, or viscoelastic transfusion monitoring, retained placenta, retained tissue, manual removal, laceration, genital-tract, uterine inversion, or rupture review, and escalation safety for balloon, tamponade, packing, surgical, laparotomy, or interventional-radiology options",
     },
     {
       name: "severe_preeclampsia_time_critical_actions",

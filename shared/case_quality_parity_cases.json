@@ -1104,6 +1104,88 @@
     }
   },
   {
+    "name": "postpartum_hemorrhage_requires_resuscitation_uterotonic_txa_source_and_escalation_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "postpartum hemorrhage time-critical actions must include hemorrhage protocol"
+    ],
+    "overrides": {
+      "diagnosis": "Postpartum hemorrhage from uterine atony",
+      "patient_demographics": {
+        "age": 31,
+        "sex": "female",
+        "weight_kg": 72,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Heavy vaginal bleeding after delivery",
+      "history_of_present_illness": "Patient has postpartum hemorrhage 30 minutes after vaginal delivery with heavy vaginal bleeding, boggy uterus, tachycardia, hypotension, and suspected uterine atony.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "82/48",
+          "hr": 132,
+          "rr": 24,
+          "temp_c": 36.8,
+          "spo2": 96
+        },
+        "general": "Pale, diaphoretic, and anxious",
+        "abdomen": "Boggy enlarged uterus with ongoing bleeding",
+        "pelvic": "Heavy vaginal bleeding with clots after delivery",
+        "other": "Estimated blood loss 1500 mL"
+      },
+      "initial_labs": {
+        "hemoglobin": "8.1 g/dL",
+        "platelets": "115000/uL",
+        "fibrinogen": "185 mg/dL",
+        "inr": "1.4"
+      },
+      "key_teaching_points": [
+        "Postpartum hemorrhage can rapidly progress to shock and coagulopathy",
+        "Uterine atony is treated with uterine massage and uterotonic therapy",
+        "Escalation requires identifying the 4 Ts: tone, trauma, tissue, and thrombin"
+      ],
+      "clinical_red_flags": [
+        "Hypotension, tachycardia, massive bleeding, shock, boggy uterus, or coagulopathy",
+        "Retained placenta, laceration, uterine rupture, inversion, or DIC"
+      ],
+      "time_critical_actions": [
+        "Activate obstetric hemorrhage protocol with two large-bore IVs, type and screen, crossmatch, transfusion, blood products, and massive transfusion readiness",
+        "Perform uterine massage and fundal massage while giving oxytocin uterotonic therapy",
+        "Assess 4 Ts including tone atony, trauma laceration, tissue retained placenta, and thrombin coagulopathy"
+      ],
+      "contraindication_checks": [
+        "Review methylergonovine hypertension and preeclampsia risk, carboprost asthma risk, and misoprostol adverse effects before additional uterotonics",
+        "Give TXA tranexamic acid within 3 hours if no thromboembolism contraindication",
+        "Monitor shock index, coagulopathy, fibrinogen, platelet count, INR, and viscoelastic transfusion targets",
+        "Evaluate retained placenta, retained tissue, manual removal need, genital tract laceration, uterine inversion, and rupture",
+        "Escalate to balloon tamponade, packing, surgical laparotomy, or interventional radiology if bleeding persists"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Updated WHO recommendation on tranexamic acid for the treatment of postpartum haemorrhage",
+          "organization": "World Health Organization",
+          "url": "https://www.who.int/publications/i/item/9789241550154",
+          "supports": [
+            "postpartum hemorrhage from uterine atony diagnosis and risk stratification",
+            "postpartum hemorrhage 30 minutes after vaginal delivery with heavy vaginal bleeding, boggy uterus, tachycardia, hypotension, and suspected uterine atony",
+            "postpartum hemorrhage can rapidly progress to shock and coagulopathy",
+            "uterine atony is treated with uterine massage and uterotonic therapy",
+            "escalation requires identifying the 4 Ts: tone, trauma, tissue, and thrombin",
+            "hypotension, tachycardia, massive bleeding, shock, boggy uterus, or coagulopathy as red flags",
+            "retained placenta, laceration, uterine rupture, inversion, or DIC as severity markers",
+            "obstetric hemorrhage protocol with two large-bore IVs, type and screen, crossmatch, transfusion, blood products, and massive transfusion readiness",
+            "uterine massage and fundal massage while giving oxytocin uterotonic therapy",
+            "4 Ts including tone atony, trauma laceration, tissue retained placenta, and thrombin coagulopathy",
+            "methylergonovine hypertension and preeclampsia risk, carboprost asthma risk, and misoprostol adverse effects before additional uterotonics",
+            "TXA tranexamic acid within 3 hours if no thromboembolism contraindication",
+            "shock index, coagulopathy, fibrinogen, platelet count, INR, and viscoelastic transfusion targets",
+            "retained placenta, retained tissue, manual removal need, genital tract laceration, uterine inversion, and rupture",
+            "balloon tamponade, packing, surgical laparotomy, or interventional radiology if bleeding persists"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "aortic_dissection_requires_imaging_impulse_and_surgical_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

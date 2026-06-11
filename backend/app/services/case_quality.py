@@ -1027,6 +1027,108 @@ ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS = (
     "저혈압",
     "혈역학",
 )
+POSTPARTUM_HEMORRHAGE_CONTEXT_TERMS = (
+    "massive obstetric hemorrhage",
+    "post-partum hemorrhage",
+    "postpartum haemorrhage",
+    "postpartum hemorrhage",
+    "pph",
+    "retained placenta",
+    "uterine atony",
+    "산후출혈",
+)
+POSTPARTUM_HEMORRHAGE_SEVERE_RISK_TERMS = (
+    "boggy uterus",
+    "hemorrhage",
+    "hypotension",
+    "massive bleeding",
+    "shock",
+    "tachycardia",
+    "uterine atony",
+    "vaginal bleeding",
+)
+POSTPARTUM_HEMORRHAGE_RESUSCITATION_ACTION_TERMS = (
+    "blood product",
+    "crossmatch",
+    "hemorrhage protocol",
+    "large-bore",
+    "massive transfusion",
+    "transfusion",
+    "type and screen",
+)
+POSTPARTUM_HEMORRHAGE_UTEROTONIC_ACTION_TERMS = (
+    "fundal massage",
+    "methylergonovine",
+    "misoprostol",
+    "oxytocin",
+    "uterine massage",
+    "uterotonic",
+)
+POSTPARTUM_HEMORRHAGE_TXA_ACTION_TERMS = (
+    "tranexamic acid",
+    "txa",
+)
+POSTPARTUM_HEMORRHAGE_SOURCE_ACTION_TERMS = (
+    "4 ts",
+    "atony",
+    "laceration",
+    "retained placenta",
+    "retained tissue",
+    "thrombin",
+    "tissue",
+    "tone",
+    "trauma",
+)
+POSTPARTUM_HEMORRHAGE_ESCALATION_ACTION_TERMS = (
+    "bakri",
+    "balloon tamponade",
+    "b-lynch",
+    "hysterectomy",
+    "obstetric",
+    "operating room",
+    "surgery",
+    "uterine tamponade",
+)
+POSTPARTUM_HEMORRHAGE_UTEROTONIC_SAFETY_TERMS = (
+    "asthma",
+    "carboprost",
+    "hypertension",
+    "methylergonovine",
+    "misoprostol",
+    "preeclampsia",
+)
+POSTPARTUM_HEMORRHAGE_TXA_SAFETY_TERMS = (
+    "3 hours",
+    "contraindication",
+    "thromboembolism",
+    "tranexamic acid",
+    "txa",
+)
+POSTPARTUM_HEMORRHAGE_COAG_TRANSFUSION_SAFETY_TERMS = (
+    "coagulopathy",
+    "fibrinogen",
+    "inr",
+    "platelet",
+    "shock index",
+    "viscoelastic",
+)
+POSTPARTUM_HEMORRHAGE_RETAINED_TRAUMA_SAFETY_TERMS = (
+    "genital tract",
+    "laceration",
+    "manual removal",
+    "retained placenta",
+    "retained tissue",
+    "rupture",
+    "uterine inversion",
+)
+POSTPARTUM_HEMORRHAGE_ESCALATION_SAFETY_TERMS = (
+    "balloon",
+    "interventional radiology",
+    "laparotomy",
+    "packing",
+    "surgical",
+    "tamponade",
+)
 SEVERE_PREECLAMPSIA_CONTEXT_TERMS = (
     "eclampsia",
     "postpartum preeclampsia",
@@ -8310,6 +8412,42 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="postpartum_hemorrhage_time_critical_actions",
+            applies=_requires_postpartum_hemorrhage_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_postpartum_hemorrhage_time_critical_actions,
+            issue=(
+                "postpartum hemorrhage time-critical actions must include "
+                "hemorrhage protocol, large-bore access, type-and-screen, "
+                "crossmatch, transfusion, blood-product, or massive-transfusion "
+                "resuscitation, uterine massage, fundal massage, oxytocin, "
+                "uterotonic, methylergonovine, carboprost, or misoprostol therapy, "
+                "tranexamic acid or TXA, source assessment for 4 Ts, tone, trauma, "
+                "tissue, thrombin, atony, laceration, retained placenta, or "
+                "retained tissue, and escalation with OB, operating room, surgery, "
+                "Bakri, balloon tamponade, B-Lynch, uterine tamponade, or "
+                "hysterectomy planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="postpartum_hemorrhage_treatment_safety",
+            applies=_requires_postpartum_hemorrhage_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_postpartum_hemorrhage_treatment_safety_check,
+            issue=(
+                "postpartum hemorrhage safety checks must include uterotonic "
+                "contraindication review such as asthma, hypertension, "
+                "preeclampsia, methylergonovine, carboprost, or misoprostol, TXA "
+                "timing or contraindication review including 3-hours, "
+                "thromboembolism, tranexamic acid, or TXA, coagulopathy, "
+                "fibrinogen, platelet, INR, shock-index, or viscoelastic "
+                "transfusion monitoring, retained placenta, retained tissue, "
+                "manual removal, laceration, genital-tract, uterine inversion, or "
+                "rupture review, and escalation safety for balloon, tamponade, "
+                "packing, surgical, laparotomy, or interventional-radiology options"
+            ),
+        ),
+        DomainSafetyGate(
             name="severe_preeclampsia_time_critical_actions",
             applies=_requires_severe_preeclampsia_safety_check,
             field_name="time_critical_actions",
@@ -10797,6 +10935,97 @@ def _has_ectopic_pregnancy_treatment_safety_check(checks: list[Any]) -> bool:
         for term in ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS
     )
     return has_rh_safety and has_mtx_safety and has_hemodynamic_safety
+
+
+def _requires_postpartum_hemorrhage_safety_check(data: dict[str, Any]) -> bool:
+    direct_context = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in (
+            "chief_complaint",
+            "history_of_present_illness",
+            "diagnosis",
+        )
+    )
+    risk_text = direct_context
+    for field_name in (
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+        "time_critical_actions",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_pph_context = any(
+        _contains_safety_term(direct_context, term)
+        for term in POSTPARTUM_HEMORRHAGE_CONTEXT_TERMS
+    )
+    has_severe_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in POSTPARTUM_HEMORRHAGE_SEVERE_RISK_TERMS
+    )
+    return has_pph_context and has_severe_risk
+
+
+def _has_postpartum_hemorrhage_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_resuscitation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in POSTPARTUM_HEMORRHAGE_RESUSCITATION_ACTION_TERMS
+    )
+    has_uterotonic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in POSTPARTUM_HEMORRHAGE_UTEROTONIC_ACTION_TERMS
+    )
+    has_txa = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in POSTPARTUM_HEMORRHAGE_TXA_ACTION_TERMS
+    )
+    has_source_control = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in POSTPARTUM_HEMORRHAGE_SOURCE_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in POSTPARTUM_HEMORRHAGE_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_resuscitation
+        and has_uterotonic
+        and has_txa
+        and has_source_control
+        and has_escalation
+    )
+
+
+def _has_postpartum_hemorrhage_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_uterotonic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in POSTPARTUM_HEMORRHAGE_UTEROTONIC_SAFETY_TERMS
+    )
+    has_txa_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in POSTPARTUM_HEMORRHAGE_TXA_SAFETY_TERMS
+    )
+    has_coag_transfusion_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in POSTPARTUM_HEMORRHAGE_COAG_TRANSFUSION_SAFETY_TERMS
+    )
+    has_retained_trauma_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in POSTPARTUM_HEMORRHAGE_RETAINED_TRAUMA_SAFETY_TERMS
+    )
+    has_escalation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in POSTPARTUM_HEMORRHAGE_ESCALATION_SAFETY_TERMS
+    )
+    return (
+        has_uterotonic_safety
+        and has_txa_safety
+        and has_coag_transfusion_safety
+        and has_retained_trauma_safety
+        and has_escalation_safety
+    )
 
 
 def _requires_severe_preeclampsia_safety_check(data: dict[str, Any]) -> bool:
