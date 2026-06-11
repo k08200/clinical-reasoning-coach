@@ -40,6 +40,7 @@ TRUSTED_CLINICAL_SOURCE_HOSTS = {
     "ada.org",
     "ahajournals.org",
     "annals.org",
+    "australianprescriber.tg.org.au",
     "bmj.com",
     "cdc.gov",
     "diabetes.org",
@@ -4833,6 +4834,135 @@ BB_CCB_OVERDOSE_ESCALATION_SAFETY_TERMS = (
     "vasopressor",
     "체외순환",
 )
+DIGOXIN_TOXICITY_DIRECT_CONTEXT_TERMS = (
+    "cardiac glycoside poisoning",
+    "cardiac glycoside toxicity",
+    "digoxin overdose",
+    "digoxin poisoning",
+    "digoxin toxicity",
+    "digitalis poisoning",
+    "digitalis toxicity",
+    "foxglove ingestion",
+    "디곡신",
+)
+DIGOXIN_TOXICITY_DRUG_CONTEXT_TERMS = (
+    "digibind",
+    "digifab",
+    "digoxin",
+    "digitalis",
+    "foxglove",
+)
+DIGOXIN_TOXICITY_RISK_CONTEXT_TERMS = (
+    "av block",
+    "bidirectional ventricular tachycardia",
+    "bradycardia",
+    "cardiac arrest",
+    "confusion",
+    "hyperkalemia",
+    "junctional tachycardia",
+    "nausea",
+    "renal impairment",
+    "ventricular arrhythmia",
+    "ventricular ectopy",
+    "visual halos",
+    "vomiting",
+    "yellow vision",
+    "서맥",
+)
+DIGOXIN_TOXICITY_ECG_MONITOR_ACTION_TERMS = (
+    "cardiac monitoring",
+    "ecg",
+    "ekg",
+    "electrocardiogram",
+    "rhythm monitoring",
+    "telemetry",
+    "심전도",
+)
+DIGOXIN_TOXICITY_LEVEL_ACTION_TERMS = (
+    "6 hours",
+    "six hours",
+    "digoxin concentration",
+    "digoxin level",
+    "post-distribution",
+    "serum digoxin",
+    "therapeutic drug",
+    "혈중 디곡신",
+)
+DIGOXIN_TOXICITY_ELECTROLYTE_RENAL_ACTION_TERMS = (
+    "creatinine",
+    "electrolyte",
+    "hypomagnesemia",
+    "kidney",
+    "magnesium",
+    "potassium",
+    "renal",
+    "칼륨",
+)
+DIGOXIN_TOXICITY_FAB_ACTION_TERMS = (
+    "antibody fragment",
+    "antidote",
+    "digibind",
+    "digifab",
+    "digoxin immune fab",
+    "digoxin-specific antibody",
+    "fab",
+    "면역 fab",
+)
+DIGOXIN_TOXICITY_TOX_ARRHYTHMIA_ACTION_TERMS = (
+    "atropine",
+    "lidocaine",
+    "lignocaine",
+    "magnesium",
+    "poison center",
+    "toxicologist",
+    "toxicology",
+    "독성",
+)
+DIGOXIN_TOXICITY_POTASSIUM_SAFETY_TERMS = (
+    "hypokalemia",
+    "hypokalaemia",
+    "magnesium",
+    "potassium",
+    "serum potassium",
+    "칼륨",
+)
+DIGOXIN_TOXICITY_REBOUND_RENAL_SAFETY_TERMS = (
+    "rebound",
+    "recurrent toxicity",
+    "renal failure",
+    "renal impairment",
+    "renal dysfunction",
+    "repeat monitoring",
+    "재발",
+)
+DIGOXIN_TOXICITY_POST_FAB_LEVEL_SAFETY_TERMS = (
+    "free digoxin",
+    "post-fab",
+    "serum digoxin",
+    "total digoxin",
+    "unbound digoxin",
+    "unreliable",
+    "혈중 디곡신",
+)
+DIGOXIN_TOXICITY_CALCIUM_CARDIOVERSION_SAFETY_TERMS = (
+    "avoid calcium",
+    "avoid cardioversion",
+    "calcium",
+    "cardioversion",
+    "defibrillation",
+    "low-energy",
+    "pacing",
+    "칼슘",
+)
+DIGOXIN_TOXICITY_DECONTAMINATION_SAFETY_TERMS = (
+    "activated charcoal",
+    "charcoal",
+    "decontamination",
+    "early ingestion",
+    "within 2 hours",
+    "within two hours",
+    "활성탄",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -8188,6 +8318,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "whole-bowel irrigation, sustained-release, or extended-release "
                 "planning, and lipid-emulsion, pancreatitis, fat-overload, "
                 "vasopressor, pacing, or ECMO escalation safety"
+            ),
+        ),
+        DomainSafetyGate(
+            name="digoxin_toxicity_time_critical_actions",
+            applies=_requires_digoxin_toxicity_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_digoxin_toxicity_time_critical_actions,
+            issue=(
+                "digoxin toxicity time-critical actions must include ECG, EKG, "
+                "telemetry, rhythm, or cardiac monitoring, serum digoxin level "
+                "or post-distribution concentration timing, potassium, magnesium, "
+                "creatinine, renal, kidney, or electrolyte assessment, digoxin "
+                "immune Fab, digoxin-specific antibody, DigiFab, DigiBind, Fab, "
+                "antibody-fragment, or antidote planning, and toxicology, poison-"
+                "center, atropine, lidocaine, lignocaine, or magnesium arrhythmia "
+                "support"
+            ),
+        ),
+        DomainSafetyGate(
+            name="digoxin_toxicity_treatment_safety",
+            applies=_requires_digoxin_toxicity_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_digoxin_toxicity_treatment_safety_check,
+            issue=(
+                "digoxin toxicity safety checks must include potassium, magnesium, "
+                "hypokalemia, or serum-potassium monitoring during Fab treatment, "
+                "rebound, recurrent-toxicity, renal-failure, renal-impairment, "
+                "or repeat-monitoring review, post-Fab total digoxin, serum "
+                "digoxin, free-digoxin, unbound-digoxin, or unreliable-level "
+                "interpretation, calcium, cardioversion, defibrillation, low-"
+                "energy shock, or pacing caution, and activated-charcoal, "
+                "decontamination, early-ingestion, or within-2-hour review"
             ),
         ),
         DomainSafetyGate(
@@ -12214,6 +12376,105 @@ def _has_bb_ccb_overdose_treatment_safety_check(checks: list[Any]) -> bool:
         and has_airway_seizure_qrs_safety
         and has_decontamination_safety
         and has_escalation_safety
+    )
+
+
+def _requires_digoxin_toxicity_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in DIGOXIN_TOXICITY_DIRECT_CONTEXT_TERMS
+    )
+    has_drug_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in DIGOXIN_TOXICITY_DRUG_CONTEXT_TERMS
+    )
+    has_risk_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in DIGOXIN_TOXICITY_RISK_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_drug_context and has_risk_context)
+
+
+def _has_digoxin_toxicity_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_ecg_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DIGOXIN_TOXICITY_ECG_MONITOR_ACTION_TERMS
+    )
+    has_level_timing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DIGOXIN_TOXICITY_LEVEL_ACTION_TERMS
+    )
+    has_electrolyte_renal = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DIGOXIN_TOXICITY_ELECTROLYTE_RENAL_ACTION_TERMS
+    )
+    has_fab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DIGOXIN_TOXICITY_FAB_ACTION_TERMS
+    )
+    has_tox_or_arrhythmia_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DIGOXIN_TOXICITY_TOX_ARRHYTHMIA_ACTION_TERMS
+    )
+    return (
+        has_ecg_monitoring
+        and has_level_timing
+        and has_electrolyte_renal
+        and has_fab
+        and has_tox_or_arrhythmia_support
+    )
+
+
+def _has_digoxin_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_potassium_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DIGOXIN_TOXICITY_POTASSIUM_SAFETY_TERMS
+    )
+    has_rebound_renal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DIGOXIN_TOXICITY_REBOUND_RENAL_SAFETY_TERMS
+    )
+    has_post_fab_level_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DIGOXIN_TOXICITY_POST_FAB_LEVEL_SAFETY_TERMS
+    )
+    has_calcium_cardioversion_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DIGOXIN_TOXICITY_CALCIUM_CARDIOVERSION_SAFETY_TERMS
+    )
+    has_decontamination_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DIGOXIN_TOXICITY_DECONTAMINATION_SAFETY_TERMS
+    )
+    return (
+        has_potassium_safety
+        and has_rebound_renal_safety
+        and has_post_fab_level_safety
+        and has_calcium_cardioversion_safety
+        and has_decontamination_safety
     )
 
 

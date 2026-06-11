@@ -19,6 +19,7 @@ const TRUSTED_CLINICAL_SOURCE_HOSTS = new Set([
   "ada.org",
   "ahajournals.org",
   "annals.org",
+  "australianprescriber.tg.org.au",
   "bmj.com",
   "cdc.gov",
   "diabetes.org",
@@ -5252,6 +5253,148 @@ const BB_CCB_OVERDOSE_ESCALATION_SAFETY_TERMS = [
   "체외순환",
 ];
 
+const DIGOXIN_TOXICITY_DIRECT_CONTEXT_TERMS = [
+  "cardiac glycoside poisoning",
+  "cardiac glycoside toxicity",
+  "digoxin overdose",
+  "digoxin poisoning",
+  "digoxin toxicity",
+  "digitalis poisoning",
+  "digitalis toxicity",
+  "foxglove ingestion",
+  "디곡신",
+];
+
+const DIGOXIN_TOXICITY_DRUG_CONTEXT_TERMS = [
+  "digibind",
+  "digifab",
+  "digoxin",
+  "digitalis",
+  "foxglove",
+];
+
+const DIGOXIN_TOXICITY_RISK_CONTEXT_TERMS = [
+  "av block",
+  "bidirectional ventricular tachycardia",
+  "bradycardia",
+  "cardiac arrest",
+  "confusion",
+  "hyperkalemia",
+  "junctional tachycardia",
+  "nausea",
+  "renal impairment",
+  "ventricular arrhythmia",
+  "ventricular ectopy",
+  "visual halos",
+  "vomiting",
+  "yellow vision",
+  "서맥",
+];
+
+const DIGOXIN_TOXICITY_ECG_MONITOR_ACTION_TERMS = [
+  "cardiac monitoring",
+  "ecg",
+  "ekg",
+  "electrocardiogram",
+  "rhythm monitoring",
+  "telemetry",
+  "심전도",
+];
+
+const DIGOXIN_TOXICITY_LEVEL_ACTION_TERMS = [
+  "6 hours",
+  "six hours",
+  "digoxin concentration",
+  "digoxin level",
+  "post-distribution",
+  "serum digoxin",
+  "therapeutic drug",
+  "혈중 디곡신",
+];
+
+const DIGOXIN_TOXICITY_ELECTROLYTE_RENAL_ACTION_TERMS = [
+  "creatinine",
+  "electrolyte",
+  "hypomagnesemia",
+  "kidney",
+  "magnesium",
+  "potassium",
+  "renal",
+  "칼륨",
+];
+
+const DIGOXIN_TOXICITY_FAB_ACTION_TERMS = [
+  "antibody fragment",
+  "antidote",
+  "digibind",
+  "digifab",
+  "digoxin immune fab",
+  "digoxin-specific antibody",
+  "fab",
+  "면역 fab",
+];
+
+const DIGOXIN_TOXICITY_TOX_ARRHYTHMIA_ACTION_TERMS = [
+  "atropine",
+  "lidocaine",
+  "lignocaine",
+  "magnesium",
+  "poison center",
+  "toxicologist",
+  "toxicology",
+  "독성",
+];
+
+const DIGOXIN_TOXICITY_POTASSIUM_SAFETY_TERMS = [
+  "hypokalemia",
+  "hypokalaemia",
+  "magnesium",
+  "potassium",
+  "serum potassium",
+  "칼륨",
+];
+
+const DIGOXIN_TOXICITY_REBOUND_RENAL_SAFETY_TERMS = [
+  "rebound",
+  "recurrent toxicity",
+  "renal failure",
+  "renal impairment",
+  "renal dysfunction",
+  "repeat monitoring",
+  "재발",
+];
+
+const DIGOXIN_TOXICITY_POST_FAB_LEVEL_SAFETY_TERMS = [
+  "free digoxin",
+  "post-fab",
+  "serum digoxin",
+  "total digoxin",
+  "unbound digoxin",
+  "unreliable",
+  "혈중 디곡신",
+];
+
+const DIGOXIN_TOXICITY_CALCIUM_CARDIOVERSION_SAFETY_TERMS = [
+  "avoid calcium",
+  "avoid cardioversion",
+  "calcium",
+  "cardioversion",
+  "defibrillation",
+  "low-energy",
+  "pacing",
+  "칼슘",
+];
+
+const DIGOXIN_TOXICITY_DECONTAMINATION_SAFETY_TERMS = [
+  "activated charcoal",
+  "charcoal",
+  "decontamination",
+  "early ingestion",
+  "within 2 hours",
+  "within two hours",
+  "활성탄",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -9965,6 +10108,88 @@ function hasBbCcbOverdoseTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresDigoxinToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = DIGOXIN_TOXICITY_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasDrugContext = DIGOXIN_TOXICITY_DRUG_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRiskContext = DIGOXIN_TOXICITY_RISK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasDrugContext && hasRiskContext);
+}
+
+function hasDigoxinToxicityTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasEcgMonitoring = DIGOXIN_TOXICITY_ECG_MONITOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLevelTiming = DIGOXIN_TOXICITY_LEVEL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasElectrolyteRenal = DIGOXIN_TOXICITY_ELECTROLYTE_RENAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFab = DIGOXIN_TOXICITY_FAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasToxOrArrhythmiaSupport = DIGOXIN_TOXICITY_TOX_ARRHYTHMIA_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasEcgMonitoring &&
+    hasLevelTiming &&
+    hasElectrolyteRenal &&
+    hasFab &&
+    hasToxOrArrhythmiaSupport
+  );
+}
+
+function hasDigoxinToxicityTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasPotassiumSafety = DIGOXIN_TOXICITY_POTASSIUM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasReboundRenalSafety = DIGOXIN_TOXICITY_REBOUND_RENAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPostFabLevelSafety = DIGOXIN_TOXICITY_POST_FAB_LEVEL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCalciumCardioversionSafety =
+    DIGOXIN_TOXICITY_CALCIUM_CARDIOVERSION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDecontaminationSafety = DIGOXIN_TOXICITY_DECONTAMINATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasPotassiumSafety &&
+    hasReboundRenalSafety &&
+    hasPostFabLevelSafety &&
+    hasCalciumCardioversionSafety &&
+    hasDecontaminationSafety
+  );
+}
+
 function requiresSepsisResuscitationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -11814,6 +12039,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasBbCcbOverdoseTreatmentSafetyCheck,
       issue:
         "beta-blocker or calcium-channel blocker overdose safety checks must include glucose, dextrose, hypoglycemia, and potassium monitoring during high-dose insulin euglycemia therapy, airway, intubation, seizure, benzodiazepine, wide-QRS, QRS, or sodium-bicarbonate safety review, activated-charcoal, decontamination, whole-bowel irrigation, sustained-release, or extended-release planning, and lipid-emulsion, pancreatitis, fat-overload, vasopressor, pacing, or ECMO escalation safety",
+    },
+    {
+      name: "digoxin_toxicity_time_critical_actions",
+      label: "Digoxin toxicity emergency actions",
+      applies: requiresDigoxinToxicitySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasDigoxinToxicityTimeCriticalActions,
+      issue:
+        "digoxin toxicity time-critical actions must include ECG, EKG, telemetry, rhythm, or cardiac monitoring, serum digoxin level or post-distribution concentration timing, potassium, magnesium, creatinine, renal, kidney, or electrolyte assessment, digoxin immune Fab, digoxin-specific antibody, DigiFab, DigiBind, Fab, antibody-fragment, or antidote planning, and toxicology, poison-center, atropine, lidocaine, lignocaine, or magnesium arrhythmia support",
+    },
+    {
+      name: "digoxin_toxicity_treatment_safety",
+      label: "Digoxin toxicity treatment safety",
+      applies: requiresDigoxinToxicitySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasDigoxinToxicityTreatmentSafetyCheck,
+      issue:
+        "digoxin toxicity safety checks must include potassium, magnesium, hypokalemia, or serum-potassium monitoring during Fab treatment, rebound, recurrent-toxicity, renal-failure, renal-impairment, or repeat-monitoring review, post-Fab total digoxin, serum digoxin, free-digoxin, unbound-digoxin, or unreliable-level interpretation, calcium, cardioversion, defibrillation, low-energy shock, or pacing caution, and activated-charcoal, decontamination, early-ingestion, or within-2-hour review",
     },
     {
       name: "dka_time_critical_actions",
