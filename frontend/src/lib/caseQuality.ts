@@ -6230,6 +6230,158 @@ const VALPROATE_TOXICITY_COMPLICATION_REPRODUCTIVE_SAFETY_TERMS = [
   "thrombocytopenia",
 ];
 
+const THEOPHYLLINE_TOXICITY_DIRECT_CONTEXT_TERMS = [
+  "aminophylline overdose",
+  "aminophylline poisoning",
+  "methylxanthine poisoning",
+  "methylxanthine toxicity",
+  "theophylline overdose",
+  "theophylline poisoning",
+  "theophylline toxicity",
+  "테오필린 중독",
+];
+
+const THEOPHYLLINE_TOXICITY_DRUG_CONTEXT_TERMS = [
+  "aminophylline",
+  "methylxanthine",
+  "theobromine",
+  "theophylline",
+  "테오필린",
+];
+
+const THEOPHYLLINE_TOXICITY_RISK_CONTEXT_TERMS = [
+  "arrhythmia",
+  "dysrhythmia",
+  "hyperglycemia",
+  "hypokalemia",
+  "overdose",
+  "seizure",
+  "tachyarrhythmia",
+  "tachycardia",
+  "toxic level",
+  "vomiting",
+];
+
+const THEOPHYLLINE_TOXICITY_SERUM_LEVEL_ACTION_TERMS = [
+  "serum theophylline",
+  "theophylline level",
+  "theophylline serum",
+];
+
+const THEOPHYLLINE_TOXICITY_LEVEL_LAB_ACTION_TERMS = [
+  "acetaminophen",
+  "calcium",
+  "ck",
+  "cmp",
+  "creatine kinase",
+  "ecg",
+  "glucose",
+  "iron",
+  "lft",
+  "potassium",
+  "salicylate",
+];
+
+const THEOPHYLLINE_TOXICITY_ABC_HEMODYNAMIC_ACTION_TERMS = [
+  "airway",
+  "breathing",
+  "circulation",
+  "hemodynamic monitoring",
+  "intubation",
+  "iv fluids",
+  "norepinephrine",
+  "phenylephrine",
+  "vasopressor",
+];
+
+const THEOPHYLLINE_TOXICITY_DECONTAMINATION_ACTION_TERMS = [
+  "activated charcoal",
+  "charcoal",
+  "mdac",
+  "multiple-dose activated charcoal",
+  "multidose charcoal",
+  "nasogastric",
+];
+
+const THEOPHYLLINE_TOXICITY_SEIZURE_ACTION_TERMS = [
+  "benzodiazepine",
+  "diazepam",
+  "lorazepam",
+  "midazolam",
+  "phenobarbital",
+  "propofol",
+  "seizure",
+];
+
+const THEOPHYLLINE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = [
+  "dialysis",
+  "ectr",
+  "hemodialysis",
+  "hemoperfusion",
+  "nephrology",
+  "poison center",
+  "poison control",
+  "toxicologist",
+];
+
+const THEOPHYLLINE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS = [
+  "acute exposure",
+  "chronic exposure",
+  "clinical deterioration",
+  "ectr",
+  "greater than 100",
+  "greater than 50",
+  "greater than 60",
+  "rising level",
+  "seizure",
+  "shock",
+  "theophylline level",
+];
+
+const THEOPHYLLINE_TOXICITY_ARRHYTHMIA_SHOCK_SAFETY_TERMS = [
+  "acls",
+  "arrhythmia",
+  "beta antagonist",
+  "dysrhythmia",
+  "life-threatening dysrhythmia",
+  "norepinephrine",
+  "phenylephrine",
+  "toxicologist",
+];
+
+const THEOPHYLLINE_TOXICITY_ELECTROLYTE_METABOLIC_SAFETY_TERMS = [
+  "ck",
+  "hypercalcemia",
+  "hyperglycemia",
+  "hypokalemia",
+  "metabolic acidosis",
+  "potassium",
+  "rhabdomyolysis",
+];
+
+const THEOPHYLLINE_TOXICITY_DECON_ECTR_SAFETY_TERMS = [
+  "airway",
+  "contraindication",
+  "emesis not recommended",
+  "gastric lavage not recommended",
+  "mdac",
+  "multiple-dose activated charcoal",
+  "during ectr",
+  "whole bowel irrigation",
+];
+
+const THEOPHYLLINE_TOXICITY_INTERACTION_CHRONIC_SAFETY_TERMS = [
+  "cimetidine",
+  "ciprofloxacin",
+  "clearance",
+  "chf",
+  "cirrhosis",
+  "erythromycin",
+  "fluoroquinolone",
+  "smoking",
+  "viral illness",
+];
+
 const TOXIC_ALCOHOL_CONTEXT_TERMS = [
   "antifreeze ingestion",
   "ethylene glycol",
@@ -11265,6 +11417,96 @@ function hasValproateToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresTheophyllineToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasDirectContext = THEOPHYLLINE_TOXICITY_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasDrugContext = THEOPHYLLINE_TOXICITY_DRUG_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRiskContext = THEOPHYLLINE_TOXICITY_RISK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasDirectContext || (hasDrugContext && hasRiskContext);
+}
+
+function hasTheophyllineToxicityTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasSerumLevel = THEOPHYLLINE_TOXICITY_SERUM_LEVEL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLevelLab = THEOPHYLLINE_TOXICITY_LEVEL_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAbcHemodynamic = THEOPHYLLINE_TOXICITY_ABC_HEMODYNAMIC_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDecontamination = THEOPHYLLINE_TOXICITY_DECONTAMINATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSeizure = THEOPHYLLINE_TOXICITY_SEIZURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDialysisEscalation =
+    THEOPHYLLINE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasSerumLevel &&
+    hasLevelLab &&
+    hasAbcHemodynamic &&
+    hasDecontamination &&
+    hasSeizure &&
+    hasDialysisEscalation
+  );
+}
+
+function hasTheophyllineToxicityTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDialysisIndicationSafety =
+    THEOPHYLLINE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasArrhythmiaShockSafety =
+    THEOPHYLLINE_TOXICITY_ARRHYTHMIA_SHOCK_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasElectrolyteMetabolicSafety =
+    THEOPHYLLINE_TOXICITY_ELECTROLYTE_METABOLIC_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDeconEctrSafety = THEOPHYLLINE_TOXICITY_DECON_ECTR_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInteractionChronicSafety =
+    THEOPHYLLINE_TOXICITY_INTERACTION_CHRONIC_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasDialysisIndicationSafety &&
+    hasArrhythmiaShockSafety &&
+    hasElectrolyteMetabolicSafety &&
+    hasDeconEctrSafety &&
+    hasInteractionChronicSafety
+  );
+}
+
 function requiresToxicAlcoholSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -13110,6 +13352,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasValproateToxicityTreatmentSafetyCheck,
       issue:
         "valproate toxicity safety checks must include dialysis indication review for valproate concentration >1300 mg/L, shock, cerebral edema, severe acidosis, pH <7.10, hemodialysis, ECTR, or dialysis criteria, L-carnitine, levocarnitine, carnitine, 100 mg/kg, 50 mg/kg, or ammonia-response monitoring, free-level, unbound-level, hypoalbuminemia, low-albumin, protein-binding, or normal-total-level interpretation, enteric-coated, extended-release, within-2-hour, charcoal, swallow, or airway decontamination safety, and hepatotoxicity, thrombocytopenia, cerebral-edema, pancreatitis, pregnancy, or teratogen complication review",
+    },
+    {
+      name: "theophylline_toxicity_time_critical_actions",
+      label: "Theophylline toxicity labs, charcoal, seizure, and dialysis actions",
+      applies: requiresTheophyllineToxicitySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasTheophyllineToxicityTimeCriticalActions,
+      issue:
+        "theophylline toxicity time-critical actions must include serum theophylline level plus ECG, glucose, CMP, potassium, calcium, CK, LFT, acetaminophen, salicylate, iron, or co-ingestant lab assessment, airway, breathing, circulation, hemodynamic monitoring, intubation, IV-fluid, phenylephrine, norepinephrine, or vasopressor support, activated charcoal, multiple-dose activated charcoal, MDAC, multidose charcoal, or nasogastric decontamination planning, benzodiazepine, lorazepam, midazolam, diazepam, phenobarbital, propofol, or seizure treatment, and poison-center, toxicologist, nephrology, hemodialysis, dialysis, ECTR, or hemoperfusion escalation",
+    },
+    {
+      name: "theophylline_toxicity_treatment_safety",
+      label: "Theophylline toxicity dialysis and dysrhythmia safety",
+      applies: requiresTheophyllineToxicitySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasTheophyllineToxicityTreatmentSafetyCheck,
+      issue:
+        "theophylline toxicity safety checks must include dialysis or ECTR indication review for acute level >100, chronic level >60, elderly or infant chronic level >50, seizure, shock, rising level, clinical deterioration, or severe poisoning, arrhythmia or shock safety with ACLS, dysrhythmia, life-threatening dysrhythmia, phenylephrine, norepinephrine, beta-antagonist toxicologist consultation, or toxicology review, electrolyte and metabolic monitoring for hypokalemia, potassium, hyperglycemia, hypercalcemia, metabolic acidosis, CK, or rhabdomyolysis, decontamination safety including activated-charcoal contraindications, airway, MDAC during ECTR, emesis-not-recommended, gastric-lavage-not-recommended, or whole-bowel-irrigation review, and interaction or chronic-toxicity risk review for cimetidine, erythromycin, fluoroquinolone, ciprofloxacin, smoking, viral illness, CHF, cirrhosis, clearance, or metabolism",
     },
     {
       name: "toxic_alcohol_time_critical_actions",

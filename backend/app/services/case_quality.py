@@ -5733,6 +5733,144 @@ VALPROATE_TOXICITY_COMPLICATION_REPRODUCTIVE_SAFETY_TERMS = (
     "teratogen",
     "thrombocytopenia",
 )
+THEOPHYLLINE_TOXICITY_DIRECT_CONTEXT_TERMS = (
+    "aminophylline overdose",
+    "aminophylline poisoning",
+    "methylxanthine poisoning",
+    "methylxanthine toxicity",
+    "theophylline overdose",
+    "theophylline poisoning",
+    "theophylline toxicity",
+    "테오필린 중독",
+)
+THEOPHYLLINE_TOXICITY_DRUG_CONTEXT_TERMS = (
+    "aminophylline",
+    "methylxanthine",
+    "theobromine",
+    "theophylline",
+    "테오필린",
+)
+THEOPHYLLINE_TOXICITY_RISK_CONTEXT_TERMS = (
+    "arrhythmia",
+    "dysrhythmia",
+    "hyperglycemia",
+    "hypokalemia",
+    "overdose",
+    "seizure",
+    "tachyarrhythmia",
+    "tachycardia",
+    "toxic level",
+    "vomiting",
+)
+THEOPHYLLINE_TOXICITY_SERUM_LEVEL_ACTION_TERMS = (
+    "serum theophylline",
+    "theophylline level",
+    "theophylline serum",
+)
+THEOPHYLLINE_TOXICITY_LEVEL_LAB_ACTION_TERMS = (
+    "acetaminophen",
+    "calcium",
+    "ck",
+    "cmp",
+    "creatine kinase",
+    "ecg",
+    "glucose",
+    "iron",
+    "lft",
+    "potassium",
+    "salicylate",
+)
+THEOPHYLLINE_TOXICITY_ABC_HEMODYNAMIC_ACTION_TERMS = (
+    "airway",
+    "breathing",
+    "circulation",
+    "hemodynamic monitoring",
+    "intubation",
+    "iv fluids",
+    "norepinephrine",
+    "phenylephrine",
+    "vasopressor",
+)
+THEOPHYLLINE_TOXICITY_DECONTAMINATION_ACTION_TERMS = (
+    "activated charcoal",
+    "charcoal",
+    "mdac",
+    "multiple-dose activated charcoal",
+    "multidose charcoal",
+    "nasogastric",
+)
+THEOPHYLLINE_TOXICITY_SEIZURE_ACTION_TERMS = (
+    "benzodiazepine",
+    "diazepam",
+    "lorazepam",
+    "midazolam",
+    "phenobarbital",
+    "propofol",
+    "seizure",
+)
+THEOPHYLLINE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = (
+    "dialysis",
+    "ectr",
+    "hemodialysis",
+    "hemoperfusion",
+    "nephrology",
+    "poison center",
+    "poison control",
+    "toxicologist",
+)
+THEOPHYLLINE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS = (
+    "acute exposure",
+    "chronic exposure",
+    "clinical deterioration",
+    "ectr",
+    "greater than 100",
+    "greater than 50",
+    "greater than 60",
+    "rising level",
+    "seizure",
+    "shock",
+    "theophylline level",
+)
+THEOPHYLLINE_TOXICITY_ARRHYTHMIA_SHOCK_SAFETY_TERMS = (
+    "acls",
+    "arrhythmia",
+    "beta antagonist",
+    "dysrhythmia",
+    "life-threatening dysrhythmia",
+    "norepinephrine",
+    "phenylephrine",
+    "toxicologist",
+)
+THEOPHYLLINE_TOXICITY_ELECTROLYTE_METABOLIC_SAFETY_TERMS = (
+    "ck",
+    "hypercalcemia",
+    "hyperglycemia",
+    "hypokalemia",
+    "metabolic acidosis",
+    "potassium",
+    "rhabdomyolysis",
+)
+THEOPHYLLINE_TOXICITY_DECON_ECTR_SAFETY_TERMS = (
+    "airway",
+    "contraindication",
+    "emesis not recommended",
+    "gastric lavage not recommended",
+    "mdac",
+    "multiple-dose activated charcoal",
+    "during ectr",
+    "whole bowel irrigation",
+)
+THEOPHYLLINE_TOXICITY_INTERACTION_CHRONIC_SAFETY_TERMS = (
+    "cimetidine",
+    "ciprofloxacin",
+    "clearance",
+    "chf",
+    "cirrhosis",
+    "erythromycin",
+    "fluoroquinolone",
+    "smoking",
+    "viral illness",
+)
 TOXIC_ALCOHOL_CONTEXT_TERMS = (
     "antifreeze ingestion",
     "ethylene glycol",
@@ -9087,6 +9225,46 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "release, within-2-hour, charcoal, swallow, or airway decontamination "
                 "safety, and hepatotoxicity, thrombocytopenia, cerebral-edema, "
                 "pancreatitis, pregnancy, or teratogen complication review"
+            ),
+        ),
+        DomainSafetyGate(
+            name="theophylline_toxicity_time_critical_actions",
+            applies=_requires_theophylline_toxicity_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_theophylline_toxicity_time_critical_actions,
+            issue=(
+                "theophylline toxicity time-critical actions must include serum "
+                "theophylline level plus ECG, glucose, CMP, potassium, calcium, "
+                "CK, LFT, acetaminophen, salicylate, iron, or co-ingestant lab "
+                "assessment, airway, breathing, circulation, hemodynamic monitoring, "
+                "intubation, IV-fluid, phenylephrine, norepinephrine, or vasopressor "
+                "support, activated charcoal, multiple-dose activated charcoal, "
+                "MDAC, multidose charcoal, or nasogastric decontamination planning, "
+                "benzodiazepine, lorazepam, midazolam, diazepam, phenobarbital, "
+                "propofol, or seizure treatment, and poison-center, toxicologist, "
+                "nephrology, hemodialysis, dialysis, ECTR, or hemoperfusion escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="theophylline_toxicity_treatment_safety",
+            applies=_requires_theophylline_toxicity_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_theophylline_toxicity_treatment_safety_check,
+            issue=(
+                "theophylline toxicity safety checks must include dialysis or ECTR "
+                "indication review for acute level >100, chronic level >60, elderly "
+                "or infant chronic level >50, seizure, shock, rising level, clinical "
+                "deterioration, or severe poisoning, arrhythmia or shock safety with "
+                "ACLS, dysrhythmia, life-threatening dysrhythmia, phenylephrine, "
+                "norepinephrine, beta-antagonist toxicologist consultation, or "
+                "toxicology review, electrolyte and metabolic monitoring for "
+                "hypokalemia, potassium, hyperglycemia, hypercalcemia, metabolic "
+                "acidosis, CK, or rhabdomyolysis, decontamination safety including "
+                "activated-charcoal contraindications, airway, MDAC during ECTR, "
+                "emesis-not-recommended, gastric-lavage-not-recommended, or whole-"
+                "bowel-irrigation review, and interaction or chronic-toxicity risk "
+                "review for cimetidine, erythromycin, fluoroquinolone, ciprofloxacin, "
+                "smoking, viral illness, CHF, cirrhosis, clearance, or metabolism"
             ),
         ),
         DomainSafetyGate(
@@ -13766,6 +13944,110 @@ def _has_valproate_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         and has_free_level_safety
         and has_formulation_airway_safety
         and has_complication_reproductive_safety
+    )
+
+
+def _requires_theophylline_toxicity_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_direct_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in THEOPHYLLINE_TOXICITY_DIRECT_CONTEXT_TERMS
+    )
+    has_drug_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in THEOPHYLLINE_TOXICITY_DRUG_CONTEXT_TERMS
+    )
+    has_risk_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in THEOPHYLLINE_TOXICITY_RISK_CONTEXT_TERMS
+    )
+    return has_direct_context or (has_drug_context and has_risk_context)
+
+
+def _has_theophylline_toxicity_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_serum_level = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THEOPHYLLINE_TOXICITY_SERUM_LEVEL_ACTION_TERMS
+    )
+    has_level_lab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THEOPHYLLINE_TOXICITY_LEVEL_LAB_ACTION_TERMS
+    )
+    has_abc_hemodynamic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THEOPHYLLINE_TOXICITY_ABC_HEMODYNAMIC_ACTION_TERMS
+    )
+    has_decontamination = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THEOPHYLLINE_TOXICITY_DECONTAMINATION_ACTION_TERMS
+    )
+    has_seizure = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THEOPHYLLINE_TOXICITY_SEIZURE_ACTION_TERMS
+    )
+    has_dialysis_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THEOPHYLLINE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_serum_level
+        and has_level_lab
+        and has_abc_hemodynamic
+        and has_decontamination
+        and has_seizure
+        and has_dialysis_escalation
+    )
+
+
+def _has_theophylline_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_dialysis_indication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THEOPHYLLINE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS
+    )
+    has_arrhythmia_shock_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THEOPHYLLINE_TOXICITY_ARRHYTHMIA_SHOCK_SAFETY_TERMS
+    )
+    has_electrolyte_metabolic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THEOPHYLLINE_TOXICITY_ELECTROLYTE_METABOLIC_SAFETY_TERMS
+    )
+    has_decon_ectr_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THEOPHYLLINE_TOXICITY_DECON_ECTR_SAFETY_TERMS
+    )
+    has_interaction_chronic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THEOPHYLLINE_TOXICITY_INTERACTION_CHRONIC_SAFETY_TERMS
+    )
+    return (
+        has_dialysis_indication_safety
+        and has_arrhythmia_shock_safety
+        and has_electrolyte_metabolic_safety
+        and has_decon_ectr_safety
+        and has_interaction_chronic_safety
     )
 
 
