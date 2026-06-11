@@ -6689,6 +6689,131 @@ const HYPOCALCEMIA_TRANSITION_SAFETY_TERMS = [
   "transition",
 ];
 
+const TUMOR_LYSIS_CONTEXT_TERMS = [
+  "burkitt",
+  "high-grade lymphoma",
+  "leukemia induction",
+  "tumor lysis",
+  "tumor lysis syndrome",
+  "tumour lysis",
+  "tumour lysis syndrome",
+  "tls",
+  "venetoclax",
+  "종양용해",
+];
+
+const TUMOR_LYSIS_RISK_TERMS = [
+  "aki",
+  "all",
+  "aml",
+  "acute leukemia",
+  "arrhythmia",
+  "bulky disease",
+  "hyperkalemia",
+  "hyperphosphatemia",
+  "hyperuricemia",
+  "hypocalcemia",
+  "ldh",
+  "oliguria",
+  "seizure",
+  "uric acid",
+];
+
+const TUMOR_LYSIS_LAB_MONITOR_ACTION_TERMS = [
+  "calcium",
+  "creatinine",
+  "electrolyte",
+  "phosphate",
+  "potassium",
+  "q4",
+  "q6",
+  "uric acid",
+];
+
+const TUMOR_LYSIS_HYDRATION_ACTION_TERMS = [
+  "aggressive hydration",
+  "crystalloid",
+  "fluid",
+  "hydration",
+  "iv fluids",
+  "urine output",
+];
+
+const TUMOR_LYSIS_URATE_ACTION_TERMS = [
+  "allopurinol",
+  "febuxostat",
+  "hypouricemic",
+  "rasburicase",
+  "urate",
+  "uric acid lowering",
+];
+
+const TUMOR_LYSIS_ECG_ELECTROLYTE_ACTION_TERMS = [
+  "calcium gluconate",
+  "ecg",
+  "hyperkalemia",
+  "hyperphosphatemia",
+  "insulin",
+  "phosphate binder",
+  "telemetry",
+];
+
+const TUMOR_LYSIS_RENAL_ESCALATION_ACTION_TERMS = [
+  "crrt",
+  "dialysis",
+  "hemodialysis",
+  "nephrology",
+  "renal replacement",
+];
+
+const TUMOR_LYSIS_RASBURICASE_SAFETY_TERMS = [
+  "g6pd",
+  "hemolysis",
+  "methemoglobinemia",
+  "rasburicase",
+];
+
+const TUMOR_LYSIS_ALKALINIZATION_SAFETY_TERMS = [
+  "avoid alkalinization",
+  "avoid bicarbonate",
+  "calcium phosphate",
+  "sodium bicarbonate",
+  "urine alkalinization",
+];
+
+const TUMOR_LYSIS_FLUID_SAFETY_TERMS = [
+  "cardiac",
+  "fluid overload",
+  "heart failure",
+  "hypovolemia",
+  "obstructive uropathy",
+  "renal",
+];
+
+const TUMOR_LYSIS_ALLOPURINOL_SAFETY_TERMS = [
+  "allopurinol",
+  "azathioprine",
+  "hla-b*58:01",
+  "renal adjustment",
+  "xanthine",
+];
+
+const TUMOR_LYSIS_CALCIUM_PHOSPHATE_SAFETY_TERMS = [
+  "calcium phosphate",
+  "calcium-phosphate",
+  "hyperphosphatemia",
+  "symptomatic hypocalcemia",
+];
+
+const TUMOR_LYSIS_DIALYSIS_SAFETY_TERMS = [
+  "anuria",
+  "crrt",
+  "dialysis",
+  "fluid overload",
+  "persistent hyperkalemia",
+  "renal replacement",
+];
+
 const HYPERKALEMIA_CONTEXT_TERMS = [
   "ecg changes from hyperkalemia",
   "hyperkalemic emergency",
@@ -12723,6 +12848,84 @@ function hasHypocalcemiaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresTumorLysisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const directContext = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.diagnosis,
+  ]
+    .join(" ")
+    .toLowerCase();
+  const riskText = [
+    directContext,
+    ...nestedStrings(detail.initial_labs),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.key_teaching_points),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const hasTlsContext = TUMOR_LYSIS_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(directContext, term),
+  );
+  const hasSevereRisk = TUMOR_LYSIS_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasTlsContext && hasSevereRisk;
+}
+
+function hasTumorLysisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasLabMonitoring = TUMOR_LYSIS_LAB_MONITOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHydration = TUMOR_LYSIS_HYDRATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUrate = TUMOR_LYSIS_URATE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEcgElectrolyte = TUMOR_LYSIS_ECG_ELECTROLYTE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRenalEscalation = TUMOR_LYSIS_RENAL_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasLabMonitoring && hasHydration && hasUrate && hasEcgElectrolyte && hasRenalEscalation;
+}
+
+function hasTumorLysisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasRasburicaseSafety = TUMOR_LYSIS_RASBURICASE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAlkalinizationSafety = TUMOR_LYSIS_ALKALINIZATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFluidSafety = TUMOR_LYSIS_FLUID_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAllopurinolSafety = TUMOR_LYSIS_ALLOPURINOL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCalciumPhosphateSafety = TUMOR_LYSIS_CALCIUM_PHOSPHATE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDialysisSafety = TUMOR_LYSIS_DIALYSIS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasRasburicaseSafety &&
+    hasAlkalinizationSafety &&
+    hasFluidSafety &&
+    hasAllopurinolSafety &&
+    hasCalciumPhosphateSafety &&
+    hasDialysisSafety
+  );
+}
+
 function requiresHyperkalemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -14978,6 +15181,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasHypocalcemiaTreatmentSafetyCheck,
       issue:
         "severe hypocalcemia safety checks must include digoxin, continuous ECG, slow calcium infusion, or hypokalemia correction safety, calcium-chloride, central-line, extravasation, local-irritation, or soft-tissue injury review, calcium-phosphate product, phosphate, hyperphosphatemia, or soft-tissue calcification review, hypomagnesemia or magnesium repletion with magnesium sulfate or PTH-resistance review, and transition to oral calcium, vitamin D, calcitriol, or chronic therapy",
+    },
+    {
+      name: "tumor_lysis_time_critical_actions",
+      label: "Tumor lysis syndrome emergency actions",
+      applies: requiresTumorLysisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasTumorLysisTimeCriticalActions,
+      issue:
+        "tumor lysis syndrome time-critical actions must include frequent q4, q6, electrolyte, potassium, phosphate, calcium, creatinine, or uric-acid monitoring, aggressive IV hydration, crystalloid, fluid, or urine-output support, uric-acid lowering with rasburicase, allopurinol, febuxostat, hypouricemic therapy, or urate planning, ECG, telemetry, hyperkalemia, insulin, calcium gluconate, hyperphosphatemia, or phosphate-binder management, and nephrology, dialysis, hemodialysis, CRRT, or renal-replacement escalation",
+    },
+    {
+      name: "tumor_lysis_treatment_safety",
+      label: "Tumor lysis syndrome safety",
+      applies: requiresTumorLysisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasTumorLysisTreatmentSafetyCheck,
+      issue:
+        "tumor lysis syndrome safety checks must include rasburicase G6PD, hemolysis, or methemoglobinemia safety, urine-alkalinization, bicarbonate, or calcium-phosphate precipitation avoidance, fluid safety for cardiac disease, heart failure, renal disease, fluid overload, hypovolemia, or obstructive uropathy, allopurinol renal adjustment, xanthine nephropathy, HLA-B*58:01, or azathioprine interaction review, calcium-phosphate or hyperphosphatemia safety with calcium reserved for symptomatic hypocalcemia, and dialysis or CRRT indications for anuria, fluid overload, persistent hyperkalemia, or renal-replacement need",
     },
     {
       name: "hyperkalemia_time_critical_actions",

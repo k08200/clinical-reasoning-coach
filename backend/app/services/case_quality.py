@@ -6140,6 +6140,118 @@ HYPOCALCEMIA_TRANSITION_SAFETY_TERMS = (
     "vitamin d",
     "transition",
 )
+TUMOR_LYSIS_CONTEXT_TERMS = (
+    "burkitt",
+    "high-grade lymphoma",
+    "leukemia induction",
+    "tumor lysis",
+    "tumor lysis syndrome",
+    "tumour lysis",
+    "tumour lysis syndrome",
+    "tls",
+    "venetoclax",
+    "종양용해",
+)
+TUMOR_LYSIS_RISK_TERMS = (
+    "aki",
+    "all",
+    "aml",
+    "acute leukemia",
+    "arrhythmia",
+    "bulky disease",
+    "hyperkalemia",
+    "hyperphosphatemia",
+    "hyperuricemia",
+    "hypocalcemia",
+    "ldh",
+    "oliguria",
+    "seizure",
+    "uric acid",
+)
+TUMOR_LYSIS_LAB_MONITOR_ACTION_TERMS = (
+    "calcium",
+    "creatinine",
+    "electrolyte",
+    "phosphate",
+    "potassium",
+    "q4",
+    "q6",
+    "uric acid",
+)
+TUMOR_LYSIS_HYDRATION_ACTION_TERMS = (
+    "aggressive hydration",
+    "crystalloid",
+    "fluid",
+    "hydration",
+    "iv fluids",
+    "urine output",
+)
+TUMOR_LYSIS_URATE_ACTION_TERMS = (
+    "allopurinol",
+    "febuxostat",
+    "hypouricemic",
+    "rasburicase",
+    "urate",
+    "uric acid lowering",
+)
+TUMOR_LYSIS_ECG_ELECTROLYTE_ACTION_TERMS = (
+    "calcium gluconate",
+    "ecg",
+    "hyperkalemia",
+    "hyperphosphatemia",
+    "insulin",
+    "phosphate binder",
+    "telemetry",
+)
+TUMOR_LYSIS_RENAL_ESCALATION_ACTION_TERMS = (
+    "crrt",
+    "dialysis",
+    "hemodialysis",
+    "nephrology",
+    "renal replacement",
+)
+TUMOR_LYSIS_RASBURICASE_SAFETY_TERMS = (
+    "g6pd",
+    "hemolysis",
+    "methemoglobinemia",
+    "rasburicase",
+)
+TUMOR_LYSIS_ALKALINIZATION_SAFETY_TERMS = (
+    "avoid alkalinization",
+    "avoid bicarbonate",
+    "calcium phosphate",
+    "sodium bicarbonate",
+    "urine alkalinization",
+)
+TUMOR_LYSIS_FLUID_SAFETY_TERMS = (
+    "cardiac",
+    "fluid overload",
+    "heart failure",
+    "hypovolemia",
+    "obstructive uropathy",
+    "renal",
+)
+TUMOR_LYSIS_ALLOPURINOL_SAFETY_TERMS = (
+    "allopurinol",
+    "azathioprine",
+    "hla-b*58:01",
+    "renal adjustment",
+    "xanthine",
+)
+TUMOR_LYSIS_CALCIUM_PHOSPHATE_SAFETY_TERMS = (
+    "calcium phosphate",
+    "calcium-phosphate",
+    "hyperphosphatemia",
+    "symptomatic hypocalcemia",
+)
+TUMOR_LYSIS_DIALYSIS_SAFETY_TERMS = (
+    "anuria",
+    "crrt",
+    "dialysis",
+    "fluid overload",
+    "persistent hyperkalemia",
+    "renal replacement",
+)
 HYPERKALEMIA_CONTEXT_TERMS = (
     "ecg changes from hyperkalemia",
     "hyperkalemic emergency",
@@ -10220,6 +10332,41 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "calcification review, hypomagnesemia or magnesium repletion "
                 "with magnesium sulfate or PTH-resistance review, and transition "
                 "to oral calcium, vitamin D, calcitriol, or chronic therapy"
+            ),
+        ),
+        DomainSafetyGate(
+            name="tumor_lysis_time_critical_actions",
+            applies=_requires_tumor_lysis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_tumor_lysis_time_critical_actions,
+            issue=(
+                "tumor lysis syndrome time-critical actions must include frequent "
+                "q4, q6, electrolyte, potassium, phosphate, calcium, creatinine, "
+                "or uric-acid monitoring, aggressive IV hydration, crystalloid, "
+                "fluid, or urine-output support, uric-acid lowering with "
+                "rasburicase, allopurinol, febuxostat, hypouricemic therapy, or "
+                "urate planning, ECG, telemetry, hyperkalemia, insulin, calcium "
+                "gluconate, hyperphosphatemia, or phosphate-binder management, "
+                "and nephrology, dialysis, hemodialysis, CRRT, or renal-"
+                "replacement escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="tumor_lysis_treatment_safety",
+            applies=_requires_tumor_lysis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_tumor_lysis_treatment_safety_check,
+            issue=(
+                "tumor lysis syndrome safety checks must include rasburicase "
+                "G6PD, hemolysis, or methemoglobinemia safety, urine-"
+                "alkalinization, bicarbonate, or calcium-phosphate precipitation "
+                "avoidance, fluid safety for cardiac disease, heart failure, renal "
+                "disease, fluid overload, hypovolemia, or obstructive uropathy, "
+                "allopurinol renal adjustment, xanthine nephropathy, HLA-B*58:01, "
+                "or azathioprine interaction review, calcium-phosphate or "
+                "hyperphosphatemia safety with calcium reserved for symptomatic "
+                "hypocalcemia, and dialysis or CRRT indications for anuria, fluid "
+                "overload, persistent hyperkalemia, or renal-replacement need"
             ),
         ),
         DomainSafetyGate(
@@ -15484,6 +15631,103 @@ def _has_hypocalcemia_treatment_safety_check(checks: list[Any]) -> bool:
         and has_phosphate_product_safety
         and has_magnesium_repletion_safety
         and has_transition_safety
+    )
+
+
+def _requires_tumor_lysis_safety_check(data: dict[str, Any]) -> bool:
+    direct_context = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in (
+            "chief_complaint",
+            "history_of_present_illness",
+            "diagnosis",
+        )
+    )
+    risk_text = direct_context
+    for field_name in (
+        "initial_labs",
+        "physical_exam",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "key_teaching_points",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_tls_context = any(
+        _contains_safety_term(direct_context, term)
+        for term in TUMOR_LYSIS_CONTEXT_TERMS
+    )
+    has_severe_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in TUMOR_LYSIS_RISK_TERMS
+    )
+    return has_tls_context and has_severe_risk
+
+
+def _has_tumor_lysis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_lab_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TUMOR_LYSIS_LAB_MONITOR_ACTION_TERMS
+    )
+    has_hydration = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TUMOR_LYSIS_HYDRATION_ACTION_TERMS
+    )
+    has_urate = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TUMOR_LYSIS_URATE_ACTION_TERMS
+    )
+    has_ecg_electrolyte = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TUMOR_LYSIS_ECG_ELECTROLYTE_ACTION_TERMS
+    )
+    has_renal_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TUMOR_LYSIS_RENAL_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_lab_monitoring
+        and has_hydration
+        and has_urate
+        and has_ecg_electrolyte
+        and has_renal_escalation
+    )
+
+
+def _has_tumor_lysis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_rasburicase_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TUMOR_LYSIS_RASBURICASE_SAFETY_TERMS
+    )
+    has_alkalinization_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TUMOR_LYSIS_ALKALINIZATION_SAFETY_TERMS
+    )
+    has_fluid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TUMOR_LYSIS_FLUID_SAFETY_TERMS
+    )
+    has_allopurinol_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TUMOR_LYSIS_ALLOPURINOL_SAFETY_TERMS
+    )
+    has_calcium_phosphate_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TUMOR_LYSIS_CALCIUM_PHOSPHATE_SAFETY_TERMS
+    )
+    has_dialysis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TUMOR_LYSIS_DIALYSIS_SAFETY_TERMS
+    )
+    return (
+        has_rasburicase_safety
+        and has_alkalinization_safety
+        and has_fluid_safety
+        and has_allopurinol_safety
+        and has_calcium_phosphate_safety
+        and has_dialysis_safety
     )
 
 

@@ -157,6 +157,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "hypercalcemia_treatment_safety",
         "hypocalcemia_time_critical_actions",
         "hypocalcemia_treatment_safety",
+        "tumor_lysis_time_critical_actions",
+        "tumor_lysis_treatment_safety",
         "hyperkalemia_time_critical_actions",
         "hyperkalemia_treatment_safety",
         "status_epilepticus_time_critical_actions",
@@ -8336,6 +8338,151 @@ def test_quality_gate_requires_hypocalcemia_digoxin_extravasation_phosphate_magn
     assert not report.passed
     assert any(
         "severe hypocalcemia safety checks must include digoxin" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_tumor_lysis_labs_hydration_urate_electrolytes_and_renal_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Tumor lysis syndrome after leukemia induction"
+    case["chief_complaint"] = "Oliguria and weakness after chemotherapy"
+    case["history_of_present_illness"] = (
+        "Patient with ALL begins leukemia induction chemotherapy and within 24 hours "
+        "develops tumor lysis syndrome with oliguria, bulky disease, LDH elevation, "
+        "uric acid 12 mg/dL, hyperkalemia, hyperphosphatemia, hypocalcemia, AKI, "
+        "and arrhythmia risk."
+    )
+    case["initial_labs"] = {
+        "potassium": "6.4 mmol/L",
+        "phosphate": "7.2 mg/dL",
+        "calcium": "6.8 mg/dL",
+        "uric_acid": "12 mg/dL",
+        "creatinine": "2.4 mg/dL",
+        "ldh": "2400 U/L",
+    }
+    case["key_teaching_points"] = [
+        "Tumor lysis syndrome causes hyperkalemia, hyperphosphatemia, hypocalcemia, hyperuricemia, and AKI",
+        "High-risk patients need aggressive hydration, frequent metabolic monitoring, and hypouricemic therapy",
+        "Life-threatening TLS may require telemetry, electrolyte rescue, nephrology, and dialysis or CRRT",
+    ]
+    case["clinical_red_flags"] = [
+        "Burkitt, ALL, AML, bulky disease, high LDH, venetoclax, hyperuricemia, hyperkalemia, hyperphosphatemia, hypocalcemia, or AKI",
+        "Oliguria, seizure, arrhythmia, sudden death, fluid overload, or renal failure",
+    ]
+    case["time_critical_actions"] = [
+        "Monitor q4 to q6 electrolytes, potassium, phosphate, calcium, creatinine, uric acid, LDH, and urine output",
+        "Start aggressive IV crystalloid hydration and avoid potassium or calcium in fluids while tracking urine output",
+        "Treat hyperkalemia with ECG telemetry, insulin and dextrose, and manage hyperphosphatemia with phosphate binder",
+    ]
+    case["contraindication_checks"] = [
+        "Screen G6PD before rasburicase and monitor for hemolysis or methemoglobinemia",
+        "Avoid urine alkalinization and sodium bicarbonate unless special indication because calcium phosphate precipitation can worsen AKI",
+        "Adjust fluids for cardiac disease, heart failure, renal impairment, fluid overload, hypovolemia, or obstructive uropathy",
+        "Renal-adjust allopurinol and review xanthine nephropathy, HLA-B*58:01 risk, azathioprine, or mercaptopurine interactions",
+        "Avoid routine calcium for hypocalcemia unless symptomatic; review hyperphosphatemia and calcium-phosphate product",
+        "Escalate dialysis or CRRT for anuria, fluid overload, persistent hyperkalemia, severe hyperphosphatemia, or renal replacement need",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tumor Lysis Syndrome",
+            "organization": "StatPearls / NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK518985/",
+            "supports": [
+                "tumor lysis syndrome after leukemia induction diagnosis and risk stratification",
+                "ALL leukemia induction chemotherapy with oliguria, bulky disease, LDH elevation, uric acid 12 mg/dL, hyperkalemia, hyperphosphatemia, hypocalcemia, AKI, and arrhythmia risk",
+                "tumor lysis syndrome causes hyperkalemia, hyperphosphatemia, hypocalcemia, hyperuricemia, and AKI",
+                "high-risk patients need aggressive hydration, frequent metabolic monitoring, and hypouricemic therapy",
+                "life-threatening TLS may require telemetry, electrolyte rescue, nephrology, and dialysis or CRRT",
+                "Burkitt, ALL, AML, bulky disease, high LDH, venetoclax, hyperuricemia, hyperkalemia, hyperphosphatemia, hypocalcemia, or AKI as red flags",
+                "oliguria, seizure, arrhythmia, sudden death, fluid overload, or renal failure as severity markers",
+                "q4 to q6 electrolytes, potassium, phosphate, calcium, creatinine, uric acid, LDH, and urine output monitoring",
+                "aggressive IV crystalloid hydration and potassium or calcium-free fluids while tracking urine output",
+                "hyperkalemia treatment with ECG telemetry, insulin and dextrose, and hyperphosphatemia management with phosphate binder",
+                "G6PD screen before rasburicase and hemolysis or methemoglobinemia monitoring",
+                "avoid urine alkalinization and sodium bicarbonate because calcium phosphate precipitation can worsen AKI",
+                "fluid adjustment for cardiac disease, heart failure, renal impairment, fluid overload, hypovolemia, or obstructive uropathy",
+                "renal-adjust allopurinol and review xanthine nephropathy, HLA-B*58:01 risk, azathioprine, or mercaptopurine interactions",
+                "avoid routine calcium for hypocalcemia unless symptomatic; hyperphosphatemia and calcium-phosphate product review",
+                "dialysis or CRRT for anuria, fluid overload, persistent hyperkalemia, severe hyperphosphatemia, or renal replacement need",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "tumor lysis syndrome time-critical actions must include frequent" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_tumor_lysis_rasburicase_alkalinization_fluid_allopurinol_calcium_and_dialysis_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "High-risk tumor lysis syndrome from Burkitt lymphoma"
+    case["chief_complaint"] = "Weakness and decreased urine output after chemotherapy"
+    case["history_of_present_illness"] = (
+        "Patient with Burkitt lymphoma and bulky disease develops tumor lysis "
+        "syndrome after chemotherapy with hyperuricemia, hyperkalemia, "
+        "hyperphosphatemia, hypocalcemia, oliguria, AKI, and seizure risk."
+    )
+    case["initial_labs"] = {
+        "potassium": "6.8 mmol/L",
+        "phosphate": "8.4 mg/dL",
+        "calcium": "6.5 mg/dL",
+        "uric_acid": "14 mg/dL",
+        "creatinine": "3.1 mg/dL",
+        "ldh": "3100 U/L",
+    }
+    case["key_teaching_points"] = [
+        "TLS can rapidly cause fatal hyperkalemia, hypocalcemia, arrhythmia, seizure, and AKI",
+        "Rasburicase lowers uric acid rapidly, while allopurinol prevents new uric acid formation",
+        "Severe TLS requires nephrology and renal replacement therapy planning when electrolytes or urine output do not respond",
+    ]
+    case["clinical_red_flags"] = [
+        "Burkitt lymphoma, bulky disease, high LDH, hyperuricemia, hyperkalemia, hyperphosphatemia, hypocalcemia, AKI, or oliguria",
+        "Seizure, arrhythmia, sudden death, anuria, fluid overload, or persistent hyperkalemia",
+    ]
+    case["time_critical_actions"] = [
+        "Monitor q4 electrolytes including potassium, phosphate, calcium, creatinine, uric acid, and urine output",
+        "Start aggressive IV fluids and crystalloid hydration targeting urine output",
+        "Give rasburicase for uric acid lowering and consider allopurinol or febuxostat hypouricemic planning when appropriate",
+        "Place on ECG telemetry; treat hyperkalemia with insulin and dextrose and manage hyperphosphatemia with phosphate binder",
+        "Consult nephrology early for hemodialysis, dialysis, CRRT, or renal replacement escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetic",
+        "Pregnancy status before imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tumor Lysis Syndrome",
+            "organization": "StatPearls / NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK518985/",
+            "supports": [
+                "high-risk tumor lysis syndrome from Burkitt lymphoma diagnosis and risk stratification",
+                "Burkitt lymphoma and bulky disease with tumor lysis syndrome after chemotherapy, hyperuricemia, hyperkalemia, hyperphosphatemia, hypocalcemia, oliguria, AKI, and seizure risk",
+                "TLS can rapidly cause fatal hyperkalemia, hypocalcemia, arrhythmia, seizure, and AKI",
+                "rasburicase lowers uric acid rapidly, while allopurinol prevents new uric acid formation",
+                "severe TLS requires nephrology and renal replacement therapy planning when electrolytes or urine output do not respond",
+                "Burkitt lymphoma, bulky disease, high LDH, hyperuricemia, hyperkalemia, hyperphosphatemia, hypocalcemia, AKI, or oliguria as red flags",
+                "seizure, arrhythmia, sudden death, anuria, fluid overload, or persistent hyperkalemia as severity markers",
+                "q4 electrolytes including potassium, phosphate, calcium, creatinine, uric acid, and urine output monitoring",
+                "aggressive IV fluids and crystalloid hydration targeting urine output",
+                "rasburicase for uric acid lowering and allopurinol or febuxostat hypouricemic planning when appropriate",
+                "ECG telemetry; hyperkalemia treatment with insulin and dextrose and hyperphosphatemia management with phosphate binder",
+                "nephrology for hemodialysis, dialysis, CRRT, or renal replacement escalation",
+                "medication allergy before antiemetic",
+                "pregnancy status before imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "tumor lysis syndrome safety checks must include rasburicase" in issue
         for issue in report.critical_issues
     )
 

@@ -1564,6 +1564,73 @@
     }
   },
   {
+    "name": "tumor_lysis_requires_labs_hydration_urate_electrolytes_and_renal_escalation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "tumor lysis syndrome time-critical actions must include frequent"
+    ],
+    "overrides": {
+      "diagnosis": "Tumor lysis syndrome after leukemia induction",
+      "chief_complaint": "Oliguria and weakness after chemotherapy",
+      "history_of_present_illness": "Patient with ALL begins leukemia induction chemotherapy and within 24 hours develops tumor lysis syndrome with oliguria, bulky disease, LDH elevation, uric acid 12 mg/dL, hyperkalemia, hyperphosphatemia, hypocalcemia, AKI, and arrhythmia risk.",
+      "initial_labs": {
+        "potassium": "6.4 mmol/L",
+        "phosphate": "7.2 mg/dL",
+        "calcium": "6.8 mg/dL",
+        "uric_acid": "12 mg/dL",
+        "creatinine": "2.4 mg/dL",
+        "ldh": "2400 U/L"
+      },
+      "key_teaching_points": [
+        "Tumor lysis syndrome causes hyperkalemia, hyperphosphatemia, hypocalcemia, hyperuricemia, and AKI",
+        "High-risk patients need aggressive hydration, frequent metabolic monitoring, and hypouricemic therapy",
+        "Life-threatening TLS may require telemetry, electrolyte rescue, nephrology, and dialysis or CRRT"
+      ],
+      "clinical_red_flags": [
+        "Burkitt, ALL, AML, bulky disease, high LDH, venetoclax, hyperuricemia, hyperkalemia, hyperphosphatemia, hypocalcemia, or AKI",
+        "Oliguria, seizure, arrhythmia, sudden death, fluid overload, or renal failure"
+      ],
+      "time_critical_actions": [
+        "Monitor q4 to q6 electrolytes, potassium, phosphate, calcium, creatinine, uric acid, LDH, and urine output",
+        "Start aggressive IV crystalloid hydration and avoid potassium or calcium in fluids while tracking urine output",
+        "Treat hyperkalemia with ECG telemetry, insulin and dextrose, and manage hyperphosphatemia with phosphate binder"
+      ],
+      "contraindication_checks": [
+        "Screen G6PD before rasburicase and monitor for hemolysis or methemoglobinemia",
+        "Avoid urine alkalinization and sodium bicarbonate unless special indication because calcium phosphate precipitation can worsen AKI",
+        "Adjust fluids for cardiac disease, heart failure, renal impairment, fluid overload, hypovolemia, or obstructive uropathy",
+        "Renal-adjust allopurinol and review xanthine nephropathy, HLA-B*58:01 risk, azathioprine, or mercaptopurine interactions",
+        "Avoid routine calcium for hypocalcemia unless symptomatic; review hyperphosphatemia and calcium-phosphate product",
+        "Escalate dialysis or CRRT for anuria, fluid overload, persistent hyperkalemia, severe hyperphosphatemia, or renal replacement need"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Tumor Lysis Syndrome",
+          "organization": "StatPearls / NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK518985/",
+          "supports": [
+            "tumor lysis syndrome after leukemia induction diagnosis and risk stratification",
+            "ALL leukemia induction chemotherapy with oliguria, bulky disease, LDH elevation, uric acid 12 mg/dL, hyperkalemia, hyperphosphatemia, hypocalcemia, AKI, and arrhythmia risk",
+            "tumor lysis syndrome causes hyperkalemia, hyperphosphatemia, hypocalcemia, hyperuricemia, and AKI",
+            "high-risk patients need aggressive hydration, frequent metabolic monitoring, and hypouricemic therapy",
+            "life-threatening TLS may require telemetry, electrolyte rescue, nephrology, and dialysis or CRRT",
+            "Burkitt, ALL, AML, bulky disease, high LDH, venetoclax, hyperuricemia, hyperkalemia, hyperphosphatemia, hypocalcemia, or AKI as red flags",
+            "oliguria, seizure, arrhythmia, sudden death, fluid overload, or renal failure as severity markers",
+            "q4 to q6 electrolytes, potassium, phosphate, calcium, creatinine, uric acid, LDH, and urine output monitoring",
+            "aggressive IV crystalloid hydration and potassium or calcium-free fluids while tracking urine output",
+            "hyperkalemia treatment with ECG telemetry, insulin and dextrose, and hyperphosphatemia management with phosphate binder",
+            "G6PD screen before rasburicase and hemolysis or methemoglobinemia monitoring",
+            "avoid urine alkalinization and sodium bicarbonate because calcium phosphate precipitation can worsen AKI",
+            "fluid adjustment for cardiac disease, heart failure, renal impairment, fluid overload, hypovolemia, or obstructive uropathy",
+            "renal-adjust allopurinol and review xanthine nephropathy, HLA-B*58:01 risk, azathioprine, or mercaptopurine interactions",
+            "avoid routine calcium for hypocalcemia unless symptomatic; hyperphosphatemia and calcium-phosphate product review",
+            "dialysis or CRRT for anuria, fluid overload, persistent hyperkalemia, severe hyperphosphatemia, or renal replacement need"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "status_epilepticus_requires_airway_benzo_second_line_and_refractory_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [
