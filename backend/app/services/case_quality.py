@@ -8291,6 +8291,84 @@ OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS = (
     "금단",
     "폐부종",
 )
+SICKLE_SPLENIC_SEQUESTRATION_CONTEXT_TERMS = (
+    "acute splenic sequestration",
+    "sickle cell splenic sequestration",
+    "sickle splenic sequestration",
+    "splenic sequestration",
+    "splenic sequestration crisis",
+    "splenomegaly with acute anemia",
+)
+SICKLE_SPLENIC_SEQUESTRATION_RISK_TERMS = (
+    "baseline hemoglobin",
+    "falling hemoglobin",
+    "hemoglobin 2 g/dl below baseline",
+    "hypovolemic shock",
+    "left upper quadrant",
+    "pallor",
+    "rapidly enlarging spleen",
+    "reticulocyte",
+    "severe anemia",
+    "shock",
+    "splenomegaly",
+    "tachycardia",
+)
+SICKLE_SPLENIC_SEQUESTRATION_ASSESSMENT_ACTION_TERMS = (
+    "baseline hemoglobin",
+    "cbc",
+    "hemoglobin",
+    "palpate spleen",
+    "reticulocyte",
+    "spleen size",
+    "type and crossmatch",
+)
+SICKLE_SPLENIC_SEQUESTRATION_RESUSCITATION_ACTION_TERMS = (
+    "fluid bolus",
+    "hypovolemia",
+    "iv fluid",
+    "resuscitation",
+    "shock",
+)
+SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_ACTION_TERMS = (
+    "packed red blood",
+    "prbc",
+    "simple transfusion",
+    "transfusion",
+)
+SICKLE_SPLENIC_SEQUESTRATION_EXPERT_ACTION_TERMS = (
+    "hematology",
+    "sickle cell expert",
+    "sickle cell specialist",
+)
+SICKLE_SPLENIC_SEQUESTRATION_OVERTRANSFUSION_SAFETY_TERMS = (
+    "avoid over-transfusion",
+    "avoid overtransfusion",
+    "hemoglobin 8",
+    "hyperviscosity",
+    "over-transfusion",
+    "overtransfusion",
+)
+SICKLE_SPLENIC_SEQUESTRATION_DIFFERENTIAL_SAFETY_TERMS = (
+    "acute chest syndrome",
+    "aplastic",
+    "delayed hemolytic transfusion reaction",
+    "infection",
+    "sepsis",
+)
+SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_SAFETY_TERMS = (
+    "parent education",
+    "recurrence",
+    "recurrent sequestration",
+    "spleen size",
+    "splenectomy",
+)
+SICKLE_SPLENIC_SEQUESTRATION_MONITORING_SAFETY_TERMS = (
+    "hemoglobin",
+    "rebound",
+    "recheck",
+    "serial cbc",
+    "vital signs",
+)
 ACUTE_CHEST_SYNDROME_CONTEXT_TERMS = (
     "acute chest syndrome",
     "sickle acute chest",
@@ -12340,6 +12418,35 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "renarcotization observation, co-ingestion or alternate-cause "
                 "assessment, and naloxone titration, withdrawal, aspiration, or "
                 "pulmonary-edema safeguards"
+            ),
+        ),
+        DomainSafetyGate(
+            name="sickle_splenic_sequestration_time_critical_actions",
+            applies=_requires_sickle_splenic_sequestration_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_sickle_splenic_sequestration_time_critical_actions,
+            issue=(
+                "sickle cell splenic sequestration time-critical actions must "
+                "include spleen size, CBC, reticulocyte count, baseline "
+                "hemoglobin comparison, and type-and-crossmatch assessment, "
+                "immediate IV fluid resuscitation for hypovolemia or shock, "
+                "simple transfusion or PRBC planning for severe anemia, and "
+                "hematology or sickle cell expert consultation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="sickle_splenic_sequestration_treatment_safety",
+            applies=_requires_sickle_splenic_sequestration_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_sickle_splenic_sequestration_treatment_safety_check,
+            issue=(
+                "sickle cell splenic sequestration safety checks must include "
+                "avoiding over-transfusion or hyperviscosity such as hemoglobin "
+                "above 8 g/dL, differential review for aplastic crisis, delayed "
+                "hemolytic transfusion reaction, acute chest syndrome, infection, "
+                "or sepsis, recurrence monitoring with spleen-size education and "
+                "splenectomy discussion, and serial CBC, hemoglobin rebound, "
+                "recheck, or vital-sign monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -19072,6 +19179,89 @@ def _has_opioid_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         has_long_acting_rebound_safety
         and has_coingestion_or_differential_safety
         and has_naloxone_adverse_safety
+    )
+
+
+def _requires_sickle_splenic_sequestration_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_sickle_splenic_sequestration_time_critical_actions(
+    actions: list[Any],
+) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_ASSESSMENT_ACTION_TERMS
+    )
+    has_resuscitation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_RESUSCITATION_ACTION_TERMS
+    )
+    has_transfusion = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_ACTION_TERMS
+    )
+    has_expert = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_EXPERT_ACTION_TERMS
+    )
+    return has_assessment and has_resuscitation and has_transfusion and has_expert
+
+
+def _has_sickle_splenic_sequestration_treatment_safety_check(
+    checks: list[Any],
+) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_overtransfusion_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_OVERTRANSFUSION_SAFETY_TERMS
+    )
+    has_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_recurrence_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_SAFETY_TERMS
+    )
+    has_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_MONITORING_SAFETY_TERMS
+    )
+    return (
+        has_overtransfusion_safety
+        and has_differential_safety
+        and has_recurrence_safety
+        and has_monitoring_safety
     )
 
 

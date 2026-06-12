@@ -9047,6 +9047,94 @@ const OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS = [
   "폐부종",
 ];
 
+const SICKLE_SPLENIC_SEQUESTRATION_CONTEXT_TERMS = [
+  "acute splenic sequestration",
+  "sickle cell splenic sequestration",
+  "sickle splenic sequestration",
+  "splenic sequestration",
+  "splenic sequestration crisis",
+  "splenomegaly with acute anemia",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_RISK_TERMS = [
+  "baseline hemoglobin",
+  "falling hemoglobin",
+  "hemoglobin 2 g/dl below baseline",
+  "hypovolemic shock",
+  "left upper quadrant",
+  "pallor",
+  "rapidly enlarging spleen",
+  "reticulocyte",
+  "severe anemia",
+  "shock",
+  "splenomegaly",
+  "tachycardia",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_ASSESSMENT_ACTION_TERMS = [
+  "baseline hemoglobin",
+  "cbc",
+  "hemoglobin",
+  "palpate spleen",
+  "reticulocyte",
+  "spleen size",
+  "type and crossmatch",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_RESUSCITATION_ACTION_TERMS = [
+  "fluid bolus",
+  "hypovolemia",
+  "iv fluid",
+  "resuscitation",
+  "shock",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_ACTION_TERMS = [
+  "packed red blood",
+  "prbc",
+  "simple transfusion",
+  "transfusion",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_EXPERT_ACTION_TERMS = [
+  "hematology",
+  "sickle cell expert",
+  "sickle cell specialist",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_OVERTRANSFUSION_SAFETY_TERMS = [
+  "avoid over-transfusion",
+  "avoid overtransfusion",
+  "hemoglobin 8",
+  "hyperviscosity",
+  "over-transfusion",
+  "overtransfusion",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_DIFFERENTIAL_SAFETY_TERMS = [
+  "acute chest syndrome",
+  "aplastic",
+  "delayed hemolytic transfusion reaction",
+  "infection",
+  "sepsis",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_SAFETY_TERMS = [
+  "parent education",
+  "recurrence",
+  "recurrent sequestration",
+  "spleen size",
+  "splenectomy",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_MONITORING_SAFETY_TERMS = [
+  "hemoglobin",
+  "rebound",
+  "recheck",
+  "serial cbc",
+  "vital signs",
+];
+
 const ACUTE_CHEST_SYNDROME_CONTEXT_TERMS = [
   "acute chest syndrome",
   "sickle acute chest",
@@ -15721,6 +15809,70 @@ function hasOpioidToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   return hasLongActingReboundSafety && hasCoingestionOrDifferentialSafety && hasNaloxoneAdverseSafety;
 }
 
+function requiresSickleSplenicSequestrationSafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = SICKLE_SPLENIC_SEQUESTRATION_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = SICKLE_SPLENIC_SEQUESTRATION_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasSickleSplenicSequestrationTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAssessment = SICKLE_SPLENIC_SEQUESTRATION_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasResuscitation = SICKLE_SPLENIC_SEQUESTRATION_RESUSCITATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTransfusion = SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasExpert = SICKLE_SPLENIC_SEQUESTRATION_EXPERT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAssessment && hasResuscitation && hasTransfusion && hasExpert;
+}
+
+function hasSickleSplenicSequestrationTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasOvertransfusionSafety =
+    SICKLE_SPLENIC_SEQUESTRATION_OVERTRANSFUSION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDifferentialSafety = SICKLE_SPLENIC_SEQUESTRATION_DIFFERENTIAL_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRecurrenceSafety = SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMonitoringSafety = SICKLE_SPLENIC_SEQUESTRATION_MONITORING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasOvertransfusionSafety && hasDifferentialSafety && hasRecurrenceSafety && hasMonitoringSafety
+  );
+}
+
 function requiresAcuteChestSyndromeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const directContext = [
     detail.chief_complaint,
@@ -17951,6 +18103,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasOpioidToxicityTreatmentSafetyCheck,
       issue:
         "opioid toxicity safety checks must include long-acting opioid or renarcotization observation, co-ingestion or alternate-cause assessment, and naloxone titration, withdrawal, aspiration, or pulmonary-edema safeguards",
+    },
+    {
+      name: "sickle_splenic_sequestration_time_critical_actions",
+      label: "Sickle splenic sequestration resuscitation and transfusion actions",
+      applies: requiresSickleSplenicSequestrationSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSickleSplenicSequestrationTimeCriticalActions,
+      issue:
+        "sickle cell splenic sequestration time-critical actions must include spleen size, CBC, reticulocyte count, baseline hemoglobin comparison, and type-and-crossmatch assessment, immediate IV fluid resuscitation for hypovolemia or shock, simple transfusion or PRBC planning for severe anemia, and hematology or sickle cell expert consultation",
+    },
+    {
+      name: "sickle_splenic_sequestration_treatment_safety",
+      label: "Sickle splenic sequestration transfusion and recurrence safety",
+      applies: requiresSickleSplenicSequestrationSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSickleSplenicSequestrationTreatmentSafetyCheck,
+      issue:
+        "sickle cell splenic sequestration safety checks must include avoiding over-transfusion or hyperviscosity such as hemoglobin above 8 g/dL, differential review for aplastic crisis, delayed hemolytic transfusion reaction, acute chest syndrome, infection, or sepsis, recurrence monitoring with spleen-size education and splenectomy discussion, and serial CBC, hemoglobin rebound, recheck, or vital-sign monitoring",
     },
     {
       name: "acute_chest_syndrome_time_critical_actions",
