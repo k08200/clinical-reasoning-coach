@@ -235,6 +235,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "pe_contraindication_safety",
         "acs_time_critical_actions",
         "acs_contraindication_safety",
+        "acs_medication_reperfusion_safety",
         "aortic_dissection_time_critical_actions",
         "aortic_dissection_treatment_safety",
     }
@@ -8234,6 +8235,10 @@ def test_quality_gate_allows_thrombolysis_with_bleeding_safety_check():
         "Active bleeding, recent surgery, anticoagulant use, platelet count, and blood pressure before thrombolysis",
         "Aortic dissection features before anticoagulation or thrombolysis",
         "Hemodynamic instability or pulmonary edema requiring escalation",
+        "Nitroglycerin or nitrate only after checking hypotension, right ventricular or inferior infarct, and PDE5 inhibitor use",
+        "Use oxygen only for hypoxia or low SpO2; avoid routine oxygen when oxygen saturation is adequate",
+        "Early rate-control medication contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+        "Track door-to-balloon PCI 90 minute goal, transfer 120 minute limit, and door-to-needle fibrinolysis contraindication planning",
     ]
     case["clinical_sources"][0]["supports"] = [
         "ACS diagnosis and risk stratification for acute chest pain",
@@ -8249,6 +8254,10 @@ def test_quality_gate_allows_thrombolysis_with_bleeding_safety_check():
         "active bleeding, recent surgery, anticoagulant use, platelet count, and blood pressure before thrombolysis",
         "aortic dissection features before anticoagulation or thrombolysis",
         "hemodynamic instability or pulmonary edema requiring escalation",
+        "nitroglycerin or nitrate hypotension, right ventricular or inferior infarct, and PDE5 inhibitor safety review",
+        "oxygen only for hypoxia or low SpO2 and avoid routine oxygen when oxygen saturation is adequate",
+        "early rate-control medication contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+        "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, and door-to-needle fibrinolysis contraindication planning",
     ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
@@ -13415,6 +13424,36 @@ def test_quality_gate_requires_acs_dissection_bleeding_and_hemodynamic_safety():
     assert not report.passed
     assert any(
         "ACS safety checks must include aortic dissection exclusion" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acs_nitrate_oxygen_beta_blocker_and_reperfusion_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["contraindication_checks"] = [
+        "Aortic dissection features before anticoagulation or thrombolysis",
+        "Active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+        "Hemodynamic instability, shock, heart failure, or pulmonary edema requiring escalation",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "ACS diagnosis and risk stratification for acute chest pain",
+        "life-threatening chest pain differential and severity markers",
+        "ECG within 10 minutes and reperfusion pathway activation",
+        "antiplatelet and anticoagulation after checking major contraindications",
+        "crushing substernal chest pain radiating to the arm with diaphoresis",
+        "bibasilar crackles suggesting early heart failure",
+        "tachycardia with multiple coronary risk factors",
+        "aortic dissection features before anticoagulation or thrombolysis",
+        "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+        "hemodynamic instability, shock, heart failure, or pulmonary edema requiring escalation",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ACS medication and reperfusion safety checks must include nitroglycerin"
+        in issue
         for issue in report.critical_issues
     )
 

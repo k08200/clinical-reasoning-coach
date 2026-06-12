@@ -18,7 +18,11 @@
             "aortic dissection features before anticoagulation or thrombolysis",
             "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
             "antiplatelet and anticoagulation only after checking ECG context and major contraindications",
-            "hemodynamic instability or pulmonary edema requiring escalation"
+            "hemodynamic instability or pulmonary edema requiring escalation",
+            "nitroglycerin or nitrate hypotension, right ventricular or inferior infarct, and PDE5 inhibitor safety review",
+            "oxygen only for hypoxia or low SpO2 and avoid routine oxygen when oxygen saturation is adequate",
+            "early rate-control medication contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+            "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, and door-to-needle fibrinolysis contraindication planning"
           ]
         }
       ]
@@ -962,6 +966,39 @@
             "tachycardia with multiple coronary risk factors",
             "active bleeding or recent major surgery before antithrombotic therapy",
             "severe medication allergy before antithrombotic therapy"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "acs_requires_nitrate_oxygen_beta_blocker_and_reperfusion_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "ACS medication and reperfusion safety checks must include nitroglycerin"
+    ],
+    "overrides": {
+      "contraindication_checks": [
+        "Aortic dissection features before anticoagulation or thrombolysis",
+        "Active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+        "Hemodynamic instability, shock, heart failure, or pulmonary edema requiring escalation"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2025 ACC/AHA Guideline for the Management of Acute Coronary Syndromes",
+          "organization": "American College of Cardiology / American Heart Association",
+          "url": "https://www.acc.org/Guidelines",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "ECG within 10 minutes and reperfusion pathway activation",
+            "antiplatelet and anticoagulation after checking major contraindications",
+            "crushing substernal chest pain radiating to the arm with diaphoresis",
+            "bibasilar crackles suggesting early heart failure",
+            "tachycardia with multiple coronary risk factors",
+            "aortic dissection features before anticoagulation or thrombolysis",
+            "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+            "hemodynamic instability, shock, heart failure, or pulmonary edema requiring escalation"
           ]
         }
       ]

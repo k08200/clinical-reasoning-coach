@@ -10978,6 +10978,45 @@ const ACS_HEMODYNAMIC_SAFETY_TERMS = [
   "폐부종",
 ];
 
+const ACS_NITRATE_SAFETY_TERMS = [
+  "inferior infarct",
+  "inferior mi",
+  "nitroglycerin",
+  "nitrate",
+  "pde5",
+  "right ventricular",
+  "rv infarct",
+  "sildenafil",
+];
+
+const ACS_OXYGEN_SAFETY_TERMS = [
+  "avoid routine oxygen",
+  "hypoxia",
+  "low spo2",
+  "oxygen only",
+  "oxygen saturation",
+  "spo2",
+];
+
+const ACS_BETA_BLOCKER_SAFETY_TERMS = [
+  "av block",
+  "beta blocker",
+  "beta-blocker",
+  "bradycardia",
+  "bronchospasm",
+  "heart failure",
+  "shock",
+];
+
+const ACS_REPERFUSION_TIMING_SAFETY_TERMS = [
+  "door to balloon",
+  "door-to-balloon",
+  "door-to-needle",
+  "fibrinolysis contraindication",
+  "pci 90",
+  "transfer 120",
+];
+
 const AORTIC_DISSECTION_CONTEXT_TERMS = [
   "acute aortic syndrome",
   "aortic dissection",
@@ -17353,6 +17392,23 @@ function hasAcsContraindicationSafetyCheck(checks: string[]): boolean {
   return hasDissectionExclusion && hasBleedingSafety && hasHemodynamicEscalation;
 }
 
+function hasAcsMedicationReperfusionSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNitrateSafety = ACS_NITRATE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOxygenSafety = ACS_OXYGEN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBetaBlockerSafety = ACS_BETA_BLOCKER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasReperfusionTimingSafety = ACS_REPERFUSION_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasNitrateSafety && hasOxygenSafety && hasBetaBlockerSafety && hasReperfusionTimingSafety;
+}
+
 function requiresAorticDissectionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -19116,6 +19172,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAcsContraindicationSafetyCheck,
       issue:
         "ACS safety checks must include aortic dissection exclusion, bleeding or recent-surgery risk, and hemodynamic or heart-failure escalation",
+    },
+    {
+      name: "acs_medication_reperfusion_safety",
+      label: "ACS medication and reperfusion safety",
+      applies: requiresAcsSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcsMedicationReperfusionSafetyCheck,
+      issue:
+        "ACS medication and reperfusion safety checks must include nitroglycerin or nitrate hypotension, right-ventricular/inferior MI, or PDE5-inhibitor review, oxygen use tied to hypoxia or saturation, beta-blocker contraindication review, and PCI or fibrinolysis timing or contraindication planning",
     },
     {
       name: "aortic_dissection_time_critical_actions",

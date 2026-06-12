@@ -10064,6 +10064,41 @@ ACS_HEMODYNAMIC_SAFETY_TERMS = (
     "저혈압",
     "폐부종",
 )
+ACS_NITRATE_SAFETY_TERMS = (
+    "inferior infarct",
+    "inferior mi",
+    "nitroglycerin",
+    "nitrate",
+    "pde5",
+    "right ventricular",
+    "rv infarct",
+    "sildenafil",
+)
+ACS_OXYGEN_SAFETY_TERMS = (
+    "avoid routine oxygen",
+    "hypoxia",
+    "low spo2",
+    "oxygen only",
+    "oxygen saturation",
+    "spo2",
+)
+ACS_BETA_BLOCKER_SAFETY_TERMS = (
+    "av block",
+    "beta blocker",
+    "beta-blocker",
+    "bradycardia",
+    "bronchospasm",
+    "heart failure",
+    "shock",
+)
+ACS_REPERFUSION_TIMING_SAFETY_TERMS = (
+    "door to balloon",
+    "door-to-balloon",
+    "door-to-needle",
+    "fibrinolysis contraindication",
+    "pci 90",
+    "transfer 120",
+)
 AORTIC_DISSECTION_CONTEXT_TERMS = (
     "acute aortic syndrome",
     "aortic dissection",
@@ -13257,6 +13292,19 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "ACS safety checks must include aortic dissection exclusion, "
                 "bleeding or recent-surgery risk, and hemodynamic or heart-failure "
                 "escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acs_medication_reperfusion_safety",
+            applies=_requires_acs_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acs_medication_reperfusion_safety_check,
+            issue=(
+                "ACS medication and reperfusion safety checks must include "
+                "nitroglycerin or nitrate hypotension, right-ventricular/inferior "
+                "MI, or PDE5-inhibitor review, oxygen use tied to hypoxia or "
+                "saturation, beta-blocker contraindication review, and PCI or "
+                "fibrinolysis timing or contraindication planning"
             ),
         ),
         DomainSafetyGate(
@@ -21104,6 +21152,32 @@ def _has_acs_contraindication_safety_check(checks: list[Any]) -> bool:
         for term in ACS_HEMODYNAMIC_SAFETY_TERMS
     )
     return has_dissection_exclusion and has_bleeding_safety and has_hemodynamic_escalation
+
+
+def _has_acs_medication_reperfusion_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_nitrate_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_NITRATE_SAFETY_TERMS
+    )
+    has_oxygen_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_OXYGEN_SAFETY_TERMS
+    )
+    has_beta_blocker_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_BETA_BLOCKER_SAFETY_TERMS
+    )
+    has_reperfusion_timing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_REPERFUSION_TIMING_SAFETY_TERMS
+    )
+    return (
+        has_nitrate_safety
+        and has_oxygen_safety
+        and has_beta_blocker_safety
+        and has_reperfusion_timing_safety
+    )
 
 
 def _requires_aortic_dissection_safety_check(data: dict[str, Any]) -> bool:

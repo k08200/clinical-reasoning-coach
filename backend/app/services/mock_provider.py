@@ -180,6 +180,10 @@ _SOURCE_CHEST_PAIN = {
         "aortic dissection features before anticoagulation or thrombolysis",
         "major contraindications and safety checks before antithrombotic therapy",
         "hemodynamic instability and pulmonary edema requiring escalation",
+        "nitroglycerin or nitrate hypotension, right ventricular or inferior infarct, and PDE5 inhibitor safety review",
+        "oxygen only for hypoxia or low SpO2 and avoid routine oxygen when oxygen saturation is adequate",
+        "early rate-control medication contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+        "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, and door-to-needle fibrinolysis contraindication planning",
     ],
 }
 
@@ -193,6 +197,10 @@ _SOURCE_ACS_STATPEARLS = {
         "STEMI and ACS time-sensitive management pathways",
         "antiplatelet and anticoagulation safety considerations",
         "life-threatening differential diagnosis for acute chest pain",
+        "nitroglycerin or nitrate caution with hypotension, right ventricular or inferior infarct, and PDE5 inhibitor use",
+        "oxygen use tied to hypoxia or low SpO2 rather than routine oxygen when saturation is adequate",
+        "early rate-control medication contraindications including heart failure, shock, bradycardia, AV block, or bronchospasm",
+        "PCI timing, transfer timing, door-to-needle thrombolysis, and fibrinolysis contraindication planning",
     ],
 }
 
@@ -382,6 +390,10 @@ _CASE_STEMI = {
         "Aortic dissection features before anticoagulation or thrombolysis",
         "Active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
         "Hemodynamic instability or pulmonary edema requiring escalation",
+        "Nitroglycerin or nitrate only after checking hypotension, right ventricular or inferior infarct, and PDE5 inhibitor use",
+        "Use oxygen only for hypoxia or low SpO2; avoid routine oxygen when oxygen saturation is adequate",
+        "Early rate-control medication contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+        "Track door-to-balloon PCI 90 minute goal, transfer 120 minute limit, and door-to-needle fibrinolysis contraindication planning",
     ],
     "clinical_sources": [_SOURCE_CHEST_PAIN, _SOURCE_ACS_STATPEARLS],
     "review_status": "educational_draft",
