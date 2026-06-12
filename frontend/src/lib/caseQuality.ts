@@ -10205,6 +10205,54 @@ const ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS = [
   "호흡부전",
 ];
 
+const ACUTE_HF_NITRATE_LEVEL_CARE_SAFETY_TERMS = [
+  "blood pressure monitoring",
+  "close blood pressure",
+  "do not routinely offer nitrates",
+  "iv nitrate",
+  "level 2 care",
+  "nitrate",
+  "severe hypertension",
+  "vasodilator",
+  "혈압 모니터",
+];
+
+const ACUTE_HF_INOTROPE_VASOPRESSOR_SAFETY_TERMS = [
+  "cardiac care unit",
+  "cardiogenic shock",
+  "dobutamine",
+  "high dependency",
+  "inotrope",
+  "level 2 care",
+  "norepinephrine",
+  "potentially reversible",
+  "vasopressor",
+  "강심제",
+];
+
+const ACUTE_HF_MCS_ADVANCED_TEAM_SAFETY_TERMS = [
+  "advanced heart failure",
+  "ecmo",
+  "impella",
+  "mechanical circulatory support",
+  "mcs",
+  "specialist heart failure team",
+  "transplant",
+  "ventricular assist",
+  "전문 심부전",
+];
+
+const ACUTE_HF_BETA_BLOCKER_STABILIZATION_SAFETY_TERMS = [
+  "av block",
+  "beta blocker",
+  "bradycardia",
+  "heart rate less than 50",
+  "restart after stabilization",
+  "shock",
+  "stabilized",
+  "베타차단제",
+];
+
 const DUCTAL_DEPENDENT_CHD_CONTEXT_TERMS = [
   "critical congenital heart disease",
   "critical coarctation",
@@ -17078,6 +17126,29 @@ function hasAcuteHeartFailureTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function hasAcuteHeartFailureShockEscalationSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNitrateLevelCareSafety = ACUTE_HF_NITRATE_LEVEL_CARE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInotropeVasopressorSafety = ACUTE_HF_INOTROPE_VASOPRESSOR_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMcsOrAdvancedTeamSafety = ACUTE_HF_MCS_ADVANCED_TEAM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBetaBlockerStabilizationSafety =
+    ACUTE_HF_BETA_BLOCKER_STABILIZATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasNitrateLevelCareSafety &&
+    hasInotropeVasopressorSafety &&
+    hasMcsOrAdvancedTeamSafety &&
+    hasBetaBlockerStabilizationSafety
+  );
+}
+
 function requiresDuctalDependentChdSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -19243,6 +19314,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAcuteHeartFailureTreatmentSafetyCheck,
       issue:
         "acute heart failure safety checks must include blood pressure or vasodilator contraindication review, renal and electrolyte monitoring during diuresis, trigger or cardiopulmonary differential review, and shock or respiratory-failure monitoring",
+    },
+    {
+      name: "acute_heart_failure_shock_escalation_safety",
+      label: "Acute heart failure shock escalation safety",
+      applies: requiresAcuteHeartFailureSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAcuteHeartFailureShockEscalationSafetyCheck,
+      issue:
+        "acute heart failure shock safety checks must include nitrate or vasodilator use limited to appropriate blood-pressure context with close monitoring or level-2 care, inotrope or vasopressor planning for potentially reversible cardiogenic shock in cardiac-care or high-dependency setting, early mechanical-circulatory-support or advanced heart-failure team discussion, and beta-blocker hold, continuation, or restart safety for shock, bradycardia, AV block, or stabilization",
     },
     {
       name: "ductal_dependent_chd_time_critical_actions",

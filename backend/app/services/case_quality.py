@@ -9341,6 +9341,50 @@ ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS = (
     "쇼크",
     "호흡부전",
 )
+ACUTE_HF_NITRATE_LEVEL_CARE_SAFETY_TERMS = (
+    "blood pressure monitoring",
+    "close blood pressure",
+    "do not routinely offer nitrates",
+    "iv nitrate",
+    "level 2 care",
+    "nitrate",
+    "severe hypertension",
+    "vasodilator",
+    "혈압 모니터",
+)
+ACUTE_HF_INOTROPE_VASOPRESSOR_SAFETY_TERMS = (
+    "cardiac care unit",
+    "cardiogenic shock",
+    "dobutamine",
+    "high dependency",
+    "inotrope",
+    "level 2 care",
+    "norepinephrine",
+    "potentially reversible",
+    "vasopressor",
+    "강심제",
+)
+ACUTE_HF_MCS_ADVANCED_TEAM_SAFETY_TERMS = (
+    "advanced heart failure",
+    "ecmo",
+    "impella",
+    "mechanical circulatory support",
+    "mcs",
+    "specialist heart failure team",
+    "transplant",
+    "ventricular assist",
+    "전문 심부전",
+)
+ACUTE_HF_BETA_BLOCKER_STABILIZATION_SAFETY_TERMS = (
+    "av block",
+    "beta blocker",
+    "bradycardia",
+    "heart rate less than 50",
+    "restart after stabilization",
+    "shock",
+    "stabilized",
+    "베타차단제",
+)
 DUCTAL_DEPENDENT_CHD_CONTEXT_TERMS = (
     "critical congenital heart disease",
     "critical coarctation",
@@ -13229,6 +13273,22 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "vasodilator contraindication review, renal and electrolyte "
                 "monitoring during diuresis, trigger or cardiopulmonary differential "
                 "review, and shock or respiratory-failure monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="acute_heart_failure_shock_escalation_safety",
+            applies=_requires_acute_heart_failure_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_acute_heart_failure_shock_escalation_safety_check,
+            issue=(
+                "acute heart failure shock safety checks must include nitrate or "
+                "vasodilator use limited to appropriate blood-pressure context with "
+                "close monitoring or level-2 care, inotrope or vasopressor planning "
+                "for potentially reversible cardiogenic shock in cardiac-care or "
+                "high-dependency setting, early mechanical-circulatory-support or "
+                "advanced heart-failure team discussion, and beta-blocker hold, "
+                "continuation, or restart safety for shock, bradycardia, AV block, "
+                "or stabilization"
             ),
         ),
         DomainSafetyGate(
@@ -20744,6 +20804,32 @@ def _has_acute_heart_failure_treatment_safety_check(checks: list[Any]) -> bool:
         and has_renal_electrolyte_safety
         and has_trigger_differential_review
         and has_shock_respiratory_failure_safety
+    )
+
+
+def _has_acute_heart_failure_shock_escalation_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_nitrate_level_care_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_HF_NITRATE_LEVEL_CARE_SAFETY_TERMS
+    )
+    has_inotrope_vasopressor_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_HF_INOTROPE_VASOPRESSOR_SAFETY_TERMS
+    )
+    has_mcs_or_advanced_team_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_HF_MCS_ADVANCED_TEAM_SAFETY_TERMS
+    )
+    has_beta_blocker_stabilization_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_HF_BETA_BLOCKER_STABILIZATION_SAFETY_TERMS
+    )
+    return (
+        has_nitrate_level_care_safety
+        and has_inotrope_vasopressor_safety
+        and has_mcs_or_advanced_team_safety
+        and has_beta_blocker_stabilization_safety
     )
 
 

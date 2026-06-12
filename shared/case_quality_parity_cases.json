@@ -3245,6 +3245,68 @@
     }
   },
   {
+    "name": "acute_hf_requires_nitrate_inotrope_mcs_and_beta_blocker_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "acute heart failure shock safety checks must include nitrate"
+    ],
+    "overrides": {
+      "diagnosis": "Acute heart failure with pulmonary edema and cardiogenic shock risk",
+      "past_medical_history": "Hypertension and chronic heart failure",
+      "medications": [
+        "Furosemide",
+        "Carvedilol",
+        "Lisinopril"
+      ],
+      "chief_complaint": "Severe shortness of breath",
+      "history_of_present_illness": "Patient presents with abrupt dyspnea, orthopnea, hypoxemia, diffuse crackles, hypertension, and frothy sputum.",
+      "key_teaching_points": [
+        "Acute pulmonary edema requires rapid oxygenation and ventilatory support when hypoxemic",
+        "IV loop diuretics treat congestion and require renal and electrolyte monitoring",
+        "Cardiogenic shock in acute heart failure requires monitored escalation beyond routine diuresis"
+      ],
+      "clinical_red_flags": [
+        "Hypoxemia with severe respiratory distress and diffuse crackles",
+        "Hypotension, altered mental status, and rising lactate suggesting cardiogenic shock"
+      ],
+      "time_critical_actions": [
+        "Start oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
+        "Give IV furosemide loop diuretic for decongestion",
+        "Use blood-pressure-guided nitroglycerin nitrate vasodilator planning for hypertensive pulmonary edema",
+        "Escalate to ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops"
+      ],
+      "contraindication_checks": [
+        "Check blood pressure, hypotension, aortic stenosis, right ventricular infarct, sildenafil, and nitrate or vasodilator contraindications",
+        "Monitor renal function, creatinine, urine output, potassium, magnesium, and electrolytes during diuresis",
+        "Assess arrhythmia, valvular disease, infection, medication nonadherence, and other triggers",
+        "Monitor lactate, hypoperfusion, altered mental status, cardiogenic shock, intubation need, and respiratory failure"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Acute heart failure: diagnosis and management",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/cg187/chapter/Recommendations",
+          "supports": [
+            "acute heart failure with pulmonary edema and cardiogenic shock risk diagnosis",
+            "acute pulmonary edema requires rapid oxygenation and ventilatory support when hypoxemic",
+            "IV loop diuretics treat congestion and require renal and electrolyte monitoring",
+            "cardiogenic shock in acute heart failure requires monitored escalation beyond routine diuresis",
+            "hypoxemia with severe respiratory distress and diffuse crackles as red flags",
+            "hypotension, altered mental status, and rising lactate suggesting cardiogenic shock",
+            "oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
+            "IV furosemide loop diuretic for decongestion",
+            "blood-pressure-guided nitroglycerin nitrate vasodilator planning for hypertensive pulmonary edema",
+            "ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
+            "blood pressure, hypotension, aortic stenosis, right ventricular infarct, sildenafil, and nitrate or vasodilator contraindications",
+            "renal function, creatinine, urine output, potassium, magnesium, and electrolytes during diuresis",
+            "arrhythmia, valvular disease, infection, medication nonadherence, and other triggers",
+            "lactate, hypoperfusion, altered mental status, cardiogenic shock, intubation need, and respiratory failure"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "ductal_dependent_chd_requires_pge_diagnostics_escalation_and_support",
     "expected_passed": false,
     "expected_issue_substrings": [
