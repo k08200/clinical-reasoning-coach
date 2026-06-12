@@ -55,6 +55,7 @@ TRUSTED_CLINICAL_SOURCE_HOSTS = {
     "nih.gov",
     "professional.diabetes.org",
     "pubmed.ncbi.nlm.nih.gov",
+    "cps.ca",
     "sccm.org",
     "thelancet.com",
     "who.int",
@@ -5965,6 +5966,135 @@ DKA_OSMOLAR_SAFETY_TERMS = (
     "삼투",
     "수액",
 )
+PEDIATRIC_DKA_CONTEXT_TERMS = (
+    "adolescent with dka",
+    "child with dka",
+    "childhood dka",
+    "new onset type 1 diabetes",
+    "paediatric diabetic ketoacidosis",
+    "paediatric dka",
+    "pediatric diabetic ketoacidosis",
+    "pediatric dka",
+    "소아 dka",
+    "소아 당뇨병성 케톤산증",
+)
+PEDIATRIC_DKA_RISK_TERMS = (
+    "abdominal pain",
+    "acidosis",
+    "altered mental status",
+    "anion gap",
+    "beta-hydroxybutyrate",
+    "bicarbonate",
+    "cerebral edema",
+    "cerebral injury",
+    "dehydration",
+    "headache",
+    "hyperglycemia",
+    "hypokalemia",
+    "hypophosphatemia",
+    "ketone",
+    "ketones",
+    "kussmaul",
+    "ph",
+    "shock",
+    "vomiting",
+)
+PEDIATRIC_DKA_SEVERITY_ACTION_TERMS = (
+    "anion gap",
+    "beta-hydroxybutyrate",
+    "bicarbonate",
+    "corrected sodium",
+    "dehydration",
+    "ketone",
+    "mental status",
+    "ph",
+    "severity",
+    "weight",
+)
+PEDIATRIC_DKA_FLUID_ACTION_TERMS = (
+    "0.9% saline",
+    "balanced crystalloid",
+    "deficit",
+    "fluid bolus",
+    "isotonic fluid",
+    "maintenance",
+    "normal saline",
+    "shock bolus",
+)
+PEDIATRIC_DKA_INSULIN_ACTION_TERMS = (
+    "0.05 units/kg",
+    "0.1 units/kg",
+    "after fluids",
+    "after potassium",
+    "insulin infusion",
+    "no insulin bolus",
+    "without bolus",
+)
+PEDIATRIC_DKA_ELECTROLYTE_ACTION_TERMS = (
+    "corrected sodium",
+    "electrolyte",
+    "hypokalemia",
+    "phosphate",
+    "potassium",
+    "serial potassium",
+    "serial sodium",
+)
+PEDIATRIC_DKA_NEURO_ESCALATION_ACTION_TERMS = (
+    "3% saline",
+    "cerebral edema",
+    "cerebral injury",
+    "hypertonic saline",
+    "icu",
+    "mannitol",
+    "neuro checks",
+    "neurologic checks",
+    "picu",
+)
+PEDIATRIC_DKA_BICARB_SAFETY_TERMS = (
+    "active cardiopulmonary resuscitation",
+    "avoid bicarbonate",
+    "bicarbonate only",
+    "cardiac compromise",
+    "life-threatening hyperkalemia",
+    "no bicarbonate",
+    "symptomatic hyperkalemia",
+)
+PEDIATRIC_DKA_CEREBRAL_INJURY_SAFETY_TERMS = (
+    "3% saline",
+    "altered mental status",
+    "bradycardia",
+    "cerebral edema",
+    "cerebral injury",
+    "head elevation",
+    "headache",
+    "hypertonic saline",
+    "hypertension",
+    "mannitol",
+    "neuro checks",
+    "neurologic",
+)
+PEDIATRIC_DKA_HYPOGLYCEMIA_ELECTROLYTE_SAFETY_TERMS = (
+    "corrected sodium",
+    "dextrose",
+    "glucose fall",
+    "hypoglycemia",
+    "hypokalemia",
+    "hypophosphatemia",
+    "phosphate",
+    "potassium",
+)
+PEDIATRIC_DKA_DISPOSITION_TRANSITION_SAFETY_TERMS = (
+    "anion gap closure",
+    "endocrinology",
+    "icu",
+    "ketone clearance",
+    "pediatric endocrinology",
+    "picu",
+    "resolution",
+    "subcutaneous insulin",
+    "tolerating oral",
+    "transition",
+)
 HHS_CONTEXT_TERMS = (
     "hhs with",
     "hhns",
@@ -11096,6 +11226,32 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "DKA safety checks must include potassium threshold and "
                 "osmolar-shift or cerebral-edema risk before insulin therapy"
+            ),
+        ),
+        DomainSafetyGate(
+            name="pediatric_dka_time_critical_actions",
+            applies=_requires_pediatric_dka_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_pediatric_dka_time_critical_actions,
+            issue=(
+                "pediatric DKA time-critical actions must include pediatric "
+                "severity assessment, isotonic fluid or deficit replacement "
+                "planning, insulin infusion without bolus after fluids and "
+                "potassium assessment, electrolyte monitoring or repletion, "
+                "and cerebral injury or PICU escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="pediatric_dka_treatment_safety",
+            applies=_requires_pediatric_dka_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_pediatric_dka_treatment_safety_check,
+            issue=(
+                "pediatric DKA safety checks must include bicarbonate avoidance "
+                "or rare-use criteria, cerebral injury monitoring and mannitol "
+                "or hypertonic saline rescue planning, hypoglycemia and "
+                "electrolyte safeguards, and PICU/endocrinology disposition or "
+                "transition criteria"
             ),
         ),
         DomainSafetyGate(
@@ -16461,6 +16617,101 @@ def _has_dka_contraindication_safety_check(checks: list[Any]) -> bool:
         for term in DKA_OSMOLAR_SAFETY_TERMS
     )
     return has_potassium_safety and has_osmolar_safety
+
+
+def _requires_pediatric_dka_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "initial_labs",
+        "physical_exam",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in PEDIATRIC_DKA_CONTEXT_TERMS
+    )
+    if not has_context:
+        demographics = data.get("patient_demographics") or {}
+        has_context = _is_pediatric_age(demographics.get("age")) and any(
+            _contains_safety_term(risk_text, term)
+            for term in DKA_TREATMENT_TRIGGER_TERMS
+        )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in PEDIATRIC_DKA_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_pediatric_dka_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_severity_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_DKA_SEVERITY_ACTION_TERMS
+    )
+    has_fluid_plan = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_DKA_FLUID_ACTION_TERMS
+    )
+    has_insulin_plan = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_DKA_INSULIN_ACTION_TERMS
+    )
+    has_electrolyte_plan = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_DKA_ELECTROLYTE_ACTION_TERMS
+    )
+    has_neuro_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_DKA_NEURO_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_severity_assessment
+        and has_fluid_plan
+        and has_insulin_plan
+        and has_electrolyte_plan
+        and has_neuro_escalation
+    )
+
+
+def _has_pediatric_dka_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_bicarbonate_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_DKA_BICARB_SAFETY_TERMS
+    )
+    has_cerebral_injury_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_DKA_CEREBRAL_INJURY_SAFETY_TERMS
+    )
+    has_hypoglycemia_electrolyte_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_DKA_HYPOGLYCEMIA_ELECTROLYTE_SAFETY_TERMS
+    )
+    has_disposition_transition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_DKA_DISPOSITION_TRANSITION_SAFETY_TERMS
+    )
+    return (
+        has_bicarbonate_safety
+        and has_cerebral_injury_safety
+        and has_hypoglycemia_electrolyte_safety
+        and has_disposition_transition_safety
+    )
 
 
 def _requires_hhs_safety_check(data: dict[str, Any]) -> bool:

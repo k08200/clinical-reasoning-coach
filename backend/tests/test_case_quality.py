@@ -153,6 +153,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "organophosphate_toxicity_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
+        "pediatric_dka_time_critical_actions",
+        "pediatric_dka_treatment_safety",
         "hhs_time_critical_actions",
         "hhs_treatment_safety",
         "hyponatremia_time_critical_actions",
@@ -7976,6 +7978,146 @@ def test_quality_gate_requires_dka_potassium_and_osmolar_safety_checks():
     assert not report.passed
     assert any(
         "DKA safety checks must include potassium threshold" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_pediatric_dka_severity_fluids_insulin_electrolytes_and_neuro_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Pediatric DKA"
+    case["patient_demographics"] = {
+        "age": 12,
+        "sex": "female",
+        "weight_kg": 38,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Vomiting, abdominal pain, Kussmaul breathing, and hyperglycemia"
+    case["history_of_present_illness"] = (
+        "Child with new onset type 1 diabetes presents with dehydration, vomiting, "
+        "abdominal pain, headache, Kussmaul respirations, glucose 520 mg/dL, "
+        "pH 7.12, bicarbonate 8 mmol/L, beta-hydroxybutyrate elevation, "
+        "anion gap 28, and concern for pediatric DKA with cerebral injury risk."
+    )
+    case["initial_labs"] = {
+        "glucose": "520 mg/dL",
+        "ph": "7.12",
+        "bicarbonate": "8 mmol/L",
+        "beta_hydroxybutyrate": "6.2 mmol/L",
+        "anion_gap": "28",
+        "potassium": "4.5 mmol/L",
+        "sodium": "132 mmol/L",
+        "phosphate": "3.0 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Pediatric diabetic ketoacidosis requires pH, bicarbonate, ketone, anion gap, and corrected sodium severity assessment",
+        "Initial isotonic fluid and insulin infusion after fluids and potassium assessment reduce treatment risk",
+        "Cerebral injury risk requires neurologic monitoring and rescue therapy readiness",
+    ]
+    case["clinical_red_flags"] = [
+        "Severe dehydration, headache, altered mental status, bradycardia, hypertension, or worsening cerebral edema signs",
+        "Hypokalemia, hypophosphatemia, rapid glucose fall, or worsening corrected sodium trend",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm pediatric severity with pH, bicarbonate, beta-hydroxybutyrate ketone, anion gap, mental status, dehydration, corrected sodium, and weight",
+        "Start isotonic fluid with normal saline and plan maintenance plus deficit replacement",
+        "Start insulin infusion 0.05 units/kg/h after fluids and potassium assessment without bolus while monitoring anion gap closure and ketone clearance",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid bicarbonate except active cardiopulmonary resuscitation, symptomatic hyperkalemia, or cardiac compromise",
+        "Monitor cerebral injury with neuro checks for headache, bradycardia, hypertension, or altered mental status and prepare mannitol or 3% hypertonic saline with head elevation",
+        "Add dextrose as glucose falls and monitor potassium, phosphate, corrected sodium, hypoglycemia, and electrolyte replacement thresholds",
+        "Disposition to PICU and pediatric endocrinology with transition to subcutaneous insulin only after anion gap closure, ketone clearance, resolution, and tolerating oral intake",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Current recommendations for management of paediatric diabetic ketoacidosis",
+            "organization": "Canadian Paediatric Society",
+            "url": "https://cps.ca/en/documents/position/current-recommendations-for-management-of-paediatric-diabetic-ketoacidosis",
+            "supports": [
+                "pediatric DKA diagnosis with hyperglycemia, ketosis, acidosis, pH, bicarbonate, and anion gap",
+                "initial isotonic fluid therapy followed by insulin infusion, electrolyte supplementation, and cerebral injury monitoring",
+                "insulin only after IV fluids and potassium assessment, with no insulin bolus",
+                "avoid sodium bicarbonate except active cardiopulmonary resuscitation or symptomatic hyperkalemia",
+                "mannitol or 3% saline osmolar therapy for cerebral injury symptoms",
+                "PICU or pediatric intensivist consultation for cerebral injury signs or severe DKA",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "pediatric DKA time-critical actions must include pediatric severity assessment" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_pediatric_dka_bicarbonate_cerebral_injury_electrolyte_and_transition_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Pediatric diabetic ketoacidosis"
+    case["patient_demographics"] = {
+        "age": 9,
+        "sex": "male",
+        "weight_kg": 30,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Polyuria, vomiting, dehydration, and severe hyperglycemia"
+    case["history_of_present_illness"] = (
+        "Child with DKA has vomiting, dehydration, Kussmaul breathing, glucose "
+        "610 mg/dL, pH 7.05, bicarbonate 5 mmol/L, beta-hydroxybutyrate "
+        "7.4 mmol/L, anion gap 32, and risk for cerebral edema."
+    )
+    case["initial_labs"] = {
+        "glucose": "610 mg/dL",
+        "ph": "7.05",
+        "bicarbonate": "5 mmol/L",
+        "beta_hydroxybutyrate": "7.4 mmol/L",
+        "anion_gap": "32",
+        "potassium": "3.8 mmol/L",
+        "sodium": "130 mmol/L",
+        "phosphate": "2.2 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Pediatric DKA severity includes pH, bicarbonate, ketones, anion gap, mental status, dehydration, weight, and corrected sodium",
+        "Use isotonic fluid and insulin infusion after fluids and potassium assessment without bolus",
+        "Monitor potassium, phosphate, corrected sodium, hypoglycemia, and cerebral injury risk",
+    ]
+    case["clinical_red_flags"] = [
+        "Cerebral injury, cerebral edema, headache, bradycardia, hypertension, altered mental status, hypokalemia, or hypophosphatemia",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm pediatric severity using pH, bicarbonate, beta-hydroxybutyrate ketone, anion gap, corrected sodium, mental status, dehydration, and weight",
+        "Start isotonic fluid normal saline with shock bolus if needed and maintenance plus deficit replacement",
+        "Start insulin infusion 0.05 units/kg/h after fluids and potassium assessment with no insulin bolus while following anion gap closure and ketone clearance",
+        "Trend potassium, phosphate, serial sodium, corrected sodium, and electrolytes with repletion for hypokalemia",
+        "Perform neuro checks and escalate to PICU for cerebral injury with mannitol or 3% hypertonic saline readiness",
+    ]
+    case["contraindication_checks"] = [
+        "Check potassium threshold before insulin therapy and avoid rapid osmolar shift or cerebral edema from unsafe fluid changes",
+        "Review renal function and allergy history before any adjunct medication",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Current recommendations for management of paediatric diabetic ketoacidosis",
+            "organization": "Canadian Paediatric Society",
+            "url": "https://cps.ca/en/documents/position/current-recommendations-for-management-of-paediatric-diabetic-ketoacidosis",
+            "supports": [
+                "pediatric DKA diagnosis with hyperglycemia, ketosis, acidosis, pH, bicarbonate, and anion gap",
+                "initial isotonic fluid therapy followed by insulin infusion, electrolyte supplementation, and cerebral injury monitoring",
+                "insulin only after IV fluids and potassium assessment, with no insulin bolus",
+                "avoid sodium bicarbonate except active cardiopulmonary resuscitation or symptomatic hyperkalemia",
+                "mannitol or 3% saline osmolar therapy for cerebral injury symptoms",
+                "PICU or pediatric intensivist consultation for cerebral injury signs or severe DKA",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "pediatric DKA safety checks must include bicarbonate avoidance" in issue
         for issue in report.critical_issues
     )
 

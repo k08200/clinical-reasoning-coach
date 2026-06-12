@@ -427,6 +427,69 @@
     }
   },
   {
+    "name": "pediatric_dka_requires_severity_fluids_insulin_electrolytes_and_neuro_escalation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "pediatric DKA time-critical actions must include pediatric severity assessment"
+    ],
+    "overrides": {
+      "diagnosis": "Pediatric DKA",
+      "patient_demographics": {
+        "age": 12,
+        "sex": "female",
+        "weight_kg": 38,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Vomiting, abdominal pain, Kussmaul breathing, and hyperglycemia",
+      "history_of_present_illness": "Child with new onset type 1 diabetes presents with dehydration, vomiting, abdominal pain, headache, Kussmaul respirations, glucose 520 mg/dL, pH 7.12, bicarbonate 8 mmol/L, beta-hydroxybutyrate elevation, anion gap 28, and concern for pediatric DKA with cerebral injury risk.",
+      "initial_labs": {
+        "glucose": "520 mg/dL",
+        "ph": "7.12",
+        "bicarbonate": "8 mmol/L",
+        "beta_hydroxybutyrate": "6.2 mmol/L",
+        "anion_gap": "28",
+        "potassium": "4.5 mmol/L",
+        "sodium": "132 mmol/L",
+        "phosphate": "3.0 mg/dL"
+      },
+      "key_teaching_points": [
+        "Pediatric diabetic ketoacidosis requires pH, bicarbonate, ketone, anion gap, and corrected sodium severity assessment",
+        "Initial isotonic fluid and insulin infusion after fluids and potassium assessment reduce treatment risk",
+        "Cerebral injury risk requires neurologic monitoring and rescue therapy readiness"
+      ],
+      "clinical_red_flags": [
+        "Severe dehydration, headache, altered mental status, bradycardia, hypertension, or worsening cerebral edema signs",
+        "Hypokalemia, hypophosphatemia, rapid glucose fall, or worsening corrected sodium trend"
+      ],
+      "time_critical_actions": [
+        "Confirm pediatric severity with pH, bicarbonate, beta-hydroxybutyrate ketone, anion gap, mental status, dehydration, corrected sodium, and weight",
+        "Start isotonic fluid with normal saline and plan maintenance plus deficit replacement",
+        "Start insulin infusion 0.05 units/kg/h after fluids and potassium assessment without bolus while monitoring anion gap closure and ketone clearance"
+      ],
+      "contraindication_checks": [
+        "Avoid bicarbonate except active cardiopulmonary resuscitation, symptomatic hyperkalemia, or cardiac compromise",
+        "Monitor cerebral injury with neuro checks for headache, bradycardia, hypertension, or altered mental status and prepare mannitol or 3% hypertonic saline with head elevation",
+        "Add dextrose as glucose falls and monitor potassium, phosphate, corrected sodium, hypoglycemia, and electrolyte replacement thresholds",
+        "Disposition to PICU and pediatric endocrinology with transition to subcutaneous insulin only after anion gap closure, ketone clearance, resolution, and tolerating oral intake"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Current recommendations for management of paediatric diabetic ketoacidosis",
+          "organization": "Canadian Paediatric Society",
+          "url": "https://cps.ca/en/documents/position/current-recommendations-for-management-of-paediatric-diabetic-ketoacidosis",
+          "supports": [
+            "pediatric DKA diagnosis with hyperglycemia, ketosis, acidosis, pH, bicarbonate, and anion gap",
+            "initial isotonic fluid therapy followed by insulin infusion, electrolyte supplementation, and cerebral injury monitoring",
+            "insulin only after IV fluids and potassium assessment, with no insulin bolus",
+            "avoid sodium bicarbonate except active cardiopulmonary resuscitation or symptomatic hyperkalemia",
+            "mannitol or 3% saline osmolar therapy for cerebral injury symptoms",
+            "PICU or pediatric intensivist consultation for cerebral injury signs or severe DKA"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "hhs_requires_fluids_osmolality_labs_cautious_insulin_and_precipitant_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

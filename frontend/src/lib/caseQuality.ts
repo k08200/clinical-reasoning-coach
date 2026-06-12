@@ -6486,6 +6486,146 @@ const DKA_OSMOLAR_SAFETY_TERMS = [
   "수액",
 ];
 
+const PEDIATRIC_DKA_CONTEXT_TERMS = [
+  "adolescent with dka",
+  "child with dka",
+  "childhood dka",
+  "new onset type 1 diabetes",
+  "paediatric diabetic ketoacidosis",
+  "paediatric dka",
+  "pediatric diabetic ketoacidosis",
+  "pediatric dka",
+  "소아 dka",
+  "소아 당뇨병성 케톤산증",
+];
+
+const PEDIATRIC_DKA_RISK_TERMS = [
+  "abdominal pain",
+  "acidosis",
+  "altered mental status",
+  "anion gap",
+  "beta-hydroxybutyrate",
+  "bicarbonate",
+  "cerebral edema",
+  "cerebral injury",
+  "dehydration",
+  "headache",
+  "hyperglycemia",
+  "hypokalemia",
+  "hypophosphatemia",
+  "ketone",
+  "ketones",
+  "kussmaul",
+  "ph",
+  "shock",
+  "vomiting",
+];
+
+const PEDIATRIC_DKA_SEVERITY_ACTION_TERMS = [
+  "anion gap",
+  "beta-hydroxybutyrate",
+  "bicarbonate",
+  "corrected sodium",
+  "dehydration",
+  "ketone",
+  "mental status",
+  "ph",
+  "severity",
+  "weight",
+];
+
+const PEDIATRIC_DKA_FLUID_ACTION_TERMS = [
+  "0.9% saline",
+  "balanced crystalloid",
+  "deficit",
+  "fluid bolus",
+  "isotonic fluid",
+  "maintenance",
+  "normal saline",
+  "shock bolus",
+];
+
+const PEDIATRIC_DKA_INSULIN_ACTION_TERMS = [
+  "0.05 units/kg",
+  "0.1 units/kg",
+  "after fluids",
+  "after potassium",
+  "insulin infusion",
+  "no insulin bolus",
+  "without bolus",
+];
+
+const PEDIATRIC_DKA_ELECTROLYTE_ACTION_TERMS = [
+  "corrected sodium",
+  "electrolyte",
+  "hypokalemia",
+  "phosphate",
+  "potassium",
+  "serial potassium",
+  "serial sodium",
+];
+
+const PEDIATRIC_DKA_NEURO_ESCALATION_ACTION_TERMS = [
+  "3% saline",
+  "cerebral edema",
+  "cerebral injury",
+  "hypertonic saline",
+  "icu",
+  "mannitol",
+  "neuro checks",
+  "neurologic checks",
+  "picu",
+];
+
+const PEDIATRIC_DKA_BICARB_SAFETY_TERMS = [
+  "active cardiopulmonary resuscitation",
+  "avoid bicarbonate",
+  "bicarbonate only",
+  "cardiac compromise",
+  "life-threatening hyperkalemia",
+  "no bicarbonate",
+  "symptomatic hyperkalemia",
+];
+
+const PEDIATRIC_DKA_CEREBRAL_INJURY_SAFETY_TERMS = [
+  "3% saline",
+  "altered mental status",
+  "bradycardia",
+  "cerebral edema",
+  "cerebral injury",
+  "head elevation",
+  "headache",
+  "hypertonic saline",
+  "hypertension",
+  "mannitol",
+  "neuro checks",
+  "neurologic",
+];
+
+const PEDIATRIC_DKA_HYPOGLYCEMIA_ELECTROLYTE_SAFETY_TERMS = [
+  "corrected sodium",
+  "dextrose",
+  "glucose fall",
+  "hypoglycemia",
+  "hypokalemia",
+  "hypophosphatemia",
+  "phosphate",
+  "potassium",
+];
+
+const PEDIATRIC_DKA_DISPOSITION_TRANSITION_SAFETY_TERMS = [
+  "anion gap closure",
+  "endocrinology",
+  "icu",
+  "ketone clearance",
+  "pediatric endocrinology",
+  "picu",
+  "resolution",
+  "subcutaneous insulin",
+  "tolerating oral",
+  "transition",
+];
+
 const HHS_CONTEXT_TERMS = [
   "hhs with",
   "hhns",
@@ -13594,6 +13734,86 @@ function hasDkaContraindicationSafetyCheck(checks: string[]): boolean {
   return hasPotassiumSafety && hasOsmolarSafety;
 }
 
+function requiresPediatricDkaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.initial_labs),
+    ...nestedStrings(detail.physical_exam),
+  ]
+    .join(" ")
+    .toLowerCase();
+  let hasContext = PEDIATRIC_DKA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  if (!hasContext) {
+    hasContext =
+      isPediatricAge(detail.patient_demographics.age) &&
+      DKA_TREATMENT_TRIGGER_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  }
+  const hasRisk = PEDIATRIC_DKA_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasPediatricDkaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasSeverityAssessment = PEDIATRIC_DKA_SEVERITY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFluidPlan = PEDIATRIC_DKA_FLUID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasInsulinPlan = PEDIATRIC_DKA_INSULIN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasElectrolytePlan = PEDIATRIC_DKA_ELECTROLYTE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeuroEscalation = PEDIATRIC_DKA_NEURO_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasSeverityAssessment &&
+    hasFluidPlan &&
+    hasInsulinPlan &&
+    hasElectrolytePlan &&
+    hasNeuroEscalation
+  );
+}
+
+function hasPediatricDkaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasBicarbonateSafety = PEDIATRIC_DKA_BICARB_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCerebralInjurySafety = PEDIATRIC_DKA_CEREBRAL_INJURY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHypoglycemiaElectrolyteSafety =
+    PEDIATRIC_DKA_HYPOGLYCEMIA_ELECTROLYTE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDispositionTransitionSafety =
+    PEDIATRIC_DKA_DISPOSITION_TRANSITION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasBicarbonateSafety &&
+    hasCerebralInjurySafety &&
+    hasHypoglycemiaElectrolyteSafety &&
+    hasDispositionTransitionSafety
+  );
+}
+
 function requiresHhsSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -16594,6 +16814,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasDkaContraindicationSafetyCheck,
       issue:
         "DKA safety checks must include potassium threshold and osmolar-shift or cerebral-edema risk before insulin therapy",
+    },
+    {
+      name: "pediatric_dka_time_critical_actions",
+      label: "Pediatric DKA emergency actions",
+      applies: requiresPediatricDkaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasPediatricDkaTimeCriticalActions,
+      issue:
+        "pediatric DKA time-critical actions must include pediatric severity assessment, isotonic fluid or deficit replacement planning, insulin infusion without bolus after fluids and potassium assessment, electrolyte monitoring or repletion, and cerebral injury or PICU escalation",
+    },
+    {
+      name: "pediatric_dka_treatment_safety",
+      label: "Pediatric DKA cerebral injury safety",
+      applies: requiresPediatricDkaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasPediatricDkaTreatmentSafetyCheck,
+      issue:
+        "pediatric DKA safety checks must include bicarbonate avoidance or rare-use criteria, cerebral injury monitoring and mannitol or hypertonic saline rescue planning, hypoglycemia and electrolyte safeguards, and PICU/endocrinology disposition or transition criteria",
     },
     {
       name: "hhs_time_critical_actions",
