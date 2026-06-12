@@ -1238,6 +1238,71 @@
     }
   },
   {
+    "name": "neonatal_hyperbilirubinemia_requires_threshold_phototherapy_escalation_and_labs",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "neonatal hyperbilirubinemia time-critical actions must include TSB or TcB"
+    ],
+    "overrides": {
+      "diagnosis": "Neonatal hyperbilirubinemia above phototherapy threshold",
+      "patient_demographics": {
+        "age": 0,
+        "sex": "male",
+        "weight_kg": 3.0,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "3-day-old newborn jaundice with poor feeding",
+      "history_of_present_illness": "Term newborn at 72 hours of life has worsening jaundice, poor feeding, 8% weight loss, and TSB 20 mg/dL concerning for neonatal jaundice and kernicterus risk.",
+      "initial_labs": {
+        "total serum bilirubin": "20 mg/dL",
+        "direct bilirubin": "0.5 mg/dL",
+        "blood type": "mother O+, infant A+"
+      },
+      "key_teaching_points": [
+        "Neonatal hyperbilirubinemia management depends on TSB or TcB by age in hours, gestational age, and neurotoxicity risk factors",
+        "High bilirubin can cause acute bilirubin encephalopathy and kernicterus",
+        "Escalation of care starts near the exchange transfusion threshold and requires NICU-level planning"
+      ],
+      "clinical_red_flags": [
+        "Jaundice in the first days of life with poor feeding and weight loss",
+        "TSB above phototherapy threshold, hemolysis risk, or rapidly rising bilirubin"
+      ],
+      "time_critical_actions": [
+        "Interpret TSB or transcutaneous bilirubin by age in hours, gestational age, neurotoxicity risk factors, and phototherapy threshold",
+        "Start intensive phototherapy and verify irradiance while maintaining feeding support",
+        "Send repeat bilirubin trend, direct bilirubin, DAT, G6PD, albumin, CBC, hemolysis evaluation, and type and crossmatch labs"
+      ],
+      "contraindication_checks": [
+        "Review neurotoxicity risk factors including albumin <3, isoimmune hemolysis, G6PD deficiency, sepsis, and significant clinical instability",
+        "Screen for acute bilirubin encephalopathy signs such as hypertonia, arching, retrocollis, opisthotonos, high-pitched cry, and recurrent apnea requiring urgent exchange transfusion",
+        "Do not subtract direct bilirubin or conjugated bilirubin from TSB; seek expert consult for cholestasis or high direct bilirubin",
+        "Plan rebound repeat bilirubin, daily bilirubin if home phototherapy, feeding adequacy, weight trajectory, and 24-48 hours discharge follow-up"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Clinical Practice Guideline Revision: Management of Hyperbilirubinemia in the Newborn Infant 35 or More Weeks of Gestation",
+          "organization": "American Academy of Pediatrics",
+          "url": "https://publications.aap.org/pediatrics/article/150/3/e2022058859/188726/Clinical-Practice-Guideline-Revision-Management-of",
+          "supports": [
+            "neonatal hyperbilirubinemia above phototherapy threshold diagnosis and risk stratification",
+            "neonatal hyperbilirubinemia management depends on TSB or TcB by age in hours, gestational age, and neurotoxicity risk factors",
+            "high bilirubin can cause acute bilirubin encephalopathy and kernicterus",
+            "escalation of care starts near the exchange transfusion threshold and requires NICU-level planning",
+            "jaundice in the first days of life with poor feeding and weight loss as red flags",
+            "TSB above phototherapy threshold, hemolysis risk, or rapidly rising bilirubin as severity markers",
+            "TSB or transcutaneous bilirubin by age in hours, gestational age, neurotoxicity risk factors, and phototherapy threshold",
+            "intensive phototherapy and irradiance verification while maintaining feeding support",
+            "repeat bilirubin trend, direct bilirubin, DAT, G6PD, albumin, CBC, hemolysis evaluation, and type and crossmatch labs",
+            "neurotoxicity risk factors including albumin <3, isoimmune hemolysis, G6PD deficiency, sepsis, and significant clinical instability",
+            "acute bilirubin encephalopathy signs requiring urgent exchange transfusion",
+            "do not subtract direct bilirubin or conjugated bilirubin from TSB with expert consult for cholestasis",
+            "rebound repeat bilirubin, daily bilirubin, feeding adequacy, weight trajectory, and 24-48 hours discharge follow-up"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "febrile_infant_requires_age_cultures_markers_antibiotics_and_hsv_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

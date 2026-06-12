@@ -19,6 +19,7 @@ const TRUSTED_CLINICAL_SOURCE_HOSTS = new Set([
   "ada.org",
   "ahajournals.org",
   "annals.org",
+  "aap.org",
   "australianprescriber.tg.org.au",
   "bmj.com",
   "cdc.gov",
@@ -1347,6 +1348,120 @@ const FEBRILE_INFANT_LOW_RISK_SAFETY_TERMS = [
   "low-risk",
   "shared decision",
   "urinalysis",
+];
+
+const NEONATAL_HYPERBILIRUBINEMIA_CONTEXT_TERMS = [
+  "acute bilirubin encephalopathy",
+  "kernicterus",
+  "neonatal hyperbilirubinemia",
+  "neonatal jaundice",
+  "newborn hyperbilirubinemia",
+  "newborn jaundice",
+  "pathologic jaundice",
+  "phototherapy threshold",
+  "tsb above phototherapy threshold",
+  "신생아 황달",
+];
+
+const NEONATAL_HYPERBILIRUBINEMIA_RISK_TERMS = [
+  "age in hours",
+  "bilirubin",
+  "direct bilirubin",
+  "exchange transfusion",
+  "g6pd",
+  "hemolysis",
+  "jaundice",
+  "phototherapy",
+  "total serum bilirubin",
+  "transcutaneous bilirubin",
+  "tsb",
+];
+
+const NEONATAL_HYPERBILIRUBINEMIA_THRESHOLD_ACTION_TERMS = [
+  "age in hours",
+  "bilirubin threshold",
+  "gestational age",
+  "hour-specific",
+  "neurotoxicity risk",
+  "phototherapy threshold",
+  "risk factor",
+  "total serum bilirubin",
+  "transcutaneous bilirubin",
+  "tsb",
+  "tcb",
+];
+
+const NEONATAL_HYPERBILIRUBINEMIA_PHOTOTHERAPY_ACTION_TERMS = [
+  "intensive phototherapy",
+  "irradiance",
+  "led phototherapy",
+  "phototherapy",
+  "빛치료",
+  "광선치료",
+];
+
+const NEONATAL_HYPERBILIRUBINEMIA_ESCALATION_ACTION_TERMS = [
+  "2 mg/dl below",
+  "exchange transfusion",
+  "escalation of care",
+  "iv hydration",
+  "neonatologist",
+  "nicu",
+  "urgent transfer",
+];
+
+const NEONATAL_HYPERBILIRUBINEMIA_LAB_TREND_ACTION_TERMS = [
+  "albumin",
+  "cbc",
+  "complete blood count",
+  "dat",
+  "direct bilirubin",
+  "g6pd",
+  "hemolysis",
+  "repeat bilirubin",
+  "total bilirubin",
+  "type and crossmatch",
+];
+
+const NEONATAL_HYPERBILIRUBINEMIA_NEUROTOXICITY_SAFETY_TERMS = [
+  "albumin",
+  "g6pd",
+  "hemolysis",
+  "isoimmune",
+  "neurotoxicity risk",
+  "sepsis",
+  "significant clinical instability",
+];
+
+const NEONATAL_HYPERBILIRUBINEMIA_ACUTE_ENCEPHALOPATHY_SAFETY_TERMS = [
+  "acute bilirubin encephalopathy",
+  "arching",
+  "hypertonia",
+  "high-pitched cry",
+  "opisthotonos",
+  "recurrent apnea",
+  "retrocollis",
+  "urgent exchange transfusion",
+];
+
+const NEONATAL_HYPERBILIRUBINEMIA_DIRECT_BILIRUBIN_SAFETY_TERMS = [
+  "cholestasis",
+  "conjugated bilirubin",
+  "direct bilirubin",
+  "do not subtract",
+  "expert consult",
+  "subtract direct",
+];
+
+const NEONATAL_HYPERBILIRUBINEMIA_FOLLOWUP_SAFETY_TERMS = [
+  "24-48 hours",
+  "daily bilirubin",
+  "discharge follow-up",
+  "feeding adequacy",
+  "follow-up",
+  "rebound",
+  "repeat bilirubin",
+  "weight trajectory",
 ];
 
 const ECTOPIC_PREGNANCY_CONTEXT_TERMS = [
@@ -11123,6 +11238,75 @@ function hasFebrileInfantTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresNeonatalHyperbilirubinemiaSafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = NEONATAL_HYPERBILIRUBINEMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = NEONATAL_HYPERBILIRUBINEMIA_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasNeonatalHyperbilirubinemiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasThresholdAssessment = NEONATAL_HYPERBILIRUBINEMIA_THRESHOLD_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPhototherapy = NEONATAL_HYPERBILIRUBINEMIA_PHOTOTHERAPY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = NEONATAL_HYPERBILIRUBINEMIA_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLabTrend = NEONATAL_HYPERBILIRUBINEMIA_LAB_TREND_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasThresholdAssessment && hasPhototherapy && hasEscalation && hasLabTrend;
+}
+
+function hasNeonatalHyperbilirubinemiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNeurotoxicityRiskSafety =
+    NEONATAL_HYPERBILIRUBINEMIA_NEUROTOXICITY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAcuteEncephalopathySafety =
+    NEONATAL_HYPERBILIRUBINEMIA_ACUTE_ENCEPHALOPATHY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDirectBilirubinSafety =
+    NEONATAL_HYPERBILIRUBINEMIA_DIRECT_BILIRUBIN_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasFollowupSafety = NEONATAL_HYPERBILIRUBINEMIA_FOLLOWUP_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasNeurotoxicityRiskSafety &&
+    hasAcuteEncephalopathySafety &&
+    hasDirectBilirubinSafety &&
+    hasFollowupSafety
+  );
+}
+
 function requiresEctopicPregnancySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -16373,6 +16557,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasFebrileInfantTreatmentSafetyCheck,
       issue:
         "febrile infant safety checks must include not delaying antibiotics in ill-appearing infants, ceftriaxone neonatal safety review, admission or culture-observation criteria, and low-risk discharge or reliable follow-up criteria",
+    },
+    {
+      name: "neonatal_hyperbilirubinemia_time_critical_actions",
+      label: "Neonatal hyperbilirubinemia threshold and escalation actions",
+      applies: requiresNeonatalHyperbilirubinemiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasNeonatalHyperbilirubinemiaTimeCriticalActions,
+      issue:
+        "neonatal hyperbilirubinemia time-critical actions must include TSB or TcB interpretation by age in hours, gestational age, neurotoxicity risk factors, and phototherapy threshold, intensive phototherapy when indicated, escalation-of-care or exchange transfusion threshold planning with NICU or neonatology transfer, and bilirubin trend plus hemolysis, DAT, G6PD, albumin, CBC, direct bilirubin, or type-and-crossmatch labs",
+    },
+    {
+      name: "neonatal_hyperbilirubinemia_treatment_safety",
+      label: "Neonatal hyperbilirubinemia neurotoxicity and follow-up safety",
+      applies: requiresNeonatalHyperbilirubinemiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasNeonatalHyperbilirubinemiaTreatmentSafetyCheck,
+      issue:
+        "neonatal hyperbilirubinemia safety checks must include neurotoxicity risk factors such as albumin <3, isoimmune hemolysis, G6PD deficiency, sepsis, or clinical instability, acute bilirubin encephalopathy signs requiring urgent exchange transfusion, direct or conjugated bilirubin interpretation without subtracting it from TSB and cholestasis expert review, and rebound bilirubin, feeding, weight, daily bilirubin, or 24-48 hour discharge follow-up planning",
     },
     {
       name: "ectopic_pregnancy_time_critical_actions",

@@ -40,6 +40,7 @@ TRUSTED_CLINICAL_SOURCE_HOSTS = {
     "ada.org",
     "ahajournals.org",
     "annals.org",
+    "aap.org",
     "australianprescriber.tg.org.au",
     "bmj.com",
     "cdc.gov",
@@ -1267,6 +1268,110 @@ FEBRILE_INFANT_LOW_RISK_SAFETY_TERMS = (
     "low-risk",
     "shared decision",
     "urinalysis",
+)
+NEONATAL_HYPERBILIRUBINEMIA_CONTEXT_TERMS = (
+    "acute bilirubin encephalopathy",
+    "kernicterus",
+    "neonatal hyperbilirubinemia",
+    "neonatal jaundice",
+    "newborn hyperbilirubinemia",
+    "newborn jaundice",
+    "pathologic jaundice",
+    "phototherapy threshold",
+    "tsb above phototherapy threshold",
+    "신생아 황달",
+)
+NEONATAL_HYPERBILIRUBINEMIA_RISK_TERMS = (
+    "age in hours",
+    "bilirubin",
+    "direct bilirubin",
+    "exchange transfusion",
+    "g6pd",
+    "hemolysis",
+    "jaundice",
+    "phototherapy",
+    "total serum bilirubin",
+    "transcutaneous bilirubin",
+    "tsb",
+)
+NEONATAL_HYPERBILIRUBINEMIA_THRESHOLD_ACTION_TERMS = (
+    "age in hours",
+    "bilirubin threshold",
+    "gestational age",
+    "hour-specific",
+    "neurotoxicity risk",
+    "phototherapy threshold",
+    "risk factor",
+    "total serum bilirubin",
+    "transcutaneous bilirubin",
+    "tsb",
+    "tcb",
+)
+NEONATAL_HYPERBILIRUBINEMIA_PHOTOTHERAPY_ACTION_TERMS = (
+    "intensive phototherapy",
+    "irradiance",
+    "led phototherapy",
+    "phototherapy",
+    "빛치료",
+    "광선치료",
+)
+NEONATAL_HYPERBILIRUBINEMIA_ESCALATION_ACTION_TERMS = (
+    "2 mg/dl below",
+    "exchange transfusion",
+    "escalation of care",
+    "iv hydration",
+    "neonatologist",
+    "nicu",
+    "urgent transfer",
+)
+NEONATAL_HYPERBILIRUBINEMIA_LAB_TREND_ACTION_TERMS = (
+    "albumin",
+    "cbc",
+    "complete blood count",
+    "dat",
+    "direct bilirubin",
+    "g6pd",
+    "hemolysis",
+    "repeat bilirubin",
+    "total bilirubin",
+    "type and crossmatch",
+)
+NEONATAL_HYPERBILIRUBINEMIA_NEUROTOXICITY_SAFETY_TERMS = (
+    "albumin",
+    "g6pd",
+    "hemolysis",
+    "isoimmune",
+    "neurotoxicity risk",
+    "sepsis",
+    "significant clinical instability",
+)
+NEONATAL_HYPERBILIRUBINEMIA_ACUTE_ENCEPHALOPATHY_SAFETY_TERMS = (
+    "acute bilirubin encephalopathy",
+    "arching",
+    "hypertonia",
+    "high-pitched cry",
+    "opisthotonos",
+    "recurrent apnea",
+    "retrocollis",
+    "urgent exchange transfusion",
+)
+NEONATAL_HYPERBILIRUBINEMIA_DIRECT_BILIRUBIN_SAFETY_TERMS = (
+    "cholestasis",
+    "conjugated bilirubin",
+    "direct bilirubin",
+    "do not subtract",
+    "expert consult",
+    "subtract direct",
+)
+NEONATAL_HYPERBILIRUBINEMIA_FOLLOWUP_SAFETY_TERMS = (
+    "24-48 hours",
+    "daily bilirubin",
+    "discharge follow-up",
+    "feeding adequacy",
+    "follow-up",
+    "rebound",
+    "repeat bilirubin",
+    "weight trajectory",
 )
 ECTOPIC_PREGNANCY_CONTEXT_TERMS = (
     "ectopic pregnancy",
@@ -10093,6 +10198,37 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="neonatal_hyperbilirubinemia_time_critical_actions",
+            applies=_requires_neonatal_hyperbilirubinemia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_neonatal_hyperbilirubinemia_time_critical_actions,
+            issue=(
+                "neonatal hyperbilirubinemia time-critical actions must include "
+                "TSB or TcB interpretation by age in hours, gestational age, "
+                "neurotoxicity risk factors, and phototherapy threshold, "
+                "intensive phototherapy when indicated, escalation-of-care or "
+                "exchange transfusion threshold planning with NICU or "
+                "neonatology transfer, and bilirubin trend plus hemolysis, DAT, "
+                "G6PD, albumin, CBC, direct bilirubin, or type-and-crossmatch labs"
+            ),
+        ),
+        DomainSafetyGate(
+            name="neonatal_hyperbilirubinemia_treatment_safety",
+            applies=_requires_neonatal_hyperbilirubinemia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_neonatal_hyperbilirubinemia_treatment_safety_check,
+            issue=(
+                "neonatal hyperbilirubinemia safety checks must include "
+                "neurotoxicity risk factors such as albumin <3, isoimmune "
+                "hemolysis, G6PD deficiency, sepsis, or clinical instability, "
+                "acute bilirubin encephalopathy signs requiring urgent exchange "
+                "transfusion, direct or conjugated bilirubin interpretation "
+                "without subtracting it from TSB and cholestasis expert review, "
+                "and rebound bilirubin, feeding, weight, daily bilirubin, or "
+                "24-48 hour discharge follow-up planning"
+            ),
+        ),
+        DomainSafetyGate(
             name="ectopic_pregnancy_time_critical_actions",
             applies=_requires_ectopic_pregnancy_safety_check,
             field_name="time_critical_actions",
@@ -13182,6 +13318,90 @@ def _has_febrile_infant_treatment_safety_check(checks: list[Any]) -> bool:
         and has_ceftriaxone_safety
         and has_disposition_safety
         and has_low_risk_followup
+    )
+
+
+def _requires_neonatal_hyperbilirubinemia_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEONATAL_HYPERBILIRUBINEMIA_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEONATAL_HYPERBILIRUBINEMIA_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_neonatal_hyperbilirubinemia_time_critical_actions(
+    actions: list[Any],
+) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_threshold_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_HYPERBILIRUBINEMIA_THRESHOLD_ACTION_TERMS
+    )
+    has_phototherapy = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_HYPERBILIRUBINEMIA_PHOTOTHERAPY_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_HYPERBILIRUBINEMIA_ESCALATION_ACTION_TERMS
+    )
+    has_lab_trend = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_HYPERBILIRUBINEMIA_LAB_TREND_ACTION_TERMS
+    )
+    return has_threshold_assessment and has_phototherapy and has_escalation and has_lab_trend
+
+
+def _has_neonatal_hyperbilirubinemia_treatment_safety_check(
+    checks: list[Any],
+) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_neurotoxicity_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_HYPERBILIRUBINEMIA_NEUROTOXICITY_SAFETY_TERMS
+    )
+    has_acute_encephalopathy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_HYPERBILIRUBINEMIA_ACUTE_ENCEPHALOPATHY_SAFETY_TERMS
+    )
+    has_direct_bilirubin_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_HYPERBILIRUBINEMIA_DIRECT_BILIRUBIN_SAFETY_TERMS
+    )
+    has_followup_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_HYPERBILIRUBINEMIA_FOLLOWUP_SAFETY_TERMS
+    )
+    return (
+        has_neurotoxicity_risk_safety
+        and has_acute_encephalopathy_safety
+        and has_direct_bilirubin_safety
+        and has_followup_safety
     )
 
 

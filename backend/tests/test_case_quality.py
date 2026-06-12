@@ -63,6 +63,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "meningococcemia_treatment_safety",
         "febrile_infant_time_critical_actions",
         "febrile_infant_treatment_safety",
+        "neonatal_hyperbilirubinemia_time_critical_actions",
+        "neonatal_hyperbilirubinemia_treatment_safety",
         "ectopic_pregnancy_time_critical_actions",
         "ectopic_pregnancy_treatment_safety",
         "postpartum_hemorrhage_time_critical_actions",
@@ -1417,6 +1419,149 @@ def test_quality_gate_requires_febrile_infant_antibiotic_ceftriaxone_disposition
     assert not report.passed
     assert any(
         "febrile infant safety checks must include not delaying antibiotics" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_neonatal_hyperbilirubinemia_threshold_phototherapy_escalation_and_labs():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Neonatal hyperbilirubinemia above phototherapy threshold"
+    case["patient_demographics"] = {
+        "age": 0,
+        "sex": "male",
+        "weight_kg": 3.0,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "3-day-old newborn jaundice with poor feeding"
+    case["history_of_present_illness"] = (
+        "Term newborn at 72 hours of life has worsening jaundice, poor feeding, "
+        "8% weight loss, and TSB 20 mg/dL concerning for neonatal jaundice and "
+        "kernicterus risk."
+    )
+    case["initial_labs"] = {
+        "total serum bilirubin": "20 mg/dL",
+        "direct bilirubin": "0.5 mg/dL",
+        "blood type": "mother O+, infant A+",
+    }
+    case["key_teaching_points"] = [
+        "Neonatal hyperbilirubinemia management depends on TSB or TcB by age in hours, gestational age, and neurotoxicity risk factors",
+        "High bilirubin can cause acute bilirubin encephalopathy and kernicterus",
+        "Escalation of care starts near the exchange transfusion threshold and requires NICU-level planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Jaundice in the first days of life with poor feeding and weight loss",
+        "TSB above phototherapy threshold, hemolysis risk, or rapidly rising bilirubin",
+    ]
+    case["time_critical_actions"] = [
+        "Interpret TSB or transcutaneous bilirubin by age in hours, gestational age, neurotoxicity risk factors, and phototherapy threshold",
+        "Start intensive phototherapy and verify irradiance while maintaining feeding support",
+        "Send repeat bilirubin trend, direct bilirubin, DAT, G6PD, albumin, CBC, hemolysis evaluation, and type and crossmatch labs",
+    ]
+    case["contraindication_checks"] = [
+        "Review neurotoxicity risk factors including albumin <3, isoimmune hemolysis, G6PD deficiency, sepsis, and significant clinical instability",
+        "Screen for acute bilirubin encephalopathy signs such as hypertonia, arching, retrocollis, opisthotonos, high-pitched cry, and recurrent apnea requiring urgent exchange transfusion",
+        "Do not subtract direct bilirubin or conjugated bilirubin from TSB; seek expert consult for cholestasis or high direct bilirubin",
+        "Plan rebound repeat bilirubin, daily bilirubin if home phototherapy, feeding adequacy, weight trajectory, and 24-48 hours discharge follow-up",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Clinical Practice Guideline Revision: Management of Hyperbilirubinemia in the Newborn Infant 35 or More Weeks of Gestation",
+            "organization": "American Academy of Pediatrics",
+            "url": "https://publications.aap.org/pediatrics/article/150/3/e2022058859/188726/Clinical-Practice-Guideline-Revision-Management-of",
+            "supports": [
+                "neonatal hyperbilirubinemia above phototherapy threshold diagnosis and risk stratification",
+                "neonatal hyperbilirubinemia management depends on TSB or TcB by age in hours, gestational age, and neurotoxicity risk factors",
+                "high bilirubin can cause acute bilirubin encephalopathy and kernicterus",
+                "escalation of care starts near the exchange transfusion threshold and requires NICU-level planning",
+                "jaundice in the first days of life with poor feeding and weight loss as red flags",
+                "TSB above phototherapy threshold, hemolysis risk, or rapidly rising bilirubin as severity markers",
+                "TSB or transcutaneous bilirubin by age in hours, gestational age, neurotoxicity risk factors, and phototherapy threshold",
+                "intensive phototherapy and irradiance verification while maintaining feeding support",
+                "repeat bilirubin trend, direct bilirubin, DAT, G6PD, albumin, CBC, hemolysis evaluation, and type and crossmatch labs",
+                "neurotoxicity risk factors including albumin <3, isoimmune hemolysis, G6PD deficiency, sepsis, and significant clinical instability",
+                "acute bilirubin encephalopathy signs requiring urgent exchange transfusion",
+                "do not subtract direct bilirubin or conjugated bilirubin from TSB with expert consult for cholestasis",
+                "rebound repeat bilirubin, daily bilirubin, feeding adequacy, weight trajectory, and 24-48 hours discharge follow-up",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "neonatal hyperbilirubinemia time-critical actions must include TSB or TcB"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_neonatal_hyperbilirubinemia_neurotoxicity_direct_bilirubin_and_followup_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Neonatal hyperbilirubinemia above phototherapy threshold"
+    case["patient_demographics"] = {
+        "age": 0,
+        "sex": "female",
+        "weight_kg": 2.8,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "4-day-old newborn jaundice"
+    case["history_of_present_illness"] = (
+        "Late-preterm newborn has worsening newborn jaundice, lethargy, poor "
+        "feeding, and total serum bilirubin near exchange transfusion threshold."
+    )
+    case["initial_labs"] = {
+        "total serum bilirubin": "24 mg/dL",
+        "direct bilirubin": "0.8 mg/dL",
+        "albumin": "2.8 g/dL",
+    }
+    case["key_teaching_points"] = [
+        "Neonatal jaundice requires hour-specific bilirubin threshold assessment",
+        "Neurotoxicity risk factors lower treatment thresholds",
+        "Escalation of care is a medical emergency when TSB approaches the exchange transfusion threshold",
+    ]
+    case["clinical_red_flags"] = [
+        "Lethargy, poor feeding, high-pitched cry, arching, or apnea",
+        "Albumin <3, hemolysis, G6PD deficiency, sepsis, clinical instability, or bilirubin near exchange transfusion threshold",
+    ]
+    case["time_critical_actions"] = [
+        "Interpret TSB or TcB using age in hours, gestational age, neurotoxicity risk factors, and the phototherapy threshold",
+        "Start intensive phototherapy with irradiance verification",
+        "Escalate care because the escalation of care threshold is 2 mg/dL below the exchange transfusion threshold; consult neonatologist and transfer to NICU if exchange transfusion capability is needed",
+        "Send repeat bilirubin, total bilirubin, direct bilirubin, DAT, G6PD, albumin, CBC, hemolysis workup, and type and crossmatch",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before IV therapy",
+        "Family education before discharge",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Clinical Practice Guideline Revision: Management of Hyperbilirubinemia in the Newborn Infant 35 or More Weeks of Gestation",
+            "organization": "American Academy of Pediatrics",
+            "url": "https://publications.aap.org/pediatrics/article/150/3/e2022058859/188726/Clinical-Practice-Guideline-Revision-Management-of",
+            "supports": [
+                "neonatal hyperbilirubinemia above phototherapy threshold diagnosis and risk stratification",
+                "neonatal jaundice requires hour-specific bilirubin threshold assessment",
+                "neurotoxicity risk factors lower treatment thresholds",
+                "escalation of care is a medical emergency when TSB approaches the exchange transfusion threshold",
+                "lethargy, poor feeding, high-pitched cry, arching, or apnea as red flags",
+                "albumin <3, hemolysis, G6PD deficiency, sepsis, clinical instability, or bilirubin near exchange transfusion threshold as severity markers",
+                "TSB or TcB using age in hours, gestational age, neurotoxicity risk factors, and the phototherapy threshold",
+                "intensive phototherapy with irradiance verification",
+                "escalation of care threshold is 2 mg/dL below the exchange transfusion threshold with neonatologist consultation and NICU transfer",
+                "repeat bilirubin, total bilirubin, direct bilirubin, DAT, G6PD, albumin, CBC, hemolysis workup, and type and crossmatch",
+                "medication allergy review before IV therapy",
+                "family education before discharge",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "neonatal hyperbilirubinemia safety checks must include neurotoxicity risk factors"
+        in issue
         for issue in report.critical_issues
     )
 
