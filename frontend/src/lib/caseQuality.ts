@@ -486,6 +486,40 @@ const SEPSIS_VASOPRESSOR_ACTION_TERMS = [
   "혈관수축제",
 ];
 
+const SEPSIS_PERFUSION_REASSESSMENT_SAFETY_TERMS = [
+  "capillary refill",
+  "lactate clearance",
+  "perfusion reassessment",
+  "repeat lactate",
+  "serial lactate",
+  "urine output",
+];
+
+const SEPSIS_FLUID_REASSESSMENT_SAFETY_TERMS = [
+  "dynamic assessment",
+  "fluid overload",
+  "fluid responsiveness",
+  "pulmonary edema",
+  "volume overload",
+  "volume status",
+];
+
+const SEPSIS_VASOPRESSOR_TARGET_SAFETY_TERMS = [
+  "map 65",
+  "map goal",
+  "mean arterial pressure",
+  "norepinephrine",
+  "vasopressor target",
+];
+
+const SEPSIS_SOURCE_CONTROL_SAFETY_TERMS = [
+  "abscess drainage",
+  "debridement",
+  "device removal",
+  "drainage",
+  "source control",
+];
+
 const PEDIATRIC_SEPTIC_SHOCK_CONTEXT_TERMS = [
   "child with septic shock",
   "paediatric septic shock",
@@ -14832,6 +14866,28 @@ function hasSepsisResuscitationActions(actions: string[]): boolean {
   return hasLactate && hasFluids && hasVasopressorOrShockEscalation;
 }
 
+function hasSepsisResuscitationSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasPerfusionReassessment = SEPSIS_PERFUSION_REASSESSMENT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFluidReassessment = SEPSIS_FLUID_REASSESSMENT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVasopressorTarget = SEPSIS_VASOPRESSOR_TARGET_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSourceControl = SEPSIS_SOURCE_CONTROL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasPerfusionReassessment &&
+    hasFluidReassessment &&
+    hasVasopressorTarget &&
+    hasSourceControl
+  );
+}
+
 function requiresPediatricSepticShockSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   if (!isPediatricAge(detail.patient_demographics.age)) {
     return false;
@@ -17368,6 +17424,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSepsisResuscitationActions,
       issue:
         "sepsis time-critical actions must include lactate measurement or reassessment, fluid resuscitation, and vasopressor or shock escalation planning",
+    },
+    {
+      name: "sepsis_resuscitation_safety",
+      label: "Sepsis resuscitation safety",
+      applies: requiresSepsisResuscitationSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSepsisResuscitationSafetyCheck,
+      issue:
+        "sepsis safety checks must include perfusion or repeat-lactate reassessment, fluid responsiveness or overload review, MAP or norepinephrine vasopressor target planning, and source-control assessment",
     },
     {
       name: "pediatric_septic_shock_time_critical_actions",

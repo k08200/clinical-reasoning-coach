@@ -285,6 +285,54 @@
     }
   },
   {
+    "name": "sepsis_requires_perfusion_fluid_vasopressor_and_source_control_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "sepsis safety checks must include perfusion or repeat-lactate reassessment"
+    ],
+    "overrides": {
+      "diagnosis": "Septic shock secondary to urosepsis",
+      "key_teaching_points": [
+        "Septic shock requires early recognition and immediate escalation",
+        "Antibiotics within 1 hour and fluid resuscitation are time-critical",
+        "Lactate elevation suggests tissue hypoperfusion"
+      ],
+      "clinical_red_flags": [
+        "Hypotension with fever and altered mental status",
+        "Lactate 4.1 mmol/L suggesting tissue hypoperfusion",
+        "AKI and poor perfusion suggesting organ dysfunction"
+      ],
+      "time_critical_actions": [
+        "Obtain blood cultures promptly without delaying empiric antibiotics",
+        "Start broad-spectrum antibiotics within 1 hour and source control planning",
+        "Measure lactate and repeat lactate if elevated",
+        "Begin sepsis fluid resuscitation",
+        "Start norepinephrine vasopressor if hypotension persists"
+      ],
+      "contraindication_checks": [
+        "Renal impairment and allergy history before antibiotic selection or dosing",
+        "Medication allergy before antiemetics"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Surviving Sepsis Campaign Adult Guidelines",
+          "organization": "Society of Critical Care Medicine",
+          "url": "https://www.sccm.org/survivingsepsiscampaign/guidelines-and-resources/surviving-sepsis-campaign-adult-guidelines",
+          "supports": [
+            "septic shock diagnosis and risk stratification",
+            "hypotension, fever, altered mental status, lactate 4.1, AKI, and poor perfusion",
+            "blood cultures promptly without delaying empiric antibiotics",
+            "broad-spectrum antibiotics within 1 hour and source control planning",
+            "lactate measurement and repeat lactate if elevated",
+            "sepsis fluid resuscitation",
+            "norepinephrine vasopressor if hypotension persists",
+            "renal impairment and allergy history before antibiotic selection or dosing"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "infection_therapy_requires_antimicrobial_safety_checks",
     "expected_passed": false,
     "expected_issue_substrings": [

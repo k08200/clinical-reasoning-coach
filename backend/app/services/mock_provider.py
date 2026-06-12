@@ -458,7 +458,10 @@ _CASE_SEPSIS = {
     "contraindication_checks": [
         "Renal impairment and allergy history before antibiotic selection or dosing",
         "Volume overload risk during fluid resuscitation in CKD or heart failure",
-        "Need for vasopressors if hypotension persists after initial resuscitation",
+        "Repeat lactate and reassess perfusion using capillary refill, urine output, and mental status",
+        "Fluid responsiveness, volume status, and fluid overload or pulmonary edema review during resuscitation",
+        "Target MAP 65 mean arterial pressure with norepinephrine vasopressor if hypotension persists",
+        "Assess source control including urinary obstruction drainage, abscess drainage, debridement, or device removal when indicated",
     ],
     "clinical_sources": [_SOURCE_SEPSIS, _SOURCE_SEPSIS_STATPEARLS],
     "review_status": "educational_draft",

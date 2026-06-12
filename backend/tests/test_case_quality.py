@@ -47,6 +47,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "infection_time_critical_actions",
         "infection_antimicrobial_safety",
         "sepsis_resuscitation_actions",
+        "sepsis_resuscitation_safety",
         "pediatric_septic_shock_time_critical_actions",
         "pediatric_septic_shock_treatment_safety",
         "anaphylaxis_time_critical_actions",
@@ -8347,6 +8348,41 @@ def test_quality_gate_requires_sepsis_lactate_fluid_and_vasopressor_actions():
     )
 
 
+def test_quality_gate_requires_sepsis_perfusion_fluid_vasopressor_and_source_control_safety():
+    case = copy.deepcopy(CASE_POOL[1])
+    case["diagnosis"] = "Septic shock secondary to urosepsis"
+    case["time_critical_actions"] = [
+        "Obtain blood cultures promptly without delaying empiric antibiotics",
+        "Start broad-spectrum antibiotics within 1 hour and source control planning",
+        "Measure lactate and repeat lactate if elevated",
+        "Begin sepsis fluid resuscitation",
+        "Start norepinephrine vasopressor if hypotension persists",
+    ]
+    case["contraindication_checks"] = [
+        "Renal impairment and allergy history before antibiotic selection or dosing",
+        "Medication allergy before antiemetics",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "septic shock diagnosis and risk stratification",
+        "hypotension, fever, altered mental status, lactate 4.1, AKI, and poor perfusion",
+        "blood cultures promptly without delaying empiric antibiotics",
+        "broad-spectrum antibiotics within 1 hour and source control planning",
+        "lactate measurement and repeat lactate if elevated",
+        "sepsis fluid resuscitation",
+        "norepinephrine vasopressor if hypotension persists",
+        "renal impairment and allergy history before antibiotic selection or dosing",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "sepsis safety checks must include perfusion or repeat-lactate reassessment"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_pediatric_septic_shock_antibiotics_bolus_reassessment_vasoactive_and_picu_actions():
     case = copy.deepcopy(CASE_POOL[1])
     case["diagnosis"] = "Pediatric septic shock"
@@ -8500,6 +8536,13 @@ def test_quality_gate_requires_pediatric_septic_shock_fluid_overload_access_meta
 
 def test_quality_gate_allows_sepsis_therapy_with_infection_safety_checks():
     case = copy.deepcopy(CASE_POOL[1])
+    case["contraindication_checks"] = [
+        *case["contraindication_checks"],
+        "Repeat lactate and reassess perfusion using capillary refill, urine output, and mental status",
+        "Review fluid responsiveness, volume status, and fluid overload or pulmonary edema risk",
+        "Target MAP 65 mean arterial pressure with norepinephrine vasopressor if hypotension persists",
+        "Assess source control including drainage, abscess drainage, debridement, or device removal when indicated",
+    ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
 

@@ -482,6 +482,36 @@ SEPSIS_VASOPRESSOR_ACTION_TERMS = (
     "저혈압",
     "혈관수축제",
 )
+SEPSIS_PERFUSION_REASSESSMENT_SAFETY_TERMS = (
+    "capillary refill",
+    "lactate clearance",
+    "perfusion reassessment",
+    "repeat lactate",
+    "serial lactate",
+    "urine output",
+)
+SEPSIS_FLUID_REASSESSMENT_SAFETY_TERMS = (
+    "dynamic assessment",
+    "fluid overload",
+    "fluid responsiveness",
+    "pulmonary edema",
+    "volume overload",
+    "volume status",
+)
+SEPSIS_VASOPRESSOR_TARGET_SAFETY_TERMS = (
+    "map 65",
+    "map goal",
+    "mean arterial pressure",
+    "norepinephrine",
+    "vasopressor target",
+)
+SEPSIS_SOURCE_CONTROL_SAFETY_TERMS = (
+    "abscess drainage",
+    "debridement",
+    "device removal",
+    "drainage",
+    "source control",
+)
 PEDIATRIC_SEPTIC_SHOCK_CONTEXT_TERMS = (
     "child with septic shock",
     "paediatric septic shock",
@@ -10505,6 +10535,18 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="sepsis_resuscitation_safety",
+            applies=_requires_sepsis_resuscitation_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_sepsis_resuscitation_safety_check,
+            issue=(
+                "sepsis safety checks must include perfusion or repeat-lactate "
+                "reassessment, fluid responsiveness or overload review, MAP or "
+                "norepinephrine vasopressor target planning, and source-control "
+                "assessment"
+            ),
+        ),
+        DomainSafetyGate(
             name="pediatric_septic_shock_time_critical_actions",
             applies=_requires_pediatric_septic_shock_safety_check,
             field_name="time_critical_actions",
@@ -17939,6 +17981,32 @@ def _has_sepsis_resuscitation_actions(actions: list[Any]) -> bool:
         for term in SEPSIS_VASOPRESSOR_ACTION_TERMS
     )
     return has_lactate and has_fluids and has_vasopressor_or_shock_escalation
+
+
+def _has_sepsis_resuscitation_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_perfusion_reassessment = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEPSIS_PERFUSION_REASSESSMENT_SAFETY_TERMS
+    )
+    has_fluid_reassessment = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEPSIS_FLUID_REASSESSMENT_SAFETY_TERMS
+    )
+    has_vasopressor_target = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEPSIS_VASOPRESSOR_TARGET_SAFETY_TERMS
+    )
+    has_source_control = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEPSIS_SOURCE_CONTROL_SAFETY_TERMS
+    )
+    return (
+        has_perfusion_reassessment
+        and has_fluid_reassessment
+        and has_vasopressor_target
+        and has_source_control
+    )
 
 
 def _requires_pediatric_septic_shock_safety_check(data: dict[str, Any]) -> bool:
