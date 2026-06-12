@@ -9922,6 +9922,42 @@ const SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS = [
   "흡인",
 ];
 
+const SEVERE_CAP_PROCALCITONIN_ANTIBIOTIC_SAFETY_TERMS = [
+  "do not withhold",
+  "empiric antibiotic",
+  "initial antibacterial",
+  "not withhold",
+  "procalcitonin",
+  "항생제 보류",
+];
+
+const SEVERE_CAP_CORTICOSTEROID_SAFETY_TERMS = [
+  "corticosteroid",
+  "not routine",
+  "refractory septic shock",
+  "steroid",
+  "스테로이드",
+];
+
+const SEVERE_CAP_INFLUENZA_ANTIVIRAL_SAFETY_TERMS = [
+  "antiviral",
+  "influenza",
+  "oseltamivir",
+  "tamiflu",
+  "항바이러스",
+];
+
+const SEVERE_CAP_DURATION_STABILITY_SAFETY_TERMS = [
+  "5 days",
+  "clinical stability",
+  "duration",
+  "normal mentation",
+  "oxygen saturation",
+  "respiratory rate",
+  "vital sign",
+  "치료 기간",
+];
+
 const COPD_EXACERBATION_CONTEXT_TERMS = [
   "acute exacerbation of copd",
   "aecopd",
@@ -16902,6 +16938,29 @@ function hasSevereCapTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function hasSevereCapAntibioticStewardshipSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasProcalcitoninAntibioticSafety =
+    SEVERE_CAP_PROCALCITONIN_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCorticosteroidSafety = SEVERE_CAP_CORTICOSTEROID_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInfluenzaAntiviralSafety = SEVERE_CAP_INFLUENZA_ANTIVIRAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDurationStabilitySafety = SEVERE_CAP_DURATION_STABILITY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasProcalcitoninAntibioticSafety &&
+    hasCorticosteroidSafety &&
+    hasInfluenzaAntiviralSafety &&
+    hasDurationStabilitySafety
+  );
+}
+
 function requiresCopdExacerbationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -19139,6 +19198,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSevereCapTreatmentSafetyCheck,
       issue:
         "severe community-acquired pneumonia safety checks must include MRSA or Pseudomonas risk-factor review for prior respiratory isolation, recent hospitalization or IV antibiotics within 90 days, vancomycin coverage, and de-escalation, severity or disposition review with PSI, CURB-65, major/minor criteria, shock, hypotension, or ICU need, parapneumonic effusion, empyema, loculated effusion, thoracentesis, or drainage review, and viral, influenza, COVID, aspiration, lung abscess, or pulmonary embolism differential assessment",
+    },
+    {
+      name: "severe_cap_antibiotic_stewardship_safety",
+      label: "Severe CAP antibiotic stewardship safety",
+      applies: requiresSevereCapSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSevereCapAntibioticStewardshipSafetyCheck,
+      issue:
+        "severe community-acquired pneumonia stewardship safety checks must include not withholding initial empiric antibiotics because of procalcitonin, corticosteroid avoidance or refractory-septic-shock exception review, influenza antiviral or oseltamivir planning when positive, and antibiotic duration guided by clinical stability for at least 5 days",
     },
     {
       name: "copd_exacerbation_time_critical_actions",

@@ -9081,6 +9081,38 @@ SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS = (
     "virus",
     "흡인",
 )
+SEVERE_CAP_PROCALCITONIN_ANTIBIOTIC_SAFETY_TERMS = (
+    "do not withhold",
+    "empiric antibiotic",
+    "initial antibacterial",
+    "not withhold",
+    "procalcitonin",
+    "항생제 보류",
+)
+SEVERE_CAP_CORTICOSTEROID_SAFETY_TERMS = (
+    "corticosteroid",
+    "not routine",
+    "refractory septic shock",
+    "steroid",
+    "스테로이드",
+)
+SEVERE_CAP_INFLUENZA_ANTIVIRAL_SAFETY_TERMS = (
+    "antiviral",
+    "influenza",
+    "oseltamivir",
+    "tamiflu",
+    "항바이러스",
+)
+SEVERE_CAP_DURATION_STABILITY_SAFETY_TERMS = (
+    "5 days",
+    "clinical stability",
+    "duration",
+    "normal mentation",
+    "oxygen saturation",
+    "respiratory rate",
+    "vital sign",
+    "치료 기간",
+)
 COPD_EXACERBATION_CONTEXT_TERMS = (
     "acute exacerbation of copd",
     "aecopd",
@@ -13135,6 +13167,20 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "empyema, loculated effusion, thoracentesis, or drainage review, "
                 "and viral, influenza, COVID, aspiration, lung abscess, or "
                 "pulmonary embolism differential assessment"
+            ),
+        ),
+        DomainSafetyGate(
+            name="severe_cap_antibiotic_stewardship_safety",
+            applies=_requires_severe_cap_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_severe_cap_antibiotic_stewardship_safety_check,
+            issue=(
+                "severe community-acquired pneumonia stewardship safety checks "
+                "must include not withholding initial empiric antibiotics because "
+                "of procalcitonin, corticosteroid avoidance or refractory-septic-shock "
+                "exception review, influenza antiviral or oseltamivir planning when "
+                "positive, and antibiotic duration guided by clinical stability for "
+                "at least 5 days"
             ),
         ),
         DomainSafetyGate(
@@ -20522,6 +20568,32 @@ def _has_severe_cap_treatment_safety_check(checks: list[Any]) -> bool:
         and has_severity_disposition_safety
         and has_effusion_empyema_safety
         and has_viral_aspiration_differential_safety
+    )
+
+
+def _has_severe_cap_antibiotic_stewardship_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_procalcitonin_antibiotic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_PROCALCITONIN_ANTIBIOTIC_SAFETY_TERMS
+    )
+    has_corticosteroid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_CORTICOSTEROID_SAFETY_TERMS
+    )
+    has_influenza_antiviral_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_INFLUENZA_ANTIVIRAL_SAFETY_TERMS
+    )
+    has_duration_stability_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_DURATION_STABILITY_SAFETY_TERMS
+    )
+    return (
+        has_procalcitonin_antibiotic_safety
+        and has_corticosteroid_safety
+        and has_influenza_antiviral_safety
+        and has_duration_stability_safety
     )
 
 
