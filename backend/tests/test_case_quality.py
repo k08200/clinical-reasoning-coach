@@ -57,6 +57,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "gi_bleed_transfusion_reversal_safety",
         "cns_infection_time_critical_actions",
         "cns_infection_lp_steroid_safety",
+        "meningococcemia_time_critical_actions",
+        "meningococcemia_treatment_safety",
         "ectopic_pregnancy_time_critical_actions",
         "ectopic_pregnancy_treatment_safety",
         "postpartum_hemorrhage_time_critical_actions",
@@ -1016,6 +1018,128 @@ def test_quality_gate_requires_cns_infection_lp_and_steroid_safety():
     assert not report.passed
     assert any(
         "CNS infection safety checks must include antimicrobial allergy" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_meningococcemia_cultures_cephalosporin_shock_and_isolation_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Meningococcemia with septic shock"
+    case["chief_complaint"] = "Fever, petechial rash, and hypotension"
+    case["history_of_present_illness"] = (
+        "Patient has abrupt fever, severe myalgias, nonblanching petechial and "
+        "purpuric rash, hypotension, lactate elevation, thrombocytopenia, and "
+        "concern for invasive meningococcal disease with septic shock."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "78/42", "hr": 144, "rr": 28, "temp_c": 39.6, "spo2": 94},
+        "general": "Toxic appearing and mottled",
+        "skin": "Diffuse nonblanching petechiae and purpura concerning for purpura fulminans",
+        "neuro": "Confused but moving all extremities",
+    }
+    case["initial_labs"] = {
+        "lactate": "5.8 mmol/L",
+        "platelets": "52000/uL",
+        "inr": "2.1",
+        "creatinine": "1.9 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Meningococcemia can cause rapidly fatal septic shock and purpura fulminans",
+        "Suspected meningococcal disease requires immediate extended-spectrum cephalosporin therapy",
+        "Droplet precautions and public health follow-up protect close contacts",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever with nonblanching petechial or purpuric rash",
+        "Hypotension, high lactate, thrombocytopenia, coagulopathy, and septic shock",
+    ]
+    case["time_critical_actions"] = [
+        "Draw blood cultures and send PCR or NAAT with serogroup testing when available",
+        "Start immediate ceftriaxone or cefotaxime extended-spectrum cephalosporin therapy",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay antibiotics for cultures, imaging, transfer, or procedures when meningococcal disease is suspected",
+        "Use droplet isolation and standard precautions with mask until at least 24 hours after effective therapy",
+        "Notify public health and arrange close contact chemoprophylaxis such as rifampin, ciprofloxacin, or ceftriaxone for household contacts",
+        "Monitor DIC, coagulation, platelets, purpura fulminans, Waterhouse-Friderichsen adrenal hemorrhage, and limb ischemia complications",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Clinical Guidance for Meningococcal Disease",
+            "organization": "Centers for Disease Control and Prevention",
+            "url": "https://www.cdc.gov/meningococcal/hcp/clinical-guidance/index.html",
+            "supports": [
+                "meningococcemia with septic shock diagnosis and risk stratification",
+                "fever with nonblanching petechial or purpuric rash as red flags",
+                "hypotension, high lactate, thrombocytopenia, coagulopathy, and septic shock as severity markers",
+                "blood cultures and PCR or NAAT with serogroup testing",
+                "immediate ceftriaxone or cefotaxime extended-spectrum cephalosporin therapy",
+                "do not delay antibiotics for cultures, imaging, transfer, or procedures",
+                "droplet isolation and standard precautions with mask until at least 24 hours after effective therapy",
+                "public health and close contact chemoprophylaxis",
+                "DIC, coagulation, platelets, purpura fulminans, Waterhouse-Friderichsen adrenal hemorrhage, and limb ischemia monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "meningococcemia time-critical actions must include diagnostic cultures" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_meningococcemia_no_delay_precautions_contact_and_dic_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Meningococcal septicemia with purpura fulminans"
+    case["chief_complaint"] = "Fever, rash, and shock"
+    case["history_of_present_illness"] = (
+        "Patient presents with invasive meningococcal disease, fever, "
+        "non-blanching purpura, hypotension, shock, lactate 6.1, DIC, "
+        "thrombocytopenia, and possible Waterhouse-Friderichsen adrenal hemorrhage."
+    )
+    case["key_teaching_points"] = [
+        "Meningococcal septicemia can progress quickly to shock and DIC",
+        "Empiric ceftriaxone or cefotaxime should be started immediately",
+        "Public health notification and close contact prophylaxis are part of safe management",
+    ]
+    case["clinical_red_flags"] = [
+        "Non-blanching purpura with fever, septic shock, DIC, and thrombocytopenia",
+    ]
+    case["time_critical_actions"] = [
+        "Draw blood cultures and send PCR or NAAT with serogroup testing when available",
+        "Start immediate ceftriaxone or cefotaxime extended-spectrum cephalosporin therapy",
+        "Treat septic shock with sepsis bundle fluids, lactate trend, norepinephrine vasopressor support, and ICU escalation",
+        "Place in droplet isolation with standard precautions and notify public health",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy and renal dosing review before ongoing antibiotic doses",
+        "Repeat lactate and urine output while monitoring shock response",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "CDC Infection Control Appendix A",
+            "organization": "Centers for Disease Control and Prevention",
+            "url": "https://www.cdc.gov/infection-control/hcp/isolation-precautions/appendix-a-type-duration.html",
+            "supports": [
+                "meningococcal septicemia with purpura fulminans diagnosis",
+                "non-blanching purpura with fever, septic shock, DIC, and thrombocytopenia as red flags",
+                "blood cultures and PCR or NAAT with serogroup testing",
+                "immediate ceftriaxone or cefotaxime extended-spectrum cephalosporin therapy",
+                "septic shock sepsis bundle fluids, lactate trend, norepinephrine vasopressor support, and ICU escalation",
+                "droplet isolation with standard precautions and public health notification",
+                "medication allergy and renal dosing review",
+                "repeat lactate and urine output while monitoring shock response",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "meningococcemia safety checks must include not delaying antibiotics" in issue
         for issue in report.critical_issues
     )
 

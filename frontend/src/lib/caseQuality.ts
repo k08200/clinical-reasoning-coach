@@ -903,8 +903,6 @@ const GI_BLEED_TRANSFUSION_SAFETY_TERMS = [
 const CNS_INFECTION_CONTEXT_TERMS = [
   "bacterial meningitis",
   "meningitis",
-  "meningococcemia",
-  "meningococcal",
   "수막염",
   "뇌수막염",
   "중추신경계 감염",
@@ -993,6 +991,114 @@ const CNS_INFECTION_STEROID_SAFETY_TERMS = [
   "steroids",
   "덱사메타손",
   "스테로이드",
+];
+
+const MENINGOCOCCEMIA_CONTEXT_TERMS = [
+  "invasive meningococcal disease",
+  "meningococcemia",
+  "meningococcal disease",
+  "meningococcal sepsis",
+  "meningococcal septicemia",
+  "neisseria meningitidis",
+  "purpura fulminans",
+  "waterhouse-friderichsen",
+];
+
+const MENINGOCOCCEMIA_RISK_TERMS = [
+  "adrenal hemorrhage",
+  "coagulopathy",
+  "dic",
+  "disseminated intravascular coagulation",
+  "hypotension",
+  "lactate",
+  "non-blanching rash",
+  "nonblanching rash",
+  "petechiae",
+  "petechial",
+  "purpura",
+  "rash",
+  "sepsis",
+  "septic shock",
+  "shock",
+  "thrombocytopenia",
+];
+
+const MENINGOCOCCEMIA_CULTURE_ACTION_TERMS = [
+  "blood culture",
+  "blood cultures",
+  "culture",
+  "cultures",
+  "naat",
+  "pcr",
+  "serogroup",
+];
+
+const MENINGOCOCCEMIA_CEPHALOSPORIN_ACTION_TERMS = [
+  "cefotaxime",
+  "ceftriaxone",
+  "cephalosporin",
+  "empiric antibiotic",
+  "empiric antibiotics",
+  "extended-spectrum",
+];
+
+const MENINGOCOCCEMIA_SHOCK_ACTION_TERMS = [
+  "fluid",
+  "fluids",
+  "icu",
+  "lactate",
+  "norepinephrine",
+  "sepsis bundle",
+  "septic shock",
+  "shock",
+  "vasopressor",
+];
+
+const MENINGOCOCCEMIA_PRECAUTION_ACTION_TERMS = [
+  "droplet",
+  "infection control",
+  "isolation",
+  "public health",
+  "standard precautions",
+];
+
+const MENINGOCOCCEMIA_ANTIBIOTIC_DELAY_SAFETY_TERMS = [
+  "do not delay",
+  "do-not-delay",
+  "immediate antibiotic",
+  "not delay antibiotics",
+  "prioritize antibiotics",
+];
+
+const MENINGOCOCCEMIA_INFECTION_CONTROL_SAFETY_TERMS = [
+  "24 hours",
+  "droplet",
+  "effective therapy",
+  "infection control",
+  "isolation",
+  "mask",
+  "standard precautions",
+];
+
+const MENINGOCOCCEMIA_CONTACT_PUBLIC_HEALTH_SAFETY_TERMS = [
+  "chemoprophylaxis",
+  "ciprofloxacin",
+  "close contact",
+  "contact prophylaxis",
+  "household contact",
+  "public health",
+  "rifampin",
+];
+
+const MENINGOCOCCEMIA_COAGULATION_COMPLICATION_SAFETY_TERMS = [
+  "adrenal hemorrhage",
+  "coagulation",
+  "dic",
+  "disseminated intravascular coagulation",
+  "limb ischemia",
+  "platelet",
+  "purpura fulminans",
+  "waterhouse-friderichsen",
 ];
 
 const ECTOPIC_PREGNANCY_CONTEXT_TERMS = [
@@ -10295,6 +10401,69 @@ function hasCnsInfectionLpSteroidSafetyCheck(checks: string[]): boolean {
   return hasAntimicrobialSafety && hasLpSafety && hasSteroidTiming;
 }
 
+function requiresMeningococcemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = MENINGOCOCCEMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = MENINGOCOCCEMIA_RISK_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  return hasContext && hasRisk;
+}
+
+function hasMeningococcemiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCulture = MENINGOCOCCEMIA_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCephalosporin = MENINGOCOCCEMIA_CEPHALOSPORIN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasShockResuscitation = MENINGOCOCCEMIA_SHOCK_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPrecautions = MENINGOCOCCEMIA_PRECAUTION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasCulture && hasCephalosporin && hasShockResuscitation && hasPrecautions;
+}
+
+function hasMeningococcemiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAntibioticDelaySafety = MENINGOCOCCEMIA_ANTIBIOTIC_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInfectionControl = MENINGOCOCCEMIA_INFECTION_CONTROL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasContactPublicHealth = MENINGOCOCCEMIA_CONTACT_PUBLIC_HEALTH_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCoagulationComplication =
+    MENINGOCOCCEMIA_COAGULATION_COMPLICATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasAntibioticDelaySafety &&
+    hasInfectionControl &&
+    hasContactPublicHealth &&
+    hasCoagulationComplication
+  );
+}
+
 function requiresEctopicPregnancySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -15353,6 +15522,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCnsInfectionLpSteroidSafetyCheck,
       issue:
         "CNS infection safety checks must include antimicrobial allergy or renal dosing review, lumbar puncture contraindications, and dexamethasone timing relative to antibiotics",
+    },
+    {
+      name: "meningococcemia_time_critical_actions",
+      label: "Meningococcemia immediate antibiotics and isolation",
+      applies: requiresMeningococcemiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasMeningococcemiaTimeCriticalActions,
+      issue:
+        "meningococcemia time-critical actions must include diagnostic cultures or PCR, immediate ceftriaxone or cefotaxime therapy, sepsis or shock resuscitation, and droplet isolation or public health notification",
+    },
+    {
+      name: "meningococcemia_treatment_safety",
+      label: "Meningococcemia precautions and complication safety",
+      applies: requiresMeningococcemiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasMeningococcemiaTreatmentSafetyCheck,
+      issue:
+        "meningococcemia safety checks must include not delaying antibiotics, droplet precautions until effective therapy, close contact chemoprophylaxis or public health follow-up, and DIC, purpura fulminans, adrenal hemorrhage, or limb ischemia complication monitoring",
     },
     {
       name: "ectopic_pregnancy_time_critical_actions",

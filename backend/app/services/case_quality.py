@@ -863,8 +863,6 @@ GI_BLEED_TRANSFUSION_SAFETY_TERMS = (
 CNS_INFECTION_CONTEXT_TERMS = (
     "bacterial meningitis",
     "meningitis",
-    "meningococcemia",
-    "meningococcal",
     "수막염",
     "뇌수막염",
     "중추신경계 감염",
@@ -946,6 +944,104 @@ CNS_INFECTION_STEROID_SAFETY_TERMS = (
     "steroids",
     "덱사메타손",
     "스테로이드",
+)
+MENINGOCOCCEMIA_CONTEXT_TERMS = (
+    "invasive meningococcal disease",
+    "meningococcemia",
+    "meningococcal disease",
+    "meningococcal sepsis",
+    "meningococcal septicemia",
+    "neisseria meningitidis",
+    "purpura fulminans",
+    "waterhouse-friderichsen",
+)
+MENINGOCOCCEMIA_RISK_TERMS = (
+    "adrenal hemorrhage",
+    "coagulopathy",
+    "dic",
+    "disseminated intravascular coagulation",
+    "hypotension",
+    "lactate",
+    "non-blanching rash",
+    "nonblanching rash",
+    "petechiae",
+    "petechial",
+    "purpura",
+    "rash",
+    "sepsis",
+    "septic shock",
+    "shock",
+    "thrombocytopenia",
+)
+MENINGOCOCCEMIA_CULTURE_ACTION_TERMS = (
+    "blood culture",
+    "blood cultures",
+    "culture",
+    "cultures",
+    "naat",
+    "pcr",
+    "serogroup",
+)
+MENINGOCOCCEMIA_CEPHALOSPORIN_ACTION_TERMS = (
+    "cefotaxime",
+    "ceftriaxone",
+    "cephalosporin",
+    "empiric antibiotic",
+    "empiric antibiotics",
+    "extended-spectrum",
+)
+MENINGOCOCCEMIA_SHOCK_ACTION_TERMS = (
+    "fluid",
+    "fluids",
+    "icu",
+    "lactate",
+    "norepinephrine",
+    "sepsis bundle",
+    "septic shock",
+    "shock",
+    "vasopressor",
+)
+MENINGOCOCCEMIA_PRECAUTION_ACTION_TERMS = (
+    "droplet",
+    "infection control",
+    "isolation",
+    "public health",
+    "standard precautions",
+)
+MENINGOCOCCEMIA_ANTIBIOTIC_DELAY_SAFETY_TERMS = (
+    "do not delay",
+    "do-not-delay",
+    "immediate antibiotic",
+    "not delay antibiotics",
+    "prioritize antibiotics",
+)
+MENINGOCOCCEMIA_INFECTION_CONTROL_SAFETY_TERMS = (
+    "24 hours",
+    "droplet",
+    "effective therapy",
+    "infection control",
+    "isolation",
+    "mask",
+    "standard precautions",
+)
+MENINGOCOCCEMIA_CONTACT_PUBLIC_HEALTH_SAFETY_TERMS = (
+    "chemoprophylaxis",
+    "ciprofloxacin",
+    "close contact",
+    "contact prophylaxis",
+    "household contact",
+    "public health",
+    "rifampin",
+)
+MENINGOCOCCEMIA_COAGULATION_COMPLICATION_SAFETY_TERMS = (
+    "adrenal hemorrhage",
+    "coagulation",
+    "dic",
+    "disseminated intravascular coagulation",
+    "limb ischemia",
+    "platelet",
+    "purpura fulminans",
+    "waterhouse-friderichsen",
 )
 ECTOPIC_PREGNANCY_CONTEXT_TERMS = (
     "ectopic pregnancy",
@@ -9456,6 +9552,31 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="meningococcemia_time_critical_actions",
+            applies=_requires_meningococcemia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_meningococcemia_time_critical_actions,
+            issue=(
+                "meningococcemia time-critical actions must include diagnostic "
+                "cultures or PCR, immediate ceftriaxone or cefotaxime therapy, "
+                "sepsis or shock resuscitation, and droplet isolation or public "
+                "health notification"
+            ),
+        ),
+        DomainSafetyGate(
+            name="meningococcemia_treatment_safety",
+            applies=_requires_meningococcemia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_meningococcemia_treatment_safety_check,
+            issue=(
+                "meningococcemia safety checks must include not delaying "
+                "antibiotics, droplet precautions until effective therapy, close "
+                "contact chemoprophylaxis or public health follow-up, and DIC, "
+                "purpura fulminans, adrenal hemorrhage, or limb ischemia "
+                "complication monitoring"
+            ),
+        ),
+        DomainSafetyGate(
             name="ectopic_pregnancy_time_critical_actions",
             applies=_requires_ectopic_pregnancy_safety_check,
             field_name="time_critical_actions",
@@ -12205,6 +12326,85 @@ def _has_cns_infection_lp_steroid_safety_check(checks: list[Any]) -> bool:
         for term in CNS_INFECTION_STEROID_SAFETY_TERMS
     )
     return has_antimicrobial_safety and has_lp_safety and has_steroid_timing
+
+
+def _requires_meningococcemia_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in MENINGOCOCCEMIA_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in MENINGOCOCCEMIA_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_meningococcemia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MENINGOCOCCEMIA_CULTURE_ACTION_TERMS
+    )
+    has_cephalosporin = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MENINGOCOCCEMIA_CEPHALOSPORIN_ACTION_TERMS
+    )
+    has_shock_resuscitation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MENINGOCOCCEMIA_SHOCK_ACTION_TERMS
+    )
+    has_precautions = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MENINGOCOCCEMIA_PRECAUTION_ACTION_TERMS
+    )
+    return has_culture and has_cephalosporin and has_shock_resuscitation and has_precautions
+
+
+def _has_meningococcemia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_antibiotic_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MENINGOCOCCEMIA_ANTIBIOTIC_DELAY_SAFETY_TERMS
+    )
+    has_infection_control = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MENINGOCOCCEMIA_INFECTION_CONTROL_SAFETY_TERMS
+    )
+    has_contact_public_health = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MENINGOCOCCEMIA_CONTACT_PUBLIC_HEALTH_SAFETY_TERMS
+    )
+    has_coagulation_complication = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MENINGOCOCCEMIA_COAGULATION_COMPLICATION_SAFETY_TERMS
+    )
+    return (
+        has_antibiotic_delay_safety
+        and has_infection_control
+        and has_contact_public_health
+        and has_coagulation_complication
+    )
 
 
 def _requires_ectopic_pregnancy_safety_check(data: dict[str, Any]) -> bool:

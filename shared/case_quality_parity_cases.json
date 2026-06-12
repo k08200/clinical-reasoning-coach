@@ -1050,6 +1050,73 @@
     }
   },
   {
+    "name": "meningococcemia_requires_cultures_cephalosporin_shock_and_isolation_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "meningococcemia time-critical actions must include diagnostic cultures"
+    ],
+    "overrides": {
+      "diagnosis": "Meningococcemia with septic shock",
+      "chief_complaint": "Fever, petechial rash, and hypotension",
+      "history_of_present_illness": "Patient has abrupt fever, severe myalgias, nonblanching petechial and purpuric rash, hypotension, lactate elevation, thrombocytopenia, and concern for invasive meningococcal disease with septic shock.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "78/42",
+          "hr": 144,
+          "rr": 28,
+          "temp_c": 39.6,
+          "spo2": 94
+        },
+        "general": "Toxic appearing and mottled",
+        "skin": "Diffuse nonblanching petechiae and purpura concerning for purpura fulminans",
+        "neuro": "Confused but moving all extremities"
+      },
+      "initial_labs": {
+        "lactate": "5.8 mmol/L",
+        "platelets": "52000/uL",
+        "inr": "2.1",
+        "creatinine": "1.9 mg/dL"
+      },
+      "key_teaching_points": [
+        "Meningococcemia can cause rapidly fatal septic shock and purpura fulminans",
+        "Suspected meningococcal disease requires immediate extended-spectrum cephalosporin therapy",
+        "Droplet precautions and public health follow-up protect close contacts"
+      ],
+      "clinical_red_flags": [
+        "Fever with nonblanching petechial or purpuric rash",
+        "Hypotension, high lactate, thrombocytopenia, coagulopathy, and septic shock"
+      ],
+      "time_critical_actions": [
+        "Draw blood cultures and send PCR or NAAT with serogroup testing when available",
+        "Start immediate ceftriaxone or cefotaxime extended-spectrum cephalosporin therapy"
+      ],
+      "contraindication_checks": [
+        "Do not delay antibiotics for cultures, imaging, transfer, or procedures when meningococcal disease is suspected",
+        "Use droplet isolation and standard precautions with mask until at least 24 hours after effective therapy",
+        "Notify public health and arrange close contact chemoprophylaxis such as rifampin, ciprofloxacin, or ceftriaxone for household contacts",
+        "Monitor DIC, coagulation, platelets, purpura fulminans, Waterhouse-Friderichsen adrenal hemorrhage, and limb ischemia complications"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Clinical Guidance for Meningococcal Disease",
+          "organization": "Centers for Disease Control and Prevention",
+          "url": "https://www.cdc.gov/meningococcal/hcp/clinical-guidance/index.html",
+          "supports": [
+            "meningococcemia with septic shock diagnosis and risk stratification",
+            "fever with nonblanching petechial or purpuric rash as red flags",
+            "hypotension, high lactate, thrombocytopenia, coagulopathy, and septic shock as severity markers",
+            "blood cultures and PCR or NAAT with serogroup testing",
+            "immediate ceftriaxone or cefotaxime extended-spectrum cephalosporin therapy",
+            "do not delay antibiotics for cultures, imaging, transfer, or procedures",
+            "droplet isolation and standard precautions with mask until at least 24 hours after effective therapy",
+            "public health and close contact chemoprophylaxis",
+            "DIC, coagulation, platelets, purpura fulminans, Waterhouse-Friderichsen adrenal hemorrhage, and limb ischemia monitoring"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "ectopic_pregnancy_requires_hcg_ultrasound_and_obgyn_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [
