@@ -10238,6 +10238,49 @@ AORTIC_DISSECTION_COMPLICATION_SAFETY_TERMS = (
     "장기허혈",
     "파열",
 )
+AORTIC_DISSECTION_MONITORING_ACCESS_SAFETY_TERMS = (
+    "arterial line",
+    "central venous",
+    "continuous bp",
+    "continuous blood pressure",
+    "foley",
+    "monitoring",
+    "telemetry",
+    "urine output",
+    "동맥라인",
+    "소변량",
+)
+AORTIC_DISSECTION_ANALGESIA_SAFETY_TERMS = (
+    "analgesia",
+    "morphine",
+    "opioid",
+    "pain control",
+    "sympathetic tone",
+    "진통",
+)
+AORTIC_DISSECTION_TARGET_SAFETY_TERMS = (
+    "100-120",
+    "100 to 120",
+    "heart rate 60",
+    "heart rate target",
+    "hr 60",
+    "sbp 100",
+    "sbp target",
+    "systolic blood pressure",
+    "목표 혈압",
+    "목표 심박",
+)
+AORTIC_DISSECTION_DEFINITIVE_PATHWAY_SAFETY_TERMS = (
+    "complicated type b",
+    "endovascular",
+    "open surgery",
+    "surgical emergency",
+    "tevar",
+    "type a",
+    "type b",
+    "urgent surgical",
+    "응급 수술",
+)
 
 
 @dataclass
@@ -13392,6 +13435,19 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "thrombolysis avoidance, beta-blocker-before-vasodilator impulse "
                 "control safety, and malperfusion, rupture, tamponade, or aortic "
                 "regurgitation complications"
+            ),
+        ),
+        DomainSafetyGate(
+            name="aortic_dissection_monitoring_targets_safety",
+            applies=_requires_aortic_dissection_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_aortic_dissection_monitoring_targets_safety_check,
+            issue=(
+                "aortic dissection monitoring safety checks must include "
+                "continuous BP or arterial-line monitoring with access or urine-output "
+                "tracking, analgesia or morphine pain control, explicit heart-rate "
+                "or systolic BP targets, and type A surgical emergency or complicated "
+                "type B TEVAR, endovascular, or surgical pathway planning"
             ),
         ),
     )
@@ -21330,6 +21386,32 @@ def _has_aortic_dissection_treatment_safety_check(checks: list[Any]) -> bool:
         for term in AORTIC_DISSECTION_COMPLICATION_SAFETY_TERMS
     )
     return has_antithrombotic_safety and has_impulse_safety and has_complication_screen
+
+
+def _has_aortic_dissection_monitoring_targets_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_monitoring_access = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AORTIC_DISSECTION_MONITORING_ACCESS_SAFETY_TERMS
+    )
+    has_analgesia = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AORTIC_DISSECTION_ANALGESIA_SAFETY_TERMS
+    )
+    has_anti_impulse_targets = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AORTIC_DISSECTION_TARGET_SAFETY_TERMS
+    )
+    has_definitive_pathway = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AORTIC_DISSECTION_DEFINITIVE_PATHWAY_SAFETY_TERMS
+    )
+    return (
+        has_monitoring_access
+        and has_analgesia
+        and has_anti_impulse_targets
+        and has_definitive_pathway
+    )
 
 
 def _contains_safety_term(text: str, term: str) -> bool:

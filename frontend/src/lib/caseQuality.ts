@@ -11168,6 +11168,53 @@ const AORTIC_DISSECTION_COMPLICATION_SAFETY_TERMS = [
   "파열",
 ];
 
+const AORTIC_DISSECTION_MONITORING_ACCESS_SAFETY_TERMS = [
+  "arterial line",
+  "central venous",
+  "continuous bp",
+  "continuous blood pressure",
+  "foley",
+  "monitoring",
+  "telemetry",
+  "urine output",
+  "동맥라인",
+  "소변량",
+];
+
+const AORTIC_DISSECTION_ANALGESIA_SAFETY_TERMS = [
+  "analgesia",
+  "morphine",
+  "opioid",
+  "pain control",
+  "sympathetic tone",
+  "진통",
+];
+
+const AORTIC_DISSECTION_TARGET_SAFETY_TERMS = [
+  "100-120",
+  "100 to 120",
+  "heart rate 60",
+  "heart rate target",
+  "hr 60",
+  "sbp 100",
+  "sbp target",
+  "systolic blood pressure",
+  "목표 혈압",
+  "목표 심박",
+];
+
+const AORTIC_DISSECTION_DEFINITIVE_PATHWAY_SAFETY_TERMS = [
+  "complicated type b",
+  "endovascular",
+  "open surgery",
+  "surgical emergency",
+  "tevar",
+  "type a",
+  "type b",
+  "urgent surgical",
+  "응급 수술",
+];
+
 type SourceAnchoredSafetyField =
   | "clinical_red_flags"
   | "time_critical_actions"
@@ -17533,6 +17580,25 @@ function hasAorticDissectionTreatmentSafetyCheck(checks: string[]): boolean {
   return hasAntithromboticSafety && hasImpulseSafety && hasComplicationScreen;
 }
 
+function hasAorticDissectionMonitoringTargetsSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasMonitoringAccess = AORTIC_DISSECTION_MONITORING_ACCESS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAnalgesia = AORTIC_DISSECTION_ANALGESIA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntiImpulseTargets = AORTIC_DISSECTION_TARGET_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDefinitivePathway = AORTIC_DISSECTION_DEFINITIVE_PATHWAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasMonitoringAccess && hasAnalgesia && hasAntiImpulseTargets && hasDefinitivePathway
+  );
+}
+
 function domainSafetyGates(): ReviewQualityGate[] {
   return [
     {
@@ -19289,6 +19355,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAorticDissectionTreatmentSafetyCheck,
       issue:
         "aortic dissection safety checks must include antithrombotic or thrombolysis avoidance, beta-blocker-before-vasodilator impulse control safety, and malperfusion, rupture, tamponade, or aortic regurgitation complications",
+    },
+    {
+      name: "aortic_dissection_monitoring_targets_safety",
+      label: "Aortic dissection monitoring and targets",
+      applies: requiresAorticDissectionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAorticDissectionMonitoringTargetsSafetyCheck,
+      issue:
+        "aortic dissection monitoring safety checks must include continuous BP or arterial-line monitoring with access or urine-output tracking, analgesia or morphine pain control, explicit heart-rate or systolic BP targets, and type A surgical emergency or complicated type B TEVAR, endovascular, or surgical pathway planning",
     },
   ];
 }

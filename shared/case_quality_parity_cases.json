@@ -1776,6 +1776,55 @@
     }
   },
   {
+    "name": "aortic_dissection_requires_monitoring_targets_and_definitive_pathway",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "aortic dissection monitoring safety checks must include continuous BP"
+    ],
+    "overrides": {
+      "diagnosis": "Acute type A aortic dissection",
+      "chief_complaint": "Tearing chest and back pain",
+      "history_of_present_illness": "Patient with abrupt maximal chest pain radiating to the back, syncope, and asymmetric arm blood pressures.",
+      "key_teaching_points": [
+        "Acute aortic syndrome requires rapid definitive aortic imaging",
+        "Anti-impulse therapy reduces aortic shear while the team prepares definitive care",
+        "Type A involvement requires immediate surgical escalation or transfer"
+      ],
+      "clinical_red_flags": [
+        "Abrupt tearing chest pain radiating to the back",
+        "Syncope with pulse deficit and asymmetric blood pressure"
+      ],
+      "time_critical_actions": [
+        "Obtain urgent CT angiography of the aorta or TEE if unstable",
+        "Start anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
+        "Consult cardiothoracic or vascular surgery and transfer to an aortic team for suspected type A dissection"
+      ],
+      "contraindication_checks": [
+        "Avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+        "Use beta-blocker before vasodilator and monitor heart rate to prevent reflex tachycardia",
+        "Assess pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture risk"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Aortic Dissection",
+          "organization": "NCBI Bookshelf / StatPearls",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK441963/",
+          "supports": [
+            "acute aortic syndrome diagnosis and aortic dissection risk stratification",
+            "abrupt tearing chest pain radiating to the back as a high-risk feature",
+            "syncope with pulse deficit and asymmetric blood pressure as severity markers",
+            "urgent CT angiography of the aorta or TEE if unstable",
+            "anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
+            "cardiothoracic or vascular surgery consultation and transfer to an aortic team for suspected type A dissection",
+            "avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+            "beta-blocker before vasodilator with heart rate monitoring to prevent reflex tachycardia",
+            "pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture complications"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "severe_hyperkalemia_requires_calcium_shift_and_removal_actions",
     "expected_passed": false,
     "expected_issue_substrings": [
