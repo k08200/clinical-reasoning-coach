@@ -51,6 +51,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "anaphylaxis_observation_safety",
         "epiglottitis_time_critical_actions",
         "epiglottitis_treatment_safety",
+        "croup_time_critical_actions",
+        "croup_treatment_safety",
         "orbital_cellulitis_time_critical_actions",
         "orbital_cellulitis_treatment_safety",
         "gi_bleed_time_critical_actions",
@@ -663,6 +665,135 @@ def test_quality_gate_requires_epiglottitis_agitation_airway_backup_steroid_and_
     assert not report.passed
     assert any(
         "epiglottitis safety checks must include avoiding agitation" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_croup_severity_dexamethasone_epinephrine_and_airway_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Moderate to severe croup"
+    case["patient_demographics"] = {
+        "age": 2,
+        "sex": "male",
+        "weight_kg": 13,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Barky cough, hoarse voice, and stridor at rest"
+    case["history_of_present_illness"] = (
+        "Toddler with croup has sudden barky cough, hoarse voice, stridor at rest, "
+        "suprasternal retractions, respiratory distress, agitation, and intermittent "
+        "hypoxia after viral upper respiratory symptoms."
+    )
+    case["key_teaching_points"] = [
+        "Croup severity is based on stridor at rest, work of breathing, retractions, agitation, hypoxia, cyanosis, and impending respiratory failure",
+        "Dexamethasone is recommended for children with croup symptoms",
+        "Nebulized epinephrine is recommended for moderate to severe croup",
+    ]
+    case["clinical_red_flags"] = [
+        "Stridor at rest, marked retractions, hypoxia, cyanosis, lethargy, agitation, or impending respiratory failure",
+        "Toxic appearance, drooling, dysphagia, foreign body, epiglottitis, bacterial tracheitis, or anaphylaxis features",
+    ]
+    case["time_critical_actions"] = [
+        "Assess croup severity including stridor at rest, work of breathing, retractions, agitation, hypoxia, cyanosis, and impending respiratory failure",
+        "Give oral dexamethasone corticosteroid promptly",
+    ]
+    case["contraindication_checks"] = [
+        "Observe for 2-4 hours after epinephrine and monitor for recurrence, rebound, or return of stridor",
+        "Review red-flag differentials including toxic appearance, drooling, dysphagia, epiglottitis, bacterial tracheitis, foreign body, or anaphylaxis",
+        "Avoid antibiotics, avoid bronchodilator or beta-agonist therapy, and avoid humidified air or mist therapy in typical croup",
+        "Escalate to PICU, anesthesia, ENT, otolaryngology, or ORL and provide return precautions if response is poor, not sustained, or impending respiratory failure develops",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute management of croup in the emergency department",
+            "organization": "Canadian Paediatric Society",
+            "url": "https://cps.ca/en/documents/position/acute-management-of-croup",
+            "supports": [
+                "moderate to severe croup diagnosis and risk stratification",
+                "croup severity is based on stridor at rest, work of breathing, retractions, agitation, hypoxia, cyanosis, and impending respiratory failure",
+                "dexamethasone is recommended for children with croup symptoms",
+                "nebulized epinephrine is recommended for moderate to severe croup",
+                "stridor at rest, marked retractions, hypoxia, cyanosis, lethargy, agitation, or impending respiratory failure as red flags",
+                "toxic appearance, drooling, dysphagia, foreign body, epiglottitis, bacterial tracheitis, or anaphylaxis features",
+                "croup severity assessment including stridor at rest, work of breathing, retractions, agitation, hypoxia, cyanosis, and impending respiratory failure",
+                "oral dexamethasone corticosteroid promptly",
+                "2-4 hours observation after epinephrine for recurrence, rebound, or return of stridor",
+                "red-flag differential review for toxic appearance, drooling, dysphagia, epiglottitis, bacterial tracheitis, foreign body, or anaphylaxis",
+                "avoid antibiotics, bronchodilator or beta-agonist therapy, humidified air, and mist therapy in typical croup",
+                "PICU, anesthesia, ENT, otolaryngology, or ORL escalation and return precautions for poor or not sustained response or impending respiratory failure",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "croup time-critical actions must include severity assessment" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_croup_observation_differential_low_value_and_disposition_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe croup"
+    case["patient_demographics"] = {
+        "age": 3,
+        "sex": "female",
+        "weight_kg": 15,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Barky cough with stridor at rest and respiratory distress"
+    case["history_of_present_illness"] = (
+        "Child with severe croup has barky cough, hoarse voice, stridor at rest, "
+        "intercostal retractions, work of breathing, agitation, and hypoxia."
+    )
+    case["key_teaching_points"] = [
+        "Croup can progress to impending respiratory failure when distress is severe",
+        "Dexamethasone treats croup symptoms and nebulized epinephrine improves moderate to severe respiratory distress",
+        "Observation is needed because epinephrine benefit can disappear after about 2 hours",
+    ]
+    case["clinical_red_flags"] = [
+        "Stridor at rest, retractions, hypoxia, cyanosis, decreased level of consciousness, or impending respiratory failure",
+        "Toxic appearance, drooling, dysphagia, foreign body, epiglottitis, bacterial tracheitis, or anaphylaxis features",
+    ]
+    case["time_critical_actions"] = [
+        "Assess severity including stridor at rest, work of breathing, retractions, agitation, hypoxia, cyanosis, and impending respiratory failure",
+        "Give dexamethasone corticosteroid immediately",
+        "Give nebulized epinephrine or racemic epinephrine for moderate to severe symptoms",
+        "Provide oxygen and escalate airway planning to PICU, ICU, anesthesia, ENT, or intubation if respiratory failure or poor response develops",
+    ]
+    case["contraindication_checks"] = [
+        "Review medication allergy before discharge prescriptions",
+        "Confirm weight-based dosing for pediatric medications",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute management of croup in the emergency department",
+            "organization": "Canadian Paediatric Society",
+            "url": "https://cps.ca/en/documents/position/acute-management-of-croup",
+            "supports": [
+                "severe croup diagnosis and risk stratification",
+                "croup can progress to impending respiratory failure when distress is severe",
+                "dexamethasone treats croup symptoms and nebulized epinephrine improves moderate to severe respiratory distress",
+                "observation is needed because epinephrine benefit can disappear after about 2 hours",
+                "stridor at rest, retractions, hypoxia, cyanosis, decreased level of consciousness, or impending respiratory failure as red flags",
+                "toxic appearance, drooling, dysphagia, foreign body, epiglottitis, bacterial tracheitis, or anaphylaxis features",
+                "severity assessment including stridor at rest, work of breathing, retractions, agitation, hypoxia, cyanosis, and impending respiratory failure",
+                "dexamethasone corticosteroid immediately",
+                "nebulized epinephrine or racemic epinephrine for moderate to severe symptoms",
+                "oxygen and airway escalation to PICU, ICU, anesthesia, ENT, or intubation if respiratory failure or poor response develops",
+                "medication allergy before discharge prescriptions",
+                "weight-based dosing for pediatric medications",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "croup safety checks must include observation for recurrence" in issue
         for issue in report.critical_issues
     )
 

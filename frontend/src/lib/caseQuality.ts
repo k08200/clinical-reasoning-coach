@@ -601,6 +601,17 @@ const EPIGLOTTITIS_AIRWAY_CONTEXT_TERMS = [
   "침흘림",
 ];
 
+const EPIGLOTTITIS_HIGH_SPECIFICITY_CONTEXT_TERMS = [
+  "airway obstruction",
+  "drooling",
+  "muffled voice",
+  "odynophagia",
+  "severe sore throat",
+  "tripod",
+  "삼각 자세",
+  "침흘림",
+];
+
 const EPIGLOTTITIS_AIRWAY_ASSESSMENT_ACTION_TERMS = [
   "airway",
   "airway assessment",
@@ -686,6 +697,114 @@ const EPIGLOTTITIS_COMPLICATION_RISK_SAFETY_TERMS = [
   "respiratory failure",
   "sepsis",
   "기도폐쇄",
+];
+
+const CROUP_CONTEXT_TERMS = [
+  "barky cough",
+  "croup",
+  "croupy cough",
+  "laryngotracheitis",
+  "laryngotracheobronchitis",
+  "recurrent croup",
+  "severe croup",
+  "크룹",
+];
+
+const CROUP_SEVERITY_RISK_TERMS = [
+  "agitation",
+  "biphasic stridor",
+  "cyanosis",
+  "decreased level of consciousness",
+  "hypoxia",
+  "impending respiratory failure",
+  "in-drawing",
+  "lethargy",
+  "retractions",
+  "respiratory distress",
+  "stridor at rest",
+  "work of breathing",
+];
+
+const CROUP_SEVERITY_ASSESSMENT_ACTION_TERMS = [
+  "agitation",
+  "cyanosis",
+  "hypoxia",
+  "impending respiratory failure",
+  "retractions",
+  "severity",
+  "stridor at rest",
+  "work of breathing",
+];
+
+const CROUP_DEXAMETHASONE_ACTION_TERMS = [
+  "corticosteroid",
+  "dexamethasone",
+  "steroid",
+  "덱사메타손",
+];
+
+const CROUP_EPINEPHRINE_ACTION_TERMS = [
+  "adrenaline",
+  "epinephrine",
+  "nebulized epinephrine",
+  "racemic epinephrine",
+  "에피네프린",
+];
+
+const CROUP_AIRWAY_ESCALATION_ACTION_TERMS = [
+  "airway",
+  "anaesthesia",
+  "anesthesia",
+  "ent",
+  "icu",
+  "intubation",
+  "oxygen",
+  "picu",
+  "respiratory failure",
+];
+
+const CROUP_EPINEPHRINE_OBSERVATION_SAFETY_TERMS = [
+  "2 to 4 hours",
+  "2-4 hours",
+  "observation",
+  "observe",
+  "recurrence",
+  "rebound",
+  "return of stridor",
+];
+
+const CROUP_DIFFERENTIAL_RED_FLAG_SAFETY_TERMS = [
+  "anaphylaxis",
+  "bacterial tracheitis",
+  "drooling",
+  "dysphagia",
+  "epiglottitis",
+  "foreign body",
+  "toxic appearance",
+];
+
+const CROUP_LOW_VALUE_THERAPY_SAFETY_TERMS = [
+  "antibiotic not indicated",
+  "antibiotics rarely indicated",
+  "avoid antibiotics",
+  "avoid beta-agonist",
+  "avoid bronchodilator",
+  "avoid humidified air",
+  "avoid mist",
+  "bronchodilators rarely indicated",
+  "humidified air not recommended",
+];
+
+const CROUP_DISPOSITION_ESCALATION_SAFETY_TERMS = [
+  "anesthesia",
+  "ent",
+  "impending respiratory failure",
+  "not sustained",
+  "orl",
+  "otolaryngology",
+  "picu",
+  "poor response",
+  "return precautions",
 ];
 
 const ORBITAL_CELLULITIS_DIRECT_CONTEXT_TERMS = [
@@ -10474,13 +10593,25 @@ function requiresEpiglottitisSafetyCheck(detail: ClinicalCaseReviewDetail): bool
     .join(" ")
     .toLowerCase();
 
+  const diagnosisText = String(detail.diagnosis ?? "").toLowerCase();
+  const hasDirectDiagnosis = EPIGLOTTITIS_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(diagnosisText, term),
+  );
   const hasDirectContext = EPIGLOTTITIS_DIRECT_CONTEXT_TERMS.some((term) =>
     containsSafetyTerm(riskText, term),
   );
   const hasAirwayContext = EPIGLOTTITIS_AIRWAY_CONTEXT_TERMS.some((term) =>
     containsSafetyTerm(riskText, term),
   );
-  return hasDirectContext || hasAirwayContext;
+  const hasHighSpecificityContext = EPIGLOTTITIS_HIGH_SPECIFICITY_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasCroupContext = CROUP_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  return (
+    hasDirectDiagnosis ||
+    (hasDirectContext && !hasCroupContext) ||
+    (hasAirwayContext && hasHighSpecificityContext && !hasCroupContext)
+  );
 }
 
 function hasEpiglottitisTimeCriticalActions(actions: string[]): boolean {
@@ -10515,6 +10646,68 @@ function hasEpiglottitisTreatmentSafetyCheck(checks: string[]): boolean {
     containsSafetyTerm(normalizedChecks, term),
   );
   return hasAgitationSafety && hasAirwayBackup && hasSteroidAdjunct && hasComplicationRisk;
+}
+
+function requiresCroupSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = CROUP_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  const hasSeverityRisk = CROUP_SEVERITY_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasSeverityRisk;
+}
+
+function hasCroupTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasSeverityAssessment = CROUP_SEVERITY_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDexamethasone = CROUP_DEXAMETHASONE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEpinephrine = CROUP_EPINEPHRINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAirwayEscalation = CROUP_AIRWAY_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasSeverityAssessment && hasDexamethasone && hasEpinephrine && hasAirwayEscalation;
+}
+
+function hasCroupTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasObservation = CROUP_EPINEPHRINE_OBSERVATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferentialRedFlags = CROUP_DIFFERENTIAL_RED_FLAG_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLowValueTherapySafety = CROUP_LOW_VALUE_THERAPY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDispositionEscalation = CROUP_DISPOSITION_ESCALATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasObservation &&
+    hasDifferentialRedFlags &&
+    hasLowValueTherapySafety &&
+    hasDispositionEscalation
+  );
 }
 
 function requiresOrbitalCellulitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -15896,6 +16089,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasEpiglottitisTreatmentSafetyCheck,
       issue:
         "epiglottitis safety checks must include avoiding agitation, unnecessary throat exam, tongue depressor, avoidable procedures, or sedation that could precipitate airway collapse, anesthesia, ENT, failed-airway, surgical-airway, tracheostomy, or front-of-neck backup planning, corticosteroid, dexamethasone, methylprednisolone, or steroid-adjunct consideration, and complication-risk review for rapid deterioration, airway compromise, respiratory failure, abscess, diabetes, immunocompromised state, sepsis, or airway obstruction",
+    },
+    {
+      name: "croup_time_critical_actions",
+      label: "Croup steroids, epinephrine, and escalation",
+      applies: requiresCroupSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasCroupTimeCriticalActions,
+      issue:
+        "croup time-critical actions must include severity assessment for stridor at rest, work of breathing, hypoxia, cyanosis, or impending respiratory failure, dexamethasone or corticosteroid therapy, nebulized or racemic epinephrine for moderate-to-severe symptoms, and airway, oxygen, ICU, PICU, anesthesia, ENT, or intubation escalation for poor response",
+    },
+    {
+      name: "croup_treatment_safety",
+      label: "Croup observation and differential safety",
+      applies: requiresCroupSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasCroupTreatmentSafetyCheck,
+      issue:
+        "croup safety checks must include observation for recurrence or return of stridor for 2-4 hours after epinephrine, red-flag differential review for toxic appearance, drooling, dysphagia, epiglottitis, bacterial tracheitis, foreign body, or anaphylaxis, avoidance of routine antibiotics, bronchodilators, humidified air, or mist therapy in typical croup, and disposition or escalation planning for poor or unsustained response, impending respiratory failure, PICU, anesthesia, ENT, ORL, or return precautions",
     },
     {
       name: "orbital_cellulitis_time_critical_actions",

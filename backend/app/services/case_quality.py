@@ -587,6 +587,16 @@ EPIGLOTTITIS_AIRWAY_CONTEXT_TERMS = (
     "삼각 자세",
     "침흘림",
 )
+EPIGLOTTITIS_HIGH_SPECIFICITY_CONTEXT_TERMS = (
+    "airway obstruction",
+    "drooling",
+    "muffled voice",
+    "odynophagia",
+    "severe sore throat",
+    "tripod",
+    "삼각 자세",
+    "침흘림",
+)
 EPIGLOTTITIS_AIRWAY_ASSESSMENT_ACTION_TERMS = (
     "airway",
     "airway assessment",
@@ -665,6 +675,104 @@ EPIGLOTTITIS_COMPLICATION_RISK_SAFETY_TERMS = (
     "respiratory failure",
     "sepsis",
     "기도폐쇄",
+)
+CROUP_CONTEXT_TERMS = (
+    "barky cough",
+    "croup",
+    "croupy cough",
+    "laryngotracheitis",
+    "laryngotracheobronchitis",
+    "recurrent croup",
+    "severe croup",
+    "크룹",
+)
+CROUP_SEVERITY_RISK_TERMS = (
+    "agitation",
+    "biphasic stridor",
+    "cyanosis",
+    "decreased level of consciousness",
+    "hypoxia",
+    "impending respiratory failure",
+    "in-drawing",
+    "lethargy",
+    "retractions",
+    "respiratory distress",
+    "stridor at rest",
+    "work of breathing",
+)
+CROUP_SEVERITY_ASSESSMENT_ACTION_TERMS = (
+    "agitation",
+    "cyanosis",
+    "hypoxia",
+    "impending respiratory failure",
+    "retractions",
+    "severity",
+    "stridor at rest",
+    "work of breathing",
+)
+CROUP_DEXAMETHASONE_ACTION_TERMS = (
+    "corticosteroid",
+    "dexamethasone",
+    "steroid",
+    "덱사메타손",
+)
+CROUP_EPINEPHRINE_ACTION_TERMS = (
+    "adrenaline",
+    "epinephrine",
+    "nebulized epinephrine",
+    "racemic epinephrine",
+    "에피네프린",
+)
+CROUP_AIRWAY_ESCALATION_ACTION_TERMS = (
+    "airway",
+    "anaesthesia",
+    "anesthesia",
+    "ent",
+    "icu",
+    "intubation",
+    "oxygen",
+    "picu",
+    "respiratory failure",
+)
+CROUP_EPINEPHRINE_OBSERVATION_SAFETY_TERMS = (
+    "2 to 4 hours",
+    "2-4 hours",
+    "observation",
+    "observe",
+    "recurrence",
+    "rebound",
+    "return of stridor",
+)
+CROUP_DIFFERENTIAL_RED_FLAG_SAFETY_TERMS = (
+    "anaphylaxis",
+    "bacterial tracheitis",
+    "drooling",
+    "dysphagia",
+    "epiglottitis",
+    "foreign body",
+    "toxic appearance",
+)
+CROUP_LOW_VALUE_THERAPY_SAFETY_TERMS = (
+    "antibiotic not indicated",
+    "antibiotics rarely indicated",
+    "avoid antibiotics",
+    "avoid beta-agonist",
+    "avoid bronchodilator",
+    "avoid humidified air",
+    "avoid mist",
+    "bronchodilators rarely indicated",
+    "humidified air not recommended",
+)
+CROUP_DISPOSITION_ESCALATION_SAFETY_TERMS = (
+    "anesthesia",
+    "ent",
+    "impending respiratory failure",
+    "not sustained",
+    "orl",
+    "otolaryngology",
+    "picu",
+    "poor response",
+    "return precautions",
 )
 ORBITAL_CELLULITIS_DIRECT_CONTEXT_TERMS = (
     "orbital cellulitis",
@@ -9719,6 +9827,36 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="croup_time_critical_actions",
+            applies=_requires_croup_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_croup_time_critical_actions,
+            issue=(
+                "croup time-critical actions must include severity assessment "
+                "for stridor at rest, work of breathing, hypoxia, cyanosis, "
+                "or impending respiratory failure, dexamethasone or corticosteroid "
+                "therapy, nebulized or racemic epinephrine for moderate-to-severe "
+                "symptoms, and airway, oxygen, ICU, PICU, anesthesia, ENT, or "
+                "intubation escalation for poor response"
+            ),
+        ),
+        DomainSafetyGate(
+            name="croup_treatment_safety",
+            applies=_requires_croup_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_croup_treatment_safety_check,
+            issue=(
+                "croup safety checks must include observation for recurrence or "
+                "return of stridor for 2-4 hours after epinephrine, red-flag "
+                "differential review for toxic appearance, drooling, dysphagia, "
+                "epiglottitis, bacterial tracheitis, foreign body, or anaphylaxis, "
+                "avoidance of routine antibiotics, bronchodilators, humidified air, "
+                "or mist therapy in typical croup, and disposition or escalation "
+                "planning for poor or unsustained response, impending respiratory "
+                "failure, PICU, anesthesia, ENT, ORL, or return precautions"
+            ),
+        ),
+        DomainSafetyGate(
             name="orbital_cellulitis_time_critical_actions",
             applies=_requires_orbital_cellulitis_safety_check,
             field_name="time_critical_actions",
@@ -12355,6 +12493,11 @@ def _requires_epiglottitis_safety_check(data: dict[str, Any]) -> bool:
     ):
         risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
 
+    diagnosis_text = str(data.get("diagnosis", "")).lower()
+    has_direct_diagnosis = any(
+        _contains_safety_term(diagnosis_text, term)
+        for term in EPIGLOTTITIS_DIRECT_CONTEXT_TERMS
+    )
     has_direct_context = any(
         _contains_safety_term(risk_text, term)
         for term in EPIGLOTTITIS_DIRECT_CONTEXT_TERMS
@@ -12363,7 +12506,19 @@ def _requires_epiglottitis_safety_check(data: dict[str, Any]) -> bool:
         _contains_safety_term(risk_text, term)
         for term in EPIGLOTTITIS_AIRWAY_CONTEXT_TERMS
     )
-    return has_direct_context or has_airway_context
+    has_high_specificity_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in EPIGLOTTITIS_HIGH_SPECIFICITY_CONTEXT_TERMS
+    )
+    has_croup_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in CROUP_CONTEXT_TERMS
+    )
+    return has_direct_diagnosis or (
+        has_direct_context and not has_croup_context
+    ) or (
+        has_airway_context and has_high_specificity_context and not has_croup_context
+    )
 
 
 def _has_epiglottitis_time_critical_actions(actions: list[Any]) -> bool:
@@ -12415,6 +12570,90 @@ def _has_epiglottitis_treatment_safety_check(checks: list[Any]) -> bool:
         and has_airway_backup
         and has_steroid_adjunct
         and has_complication_risk
+    )
+
+
+def _requires_croup_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in CROUP_CONTEXT_TERMS
+    )
+    has_severity_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in CROUP_SEVERITY_RISK_TERMS
+    )
+    return has_context and has_severity_risk
+
+
+def _has_croup_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_severity_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CROUP_SEVERITY_ASSESSMENT_ACTION_TERMS
+    )
+    has_dexamethasone = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CROUP_DEXAMETHASONE_ACTION_TERMS
+    )
+    has_epinephrine = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CROUP_EPINEPHRINE_ACTION_TERMS
+    )
+    has_airway_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CROUP_AIRWAY_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_severity_assessment
+        and has_dexamethasone
+        and has_epinephrine
+        and has_airway_escalation
+    )
+
+
+def _has_croup_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_observation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CROUP_EPINEPHRINE_OBSERVATION_SAFETY_TERMS
+    )
+    has_differential_red_flags = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CROUP_DIFFERENTIAL_RED_FLAG_SAFETY_TERMS
+    )
+    has_low_value_therapy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CROUP_LOW_VALUE_THERAPY_SAFETY_TERMS
+    )
+    has_disposition_escalation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CROUP_DISPOSITION_ESCALATION_SAFETY_TERMS
+    )
+    return (
+        has_observation
+        and has_differential_red_flags
+        and has_low_value_therapy_safety
+        and has_disposition_escalation
     )
 
 

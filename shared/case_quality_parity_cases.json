@@ -955,6 +955,64 @@
     }
   },
   {
+    "name": "croup_requires_severity_dexamethasone_epinephrine_and_airway_escalation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "croup time-critical actions must include severity assessment"
+    ],
+    "overrides": {
+      "diagnosis": "Moderate to severe croup",
+      "patient_demographics": {
+        "age": 2,
+        "sex": "male",
+        "weight_kg": 13,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Barky cough, hoarse voice, and stridor at rest",
+      "history_of_present_illness": "Toddler with croup has sudden barky cough, hoarse voice, stridor at rest, suprasternal retractions, respiratory distress, agitation, and intermittent hypoxia after viral upper respiratory symptoms.",
+      "key_teaching_points": [
+        "Croup severity is based on stridor at rest, work of breathing, retractions, agitation, hypoxia, cyanosis, and impending respiratory failure",
+        "Dexamethasone is recommended for children with croup symptoms",
+        "Nebulized epinephrine is recommended for moderate to severe croup"
+      ],
+      "clinical_red_flags": [
+        "Stridor at rest, marked retractions, hypoxia, cyanosis, lethargy, agitation, or impending respiratory failure",
+        "Toxic appearance, drooling, dysphagia, foreign body, epiglottitis, bacterial tracheitis, or anaphylaxis features"
+      ],
+      "time_critical_actions": [
+        "Assess croup severity including stridor at rest, work of breathing, retractions, agitation, hypoxia, cyanosis, and impending respiratory failure",
+        "Give oral dexamethasone corticosteroid promptly"
+      ],
+      "contraindication_checks": [
+        "Observe for 2-4 hours after epinephrine and monitor for recurrence, rebound, or return of stridor",
+        "Review red-flag differentials including toxic appearance, drooling, dysphagia, epiglottitis, bacterial tracheitis, foreign body, or anaphylaxis",
+        "Avoid antibiotics, avoid bronchodilator or beta-agonist therapy, and avoid humidified air or mist therapy in typical croup",
+        "Escalate to PICU, anesthesia, ENT, otolaryngology, or ORL and provide return precautions if response is poor, not sustained, or impending respiratory failure develops"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Acute management of croup in the emergency department",
+          "organization": "Canadian Paediatric Society",
+          "url": "https://cps.ca/en/documents/position/acute-management-of-croup",
+          "supports": [
+            "moderate to severe croup diagnosis and risk stratification",
+            "croup severity is based on stridor at rest, work of breathing, retractions, agitation, hypoxia, cyanosis, and impending respiratory failure",
+            "dexamethasone is recommended for children with croup symptoms",
+            "nebulized epinephrine is recommended for moderate to severe croup",
+            "stridor at rest, marked retractions, hypoxia, cyanosis, lethargy, agitation, or impending respiratory failure as red flags",
+            "toxic appearance, drooling, dysphagia, foreign body, epiglottitis, bacterial tracheitis, or anaphylaxis features",
+            "croup severity assessment including stridor at rest, work of breathing, retractions, agitation, hypoxia, cyanosis, and impending respiratory failure",
+            "oral dexamethasone corticosteroid promptly",
+            "2-4 hours observation after epinephrine for recurrence, rebound, or return of stridor",
+            "red-flag differential review for toxic appearance, drooling, dysphagia, epiglottitis, bacterial tracheitis, foreign body, or anaphylaxis",
+            "avoid antibiotics, bronchodilator or beta-agonist therapy, humidified air, and mist therapy in typical croup",
+            "PICU, anesthesia, ENT, otolaryngology, or ORL escalation and return precautions for poor or not sustained response or impending respiratory failure"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "orbital_cellulitis_requires_orbital_assessment_imaging_antibiotics_and_specialists",
     "expected_passed": false,
     "expected_issue_substrings": [
