@@ -32,6 +32,7 @@ const TRUSTED_CLINICAL_SOURCE_HOSTS = new Set([
   "nejm.org",
   "nice.org.uk",
   "nih.gov",
+  "poison.org",
   "professional.diabetes.org",
   "pubmed.ncbi.nlm.nih.gov",
   "sccm.org",
@@ -7834,6 +7835,123 @@ const ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS = [
   "중단",
 ];
 
+const BUTTON_BATTERY_CONTEXT_TERMS = [
+  "battery ingestion",
+  "button battery",
+  "button-battery",
+  "button cell",
+  "button-cell",
+  "coin cell",
+  "coin-cell",
+  "disc battery",
+  "disk battery",
+  "double-rim",
+  "foreign body ingestion with halo",
+  "halo effect",
+  "lithium coin cell",
+  "step-off",
+  "버튼 배터리",
+];
+
+const BUTTON_BATTERY_XRAY_ACTION_TERMS = [
+  "abdomen",
+  "ap and lateral",
+  "double-rim",
+  "esophagus",
+  "halo",
+  "lateral view",
+  "neck",
+  "radiograph",
+  "step-off",
+  "x-ray",
+  "xray",
+];
+
+const BUTTON_BATTERY_POISON_NPO_ACTION_TERMS = [
+  "800-498-8666",
+  "battery hotline",
+  "do not induce vomiting",
+  "nothing by mouth",
+  "npo",
+  "poison center",
+  "poison control",
+];
+
+const BUTTON_BATTERY_HONEY_SUCRALFATE_ACTION_TERMS = [
+  "10 ml",
+  "carafate",
+  "every 10 minutes",
+  "honey",
+  "q10",
+  "sucralfate",
+];
+
+const BUTTON_BATTERY_REMOVAL_ACTION_TERMS = [
+  "battery removal",
+  "endoscopic removal",
+  "endoscopy",
+  "ent",
+  "esophageal battery",
+  "gastroenterology",
+  "gi",
+  "immediate removal",
+  "remove battery",
+  "surgery",
+  "urgent removal",
+];
+
+const BUTTON_BATTERY_NO_DELAY_SAFETY_TERMS = [
+  "2 hours",
+  "do not delay",
+  "eaten recently",
+  "not delay",
+  "not substitute",
+  "recent eating",
+  "sedation",
+];
+
+const BUTTON_BATTERY_ESOPHAGEAL_INJURY_SAFETY_TERMS = [
+  "aorta",
+  "exsanguination",
+  "fistula",
+  "large vessel",
+  "mediastinitis",
+  "mucosal injury",
+  "perforation",
+  "sentinel bleed",
+  "stricture",
+  "tracheoesophageal fistula",
+  "vocal cord paralysis",
+];
+
+const BUTTON_BATTERY_LOCATION_DISPOSITION_SAFETY_TERMS = [
+  "10-14 days",
+  "15 mm",
+  "20 mm",
+  "admit",
+  "beyond esophagus",
+  "large button battery",
+  "magnet",
+  "observe",
+  "passage",
+  "repeat radiograph",
+  "stomach",
+  "stool",
+];
+
+const BUTTON_BATTERY_AVOIDANCE_SAFETY_TERMS = [
+  "avoid blind removal",
+  "avoid ipecac",
+  "balloon catheter",
+  "chelation",
+  "do not induce vomiting",
+  "induced vomiting",
+  "laxative",
+  "magnet",
+  "mercury testing",
+  "polyethylene glycol",
+];
+
 const ACETAMINOPHEN_TOXICITY_CONTEXT_TERMS = [
   "acetaminophen overdose",
   "acetaminophen poisoning",
@@ -14669,6 +14787,64 @@ function hasAdrenalCrisisTreatmentSafetyCheck(checks: string[]): boolean {
   return hasDoNotDelaySafety && hasMonitoringSafety && hasPrecipitantReview;
 }
 
+function requiresButtonBatterySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return BUTTON_BATTERY_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasButtonBatteryTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasXray = BUTTON_BATTERY_XRAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPoisonNpo = BUTTON_BATTERY_POISON_NPO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHoneyOrSucralfate = BUTTON_BATTERY_HONEY_SUCRALFATE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRemoval = BUTTON_BATTERY_REMOVAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasXray && hasPoisonNpo && hasHoneyOrSucralfate && hasRemoval;
+}
+
+function hasButtonBatteryTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNoDelaySafety = BUTTON_BATTERY_NO_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEsophagealInjurySafety = BUTTON_BATTERY_ESOPHAGEAL_INJURY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLocationDispositionSafety = BUTTON_BATTERY_LOCATION_DISPOSITION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAvoidanceSafety = BUTTON_BATTERY_AVOIDANCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasNoDelaySafety &&
+    hasEsophagealInjurySafety &&
+    hasLocationDispositionSafety &&
+    hasAvoidanceSafety
+  );
+}
+
 function requiresAcetaminophenToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -17223,6 +17399,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAdrenalCrisisTreatmentSafetyCheck,
       issue:
         "adrenal crisis safety checks must include not delaying hydrocortisone for cortisol testing, glucose and electrolyte monitoring, and precipitant, infection, or missed-steroid review",
+    },
+    {
+      name: "button_battery_ingestion_time_critical_actions",
+      label: "Button battery ingestion localization and removal actions",
+      applies: requiresButtonBatterySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasButtonBatteryTimeCriticalActions,
+      issue:
+        "button battery ingestion time-critical actions must include immediate x-ray localization with AP/lateral neck, chest/esophagus, and abdomen views or double-rim/halo review, poison center or battery hotline consultation with NPO and no-vomiting instructions, honey or sucralfate mitigation when eligible without delaying care, and urgent endoscopic or specialist removal planning for esophageal batteries",
+    },
+    {
+      name: "button_battery_ingestion_treatment_safety",
+      label: "Button battery ingestion delay and injury safety",
+      applies: requiresButtonBatterySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasButtonBatteryTreatmentSafetyCheck,
+      issue:
+        "button battery ingestion safety checks must include no-delay removal safeguards because honey, sucralfate, recent eating, or sedation timing must not delay esophageal battery removal, delayed esophageal injury monitoring for perforation, tracheoesophageal or vascular fistula, vocal cord injury, stricture, or sentinel bleeding, stomach/beyond-esophagus disposition or repeat imaging criteria, and avoidance of ipecac, induced vomiting, blind balloon/magnet removal, chelation, laxatives, or unnecessary mercury testing",
     },
     {
       name: "acetaminophen_toxicity_time_critical_actions",

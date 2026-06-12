@@ -53,6 +53,7 @@ TRUSTED_CLINICAL_SOURCE_HOSTS = {
     "nejm.org",
     "nice.org.uk",
     "nih.gov",
+    "poison.org",
     "professional.diabetes.org",
     "pubmed.ncbi.nlm.nih.gov",
     "cps.ca",
@@ -7185,6 +7186,114 @@ ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS = (
     "유발",
     "중단",
 )
+BUTTON_BATTERY_CONTEXT_TERMS = (
+    "battery ingestion",
+    "button battery",
+    "button-battery",
+    "button cell",
+    "button-cell",
+    "coin cell",
+    "coin-cell",
+    "disc battery",
+    "disk battery",
+    "double-rim",
+    "foreign body ingestion with halo",
+    "halo effect",
+    "lithium coin cell",
+    "step-off",
+    "버튼 배터리",
+)
+BUTTON_BATTERY_XRAY_ACTION_TERMS = (
+    "abdomen",
+    "ap and lateral",
+    "double-rim",
+    "esophagus",
+    "halo",
+    "lateral view",
+    "neck",
+    "radiograph",
+    "step-off",
+    "x-ray",
+    "xray",
+)
+BUTTON_BATTERY_POISON_NPO_ACTION_TERMS = (
+    "800-498-8666",
+    "battery hotline",
+    "do not induce vomiting",
+    "nothing by mouth",
+    "npo",
+    "poison center",
+    "poison control",
+)
+BUTTON_BATTERY_HONEY_SUCRALFATE_ACTION_TERMS = (
+    "10 ml",
+    "carafate",
+    "every 10 minutes",
+    "honey",
+    "q10",
+    "sucralfate",
+)
+BUTTON_BATTERY_REMOVAL_ACTION_TERMS = (
+    "battery removal",
+    "endoscopic removal",
+    "endoscopy",
+    "ent",
+    "esophageal battery",
+    "gastroenterology",
+    "gi",
+    "immediate removal",
+    "remove battery",
+    "surgery",
+    "urgent removal",
+)
+BUTTON_BATTERY_NO_DELAY_SAFETY_TERMS = (
+    "2 hours",
+    "do not delay",
+    "eaten recently",
+    "not delay",
+    "not substitute",
+    "recent eating",
+    "sedation",
+)
+BUTTON_BATTERY_ESOPHAGEAL_INJURY_SAFETY_TERMS = (
+    "aorta",
+    "exsanguination",
+    "fistula",
+    "large vessel",
+    "mediastinitis",
+    "mucosal injury",
+    "perforation",
+    "sentinel bleed",
+    "stricture",
+    "tracheoesophageal fistula",
+    "vocal cord paralysis",
+)
+BUTTON_BATTERY_LOCATION_DISPOSITION_SAFETY_TERMS = (
+    "10-14 days",
+    "15 mm",
+    "20 mm",
+    "admit",
+    "beyond esophagus",
+    "large button battery",
+    "magnet",
+    "observe",
+    "passage",
+    "repeat radiograph",
+    "stomach",
+    "stool",
+)
+BUTTON_BATTERY_AVOIDANCE_SAFETY_TERMS = (
+    "avoid blind removal",
+    "avoid ipecac",
+    "balloon catheter",
+    "chelation",
+    "do not induce vomiting",
+    "induced vomiting",
+    "laxative",
+    "magnet",
+    "mercury testing",
+    "polyethylene glycol",
+)
 ACETAMINOPHEN_TOXICITY_CONTEXT_TERMS = (
     "acetaminophen overdose",
     "acetaminophen poisoning",
@@ -11684,6 +11793,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "adrenal crisis safety checks must include not delaying "
                 "hydrocortisone for cortisol testing, glucose and electrolyte "
                 "monitoring, and precipitant, infection, or missed-steroid review"
+            ),
+        ),
+        DomainSafetyGate(
+            name="button_battery_ingestion_time_critical_actions",
+            applies=_requires_button_battery_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_button_battery_time_critical_actions,
+            issue=(
+                "button battery ingestion time-critical actions must include "
+                "immediate x-ray localization with AP/lateral neck, chest/"
+                "esophagus, and abdomen views or double-rim/halo review, poison "
+                "center or battery hotline consultation with NPO and no-vomiting "
+                "instructions, honey or sucralfate mitigation when eligible "
+                "without delaying care, and urgent endoscopic or specialist "
+                "removal planning for esophageal batteries"
+            ),
+        ),
+        DomainSafetyGate(
+            name="button_battery_ingestion_treatment_safety",
+            applies=_requires_button_battery_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_button_battery_treatment_safety_check,
+            issue=(
+                "button battery ingestion safety checks must include no-delay "
+                "removal safeguards because honey, sucralfate, recent eating, or "
+                "sedation timing must not delay esophageal battery removal, "
+                "delayed esophageal injury monitoring for perforation, "
+                "tracheoesophageal or vascular fistula, vocal cord injury, "
+                "stricture, or sentinel bleeding, stomach/beyond-esophagus "
+                "disposition or repeat imaging criteria, and avoidance of "
+                "ipecac, induced vomiting, blind balloon/magnet removal, "
+                "chelation, laxatives, or unnecessary mercury testing"
             ),
         ),
         DomainSafetyGate(
@@ -17778,6 +17919,80 @@ def _has_adrenal_crisis_treatment_safety_check(checks: list[Any]) -> bool:
         for term in ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS
     )
     return has_do_not_delay_safety and has_monitoring_safety and has_precipitant_review
+
+
+def _requires_button_battery_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in BUTTON_BATTERY_CONTEXT_TERMS
+    )
+
+
+def _has_button_battery_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_xray = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_XRAY_ACTION_TERMS
+    )
+    has_poison_npo = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_POISON_NPO_ACTION_TERMS
+    )
+    has_honey_or_sucralfate = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_HONEY_SUCRALFATE_ACTION_TERMS
+    )
+    has_removal = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_REMOVAL_ACTION_TERMS
+    )
+    return has_xray and has_poison_npo and has_honey_or_sucralfate and has_removal
+
+
+def _has_button_battery_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_no_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_NO_DELAY_SAFETY_TERMS
+    )
+    has_esophageal_injury_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_ESOPHAGEAL_INJURY_SAFETY_TERMS
+    )
+    has_location_disposition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_LOCATION_DISPOSITION_SAFETY_TERMS
+    )
+    has_avoidance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_AVOIDANCE_SAFETY_TERMS
+    )
+    return (
+        has_no_delay_safety
+        and has_esophageal_injury_safety
+        and has_location_disposition_safety
+        and has_avoidance_safety
+    )
 
 
 def _requires_acetaminophen_toxicity_safety_check(data: dict[str, Any]) -> bool:
