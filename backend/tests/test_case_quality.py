@@ -233,6 +233,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "stroke_reperfusion_safety",
         "pe_time_critical_actions",
         "pe_contraindication_safety",
+        "pe_reperfusion_escalation_safety",
         "acs_time_critical_actions",
         "acs_contraindication_safety",
         "acs_medication_reperfusion_safety",
@@ -450,6 +451,11 @@ def test_quality_gate_allows_contrast_imaging_with_renal_safety_check():
         "Renal function and creatinine before contrast imaging",
         "Active bleeding risk before anticoagulation",
         "Pregnancy status when selecting PE imaging or anticoagulation",
+        "Start heparin or LMWH anticoagulation unless active bleeding or another major contraindication is present",
+        "Plan systemic thrombolysis for high-risk PE with shock and review catheter-directed therapy or surgical embolectomy if thrombolysis is contraindicated or fails",
+        "If hemodynamically unstable, use bedside echo or ultrasound pathway and do not delay reperfusion solely for CTPA",
+        "Use V/Q scan, compression ultrasound, or pregnancy, renal, and contrast allergy alternative imaging when CTPA is unsafe",
+        "Escalate to PERT, ICU, critical care, transfer, or PE specialist team for RV strain, hypotension, syncope, shock, or deterioration",
     ]
     case["clinical_sources"][0]["url"] = "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines"
     case["clinical_sources"][0]["supports"] = [
@@ -465,6 +471,11 @@ def test_quality_gate_allows_contrast_imaging_with_renal_safety_check():
         "renal function and creatinine before contrast imaging",
         "active bleeding risk before anticoagulation",
         "pregnancy status when selecting PE imaging or anticoagulation",
+        "heparin or LMWH anticoagulation unless active bleeding or another major contraindication is present",
+        "systemic thrombolysis for high-risk PE with shock and catheter-directed therapy or surgical embolectomy if thrombolysis is contraindicated or fails",
+        "bedside echo or ultrasound pathway and do not delay reperfusion solely for CTPA when hemodynamically unstable",
+        "V/Q scan, compression ultrasound, pregnancy, renal, and contrast allergy alternative imaging when CTPA is unsafe",
+        "PERT, ICU, critical care, transfer, or PE specialist team for RV strain, hypotension, syncope, shock, or deterioration",
     ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
@@ -13359,6 +13370,49 @@ def test_quality_gate_requires_pe_bleeding_renal_and_pregnancy_safety():
     assert not report.passed
     assert any(
         "PE safety checks must include bleeding or recent-surgery risk" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_pe_anticoagulation_reperfusion_imaging_and_pert_safety():
+    case = copy.deepcopy(CASE_POOL[2])
+    case["diagnosis"] = "High-risk pulmonary embolism with right ventricular strain"
+    case["time_critical_actions"] = [
+        "Risk stratify for massive versus submassive PE with Wells score and RV strain",
+        "Assess blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+        "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+    ]
+    case["contraindication_checks"] = [
+        "Bleeding risk and recent surgery before thrombolysis or anticoagulation",
+        "Renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
+        "Pregnancy status or hCG when selecting imaging and anticoagulation",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "2019 ESC Guidelines for Acute Pulmonary Embolism",
+            "organization": "European Society of Cardiology",
+            "url": "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines/Acute-Pulmonary-Embolism-Diagnosis-and-Management-of",
+            "supports": [
+                "risk stratification by hemodynamic instability and RV strain",
+                "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+                "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+                "unilateral calf swelling and elevated D-dimer in suspected PE",
+                "massive versus submassive PE with Wells score and RV strain",
+                "blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+                "CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+                "bleeding risk and recent surgery before thrombolysis or anticoagulation",
+                "renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
+                "pregnancy status or hCG when selecting imaging and anticoagulation",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "PE reperfusion escalation safety checks must include anticoagulation initiation"
+        in issue
         for issue in report.critical_issues
     )
 

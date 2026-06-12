@@ -10910,6 +10910,61 @@ const PE_RENAL_CONTRAST_SAFETY_TERMS = [
 
 const PE_PREGNANCY_SAFETY_TERMS = ["hcg", "pregnancy", "pregnant", "임신"];
 
+const PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS = [
+  "anticoagulation",
+  "anticoagulant",
+  "contraindication",
+  "heparin",
+  "lmwh",
+  "unfractionated",
+  "항응고",
+];
+
+const PE_REPERFUSION_ESCALATION_SAFETY_TERMS = [
+  "catheter directed",
+  "catheter-directed",
+  "embolectomy",
+  "reperfusion",
+  "surgical embolectomy",
+  "systemic thrombolysis",
+  "thrombolysis",
+  "재관류",
+];
+
+const PE_UNSTABLE_IMAGING_SAFETY_TERMS = [
+  "bedside echo",
+  "bedside ultrasound",
+  "ctpa delay",
+  "do not delay",
+  "hemodynamically unstable",
+  "hypotension",
+  "shock",
+  "unstable",
+  "불안정",
+];
+
+const PE_ALTERNATIVE_IMAGING_SAFETY_TERMS = [
+  "compression ultrasound",
+  "contrast allergy",
+  "duplex ultrasound",
+  "pregnancy",
+  "renal",
+  "v/q",
+  "ventilation perfusion",
+  "대체 영상",
+];
+
+const PE_PERT_DISPOSITION_SAFETY_TERMS = [
+  "critical care",
+  "icu",
+  "intensive care",
+  "pert",
+  "pulmonary embolism response team",
+  "specialist",
+  "transfer",
+  "중환자",
+];
+
 const ACS_CONTEXT_TERMS = [
   "acute coronary syndrome",
   "acs",
@@ -17343,6 +17398,32 @@ function hasPeContraindicationSafetyCheck(checks: string[]): boolean {
   return hasBleedingSafety && hasRenalContrastSafety && hasPregnancySafety;
 }
 
+function hasPeReperfusionEscalationSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAnticoagulationPlan = PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasReperfusionPlan = PE_REPERFUSION_ESCALATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasUnstableImagingLogic = PE_UNSTABLE_IMAGING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAlternativeImagingReview = PE_ALTERNATIVE_IMAGING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPertOrDispositionEscalation = PE_PERT_DISPOSITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasAnticoagulationPlan &&
+    hasReperfusionPlan &&
+    hasUnstableImagingLogic &&
+    hasAlternativeImagingReview &&
+    hasPertOrDispositionEscalation
+  );
+}
+
 function requiresAcsSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   if (requiresPeSafetyCheck(detail) || requiresStrokeReperfusionSafetyCheck(detail)) {
     return false;
@@ -19154,6 +19235,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasPeContraindicationSafetyCheck,
       issue:
         "PE safety checks must include bleeding or recent-surgery risk, renal/contrast safety, and pregnancy status when selecting imaging or anticoagulation",
+    },
+    {
+      name: "pe_reperfusion_escalation_safety",
+      label: "PE reperfusion escalation safety",
+      applies: requiresPeSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasPeReperfusionEscalationSafetyCheck,
+      issue:
+        "PE reperfusion escalation safety checks must include anticoagulation initiation or contraindication planning, systemic thrombolysis or catheter/surgical embolectomy options for high-risk deterioration, unstable-patient bedside echo or no-delay imaging logic, renal/contrast or pregnancy alternative imaging review, and PERT, ICU, transfer, or specialist escalation",
     },
     {
       name: "acs_time_critical_actions",

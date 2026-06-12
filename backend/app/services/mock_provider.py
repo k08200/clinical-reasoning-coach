@@ -252,6 +252,11 @@ _SOURCE_PE = {
         "thrombolysis reserved for high-risk or deteriorating PE",
         "bleeding risk, recent surgery, renal function, contrast allergy, and pregnancy safety checks",
         "pregnancy status when selecting imaging and anticoagulation",
+        "heparin or LMWH anticoagulation planning unless bleeding contraindications are present",
+        "systemic thrombolysis, catheter-directed therapy, or surgical embolectomy options for high-risk PE deterioration",
+        "bedside echo or ultrasound pathway without delaying reperfusion in hemodynamically unstable PE",
+        "V/Q scan, compression ultrasound, pregnancy, renal, or contrast allergy alternative imaging review",
+        "PERT, ICU, critical care, transfer, or specialist escalation for PE with RV strain or shock",
     ],
 }
 
@@ -265,6 +270,11 @@ _SOURCE_PE_STATPEARLS = {
         "CT pulmonary angiography, bedside echo, and hemodynamic stability pathways",
         "urgent reperfusion or thrombolysis for high-risk deteriorating PE",
         "bleeding risk, recent surgery, renal function, contrast allergy, and pregnancy safety checks",
+        "heparin or LMWH anticoagulation planning unless bleeding contraindications are present",
+        "systemic thrombolysis, catheter-directed therapy, or surgical embolectomy options for high-risk PE deterioration",
+        "bedside echo or ultrasound pathway without delaying reperfusion in hemodynamically unstable PE",
+        "V/Q scan, compression ultrasound, pregnancy, renal, or contrast allergy alternative imaging review",
+        "PERT, ICU, critical care, transfer, or specialist escalation for PE with RV strain or shock",
     ],
 }
 
@@ -551,6 +561,11 @@ _CASE_PE = {
         "Bleeding risk, recent surgery, and neuraxial anesthesia before thrombolysis or anticoagulation",
         "Renal function and contrast allergy before CT pulmonary angiography",
         "Pregnancy status when selecting imaging and anticoagulation",
+        "Start heparin or LMWH anticoagulation unless active bleeding or another major contraindication is present",
+        "Plan systemic thrombolysis for high-risk PE with shock and review catheter-directed therapy or surgical embolectomy if thrombolysis is contraindicated or fails",
+        "If hemodynamically unstable, use bedside echo or ultrasound pathway and do not delay reperfusion solely for CTPA",
+        "Use V/Q scan, compression ultrasound, or pregnancy, renal, and contrast allergy alternative imaging when CTPA is unsafe",
+        "Escalate to PERT, ICU, critical care, transfer, or PE specialist team for RV strain, hypotension, syncope, shock, or deterioration",
     ],
     "clinical_sources": [_SOURCE_PE, _SOURCE_PE_STATPEARLS],
     "review_status": "educational_draft",

@@ -10003,6 +10003,56 @@ PE_PREGNANCY_SAFETY_TERMS = (
     "pregnant",
     "임신",
 )
+PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS = (
+    "anticoagulation",
+    "anticoagulant",
+    "contraindication",
+    "heparin",
+    "lmwh",
+    "unfractionated",
+    "항응고",
+)
+PE_REPERFUSION_ESCALATION_SAFETY_TERMS = (
+    "catheter directed",
+    "catheter-directed",
+    "embolectomy",
+    "reperfusion",
+    "surgical embolectomy",
+    "systemic thrombolysis",
+    "thrombolysis",
+    "재관류",
+)
+PE_UNSTABLE_IMAGING_SAFETY_TERMS = (
+    "bedside echo",
+    "bedside ultrasound",
+    "ctpa delay",
+    "do not delay",
+    "hemodynamically unstable",
+    "hypotension",
+    "shock",
+    "unstable",
+    "불안정",
+)
+PE_ALTERNATIVE_IMAGING_SAFETY_TERMS = (
+    "compression ultrasound",
+    "contrast allergy",
+    "duplex ultrasound",
+    "pregnancy",
+    "renal",
+    "v/q",
+    "ventilation perfusion",
+    "대체 영상",
+)
+PE_PERT_DISPOSITION_SAFETY_TERMS = (
+    "critical care",
+    "icu",
+    "intensive care",
+    "pert",
+    "pulmonary embolism response team",
+    "specialist",
+    "transfer",
+    "중환자",
+)
 ACS_CONTEXT_TERMS = (
     "acute coronary syndrome",
     "acs",
@@ -13271,6 +13321,20 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "PE safety checks must include bleeding or recent-surgery risk, "
                 "renal/contrast safety, and pregnancy status when selecting imaging "
                 "or anticoagulation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="pe_reperfusion_escalation_safety",
+            applies=_requires_pe_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_pe_reperfusion_escalation_safety_check,
+            issue=(
+                "PE reperfusion escalation safety checks must include "
+                "anticoagulation initiation or contraindication planning, "
+                "systemic thrombolysis or catheter/surgical embolectomy options "
+                "for high-risk deterioration, unstable-patient bedside echo or "
+                "no-delay imaging logic, renal/contrast or pregnancy alternative "
+                "imaging review, and PERT, ICU, transfer, or specialist escalation"
             ),
         ),
         DomainSafetyGate(
@@ -21093,6 +21157,37 @@ def _has_pe_contraindication_safety_check(checks: list[Any]) -> bool:
         for term in PE_PREGNANCY_SAFETY_TERMS
     )
     return has_bleeding_safety and has_renal_contrast_safety and has_pregnancy_safety
+
+
+def _has_pe_reperfusion_escalation_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_anticoagulation_plan = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS
+    )
+    has_reperfusion_plan = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_REPERFUSION_ESCALATION_SAFETY_TERMS
+    )
+    has_unstable_imaging_logic = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_UNSTABLE_IMAGING_SAFETY_TERMS
+    )
+    has_alternative_imaging_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_ALTERNATIVE_IMAGING_SAFETY_TERMS
+    )
+    has_pert_or_disposition_escalation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_PERT_DISPOSITION_SAFETY_TERMS
+    )
+    return (
+        has_anticoagulation_plan
+        and has_reperfusion_plan
+        and has_unstable_imaging_logic
+        and has_alternative_imaging_review
+        and has_pert_or_disposition_escalation
+    )
 
 
 def _requires_acs_safety_check(data: dict[str, Any]) -> bool:

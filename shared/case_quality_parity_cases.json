@@ -907,6 +907,55 @@
     }
   },
   {
+    "name": "pe_requires_anticoagulation_reperfusion_imaging_and_pert_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "PE reperfusion escalation safety checks must include anticoagulation initiation"
+    ],
+    "overrides": {
+      "diagnosis": "High-risk pulmonary embolism with right ventricular strain",
+      "key_teaching_points": [
+        "Wells criteria and clinical probability guide PE diagnostic strategy",
+        "RV strain and hemodynamic instability determine PE risk category",
+        "CTPA or bedside echo pathway depends on hemodynamic stability"
+      ],
+      "clinical_red_flags": [
+        "Sudden dyspnea with hypoxemia and pleuritic chest pain after surgery",
+        "Tachycardia with borderline blood pressure and signs of right heart strain",
+        "Unilateral calf swelling and markedly elevated D-dimer"
+      ],
+      "time_critical_actions": [
+        "Risk stratify for massive versus submassive PE with Wells score and RV strain",
+        "Assess blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+        "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability"
+      ],
+      "contraindication_checks": [
+        "Bleeding risk and recent surgery before thrombolysis or anticoagulation",
+        "Renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
+        "Pregnancy status or hCG when selecting imaging and anticoagulation"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2019 ESC Guidelines for Acute Pulmonary Embolism",
+          "organization": "European Society of Cardiology",
+          "url": "https://www.escardio.org/Guidelines/Clinical-Practice-Guidelines/Acute-Pulmonary-Embolism-Diagnosis-and-Management-of",
+          "supports": [
+            "risk stratification by hemodynamic instability and RV strain",
+            "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+            "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+            "unilateral calf swelling and elevated D-dimer in suspected PE",
+            "massive versus submassive PE with Wells score and RV strain",
+            "blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+            "CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+            "bleeding risk and recent surgery before thrombolysis or anticoagulation",
+            "renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
+            "pregnancy status or hCG when selecting imaging and anticoagulation"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "acs_requires_ecg_reperfusion_and_antithrombotic_actions",
     "expected_passed": false,
     "expected_issue_substrings": [
