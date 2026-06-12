@@ -47,6 +47,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "infection_time_critical_actions",
         "infection_antimicrobial_safety",
         "sepsis_resuscitation_actions",
+        "pediatric_septic_shock_time_critical_actions",
+        "pediatric_septic_shock_treatment_safety",
         "anaphylaxis_time_critical_actions",
         "anaphylaxis_observation_safety",
         "epiglottitis_time_critical_actions",
@@ -8197,6 +8199,157 @@ def test_quality_gate_requires_sepsis_lactate_fluid_and_vasopressor_actions():
     assert not report.passed
     assert any(
         "sepsis time-critical actions must include lactate" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_pediatric_septic_shock_antibiotics_bolus_reassessment_vasoactive_and_picu_actions():
+    case = copy.deepcopy(CASE_POOL[1])
+    case["diagnosis"] = "Pediatric septic shock"
+    case["patient_demographics"] = {
+        "age": 6,
+        "sex": "female",
+        "weight_kg": 22,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, lethargy, and poor perfusion"
+    case["history_of_present_illness"] = (
+        "Child with septic shock has fever, altered mental status, hypotension, "
+        "delayed capillary refill, oliguria, lactate elevation, and "
+        "sepsis-associated organ dysfunction after pneumonia."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "70/38", "hr": 168, "rr": 42, "temp_c": 39.6, "spo2": 91},
+        "general": "Lethargic with poor perfusion",
+        "cardiovascular": "Delayed capillary refill and weak pulses",
+        "pulmonary": "Tachypnea without rales initially",
+    }
+    case["initial_labs"] = {
+        "lactate": "5.2 mmol/L",
+        "creatinine": "1.1 mg/dL",
+        "glucose": "64 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Pediatric septic shock requires immediate broad-spectrum antibiotics and cultures without delaying therapy",
+        "Fluid resuscitation in children uses 10-20 mL/kg isotonic or balanced crystalloid boluses with reassessment after each bolus",
+        "Fluid-refractory shock needs vasoactive or inotrope support and PICU escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension, altered mental status, delayed capillary refill, oliguria, high lactate, and organ dysfunction",
+        "Cold shock or warm shock with poor perfusion can deteriorate rapidly",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain blood cultures and give broad-spectrum antibiotics within 1 hour",
+        "Measure lactate and start sepsis resuscitation",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor for fluid overload with rales, hepatomegaly, pulmonary edema, respiratory distress, or worsening work of breathing and stop fluids if these develop",
+        "Do not delay vasoactive support for central line delay; use peripheral infusion or intraosseous IO access when needed",
+        "Check glucose, hypoglycemia, calcium, hypocalcemia, and ionized calcium during resuscitation",
+        "Review source control and hydrocortisone or steroid need for catecholamine resistant or vasopressor refractory shock",
+        "Medication allergy and renal dosing before antibiotics",
+        "Weight-based dosing and fluid calculations before medication or bolus therapy",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Surviving Sepsis Campaign International Guidelines for the Management of Septic Shock and Sepsis-Associated Organ Dysfunction in Children",
+            "organization": "Pediatric Critical Care Medicine",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/32032273/",
+            "supports": [
+                "pediatric septic shock diagnosis and risk stratification",
+                "pediatric septic shock requires immediate broad-spectrum antibiotics and cultures without delaying therapy",
+                "fluid resuscitation in children uses 10-20 mL/kg isotonic or balanced crystalloid boluses with reassessment after each bolus",
+                "fluid-refractory shock needs vasoactive or inotrope support and PICU escalation",
+                "hypotension, altered mental status, delayed capillary refill, oliguria, high lactate, and organ dysfunction as red flags",
+                "cold shock or warm shock with poor perfusion can deteriorate rapidly",
+                "blood cultures and broad-spectrum antibiotics within 1 hour",
+                "lactate measurement and sepsis resuscitation",
+                "fluid overload monitoring with rales, hepatomegaly, pulmonary edema, respiratory distress, or worsening work of breathing",
+                "peripheral infusion or intraosseous IO access to avoid central line delay for vasoactive support",
+                "glucose, hypoglycemia, calcium, hypocalcemia, and ionized calcium metabolic monitoring",
+                "source control and hydrocortisone or steroid review for catecholamine resistant or vasopressor refractory shock",
+                "medication allergy and renal dosing before antibiotics",
+                "weight-based dosing and fluid calculations before medication or bolus therapy",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "pediatric septic shock time-critical actions must include blood cultures"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_pediatric_septic_shock_fluid_overload_access_metabolic_and_source_safety():
+    case = copy.deepcopy(CASE_POOL[1])
+    case["diagnosis"] = "Septic shock in child"
+    case["patient_demographics"] = {
+        "age": 9,
+        "sex": "male",
+        "weight_kg": 30,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, hypotension, and confusion"
+    case["history_of_present_illness"] = (
+        "Child with pediatric sepsis has septic shock with warm shock, "
+        "hypotension, altered mental status, poor perfusion, capillary refill "
+        "delay, lactate 4.8, AKI, and sepsis-associated organ dysfunction."
+    )
+    case["key_teaching_points"] = [
+        "Septic shock in children requires cultures and broad-spectrum antibiotics within 1 hour",
+        "Use 10-20 mL/kg isotonic crystalloid or balanced crystalloid fluid boluses with serial reassessment",
+        "Start epinephrine, norepinephrine, or other vasoactive support for fluid-refractory shock",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension, poor perfusion, capillary refill delay, oliguria, lactate elevation, and organ dysfunction",
+        "Persistent shock after fluid bolus requires rapid critical care escalation",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain blood culture and give broad-spectrum antibiotic within 1 hour",
+        "Give 10-20 mL/kg isotonic crystalloid fluid bolus and repeat normal saline or balanced crystalloid only with serial reassessment",
+        "Reassess after each bolus using capillary refill, rales, hepatomegaly, work of breathing, and perfusion reassessment",
+        "Start epinephrine or norepinephrine vasoactive inotrope support for persistent shock",
+        "Escalate to PICU, ICU, critical care, and transport team transfer",
+        "Measure lactate during sepsis resuscitation",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy and renal dosing before antibiotics",
+        "Weight-based dosing and fluid calculations before medication or bolus therapy",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Surviving Sepsis Campaign International Guidelines for the Management of Septic Shock and Sepsis-Associated Organ Dysfunction in Children",
+            "organization": "Pediatric Critical Care Medicine",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/32032273/",
+            "supports": [
+                "septic shock in child diagnosis and risk stratification",
+                "septic shock in children requires cultures and broad-spectrum antibiotics within 1 hour",
+                "10-20 mL/kg isotonic crystalloid or balanced crystalloid fluid boluses with serial reassessment",
+                "epinephrine, norepinephrine, or other vasoactive support for fluid-refractory shock",
+                "hypotension, poor perfusion, capillary refill delay, oliguria, lactate elevation, and organ dysfunction as red flags",
+                "persistent shock after fluid bolus requires rapid critical care escalation",
+                "blood culture and broad-spectrum antibiotic within 1 hour",
+                "10-20 mL/kg isotonic crystalloid fluid bolus with normal saline or balanced crystalloid and serial reassessment",
+                "reassess after each bolus using capillary refill, rales, hepatomegaly, work of breathing, and perfusion reassessment",
+                "epinephrine or norepinephrine vasoactive inotrope support for persistent shock",
+                "PICU, ICU, critical care, and transport team transfer",
+                "lactate measurement during sepsis resuscitation",
+                "medication allergy and renal dosing before antibiotics",
+                "weight-based dosing and fluid calculations before medication or bolus therapy",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "pediatric septic shock safety checks must include fluid-overload monitoring"
+        in issue
         for issue in report.critical_issues
     )
 

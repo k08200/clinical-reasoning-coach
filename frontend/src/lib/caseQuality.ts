@@ -486,6 +486,113 @@ const SEPSIS_VASOPRESSOR_ACTION_TERMS = [
   "혈관수축제",
 ];
 
+const PEDIATRIC_SEPTIC_SHOCK_CONTEXT_TERMS = [
+  "child with septic shock",
+  "paediatric septic shock",
+  "pediatric sepsis",
+  "pediatric septic shock",
+  "sepsis-associated organ dysfunction",
+  "septic shock in child",
+  "septic shock in children",
+];
+
+const PEDIATRIC_SEPTIC_SHOCK_RISK_TERMS = [
+  "altered mental status",
+  "capillary refill",
+  "cold shock",
+  "delayed capillary refill",
+  "hypotension",
+  "lactate",
+  "oliguria",
+  "organ dysfunction",
+  "poor perfusion",
+  "septic shock",
+  "warm shock",
+];
+
+const PEDIATRIC_SEPTIC_SHOCK_ANTIBIOTIC_CULTURE_ACTION_TERMS = [
+  "antibiotic within 1 hour",
+  "antimicrobial within 1 hour",
+  "blood culture",
+  "broad-spectrum antibiotic",
+  "broad-spectrum antimicrobial",
+  "culture before antibiotics",
+  "within 1 hour",
+];
+
+const PEDIATRIC_SEPTIC_SHOCK_FLUID_ACTION_TERMS = [
+  "10 ml/kg",
+  "10-20 ml/kg",
+  "20 ml/kg",
+  "balanced crystalloid",
+  "fluid bolus",
+  "isotonic crystalloid",
+  "normal saline",
+];
+
+const PEDIATRIC_SEPTIC_SHOCK_REASSESSMENT_ACTION_TERMS = [
+  "capillary refill",
+  "hepatomegaly",
+  "perfusion reassessment",
+  "reassess after each bolus",
+  "rales",
+  "serial reassessment",
+  "work of breathing",
+];
+
+const PEDIATRIC_SEPTIC_SHOCK_VASOACTIVE_ACTION_TERMS = [
+  "epinephrine",
+  "inotrope",
+  "norepinephrine",
+  "peripheral vasoactive",
+  "vasoactive",
+  "vasopressor",
+];
+
+const PEDIATRIC_SEPTIC_SHOCK_ESCALATION_ACTION_TERMS = [
+  "critical care",
+  "icu",
+  "intensive care",
+  "picu",
+  "transport team",
+  "transfer",
+];
+
+const PEDIATRIC_SEPTIC_SHOCK_FLUID_OVERLOAD_SAFETY_TERMS = [
+  "fluid overload",
+  "hepatomegaly",
+  "pulmonary edema",
+  "rales",
+  "respiratory distress",
+  "stop fluids",
+  "worsening work of breathing",
+];
+
+const PEDIATRIC_SEPTIC_SHOCK_VASOACTIVE_ACCESS_SAFETY_TERMS = [
+  "central line delay",
+  "do not delay vasoactive",
+  "intraosseous",
+  "io access",
+  "peripheral infusion",
+  "peripheral vasoactive",
+];
+
+const PEDIATRIC_SEPTIC_SHOCK_METABOLIC_SAFETY_TERMS = [
+  "calcium",
+  "glucose",
+  "hypocalcemia",
+  "hypoglycemia",
+  "ionized calcium",
+];
+
+const PEDIATRIC_SEPTIC_SHOCK_STEROID_SOURCE_SAFETY_TERMS = [
+  "catecholamine resistant",
+  "hydrocortisone",
+  "source control",
+  "steroid",
+  "vasopressor refractory",
+];
+
 const ANTIMICROBIAL_ALLERGY_SAFETY_TERMS = [
   "allergies",
   "allergy",
@@ -14482,6 +14589,86 @@ function hasSepsisResuscitationActions(actions: string[]): boolean {
   return hasLactate && hasFluids && hasVasopressorOrShockEscalation;
 }
 
+function requiresPediatricSepticShockSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  if (!isPediatricAge(detail.patient_demographics.age)) {
+    return false;
+  }
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.initial_labs),
+    ...nestedStrings(detail.physical_exam),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = PEDIATRIC_SEPTIC_SHOCK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasGenericSepsis = SEPSIS_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = PEDIATRIC_SEPTIC_SHOCK_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return (hasContext || hasGenericSepsis) && hasRisk;
+}
+
+function hasPediatricSepticShockTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAntibioticsAndCultures =
+    PEDIATRIC_SEPTIC_SHOCK_ANTIBIOTIC_CULTURE_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasFluidBolus = PEDIATRIC_SEPTIC_SHOCK_FLUID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasReassessment = PEDIATRIC_SEPTIC_SHOCK_REASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVasoactive = PEDIATRIC_SEPTIC_SHOCK_VASOACTIVE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = PEDIATRIC_SEPTIC_SHOCK_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasAntibioticsAndCultures &&
+    hasFluidBolus &&
+    hasReassessment &&
+    hasVasoactive &&
+    hasEscalation
+  );
+}
+
+function hasPediatricSepticShockTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasFluidOverloadSafety = PEDIATRIC_SEPTIC_SHOCK_FLUID_OVERLOAD_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVasoactiveAccessSafety =
+    PEDIATRIC_SEPTIC_SHOCK_VASOACTIVE_ACCESS_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasMetabolicSafety = PEDIATRIC_SEPTIC_SHOCK_METABOLIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidOrSourceSafety = PEDIATRIC_SEPTIC_SHOCK_STEROID_SOURCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasFluidOverloadSafety &&
+    hasVasoactiveAccessSafety &&
+    hasMetabolicSafety &&
+    hasSteroidOrSourceSafety
+  );
+}
+
 function requiresDkaTreatmentSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -16891,6 +17078,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSepsisResuscitationActions,
       issue:
         "sepsis time-critical actions must include lactate measurement or reassessment, fluid resuscitation, and vasopressor or shock escalation planning",
+    },
+    {
+      name: "pediatric_septic_shock_time_critical_actions",
+      label: "Pediatric septic shock emergency actions",
+      applies: requiresPediatricSepticShockSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasPediatricSepticShockTimeCriticalActions,
+      issue:
+        "pediatric septic shock time-critical actions must include blood cultures or cultures with broad-spectrum antibiotics within 1 hour, 10-20 mL/kg isotonic or balanced crystalloid boluses, reassessment after each bolus using perfusion or fluid-overload signs, vasoactive or inotrope planning for fluid-refractory shock, and PICU, ICU, transport, or critical-care escalation",
+    },
+    {
+      name: "pediatric_septic_shock_treatment_safety",
+      label: "Pediatric septic shock fluid and vasoactive safety",
+      applies: requiresPediatricSepticShockSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasPediatricSepticShockTreatmentSafetyCheck,
+      issue:
+        "pediatric septic shock safety checks must include fluid-overload monitoring such as rales, hepatomegaly, pulmonary edema, or worsening work of breathing, avoiding central-line delay by using peripheral or intraosseous vasoactive support when needed, glucose, hypoglycemia, calcium, or ionized-calcium metabolic review, and source control or catecholamine-resistant shock hydrocortisone review",
     },
     {
       name: "anaphylaxis_time_critical_actions",

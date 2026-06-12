@@ -482,6 +482,102 @@ SEPSIS_VASOPRESSOR_ACTION_TERMS = (
     "저혈압",
     "혈관수축제",
 )
+PEDIATRIC_SEPTIC_SHOCK_CONTEXT_TERMS = (
+    "child with septic shock",
+    "paediatric septic shock",
+    "pediatric sepsis",
+    "pediatric septic shock",
+    "sepsis-associated organ dysfunction",
+    "septic shock in child",
+    "septic shock in children",
+)
+PEDIATRIC_SEPTIC_SHOCK_RISK_TERMS = (
+    "altered mental status",
+    "capillary refill",
+    "cold shock",
+    "delayed capillary refill",
+    "hypotension",
+    "lactate",
+    "oliguria",
+    "organ dysfunction",
+    "poor perfusion",
+    "septic shock",
+    "warm shock",
+)
+PEDIATRIC_SEPTIC_SHOCK_ANTIBIOTIC_CULTURE_ACTION_TERMS = (
+    "antibiotic within 1 hour",
+    "antimicrobial within 1 hour",
+    "blood culture",
+    "broad-spectrum antibiotic",
+    "broad-spectrum antimicrobial",
+    "culture before antibiotics",
+    "within 1 hour",
+)
+PEDIATRIC_SEPTIC_SHOCK_FLUID_ACTION_TERMS = (
+    "10 ml/kg",
+    "10-20 ml/kg",
+    "20 ml/kg",
+    "balanced crystalloid",
+    "fluid bolus",
+    "isotonic crystalloid",
+    "normal saline",
+)
+PEDIATRIC_SEPTIC_SHOCK_REASSESSMENT_ACTION_TERMS = (
+    "capillary refill",
+    "hepatomegaly",
+    "perfusion reassessment",
+    "reassess after each bolus",
+    "rales",
+    "serial reassessment",
+    "work of breathing",
+)
+PEDIATRIC_SEPTIC_SHOCK_VASOACTIVE_ACTION_TERMS = (
+    "epinephrine",
+    "inotrope",
+    "norepinephrine",
+    "peripheral vasoactive",
+    "vasoactive",
+    "vasopressor",
+)
+PEDIATRIC_SEPTIC_SHOCK_ESCALATION_ACTION_TERMS = (
+    "critical care",
+    "icu",
+    "intensive care",
+    "picu",
+    "transport team",
+    "transfer",
+)
+PEDIATRIC_SEPTIC_SHOCK_FLUID_OVERLOAD_SAFETY_TERMS = (
+    "fluid overload",
+    "hepatomegaly",
+    "pulmonary edema",
+    "rales",
+    "respiratory distress",
+    "stop fluids",
+    "worsening work of breathing",
+)
+PEDIATRIC_SEPTIC_SHOCK_VASOACTIVE_ACCESS_SAFETY_TERMS = (
+    "central line delay",
+    "do not delay vasoactive",
+    "intraosseous",
+    "io access",
+    "peripheral infusion",
+    "peripheral vasoactive",
+)
+PEDIATRIC_SEPTIC_SHOCK_METABOLIC_SAFETY_TERMS = (
+    "calcium",
+    "glucose",
+    "hypocalcemia",
+    "hypoglycemia",
+    "ionized calcium",
+)
+PEDIATRIC_SEPTIC_SHOCK_STEROID_SOURCE_SAFETY_TERMS = (
+    "catecholamine resistant",
+    "hydrocortisone",
+    "source control",
+    "steroid",
+    "vasopressor refractory",
+)
 ANTIMICROBIAL_ALLERGY_SAFETY_TERMS = (
     "allergies",
     "allergy",
@@ -10252,6 +10348,35 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="pediatric_septic_shock_time_critical_actions",
+            applies=_requires_pediatric_septic_shock_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_pediatric_septic_shock_time_critical_actions,
+            issue=(
+                "pediatric septic shock time-critical actions must include blood "
+                "cultures or cultures with broad-spectrum antibiotics within 1 "
+                "hour, 10-20 mL/kg isotonic or balanced crystalloid boluses, "
+                "reassessment after each bolus using perfusion or fluid-overload "
+                "signs, vasoactive or inotrope planning for fluid-refractory "
+                "shock, and PICU, ICU, transport, or critical-care escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="pediatric_septic_shock_treatment_safety",
+            applies=_requires_pediatric_septic_shock_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_pediatric_septic_shock_treatment_safety_check,
+            issue=(
+                "pediatric septic shock safety checks must include fluid-overload "
+                "monitoring such as rales, hepatomegaly, pulmonary edema, or "
+                "worsening work of breathing, avoiding central-line delay by "
+                "using peripheral or intraosseous vasoactive support when needed, "
+                "glucose, hypoglycemia, calcium, or ionized-calcium metabolic "
+                "review, and source control or catecholamine-resistant shock "
+                "hydrocortisone review"
+            ),
+        ),
+        DomainSafetyGate(
             name="anaphylaxis_time_critical_actions",
             applies=_requires_anaphylaxis_safety_check,
             field_name="time_critical_actions",
@@ -17516,6 +17641,101 @@ def _has_sepsis_resuscitation_actions(actions: list[Any]) -> bool:
         for term in SEPSIS_VASOPRESSOR_ACTION_TERMS
     )
     return has_lactate and has_fluids and has_vasopressor_or_shock_escalation
+
+
+def _requires_pediatric_septic_shock_safety_check(data: dict[str, Any]) -> bool:
+    demographics = data.get("patient_demographics") or {}
+    if not _is_pediatric_age(demographics.get("age")):
+        return False
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "initial_labs",
+        "physical_exam",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in PEDIATRIC_SEPTIC_SHOCK_CONTEXT_TERMS
+    )
+    has_generic_sepsis = any(
+        _contains_safety_term(risk_text, term)
+        for term in SEPSIS_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in PEDIATRIC_SEPTIC_SHOCK_RISK_TERMS
+    )
+    return (has_context or has_generic_sepsis) and has_risk
+
+
+def _has_pediatric_septic_shock_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_antibiotics_and_cultures = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_SEPTIC_SHOCK_ANTIBIOTIC_CULTURE_ACTION_TERMS
+    )
+    has_fluid_bolus = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_SEPTIC_SHOCK_FLUID_ACTION_TERMS
+    )
+    has_reassessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_SEPTIC_SHOCK_REASSESSMENT_ACTION_TERMS
+    )
+    has_vasoactive = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_SEPTIC_SHOCK_VASOACTIVE_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_SEPTIC_SHOCK_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_antibiotics_and_cultures
+        and has_fluid_bolus
+        and has_reassessment
+        and has_vasoactive
+        and has_escalation
+    )
+
+
+def _has_pediatric_septic_shock_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_fluid_overload_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_SEPTIC_SHOCK_FLUID_OVERLOAD_SAFETY_TERMS
+    )
+    has_vasoactive_access_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_SEPTIC_SHOCK_VASOACTIVE_ACCESS_SAFETY_TERMS
+    )
+    has_metabolic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_SEPTIC_SHOCK_METABOLIC_SAFETY_TERMS
+    )
+    has_steroid_or_source_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_SEPTIC_SHOCK_STEROID_SOURCE_SAFETY_TERMS
+    )
+    return (
+        has_fluid_overload_safety
+        and has_vasoactive_access_safety
+        and has_metabolic_safety
+        and has_steroid_or_source_safety
+    )
 
 
 def _requires_dka_treatment_safety_check(data: dict[str, Any]) -> bool:
