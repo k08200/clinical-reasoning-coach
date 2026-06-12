@@ -201,6 +201,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "opioid_toxicity_treatment_safety",
         "sickle_splenic_sequestration_time_critical_actions",
         "sickle_splenic_sequestration_treatment_safety",
+        "sickle_stroke_time_critical_actions",
+        "sickle_stroke_treatment_safety",
         "acute_chest_syndrome_time_critical_actions",
         "acute_chest_syndrome_treatment_safety",
         "severe_asthma_time_critical_actions",
@@ -11317,6 +11319,150 @@ def test_quality_gate_requires_sickle_splenic_sequestration_overtransfusion_diff
     assert not report.passed
     assert any(
         "sickle cell splenic sequestration safety checks must include avoiding over-transfusion"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_sickle_stroke_neuroimaging_transfusion_and_expert_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sickle cell acute stroke"
+    case["patient_demographics"] = {
+        "age": 12,
+        "sex": "female",
+        "weight_kg": 38,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden right-sided weakness and speech difficulty"
+    case["history_of_present_illness"] = (
+        "Child with sickle cell disease HbSS has acute stroke in sickle cell "
+        "with sudden hemiparesis, aphasia, severe headache, seizure, and altered "
+        "mental status after vaso-occlusive pain."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "110/68", "hr": 118, "rr": 22, "temp_c": 37.4, "spo2": 96},
+        "neuro": "Right hemiparesis, aphasia, and focal neurologic deficit",
+        "general": "Anxious but protecting airway",
+    }
+    case["initial_labs"] = {
+        "hemoglobin": "7.2 g/dL",
+        "platelets": "310 K/uL",
+        "glucose": "104 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Stroke in sickle cell disease can present with sudden weakness, aphasia, seizure, coma, or severe headache",
+        "Urgent neuroimaging and neurologic consultation are required for suspected acute stroke in sickle cell disease",
+        "Exchange transfusion should be coordinated with a sickle cell expert when acute stroke is confirmed by neuroimaging",
+    ]
+    case["clinical_red_flags"] = [
+        "Severe headache, altered level of consciousness, seizure, speech problems, paralysis, and focal neurologic deficit",
+        "Sickle cell stroke can recur without secondary prevention",
+    ]
+    case["time_critical_actions"] = [
+        "Call urgent neurology consultation and assess airway, glucose, and neurologic deficits",
+        "Obtain urgent head CT followed by MRI and MRA neuroimaging if available",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid transfusing above hemoglobin 10 g/dL to prevent hyperviscosity in sickle cell disease",
+        "Ask blood bank to review transfusion history, antigen matching for C antigen, E antigen, and K antigen, sickle-negative units, and alloimmunization risk",
+        "Plan secondary prevention with monthly simple or exchange transfusions to reduce stroke recurrence",
+        "Review hemorrhagic stroke, intracranial hemorrhage, TIA, seizure, and stroke mimic diagnoses",
+        "Weight-based dosing and fluid calculations before medication or bolus therapy",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Evidence-Based Management of Sickle Cell Disease: Expert Panel Report, 2014",
+            "organization": "National Heart, Lung, and Blood Institute",
+            "url": "https://www.nhlbi.nih.gov/health-topics/evidence-based-management-sickle-cell-disease",
+            "supports": [
+                "sickle cell acute stroke diagnosis and risk stratification",
+                "stroke in sickle cell disease can present with sudden weakness, aphasia, seizure, coma, or severe headache",
+                "urgent neuroimaging and neurologic consultation are required for suspected acute stroke in sickle cell disease",
+                "exchange transfusion should be coordinated with a sickle cell expert when acute stroke is confirmed by neuroimaging",
+                "severe headache, altered level of consciousness, seizure, speech problems, paralysis, and focal neurologic deficit as red flags",
+                "sickle cell stroke can recur without secondary prevention",
+                "urgent neurology consultation and assessment of airway, glucose, and neurologic deficits",
+                "urgent head CT followed by MRI and MRA neuroimaging if available",
+                "avoid transfusing above hemoglobin 10 g/dL to prevent hyperviscosity",
+                "blood bank review of transfusion history, antigen matching for C antigen, E antigen, and K antigen, sickle-negative units, and alloimmunization risk",
+                "secondary prevention with monthly simple or exchange transfusions to reduce stroke recurrence",
+                "hemorrhagic stroke, intracranial hemorrhage, TIA, seizure, and stroke mimic review",
+                "weight-based dosing and fluid calculations before medication or bolus therapy",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "sickle cell stroke time-critical actions must include urgent neurology"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_sickle_stroke_hyperviscosity_blood_bank_secondary_prevention_and_mimic_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sickle cell disease with stroke"
+    case["patient_demographics"] = {
+        "age": 16,
+        "sex": "male",
+        "weight_kg": 52,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe headache, aphasia, and left arm weakness"
+    case["history_of_present_illness"] = (
+        "Teen with sickle cell disease has stroke in sickle cell with severe "
+        "headache, speech problem, weakness, altered level of consciousness, "
+        "and suspected acute ischemic infarct on neuroimaging."
+    )
+    case["key_teaching_points"] = [
+        "People with SCD and acute neurologic symptoms need urgent head CT followed by MRI and MRA if available",
+        "Acute stroke confirmed by neuroimaging should trigger exchange transfusion with sickle cell expert consultation",
+        "Monthly transfusion programs reduce but do not eliminate recurrent stroke risk",
+    ]
+    case["clinical_red_flags"] = [
+        "Severe headache, altered mental status, seizure, speech problem, paralysis, aphasia, and hemiparesis",
+        "Prior sickle cell stroke or TIA raises recurrence risk",
+    ]
+    case["time_critical_actions"] = [
+        "Call urgent neurology stroke consult for focal neurologic deficits",
+        "Perform urgent head CT then MRI and MRA neuroimaging when available",
+        "Arrange exchange transfusion or red cell exchange when acute stroke is confirmed",
+        "Consult hematology, sickle cell expert, and apheresis service immediately",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before sedation",
+        "Weight-based dosing and fluid calculations before medication or bolus therapy",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Evidence-Based Management of Sickle Cell Disease: Expert Panel Report, 2014",
+            "organization": "National Heart, Lung, and Blood Institute",
+            "url": "https://www.nhlbi.nih.gov/health-topics/evidence-based-management-sickle-cell-disease",
+            "supports": [
+                "sickle cell disease with stroke diagnosis and risk stratification",
+                "people with SCD and acute neurologic symptoms need urgent head CT followed by MRI and MRA if available",
+                "acute stroke confirmed by neuroimaging should trigger exchange transfusion with sickle cell expert consultation",
+                "monthly transfusion programs reduce but do not eliminate recurrent stroke risk",
+                "severe headache, altered mental status, seizure, speech problem, paralysis, aphasia, and hemiparesis as red flags",
+                "prior sickle cell stroke or TIA raises recurrence risk",
+                "urgent neurology stroke consult for focal neurologic deficits",
+                "urgent head CT then MRI and MRA neuroimaging when available",
+                "exchange transfusion or red cell exchange when acute stroke is confirmed",
+                "hematology, sickle cell expert, and apheresis consultation",
+                "medication allergy before sedation",
+                "weight-based dosing and fluid calculations before medication or bolus therapy",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "sickle cell stroke safety checks must include hyperviscosity avoidance"
         in issue
         for issue in report.critical_issues
     )

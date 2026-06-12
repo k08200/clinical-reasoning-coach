@@ -2616,6 +2616,82 @@
     }
   },
   {
+    "name": "sickle_stroke_requires_neuroimaging_transfusion_and_expert",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "sickle cell stroke time-critical actions must include urgent neurology"
+    ],
+    "overrides": {
+      "diagnosis": "Sickle cell acute stroke",
+      "patient_demographics": {
+        "age": 12,
+        "sex": "female",
+        "weight_kg": 38,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Sudden right-sided weakness and speech difficulty",
+      "history_of_present_illness": "Child with sickle cell disease HbSS has acute stroke in sickle cell with sudden hemiparesis, aphasia, severe headache, seizure, and altered mental status after vaso-occlusive pain.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "110/68",
+          "hr": 118,
+          "rr": 22,
+          "temp_c": 37.4,
+          "spo2": 96
+        },
+        "neuro": "Right hemiparesis, aphasia, and focal neurologic deficit",
+        "general": "Anxious but protecting airway"
+      },
+      "initial_labs": {
+        "hemoglobin": "7.2 g/dL",
+        "platelets": "310 K/uL",
+        "glucose": "104 mg/dL"
+      },
+      "key_teaching_points": [
+        "Stroke in sickle cell disease can present with sudden weakness, aphasia, seizure, coma, or severe headache",
+        "Urgent neuroimaging and neurologic consultation are required for suspected acute stroke in sickle cell disease",
+        "Exchange transfusion should be coordinated with a sickle cell expert when acute stroke is confirmed by neuroimaging"
+      ],
+      "clinical_red_flags": [
+        "Severe headache, altered level of consciousness, seizure, speech problems, paralysis, and focal neurologic deficit",
+        "Sickle cell stroke can recur without secondary prevention"
+      ],
+      "time_critical_actions": [
+        "Call urgent neurology consultation and assess airway, glucose, and neurologic deficits",
+        "Obtain urgent head CT followed by MRI and MRA neuroimaging if available"
+      ],
+      "contraindication_checks": [
+        "Avoid transfusing above hemoglobin 10 g/dL to prevent hyperviscosity in sickle cell disease",
+        "Ask blood bank to review transfusion history, antigen matching for C antigen, E antigen, and K antigen, sickle-negative units, and alloimmunization risk",
+        "Plan secondary prevention with monthly simple or exchange transfusions to reduce stroke recurrence",
+        "Review hemorrhagic stroke, intracranial hemorrhage, TIA, seizure, and stroke mimic diagnoses",
+        "Weight-based dosing and fluid calculations before medication or bolus therapy"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Evidence-Based Management of Sickle Cell Disease: Expert Panel Report, 2014",
+          "organization": "National Heart, Lung, and Blood Institute",
+          "url": "https://www.nhlbi.nih.gov/health-topics/evidence-based-management-sickle-cell-disease",
+          "supports": [
+            "sickle cell acute stroke diagnosis and risk stratification",
+            "stroke in sickle cell disease can present with sudden weakness, aphasia, seizure, coma, or severe headache",
+            "urgent neuroimaging and neurologic consultation are required for suspected acute stroke in sickle cell disease",
+            "exchange transfusion should be coordinated with a sickle cell expert when acute stroke is confirmed by neuroimaging",
+            "severe headache, altered level of consciousness, seizure, speech problems, paralysis, and focal neurologic deficit as red flags",
+            "sickle cell stroke can recur without secondary prevention",
+            "urgent neurology consultation and assessment of airway, glucose, and neurologic deficits",
+            "urgent head CT followed by MRI and MRA neuroimaging if available",
+            "avoid transfusing above hemoglobin 10 g/dL to prevent hyperviscosity",
+            "blood bank review of transfusion history, antigen matching for C antigen, E antigen, and K antigen, sickle-negative units, and alloimmunization risk",
+            "secondary prevention with monthly simple or exchange transfusions to reduce stroke recurrence",
+            "hemorrhagic stroke, intracranial hemorrhage, TIA, seizure, and stroke mimic review",
+            "weight-based dosing and fluid calculations before medication or bolus therapy"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "acute_chest_syndrome_requires_imaging_oxygen_antibiotics_spirometry_transfusion_and_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

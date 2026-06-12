@@ -9135,6 +9135,100 @@ const SICKLE_SPLENIC_SEQUESTRATION_MONITORING_SAFETY_TERMS = [
   "vital signs",
 ];
 
+const SICKLE_STROKE_CONTEXT_TERMS = [
+  "acute stroke in sickle cell",
+  "cerebrovascular accident in sickle cell",
+  "sickle cell acute stroke",
+  "sickle cell disease with stroke",
+  "sickle cell stroke",
+  "sickle stroke",
+  "stroke in sickle cell",
+];
+
+const SICKLE_STROKE_RISK_TERMS = [
+  "altered level of consciousness",
+  "altered mental status",
+  "aphasia",
+  "focal neurologic",
+  "hemiparesis",
+  "paralysis",
+  "seizure",
+  "severe headache",
+  "speech problem",
+  "tia",
+  "transient ischemic attack",
+  "weakness",
+];
+
+const SICKLE_STROKE_NEURO_ACTION_TERMS = [
+  "neurologic consultation",
+  "neurology",
+  "stroke consult",
+  "stroke team",
+];
+
+const SICKLE_STROKE_IMAGING_ACTION_TERMS = [
+  "ct",
+  "head ct",
+  "magnetic resonance angiography",
+  "mra",
+  "mri",
+  "neuroimaging",
+  "urgent head",
+];
+
+const SICKLE_STROKE_TRANSFUSION_ACTION_TERMS = [
+  "exchange transfusion",
+  "erythrocytapheresis",
+  "red cell exchange",
+  "simple transfusion",
+  "transfusion",
+];
+
+const SICKLE_STROKE_EXPERT_ACTION_TERMS = [
+  "apheresis",
+  "hematology",
+  "sickle cell expert",
+  "sickle cell specialist",
+];
+
+const SICKLE_STROKE_HYPERVISCOSITY_SAFETY_TERMS = [
+  "avoid hemoglobin above 10",
+  "avoid transfusing above 10",
+  "hemoglobin above 10",
+  "hyperviscosity",
+  "target hemoglobin above 10",
+];
+
+const SICKLE_STROKE_BLOOD_BANK_SAFETY_TERMS = [
+  "alloimmunization",
+  "antigen matching",
+  "blood bank",
+  "c antigen",
+  "e antigen",
+  "k antigen",
+  "sickle-negative",
+  "transfusion history",
+];
+
+const SICKLE_STROKE_SECONDARY_PREVENTION_SAFETY_TERMS = [
+  "chronic transfusion",
+  "monthly exchange",
+  "monthly simple",
+  "monthly transfusion",
+  "secondary prevention",
+  "stroke recurrence",
+];
+
+const SICKLE_STROKE_MIMIC_HEMORRHAGE_SAFETY_TERMS = [
+  "hemorrhagic stroke",
+  "intracranial hemorrhage",
+  "mimic",
+  "seizure",
+  "tia",
+  "transient ischemic attack",
+];
+
 const ACUTE_CHEST_SYNDROME_CONTEXT_TERMS = [
   "acute chest syndrome",
   "sickle acute chest",
@@ -15873,6 +15967,68 @@ function hasSickleSplenicSequestrationTreatmentSafetyCheck(checks: string[]): bo
   );
 }
 
+function requiresSickleStrokeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = SICKLE_STROKE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = SICKLE_STROKE_RISK_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  return hasContext && hasRisk;
+}
+
+function hasSickleStrokeTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasNeuroConsult = SICKLE_STROKE_NEURO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeuroimaging = SICKLE_STROKE_IMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTransfusion = SICKLE_STROKE_TRANSFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasExpert = SICKLE_STROKE_EXPERT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasNeuroConsult && hasNeuroimaging && hasTransfusion && hasExpert;
+}
+
+function hasSickleStrokeTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasHyperviscositySafety = SICKLE_STROKE_HYPERVISCOSITY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBloodBankSafety = SICKLE_STROKE_BLOOD_BANK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSecondaryPrevention = SICKLE_STROKE_SECONDARY_PREVENTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMimicOrHemorrhageSafety = SICKLE_STROKE_MIMIC_HEMORRHAGE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasHyperviscositySafety &&
+    hasBloodBankSafety &&
+    hasSecondaryPrevention &&
+    hasMimicOrHemorrhageSafety
+  );
+}
+
 function requiresAcuteChestSyndromeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const directContext = [
     detail.chief_complaint,
@@ -18121,6 +18277,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSickleSplenicSequestrationTreatmentSafetyCheck,
       issue:
         "sickle cell splenic sequestration safety checks must include avoiding over-transfusion or hyperviscosity such as hemoglobin above 8 g/dL, differential review for aplastic crisis, delayed hemolytic transfusion reaction, acute chest syndrome, infection, or sepsis, recurrence monitoring with spleen-size education and splenectomy discussion, and serial CBC, hemoglobin rebound, recheck, or vital-sign monitoring",
+    },
+    {
+      name: "sickle_stroke_time_critical_actions",
+      label: "Sickle stroke neuroimaging and transfusion actions",
+      applies: requiresSickleStrokeSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSickleStrokeTimeCriticalActions,
+      issue:
+        "sickle cell stroke time-critical actions must include urgent neurology or stroke consultation, urgent CT followed by MRI/MRA or neuroimaging when available, exchange or simple transfusion planning for imaging-confirmed acute stroke, and hematology, sickle cell expert, or apheresis consultation",
+    },
+    {
+      name: "sickle_stroke_treatment_safety",
+      label: "Sickle stroke transfusion and recurrence safety",
+      applies: requiresSickleStrokeSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSickleStrokeTreatmentSafetyCheck,
+      issue:
+        "sickle cell stroke safety checks must include hyperviscosity avoidance such as not transfusing above hemoglobin 10 g/dL, blood bank review for transfusion history, antigen matching, sickle-negative units, or alloimmunization risk, secondary stroke prevention with monthly simple or exchange transfusions, and hemorrhagic stroke, TIA, seizure, or stroke mimic review",
     },
     {
       name: "acute_chest_syndrome_time_critical_actions",

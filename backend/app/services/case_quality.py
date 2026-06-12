@@ -8369,6 +8369,90 @@ SICKLE_SPLENIC_SEQUESTRATION_MONITORING_SAFETY_TERMS = (
     "serial cbc",
     "vital signs",
 )
+SICKLE_STROKE_CONTEXT_TERMS = (
+    "acute stroke in sickle cell",
+    "cerebrovascular accident in sickle cell",
+    "sickle cell acute stroke",
+    "sickle cell disease with stroke",
+    "sickle cell stroke",
+    "sickle stroke",
+    "stroke in sickle cell",
+)
+SICKLE_STROKE_RISK_TERMS = (
+    "altered level of consciousness",
+    "altered mental status",
+    "aphasia",
+    "focal neurologic",
+    "hemiparesis",
+    "paralysis",
+    "seizure",
+    "severe headache",
+    "speech problem",
+    "tia",
+    "transient ischemic attack",
+    "weakness",
+)
+SICKLE_STROKE_NEURO_ACTION_TERMS = (
+    "neurologic consultation",
+    "neurology",
+    "stroke consult",
+    "stroke team",
+)
+SICKLE_STROKE_IMAGING_ACTION_TERMS = (
+    "ct",
+    "head ct",
+    "magnetic resonance angiography",
+    "mra",
+    "mri",
+    "neuroimaging",
+    "urgent head",
+)
+SICKLE_STROKE_TRANSFUSION_ACTION_TERMS = (
+    "exchange transfusion",
+    "erythrocytapheresis",
+    "red cell exchange",
+    "simple transfusion",
+    "transfusion",
+)
+SICKLE_STROKE_EXPERT_ACTION_TERMS = (
+    "apheresis",
+    "hematology",
+    "sickle cell expert",
+    "sickle cell specialist",
+)
+SICKLE_STROKE_HYPERVISCOSITY_SAFETY_TERMS = (
+    "avoid hemoglobin above 10",
+    "avoid transfusing above 10",
+    "hemoglobin above 10",
+    "hyperviscosity",
+    "target hemoglobin above 10",
+)
+SICKLE_STROKE_BLOOD_BANK_SAFETY_TERMS = (
+    "alloimmunization",
+    "antigen matching",
+    "blood bank",
+    "c antigen",
+    "e antigen",
+    "k antigen",
+    "sickle-negative",
+    "transfusion history",
+)
+SICKLE_STROKE_SECONDARY_PREVENTION_SAFETY_TERMS = (
+    "chronic transfusion",
+    "monthly exchange",
+    "monthly simple",
+    "monthly transfusion",
+    "secondary prevention",
+    "stroke recurrence",
+)
+SICKLE_STROKE_MIMIC_HEMORRHAGE_SAFETY_TERMS = (
+    "hemorrhagic stroke",
+    "intracranial hemorrhage",
+    "mimic",
+    "seizure",
+    "tia",
+    "transient ischemic attack",
+)
 ACUTE_CHEST_SYNDROME_CONTEXT_TERMS = (
     "acute chest syndrome",
     "sickle acute chest",
@@ -12447,6 +12531,33 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "or sepsis, recurrence monitoring with spleen-size education and "
                 "splenectomy discussion, and serial CBC, hemoglobin rebound, "
                 "recheck, or vital-sign monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="sickle_stroke_time_critical_actions",
+            applies=_requires_sickle_stroke_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_sickle_stroke_time_critical_actions,
+            issue=(
+                "sickle cell stroke time-critical actions must include urgent "
+                "neurology or stroke consultation, urgent CT followed by MRI/MRA "
+                "or neuroimaging when available, exchange or simple transfusion "
+                "planning for imaging-confirmed acute stroke, and hematology, "
+                "sickle cell expert, or apheresis consultation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="sickle_stroke_treatment_safety",
+            applies=_requires_sickle_stroke_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_sickle_stroke_treatment_safety_check,
+            issue=(
+                "sickle cell stroke safety checks must include hyperviscosity "
+                "avoidance such as not transfusing above hemoglobin 10 g/dL, "
+                "blood bank review for transfusion history, antigen matching, "
+                "sickle-negative units, or alloimmunization risk, secondary "
+                "stroke prevention with monthly simple or exchange transfusions, "
+                "and hemorrhagic stroke, TIA, seizure, or stroke mimic review"
             ),
         ),
         DomainSafetyGate(
@@ -19262,6 +19373,85 @@ def _has_sickle_splenic_sequestration_treatment_safety_check(
         and has_differential_safety
         and has_recurrence_safety
         and has_monitoring_safety
+    )
+
+
+def _requires_sickle_stroke_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SICKLE_STROKE_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in SICKLE_STROKE_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_sickle_stroke_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_neuro_consult = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_STROKE_NEURO_ACTION_TERMS
+    )
+    has_neuroimaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_STROKE_IMAGING_ACTION_TERMS
+    )
+    has_transfusion = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_STROKE_TRANSFUSION_ACTION_TERMS
+    )
+    has_expert = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_STROKE_EXPERT_ACTION_TERMS
+    )
+    return has_neuro_consult and has_neuroimaging and has_transfusion and has_expert
+
+
+def _has_sickle_stroke_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_hyperviscosity_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_STROKE_HYPERVISCOSITY_SAFETY_TERMS
+    )
+    has_blood_bank_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_STROKE_BLOOD_BANK_SAFETY_TERMS
+    )
+    has_secondary_prevention = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_STROKE_SECONDARY_PREVENTION_SAFETY_TERMS
+    )
+    has_mimic_or_hemorrhage_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_STROKE_MIMIC_HEMORRHAGE_SAFETY_TERMS
+    )
+    return (
+        has_hyperviscosity_safety
+        and has_blood_bank_safety
+        and has_secondary_prevention
+        and has_mimic_or_hemorrhage_safety
     )
 
 
