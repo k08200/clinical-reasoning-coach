@@ -59,6 +59,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "cns_infection_lp_steroid_safety",
         "meningococcemia_time_critical_actions",
         "meningococcemia_treatment_safety",
+        "febrile_infant_time_critical_actions",
+        "febrile_infant_treatment_safety",
         "ectopic_pregnancy_time_critical_actions",
         "ectopic_pregnancy_treatment_safety",
         "postpartum_hemorrhage_time_critical_actions",
@@ -1140,6 +1142,146 @@ def test_quality_gate_requires_meningococcemia_no_delay_precautions_contact_and_
     assert not report.passed
     assert any(
         "meningococcemia safety checks must include not delaying antibiotics" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_febrile_infant_age_cultures_markers_antibiotics_and_hsv_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Neonatal fever without source"
+    case["patient_demographics"] = {
+        "age": 0,
+        "sex": "female",
+        "weight_kg": 4.1,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "18-day-old febrile infant with poor feeding"
+    case["history_of_present_illness"] = (
+        "Previously healthy 18-day-old neonate presents from home with rectal "
+        "temperature 38.4 C, poor feeding, irritability, and no clear source of fever."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "78/46", "hr": 176, "rr": 48, "temp_c": 38.4, "spo2": 98},
+        "general": "Irritable but arousable young infant",
+        "skin": "No vesicles or focal cellulitis",
+        "neuro": "No seizure or focal neurologic deficit",
+    }
+    case["initial_labs"] = {
+        "glucose": "76 mg/dL",
+        "anc": "5200/uL",
+        "crp": "24 mg/L",
+        "procalcitonin": "0.7 ng/mL",
+    }
+    case["key_teaching_points"] = [
+        "Febrile infants 0-21 days require age-band risk stratification and full bacterial evaluation",
+        "Young infant fever can represent serious bacterial infection, bacteremia, meningitis, or sepsis",
+        "HSV risk factors such as vesicles, hypothermia, seizures, CSF pleocytosis, transaminitis, or altered mental status change management",
+    ]
+    case["clinical_red_flags"] = [
+        "Rectal fever 38.4 C in an 18-day-old febrile infant",
+        "Poor feeding, irritability, abnormal inflammatory markers, and possible invasive bacterial infection",
+    ]
+    case["time_critical_actions"] = [
+        "Use the 0-21 days old age band for risk stratification",
+        "Obtain blood culture and catheterized urinalysis with urine culture before antibiotics when this does not delay care",
+        "Start empiric age-appropriate IV ampicillin plus gentamicin with weight-based dosing safety check",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay immediate antibiotics in an ill appearing infant for lumbar puncture, transfer, or difficult cultures",
+        "Review ceftriaxone neonatal safety criteria including bilirubin, hyperbilirubinemia, and calcium exposure before any ceftriaxone use",
+        "Admit and hospitalize for observation until cultures show no growth for 24-48 hours and the infant is clinically improved",
+        "Use low-risk discharge criteria only with normal urinalysis and inflammatory markers, shared decision-making, and reliable follow-up within 24 hours",
+        "Confirm weight-based dosing safety check for all antimicrobials",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Consensus Guidelines for Febrile Infants 0-90 Days of Age",
+            "organization": "UCSF Northern California Pediatric Hospital Medicine Consortium",
+            "url": "https://medconnection.ucsfbenioffchildrens.org/febrile-infant-guidelines",
+            "supports": [
+                "neonatal fever without source diagnosis and age-band risk stratification",
+                "rectal fever 38.4 C in an 18-day-old febrile infant as a red flag",
+                "poor feeding, irritability, abnormal inflammatory markers, and invasive bacterial infection risk",
+                "0-21 days old age band risk stratification",
+                "blood culture and catheterized urinalysis with urine culture before antibiotics when this does not delay care",
+                "empiric age-appropriate IV ampicillin plus gentamicin with weight-based dosing safety check",
+                "do not delay immediate antibiotics in an ill appearing infant",
+                "ceftriaxone neonatal safety criteria including bilirubin, hyperbilirubinemia, and calcium exposure",
+                "admission for observation until cultures show no growth for 24-48 hours and the infant is clinically improved",
+                "low-risk discharge criteria with normal urinalysis and inflammatory markers, shared decision-making, and reliable follow-up",
+                "weight-based dosing safety check for all antimicrobials",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "febrile infant time-critical actions must include age-band risk stratification" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_febrile_infant_antibiotic_ceftriaxone_disposition_and_followup_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Febrile infant 29-60 days with fever without source"
+    case["patient_demographics"] = {
+        "age": 0,
+        "sex": "male",
+        "weight_kg": 5.2,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "42-day-old infant with fever"
+    case["history_of_present_illness"] = (
+        "Well appearing 42-day-old febrile infant has rectal temperature 38.2 C "
+        "without localizing symptoms, no bronchiolitis, and no clear source."
+    )
+    case["key_teaching_points"] = [
+        "Febrile infant 29-60 days management depends on urinalysis, blood culture, inflammatory markers, and CSF decision-making",
+        "Low-risk infants require reliable follow-up and culture tracking",
+        "HSV assessment remains important when hypothermia, vesicles, seizure, CSF pleocytosis, transaminitis, or altered mental status is present",
+    ]
+    case["clinical_red_flags"] = [
+        "Rectal fever 38.2 C in a young infant fever without source",
+        "Age under 60 days creates serious bacterial infection and invasive bacterial infection risk",
+    ]
+    case["time_critical_actions"] = [
+        "Use 29-60 days old age group risk stratification",
+        "Obtain blood culture, catheterized urinalysis, urine culture if UA positive, and lumbar puncture or CSF culture pathway if inflammatory markers are high",
+        "Check inflammatory markers including CBC, ANC, CRP, and procalcitonin",
+        "Give empiric age-appropriate ceftriaxone antibiotic if high-risk markers or discharge-after-antibiotic pathway is chosen, with weight-based dosing safety check",
+        "Assess HSV risk factors including vesicles, hypothermia, seizure, CSF pleocytosis, transaminitis, and altered mental status; start acyclovir if indicated",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy and renal dosing review",
+        "Family understands return precautions",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Consensus Guidelines for Febrile Infants 0-90 Days of Age",
+            "organization": "UCSF Northern California Pediatric Hospital Medicine Consortium",
+            "url": "https://medconnection.ucsfbenioffchildrens.org/febrile-infant-guidelines",
+            "supports": [
+                "febrile infant 29-60 days with fever without source diagnosis",
+                "rectal fever 38.2 C in a young infant as a red flag",
+                "age under 60 days with serious bacterial infection and invasive bacterial infection risk",
+                "29-60 days old age group risk stratification",
+                "blood culture, catheterized urinalysis, urine culture if UA positive, and CSF culture pathway if inflammatory markers are high",
+                "CBC, ANC, CRP, and procalcitonin inflammatory markers",
+                "empiric age-appropriate ceftriaxone antibiotic with weight-based dosing safety check",
+                "HSV risk factors and acyclovir if indicated",
+                "medication allergy and renal dosing review",
+                "family return precautions",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "febrile infant safety checks must include not delaying antibiotics" in issue
         for issue in report.critical_issues
     )
 

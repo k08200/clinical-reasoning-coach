@@ -1101,6 +1101,134 @@ const MENINGOCOCCEMIA_COAGULATION_COMPLICATION_SAFETY_TERMS = [
   "waterhouse-friderichsen",
 ];
 
+const FEBRILE_INFANT_CONTEXT_TERMS = [
+  "0-21 days",
+  "0-28 days",
+  "0-60 days",
+  "0-90 days",
+  "8-21 days",
+  "22-28 days",
+  "29-60 days",
+  "29-90 days",
+  "febrile infant",
+  "fever without source",
+  "infant fever",
+  "neonatal fever",
+  "neonate with fever",
+  "young infant fever",
+];
+
+const FEBRILE_INFANT_RISK_TERMS = [
+  "38.0",
+  "100.4",
+  "bacteremia",
+  "fever",
+  "hypothermia",
+  "ill appearing",
+  "invasive bacterial infection",
+  "meningitis",
+  "serious bacterial infection",
+  "sepsis",
+];
+
+const FEBRILE_INFANT_AGE_STRATIFICATION_ACTION_TERMS = [
+  "0-21",
+  "22-28",
+  "29-60",
+  "29-90",
+  "age band",
+  "age group",
+  "days old",
+  "risk stratification",
+];
+
+const FEBRILE_INFANT_BLOOD_CULTURE_ACTION_TERMS = [
+  "blood culture",
+  "blood cultures",
+];
+
+const FEBRILE_INFANT_URINE_CULTURE_ACTION_TERMS = [
+  "catheterized urine",
+  "urinalysis",
+  "urine culture",
+];
+
+const FEBRILE_INFANT_CSF_CULTURE_ACTION_TERMS = [
+  "csf culture",
+  "csf studies",
+  "lumbar puncture",
+  "spinal tap",
+];
+
+const FEBRILE_INFANT_INFLAMMATORY_MARKER_ACTION_TERMS = [
+  "anc",
+  "cbc",
+  "crp",
+  "inflammatory marker",
+  "inflammatory markers",
+  "procalcitonin",
+];
+
+const FEBRILE_INFANT_ANTIBIOTIC_ACTION_TERMS = [
+  "ampicillin",
+  "antibiotic",
+  "cefotaxime",
+  "ceftriaxone",
+  "ceftazidime",
+  "gentamicin",
+];
+
+const FEBRILE_INFANT_HSV_ACTION_TERMS = [
+  "acyclovir",
+  "altered mental status",
+  "csf pleocytosis",
+  "hsv",
+  "hypothermia",
+  "seizure",
+  "transaminitis",
+  "vesicle",
+];
+
+const FEBRILE_INFANT_ANTIBIOTIC_DELAY_SAFETY_TERMS = [
+  "do not delay",
+  "do-not-delay",
+  "do not wait",
+  "immediate antibiotic",
+  "not delay antibiotics",
+];
+
+const FEBRILE_INFANT_CEFTRIAXONE_SAFETY_TERMS = [
+  "bilirubin",
+  "calcium",
+  "ceftriaxone",
+  "hyperbilirubinemia",
+  "neonate",
+  "safety criteria",
+];
+
+const FEBRILE_INFANT_DISPOSITION_SAFETY_TERMS = [
+  "24 hours",
+  "24-36 hours",
+  "24-48 hours",
+  "admission",
+  "admit",
+  "culture results",
+  "follow-up",
+  "hospitalize",
+  "observation",
+  "reliable follow-up",
+];
+
+const FEBRILE_INFANT_LOW_RISK_SAFETY_TERMS = [
+  "discharge criteria",
+  "follow-up",
+  "inflammatory markers",
+  "low risk",
+  "low-risk",
+  "shared decision",
+  "urinalysis",
+];
+
 const ECTOPIC_PREGNANCY_CONTEXT_TERMS = [
   "ectopic pregnancy",
   "pregnancy of unknown location",
@@ -10464,6 +10592,86 @@ function hasMeningococcemiaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresFebrileInfantSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    detail.patient_demographics?.age === 0 ? "infant neonate" : "",
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = FEBRILE_INFANT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = FEBRILE_INFANT_RISK_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  return hasContext && hasRisk;
+}
+
+function hasFebrileInfantTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAgeStratification = FEBRILE_INFANT_AGE_STRATIFICATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodCulture = FEBRILE_INFANT_BLOOD_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUrineCulture = FEBRILE_INFANT_URINE_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCsfPathway = FEBRILE_INFANT_CSF_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasInflammatoryMarkers = FEBRILE_INFANT_INFLAMMATORY_MARKER_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibiotics = FEBRILE_INFANT_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHsvReview = FEBRILE_INFANT_HSV_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasAgeStratification &&
+    hasBloodCulture &&
+    hasUrineCulture &&
+    hasCsfPathway &&
+    hasInflammatoryMarkers &&
+    hasAntibiotics &&
+    hasHsvReview
+  );
+}
+
+function hasFebrileInfantTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAntibioticDelaySafety = FEBRILE_INFANT_ANTIBIOTIC_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCeftriaxoneSafety = FEBRILE_INFANT_CEFTRIAXONE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDispositionSafety = FEBRILE_INFANT_DISPOSITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLowRiskFollowup = FEBRILE_INFANT_LOW_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasAntibioticDelaySafety &&
+    hasCeftriaxoneSafety &&
+    hasDispositionSafety &&
+    hasLowRiskFollowup
+  );
+}
+
 function requiresEctopicPregnancySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -15540,6 +15748,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasMeningococcemiaTreatmentSafetyCheck,
       issue:
         "meningococcemia safety checks must include not delaying antibiotics, droplet precautions until effective therapy, close contact chemoprophylaxis or public health follow-up, and DIC, purpura fulminans, adrenal hemorrhage, or limb ischemia complication monitoring",
+    },
+    {
+      name: "febrile_infant_time_critical_actions",
+      label: "Febrile infant age-based workup and treatment",
+      applies: requiresFebrileInfantSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasFebrileInfantTimeCriticalActions,
+      issue:
+        "febrile infant time-critical actions must include age-band risk stratification, blood, urine, and CSF culture pathway, inflammatory markers, empiric age-appropriate antibiotics, and HSV risk assessment or acyclovir planning",
+    },
+    {
+      name: "febrile_infant_treatment_safety",
+      label: "Febrile infant antibiotic and disposition safety",
+      applies: requiresFebrileInfantSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasFebrileInfantTreatmentSafetyCheck,
+      issue:
+        "febrile infant safety checks must include not delaying antibiotics in ill-appearing infants, ceftriaxone neonatal safety review, admission or culture-observation criteria, and low-risk discharge or reliable follow-up criteria",
     },
     {
       name: "ectopic_pregnancy_time_critical_actions",

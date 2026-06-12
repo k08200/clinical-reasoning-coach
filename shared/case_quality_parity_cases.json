@@ -1117,6 +1117,83 @@
     }
   },
   {
+    "name": "febrile_infant_requires_age_cultures_markers_antibiotics_and_hsv_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "febrile infant time-critical actions must include age-band risk stratification"
+    ],
+    "overrides": {
+      "diagnosis": "Neonatal fever without source",
+      "patient_demographics": {
+        "age": 0,
+        "sex": "female",
+        "weight_kg": 4.1,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "18-day-old febrile infant with poor feeding",
+      "history_of_present_illness": "Previously healthy 18-day-old neonate presents from home with rectal temperature 38.4 C, poor feeding, irritability, and no clear source of fever.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "78/46",
+          "hr": 176,
+          "rr": 48,
+          "temp_c": 38.4,
+          "spo2": 98
+        },
+        "general": "Irritable but arousable young infant",
+        "skin": "No vesicles or focal cellulitis",
+        "neuro": "No seizure or focal neurologic deficit"
+      },
+      "initial_labs": {
+        "glucose": "76 mg/dL",
+        "anc": "5200/uL",
+        "crp": "24 mg/L",
+        "procalcitonin": "0.7 ng/mL"
+      },
+      "key_teaching_points": [
+        "Febrile infants 0-21 days require age-band risk stratification and full bacterial evaluation",
+        "Young infant fever can represent serious bacterial infection, bacteremia, meningitis, or sepsis",
+        "HSV risk factors such as vesicles, hypothermia, seizures, CSF pleocytosis, transaminitis, or altered mental status change management"
+      ],
+      "clinical_red_flags": [
+        "Rectal fever 38.4 C in an 18-day-old febrile infant",
+        "Poor feeding, irritability, abnormal inflammatory markers, and possible invasive bacterial infection"
+      ],
+      "time_critical_actions": [
+        "Use the 0-21 days old age band for risk stratification",
+        "Obtain blood culture and catheterized urinalysis with urine culture before antibiotics when this does not delay care",
+        "Start empiric age-appropriate IV ampicillin plus gentamicin with weight-based dosing safety check"
+      ],
+      "contraindication_checks": [
+        "Do not delay immediate antibiotics in an ill appearing infant for lumbar puncture, transfer, or difficult cultures",
+        "Review ceftriaxone neonatal safety criteria including bilirubin, hyperbilirubinemia, and calcium exposure before any ceftriaxone use",
+        "Admit and hospitalize for observation until cultures show no growth for 24-48 hours and the infant is clinically improved",
+        "Use low-risk discharge criteria only with normal urinalysis and inflammatory markers, shared decision-making, and reliable follow-up within 24 hours",
+        "Confirm weight-based dosing safety check for all antimicrobials"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Consensus Guidelines for Febrile Infants 0-90 Days of Age",
+          "organization": "UCSF Northern California Pediatric Hospital Medicine Consortium",
+          "url": "https://medconnection.ucsfbenioffchildrens.org/febrile-infant-guidelines",
+          "supports": [
+            "neonatal fever without source diagnosis and age-band risk stratification",
+            "rectal fever 38.4 C in an 18-day-old febrile infant as a red flag",
+            "poor feeding, irritability, abnormal inflammatory markers, and invasive bacterial infection risk",
+            "0-21 days old age band risk stratification",
+            "blood culture and catheterized urinalysis with urine culture before antibiotics when this does not delay care",
+            "empiric age-appropriate IV ampicillin plus gentamicin with weight-based dosing safety check",
+            "do not delay immediate antibiotics in an ill appearing infant",
+            "ceftriaxone neonatal safety criteria including bilirubin, hyperbilirubinemia, and calcium exposure",
+            "admission for observation until cultures show no growth for 24-48 hours and the infant is clinically improved",
+            "low-risk discharge criteria with normal urinalysis and inflammatory markers, shared decision-making, and reliable follow-up",
+            "weight-based dosing safety check for all antimicrobials"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "ectopic_pregnancy_requires_hcg_ultrasound_and_obgyn_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

@@ -1043,6 +1043,121 @@ MENINGOCOCCEMIA_COAGULATION_COMPLICATION_SAFETY_TERMS = (
     "purpura fulminans",
     "waterhouse-friderichsen",
 )
+FEBRILE_INFANT_CONTEXT_TERMS = (
+    "0-21 days",
+    "0-28 days",
+    "0-60 days",
+    "0-90 days",
+    "8-21 days",
+    "22-28 days",
+    "29-60 days",
+    "29-90 days",
+    "febrile infant",
+    "fever without source",
+    "infant fever",
+    "neonatal fever",
+    "neonate with fever",
+    "young infant fever",
+)
+FEBRILE_INFANT_RISK_TERMS = (
+    "38.0",
+    "100.4",
+    "bacteremia",
+    "fever",
+    "hypothermia",
+    "ill appearing",
+    "invasive bacterial infection",
+    "meningitis",
+    "serious bacterial infection",
+    "sepsis",
+)
+FEBRILE_INFANT_AGE_STRATIFICATION_ACTION_TERMS = (
+    "0-21",
+    "22-28",
+    "29-60",
+    "29-90",
+    "age band",
+    "age group",
+    "days old",
+    "risk stratification",
+)
+FEBRILE_INFANT_BLOOD_CULTURE_ACTION_TERMS = (
+    "blood culture",
+    "blood cultures",
+)
+FEBRILE_INFANT_URINE_CULTURE_ACTION_TERMS = (
+    "catheterized urine",
+    "urinalysis",
+    "urine culture",
+)
+FEBRILE_INFANT_CSF_CULTURE_ACTION_TERMS = (
+    "csf culture",
+    "csf studies",
+    "lumbar puncture",
+    "spinal tap",
+)
+FEBRILE_INFANT_INFLAMMATORY_MARKER_ACTION_TERMS = (
+    "anc",
+    "cbc",
+    "crp",
+    "inflammatory marker",
+    "inflammatory markers",
+    "procalcitonin",
+)
+FEBRILE_INFANT_ANTIBIOTIC_ACTION_TERMS = (
+    "ampicillin",
+    "antibiotic",
+    "cefotaxime",
+    "ceftriaxone",
+    "ceftazidime",
+    "gentamicin",
+)
+FEBRILE_INFANT_HSV_ACTION_TERMS = (
+    "acyclovir",
+    "altered mental status",
+    "csf pleocytosis",
+    "hsv",
+    "hypothermia",
+    "seizure",
+    "transaminitis",
+    "vesicle",
+)
+FEBRILE_INFANT_ANTIBIOTIC_DELAY_SAFETY_TERMS = (
+    "do not delay",
+    "do-not-delay",
+    "do not wait",
+    "immediate antibiotic",
+    "not delay antibiotics",
+)
+FEBRILE_INFANT_CEFTRIAXONE_SAFETY_TERMS = (
+    "bilirubin",
+    "calcium",
+    "ceftriaxone",
+    "hyperbilirubinemia",
+    "neonate",
+    "safety criteria",
+)
+FEBRILE_INFANT_DISPOSITION_SAFETY_TERMS = (
+    "24 hours",
+    "24-36 hours",
+    "24-48 hours",
+    "admission",
+    "admit",
+    "culture results",
+    "follow-up",
+    "hospitalize",
+    "observation",
+    "reliable follow-up",
+)
+FEBRILE_INFANT_LOW_RISK_SAFETY_TERMS = (
+    "discharge criteria",
+    "follow-up",
+    "inflammatory markers",
+    "low risk",
+    "low-risk",
+    "shared decision",
+    "urinalysis",
+)
 ECTOPIC_PREGNANCY_CONTEXT_TERMS = (
     "ectopic pregnancy",
     "pregnancy of unknown location",
@@ -9577,6 +9692,30 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="febrile_infant_time_critical_actions",
+            applies=_requires_febrile_infant_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_febrile_infant_time_critical_actions,
+            issue=(
+                "febrile infant time-critical actions must include age-band risk "
+                "stratification, blood, urine, and CSF culture pathway, "
+                "inflammatory markers, empiric age-appropriate antibiotics, and "
+                "HSV risk assessment or acyclovir planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="febrile_infant_treatment_safety",
+            applies=_requires_febrile_infant_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_febrile_infant_treatment_safety_check,
+            issue=(
+                "febrile infant safety checks must include not delaying "
+                "antibiotics in ill-appearing infants, ceftriaxone neonatal "
+                "safety review, admission or culture-observation criteria, and "
+                "low-risk discharge or reliable follow-up criteria"
+            ),
+        ),
+        DomainSafetyGate(
             name="ectopic_pregnancy_time_critical_actions",
             applies=_requires_ectopic_pregnancy_safety_check,
             field_name="time_critical_actions",
@@ -12404,6 +12543,109 @@ def _has_meningococcemia_treatment_safety_check(checks: list[Any]) -> bool:
         and has_infection_control
         and has_contact_public_health
         and has_coagulation_complication
+    )
+
+
+def _requires_febrile_infant_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    demographics = data.get("patient_demographics") or {}
+    age = demographics.get("age")
+    if isinstance(age, (int, float)) and age == 0:
+        risk_text = f"{risk_text} infant neonate"
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in FEBRILE_INFANT_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in FEBRILE_INFANT_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_febrile_infant_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_age_stratification = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in FEBRILE_INFANT_AGE_STRATIFICATION_ACTION_TERMS
+    )
+    has_blood_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in FEBRILE_INFANT_BLOOD_CULTURE_ACTION_TERMS
+    )
+    has_urine_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in FEBRILE_INFANT_URINE_CULTURE_ACTION_TERMS
+    )
+    has_csf_pathway = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in FEBRILE_INFANT_CSF_CULTURE_ACTION_TERMS
+    )
+    has_inflammatory_markers = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in FEBRILE_INFANT_INFLAMMATORY_MARKER_ACTION_TERMS
+    )
+    has_antibiotics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in FEBRILE_INFANT_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_hsv_review = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in FEBRILE_INFANT_HSV_ACTION_TERMS
+    )
+    return (
+        has_age_stratification
+        and has_blood_culture
+        and has_urine_culture
+        and has_csf_pathway
+        and has_inflammatory_markers
+        and has_antibiotics
+        and has_hsv_review
+    )
+
+
+def _has_febrile_infant_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_antibiotic_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FEBRILE_INFANT_ANTIBIOTIC_DELAY_SAFETY_TERMS
+    )
+    has_ceftriaxone_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FEBRILE_INFANT_CEFTRIAXONE_SAFETY_TERMS
+    )
+    has_disposition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FEBRILE_INFANT_DISPOSITION_SAFETY_TERMS
+    )
+    has_low_risk_followup = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FEBRILE_INFANT_LOW_RISK_SAFETY_TERMS
+    )
+    return (
+        has_antibiotic_delay_safety
+        and has_ceftriaxone_safety
+        and has_disposition_safety
+        and has_low_risk_followup
     )
 
 
