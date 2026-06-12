@@ -9732,6 +9732,56 @@ const SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS = [
   "저칼륨",
 ];
 
+const SEVERE_ASTHMA_VENTILATION_CONTEXT_TERMS = [
+  "auto-peep",
+  "hypercapnia",
+  "intubated",
+  "intubation",
+  "mechanical ventilation",
+  "near-fatal asthma",
+  "positive pressure",
+  "respiratory acidosis",
+  "respiratory failure",
+  "status asthmaticus",
+  "ventilator",
+];
+
+const SEVERE_ASTHMA_VENTILATION_STRATEGY_SAFETY_TERMS = [
+  "low minute ventilation",
+  "low respiratory rate",
+  "permissive hypercapnia",
+  "prolonged expiratory",
+  "prolonged expiration",
+  "reduce respiratory rate",
+];
+
+const SEVERE_ASTHMA_AUTO_PEEP_MONITORING_SAFETY_TERMS = [
+  "air trapping",
+  "auto-peep",
+  "dynamic hyperinflation",
+  "expiratory flow",
+  "intrinsic peep",
+  "plateau pressure",
+];
+
+const SEVERE_ASTHMA_BAROTRAUMA_HEMODYNAMIC_SAFETY_TERMS = [
+  "barotrauma",
+  "hemodynamic",
+  "hypotension",
+  "obstructive shock",
+  "pneumomediastinum",
+  "pneumothorax",
+  "shock",
+];
+
+const SEVERE_ASTHMA_SEDATION_SYNCHRONY_SAFETY_TERMS = [
+  "ketamine",
+  "neuromuscular blockade",
+  "paralysis",
+  "sedation",
+  "ventilator asynchrony",
+];
+
 const SEVERE_CAP_CONTEXT_TERMS = [
   "cap with hypoxemia",
   "cap with respiratory failure",
@@ -16515,6 +16565,30 @@ function requiresSevereAsthmaSafetyCheck(detail: ClinicalCaseReviewDetail): bool
   return SEVERE_ASTHMA_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
 }
 
+function requiresSevereAsthmaVentilationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasAsthmaContext = SEVERE_ASTHMA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasVentilationContext = SEVERE_ASTHMA_VENTILATION_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasAsthmaContext && hasVentilationContext;
+}
+
 function hasSevereAsthmaTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
   const hasOxygenOrVentilation = SEVERE_ASTHMA_OXYGEN_VENTILATION_ACTION_TERMS.some((term) =>
@@ -16547,6 +16621,29 @@ function hasSevereAsthmaTreatmentSafetyCheck(checks: string[]): boolean {
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   return hasResponseMonitoring && hasRespiratoryFailureSafety && hasTreatmentAdverseSafety;
+}
+
+function hasSevereAsthmaVentilationSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasVentilationStrategy = SEVERE_ASTHMA_VENTILATION_STRATEGY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAutoPeepMonitoring = SEVERE_ASTHMA_AUTO_PEEP_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBarotraumaHemodynamicSafety =
+    SEVERE_ASTHMA_BAROTRAUMA_HEMODYNAMIC_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasSedationSynchronyPlan = SEVERE_ASTHMA_SEDATION_SYNCHRONY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasVentilationStrategy &&
+    hasAutoPeepMonitoring &&
+    hasBarotraumaHemodynamicSafety &&
+    hasSedationSynchronyPlan
+  );
 }
 
 function requiresSevereCapSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -18747,6 +18844,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSevereAsthmaTreatmentSafetyCheck,
       issue:
         "severe asthma safety checks must include serial severity or response monitoring, impending respiratory failure or ventilation risk review, and beta-agonist adverse-effect, electrolyte, or trigger reassessment",
+    },
+    {
+      name: "severe_asthma_ventilation_safety",
+      label: "Severe asthma ventilator safety",
+      applies: requiresSevereAsthmaVentilationSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSevereAsthmaVentilationSafetyCheck,
+      issue:
+        "severe asthma ventilation safety checks must include low-minute ventilation or prolonged expiratory-time strategy, auto-PEEP or dynamic-hyperinflation monitoring, barotrauma or hemodynamic collapse surveillance, and sedation or ventilator-synchrony planning",
     },
     {
       name: "severe_cap_time_critical_actions",

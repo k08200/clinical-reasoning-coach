@@ -211,6 +211,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "acute_chest_syndrome_treatment_safety",
         "severe_asthma_time_critical_actions",
         "severe_asthma_treatment_safety",
+        "severe_asthma_ventilation_safety",
         "severe_cap_time_critical_actions",
         "severe_cap_treatment_safety",
         "copd_exacerbation_time_critical_actions",
@@ -12024,6 +12025,77 @@ def test_quality_gate_requires_severe_asthma_response_failure_and_treatment_safe
     assert not report.passed
     assert any(
         "severe asthma safety checks must include serial severity or response monitoring"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_asthma_ventilation_strategy_monitoring_and_sedation_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Pediatric status asthmaticus requiring intubation"
+    case["patient_demographics"] = {
+        "age": 8,
+        "sex": "female",
+        "weight_kg": 28,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe wheeze, fatigue, and respiratory failure"
+    case["history_of_present_illness"] = (
+        "Child with status asthmaticus has silent chest, severe bronchospasm, "
+        "fatigue, hypercapnia CO2 retention, and respiratory acidosis requiring "
+        "intubation and mechanical ventilation."
+    )
+    case["key_teaching_points"] = [
+        "Status asthmaticus can worsen after intubation from air trapping and auto-PEEP",
+        "Continuous bronchodilator therapy and steroids continue during ventilator support",
+    ]
+    case["clinical_red_flags"] = [
+        "Silent chest, drowsiness, hypercapnia, and respiratory acidosis",
+        "Mechanical ventilation can worsen hypotension, pneumothorax, or obstructive shock",
+    ]
+    case["time_critical_actions"] = [
+        "Give oxygen and prepare airway and mechanical ventilation for respiratory failure",
+        "Start continuous albuterol SABA nebulizers with ipratropium for severe bronchospasm",
+        "Give systemic methylprednisolone corticosteroid early",
+        "Give IV magnesium and activate PICU or intubation escalation for poor response",
+    ]
+    case["contraindication_checks"] = [
+        "Weight-based pediatric dosing check before magnesium, steroids, and sedation",
+        "Serial peak flow or FEV1 when able, pulse oximetry, work of breathing, and response reassessment",
+        "Review silent chest, fatigue, drowsiness, hypercapnia CO2, and intubation or ventilation risk",
+        "Monitor tachycardia, arrhythmia, potassium hypokalemia, lactic acidosis, and trigger reassessment",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Managing an acute asthma exacerbation in children",
+            "organization": "Canadian Paediatric Society",
+            "url": "https://cps.ca/en/documents/position/managing-an-acute-asthma-exacerbation",
+            "supports": [
+                "status asthmaticus with impending respiratory failure risk stratification",
+                "silent chest, drowsiness, hypercapnia CO2, and respiratory acidosis",
+                "oxygen and mechanical ventilation escalation for respiratory failure",
+                "continuous albuterol SABA nebulizers with ipratropium",
+                "systemic methylprednisolone corticosteroid early and IV magnesium",
+            ],
+        },
+        {
+            "title": "Status Asthmaticus",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK526070/",
+            "supports": [
+                "intubated status asthmaticus requires low minute ventilation and prolonged expiratory time",
+                "monitor auto-PEEP, dynamic hyperinflation, and air trapping",
+                "watch for barotrauma, pneumothorax, hypotension, and obstructive shock",
+                "plan sedation or neuromuscular blockade for ventilator asynchrony",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe asthma ventilation safety checks must include low-minute ventilation"
         in issue
         for issue in report.critical_issues
     )

@@ -8909,6 +8909,51 @@ SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS = (
     "전해질",
     "저칼륨",
 )
+SEVERE_ASTHMA_VENTILATION_CONTEXT_TERMS = (
+    "auto-peep",
+    "hypercapnia",
+    "intubated",
+    "intubation",
+    "mechanical ventilation",
+    "near-fatal asthma",
+    "positive pressure",
+    "respiratory acidosis",
+    "respiratory failure",
+    "status asthmaticus",
+    "ventilator",
+)
+SEVERE_ASTHMA_VENTILATION_STRATEGY_SAFETY_TERMS = (
+    "low minute ventilation",
+    "low respiratory rate",
+    "permissive hypercapnia",
+    "prolonged expiratory",
+    "prolonged expiration",
+    "reduce respiratory rate",
+)
+SEVERE_ASTHMA_AUTO_PEEP_MONITORING_SAFETY_TERMS = (
+    "air trapping",
+    "auto-peep",
+    "dynamic hyperinflation",
+    "expiratory flow",
+    "intrinsic peep",
+    "plateau pressure",
+)
+SEVERE_ASTHMA_BAROTRAUMA_HEMODYNAMIC_SAFETY_TERMS = (
+    "barotrauma",
+    "hemodynamic",
+    "hypotension",
+    "obstructive shock",
+    "pneumomediastinum",
+    "pneumothorax",
+    "shock",
+)
+SEVERE_ASTHMA_SEDATION_SYNCHRONY_SAFETY_TERMS = (
+    "ketamine",
+    "neuromuscular blockade",
+    "paralysis",
+    "sedation",
+    "ventilator asynchrony",
+)
 SEVERE_CAP_CONTEXT_TERMS = (
     "cap with hypoxemia",
     "cap with respiratory failure",
@@ -12874,6 +12919,18 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "response monitoring, impending respiratory failure or ventilation "
                 "risk review, and beta-agonist adverse-effect, electrolyte, or "
                 "trigger reassessment"
+            ),
+        ),
+        DomainSafetyGate(
+            name="severe_asthma_ventilation_safety",
+            applies=_requires_severe_asthma_ventilation_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_severe_asthma_ventilation_safety_check,
+            issue=(
+                "severe asthma ventilation safety checks must include low-minute "
+                "ventilation or prolonged expiratory-time strategy, auto-PEEP or "
+                "dynamic-hyperinflation monitoring, barotrauma or hemodynamic "
+                "collapse surveillance, and sedation or ventilator-synchrony planning"
             ),
         ),
         DomainSafetyGate(
@@ -20044,6 +20101,37 @@ def _requires_severe_asthma_safety_check(data: dict[str, Any]) -> bool:
     )
 
 
+def _requires_severe_asthma_ventilation_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_asthma_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SEVERE_ASTHMA_CONTEXT_TERMS
+    )
+    has_ventilation_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SEVERE_ASTHMA_VENTILATION_CONTEXT_TERMS
+    )
+    return has_asthma_context and has_ventilation_context
+
+
 def _has_severe_asthma_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
     has_oxygen_or_ventilation = any(
@@ -20093,6 +20181,32 @@ def _has_severe_asthma_treatment_safety_check(checks: list[Any]) -> bool:
         has_response_monitoring
         and has_respiratory_failure_safety
         and has_treatment_adverse_safety
+    )
+
+
+def _has_severe_asthma_ventilation_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_ventilation_strategy = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_VENTILATION_STRATEGY_SAFETY_TERMS
+    )
+    has_auto_peep_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_AUTO_PEEP_MONITORING_SAFETY_TERMS
+    )
+    has_barotrauma_hemodynamic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_BAROTRAUMA_HEMODYNAMIC_SAFETY_TERMS
+    )
+    has_sedation_synchrony_plan = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_SEDATION_SYNCHRONY_SAFETY_TERMS
+    )
+    return (
+        has_ventilation_strategy
+        and has_auto_peep_monitoring
+        and has_barotrauma_hemodynamic_safety
+        and has_sedation_synchrony_plan
     )
 
 
