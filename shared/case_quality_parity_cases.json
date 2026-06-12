@@ -2770,6 +2770,82 @@
     }
   },
   {
+    "name": "ductal_dependent_chd_requires_pge_diagnostics_escalation_and_support",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "ductal-dependent congenital heart disease time-critical actions must include immediate prostaglandin E1"
+    ],
+    "overrides": {
+      "diagnosis": "Ductal-dependent congenital heart disease with neonatal shock",
+      "patient_demographics": {
+        "age": 0,
+        "sex": "male",
+        "weight_kg": 3.2,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "5-day-old newborn cyanosis and poor feeding",
+      "history_of_present_illness": "Newborn develops cyanosis, poor feeding, tachypnea, weak femoral pulses, hypoxemia, and shock after discharge, concerning for ductal-dependent congenital heart disease such as hypoplastic left heart syndrome or critical coarctation.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "58/34",
+          "hr": 182,
+          "rr": 64,
+          "temp_c": 36.1,
+          "spo2": 76
+        },
+        "cardiac": "Murmur with weak femoral pulses and delayed capillary refill",
+        "respiratory": "Tachypnea without focal crackles"
+      },
+      "initial_labs": {
+        "lactate": "6.1 mmol/L",
+        "glucose": "54 mg/dL",
+        "blood gas": "metabolic acidosis"
+      },
+      "key_teaching_points": [
+        "Acute severe cyanosis or shock in the first week of life is a medical emergency",
+        "Ductal-dependent lesions need the ductus arteriosus kept open with prostaglandin E1",
+        "Supplemental oxygen should be used judiciously in some ductal-dependent systemic blood flow lesions"
+      ],
+      "clinical_red_flags": [
+        "Neonatal cyanosis, shock, poor feeding, weak femoral pulses, and differential saturation",
+        "Hypoxemia with metabolic acidosis, high lactate, and failed pulse oximetry screen"
+      ],
+      "time_critical_actions": [
+        "Measure preductal and postductal pulse oximetry, four extremity blood pressure, blood gas, lactate, ECG, chest x-ray, and echocardiogram",
+        "Escalate to NICU, neonatologist, pediatric cardiology, cardiac intensive care, transfer team, and obtain umbilical venous catheter UVC access",
+        "Support airway, vascular access, glucose, thermoregulation, metabolic acidosis, and prepare intubation or mechanical ventilation if needed"
+      ],
+      "contraindication_checks": [
+        "Use judicious oxygen and avoid excess supplemental oxygen when it may lower pulmonary vascular resistance and worsen systemic blood flow or ductal steal",
+        "Monitor prostaglandin adverse effects including apnea, respiratory depression, hypotension, fever, and intubation need",
+        "Differentiate sepsis from ductal-dependent congenital heart disease including hypoplastic left heart, transposition, pulmonary atresia, and critical coarctation",
+        "Do not delay transport, pediatric cardiology, pediatric cardiac center, neonatology, or transfer planning"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Overview of Congenital Cardiovascular Anomalies",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/pediatrics/congenital-cardiovascular-anomalies/overview-of-congenital-cardiovascular-anomalies",
+          "supports": [
+            "ductal-dependent congenital heart disease with neonatal shock diagnosis and risk stratification",
+            "acute severe cyanosis or shock in the first week of life is a medical emergency",
+            "ductal-dependent lesions need the ductus arteriosus kept open with prostaglandin E1",
+            "supplemental oxygen should be used judiciously in some ductal-dependent systemic blood flow lesions",
+            "neonatal cyanosis, shock, poor feeding, weak femoral pulses, and differential saturation as red flags",
+            "hypoxemia with metabolic acidosis, high lactate, and failed pulse oximetry screen as severity markers",
+            "preductal and postductal pulse oximetry, four extremity blood pressure, blood gas, lactate, ECG, chest x-ray, and echocardiogram",
+            "NICU, neonatologist, pediatric cardiology, cardiac intensive care, transfer team, and umbilical venous catheter UVC access",
+            "airway, vascular access, glucose, thermoregulation, metabolic acidosis, intubation, and mechanical ventilation support",
+            "judicious oxygen and avoid excess supplemental oxygen when it may lower pulmonary vascular resistance and worsen systemic blood flow or ductal steal",
+            "prostaglandin adverse effects including apnea, respiratory depression, hypotension, fever, and intubation need",
+            "sepsis versus ductal-dependent congenital heart disease including hypoplastic left heart, transposition, pulmonary atresia, and critical coarctation",
+            "do not delay transport, pediatric cardiology, pediatric cardiac center, neonatology, or transfer planning"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "symptomatic_bradycardia_requires_monitor_instability_atropine_pacing_chronotrope_and_causes",
     "expected_passed": false,
     "expected_issue_substrings": [

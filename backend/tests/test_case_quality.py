@@ -209,6 +209,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "copd_exacerbation_treatment_safety",
         "acute_heart_failure_time_critical_actions",
         "acute_heart_failure_treatment_safety",
+        "ductal_dependent_chd_time_critical_actions",
+        "ductal_dependent_chd_treatment_safety",
         "cardiac_tamponade_time_critical_actions",
         "cardiac_tamponade_treatment_safety",
         "unstable_tachyarrhythmia_time_critical_actions",
@@ -11803,6 +11805,151 @@ def test_quality_gate_requires_acute_hf_bp_renal_trigger_and_shock_safety():
     assert not report.passed
     assert any(
         "acute heart failure safety checks must include blood pressure" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ductal_dependent_chd_pge_diagnostics_escalation_and_support():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Ductal-dependent congenital heart disease with neonatal shock"
+    case["patient_demographics"] = {
+        "age": 0,
+        "sex": "male",
+        "weight_kg": 3.2,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "5-day-old newborn cyanosis and poor feeding"
+    case["history_of_present_illness"] = (
+        "Newborn develops cyanosis, poor feeding, tachypnea, weak femoral pulses, "
+        "hypoxemia, and shock after discharge, concerning for ductal-dependent "
+        "congenital heart disease such as hypoplastic left heart syndrome or "
+        "critical coarctation."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "58/34", "hr": 182, "rr": 64, "temp_c": 36.1, "spo2": 76},
+        "cardiac": "Murmur with weak femoral pulses and delayed capillary refill",
+        "respiratory": "Tachypnea without focal crackles",
+    }
+    case["initial_labs"] = {
+        "lactate": "6.1 mmol/L",
+        "glucose": "54 mg/dL",
+        "blood gas": "metabolic acidosis",
+    }
+    case["key_teaching_points"] = [
+        "Acute severe cyanosis or shock in the first week of life is a medical emergency",
+        "Ductal-dependent lesions need the ductus arteriosus kept open with prostaglandin E1",
+        "Supplemental oxygen should be used judiciously in some ductal-dependent systemic blood flow lesions",
+    ]
+    case["clinical_red_flags"] = [
+        "Neonatal cyanosis, shock, poor feeding, weak femoral pulses, and differential saturation",
+        "Hypoxemia with metabolic acidosis, high lactate, and failed pulse oximetry screen",
+    ]
+    case["time_critical_actions"] = [
+        "Measure preductal and postductal pulse oximetry, four extremity blood pressure, blood gas, lactate, ECG, chest x-ray, and echocardiogram",
+        "Escalate to NICU, neonatologist, pediatric cardiology, cardiac intensive care, transfer team, and obtain umbilical venous catheter UVC access",
+        "Support airway, vascular access, glucose, thermoregulation, metabolic acidosis, and prepare intubation or mechanical ventilation if needed",
+    ]
+    case["contraindication_checks"] = [
+        "Use judicious oxygen and avoid excess supplemental oxygen when it may lower pulmonary vascular resistance and worsen systemic blood flow or ductal steal",
+        "Monitor prostaglandin adverse effects including apnea, respiratory depression, hypotension, fever, and intubation need",
+        "Differentiate sepsis from ductal-dependent congenital heart disease including hypoplastic left heart, transposition, pulmonary atresia, and critical coarctation",
+        "Do not delay transport, pediatric cardiology, pediatric cardiac center, neonatology, or transfer planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Overview of Congenital Cardiovascular Anomalies",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/pediatrics/congenital-cardiovascular-anomalies/overview-of-congenital-cardiovascular-anomalies",
+            "supports": [
+                "ductal-dependent congenital heart disease with neonatal shock diagnosis and risk stratification",
+                "acute severe cyanosis or shock in the first week of life is a medical emergency",
+                "ductal-dependent lesions need the ductus arteriosus kept open with prostaglandin E1",
+                "supplemental oxygen should be used judiciously in some ductal-dependent systemic blood flow lesions",
+                "neonatal cyanosis, shock, poor feeding, weak femoral pulses, and differential saturation as red flags",
+                "hypoxemia with metabolic acidosis, high lactate, and failed pulse oximetry screen as severity markers",
+                "preductal and postductal pulse oximetry, four extremity blood pressure, blood gas, lactate, ECG, chest x-ray, and echocardiogram",
+                "NICU, neonatologist, pediatric cardiology, cardiac intensive care, transfer team, and umbilical venous catheter UVC access",
+                "airway, vascular access, glucose, thermoregulation, metabolic acidosis, intubation, and mechanical ventilation support",
+                "judicious oxygen and avoid excess supplemental oxygen when it may lower pulmonary vascular resistance and worsen systemic blood flow or ductal steal",
+                "prostaglandin adverse effects including apnea, respiratory depression, hypotension, fever, and intubation need",
+                "sepsis versus ductal-dependent congenital heart disease including hypoplastic left heart, transposition, pulmonary atresia, and critical coarctation",
+                "do not delay transport, pediatric cardiology, pediatric cardiac center, neonatology, or transfer planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ductal-dependent congenital heart disease time-critical actions must include immediate prostaglandin E1"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ductal_dependent_chd_oxygen_pge_differential_and_transfer_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Ductal-dependent congenital heart disease with neonatal cyanosis"
+    case["patient_demographics"] = {
+        "age": 0,
+        "sex": "female",
+        "weight_kg": 3.0,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Newborn cyanosis and hypoxemia"
+    case["history_of_present_illness"] = (
+        "Two-day-old newborn has persistent cyanosis, hypoxemia, murmur, "
+        "postductal saturation lower than preductal saturation, and shock "
+        "concerning for transposition of the great arteries or pulmonary atresia."
+    )
+    case["key_teaching_points"] = [
+        "Critical congenital heart disease can present with severe cyanosis or circulatory collapse",
+        "Prostaglandin E1 maintains ductal patency in ductal-dependent pulmonary or systemic blood flow",
+        "Early pediatric cardiology and NICU transfer planning are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Cyanosis, shock, failed pulse oximetry screen, and preductal postductal differential saturation",
+        "Poor feeding, metabolic acidosis, weak pulses, and persistent hypoxemia",
+    ]
+    case["time_critical_actions"] = [
+        "Start prostaglandin E1 PGE1 alprostadil infusion immediately to maintain ductal patency",
+        "Measure preductal and postductal pulse oximetry, four extremity blood pressure, blood gas, lactate, ECG, chest x-ray, and urgent echocardiogram",
+        "Escalate to neonatologist, NICU, pediatric cardiology, cardiac intensive care, transfer team, and UVC umbilical venous catheter access",
+        "Support airway, vascular access, glucose, thermoregulation, metabolic acidosis, intubation, and mechanical ventilation readiness",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before antibiotics",
+        "Family notification and consent for transfer",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Overview of Congenital Cardiovascular Anomalies",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/pediatrics/congenital-cardiovascular-anomalies/overview-of-congenital-cardiovascular-anomalies",
+            "supports": [
+                "ductal-dependent congenital heart disease with neonatal cyanosis diagnosis and risk stratification",
+                "critical congenital heart disease can present with severe cyanosis or circulatory collapse",
+                "prostaglandin E1 maintains ductal patency in ductal-dependent pulmonary or systemic blood flow",
+                "early pediatric cardiology and NICU transfer planning are time critical",
+                "cyanosis, shock, failed pulse oximetry screen, and preductal postductal differential saturation as red flags",
+                "poor feeding, metabolic acidosis, weak pulses, and persistent hypoxemia as severity markers",
+                "prostaglandin E1 PGE1 alprostadil infusion immediately to maintain ductal patency",
+                "preductal and postductal pulse oximetry, four extremity blood pressure, blood gas, lactate, ECG, chest x-ray, and urgent echocardiogram",
+                "neonatologist, NICU, pediatric cardiology, cardiac intensive care, transfer team, and UVC umbilical venous catheter access",
+                "airway, vascular access, glucose, thermoregulation, metabolic acidosis, intubation, and mechanical ventilation readiness",
+                "medication allergy review before antibiotics",
+                "family notification and consent for transfer",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ductal-dependent congenital heart disease safety checks must include judicious oxygen"
+        in issue
         for issue in report.critical_issues
     )
 

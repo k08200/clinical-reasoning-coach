@@ -51,6 +51,7 @@ TRUSTED_CLINICAL_SOURCE_HOSTS = {
     "jacc.org",
     "jamanetwork.com",
     "lancet.com",
+    "merckmanuals.com",
     "nejm.org",
     "nice.org.uk",
     "nih.gov",
@@ -8863,6 +8864,106 @@ ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS = (
     "쇼크",
     "호흡부전",
 )
+DUCTAL_DEPENDENT_CHD_CONTEXT_TERMS = (
+    "critical congenital heart disease",
+    "critical coarctation",
+    "critical pulmonary stenosis",
+    "cyanotic congenital heart disease",
+    "duct-dependent congenital heart disease",
+    "ductal dependent congenital heart disease",
+    "ductal-dependent congenital heart disease",
+    "ductal-dependent lesion",
+    "ductus-dependent congenital heart disease",
+    "hypoplastic left heart syndrome",
+    "neonatal cyanosis",
+    "neonatal shock",
+    "newborn cyanosis",
+    "newborn shock",
+    "pulmonary atresia",
+    "transposition of the great arteries",
+)
+DUCTAL_DEPENDENT_CHD_RISK_TERMS = (
+    "cyanosis",
+    "differential saturation",
+    "failed pulse oximetry screen",
+    "hypoxemia",
+    "murmur",
+    "poor feeding",
+    "preductal",
+    "postductal",
+    "shock",
+    "weak femoral pulses",
+)
+DUCTAL_DEPENDENT_CHD_PGE_ACTION_TERMS = (
+    "alprostadil",
+    "pge1",
+    "prostaglandin",
+    "prostaglandin e1",
+)
+DUCTAL_DEPENDENT_CHD_DIAGNOSTIC_ACTION_TERMS = (
+    "blood gas",
+    "chest x-ray",
+    "echocardiogram",
+    "echo",
+    "ecg",
+    "four extremity blood pressure",
+    "lactate",
+    "preductal",
+    "postductal",
+    "pulse oximetry",
+)
+DUCTAL_DEPENDENT_CHD_ESCALATION_ACTION_TERMS = (
+    "cardiac intensive care",
+    "cardiology",
+    "neonatologist",
+    "nicu",
+    "pediatric cardiology",
+    "transfer",
+    "umbilical venous catheter",
+    "uvc",
+)
+DUCTAL_DEPENDENT_CHD_SUPPORT_ACTION_TERMS = (
+    "airway",
+    "glucose",
+    "hypoglycemia",
+    "intubation",
+    "mechanical ventilation",
+    "metabolic acidosis",
+    "thermoregulation",
+    "vascular access",
+)
+DUCTAL_DEPENDENT_CHD_OXYGEN_SAFETY_TERMS = (
+    "ductal steal",
+    "judicious oxygen",
+    "oxygen",
+    "pulmonary vascular resistance",
+    "supplemental oxygen",
+    "withhold oxygen",
+)
+DUCTAL_DEPENDENT_CHD_PGE_ADVERSE_SAFETY_TERMS = (
+    "apnea",
+    "fever",
+    "hypotension",
+    "intubation",
+    "prostaglandin",
+    "respiratory depression",
+)
+DUCTAL_DEPENDENT_CHD_DIFFERENTIAL_SAFETY_TERMS = (
+    "congenital heart disease",
+    "ductal-dependent",
+    "hypoplastic left heart",
+    "pulmonary atresia",
+    "sepsis",
+    "transposition",
+)
+DUCTAL_DEPENDENT_CHD_TRANSPORT_SAFETY_TERMS = (
+    "do not delay",
+    "neonatology",
+    "pediatric cardiac",
+    "pediatric cardiology",
+    "transport",
+    "transfer",
+)
 CARDIAC_TAMPONADE_CONTEXT_TERMS = (
     "beck triad",
     "beck's triad",
@@ -12370,6 +12471,39 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "vasodilator contraindication review, renal and electrolyte "
                 "monitoring during diuresis, trigger or cardiopulmonary differential "
                 "review, and shock or respiratory-failure monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="ductal_dependent_chd_time_critical_actions",
+            applies=_requires_ductal_dependent_chd_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_ductal_dependent_chd_time_critical_actions,
+            issue=(
+                "ductal-dependent congenital heart disease time-critical actions "
+                "must include immediate prostaglandin E1, PGE1, or alprostadil "
+                "infusion planning, preductal/postductal pulse oximetry, "
+                "four-extremity blood pressure, blood gas, lactate, ECG, chest "
+                "x-ray, or echocardiogram assessment, neonatology, NICU, "
+                "pediatric cardiology, cardiac ICU, transfer, or umbilical venous "
+                "catheter escalation, and airway, vascular access, glucose, "
+                "thermoregulation, metabolic acidosis, intubation, or ventilation "
+                "support"
+            ),
+        ),
+        DomainSafetyGate(
+            name="ductal_dependent_chd_treatment_safety",
+            applies=_requires_ductal_dependent_chd_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_ductal_dependent_chd_treatment_safety_check,
+            issue=(
+                "ductal-dependent congenital heart disease safety checks must "
+                "include judicious oxygen or pulmonary vascular resistance safety, "
+                "PGE1 adverse-effect monitoring for apnea, respiratory depression, "
+                "hypotension, fever, or intubation need, differential review for "
+                "sepsis versus ductal-dependent lesions such as hypoplastic left "
+                "heart, transposition, or pulmonary atresia, and do-not-delay "
+                "transport, pediatric cardiology, pediatric cardiac, neonatology, "
+                "or transfer planning"
             ),
         ),
         DomainSafetyGate(
@@ -19347,6 +19481,85 @@ def _has_acute_heart_failure_treatment_safety_check(checks: list[Any]) -> bool:
         and has_renal_electrolyte_safety
         and has_trigger_differential_review
         and has_shock_respiratory_failure_safety
+    )
+
+
+def _requires_ductal_dependent_chd_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in DUCTAL_DEPENDENT_CHD_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in DUCTAL_DEPENDENT_CHD_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_ductal_dependent_chd_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_pge = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DUCTAL_DEPENDENT_CHD_PGE_ACTION_TERMS
+    )
+    has_diagnostic_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DUCTAL_DEPENDENT_CHD_DIAGNOSTIC_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DUCTAL_DEPENDENT_CHD_ESCALATION_ACTION_TERMS
+    )
+    has_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DUCTAL_DEPENDENT_CHD_SUPPORT_ACTION_TERMS
+    )
+    return has_pge and has_diagnostic_assessment and has_escalation and has_support
+
+
+def _has_ductal_dependent_chd_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_oxygen_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_OXYGEN_SAFETY_TERMS
+    )
+    has_pge_adverse_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_PGE_ADVERSE_SAFETY_TERMS
+    )
+    has_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_transport_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_TRANSPORT_SAFETY_TERMS
+    )
+    return (
+        has_oxygen_safety
+        and has_pge_adverse_safety
+        and has_differential_safety
+        and has_transport_safety
     )
 
 
