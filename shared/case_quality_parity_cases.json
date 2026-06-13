@@ -558,6 +558,53 @@
     }
   },
   {
+    "name": "dka_requires_bicarbonate_phosphate_transition_and_precipitant_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "DKA advanced safety checks must include bicarbonate restriction"
+    ],
+    "overrides": {
+      "diagnosis": "Diabetic Ketoacidosis",
+      "key_teaching_points": [
+        "DKA criteria include acidosis and ketones",
+        "Potassium must be assessed before insulin",
+        "Anion gap closure is the transition endpoint"
+      ],
+      "clinical_red_flags": [
+        "Severe metabolic acidosis with Kussmaul respirations",
+        "Tachycardia, dehydration signs, AKI, and mild confusion",
+        "Hyperkalemia despite total body potassium depletion"
+      ],
+      "time_critical_actions": [
+        "Assess severity and initiate monitored DKA protocol with fluids and insulin planning",
+        "Check potassium before insulin and replace if low",
+        "Identify precipitating cause while closing the anion gap"
+      ],
+      "contraindication_checks": [
+        "Potassium below safe threshold before insulin infusion",
+        "Cerebral edema risk from overly rapid osmolar shifts",
+        "Need to exclude surgical abdomen if pain persists after metabolic correction"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report",
+          "organization": "American Diabetes Association",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39052901/",
+          "supports": [
+            "DKA diagnostic criteria include acidosis and ketones",
+            "severe metabolic acidosis with Kussmaul respirations",
+            "tachycardia, dehydration signs, AKI, and confusion in DKA severity assessment",
+            "hyperkalemia despite total body potassium depletion",
+            "time-critical monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
+            "potassium below safe threshold before insulin infusion",
+            "cerebral edema risk from overly rapid osmolar shifts",
+            "need to exclude surgical abdomen if pain persists after metabolic correction"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "pediatric_dka_requires_severity_fluids_insulin_electrolytes_and_neuro_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

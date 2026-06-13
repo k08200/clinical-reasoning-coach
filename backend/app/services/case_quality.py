@@ -6586,6 +6586,45 @@ DKA_OSMOLAR_SAFETY_TERMS = (
     "삼투",
     "수액",
 )
+DKA_BICARBONATE_SAFETY_TERMS = (
+    "avoid routine bicarbonate",
+    "bicarbonate",
+    "ph <7.0",
+    "ph below 7.0",
+    "ph less than 7.0",
+    "severe acidosis",
+)
+DKA_PHOSPHATE_SAFETY_TERMS = (
+    "cardiac",
+    "hypophosphatemia",
+    "phosphate",
+    "respiratory",
+)
+DKA_DEXTROSE_INSULIN_CONTINUATION_TERMS = (
+    "200-250",
+    "250 mg/dl",
+    "anion gap",
+    "continue insulin",
+    "continued insulin",
+    "dextrose",
+    "ketone",
+)
+DKA_TRANSITION_OVERLAP_SAFETY_TERMS = (
+    "basal insulin",
+    "long-acting insulin",
+    "oral intake",
+    "overlap",
+    "subcutaneous insulin",
+    "transition",
+)
+DKA_PRECIPITANT_SAFETY_TERMS = (
+    "medication",
+    "missed insulin",
+    "myocardial infarction",
+    "precipitant",
+    "sglt2",
+    "stroke",
+)
 PEDIATRIC_DKA_CONTEXT_TERMS = (
     "adolescent with dka",
     "child with dka",
@@ -12718,6 +12757,21 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "DKA safety checks must include potassium threshold and "
                 "osmolar-shift or cerebral-edema risk before insulin therapy"
+            ),
+        ),
+        DomainSafetyGate(
+            name="dka_advanced_insulin_transition_safety",
+            applies=_requires_dka_treatment_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_dka_advanced_insulin_transition_safety_check,
+            issue=(
+                "DKA advanced safety checks must include bicarbonate restriction "
+                "or severe-acidosis pH review, phosphate replacement indications, "
+                "dextrose addition with continued insulin until ketone or DKA "
+                "resolution, subcutaneous basal-insulin overlap or transition "
+                "after DKA resolution and oral intake, and precipitant review for "
+                "myocardial infarction, stroke, SGLT2 inhibitor, medication, or "
+                "missed insulin"
             ),
         ),
         DomainSafetyGate(
@@ -18857,6 +18911,37 @@ def _has_dka_contraindication_safety_check(checks: list[Any]) -> bool:
         for term in DKA_OSMOLAR_SAFETY_TERMS
     )
     return has_potassium_safety and has_osmolar_safety
+
+
+def _has_dka_advanced_insulin_transition_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_bicarbonate_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DKA_BICARBONATE_SAFETY_TERMS
+    )
+    has_phosphate_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DKA_PHOSPHATE_SAFETY_TERMS
+    )
+    has_dextrose_insulin_continuation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DKA_DEXTROSE_INSULIN_CONTINUATION_TERMS
+    )
+    has_transition_overlap = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DKA_TRANSITION_OVERLAP_SAFETY_TERMS
+    )
+    has_precipitant_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DKA_PRECIPITANT_SAFETY_TERMS
+    )
+    return (
+        has_bicarbonate_safety
+        and has_phosphate_safety
+        and has_dextrose_insulin_continuation
+        and has_transition_overlap
+        and has_precipitant_review
+    )
 
 
 def _requires_pediatric_dka_safety_check(data: dict[str, Any]) -> bool:

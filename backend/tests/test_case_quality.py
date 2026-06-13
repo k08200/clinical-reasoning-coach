@@ -166,6 +166,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "organophosphate_toxicity_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
+        "dka_advanced_insulin_transition_safety",
         "pediatric_dka_time_critical_actions",
         "pediatric_dka_treatment_safety",
         "hhs_time_critical_actions",
@@ -9010,6 +9011,23 @@ def test_quality_gate_requires_dka_potassium_and_osmolar_safety_checks():
     )
 
 
+def test_quality_gate_requires_dka_bicarbonate_phosphate_transition_and_precipitant_safety():
+    case = copy.deepcopy(CASE_POOL[3])
+    case["contraindication_checks"] = [
+        "Potassium below safe threshold before insulin infusion",
+        "Cerebral edema risk from overly rapid osmolar shifts",
+        "Need to exclude surgical abdomen if pain persists after metabolic correction",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "DKA advanced safety checks must include bicarbonate restriction" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_pediatric_dka_severity_fluids_insulin_electrolytes_and_neuro_escalation():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Pediatric DKA"
@@ -14625,6 +14643,11 @@ def test_quality_gate_allows_diagnosis_terms_in_hidden_teaching_metadata():
     case["contraindication_checks"] = [
         *case["contraindication_checks"],
         "Potassium threshold and cerebral edema risk from osmolar shifts before insulin therapy",
+        "Avoid routine bicarbonate unless severe acidosis with pH below 7.0",
+        "Review phosphate replacement only for severe hypophosphatemia with cardiac or respiratory compromise",
+        "Add dextrose when glucose reaches 200-250 mg/dL and continue insulin until ketone resolution",
+        "Overlap basal insulin during subcutaneous insulin transition after DKA resolution and oral intake",
+        "Search precipitants including SGLT2 inhibitor use, medication contributors, and missed insulin",
     ]
     case["clinical_sources"] = [
         *case["clinical_sources"],
@@ -14638,6 +14661,11 @@ def test_quality_gate_allows_diagnosis_terms_in_hidden_teaching_metadata():
                 "plan monitored DKA fluids and insulin protocol after potassium assessment",
                 "close the anion gap before transition off insulin infusion",
                 "potassium threshold and cerebral edema risk from osmolar shifts before insulin therapy",
+                "avoid routine bicarbonate unless severe acidosis with pH below 7.0",
+                "phosphate replacement only for severe hypophosphatemia with cardiac or respiratory compromise",
+                "dextrose addition with continued insulin until ketone resolution",
+                "basal insulin overlap during subcutaneous insulin transition after DKA resolution and oral intake",
+                "precipitant review for SGLT2 inhibitor exposure, medication contributors, and missed insulin",
             ],
         },
     ]

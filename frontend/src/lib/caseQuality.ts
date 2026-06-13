@@ -7172,6 +7172,50 @@ const DKA_OSMOLAR_SAFETY_TERMS = [
   "수액",
 ];
 
+const DKA_BICARBONATE_SAFETY_TERMS = [
+  "avoid routine bicarbonate",
+  "bicarbonate",
+  "ph <7.0",
+  "ph below 7.0",
+  "ph less than 7.0",
+  "severe acidosis",
+];
+
+const DKA_PHOSPHATE_SAFETY_TERMS = [
+  "cardiac",
+  "hypophosphatemia",
+  "phosphate",
+  "respiratory",
+];
+
+const DKA_DEXTROSE_INSULIN_CONTINUATION_TERMS = [
+  "200-250",
+  "250 mg/dl",
+  "anion gap",
+  "continue insulin",
+  "continued insulin",
+  "dextrose",
+  "ketone",
+];
+
+const DKA_TRANSITION_OVERLAP_SAFETY_TERMS = [
+  "basal insulin",
+  "long-acting insulin",
+  "oral intake",
+  "overlap",
+  "subcutaneous insulin",
+  "transition",
+];
+
+const DKA_PRECIPITANT_SAFETY_TERMS = [
+  "medication",
+  "missed insulin",
+  "myocardial infarction",
+  "precipitant",
+  "sglt2",
+  "stroke",
+];
+
 const PEDIATRIC_DKA_CONTEXT_TERMS = [
   "adolescent with dka",
   "child with dka",
@@ -15571,6 +15615,32 @@ function hasDkaContraindicationSafetyCheck(checks: string[]): boolean {
   return hasPotassiumSafety && hasOsmolarSafety;
 }
 
+function hasDkaAdvancedInsulinTransitionSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasBicarbonateSafety = DKA_BICARBONATE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPhosphateSafety = DKA_PHOSPHATE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDextroseInsulinContinuation = DKA_DEXTROSE_INSULIN_CONTINUATION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTransitionOverlap = DKA_TRANSITION_OVERLAP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPrecipitantReview = DKA_PRECIPITANT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasBicarbonateSafety &&
+    hasPhosphateSafety &&
+    hasDextroseInsulinContinuation &&
+    hasTransitionOverlap &&
+    hasPrecipitantReview
+  );
+}
+
 function requiresPediatricDkaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -19192,6 +19262,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasDkaContraindicationSafetyCheck,
       issue:
         "DKA safety checks must include potassium threshold and osmolar-shift or cerebral-edema risk before insulin therapy",
+    },
+    {
+      name: "dka_advanced_insulin_transition_safety",
+      label: "DKA transition safety",
+      applies: requiresDkaTreatmentSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasDkaAdvancedInsulinTransitionSafetyCheck,
+      issue:
+        "DKA advanced safety checks must include bicarbonate restriction or severe-acidosis pH review, phosphate replacement indications, dextrose addition with continued insulin until ketone or DKA resolution, subcutaneous basal-insulin overlap or transition after DKA resolution and oral intake, and precipitant review for myocardial infarction, stroke, SGLT2 inhibitor, medication, or missed insulin",
     },
     {
       name: "pediatric_dka_time_critical_actions",

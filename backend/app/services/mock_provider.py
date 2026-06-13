@@ -292,6 +292,11 @@ _SOURCE_DKA = {
         "cerebral edema risk from overly rapid osmolar shifts",
         "persistent abdominal pain after metabolic correction requiring surgical reassessment",
         "time-critical monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
+        "avoid routine bicarbonate unless severe acidosis with pH below 7.0",
+        "phosphate replacement only for severe hypophosphatemia with cardiac or respiratory compromise",
+        "dextrose addition when glucose approaches 200-250 mg/dL with continued insulin until ketone resolution",
+        "basal insulin overlap or subcutaneous insulin transition after DKA resolution and oral intake",
+        "precipitant review for SGLT2 inhibitor exposure, medication contributors, or missed insulin",
     ],
 }
 
@@ -305,6 +310,11 @@ _SOURCE_DKA_STATPEARLS = {
         "time-critical fluids, insulin planning, potassium checks, and anion-gap closure",
         "potassium safety threshold before insulin therapy",
         "cerebral edema, osmolar shift, and persistent abdominal pain safety checks",
+        "avoid routine bicarbonate and reserve for severe acidosis pH below 7.0",
+        "phosphate safety indications include severe hypophosphatemia, cardiac compromise, or respiratory compromise",
+        "dextrose fluids with continued insulin until ketoacidosis or ketone resolution",
+        "subcutaneous basal insulin overlap during transition after DKA resolution and oral intake",
+        "precipitant review including SGLT2 inhibitor exposure, medications, and missed insulin",
     ],
 }
 
@@ -653,6 +663,11 @@ _CASE_DKA = {
         "Potassium below safe threshold before insulin infusion",
         "Cerebral edema risk from overly rapid osmolar shifts",
         "Need to exclude surgical abdomen if pain persists after metabolic correction",
+        "Avoid routine bicarbonate unless severe acidosis with pH below 7.0",
+        "Review phosphate replacement only for severe hypophosphatemia with cardiac or respiratory compromise",
+        "Add dextrose when glucose reaches 200-250 mg/dL and continue insulin until ketone resolution and anion gap closure",
+        "Overlap basal insulin or subcutaneous long-acting insulin before stopping IV insulin after DKA resolution and oral intake",
+        "Search precipitants including SGLT2 inhibitor use, medication contributors, and missed insulin",
     ],
     "clinical_sources": [_SOURCE_DKA, _SOURCE_DKA_STATPEARLS],
     "review_status": "educational_draft",
