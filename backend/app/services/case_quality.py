@@ -5762,6 +5762,50 @@ SUBARACHNOID_HEMORRHAGE_COMPLICATION_SAFETY_TERMS = (
     "수두증",
     "혈관연축",
 )
+SUBARACHNOID_HEMORRHAGE_DIAGNOSTIC_TIMING_SAFETY_TERMS = (
+    "12 hours",
+    "6 hours",
+    "ct negative",
+    "do not routinely offer lumbar puncture",
+    "lumbar puncture",
+    "specialist neuroradiologist",
+    "xanthochromia",
+)
+SUBARACHNOID_HEMORRHAGE_ANEURYSM_IMAGING_SAFETY_TERMS = (
+    "ct angiography",
+    "cta",
+    "dsa",
+    "digital subtraction angiography",
+    "mra",
+    "without delay",
+)
+SUBARACHNOID_HEMORRHAGE_SECURE_ANEURYSM_SAFETY_TERMS = (
+    "24 hours",
+    "aneurysm treatment",
+    "clipping",
+    "coiling",
+    "earliest opportunity",
+    "endovascular",
+    "secure aneurysm",
+)
+SUBARACHNOID_HEMORRHAGE_NIMODIPINE_ROUTE_SAFETY_TERMS = (
+    "enteral",
+    "hypotension",
+    "intravenous nimodipine",
+    "iv nimodipine",
+    "nimodipine",
+    "specialist advice",
+)
+SUBARACHNOID_HEMORRHAGE_HYDROCEPHALUS_DCI_SAFETY_TERMS = (
+    "csf diversion",
+    "csf drainage",
+    "delayed cerebral ischemia",
+    "euvolaemia",
+    "hydrocephalus",
+    "transcranial doppler",
+    "tcd",
+    "vasopressor",
+)
 INTRACEREBRAL_HEMORRHAGE_CONTEXT_TERMS = (
     "basal ganglia hemorrhage",
     "brain hemorrhage",
@@ -12411,6 +12455,25 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="subarachnoid_hemorrhage_advanced_aneurysm_complication_safety",
+            applies=_requires_subarachnoid_hemorrhage_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_subarachnoid_hemorrhage_advanced_aneurysm_complication_safety_check,
+            issue=(
+                "subarachnoid hemorrhage advanced safety checks must include "
+                "6-hour, 12-hour, CT-negative, specialist-neuroradiologist, "
+                "lumbar-puncture, xanthochromia, or do-not-routinely-offer-LP "
+                "diagnostic timing review, CTA, CT angiography, DSA, digital "
+                "subtraction angiography, MRA, or without-delay aneurysm imaging, "
+                "coiling, clipping, endovascular, secure-aneurysm, 24-hour, "
+                "earliest-opportunity, or aneurysm-treatment planning, nimodipine "
+                "route safety for enteral, IV nimodipine, hypotension, or "
+                "specialist advice, and hydrocephalus, CSF drainage, CSF diversion, "
+                "delayed cerebral ischemia, euvolaemia, vasopressor, TCD, or "
+                "transcranial-Doppler complication management"
+            ),
+        ),
+        DomainSafetyGate(
             name="intracerebral_hemorrhage_time_critical_actions",
             applies=_requires_intracerebral_hemorrhage_safety_check,
             field_name="time_critical_actions",
@@ -17964,6 +18027,39 @@ def _has_subarachnoid_hemorrhage_treatment_safety_check(checks: list[Any]) -> bo
         has_anticoag_reversal_safety
         and has_rebleed_bp_safety
         and has_complication_safety
+    )
+
+
+def _has_subarachnoid_hemorrhage_advanced_aneurysm_complication_safety_check(
+    checks: list[Any],
+) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_diagnostic_timing = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUBARACHNOID_HEMORRHAGE_DIAGNOSTIC_TIMING_SAFETY_TERMS
+    )
+    has_aneurysm_imaging = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUBARACHNOID_HEMORRHAGE_ANEURYSM_IMAGING_SAFETY_TERMS
+    )
+    has_secure_aneurysm = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUBARACHNOID_HEMORRHAGE_SECURE_ANEURYSM_SAFETY_TERMS
+    )
+    has_nimodipine_route = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUBARACHNOID_HEMORRHAGE_NIMODIPINE_ROUTE_SAFETY_TERMS
+    )
+    has_hydrocephalus_dci = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUBARACHNOID_HEMORRHAGE_HYDROCEPHALUS_DCI_SAFETY_TERMS
+    )
+    return (
+        has_diagnostic_timing
+        and has_aneurysm_imaging
+        and has_secure_aneurysm
+        and has_nimodipine_route
+        and has_hydrocephalus_dci
     )
 
 

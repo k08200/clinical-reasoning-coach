@@ -6278,6 +6278,55 @@ const SUBARACHNOID_HEMORRHAGE_COMPLICATION_SAFETY_TERMS = [
   "혈관연축",
 ];
 
+const SUBARACHNOID_HEMORRHAGE_DIAGNOSTIC_TIMING_SAFETY_TERMS = [
+  "12 hours",
+  "6 hours",
+  "ct negative",
+  "do not routinely offer lumbar puncture",
+  "lumbar puncture",
+  "specialist neuroradiologist",
+  "xanthochromia",
+];
+
+const SUBARACHNOID_HEMORRHAGE_ANEURYSM_IMAGING_SAFETY_TERMS = [
+  "ct angiography",
+  "cta",
+  "dsa",
+  "digital subtraction angiography",
+  "mra",
+  "without delay",
+];
+
+const SUBARACHNOID_HEMORRHAGE_SECURE_ANEURYSM_SAFETY_TERMS = [
+  "24 hours",
+  "aneurysm treatment",
+  "clipping",
+  "coiling",
+  "earliest opportunity",
+  "endovascular",
+  "secure aneurysm",
+];
+
+const SUBARACHNOID_HEMORRHAGE_NIMODIPINE_ROUTE_SAFETY_TERMS = [
+  "enteral",
+  "hypotension",
+  "intravenous nimodipine",
+  "iv nimodipine",
+  "nimodipine",
+  "specialist advice",
+];
+
+const SUBARACHNOID_HEMORRHAGE_HYDROCEPHALUS_DCI_SAFETY_TERMS = [
+  "csf diversion",
+  "csf drainage",
+  "delayed cerebral ischemia",
+  "euvolaemia",
+  "hydrocephalus",
+  "transcranial doppler",
+  "tcd",
+  "vasopressor",
+];
+
 const INTRACEREBRAL_HEMORRHAGE_CONTEXT_TERMS = [
   "basal ganglia hemorrhage",
   "brain hemorrhage",
@@ -14857,6 +14906,35 @@ function hasSubarachnoidHemorrhageTreatmentSafetyCheck(checks: string[]): boolea
   return hasAnticoagReversalSafety && hasRebleedBpSafety && hasComplicationSafety;
 }
 
+function hasSubarachnoidHemorrhageAdvancedAneurysmComplicationSafetyCheck(
+  checks: string[],
+): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDiagnosticTiming = SUBARACHNOID_HEMORRHAGE_DIAGNOSTIC_TIMING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAneurysmImaging = SUBARACHNOID_HEMORRHAGE_ANEURYSM_IMAGING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSecureAneurysm = SUBARACHNOID_HEMORRHAGE_SECURE_ANEURYSM_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNimodipineRoute = SUBARACHNOID_HEMORRHAGE_NIMODIPINE_ROUTE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHydrocephalusDci =
+    SUBARACHNOID_HEMORRHAGE_HYDROCEPHALUS_DCI_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasDiagnosticTiming &&
+    hasAneurysmImaging &&
+    hasSecureAneurysm &&
+    hasNimodipineRoute &&
+    hasHydrocephalusDci
+  );
+}
+
 function requiresIntracerebralHemorrhageSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -18920,6 +18998,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSubarachnoidHemorrhageTreatmentSafetyCheck,
       issue:
         "subarachnoid hemorrhage safety checks must include anticoagulant, antiplatelet, INR, platelet, coagulopathy, or reversal review, rebleeding or unsecured-aneurysm blood-pressure safeguards, and hydrocephalus, vasospasm, delayed cerebral ischemia, seizure, EVD, ICU, or neurocritical complication monitoring",
+    },
+    {
+      name: "subarachnoid_hemorrhage_advanced_aneurysm_complication_safety",
+      label: "SAH aneurysm and complication safety",
+      applies: requiresSubarachnoidHemorrhageSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSubarachnoidHemorrhageAdvancedAneurysmComplicationSafetyCheck,
+      issue:
+        "subarachnoid hemorrhage advanced safety checks must include 6-hour, 12-hour, CT-negative, specialist-neuroradiologist, lumbar-puncture, xanthochromia, or do-not-routinely-offer-LP diagnostic timing review, CTA, CT angiography, DSA, digital subtraction angiography, MRA, or without-delay aneurysm imaging, coiling, clipping, endovascular, secure-aneurysm, 24-hour, earliest-opportunity, or aneurysm-treatment planning, nimodipine route safety for enteral, IV nimodipine, hypotension, or specialist advice, and hydrocephalus, CSF drainage, CSF diversion, delayed cerebral ischemia, euvolaemia, vasopressor, TCD, or transcranial-Doppler complication management",
     },
     {
       name: "intracerebral_hemorrhage_time_critical_actions",

@@ -151,6 +151,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "ruptured_aaa_treatment_safety",
         "subarachnoid_hemorrhage_time_critical_actions",
         "subarachnoid_hemorrhage_treatment_safety",
+        "subarachnoid_hemorrhage_advanced_aneurysm_complication_safety",
         "intracerebral_hemorrhage_time_critical_actions",
         "intracerebral_hemorrhage_treatment_safety",
         "intracerebral_hemorrhage_advanced_bp_reversal_vte_safety",
@@ -7512,6 +7513,74 @@ def test_quality_gate_requires_sah_reversal_rebleeding_and_complication_safety()
     assert not report.passed
     assert any(
         "subarachnoid hemorrhage safety checks must include anticoagulant"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_sah_advanced_aneurysm_and_complication_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Aneurysmal subarachnoid hemorrhage"
+    case["patient_demographics"] = {
+        "age": 51,
+        "sex": "female",
+        "weight_kg": 63,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden worst headache of life"
+    case["history_of_present_illness"] = (
+        "Patient developed a thunderclap headache peaking within minutes with vomiting, "
+        "neck stiffness, photophobia, and transient loss of consciousness concerning for "
+        "subarachnoid hemorrhage."
+    )
+    case["key_teaching_points"] = [
+        "Thunderclap headache is a red flag for subarachnoid hemorrhage",
+        "Non-contrast head CT is first-line, with LP or CTA pathway when CT is negative or delayed",
+        "Aneurysmal SAH requires neurosurgical or neurocritical escalation and rebleeding prevention",
+    ]
+    case["clinical_red_flags"] = [
+        "Thunderclap headache, worst headache of life, vomiting, neck stiffness, syncope, or seizure",
+        "Reduced consciousness, focal neurologic deficit, meningism, hypertension, or sentinel headache",
+    ]
+    case["time_critical_actions"] = [
+        "Order urgent non-contrast head CT for suspected subarachnoid hemorrhage",
+        "If CT is negative or delayed after onset, perform lumbar puncture for xanthochromia or CTA pathway",
+        "Consult neurosurgery and neurocritical care and arrange specialist transfer for aneurysm treatment",
+        "Start nimodipine and use blood pressure control with nicardipine or labetalol while protecting perfusion",
+    ]
+    case["contraindication_checks"] = [
+        "Review anticoagulant use, INR, platelet count, coagulopathy, DOAC or warfarin exposure, and reversal plan",
+        "Use blood pressure safeguards for unsecured aneurysm and rebleeding risk while maintaining cerebral perfusion",
+        "Monitor hydrocephalus, vasospasm, delayed cerebral ischemia, seizure, EVD need, ICU status, and neurocritical deterioration",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Subarachnoid haemorrhage caused by a ruptured aneurysm",
+            "organization": "NICE",
+            "url": "https://www.nice.org.uk/guidance/ng228/chapter/Recommendations",
+            "supports": [
+                "aneurysmal subarachnoid hemorrhage diagnosis and risk stratification",
+                "thunderclap headache is a red flag for subarachnoid hemorrhage",
+                "non-contrast head CT is first-line, with LP or CTA pathway when CT is negative or delayed",
+                "aneurysmal SAH requires neurosurgical or neurocritical escalation and rebleeding prevention",
+                "thunderclap headache, worst headache of life, vomiting, neck stiffness, syncope, or seizure as red flags",
+                "reduced consciousness, focal neurologic deficit, meningism, hypertension, or sentinel headache as severity markers",
+                "urgent non-contrast head CT for suspected subarachnoid hemorrhage",
+                "lumbar puncture for xanthochromia or CTA pathway if CT is negative or delayed",
+                "neurosurgery and neurocritical care consultation and specialist transfer for aneurysm treatment",
+                "nimodipine and blood pressure control with nicardipine or labetalol while protecting perfusion",
+                "anticoagulant use, INR, platelet count, coagulopathy, DOAC or warfarin exposure, and reversal plan",
+                "blood pressure safeguards for unsecured aneurysm and rebleeding risk while maintaining cerebral perfusion",
+                "hydrocephalus, vasospasm, delayed cerebral ischemia, seizure, EVD need, ICU status, and neurocritical deterioration monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "subarachnoid hemorrhage advanced safety checks must include 6-hour"
         in issue
         for issue in report.critical_issues
     )
