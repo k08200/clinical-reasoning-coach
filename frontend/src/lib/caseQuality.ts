@@ -6415,6 +6415,55 @@ const INTRACEREBRAL_HEMORRHAGE_COMPLICATION_SAFETY_TERMS = [
   "seizure",
 ];
 
+const INTRACEREBRAL_HEMORRHAGE_BP_TARGET_EXCLUSION_SAFETY_TERMS = [
+  "130",
+  "140",
+  "150",
+  "200",
+  "220",
+  "60 mmhg",
+  "bp reduction greater than 60",
+  "glasgow coma scale",
+  "gcs",
+  "massive hematoma",
+  "mild to moderate",
+  "structural cause",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_WARFARIN_SPECIFIC_REVERSAL_TERMS = [
+  "4-factor pcc",
+  "four-factor pcc",
+  "intravenous vitamin k",
+  "iv vitamin k",
+  "pcc",
+  "prothrombin complex concentrate",
+  "vitamin k",
+  "warfarin",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_DOAC_SPECIFIC_REVERSAL_TERMS = [
+  "andexanet",
+  "apixaban",
+  "dabigatran",
+  "doac",
+  "factor xa",
+  "idarucizumab",
+  "pcc",
+  "rivaroxaban",
+];
+
+const INTRACEREBRAL_HEMORRHAGE_VTE_PE_RESPONSE_SAFETY_TERMS = [
+  "clinically evident proximal dvt",
+  "ivc filter",
+  "low-molecular-weight heparin",
+  "lmwh",
+  "proximal dvt",
+  "pulmonary embolism",
+  "unfractionated heparin",
+  "ufh",
+  "venous thromboembolism",
+];
+
 const BB_CCB_OVERDOSE_DIRECT_CONTEXT_TERMS = [
   "beta blocker overdose",
   "beta-blocker overdose",
@@ -14867,6 +14916,26 @@ function hasIntracerebralHemorrhageTreatmentSafetyCheck(checks: string[]): boole
   return hasBpSafety && hasReversalSafety && hasVteRestartSafety && hasComplicationSafety;
 }
 
+function hasIntracerebralHemorrhageAdvancedBpReversalVteSafetyCheck(
+  checks: string[],
+): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasBpTargetExclusion = INTRACEREBRAL_HEMORRHAGE_BP_TARGET_EXCLUSION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasWarfarinReversal =
+    INTRACEREBRAL_HEMORRHAGE_WARFARIN_SPECIFIC_REVERSAL_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDoacReversal = INTRACEREBRAL_HEMORRHAGE_DOAC_SPECIFIC_REVERSAL_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVtePeResponse = INTRACEREBRAL_HEMORRHAGE_VTE_PE_RESPONSE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasBpTargetExclusion && hasWarfarinReversal && hasDoacReversal && hasVtePeResponse;
+}
+
 function requiresBbCcbOverdoseSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -18869,6 +18938,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasIntracerebralHemorrhageTreatmentSafetyCheck,
       issue:
         "intracerebral hemorrhage safety checks must include blood-pressure target range or hypotension safeguards, reversal-agent and platelet transfusion cautions, VTE prophylaxis or anticoagulation restart planning, and hematoma expansion, intraventricular hemorrhage, hydrocephalus, seizure, or mass-effect monitoring",
+    },
+    {
+      name: "intracerebral_hemorrhage_advanced_bp_reversal_vte_safety",
+      label: "ICH advanced BP reversal and VTE safety",
+      applies: requiresIntracerebralHemorrhageSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasIntracerebralHemorrhageAdvancedBpReversalVteSafetyCheck,
+      issue:
+        "intracerebral hemorrhage advanced safety checks must include SBP 140, 130-150, 200, 220, 60 mmHg, GCS, massive hematoma, structural cause, or mild-to-moderate blood-pressure target and exclusion review, warfarin reversal with PCC or 4-factor PCC plus IV vitamin K, DOAC reversal review for factor Xa, apixaban, rivaroxaban, andexanet, dabigatran, idarucizumab, or PCC, and proximal DVT, pulmonary embolism, IVC filter, unfractionated heparin, LMWH, or venous-thromboembolism response planning",
     },
     {
       name: "bb_ccb_overdose_time_critical_actions",
