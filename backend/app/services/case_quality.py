@@ -5679,6 +5679,39 @@ RUPTURED_AAA_SHOCK_COMPLICATION_SAFETY_TERMS = (
     "응고",
     "쇼크",
 )
+RUPTURED_AAA_REGIONAL_TRANSFER_SAFETY_TERMS = (
+    "30 minutes",
+    "immediate bedside ultrasound",
+    "regional vascular service",
+    "same day",
+    "transfer",
+    "vascular service",
+)
+RUPTURED_AAA_REPAIR_SELECTION_SAFETY_TERMS = (
+    "complex evar",
+    "evar",
+    "open repair",
+    "repair suitability",
+    "risk assessment tool",
+    "standard evar",
+)
+RUPTURED_AAA_ANESTHESIA_PERIOP_SAFETY_TERMS = (
+    "abdominal compartment syndrome",
+    "anaesthetic",
+    "anaesthesia",
+    "anesthesia",
+    "local anaesthetic",
+    "local anesthetic",
+    "perioperative",
+)
+RUPTURED_AAA_TRANSFER_RESUSCITATION_SAFETY_TERMS = (
+    "permissive hypotension",
+    "restrictive approach",
+    "restrictive fluid",
+    "systolic blood pressure",
+    "transfer",
+    "volume resuscitation",
+)
 SUBARACHNOID_HEMORRHAGE_CONTEXT_TERMS = (
     "aneurysmal sah",
     "sentinel headache",
@@ -12429,6 +12462,24 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="ruptured_aaa_advanced_transfer_repair_safety",
+            applies=_requires_ruptured_aaa_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_ruptured_aaa_advanced_transfer_repair_safety_check,
+            issue=(
+                "ruptured or symptomatic abdominal aortic aneurysm advanced "
+                "safety checks must include immediate bedside ultrasound, "
+                "regional vascular service, same-day, transfer, 30-minutes, "
+                "or vascular-service coordination, EVAR, standard EVAR, complex "
+                "EVAR, open repair, risk-assessment-tool, or repair-suitability "
+                "review, local anaesthetic/anesthetic, anaesthesia/anesthesia, "
+                "perioperative, or abdominal-compartment-syndrome planning, and "
+                "permissive hypotension, restrictive fluid, restrictive approach, "
+                "volume resuscitation, systolic blood pressure, or transfer "
+                "resuscitation safeguards"
+            ),
+        ),
+        DomainSafetyGate(
             name="subarachnoid_hemorrhage_time_critical_actions",
             applies=_requires_subarachnoid_hemorrhage_safety_check,
             field_name="time_critical_actions",
@@ -17953,6 +18004,34 @@ def _has_ruptured_aaa_treatment_safety_check(checks: list[Any]) -> bool:
         has_transfer_delay_safety
         and has_antithrombotic_safety
         and has_shock_complication_safety
+    )
+
+
+def _has_ruptured_aaa_advanced_transfer_repair_safety_check(
+    checks: list[Any],
+) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_regional_transfer = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RUPTURED_AAA_REGIONAL_TRANSFER_SAFETY_TERMS
+    )
+    has_repair_selection = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RUPTURED_AAA_REPAIR_SELECTION_SAFETY_TERMS
+    )
+    has_anesthesia_periop = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RUPTURED_AAA_ANESTHESIA_PERIOP_SAFETY_TERMS
+    )
+    has_transfer_resuscitation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RUPTURED_AAA_TRANSFER_RESUSCITATION_SAFETY_TERMS
+    )
+    return (
+        has_regional_transfer
+        and has_repair_selection
+        and has_anesthesia_periop
+        and has_transfer_resuscitation
     )
 
 

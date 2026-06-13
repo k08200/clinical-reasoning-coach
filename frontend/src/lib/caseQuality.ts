@@ -6187,6 +6187,43 @@ const RUPTURED_AAA_SHOCK_COMPLICATION_SAFETY_TERMS = [
   "쇼크",
 ];
 
+const RUPTURED_AAA_REGIONAL_TRANSFER_SAFETY_TERMS = [
+  "30 minutes",
+  "immediate bedside ultrasound",
+  "regional vascular service",
+  "same day",
+  "transfer",
+  "vascular service",
+];
+
+const RUPTURED_AAA_REPAIR_SELECTION_SAFETY_TERMS = [
+  "complex evar",
+  "evar",
+  "open repair",
+  "repair suitability",
+  "risk assessment tool",
+  "standard evar",
+];
+
+const RUPTURED_AAA_ANESTHESIA_PERIOP_SAFETY_TERMS = [
+  "abdominal compartment syndrome",
+  "anaesthetic",
+  "anaesthesia",
+  "anesthesia",
+  "local anaesthetic",
+  "local anesthetic",
+  "perioperative",
+];
+
+const RUPTURED_AAA_TRANSFER_RESUSCITATION_SAFETY_TERMS = [
+  "permissive hypotension",
+  "restrictive approach",
+  "restrictive fluid",
+  "systolic blood pressure",
+  "transfer",
+  "volume resuscitation",
+];
+
 const SUBARACHNOID_HEMORRHAGE_CONTEXT_TERMS = [
   "aneurysmal sah",
   "sentinel headache",
@@ -14850,6 +14887,28 @@ function hasRupturedAaaTreatmentSafetyCheck(checks: string[]): boolean {
   return hasTransferDelaySafety && hasAntithromboticSafety && hasShockComplicationSafety;
 }
 
+function hasRupturedAaaAdvancedTransferRepairSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasRegionalTransfer = RUPTURED_AAA_REGIONAL_TRANSFER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRepairSelection = RUPTURED_AAA_REPAIR_SELECTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAnesthesiaPeriop = RUPTURED_AAA_ANESTHESIA_PERIOP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTransferResuscitation = RUPTURED_AAA_TRANSFER_RESUSCITATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasRegionalTransfer &&
+    hasRepairSelection &&
+    hasAnesthesiaPeriop &&
+    hasTransferResuscitation
+  );
+}
+
 function requiresSubarachnoidHemorrhageSafetyCheck(
   detail: ClinicalCaseReviewDetail,
 ): boolean {
@@ -18980,6 +19039,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasRupturedAaaTreatmentSafetyCheck,
       issue:
         "ruptured or symptomatic abdominal aortic aneurysm safety checks must include unstable-patient transfer, imaging, or repair-not-to-delay planning, bleeding, hemorrhage, anticoagulation, antiplatelet, or thrombolysis avoidance review, and shock, coagulopathy, hypothermia, renal injury, cardiac arrest, or abdominal compartment complication monitoring",
+    },
+    {
+      name: "ruptured_aaa_advanced_transfer_repair_safety",
+      label: "Ruptured AAA transfer and repair safety",
+      applies: requiresRupturedAaaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasRupturedAaaAdvancedTransferRepairSafetyCheck,
+      issue:
+        "ruptured or symptomatic abdominal aortic aneurysm advanced safety checks must include immediate bedside ultrasound, regional vascular service, same-day, transfer, 30-minutes, or vascular-service coordination, EVAR, standard EVAR, complex EVAR, open repair, risk-assessment-tool, or repair-suitability review, local anaesthetic/anesthetic, anaesthesia/anesthesia, perioperative, or abdominal-compartment-syndrome planning, and permissive hypotension, restrictive fluid, restrictive approach, volume resuscitation, systolic blood pressure, or transfer resuscitation safeguards",
     },
     {
       name: "subarachnoid_hemorrhage_time_critical_actions",

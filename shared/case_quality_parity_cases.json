@@ -5526,6 +5526,66 @@
     }
   },
   {
+    "name": "ruptured_aaa_requires_advanced_transfer_repair_and_perioperative_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "ruptured or symptomatic abdominal aortic aneurysm advanced safety checks must include immediate bedside ultrasound"
+    ],
+    "overrides": {
+      "diagnosis": "Ruptured abdominal aortic aneurysm",
+      "patient_demographics": {
+        "age": 74,
+        "sex": "male",
+        "weight_kg": 79,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Severe abdominal and back pain with syncope",
+      "history_of_present_illness": "Older smoker has abrupt abdominal pain radiating to the back, syncope, hypotension, tachycardia, and a pulsatile abdominal mass concerning for ruptured abdominal aortic aneurysm.",
+      "key_teaching_points": [
+        "Ruptured abdominal aortic aneurysm is a vascular surgical emergency",
+        "Unstable patients need immediate repair planning without imaging delay",
+        "Controlled resuscitation, blood products, and vascular team activation are time-critical"
+      ],
+      "clinical_red_flags": [
+        "Abdominal or back pain, syncope, hypotension, shock, or pulsatile abdominal mass",
+        "Known abdominal aortic aneurysm, elderly smoker, collapse, or retroperitoneal hemorrhage signs"
+      ],
+      "time_critical_actions": [
+        "Activate vascular surgery immediately for EVAR, open repair, or operative aneurysm repair planning",
+        "Use permissive hypotension with controlled restrictive fluid resuscitation and target systolic blood pressure while mental status is preserved",
+        "Place large-bore IV access, send type and crossmatch, prepare blood products, PRBCs, and massive transfusion protocol",
+        "Use bedside ultrasound or CTA only if stable and document that imaging must not delay care for an unstable patient"
+      ],
+      "contraindication_checks": [
+        "Do not delay transfer, immediate repair, or urgent vascular intervention for unstable suspected ruptured AAA",
+        "Avoid anticoagulation, antiplatelet escalation, or thrombolysis until hemorrhage and bleeding risk are addressed",
+        "Monitor shock, coagulopathy, hypothermia, renal injury, cardiac arrest, abdominal compartment syndrome, and lethal triad"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Abdominal aortic aneurysm: diagnosis and management",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/ng156/chapter/recommendations",
+          "supports": [
+            "ruptured abdominal aortic aneurysm diagnosis and risk stratification",
+            "ruptured abdominal aortic aneurysm is a vascular surgical emergency",
+            "unstable patients need immediate repair planning without imaging delay",
+            "controlled resuscitation, blood products, and vascular team activation are time-critical",
+            "abdominal or back pain, syncope, hypotension, shock, or pulsatile abdominal mass as red flags",
+            "known abdominal aortic aneurysm, elderly smoker, collapse, or retroperitoneal hemorrhage signs as severity markers",
+            "immediate vascular surgery for EVAR, open repair, or operative aneurysm repair planning",
+            "permissive hypotension with controlled restrictive fluid resuscitation and target systolic blood pressure",
+            "large-bore IV access, type and crossmatch, blood products, PRBCs, and massive transfusion protocol",
+            "bedside ultrasound or CTA only if stable and imaging must not delay care for an unstable patient",
+            "do not delay transfer, immediate repair, or urgent vascular intervention for unstable suspected ruptured AAA",
+            "avoid anticoagulation, antiplatelet escalation, or thrombolysis until hemorrhage and bleeding risk are addressed",
+            "shock, coagulopathy, hypothermia, renal injury, cardiac arrest, abdominal compartment syndrome, and lethal triad monitoring"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "subarachnoid_hemorrhage_requires_ct_lp_cta_neuro_and_bp_nimodipine_actions",
     "expected_passed": false,
     "expected_issue_substrings": [
