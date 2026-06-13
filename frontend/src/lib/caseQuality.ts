@@ -10973,6 +10973,62 @@ const STROKE_GLUCOSE_TERMS = ["glucose", "hypoglycemia", "혈당"];
 
 const STROKE_BP_TERMS = ["blood pressure", "bp", "hypertension", "혈압"];
 
+const STROKE_VASCULAR_IMAGING_SAFETY_TERMS = [
+  "cta",
+  "ct angiography",
+  "ct perfusion",
+  "mra",
+  "mr angiography",
+  "mr perfusion",
+  "perfusion",
+  "vascular imaging",
+];
+
+const STROKE_THROMBECTOMY_SELECTION_SAFETY_TERMS = [
+  "24 hours",
+  "6 hours",
+  "aspects",
+  "large vessel occlusion",
+  "lvo",
+  "modified rankin",
+  "mrs",
+  "nihss",
+  "salvageable",
+  "thrombectomy",
+];
+
+const STROKE_SERVICE_MONITORING_SAFETY_TERMS = [
+  "complication",
+  "follow-up imaging",
+  "post-thrombolysis",
+  "re-imaging",
+  "stroke physician",
+  "stroke service",
+  "stroke unit",
+  "thrombolysis protocol",
+];
+
+const STROKE_ANTIPLATELET_TIMING_SAFETY_TERMS = [
+  "anticoagulation",
+  "antiplatelet",
+  "aspirin",
+  "delay antiplatelet",
+  "enteral",
+  "rectal",
+  "swallow route",
+];
+
+const STROKE_HOMEOSTASIS_SWALLOW_SAFETY_TERMS = [
+  "blood glucose",
+  "dysphagia",
+  "glucose",
+  "oxygen",
+  "oxygen saturation",
+  "spo2",
+  "swallow",
+  "temperature",
+];
+
 const PE_CONTEXT_TERMS = [
   "ct pulmonary angiography",
   "ctpa",
@@ -17605,6 +17661,32 @@ function hasStrokeContraindicationSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function hasStrokeAdvancedReperfusionMonitoringSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasVascularImaging = STROKE_VASCULAR_IMAGING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasThrombectomySelection = STROKE_THROMBECTOMY_SELECTION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasServiceMonitoring = STROKE_SERVICE_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntiplateletTiming = STROKE_ANTIPLATELET_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHomeostasisSwallow = STROKE_HOMEOSTASIS_SWALLOW_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasVascularImaging &&
+    hasThrombectomySelection &&
+    hasServiceMonitoring &&
+    hasAntiplateletTiming &&
+    hasHomeostasisSwallow
+  );
+}
+
 function requiresPeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -19516,6 +19598,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasStrokeContraindicationSafetyCheck,
       issue:
         "stroke reperfusion safety checks must include hemorrhage exclusion, anticoagulant status, platelet count, glucose, and blood pressure thresholds",
+    },
+    {
+      name: "stroke_advanced_reperfusion_monitoring_safety",
+      label: "Stroke advanced reperfusion monitoring",
+      applies: requiresStrokeReperfusionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasStrokeAdvancedReperfusionMonitoringSafetyCheck,
+      issue:
+        "stroke advanced reperfusion safety checks must include CTA, MRA, CT perfusion, MR perfusion, or vascular imaging for thrombectomy selection, NIHSS, modified Rankin, ASPECTS, large-vessel occlusion, 6-hour, 24-hour, salvageable-tissue, or thrombectomy eligibility review, stroke-service, stroke-unit, stroke-physician, post-thrombolysis complication, follow-up imaging, or re-imaging monitoring, aspirin, antiplatelet, anticoagulation, 24-hour, dysphagia, enteral, rectal, or swallow-route timing review, and oxygen, glucose, temperature, or dysphagia/swallow supportive safety checks",
     },
     {
       name: "pe_time_critical_actions",

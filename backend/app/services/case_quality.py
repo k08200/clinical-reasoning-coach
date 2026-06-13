@@ -10055,6 +10055,57 @@ STROKE_BP_TERMS = (
     "hypertension",
     "혈압",
 )
+STROKE_VASCULAR_IMAGING_SAFETY_TERMS = (
+    "cta",
+    "ct angiography",
+    "ct perfusion",
+    "mra",
+    "mr angiography",
+    "mr perfusion",
+    "perfusion",
+    "vascular imaging",
+)
+STROKE_THROMBECTOMY_SELECTION_SAFETY_TERMS = (
+    "24 hours",
+    "6 hours",
+    "aspects",
+    "large vessel occlusion",
+    "lvo",
+    "modified rankin",
+    "mrs",
+    "nihss",
+    "salvageable",
+    "thrombectomy",
+)
+STROKE_SERVICE_MONITORING_SAFETY_TERMS = (
+    "complication",
+    "follow-up imaging",
+    "post-thrombolysis",
+    "re-imaging",
+    "stroke physician",
+    "stroke service",
+    "stroke unit",
+    "thrombolysis protocol",
+)
+STROKE_ANTIPLATELET_TIMING_SAFETY_TERMS = (
+    "anticoagulation",
+    "antiplatelet",
+    "aspirin",
+    "delay antiplatelet",
+    "enteral",
+    "rectal",
+    "swallow route",
+)
+STROKE_HOMEOSTASIS_SWALLOW_SAFETY_TERMS = (
+    "blood glucose",
+    "dysphagia",
+    "glucose",
+    "oxygen",
+    "oxygen saturation",
+    "spo2",
+    "swallow",
+    "temperature",
+)
 PE_CONTEXT_TERMS = (
     "ct pulmonary angiography",
     "ctpa",
@@ -13509,6 +13560,24 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "stroke reperfusion safety checks must include hemorrhage "
                 "exclusion, anticoagulant status, platelet count, glucose, and "
                 "blood pressure thresholds"
+            ),
+        ),
+        DomainSafetyGate(
+            name="stroke_advanced_reperfusion_monitoring_safety",
+            applies=_requires_stroke_reperfusion_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_stroke_advanced_reperfusion_monitoring_safety_check,
+            issue=(
+                "stroke advanced reperfusion safety checks must include CTA, "
+                "MRA, CT perfusion, MR perfusion, or vascular imaging for "
+                "thrombectomy selection, NIHSS, modified Rankin, ASPECTS, "
+                "large-vessel occlusion, 6-hour, 24-hour, salvageable-tissue, "
+                "or thrombectomy eligibility review, stroke-service, stroke-unit, "
+                "stroke-physician, post-thrombolysis complication, follow-up "
+                "imaging, or re-imaging monitoring, aspirin, antiplatelet, "
+                "anticoagulation, 24-hour, dysphagia, enteral, rectal, or "
+                "swallow-route timing review, and oxygen, glucose, temperature, "
+                "or dysphagia/swallow supportive safety checks"
             ),
         ),
         DomainSafetyGate(
@@ -21407,6 +21476,39 @@ def _has_stroke_contraindication_safety_check(checks: list[Any]) -> bool:
         and has_platelet_threshold
         and has_glucose_threshold
         and has_bp_threshold
+    )
+
+
+def _has_stroke_advanced_reperfusion_monitoring_safety_check(
+    checks: list[Any],
+) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_vascular_imaging = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_VASCULAR_IMAGING_SAFETY_TERMS
+    )
+    has_thrombectomy_selection = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_THROMBECTOMY_SELECTION_SAFETY_TERMS
+    )
+    has_service_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_SERVICE_MONITORING_SAFETY_TERMS
+    )
+    has_antiplatelet_timing = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_ANTIPLATELET_TIMING_SAFETY_TERMS
+    )
+    has_homeostasis_swallow = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_HOMEOSTASIS_SWALLOW_SAFETY_TERMS
+    )
+    return (
+        has_vascular_imaging
+        and has_thrombectomy_selection
+        and has_service_monitoring
+        and has_antiplatelet_timing
+        and has_homeostasis_swallow
     )
 
 

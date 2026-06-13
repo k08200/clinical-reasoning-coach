@@ -234,6 +234,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "tension_pneumothorax_treatment_safety",
         "stroke_time_critical_actions",
         "stroke_reperfusion_safety",
+        "stroke_advanced_reperfusion_monitoring_safety",
         "pe_time_critical_actions",
         "pe_contraindication_safety",
         "pe_reperfusion_escalation_safety",
@@ -13754,6 +13755,35 @@ def test_quality_gate_requires_stroke_reperfusion_contraindication_checks():
     assert not report.passed
     assert any(
         "stroke reperfusion safety checks must include hemorrhage exclusion" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_stroke_advanced_reperfusion_monitoring_and_supportive_safety():
+    case = copy.deepcopy(CASE_POOL[4])
+    case["contraindication_checks"] = [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "Large vessel occlusion criteria and transfer needs for thrombectomy",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "last-known-normal based reperfusion eligibility",
+        "sudden focal neurologic deficit and NIHSS severity assessment",
+        "potentially treatable stroke within thrombolysis window from last known normal",
+        "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+        "noncontrast head CT to exclude hemorrhage before treatment decision",
+        "establish last known normal and activate stroke pathway immediately",
+        "assess thrombolysis and thrombectomy eligibility in parallel",
+        "intracranial hemorrhage or early extensive ischemic change on imaging",
+        "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "large vessel occlusion criteria and transfer needs for thrombectomy",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "stroke advanced reperfusion safety checks must include CTA" in issue
         for issue in report.critical_issues
     )
 

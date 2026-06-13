@@ -810,6 +810,55 @@
     }
   },
   {
+    "name": "stroke_requires_advanced_reperfusion_monitoring_and_supportive_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "stroke advanced reperfusion safety checks must include CTA"
+    ],
+    "overrides": {
+      "diagnosis": "Acute Ischemic Stroke",
+      "key_teaching_points": [
+        "Time-sensitive stroke reperfusion eligibility depends on last known normal",
+        "Noncontrast head CT is required before thrombolysis decisions",
+        "NIHSS and large vessel occlusion screening guide thrombectomy planning"
+      ],
+      "clinical_red_flags": [
+        "Sudden focal neurologic deficit with NIHSS 8",
+        "Potentially treatable stroke within thrombolysis window from last known normal",
+        "Atrial fibrillation with missed anticoagulation suggesting embolic risk"
+      ],
+      "time_critical_actions": [
+        "Establish last known normal and activate stroke pathway immediately",
+        "Obtain noncontrast head CT to exclude hemorrhage without delaying treatment decision",
+        "Assess thrombolysis and thrombectomy eligibility in parallel"
+      ],
+      "contraindication_checks": [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "Large vessel occlusion criteria and transfer needs for thrombectomy"
+      ],
+      "clinical_sources": [
+        {
+          "title": "NICE NG128: Stroke and transient ischaemic attack in over 16s",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/ng128/chapter/recommendations",
+          "supports": [
+            "last-known-normal based reperfusion eligibility",
+            "sudden focal neurologic deficit and NIHSS severity assessment",
+            "potentially treatable stroke within thrombolysis window from last known normal",
+            "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+            "noncontrast head CT to exclude hemorrhage before treatment decision",
+            "establish last known normal and activate stroke pathway immediately",
+            "assess thrombolysis and thrombectomy eligibility in parallel",
+            "intracranial hemorrhage or early extensive ischemic change on imaging",
+            "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+            "large vessel occlusion criteria and transfer needs for thrombectomy"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "pe_requires_risk_and_imaging_actions",
     "expected_passed": false,
     "expected_issue_substrings": [
