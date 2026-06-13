@@ -4881,6 +4881,51 @@ UPPER_GI_BLEED_REBLEED_DISPOSITION_SAFETY_TERMS = (
     "unstable",
     "혈역학",
 )
+UPPER_GI_BLEED_RISK_SCORING_SAFETY_TERMS = (
+    "blatchford",
+    "gbs",
+    "glasgow-blatchford",
+    "low risk",
+    "risk score",
+    "risk stratification",
+    "rockall",
+)
+UPPER_GI_BLEED_ENDOSCOPY_TIMING_SAFETY_TERMS = (
+    "immediate endoscopy",
+    "immediately after resuscitation",
+    "resuscitation before endoscopy",
+    "severe bleeding",
+    "unstable",
+    "within 24 hours",
+)
+UPPER_GI_BLEED_COAGULATION_PRODUCT_SAFETY_TERMS = (
+    "active bleeding",
+    "clotting",
+    "coagulation",
+    "fresh frozen plasma",
+    "ffp",
+    "pcc",
+    "platelet",
+    "prothrombin complex concentrate",
+    "warfarin",
+)
+UPPER_GI_BLEED_PPI_TIMING_SAFETY_TERMS = (
+    "acid suppression before endoscopy",
+    "do not offer acid suppression",
+    "non-variceal",
+    "ppi after endoscopy",
+    "proton pump inhibitor after endoscopy",
+    "stigmata",
+)
+UPPER_GI_BLEED_VARICEAL_DEFINITIVE_SAFETY_TERMS = (
+    "antibiotic",
+    "band ligation",
+    "cyanoacrylate",
+    "terlipressin",
+    "tips",
+    "transjugular intrahepatic portosystemic shunt",
+    "variceal",
+)
 ACUTE_CHOLECYSTITIS_CONTEXT_TERMS = (
     "acalculous cholecystitis",
     "acute cholecystitis",
@@ -11974,6 +12019,22 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="upper_gi_bleed_risk_endoscopy_medication_safety",
+            applies=_requires_upper_gi_bleed_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_upper_gi_bleed_risk_endoscopy_medication_safety_check,
+            issue=(
+                "upper GI bleeding risk, endoscopy, and medication safety checks "
+                "must include Blatchford or Rockall risk scoring or low-risk "
+                "disposition, immediate-after-resuscitation or within-24-hours "
+                "endoscopy timing, platelet, FFP, PCC, warfarin, active-bleeding, "
+                "or coagulation product review, PPI or acid-suppression timing "
+                "around endoscopy for suspected non-variceal bleeding, and "
+                "variceal terlipressin, antibiotic, band ligation, cyanoacrylate, "
+                "or TIPS planning"
+            ),
+        ),
+        DomainSafetyGate(
             name="acute_cholecystitis_time_critical_actions",
             applies=_requires_acute_cholecystitis_safety_check,
             field_name="time_critical_actions",
@@ -17083,6 +17144,39 @@ def _has_upper_gi_bleed_treatment_safety_check(checks: list[Any]) -> bool:
         and has_antithrombotic_reversal_safety
         and has_variceal_rescue_safety
         and has_rebleed_disposition_safety
+    )
+
+
+def _has_upper_gi_bleed_risk_endoscopy_medication_safety_check(
+    checks: list[Any],
+) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_risk_scoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UPPER_GI_BLEED_RISK_SCORING_SAFETY_TERMS
+    )
+    has_endoscopy_timing = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UPPER_GI_BLEED_ENDOSCOPY_TIMING_SAFETY_TERMS
+    )
+    has_coagulation_product_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UPPER_GI_BLEED_COAGULATION_PRODUCT_SAFETY_TERMS
+    )
+    has_ppi_timing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UPPER_GI_BLEED_PPI_TIMING_SAFETY_TERMS
+    )
+    has_variceal_definitive_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UPPER_GI_BLEED_VARICEAL_DEFINITIVE_SAFETY_TERMS
+    )
+    return (
+        has_risk_scoring
+        and has_endoscopy_timing
+        and has_coagulation_product_safety
+        and has_ppi_timing_safety
+        and has_variceal_definitive_safety
     )
 
 

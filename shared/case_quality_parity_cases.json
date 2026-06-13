@@ -6470,6 +6470,68 @@
     }
   },
   {
+    "name": "upper_gi_bleed_requires_risk_endoscopy_medication_and_variceal_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "upper GI bleeding risk, endoscopy, and medication safety checks must include Blatchford"
+    ],
+    "overrides": {
+      "diagnosis": "Upper GI bleeding with possible variceal hemorrhage",
+      "patient_demographics": {
+        "age": 63,
+        "sex": "male",
+        "weight_kg": 74,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Large-volume hematemesis and melena",
+      "history_of_present_illness": "Patient with cirrhosis and warfarin use presents with coffee ground emesis, large-volume hematemesis, melena, tachycardia, hypotension, and suspected upper GI bleed from peptic ulcer or variceal bleeding.",
+      "key_teaching_points": [
+        "Upper GI bleeding requires hemodynamic resuscitation before endoscopy",
+        "Early endoscopy within 24 hours is recommended after resuscitation for admitted upper GI bleeding",
+        "Suspected variceal bleeding needs vasoactive therapy such as octreotide plus antibiotic prophylaxis"
+      ],
+      "clinical_red_flags": [
+        "Hematemesis, melena, syncope, shock, hypotension, tachycardia, or ongoing transfusion requirement",
+        "Cirrhosis, portal hypertension, anticoagulant use, coagulopathy, or active vomiting blood"
+      ],
+      "time_critical_actions": [
+        "Establish two large-bore IV access lines and start hemodynamic resuscitation for shock with massive transfusion planning",
+        "Send CBC, hemoglobin, INR, type and screen, crossmatch, and prepare PRBC with restrictive transfusion strategy",
+        "Call gastroenterology for early endoscopy, EGD, and endoscopic hemostasis within 24 hours after resuscitation",
+        "Start PPI proton pump inhibitor and, if variceal bleeding is suspected, octreotide vasoactive therapy plus ceftriaxone antibiotic prophylaxis"
+      ],
+      "contraindication_checks": [
+        "Assess airway aspiration risk from active hematemesis, vomiting blood, and intubation need before endoscopy",
+        "Review anticoagulant, warfarin, DOAC, antiplatelet, INR, platelet, coagulopathy, and reversal needs",
+        "For cirrhosis and portal hypertension, plan variceal rescue options including TIPS, balloon tamponade, stent, or rescue therapy",
+        "Monitor for rebleeding, unstable shock, repeat endoscopy need, ICU disposition, and risk stratification"
+      ],
+      "clinical_sources": [
+        {
+          "title": "NICE CG141: Acute upper gastrointestinal bleeding in over 16s",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/cg141/chapter/Recommendations",
+          "supports": [
+            "upper GI bleeding diagnosis and risk stratification",
+            "upper GI bleeding requires hemodynamic resuscitation before endoscopy",
+            "early endoscopy within 24 hours is recommended after resuscitation for admitted upper GI bleeding",
+            "suspected variceal bleeding needs vasoactive therapy such as octreotide plus antibiotic prophylaxis",
+            "hematemesis, melena, syncope, shock, hypotension, tachycardia, or ongoing transfusion requirement as red flags",
+            "cirrhosis, portal hypertension, anticoagulant use, coagulopathy, or active vomiting blood as severity markers",
+            "two large-bore IV access lines and hemodynamic resuscitation for shock with massive transfusion planning",
+            "CBC, hemoglobin, INR, type and screen, crossmatch, PRBC, and restrictive transfusion strategy",
+            "gastroenterology for early endoscopy, EGD, and endoscopic hemostasis within 24 hours after resuscitation",
+            "PPI proton pump inhibitor and variceal bleeding octreotide vasoactive therapy plus ceftriaxone antibiotic prophylaxis",
+            "airway aspiration risk from active hematemesis, vomiting blood, and intubation need before endoscopy",
+            "anticoagulant, warfarin, DOAC, antiplatelet, INR, platelet, coagulopathy, and reversal needs",
+            "cirrhosis and portal hypertension variceal rescue options including TIPS, balloon tamponade, stent, or rescue therapy",
+            "rebleeding, unstable shock, repeat endoscopy need, ICU disposition, and risk stratification monitoring"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "acute_cholangitis_requires_antibiotics_labs_imaging_drainage_and_support",
     "expected_passed": false,
     "expected_issue_substrings": [

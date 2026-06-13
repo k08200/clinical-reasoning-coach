@@ -5311,6 +5311,56 @@ const UPPER_GI_BLEED_REBLEED_DISPOSITION_SAFETY_TERMS = [
   "혈역학",
 ];
 
+const UPPER_GI_BLEED_RISK_SCORING_SAFETY_TERMS = [
+  "blatchford",
+  "gbs",
+  "glasgow-blatchford",
+  "low risk",
+  "risk score",
+  "risk stratification",
+  "rockall",
+];
+
+const UPPER_GI_BLEED_ENDOSCOPY_TIMING_SAFETY_TERMS = [
+  "immediate endoscopy",
+  "immediately after resuscitation",
+  "resuscitation before endoscopy",
+  "severe bleeding",
+  "unstable",
+  "within 24 hours",
+];
+
+const UPPER_GI_BLEED_COAGULATION_PRODUCT_SAFETY_TERMS = [
+  "active bleeding",
+  "clotting",
+  "coagulation",
+  "fresh frozen plasma",
+  "ffp",
+  "pcc",
+  "platelet",
+  "prothrombin complex concentrate",
+  "warfarin",
+];
+
+const UPPER_GI_BLEED_PPI_TIMING_SAFETY_TERMS = [
+  "acid suppression before endoscopy",
+  "do not offer acid suppression",
+  "non-variceal",
+  "ppi after endoscopy",
+  "proton pump inhibitor after endoscopy",
+  "stigmata",
+];
+
+const UPPER_GI_BLEED_VARICEAL_DEFINITIVE_SAFETY_TERMS = [
+  "antibiotic",
+  "band ligation",
+  "cyanoacrylate",
+  "terlipressin",
+  "tips",
+  "transjugular intrahepatic portosystemic shunt",
+  "variceal",
+];
+
 const ACUTE_CHOLECYSTITIS_CONTEXT_TERMS = [
   "acalculous cholecystitis",
   "acute cholecystitis",
@@ -14156,6 +14206,32 @@ function hasUpperGiBleedTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function hasUpperGiBleedRiskEndoscopyMedicationSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasRiskScoring = UPPER_GI_BLEED_RISK_SCORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEndoscopyTiming = UPPER_GI_BLEED_ENDOSCOPY_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCoagulationProductSafety = UPPER_GI_BLEED_COAGULATION_PRODUCT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPpiTimingSafety = UPPER_GI_BLEED_PPI_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVaricealDefinitiveSafety = UPPER_GI_BLEED_VARICEAL_DEFINITIVE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasRiskScoring &&
+    hasEndoscopyTiming &&
+    hasCoagulationProductSafety &&
+    hasPpiTimingSafety &&
+    hasVaricealDefinitiveSafety
+  );
+}
+
 function requiresAcuteCholecystitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -18522,6 +18598,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasUpperGiBleedTreatmentSafetyCheck,
       issue:
         "upper GI bleeding safety checks must include airway, aspiration, active hematemesis, vomiting blood, intubation, or altered mental status planning, anticoagulant, antiplatelet, warfarin, DOAC, INR, platelet, coagulopathy, or reversal review, variceal, cirrhosis, portal hypertension, TIPS, balloon tamponade, stent, or rescue therapy review, and rebleeding, repeat endoscopy, ICU, unstable, shock, or risk-stratification disposition monitoring",
+    },
+    {
+      name: "upper_gi_bleed_risk_endoscopy_medication_safety",
+      label: "Upper GI bleed risk and medication safety",
+      applies: requiresUpperGiBleedSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasUpperGiBleedRiskEndoscopyMedicationSafetyCheck,
+      issue:
+        "upper GI bleeding risk, endoscopy, and medication safety checks must include Blatchford or Rockall risk scoring or low-risk disposition, immediate-after-resuscitation or within-24-hours endoscopy timing, platelet, FFP, PCC, warfarin, active-bleeding, or coagulation product review, PPI or acid-suppression timing around endoscopy for suspected non-variceal bleeding, and variceal terlipressin, antibiotic, band ligation, cyanoacrylate, or TIPS planning",
     },
     {
       name: "acute_cholecystitis_time_critical_actions",
