@@ -8987,6 +8987,95 @@ MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = (
     "systemic antibiotics only",
     "topical antimicrobial",
 )
+METHEMOGLOBINEMIA_CONTEXT_TERMS = (
+    "acquired methemoglobinemia",
+    "methemoglobin",
+    "methemoglobinemia",
+    "methemoglobinaemia",
+)
+METHEMOGLOBINEMIA_RISK_TERMS = (
+    "85%",
+    "aniline",
+    "benzocaine",
+    "chocolate brown blood",
+    "cyanosis",
+    "dapsone",
+    "hypoxemia refractory",
+    "nitrite",
+    "nitrate",
+    "oxidizing agent",
+    "pulse oximetry",
+    "refractory hypoxemia",
+    "saturation gap",
+)
+METHEMOGLOBINEMIA_OXYGEN_SUPPORT_ACTION_TERMS = (
+    "100% oxygen",
+    "airway",
+    "high-flow oxygen",
+    "oxygen",
+    "respiratory support",
+    "ventilation",
+)
+METHEMOGLOBINEMIA_SOURCE_REMOVAL_ACTION_TERMS = (
+    "benzocaine",
+    "dapsone",
+    "discontinue",
+    "nitrite",
+    "nitrate",
+    "offending agent",
+    "remove",
+    "stop",
+)
+METHEMOGLOBINEMIA_COOX_LEVEL_ACTION_TERMS = (
+    "abg",
+    "blood gas",
+    "co-oximetry",
+    "methemoglobin level",
+    "methb",
+    "vbg",
+)
+METHEMOGLOBINEMIA_METHYLENE_BLUE_ACTION_TERMS = (
+    "methylene blue",
+)
+METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS = (
+    "icu",
+    "poison center",
+    "poison control",
+    "toxicologist",
+    "toxicology",
+)
+METHEMOGLOBINEMIA_PULSE_OX_GAP_SAFETY_TERMS = (
+    "85%",
+    "calculated sao2",
+    "pulse ox unreliable",
+    "pulse oximetry unreliable",
+    "saturation gap",
+    "spo2 unreliable",
+)
+METHEMOGLOBINEMIA_G6PD_HEMOLYSIS_SAFETY_TERMS = (
+    "g6pd",
+    "hemolysis",
+    "hemolytic",
+)
+METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS = (
+    "linezolid",
+    "maoi",
+    "serotonergic medication",
+    "ssri",
+)
+METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS = (
+    "dapsone",
+    "rebound",
+    "repeat co-oximetry",
+    "serial co-oximetry",
+    "serial methemoglobin",
+)
+METHEMOGLOBINEMIA_ALTERNATIVE_THERAPY_SAFETY_TERMS = (
+    "ascorbic acid",
+    "exchange transfusion",
+    "hyperbaric oxygen",
+    "refractory",
+)
 OPIOID_TOXICITY_CONTEXT_TERMS = (
     "fentanyl overdose",
     "heroin overdose",
@@ -13831,6 +13920,37 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "ventilation restriction, tetanus status or Tdap review, and "
                 "antibiotic stewardship such as avoiding routine prophylactic "
                 "systemic antibiotics or using topical antimicrobials when indicated"
+            ),
+        ),
+        DomainSafetyGate(
+            name="methemoglobinemia_time_critical_actions",
+            applies=_requires_methemoglobinemia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_methemoglobinemia_time_critical_actions,
+            issue=(
+                "methemoglobinemia time-critical actions must include oxygen or "
+                "airway/ventilation support, removal or discontinuation of an "
+                "offending benzocaine, dapsone, nitrate, nitrite, or oxidizing "
+                "source, blood gas with co-oximetry or methemoglobin level "
+                "confirmation, methylene blue treatment planning when symptomatic "
+                "or significantly elevated, and poison center, toxicology, ICU, "
+                "or toxicologist escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="methemoglobinemia_treatment_safety",
+            applies=_requires_methemoglobinemia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_methemoglobinemia_treatment_safety_check,
+            issue=(
+                "methemoglobinemia safety checks must include pulse oximetry "
+                "unreliability or saturation-gap review, G6PD deficiency or "
+                "hemolysis risk before methylene blue, serotonergic medication, "
+                "SSRI, MAOI, or linezolid interaction review before methylene "
+                "blue, rebound or serial methemoglobin/co-oximetry monitoring "
+                "especially after dapsone, and alternative therapy planning such "
+                "as ascorbic acid, exchange transfusion, or hyperbaric oxygen "
+                "when methylene blue is contraindicated or refractory"
             ),
         ),
         DomainSafetyGate(
@@ -21361,6 +21481,100 @@ def _has_major_burn_treatment_safety_check(checks: list[Any]) -> bool:
         and has_escharotomy_safety
         and has_tetanus_safety
         and has_antibiotic_stewardship
+    )
+
+
+def _requires_methemoglobinemia_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in METHEMOGLOBINEMIA_CONTEXT_TERMS
+    )
+    has_methemoglobinemia_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in METHEMOGLOBINEMIA_RISK_TERMS
+    )
+    return has_context and has_methemoglobinemia_risk
+
+
+def _has_methemoglobinemia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_oxygen_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METHEMOGLOBINEMIA_OXYGEN_SUPPORT_ACTION_TERMS
+    )
+    has_source_removal = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METHEMOGLOBINEMIA_SOURCE_REMOVAL_ACTION_TERMS
+    )
+    has_coox_level = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METHEMOGLOBINEMIA_COOX_LEVEL_ACTION_TERMS
+    )
+    has_methylene_blue = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METHEMOGLOBINEMIA_METHYLENE_BLUE_ACTION_TERMS
+    )
+    has_tox_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_oxygen_support
+        and has_source_removal
+        and has_coox_level
+        and has_methylene_blue
+        and has_tox_escalation
+    )
+
+
+def _has_methemoglobinemia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_pulse_ox_gap_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_PULSE_OX_GAP_SAFETY_TERMS
+    )
+    has_g6pd_hemolysis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_G6PD_HEMOLYSIS_SAFETY_TERMS
+    )
+    has_methylene_interaction_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS
+    )
+    has_rebound_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS
+    )
+    has_alternative_therapy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_ALTERNATIVE_THERAPY_SAFETY_TERMS
+    )
+    return (
+        has_pulse_ox_gap_safety
+        and has_g6pd_hemolysis_safety
+        and has_methylene_interaction_safety
+        and has_rebound_monitoring_safety
+        and has_alternative_therapy_safety
     )
 
 

@@ -214,6 +214,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "snakebite_envenomation_treatment_safety",
         "major_burn_time_critical_actions",
         "major_burn_treatment_safety",
+        "methemoglobinemia_time_critical_actions",
+        "methemoglobinemia_treatment_safety",
         "opioid_toxicity_time_critical_actions",
         "opioid_toxicity_treatment_safety",
         "sickle_splenic_sequestration_time_critical_actions",
@@ -12270,6 +12272,139 @@ def test_quality_gate_requires_major_burn_hypothermia_fluid_eschar_tetanus_and_a
     assert not report.passed
     assert any(
         "major burn safety checks must include hypothermia prevention"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_methemoglobinemia_oxygen_source_coox_methylene_and_toxicology_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acquired methemoglobinemia after benzocaine exposure"
+    case["patient_demographics"] = {
+        "age": 57,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Cyanosis and dyspnea after endoscopy spray"
+    case["history_of_present_illness"] = (
+        "Patient develops cyanosis unresponsive to oxygen therapy after benzocaine "
+        "spray for endoscopy, with pulse oximetry persistently 85%, normal PaO2 on "
+        "blood gas, chocolate brown blood, confusion, dyspnea, and methemoglobin "
+        "level 35% concerning for acquired methemoglobinemia."
+    )
+    case["key_teaching_points"] = [
+        "Methemoglobinemia causes impaired oxygen delivery with cyanosis refractory to oxygen therapy",
+        "Diagnosis relies on blood gas with co-oximetry because pulse oximetry may hover near 85% despite adequate oxygenation",
+        "Treatment includes removing the offending oxidizing agent and giving methylene blue when symptomatic or significantly elevated",
+    ]
+    case["clinical_red_flags"] = [
+        "Cyanosis, dyspnea, refractory hypoxemia, saturation gap, pulse oximetry near 85%, or chocolate brown blood",
+        "Methemoglobin above 30%, confusion, seizure, dysrhythmia, metabolic acidosis, coma, dapsone, benzocaine, nitrite, nitrate, or aniline exposure",
+    ]
+    case["time_critical_actions"] = [
+        "Observe pulse oximetry and repeat vital signs",
+        "Check CBC and metabolic panel",
+    ]
+    case["contraindication_checks"] = [
+        "Review pulse oximetry unreliable saturation gap with SpO2 near 85% and compare calculated SaO2 or PaO2",
+        "Screen G6PD deficiency and hemolysis risk before methylene blue when possible",
+        "Review serotonergic medication, SSRI, MAOI, or linezolid interaction risk before methylene blue",
+        "Monitor rebound with serial methemoglobin and repeat co-oximetry especially after dapsone exposure",
+        "Plan ascorbic acid, exchange transfusion, or hyperbaric oxygen if methylene blue is contraindicated or refractory",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Methemoglobinemia",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK537317/",
+            "supports": [
+                "acquired methemoglobinemia diagnosis and risk stratification",
+                "benzocaine, dapsone, nitrite, nitrate, and aniline oxidizing agent exposures can cause methemoglobinemia",
+                "cyanosis refractory to oxygen therapy, pulse oximetry near 85%, saturation gap, chocolate brown blood, confusion, dyspnea, and methemoglobin level 35% as severity markers",
+                "blood gas with co-oximetry confirms methemoglobin concentration and percentage",
+                "remove the offending oxidizing source and give methylene blue when symptomatic or significantly elevated",
+                "poison center, toxicology, ICU, or toxicologist escalation",
+                "pulse oximetry unreliable saturation gap with SpO2 near 85% and calculated SaO2 or PaO2 comparison",
+                "G6PD deficiency and hemolysis risk before methylene blue",
+                "serotonergic medication, SSRI, MAOI, or linezolid interaction risk before methylene blue",
+                "rebound serial methemoglobin and repeat co-oximetry especially after dapsone exposure",
+                "ascorbic acid, exchange transfusion, or hyperbaric oxygen if methylene blue is contraindicated or refractory",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "methemoglobinemia time-critical actions must include oxygen"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_methemoglobinemia_pulse_ox_g6pd_interaction_rebound_and_alternative_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acquired methemoglobinemia after benzocaine exposure"
+    case["patient_demographics"] = {
+        "age": 57,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Cyanosis and dyspnea after endoscopy spray"
+    case["history_of_present_illness"] = (
+        "Patient develops cyanosis unresponsive to oxygen therapy after benzocaine "
+        "spray for endoscopy, with pulse oximetry persistently 85%, normal PaO2 on "
+        "blood gas, chocolate brown blood, confusion, dyspnea, and methemoglobin "
+        "level 35% concerning for acquired methemoglobinemia."
+    )
+    case["key_teaching_points"] = [
+        "Methemoglobinemia causes impaired oxygen delivery with cyanosis refractory to oxygen therapy",
+        "Diagnosis relies on blood gas with co-oximetry because pulse oximetry may hover near 85% despite adequate oxygenation",
+        "Treatment includes removing the offending oxidizing agent and giving methylene blue when symptomatic or significantly elevated",
+    ]
+    case["clinical_red_flags"] = [
+        "Cyanosis, dyspnea, refractory hypoxemia, saturation gap, pulse oximetry near 85%, or chocolate brown blood",
+        "Methemoglobin above 30%, confusion, seizure, dysrhythmia, metabolic acidosis, coma, dapsone, benzocaine, nitrite, nitrate, or aniline exposure",
+    ]
+    case["time_critical_actions"] = [
+        "Give high-flow oxygen with airway and ventilation respiratory support if needed",
+        "Stop benzocaine and remove the offending agent; assess dapsone, nitrite, nitrate, and oxidizing source exposure",
+        "Send ABG or VBG blood gas with co-oximetry and methemoglobin level MetHb confirmation",
+        "Give methylene blue treatment when symptomatic or significantly elevated",
+        "Call poison center, toxicology, toxicologist, and ICU for escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before antiemetics",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Methemoglobinemia",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK537317/",
+            "supports": [
+                "acquired methemoglobinemia diagnosis and risk stratification",
+                "benzocaine, dapsone, nitrite, nitrate, and aniline oxidizing agent exposures can cause methemoglobinemia",
+                "cyanosis refractory to oxygen therapy, pulse oximetry near 85%, saturation gap, chocolate brown blood, confusion, dyspnea, and methemoglobin level 35% as severity markers",
+                "high-flow oxygen with airway and ventilation respiratory support if needed",
+                "stop benzocaine and remove the offending agent; assess dapsone, nitrite, nitrate, and oxidizing source exposure",
+                "ABG or VBG blood gas with co-oximetry and methemoglobin level MetHb confirmation",
+                "methylene blue treatment when symptomatic or significantly elevated",
+                "poison center, toxicology, toxicologist, and ICU escalation",
+                "medication allergy review before antiemetics",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "methemoglobinemia safety checks must include pulse oximetry unreliability"
         in issue
         for issue in report.critical_issues
     )

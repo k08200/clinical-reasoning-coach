@@ -9826,6 +9826,107 @@ const MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = [
   "topical antimicrobial",
 ];
 
+const METHEMOGLOBINEMIA_CONTEXT_TERMS = [
+  "acquired methemoglobinemia",
+  "methemoglobin",
+  "methemoglobinemia",
+  "methemoglobinaemia",
+];
+
+const METHEMOGLOBINEMIA_RISK_TERMS = [
+  "85%",
+  "aniline",
+  "benzocaine",
+  "chocolate brown blood",
+  "cyanosis",
+  "dapsone",
+  "hypoxemia refractory",
+  "nitrite",
+  "nitrate",
+  "oxidizing agent",
+  "pulse oximetry",
+  "refractory hypoxemia",
+  "saturation gap",
+];
+
+const METHEMOGLOBINEMIA_OXYGEN_SUPPORT_ACTION_TERMS = [
+  "100% oxygen",
+  "airway",
+  "high-flow oxygen",
+  "oxygen",
+  "respiratory support",
+  "ventilation",
+];
+
+const METHEMOGLOBINEMIA_SOURCE_REMOVAL_ACTION_TERMS = [
+  "benzocaine",
+  "dapsone",
+  "discontinue",
+  "nitrite",
+  "nitrate",
+  "offending agent",
+  "remove",
+  "stop",
+];
+
+const METHEMOGLOBINEMIA_COOX_LEVEL_ACTION_TERMS = [
+  "abg",
+  "blood gas",
+  "co-oximetry",
+  "methemoglobin level",
+  "methb",
+  "vbg",
+];
+
+const METHEMOGLOBINEMIA_METHYLENE_BLUE_ACTION_TERMS = [
+  "methylene blue",
+];
+
+const METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS = [
+  "icu",
+  "poison center",
+  "poison control",
+  "toxicologist",
+  "toxicology",
+];
+
+const METHEMOGLOBINEMIA_PULSE_OX_GAP_SAFETY_TERMS = [
+  "85%",
+  "calculated sao2",
+  "pulse ox unreliable",
+  "pulse oximetry unreliable",
+  "saturation gap",
+  "spo2 unreliable",
+];
+
+const METHEMOGLOBINEMIA_G6PD_HEMOLYSIS_SAFETY_TERMS = [
+  "g6pd",
+  "hemolysis",
+  "hemolytic",
+];
+
+const METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS = [
+  "linezolid",
+  "maoi",
+  "serotonergic medication",
+  "ssri",
+];
+
+const METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS = [
+  "dapsone",
+  "rebound",
+  "repeat co-oximetry",
+  "serial co-oximetry",
+  "serial methemoglobin",
+];
+
+const METHEMOGLOBINEMIA_ALTERNATIVE_THERAPY_SAFETY_TERMS = [
+  "ascorbic acid",
+  "exchange transfusion",
+  "hyperbaric oxygen",
+  "refractory",
+];
+
 const OPIOID_TOXICITY_CONTEXT_TERMS = [
   "fentanyl overdose",
   "heroin overdose",
@@ -17611,6 +17712,83 @@ function hasMajorBurnTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresMethemoglobinemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = METHEMOGLOBINEMIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasMethemoglobinemiaRisk = METHEMOGLOBINEMIA_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasMethemoglobinemiaRisk;
+}
+
+function hasMethemoglobinemiaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasOxygenSupport = METHEMOGLOBINEMIA_OXYGEN_SUPPORT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSourceRemoval = METHEMOGLOBINEMIA_SOURCE_REMOVAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCooxLevel = METHEMOGLOBINEMIA_COOX_LEVEL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMethyleneBlue = METHEMOGLOBINEMIA_METHYLENE_BLUE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasToxEscalation = METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasOxygenSupport &&
+    hasSourceRemoval &&
+    hasCooxLevel &&
+    hasMethyleneBlue &&
+    hasToxEscalation
+  );
+}
+
+function hasMethemoglobinemiaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasPulseOxGapSafety = METHEMOGLOBINEMIA_PULSE_OX_GAP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasG6pdHemolysisSafety = METHEMOGLOBINEMIA_G6PD_HEMOLYSIS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMethyleneInteractionSafety = METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasReboundMonitoringSafety = METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAlternativeTherapySafety = METHEMOGLOBINEMIA_ALTERNATIVE_THERAPY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasPulseOxGapSafety &&
+    hasG6pdHemolysisSafety &&
+    hasMethyleneInteractionSafety &&
+    hasReboundMonitoringSafety &&
+    hasAlternativeTherapySafety
+  );
+}
+
 function requiresOpioidToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -20327,6 +20505,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasMajorBurnTreatmentSafetyCheck,
       issue:
         "major burn safety checks must include hypothermia prevention with warming, dry coverings, or temperature monitoring, fluid titration to urine output with hourly reassessment and fluid-overload, heart-failure, or compartment-syndrome monitoring, circumferential eschar or escharotomy review for perfusion or ventilation restriction, tetanus status or Tdap review, and antibiotic stewardship such as avoiding routine prophylactic systemic antibiotics or using topical antimicrobials when indicated",
+    },
+    {
+      name: "methemoglobinemia_time_critical_actions",
+      label: "Methemoglobinemia oxygen, co-oximetry, antidote, and escalation",
+      applies: requiresMethemoglobinemiaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasMethemoglobinemiaTimeCriticalActions,
+      issue:
+        "methemoglobinemia time-critical actions must include oxygen or airway/ventilation support, removal or discontinuation of an offending benzocaine, dapsone, nitrate, nitrite, or oxidizing source, blood gas with co-oximetry or methemoglobin level confirmation, methylene blue treatment planning when symptomatic or significantly elevated, and poison center, toxicology, ICU, or toxicologist escalation",
+    },
+    {
+      name: "methemoglobinemia_treatment_safety",
+      label: "Methemoglobinemia pulse-ox and methylene blue safety",
+      applies: requiresMethemoglobinemiaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasMethemoglobinemiaTreatmentSafetyCheck,
+      issue:
+        "methemoglobinemia safety checks must include pulse oximetry unreliability or saturation-gap review, G6PD deficiency or hemolysis risk before methylene blue, serotonergic medication, SSRI, MAOI, or linezolid interaction review before methylene blue, rebound or serial methemoglobin/co-oximetry monitoring especially after dapsone, and alternative therapy planning such as ascorbic acid, exchange transfusion, or hyperbaric oxygen when methylene blue is contraindicated or refractory",
     },
     {
       name: "opioid_toxicity_time_critical_actions",
