@@ -9587,6 +9587,124 @@ const CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS = [
   "혈압",
 ];
 
+const SNAKEBITE_CONTEXT_TERMS = [
+  "copperhead",
+  "cottonmouth",
+  "elapid",
+  "pit viper",
+  "rattlesnake",
+  "snake bite",
+  "snake envenomation",
+  "snakebite",
+  "snakebite envenomation",
+];
+
+const SNAKEBITE_ENVENOMATION_RISK_TERMS = [
+  "bleeding",
+  "coagulopathy",
+  "dyspnea",
+  "ecchymosis",
+  "hypotension",
+  "necrosis",
+  "paresthesias",
+  "progressive swelling",
+  "respiratory depression",
+  "respiratory paralysis",
+  "systemic symptoms",
+  "thrombocytopenia",
+];
+
+const SNAKEBITE_FIELD_IMMOBILIZATION_ACTION_TERMS = [
+  "heart level",
+  "immobilize",
+  "loosely",
+  "rapid transport",
+  "remove constricting",
+  "remove rings",
+  "remove watches",
+];
+
+const SNAKEBITE_SERIAL_EXAM_LAB_ACTION_TERMS = [
+  "cbc",
+  "circumference",
+  "coagulation",
+  "fibrinogen",
+  "inr",
+  "mark swelling",
+  "platelet",
+  "pt",
+  "repeat exam",
+  "serial",
+];
+
+const SNAKEBITE_ANTIVENOM_ACTION_TERMS = [
+  "anavip",
+  "antivenin",
+  "antivenom",
+  "crofab",
+  "early antivenom",
+];
+
+const SNAKEBITE_POISON_ESCALATION_ACTION_TERMS = [
+  "consult",
+  "icu",
+  "poison center",
+  "poison control",
+  "toxicologist",
+  "toxicology",
+  "transfer",
+];
+
+const SNAKEBITE_RESPIRATORY_NEURO_ACTION_TERMS = [
+  "airway",
+  "neuro",
+  "neurologic",
+  "oxygen",
+  "respiratory",
+  "ventilation",
+];
+
+const SNAKEBITE_HARMFUL_FIRST_AID_SAFETY_TERMS = [
+  "electric shock",
+  "ice",
+  "incision",
+  "suction",
+  "tourniquet",
+];
+
+const SNAKEBITE_OBSERVATION_DISPOSITION_SAFETY_TERMS = [
+  "8 hours",
+  "disposition",
+  "longer",
+  "observation",
+  "serial monitoring",
+];
+
+const SNAKEBITE_COAGULOPATHY_SAFETY_TERMS = [
+  "bleeding",
+  "coagulopathy",
+  "defibrination",
+  "fibrinogen",
+  "inr",
+  "platelet",
+  "pt",
+];
+
+const SNAKEBITE_ANTIVENOM_REACTION_SAFETY_TERMS = [
+  "hypersensitivity",
+  "premedication",
+  "reaction",
+  "serum sickness",
+];
+
+const SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS = [
+  "antivenom first",
+  "compartment",
+  "fasciotomy",
+  "pressure",
+  "surgical consult",
+];
+
 const OPIOID_TOXICITY_CONTEXT_TERMS = [
   "fentanyl overdose",
   "heroin overdose",
@@ -17222,6 +17340,81 @@ function hasCyanidePoisoningTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresSnakebiteEnvenomationSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = SNAKEBITE_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  const hasEnvenomationRisk = SNAKEBITE_ENVENOMATION_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasEnvenomationRisk;
+}
+
+function hasSnakebiteEnvenomationTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasFieldImmobilization = SNAKEBITE_FIELD_IMMOBILIZATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSerialExamLab = SNAKEBITE_SERIAL_EXAM_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntivenomAction = SNAKEBITE_ANTIVENOM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPoisonEscalation = SNAKEBITE_POISON_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRespiratoryNeuro = SNAKEBITE_RESPIRATORY_NEURO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasFieldImmobilization &&
+    hasSerialExamLab &&
+    hasAntivenomAction &&
+    hasPoisonEscalation &&
+    hasRespiratoryNeuro
+  );
+}
+
+function hasSnakebiteEnvenomationTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasHarmfulFirstAidSafety = SNAKEBITE_HARMFUL_FIRST_AID_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasObservationDisposition = SNAKEBITE_OBSERVATION_DISPOSITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCoagulopathySafety = SNAKEBITE_COAGULOPATHY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntivenomReactionSafety = SNAKEBITE_ANTIVENOM_REACTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCompartmentFasciotomySafety = SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasHarmfulFirstAidSafety &&
+    hasObservationDisposition &&
+    hasCoagulopathySafety &&
+    hasAntivenomReactionSafety &&
+    hasCompartmentFasciotomySafety
+  );
+}
+
 function requiresOpioidToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -19902,6 +20095,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCyanidePoisoningTreatmentSafetyCheck,
       issue:
         "cyanide poisoning safety checks must include empiric antidote or do-not-wait cyanide-level planning, smoke inhalation, carbon monoxide, COHb, carboxyhemoglobin, or nitrite-avoidance review, shock, hypotension, cardiac arrest, coma, seizure, syncope, or altered mental status monitoring, and hydroxocobalamin blood pressure, red urine, chromaturia, lab-interference, or dialysis interference safety",
+    },
+    {
+      name: "snakebite_envenomation_time_critical_actions",
+      label: "Snakebite transport, labs, antivenom, and escalation",
+      applies: requiresSnakebiteEnvenomationSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSnakebiteEnvenomationTimeCriticalActions,
+      issue:
+        "snakebite envenomation time-critical actions must include rapid transport with loose immobilization at heart level and removal of constricting rings or watches, serial exam or labs for swelling, CBC, platelets, PT/INR, fibrinogen, or coagulopathy, early antivenom planning when envenomation progresses, poison center or toxicology consultation, and respiratory or neurologic support for airway, oxygen, ventilation, or neurotoxicity",
+    },
+    {
+      name: "snakebite_envenomation_treatment_safety",
+      label: "Snakebite harmful first aid and antivenom safety",
+      applies: requiresSnakebiteEnvenomationSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSnakebiteEnvenomationTreatmentSafetyCheck,
+      issue:
+        "snakebite envenomation safety checks must include avoidance of harmful first aid such as tourniquet, incision, suction, ice, or electric shock, at least 8-hour observation or longer serial monitoring when envenomation findings are present, coagulopathy monitoring with platelets, PT/INR, fibrinogen, bleeding, or defibrination, antivenom reaction monitoring for hypersensitivity, serum sickness, reaction, or premedication needs, and compartment-syndrome or fasciotomy caution with pressure measurement, surgical consultation, or antivenom-first planning",
     },
     {
       name: "opioid_toxicity_time_critical_actions",

@@ -210,6 +210,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "carbon_monoxide_poisoning_treatment_safety",
         "cyanide_poisoning_time_critical_actions",
         "cyanide_poisoning_treatment_safety",
+        "snakebite_envenomation_time_critical_actions",
+        "snakebite_envenomation_treatment_safety",
         "opioid_toxicity_time_critical_actions",
         "opioid_toxicity_treatment_safety",
         "sickle_splenic_sequestration_time_critical_actions",
@@ -12007,6 +12009,134 @@ def test_quality_gate_requires_cyanide_level_smoke_shock_and_hydroxocobalamin_sa
     assert not report.passed
     assert any(
         "cyanide poisoning safety checks must include empiric antidote"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_snakebite_transport_labs_antivenom_poison_and_respiratory_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Rattlesnake snakebite envenomation"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 63,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Progressive leg swelling after rattlesnake bite"
+    case["history_of_present_illness"] = (
+        "Hiker bitten by rattlesnake two hours ago has progressive swelling, "
+        "ecchymosis, paresthesias, nausea, thrombocytopenia, and mild dyspnea "
+        "concerning for pit viper envenomation."
+    )
+    case["key_teaching_points"] = [
+        "Snakebite envenomation can progress with swelling, coagulopathy, thrombocytopenia, and respiratory or neurologic toxicity",
+        "Early antivenom planning and serial swelling exam with coagulation labs are central when envenomation progresses",
+        "Poison center or toxicology consultation should guide antivenom and escalation decisions",
+    ]
+    case["clinical_red_flags"] = [
+        "Progressive swelling, ecchymosis, coagulopathy, thrombocytopenia, or bleeding",
+        "Hypotension, dyspnea, respiratory paralysis, paresthesias, necrosis, or systemic symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Clean wound and provide analgesia",
+        "Observe symptoms",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid harmful first aid including tourniquet, incision, suction, ice, and electric shock",
+        "Observe at least 8 hours with serial monitoring and longer disposition if envenomation findings are present",
+        "Monitor coagulopathy with platelet count, PT INR, fibrinogen, bleeding, and defibrination trends",
+        "Monitor antivenom hypersensitivity reaction, serum sickness, and premedication needs",
+        "Use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Snakebites",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/bites-and-stings/snakebites",
+            "supports": [
+                "snakebite envenomation diagnosis and risk stratification",
+                "pit viper envenomation can progress with swelling, ecchymosis, paresthesias, thrombocytopenia, dyspnea, coagulopathy, bleeding, hypotension, respiratory paralysis, necrosis, or systemic symptoms",
+                "early antivenom planning and serial swelling exam with CBC, platelet count, PT INR, fibrinogen, and coagulation labs",
+                "poison center or toxicology consultation for antivenom and escalation decisions",
+                "avoid harmful first aid including tourniquet, incision, suction, ice, and electric shock",
+                "observe at least 8 hours with serial monitoring and longer disposition when envenomation findings are present",
+                "monitor coagulopathy with platelet count, PT INR, fibrinogen, bleeding, and defibrination trends",
+                "monitor antivenom hypersensitivity reaction, serum sickness, and premedication needs",
+                "use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "snakebite envenomation time-critical actions must include rapid transport"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_snakebite_harmful_first_aid_observation_coagulopathy_reaction_and_fasciotomy_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Rattlesnake snakebite envenomation"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 63,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Progressive leg swelling after rattlesnake bite"
+    case["history_of_present_illness"] = (
+        "Hiker bitten by rattlesnake two hours ago has progressive swelling, "
+        "ecchymosis, paresthesias, nausea, thrombocytopenia, and mild dyspnea "
+        "concerning for pit viper envenomation."
+    )
+    case["key_teaching_points"] = [
+        "Snakebite envenomation can progress with swelling, coagulopathy, thrombocytopenia, and respiratory or neurologic toxicity",
+        "Early antivenom planning and serial swelling exam with coagulation labs are central when envenomation progresses",
+        "Poison center or toxicology consultation should guide antivenom and escalation decisions",
+    ]
+    case["clinical_red_flags"] = [
+        "Progressive swelling, ecchymosis, coagulopathy, thrombocytopenia, or bleeding",
+        "Hypotension, dyspnea, respiratory paralysis, paresthesias, necrosis, or systemic symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Arrange rapid transport; remove rings, watches, and constricting items, wrap loosely, and immobilize the limb at heart level",
+        "Mark swelling, repeat exam, circumference checks, CBC, platelet count, PT INR, fibrinogen, and coagulation labs serially",
+        "Plan early antivenom CroFab or Anavip when progressive envenomation is present",
+        "Consult poison center and toxicologist and arrange transfer or ICU if severe",
+        "Support airway, oxygen, ventilation, respiratory status, and neurologic neurotoxicity monitoring",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before analgesia",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Snakebites",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/bites-and-stings/snakebites",
+            "supports": [
+                "snakebite envenomation diagnosis and risk stratification",
+                "pit viper envenomation can progress with swelling, ecchymosis, paresthesias, thrombocytopenia, dyspnea, coagulopathy, bleeding, hypotension, respiratory paralysis, necrosis, or systemic symptoms",
+                "arrange rapid transport, remove rings watches and constricting items, wrap loosely, and immobilize the limb at heart level",
+                "mark swelling, repeat exam, circumference checks, CBC, platelet count, PT INR, fibrinogen, and coagulation labs serially",
+                "plan early antivenom CroFab or Anavip when progressive envenomation is present",
+                "consult poison center and toxicologist and arrange transfer or ICU if severe",
+                "support airway, oxygen, ventilation, respiratory status, and neurologic neurotoxicity monitoring",
+                "medication allergy review before analgesia",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "snakebite envenomation safety checks must include avoidance of harmful first aid"
         in issue
         for issue in report.critical_issues
     )

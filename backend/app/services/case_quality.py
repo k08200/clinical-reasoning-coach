@@ -8772,6 +8772,112 @@ CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS = (
     "red urine",
     "혈압",
 )
+SNAKEBITE_CONTEXT_TERMS = (
+    "copperhead",
+    "cottonmouth",
+    "elapid",
+    "pit viper",
+    "rattlesnake",
+    "snake bite",
+    "snake envenomation",
+    "snakebite",
+    "snakebite envenomation",
+)
+SNAKEBITE_ENVENOMATION_RISK_TERMS = (
+    "bleeding",
+    "coagulopathy",
+    "dyspnea",
+    "ecchymosis",
+    "hypotension",
+    "necrosis",
+    "paresthesias",
+    "progressive swelling",
+    "respiratory depression",
+    "respiratory paralysis",
+    "systemic symptoms",
+    "thrombocytopenia",
+)
+SNAKEBITE_FIELD_IMMOBILIZATION_ACTION_TERMS = (
+    "heart level",
+    "immobilize",
+    "loosely",
+    "rapid transport",
+    "remove constricting",
+    "remove rings",
+    "remove watches",
+)
+SNAKEBITE_SERIAL_EXAM_LAB_ACTION_TERMS = (
+    "cbc",
+    "circumference",
+    "coagulation",
+    "fibrinogen",
+    "inr",
+    "mark swelling",
+    "platelet",
+    "pt",
+    "repeat exam",
+    "serial",
+)
+SNAKEBITE_ANTIVENOM_ACTION_TERMS = (
+    "anavip",
+    "antivenin",
+    "antivenom",
+    "crofab",
+    "early antivenom",
+)
+SNAKEBITE_POISON_ESCALATION_ACTION_TERMS = (
+    "consult",
+    "icu",
+    "poison center",
+    "poison control",
+    "toxicologist",
+    "toxicology",
+    "transfer",
+)
+SNAKEBITE_RESPIRATORY_NEURO_ACTION_TERMS = (
+    "airway",
+    "neuro",
+    "neurologic",
+    "oxygen",
+    "respiratory",
+    "ventilation",
+)
+SNAKEBITE_HARMFUL_FIRST_AID_SAFETY_TERMS = (
+    "electric shock",
+    "ice",
+    "incision",
+    "suction",
+    "tourniquet",
+)
+SNAKEBITE_OBSERVATION_DISPOSITION_SAFETY_TERMS = (
+    "8 hours",
+    "disposition",
+    "longer",
+    "observation",
+    "serial monitoring",
+)
+SNAKEBITE_COAGULOPATHY_SAFETY_TERMS = (
+    "bleeding",
+    "coagulopathy",
+    "defibrination",
+    "fibrinogen",
+    "inr",
+    "platelet",
+    "pt",
+)
+SNAKEBITE_ANTIVENOM_REACTION_SAFETY_TERMS = (
+    "hypersensitivity",
+    "premedication",
+    "reaction",
+    "serum sickness",
+)
+SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS = (
+    "antivenom first",
+    "compartment",
+    "fasciotomy",
+    "pressure",
+    "surgical consult",
+)
 OPIOID_TOXICITY_CONTEXT_TERMS = (
     "fentanyl overdose",
     "heroin overdose",
@@ -13553,6 +13659,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "altered mental status monitoring, and hydroxocobalamin blood "
                 "pressure, red urine, chromaturia, lab-interference, or dialysis "
                 "interference safety"
+            ),
+        ),
+        DomainSafetyGate(
+            name="snakebite_envenomation_time_critical_actions",
+            applies=_requires_snakebite_envenomation_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_snakebite_envenomation_time_critical_actions,
+            issue=(
+                "snakebite envenomation time-critical actions must include rapid "
+                "transport with loose immobilization at heart level and removal "
+                "of constricting rings or watches, serial exam or labs for "
+                "swelling, CBC, platelets, PT/INR, fibrinogen, or coagulopathy, "
+                "early antivenom planning when envenomation progresses, poison "
+                "center or toxicology consultation, and respiratory or neurologic "
+                "support for airway, oxygen, ventilation, or neurotoxicity"
+            ),
+        ),
+        DomainSafetyGate(
+            name="snakebite_envenomation_treatment_safety",
+            applies=_requires_snakebite_envenomation_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_snakebite_envenomation_treatment_safety_check,
+            issue=(
+                "snakebite envenomation safety checks must include avoidance of "
+                "harmful first aid such as tourniquet, incision, suction, ice, "
+                "or electric shock, at least 8-hour observation or longer serial "
+                "monitoring when envenomation findings are present, coagulopathy "
+                "monitoring with platelets, PT/INR, fibrinogen, bleeding, or "
+                "defibrination, antivenom reaction monitoring for hypersensitivity, "
+                "serum sickness, reaction, or premedication needs, and compartment-"
+                "syndrome or fasciotomy caution with pressure measurement, surgical "
+                "consultation, or antivenom-first planning"
             ),
         ),
         DomainSafetyGate(
@@ -20895,6 +21033,100 @@ def _has_cyanide_poisoning_treatment_safety_check(checks: list[Any]) -> bool:
         and has_smoke_co_nitrite_safety
         and has_shock_neuro_safety
         and has_hydroxocobalamin_effect_safety
+    )
+
+
+def _requires_snakebite_envenomation_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SNAKEBITE_CONTEXT_TERMS
+    )
+    has_envenomation_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in SNAKEBITE_ENVENOMATION_RISK_TERMS
+    )
+    return has_context and has_envenomation_risk
+
+
+def _has_snakebite_envenomation_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_field_immobilization = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SNAKEBITE_FIELD_IMMOBILIZATION_ACTION_TERMS
+    )
+    has_serial_exam_lab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SNAKEBITE_SERIAL_EXAM_LAB_ACTION_TERMS
+    )
+    has_antivenom_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SNAKEBITE_ANTIVENOM_ACTION_TERMS
+    )
+    has_poison_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SNAKEBITE_POISON_ESCALATION_ACTION_TERMS
+    )
+    has_respiratory_neuro = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SNAKEBITE_RESPIRATORY_NEURO_ACTION_TERMS
+    )
+    return (
+        has_field_immobilization
+        and has_serial_exam_lab
+        and has_antivenom_action
+        and has_poison_escalation
+        and has_respiratory_neuro
+    )
+
+
+def _has_snakebite_envenomation_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_harmful_first_aid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SNAKEBITE_HARMFUL_FIRST_AID_SAFETY_TERMS
+    )
+    has_observation_disposition = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SNAKEBITE_OBSERVATION_DISPOSITION_SAFETY_TERMS
+    )
+    has_coagulopathy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SNAKEBITE_COAGULOPATHY_SAFETY_TERMS
+    )
+    has_antivenom_reaction_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SNAKEBITE_ANTIVENOM_REACTION_SAFETY_TERMS
+    )
+    has_compartment_fasciotomy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS
+    )
+    return (
+        has_harmful_first_aid_safety
+        and has_observation_disposition
+        and has_coagulopathy_safety
+        and has_antivenom_reaction_safety
+        and has_compartment_fasciotomy_safety
     )
 
 
