@@ -3744,6 +3744,97 @@ SEVERE_HYPOTHERMIA_SECONDARY_CAUSE_SAFETY_TERMS = (
     "trauma",
     "toxin",
 )
+DROWNING_CONTEXT_TERMS = (
+    "drowning",
+    "immersion injury",
+    "near drowning",
+    "submersion",
+    "submersion injury",
+    "water aspiration",
+)
+DROWNING_RESPIRATORY_RISK_TERMS = (
+    "aspiration",
+    "hypoxemia",
+    "hypoxia",
+    "respiratory compromise",
+    "respiratory impairment",
+    "submerged",
+)
+DROWNING_OXYGEN_VENTILATION_ACTION_TERMS = (
+    "airway",
+    "bag-valve",
+    "cpr",
+    "oxygen",
+    "resuscitation",
+    "ventilation",
+)
+DROWNING_RESPIRATORY_ASSESSMENT_ACTION_TERMS = (
+    "abg",
+    "chest x-ray",
+    "lung exam",
+    "pulse oximetry",
+    "respiratory exam",
+    "spo2",
+)
+DROWNING_TEMPERATURE_ACTION_TERMS = (
+    "core temperature",
+    "normothermia",
+    "remove wet clothes",
+    "temperature",
+    "warming",
+)
+DROWNING_TRAUMA_CSPINE_ACTION_TERMS = (
+    "c-spine",
+    "cervical spine",
+    "diving",
+    "head trauma",
+    "trauma",
+)
+DROWNING_OBSERVATION_ESCALATION_ACTION_TERMS = (
+    "8 hours",
+    "assisted ventilation",
+    "icu",
+    "observation",
+    "ongoing hypoxia",
+    "transfer",
+)
+DROWNING_ANTIBIOTIC_STEROID_SAFETY_TERMS = (
+    "antibiotics",
+    "corticosteroids",
+    "not prophylactic",
+    "prophylactic antibiotics",
+    "sepsis",
+    "steroids",
+)
+DROWNING_DISCHARGE_OBSERVATION_SAFETY_TERMS = (
+    "8 hours",
+    "asymptomatic",
+    "discharge",
+    "normal respiratory",
+    "observation",
+    "spo2 >=95",
+)
+DROWNING_DELAYED_RESPIRATORY_SAFETY_TERMS = (
+    "ards",
+    "delayed pulmonary edema",
+    "increased respiratory effort",
+    "pulmonary edema",
+    "respiratory deterioration",
+)
+DROWNING_UNDERLYING_CAUSE_SAFETY_TERMS = (
+    "arrhythmia",
+    "hypoglycemia",
+    "intoxication",
+    "long qt",
+    "seizure",
+)
+DROWNING_ASPIRATION_SAFETY_TERMS = (
+    "aspiration",
+    "lateral decubitus",
+    "prevent aspiration",
+    "recovery position",
+    "vomiting",
+)
 HEAT_STROKE_CONTEXT_TERMS = (
     "classic heat stroke",
     "exertional heat stroke",
@@ -11929,6 +12020,39 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="drowning_time_critical_actions",
+            applies=_requires_drowning_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_drowning_time_critical_actions,
+            issue=(
+                "drowning time-critical actions must include airway, oxygen, CPR, "
+                "bag-valve, resuscitation, or ventilation support, respiratory "
+                "assessment with SpO2, pulse oximetry, respiratory exam, ABG, or "
+                "chest x-ray when indicated, temperature stabilization with core "
+                "temperature, warming, normothermia, or wet-clothing removal, "
+                "trauma or cervical-spine review for diving, head trauma, or "
+                "C-spine risk, and observation, ICU, transfer, assisted "
+                "ventilation, ongoing-hypoxia, or 8-hour monitoring planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="drowning_treatment_safety",
+            applies=_requires_drowning_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_drowning_treatment_safety_check,
+            issue=(
+                "drowning safety checks must include avoidance of routine "
+                "prophylactic antibiotics or corticosteroids unless infection, "
+                "sepsis, or gross contamination is present, 8-hour observation or "
+                "discharge criteria with asymptomatic status, normal respiratory "
+                "exam, and SpO2 >=95%, delayed respiratory deterioration, "
+                "pulmonary-edema, ARDS, or increased-work-of-breathing monitoring, "
+                "underlying-cause review for seizure, hypoglycemia, arrhythmia, "
+                "long-QT, or intoxication, and aspiration prevention with recovery "
+                "position, lateral decubitus, vomiting, or aspiration precautions"
+            ),
+        ),
+        DomainSafetyGate(
             name="heat_stroke_time_critical_actions",
             applies=_requires_heat_stroke_safety_check,
             field_name="time_critical_actions",
@@ -16559,6 +16683,99 @@ def _has_severe_hypothermia_treatment_safety_check(checks: list[Any]) -> bool:
         and has_perfusing_rhythm_safety
         and has_ecmo_termination_safety
         and has_secondary_cause_safety
+    )
+
+
+def _requires_drowning_safety_check(data: dict[str, Any]) -> bool:
+    direct_context = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in (
+            "chief_complaint",
+            "history_of_present_illness",
+            "diagnosis",
+        )
+    )
+    risk_text = direct_context
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+
+    has_context = any(
+        _contains_safety_term(direct_context, term)
+        for term in DROWNING_CONTEXT_TERMS
+    )
+    has_respiratory_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in DROWNING_RESPIRATORY_RISK_TERMS
+    )
+    return has_context and has_respiratory_risk
+
+
+def _has_drowning_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_oxygen_ventilation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DROWNING_OXYGEN_VENTILATION_ACTION_TERMS
+    )
+    has_respiratory_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DROWNING_RESPIRATORY_ASSESSMENT_ACTION_TERMS
+    )
+    has_temperature_stabilization = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DROWNING_TEMPERATURE_ACTION_TERMS
+    )
+    has_trauma_cspine_review = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DROWNING_TRAUMA_CSPINE_ACTION_TERMS
+    )
+    has_observation_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DROWNING_OBSERVATION_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_oxygen_ventilation
+        and has_respiratory_assessment
+        and has_temperature_stabilization
+        and has_trauma_cspine_review
+        and has_observation_escalation
+    )
+
+
+def _has_drowning_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_antibiotic_steroid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DROWNING_ANTIBIOTIC_STEROID_SAFETY_TERMS
+    )
+    has_discharge_observation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DROWNING_DISCHARGE_OBSERVATION_SAFETY_TERMS
+    )
+    has_delayed_respiratory_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DROWNING_DELAYED_RESPIRATORY_SAFETY_TERMS
+    )
+    has_underlying_cause_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DROWNING_UNDERLYING_CAUSE_SAFETY_TERMS
+    )
+    has_aspiration_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DROWNING_ASPIRATION_SAFETY_TERMS
+    )
+    return (
+        has_antibiotic_steroid_safety
+        and has_discharge_observation_safety
+        and has_delayed_respiratory_safety
+        and has_underlying_cause_safety
+        and has_aspiration_safety
     )
 
 
