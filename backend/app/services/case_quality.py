@@ -1928,6 +1928,115 @@ SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS = (
     "태아",
     "폐부종",
 )
+PLACENTAL_ABRUPTION_CONTEXT_TERMS = (
+    "abruptio placentae",
+    "placental abruption",
+    "retroplacental hemorrhage",
+    "retroplacental haematoma",
+    "retroplacental hematoma",
+)
+PLACENTAL_ABRUPTION_RISK_TERMS = (
+    "abdominal trauma",
+    "concealed hemorrhage",
+    "dic",
+    "fetal distress",
+    "hemorrhagic shock",
+    "late pregnancy bleeding",
+    "painful bleeding",
+    "rigid uterus",
+    "uterine hypertonus",
+    "uterine pain",
+    "uterine tenderness",
+    "vaginal bleeding",
+)
+PLACENTAL_ABRUPTION_MATERNAL_RESUSCITATION_ACTION_TERMS = (
+    "blood product",
+    "crossmatch",
+    "hemodynamic",
+    "iv access",
+    "large-bore",
+    "maternal stabilization",
+    "resuscitation",
+    "shock",
+    "transfusion",
+    "type and cross",
+    "type-and-cross",
+)
+PLACENTAL_ABRUPTION_FETAL_MONITOR_ACTION_TERMS = (
+    "continuous fetal monitoring",
+    "fetal heart",
+    "fetal monitoring",
+    "fetal status",
+    "fhr",
+    "nonreassuring",
+)
+PLACENTAL_ABRUPTION_LAB_ACTION_TERMS = (
+    "blood type",
+    "coagulation",
+    "crossmatch",
+    "fibrin split",
+    "fibrinogen",
+    "platelet",
+    "rh",
+    "type and screen",
+    "type-and-screen",
+)
+PLACENTAL_ABRUPTION_DELIVERY_ESCALATION_ACTION_TERMS = (
+    "cesarean",
+    "c-section",
+    "delivery",
+    "emergency delivery",
+    "maternal-fetal medicine",
+    "ob",
+    "obstetric",
+    "operative",
+    "prompt delivery",
+)
+PLACENTAL_ABRUPTION_PREVIA_ULTRASOUND_SAFETY_TERMS = (
+    "normal ultrasound",
+    "normal ultrasonography",
+    "pelvic examination",
+    "placenta previa",
+    "previa",
+    "rule out previa",
+    "transvaginal ultrasound",
+    "ultrasound does not rule out",
+    "ultrasonography does not rule out",
+)
+PLACENTAL_ABRUPTION_COAG_RH_SAFETY_TERMS = (
+    "blood type",
+    "coagulation",
+    "dic",
+    "fibrin split",
+    "fibrinogen",
+    "kleihauer",
+    "kleihauer-betke",
+    "platelet",
+    "rh immune globulin",
+    "rho(d)",
+)
+PLACENTAL_ABRUPTION_STABILITY_DELIVERY_SAFETY_TERMS = (
+    "bleeding continues",
+    "delivery",
+    "deteriorates",
+    "fetal instability",
+    "maternal instability",
+    "near-term",
+    "nonreassuring fetal",
+    "prompt cesarean",
+    "prompt delivery",
+    "term pregnancy",
+)
+PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS = (
+    "blood product",
+    "coagulopathy",
+    "dic",
+    "fibrinogen",
+    "hemorrhagic shock",
+    "massive transfusion",
+    "shock",
+    "transfusion",
+)
 HYPERTENSIVE_EMERGENCY_DIRECT_CONTEXT_TERMS = (
     "hypertensive emergency",
     "hypertensive encephalopathy",
@@ -12149,6 +12258,37 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="placental_abruption_time_critical_actions",
+            applies=_requires_placental_abruption_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_placental_abruption_time_critical_actions,
+            issue=(
+                "placental abruption time-critical actions must include maternal "
+                "stabilization or hemorrhage resuscitation with IV access, "
+                "crossmatch, transfusion, blood products, or hemodynamic support, "
+                "fetal heart or fetal status monitoring, coagulation, fibrinogen, "
+                "platelet, Rh, type-and-screen, or crossmatch labs, and prompt "
+                "delivery, cesarean, OB, MFM, or operative escalation for maternal "
+                "or fetal instability"
+            ),
+        ),
+        DomainSafetyGate(
+            name="placental_abruption_treatment_safety",
+            applies=_requires_placental_abruption_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_placental_abruption_treatment_safety_check,
+            issue=(
+                "placental abruption safety checks must include placenta previa "
+                "exclusion before pelvic examination and recognition that normal "
+                "ultrasound does not rule out abruption, coagulation, fibrinogen, "
+                "platelet, blood type, Rh immune globulin, or Kleihauer-Betke "
+                "assessment, delivery or prompt cesarean criteria for maternal "
+                "or fetal instability, ongoing bleeding, deterioration, term, or "
+                "near-term pregnancy, and shock, DIC, coagulopathy, transfusion, "
+                "blood-product, massive-transfusion, or fibrinogen safeguards"
+            ),
+        ),
+        DomainSafetyGate(
             name="severe_preeclampsia_time_critical_actions",
             applies=_requires_severe_preeclampsia_safety_check,
             field_name="time_critical_actions",
@@ -16037,6 +16177,90 @@ def _has_postpartum_hemorrhage_treatment_safety_check(checks: list[Any]) -> bool
         and has_coag_transfusion_safety
         and has_retained_trauma_safety
         and has_escalation_safety
+    )
+
+
+def _requires_placental_abruption_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in PLACENTAL_ABRUPTION_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in PLACENTAL_ABRUPTION_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_placental_abruption_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_maternal_resuscitation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTAL_ABRUPTION_MATERNAL_RESUSCITATION_ACTION_TERMS
+    )
+    has_fetal_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTAL_ABRUPTION_FETAL_MONITOR_ACTION_TERMS
+    )
+    has_labs = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTAL_ABRUPTION_LAB_ACTION_TERMS
+    )
+    has_delivery_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTAL_ABRUPTION_DELIVERY_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_maternal_resuscitation
+        and has_fetal_monitoring
+        and has_labs
+        and has_delivery_escalation
+    )
+
+
+def _has_placental_abruption_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_previa_ultrasound_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTAL_ABRUPTION_PREVIA_ULTRASOUND_SAFETY_TERMS
+    )
+    has_coag_rh_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTAL_ABRUPTION_COAG_RH_SAFETY_TERMS
+    )
+    has_stability_delivery_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTAL_ABRUPTION_STABILITY_DELIVERY_SAFETY_TERMS
+    )
+    has_shock_dic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS
+    )
+    return (
+        has_previa_ultrasound_safety
+        and has_coag_rh_safety
+        and has_stability_delivery_safety
+        and has_shock_dic_safety
     )
 
 

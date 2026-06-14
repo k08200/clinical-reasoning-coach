@@ -2075,6 +2075,125 @@ const SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS = [
   "폐부종",
 ];
 
+const PLACENTAL_ABRUPTION_CONTEXT_TERMS = [
+  "abruptio placentae",
+  "placental abruption",
+  "retroplacental hemorrhage",
+  "retroplacental haematoma",
+  "retroplacental hematoma",
+];
+
+const PLACENTAL_ABRUPTION_RISK_TERMS = [
+  "abdominal trauma",
+  "concealed hemorrhage",
+  "dic",
+  "fetal distress",
+  "hemorrhagic shock",
+  "late pregnancy bleeding",
+  "painful bleeding",
+  "rigid uterus",
+  "uterine hypertonus",
+  "uterine pain",
+  "uterine tenderness",
+  "vaginal bleeding",
+];
+
+const PLACENTAL_ABRUPTION_MATERNAL_RESUSCITATION_ACTION_TERMS = [
+  "blood product",
+  "crossmatch",
+  "hemodynamic",
+  "iv access",
+  "large-bore",
+  "maternal stabilization",
+  "resuscitation",
+  "shock",
+  "transfusion",
+  "type and cross",
+  "type-and-cross",
+];
+
+const PLACENTAL_ABRUPTION_FETAL_MONITOR_ACTION_TERMS = [
+  "continuous fetal monitoring",
+  "fetal heart",
+  "fetal monitoring",
+  "fetal status",
+  "fhr",
+  "nonreassuring",
+];
+
+const PLACENTAL_ABRUPTION_LAB_ACTION_TERMS = [
+  "blood type",
+  "coagulation",
+  "crossmatch",
+  "fibrin split",
+  "fibrinogen",
+  "platelet",
+  "rh",
+  "type and screen",
+  "type-and-screen",
+];
+
+const PLACENTAL_ABRUPTION_DELIVERY_ESCALATION_ACTION_TERMS = [
+  "cesarean",
+  "c-section",
+  "delivery",
+  "emergency delivery",
+  "maternal-fetal medicine",
+  "ob",
+  "obstetric",
+  "operative",
+  "prompt delivery",
+];
+
+const PLACENTAL_ABRUPTION_PREVIA_ULTRASOUND_SAFETY_TERMS = [
+  "normal ultrasound",
+  "normal ultrasonography",
+  "pelvic examination",
+  "placenta previa",
+  "previa",
+  "rule out previa",
+  "transvaginal ultrasound",
+  "ultrasound does not rule out",
+  "ultrasonography does not rule out",
+];
+
+const PLACENTAL_ABRUPTION_COAG_RH_SAFETY_TERMS = [
+  "blood type",
+  "coagulation",
+  "dic",
+  "fibrin split",
+  "fibrinogen",
+  "kleihauer",
+  "kleihauer-betke",
+  "platelet",
+  "rh immune globulin",
+  "rho(d)",
+];
+
+const PLACENTAL_ABRUPTION_STABILITY_DELIVERY_SAFETY_TERMS = [
+  "bleeding continues",
+  "delivery",
+  "deteriorates",
+  "fetal instability",
+  "maternal instability",
+  "near-term",
+  "nonreassuring fetal",
+  "prompt cesarean",
+  "prompt delivery",
+  "term pregnancy",
+];
+
+const PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS = [
+  "blood product",
+  "coagulopathy",
+  "dic",
+  "fibrinogen",
+  "hemorrhagic shock",
+  "massive transfusion",
+  "shock",
+  "transfusion",
+];
+
 const HYPERTENSIVE_EMERGENCY_DIRECT_CONTEXT_TERMS = [
   "hypertensive emergency",
   "hypertensive encephalopathy",
@@ -13497,6 +13616,73 @@ function hasPostpartumHemorrhageTreatmentSafetyCheck(checks: string[]): boolean 
   );
 }
 
+function requiresPlacentalAbruptionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = PLACENTAL_ABRUPTION_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = PLACENTAL_ABRUPTION_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasPlacentalAbruptionTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasMaternalResuscitation =
+    PLACENTAL_ABRUPTION_MATERNAL_RESUSCITATION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasFetalMonitoring = PLACENTAL_ABRUPTION_FETAL_MONITOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLabs = PLACENTAL_ABRUPTION_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDeliveryEscalation = PLACENTAL_ABRUPTION_DELIVERY_ESCALATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return hasMaternalResuscitation && hasFetalMonitoring && hasLabs && hasDeliveryEscalation;
+}
+
+function hasPlacentalAbruptionTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasPreviaUltrasoundSafety =
+    PLACENTAL_ABRUPTION_PREVIA_ULTRASOUND_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCoagRhSafety = PLACENTAL_ABRUPTION_COAG_RH_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasStabilityDeliverySafety =
+    PLACENTAL_ABRUPTION_STABILITY_DELIVERY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasShockDicSafety = PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasPreviaUltrasoundSafety &&
+    hasCoagRhSafety &&
+    hasStabilityDeliverySafety &&
+    hasShockDicSafety
+  );
+}
+
 function requiresSeverePreeclampsiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -19857,6 +20043,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasPostpartumHemorrhageTreatmentSafetyCheck,
       issue:
         "postpartum hemorrhage safety checks must include uterotonic contraindication review such as asthma, hypertension, preeclampsia, methylergonovine, carboprost, or misoprostol, TXA timing or contraindication review including 3-hours, thromboembolism, tranexamic acid, or TXA, coagulopathy, fibrinogen, platelet, INR, shock-index, or viscoelastic transfusion monitoring, retained placenta, retained tissue, manual removal, laceration, genital-tract, uterine inversion, or rupture review, and escalation safety for balloon, tamponade, packing, surgical, laparotomy, or interventional-radiology options",
+    },
+    {
+      name: "placental_abruption_time_critical_actions",
+      label: "Placental abruption emergency actions",
+      applies: requiresPlacentalAbruptionSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasPlacentalAbruptionTimeCriticalActions,
+      issue:
+        "placental abruption time-critical actions must include maternal stabilization or hemorrhage resuscitation with IV access, crossmatch, transfusion, blood products, or hemodynamic support, fetal heart or fetal status monitoring, coagulation, fibrinogen, platelet, Rh, type-and-screen, or crossmatch labs, and prompt delivery, cesarean, OB, MFM, or operative escalation for maternal or fetal instability",
+    },
+    {
+      name: "placental_abruption_treatment_safety",
+      label: "Placental abruption treatment safety",
+      applies: requiresPlacentalAbruptionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasPlacentalAbruptionTreatmentSafetyCheck,
+      issue:
+        "placental abruption safety checks must include placenta previa exclusion before pelvic examination and recognition that normal ultrasound does not rule out abruption, coagulation, fibrinogen, platelet, blood type, Rh immune globulin, or Kleihauer-Betke assessment, delivery or prompt cesarean criteria for maternal or fetal instability, ongoing bleeding, deterioration, term, or near-term pregnancy, and shock, DIC, coagulopathy, transfusion, blood-product, massive-transfusion, or fibrinogen safeguards",
     },
     {
       name: "severe_preeclampsia_time_critical_actions",
