@@ -1729,6 +1729,127 @@
     }
   },
   {
+    "name": "abusive_head_trauma_requires_stabilization_neuroimaging_skeletal_eye_and_protection_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "abusive head trauma time-critical actions must include airway"
+    ],
+    "overrides": {
+      "diagnosis": "Pediatric abusive head trauma",
+      "patient_demographics": {
+        "age": 1,
+        "sex": "female",
+        "weight_kg": 10,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Lethargy and seizure after inconsistent trauma history",
+      "history_of_present_illness": "Infant presents with vomiting, lethargy, seizure, apnea, bulging fontanelle, scalp bruising, and caregiver history inconsistent with developmental ability. CT from transfer notes subdural hematoma and skull fracture, with concern for abusive head trauma and child physical abuse.",
+      "key_teaching_points": [
+        "Abusive head trauma can present with subtle symptoms such as vomiting, lethargy, apnea, seizure, retinal hemorrhage, or bruising",
+        "Diagnosis relies on high suspicion plus neuroimaging, ophthalmologic examination, and skeletal survey",
+        "Child protective services, social work, and child abuse pediatrics coordination are required before safe disposition"
+      ],
+      "clinical_red_flags": [
+        "Subdural hematoma, retinal hemorrhage, skull fracture, rib fracture, metaphyseal lesion, seizure, apnea, or bulging fontanelle",
+        "Inconsistent history, revised history, delayed care, frenulum tear, TEN-4 bruising, or bruising before cruising"
+      ],
+      "time_critical_actions": [
+        "Observe neurologic status and reassess after antiemetic treatment",
+        "Discuss outpatient follow-up if symptoms improve"
+      ],
+      "contraindication_checks": [
+        "Review developmental mechanism plausibility and history inconsistent with observed injuries or revised history",
+        "Evaluate coagulopathy and mimics with PT, PTT, factor testing, hematology input, metabolic bone disease, and bone fragility review",
+        "Screen occult abdominal or visceral injury with AST, ALT, CMP, troponin, urinalysis, and abdominal CT if indicated",
+        "Plan repeat skeletal survey or follow-up skeletal survey in 10 to 14 days or 2 to 3 weeks",
+        "Do not discharge until CPS, child protective services, child welfare, law enforcement, safe home environment, safety plan, or safe placement is confirmed with weight-based dosing safety check"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Pediatric Abusive Head Trauma",
+          "organization": "NCBI Bookshelf / StatPearls",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK499836/",
+          "supports": [
+            "pediatric abusive head trauma diagnosis and risk stratification",
+            "vomiting, lethargy, apnea, seizure, retinal hemorrhage, and bruising as abusive head trauma presentations",
+            "subdural hematoma, retinal hemorrhage, skull fracture, rib fracture, metaphyseal lesion, seizure, apnea, and bulging fontanelle as severity markers",
+            "inconsistent history, revised history, delayed care, frenulum tear, TEN-4 bruising, and bruising before cruising as abuse red flags",
+            "neuroimaging, ophthalmologic examination, and skeletal survey for diagnosis",
+            "stabilization with airway, seizure, intracranial pressure, cerebral perfusion, PICU, and neurosurgery planning",
+            "CT head, noncontrast head CT, MRI head, MRI brain, or neuroimaging",
+            "skeletal survey including skull, spine, ribs, and long bone imaging",
+            "ophthalmology, ophthalmologic, fundoscopic, retinal exam, and retinal hemorrhage evaluation",
+            "child protective services, CPS, social work, child welfare, child abuse pediatrics, mandated report, mandatory report, and safe discharge escalation",
+            "developmental mechanism plausibility and inconsistent or revised history review",
+            "coagulopathy, PT, PTT, factor testing, hematology, metabolic bone disease, and bone fragility mimic review",
+            "occult abdominal or visceral injury screening with AST, ALT, CMP, troponin, urinalysis, and abdominal CT",
+            "repeat skeletal survey or follow-up skeletal survey in 10 to 14 days or 2 to 3 weeks",
+            "CPS, child protective services, child welfare, law enforcement, safe home environment, safety plan, safe placement, and weight-based dosing safety check"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "abusive_head_trauma_requires_history_mimic_occult_followup_and_disposition_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "abusive head trauma safety checks must include developmental mechanism"
+    ],
+    "overrides": {
+      "diagnosis": "Pediatric abusive head trauma",
+      "patient_demographics": {
+        "age": 1,
+        "sex": "female",
+        "weight_kg": 10,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Lethargy and seizure after inconsistent trauma history",
+      "history_of_present_illness": "Infant presents with vomiting, lethargy, seizure, apnea, bulging fontanelle, scalp bruising, and caregiver history inconsistent with developmental ability. CT from transfer notes subdural hematoma and skull fracture, with concern for abusive head trauma and child physical abuse.",
+      "key_teaching_points": [
+        "Abusive head trauma can present with subtle symptoms such as vomiting, lethargy, apnea, seizure, retinal hemorrhage, or bruising",
+        "Diagnosis relies on high suspicion plus neuroimaging, ophthalmologic examination, and skeletal survey",
+        "Child protective services, social work, and child abuse pediatrics coordination are required before safe disposition"
+      ],
+      "clinical_red_flags": [
+        "Subdural hematoma, retinal hemorrhage, skull fracture, rib fracture, metaphyseal lesion, seizure, apnea, or bulging fontanelle",
+        "Inconsistent history, revised history, delayed care, frenulum tear, TEN-4 bruising, or bruising before cruising"
+      ],
+      "time_critical_actions": [
+        "Stabilization with airway support, seizure treatment, ICP intracranial pressure monitoring, cerebral perfusion support, PICU admission, and neurosurgery consultation",
+        "Obtain CT head, noncontrast head CT, MRI head, MRI brain, or other neuroimaging for subdural hematoma and skull fracture assessment",
+        "Order skeletal survey with skull, spine, ribs, and long bone imaging",
+        "Consult ophthalmology for ophthalmologic fundoscopic retinal exam and retinal hemorrhage evaluation",
+        "Notify CPS, child protective services, child welfare, social work, and child abuse pediatrics for mandated report, mandatory report, and safe discharge planning"
+      ],
+      "contraindication_checks": [
+        "Medication allergy review before analgesia or antiseizure treatment",
+        "Weight-based dosing safety check for sedatives, antiseizure medications, and analgesia"
+      ],
+      "clinical_sources": [
+        {
+          "title": "ACR Appropriateness Criteria: Suspected Physical Abuse-Child",
+          "organization": "American College of Radiology",
+          "url": "https://acsearch.acr.org/docs/69443/Narrative/",
+          "supports": [
+            "pediatric abusive head trauma diagnosis and risk stratification",
+            "vomiting, lethargy, apnea, seizure, retinal hemorrhage, and bruising as abusive head trauma presentations",
+            "subdural hematoma, retinal hemorrhage, skull fracture, rib fracture, metaphyseal lesion, seizure, apnea, and bulging fontanelle as severity markers",
+            "inconsistent history, revised history, delayed care, frenulum tear, TEN-4 bruising, and bruising before cruising as abuse red flags",
+            "neuroimaging, ophthalmologic examination, and skeletal survey for diagnosis",
+            "stabilization with airway support, seizure treatment, ICP intracranial pressure monitoring, cerebral perfusion support, PICU admission, and neurosurgery consultation",
+            "CT head, noncontrast head CT, MRI head, MRI brain, or neuroimaging for subdural hematoma and skull fracture assessment",
+            "skeletal survey with skull, spine, ribs, and long bone imaging",
+            "ophthalmology ophthalmologic fundoscopic retinal exam and retinal hemorrhage evaluation",
+            "CPS, child protective services, child welfare, social work, child abuse pediatrics, mandated report, mandatory report, and safe discharge planning",
+            "medication allergy review before analgesia or antiseizure treatment",
+            "weight-based dosing safety check for sedatives, antiseizure medications, and analgesia"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "ectopic_pregnancy_requires_hcg_ultrasound_and_obgyn_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

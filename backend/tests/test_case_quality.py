@@ -69,6 +69,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "febrile_infant_treatment_safety",
         "neonatal_hyperbilirubinemia_time_critical_actions",
         "neonatal_hyperbilirubinemia_treatment_safety",
+        "abusive_head_trauma_time_critical_actions",
+        "abusive_head_trauma_treatment_safety",
         "ectopic_pregnancy_time_critical_actions",
         "ectopic_pregnancy_treatment_safety",
         "postpartum_hemorrhage_time_critical_actions",
@@ -1645,6 +1647,147 @@ def test_quality_gate_requires_neonatal_hyperbilirubinemia_neurotoxicity_direct_
     assert not report.passed
     assert any(
         "neonatal hyperbilirubinemia safety checks must include neurotoxicity risk factors"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_abusive_head_trauma_stabilization_neuroimaging_skeletal_eye_and_protection_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Pediatric abusive head trauma"
+    case["patient_demographics"] = {
+        "age": 1,
+        "sex": "female",
+        "weight_kg": 10,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Lethargy and seizure after inconsistent trauma history"
+    case["history_of_present_illness"] = (
+        "Infant presents with vomiting, lethargy, seizure, apnea, bulging "
+        "fontanelle, scalp bruising, and caregiver history inconsistent with "
+        "developmental ability. CT from transfer notes subdural hematoma and "
+        "skull fracture, with concern for abusive head trauma and child physical "
+        "abuse."
+    )
+    case["key_teaching_points"] = [
+        "Abusive head trauma can present with subtle symptoms such as vomiting, lethargy, apnea, seizure, retinal hemorrhage, or bruising",
+        "Diagnosis relies on high suspicion plus neuroimaging, ophthalmologic examination, and skeletal survey",
+        "Child protective services, social work, and child abuse pediatrics coordination are required before safe disposition",
+    ]
+    case["clinical_red_flags"] = [
+        "Subdural hematoma, retinal hemorrhage, skull fracture, rib fracture, metaphyseal lesion, seizure, apnea, or bulging fontanelle",
+        "Inconsistent history, revised history, delayed care, frenulum tear, TEN-4 bruising, or bruising before cruising",
+    ]
+    case["time_critical_actions"] = [
+        "Observe neurologic status and reassess after antiemetic treatment",
+        "Discuss outpatient follow-up if symptoms improve",
+    ]
+    case["contraindication_checks"] = [
+        "Review developmental mechanism plausibility and history inconsistent with observed injuries or revised history",
+        "Evaluate coagulopathy and mimics with PT, PTT, factor testing, hematology input, metabolic bone disease, and bone fragility review",
+        "Screen occult abdominal or visceral injury with AST, ALT, CMP, troponin, urinalysis, and abdominal CT if indicated",
+        "Plan repeat skeletal survey or follow-up skeletal survey in 10 to 14 days or 2 to 3 weeks",
+        "Do not discharge until CPS, child protective services, child welfare, law enforcement, safe home environment, safety plan, or safe placement is confirmed with weight-based dosing safety check",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Pediatric Abusive Head Trauma",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK499836/",
+            "supports": [
+                "pediatric abusive head trauma diagnosis and risk stratification",
+                "vomiting, lethargy, apnea, seizure, retinal hemorrhage, and bruising as abusive head trauma presentations",
+                "subdural hematoma, retinal hemorrhage, skull fracture, rib fracture, metaphyseal lesion, seizure, apnea, and bulging fontanelle as severity markers",
+                "inconsistent history, revised history, delayed care, frenulum tear, TEN-4 bruising, and bruising before cruising as abuse red flags",
+                "neuroimaging, ophthalmologic examination, and skeletal survey for diagnosis",
+                "stabilization with airway, seizure, intracranial pressure, cerebral perfusion, PICU, and neurosurgery planning",
+                "CT head, noncontrast head CT, MRI head, MRI brain, or neuroimaging",
+                "skeletal survey including skull, spine, ribs, and long bone imaging",
+                "ophthalmology, ophthalmologic, fundoscopic, retinal exam, and retinal hemorrhage evaluation",
+                "child protective services, CPS, social work, child welfare, child abuse pediatrics, mandated report, mandatory report, and safe discharge escalation",
+                "developmental mechanism plausibility and inconsistent or revised history review",
+                "coagulopathy, PT, PTT, factor testing, hematology, metabolic bone disease, and bone fragility mimic review",
+                "occult abdominal or visceral injury screening with AST, ALT, CMP, troponin, urinalysis, and abdominal CT",
+                "repeat skeletal survey or follow-up skeletal survey in 10 to 14 days or 2 to 3 weeks",
+                "CPS, child protective services, child welfare, law enforcement, safe home environment, safety plan, safe placement, and weight-based dosing safety check",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "abusive head trauma time-critical actions must include airway"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_abusive_head_trauma_history_mimic_occult_followup_and_disposition_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Pediatric abusive head trauma"
+    case["patient_demographics"] = {
+        "age": 1,
+        "sex": "female",
+        "weight_kg": 10,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Lethargy and seizure after inconsistent trauma history"
+    case["history_of_present_illness"] = (
+        "Infant presents with vomiting, lethargy, seizure, apnea, bulging "
+        "fontanelle, scalp bruising, and caregiver history inconsistent with "
+        "developmental ability. CT from transfer notes subdural hematoma and "
+        "skull fracture, with concern for abusive head trauma and child physical "
+        "abuse."
+    )
+    case["key_teaching_points"] = [
+        "Abusive head trauma can present with subtle symptoms such as vomiting, lethargy, apnea, seizure, retinal hemorrhage, or bruising",
+        "Diagnosis relies on high suspicion plus neuroimaging, ophthalmologic examination, and skeletal survey",
+        "Child protective services, social work, and child abuse pediatrics coordination are required before safe disposition",
+    ]
+    case["clinical_red_flags"] = [
+        "Subdural hematoma, retinal hemorrhage, skull fracture, rib fracture, metaphyseal lesion, seizure, apnea, or bulging fontanelle",
+        "Inconsistent history, revised history, delayed care, frenulum tear, TEN-4 bruising, or bruising before cruising",
+    ]
+    case["time_critical_actions"] = [
+        "Stabilization with airway support, seizure treatment, ICP intracranial pressure monitoring, cerebral perfusion support, PICU admission, and neurosurgery consultation",
+        "Obtain CT head, noncontrast head CT, MRI head, MRI brain, or other neuroimaging for subdural hematoma and skull fracture assessment",
+        "Order skeletal survey with skull, spine, ribs, and long bone imaging",
+        "Consult ophthalmology for ophthalmologic fundoscopic retinal exam and retinal hemorrhage evaluation",
+        "Notify CPS, child protective services, child welfare, social work, and child abuse pediatrics for mandated report, mandatory report, and safe discharge planning",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before analgesia or antiseizure treatment",
+        "Weight-based dosing safety check for sedatives, antiseizure medications, and analgesia",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "ACR Appropriateness Criteria: Suspected Physical Abuse-Child",
+            "organization": "American College of Radiology",
+            "url": "https://acsearch.acr.org/docs/69443/Narrative/",
+            "supports": [
+                "pediatric abusive head trauma diagnosis and risk stratification",
+                "vomiting, lethargy, apnea, seizure, retinal hemorrhage, and bruising as abusive head trauma presentations",
+                "subdural hematoma, retinal hemorrhage, skull fracture, rib fracture, metaphyseal lesion, seizure, apnea, and bulging fontanelle as severity markers",
+                "inconsistent history, revised history, delayed care, frenulum tear, TEN-4 bruising, and bruising before cruising as abuse red flags",
+                "neuroimaging, ophthalmologic examination, and skeletal survey for diagnosis",
+                "stabilization with airway support, seizure treatment, ICP intracranial pressure monitoring, cerebral perfusion support, PICU admission, and neurosurgery consultation",
+                "CT head, noncontrast head CT, MRI head, MRI brain, or neuroimaging for subdural hematoma and skull fracture assessment",
+                "skeletal survey with skull, spine, ribs, and long bone imaging",
+                "ophthalmology ophthalmologic fundoscopic retinal exam and retinal hemorrhage evaluation",
+                "CPS, child protective services, child welfare, social work, child abuse pediatrics, mandated report, mandatory report, and safe discharge planning",
+                "medication allergy review before analgesia or antiseizure treatment",
+                "weight-based dosing safety check for sedatives, antiseizure medications, and analgesia",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "abusive head trauma safety checks must include developmental mechanism"
         in issue
         for issue in report.critical_issues
     )

@@ -1534,6 +1534,122 @@ NEONATAL_HYPERBILIRUBINEMIA_FOLLOWUP_SAFETY_TERMS = (
     "repeat bilirubin",
     "weight trajectory",
 )
+ABUSIVE_HEAD_TRAUMA_CONTEXT_TERMS = (
+    "abusive head trauma",
+    "battered child",
+    "child physical abuse",
+    "inflicted head trauma",
+    "non-accidental trauma",
+    "nonaccidental trauma",
+    "physical abuse",
+    "shaken baby",
+    "suspected abuse",
+    "suspected physical abuse",
+)
+ABUSIVE_HEAD_TRAUMA_RISK_TERMS = (
+    "apnea",
+    "bruising before cruising",
+    "bulging fontanelle",
+    "frenulum tear",
+    "inconsistent history",
+    "lethargy",
+    "metaphyseal",
+    "retinal hemorrhage",
+    "rib fracture",
+    "seizure",
+    "skull fracture",
+    "subdural hematoma",
+    "ten-4",
+    "vomiting",
+)
+ABUSIVE_HEAD_TRAUMA_STABILIZATION_ACTION_TERMS = (
+    "airway",
+    "cerebral perfusion",
+    "icp",
+    "intracranial pressure",
+    "neurosurgery",
+    "picu",
+    "seizure",
+    "stabilization",
+)
+ABUSIVE_HEAD_TRAUMA_NEUROIMAGING_ACTION_TERMS = (
+    "ct head",
+    "head ct",
+    "mri brain",
+    "mri head",
+    "neuroimaging",
+    "noncontrast head ct",
+)
+ABUSIVE_HEAD_TRAUMA_SKELETAL_SURVEY_ACTION_TERMS = (
+    "long bone",
+    "rib",
+    "skeletal survey",
+    "skull",
+    "spine",
+)
+ABUSIVE_HEAD_TRAUMA_OPHTHALMOLOGY_ACTION_TERMS = (
+    "fundoscopic",
+    "ophthalmologic",
+    "ophthalmology",
+    "retinal exam",
+    "retinal hemorrhage",
+)
+ABUSIVE_HEAD_TRAUMA_PROTECTION_ACTION_TERMS = (
+    "child abuse pediatrics",
+    "child protective",
+    "child welfare",
+    "cps",
+    "mandated report",
+    "mandatory report",
+    "safe discharge",
+    "social work",
+)
+ABUSIVE_HEAD_TRAUMA_HISTORY_SAFETY_TERMS = (
+    "developmental",
+    "history inconsistent",
+    "inconsistent history",
+    "mechanism",
+    "plausible explanation",
+    "revised history",
+)
+ABUSIVE_HEAD_TRAUMA_MIMIC_COAG_SAFETY_TERMS = (
+    "bone fragility",
+    "coagulation",
+    "coagulopathy",
+    "factor",
+    "hematology",
+    "metabolic bone",
+    "partial thromboplastin time",
+    "prothrombin time",
+    "ptt",
+)
+ABUSIVE_HEAD_TRAUMA_OCCULT_INJURY_SAFETY_TERMS = (
+    "abdominal ct",
+    "alt",
+    "ast",
+    "cmp",
+    "troponin",
+    "urinalysis",
+    "visceral injury",
+)
+ABUSIVE_HEAD_TRAUMA_REPEAT_SURVEY_SAFETY_TERMS = (
+    "10 to 14 days",
+    "10-14 days",
+    "2 to 3 weeks",
+    "2-3 weeks",
+    "follow-up skeletal survey",
+    "repeat skeletal survey",
+)
+ABUSIVE_HEAD_TRAUMA_DISPOSITION_SAFETY_TERMS = (
+    "child protective",
+    "child welfare",
+    "cps",
+    "law enforcement",
+    "safe home",
+    "safe home environment",
+    "safe placement",
+    "safety plan",
+)
 ECTOPIC_PREGNANCY_CONTEXT_TERMS = (
     "ectopic pregnancy",
     "pregnancy of unknown location",
@@ -11941,6 +12057,40 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="abusive_head_trauma_time_critical_actions",
+            applies=_requires_abusive_head_trauma_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_abusive_head_trauma_time_critical_actions,
+            issue=(
+                "abusive head trauma time-critical actions must include airway, "
+                "seizure, intracranial-pressure, cerebral-perfusion, PICU, "
+                "neurosurgery, or stabilization planning, CT head, noncontrast "
+                "head CT, MRI head/brain, or neuroimaging, skeletal survey with "
+                "skull, spine, ribs, or long-bone imaging, ophthalmology, "
+                "ophthalmologic, fundoscopic, retinal exam, or retinal-hemorrhage "
+                "evaluation, and child protective, CPS, child welfare, social "
+                "work, child-abuse pediatrics, mandated-report, mandatory-report, "
+                "or safe-discharge escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="abusive_head_trauma_treatment_safety",
+            applies=_requires_abusive_head_trauma_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_abusive_head_trauma_treatment_safety_check,
+            issue=(
+                "abusive head trauma safety checks must include developmental "
+                "mechanism plausibility or inconsistent/revised history review, "
+                "coagulopathy, coagulation, PT/PTT, factor, hematology, metabolic "
+                "bone, or bone-fragility mimic review, occult abdominal or visceral "
+                "injury screening with AST, ALT, CMP, troponin, urinalysis, or "
+                "abdominal CT, repeat or follow-up skeletal survey planning in "
+                "10 to 14 days or 2 to 3 weeks, and safe home, safety plan, "
+                "safe placement, child protective, CPS, child welfare, or law "
+                "enforcement disposition safeguards"
+            ),
+        ),
+        DomainSafetyGate(
             name="ectopic_pregnancy_time_critical_actions",
             applies=_requires_ectopic_pregnancy_safety_check,
             field_name="time_critical_actions",
@@ -15641,6 +15791,100 @@ def _has_neonatal_hyperbilirubinemia_treatment_safety_check(
         and has_acute_encephalopathy_safety
         and has_direct_bilirubin_safety
         and has_followup_safety
+    )
+
+
+def _requires_abusive_head_trauma_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ABUSIVE_HEAD_TRAUMA_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in ABUSIVE_HEAD_TRAUMA_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_abusive_head_trauma_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_stabilization = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ABUSIVE_HEAD_TRAUMA_STABILIZATION_ACTION_TERMS
+    )
+    has_neuroimaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ABUSIVE_HEAD_TRAUMA_NEUROIMAGING_ACTION_TERMS
+    )
+    has_skeletal_survey = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ABUSIVE_HEAD_TRAUMA_SKELETAL_SURVEY_ACTION_TERMS
+    )
+    has_ophthalmology = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ABUSIVE_HEAD_TRAUMA_OPHTHALMOLOGY_ACTION_TERMS
+    )
+    has_protection = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ABUSIVE_HEAD_TRAUMA_PROTECTION_ACTION_TERMS
+    )
+    return (
+        has_stabilization
+        and has_neuroimaging
+        and has_skeletal_survey
+        and has_ophthalmology
+        and has_protection
+    )
+
+
+def _has_abusive_head_trauma_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_history_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ABUSIVE_HEAD_TRAUMA_HISTORY_SAFETY_TERMS
+    )
+    has_mimic_coag_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ABUSIVE_HEAD_TRAUMA_MIMIC_COAG_SAFETY_TERMS
+    )
+    has_occult_injury_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ABUSIVE_HEAD_TRAUMA_OCCULT_INJURY_SAFETY_TERMS
+    )
+    has_repeat_survey_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ABUSIVE_HEAD_TRAUMA_REPEAT_SURVEY_SAFETY_TERMS
+    )
+    has_disposition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ABUSIVE_HEAD_TRAUMA_DISPOSITION_SAFETY_TERMS
+    )
+    return (
+        has_history_safety
+        and has_mimic_coag_safety
+        and has_occult_injury_safety
+        and has_repeat_survey_safety
+        and has_disposition_safety
     )
 
 

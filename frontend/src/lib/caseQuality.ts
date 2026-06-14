@@ -1644,6 +1644,134 @@ const NEONATAL_HYPERBILIRUBINEMIA_FOLLOWUP_SAFETY_TERMS = [
   "weight trajectory",
 ];
 
+const ABUSIVE_HEAD_TRAUMA_CONTEXT_TERMS = [
+  "abusive head trauma",
+  "battered child",
+  "child physical abuse",
+  "inflicted head trauma",
+  "non-accidental trauma",
+  "nonaccidental trauma",
+  "physical abuse",
+  "shaken baby",
+  "suspected abuse",
+  "suspected physical abuse",
+];
+
+const ABUSIVE_HEAD_TRAUMA_RISK_TERMS = [
+  "apnea",
+  "bruising before cruising",
+  "bulging fontanelle",
+  "frenulum tear",
+  "inconsistent history",
+  "lethargy",
+  "metaphyseal",
+  "retinal hemorrhage",
+  "rib fracture",
+  "seizure",
+  "skull fracture",
+  "subdural hematoma",
+  "ten-4",
+  "vomiting",
+];
+
+const ABUSIVE_HEAD_TRAUMA_STABILIZATION_ACTION_TERMS = [
+  "airway",
+  "cerebral perfusion",
+  "icp",
+  "intracranial pressure",
+  "neurosurgery",
+  "picu",
+  "seizure",
+  "stabilization",
+];
+
+const ABUSIVE_HEAD_TRAUMA_NEUROIMAGING_ACTION_TERMS = [
+  "ct head",
+  "head ct",
+  "mri brain",
+  "mri head",
+  "neuroimaging",
+  "noncontrast head ct",
+];
+
+const ABUSIVE_HEAD_TRAUMA_SKELETAL_SURVEY_ACTION_TERMS = [
+  "long bone",
+  "rib",
+  "skeletal survey",
+  "skull",
+  "spine",
+];
+
+const ABUSIVE_HEAD_TRAUMA_OPHTHALMOLOGY_ACTION_TERMS = [
+  "fundoscopic",
+  "ophthalmologic",
+  "ophthalmology",
+  "retinal exam",
+  "retinal hemorrhage",
+];
+
+const ABUSIVE_HEAD_TRAUMA_PROTECTION_ACTION_TERMS = [
+  "child abuse pediatrics",
+  "child protective",
+  "child welfare",
+  "cps",
+  "mandated report",
+  "mandatory report",
+  "safe discharge",
+  "social work",
+];
+
+const ABUSIVE_HEAD_TRAUMA_HISTORY_SAFETY_TERMS = [
+  "developmental",
+  "history inconsistent",
+  "inconsistent history",
+  "mechanism",
+  "plausible explanation",
+  "revised history",
+];
+
+const ABUSIVE_HEAD_TRAUMA_MIMIC_COAG_SAFETY_TERMS = [
+  "bone fragility",
+  "coagulation",
+  "coagulopathy",
+  "factor",
+  "hematology",
+  "metabolic bone",
+  "partial thromboplastin time",
+  "prothrombin time",
+  "ptt",
+];
+
+const ABUSIVE_HEAD_TRAUMA_OCCULT_INJURY_SAFETY_TERMS = [
+  "abdominal ct",
+  "alt",
+  "ast",
+  "cmp",
+  "troponin",
+  "urinalysis",
+  "visceral injury",
+];
+
+const ABUSIVE_HEAD_TRAUMA_REPEAT_SURVEY_SAFETY_TERMS = [
+  "10 to 14 days",
+  "10-14 days",
+  "2 to 3 weeks",
+  "2-3 weeks",
+  "follow-up skeletal survey",
+  "repeat skeletal survey",
+];
+
+const ABUSIVE_HEAD_TRAUMA_DISPOSITION_SAFETY_TERMS = [
+  "child protective",
+  "child welfare",
+  "cps",
+  "law enforcement",
+  "safe home",
+  "safe home environment",
+  "safe placement",
+  "safety plan",
+];
+
 const ECTOPIC_PREGNANCY_CONTEXT_TERMS = [
   "ectopic pregnancy",
   "pregnancy of unknown location",
@@ -13172,6 +13300,83 @@ function hasNeonatalHyperbilirubinemiaTreatmentSafetyCheck(checks: string[]): bo
   );
 }
 
+function requiresAbusiveHeadTraumaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = ABUSIVE_HEAD_TRAUMA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = ABUSIVE_HEAD_TRAUMA_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasAbusiveHeadTraumaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasStabilization = ABUSIVE_HEAD_TRAUMA_STABILIZATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeuroimaging = ABUSIVE_HEAD_TRAUMA_NEUROIMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSkeletalSurvey = ABUSIVE_HEAD_TRAUMA_SKELETAL_SURVEY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOphthalmology = ABUSIVE_HEAD_TRAUMA_OPHTHALMOLOGY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasProtection = ABUSIVE_HEAD_TRAUMA_PROTECTION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasStabilization &&
+    hasNeuroimaging &&
+    hasSkeletalSurvey &&
+    hasOphthalmology &&
+    hasProtection
+  );
+}
+
+function hasAbusiveHeadTraumaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasHistorySafety = ABUSIVE_HEAD_TRAUMA_HISTORY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMimicCoagSafety = ABUSIVE_HEAD_TRAUMA_MIMIC_COAG_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOccultInjurySafety = ABUSIVE_HEAD_TRAUMA_OCCULT_INJURY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRepeatSurveySafety = ABUSIVE_HEAD_TRAUMA_REPEAT_SURVEY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDispositionSafety = ABUSIVE_HEAD_TRAUMA_DISPOSITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasHistorySafety &&
+    hasMimicCoagSafety &&
+    hasOccultInjurySafety &&
+    hasRepeatSurveySafety &&
+    hasDispositionSafety
+  );
+}
+
 function requiresEctopicPregnancySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -19598,6 +19803,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasNeonatalHyperbilirubinemiaTreatmentSafetyCheck,
       issue:
         "neonatal hyperbilirubinemia safety checks must include neurotoxicity risk factors such as albumin <3, isoimmune hemolysis, G6PD deficiency, sepsis, or clinical instability, acute bilirubin encephalopathy signs requiring urgent exchange transfusion, direct or conjugated bilirubin interpretation without subtracting it from TSB and cholestasis expert review, and rebound bilirubin, feeding, weight, daily bilirubin, or 24-48 hour discharge follow-up planning",
+    },
+    {
+      name: "abusive_head_trauma_time_critical_actions",
+      label: "Abusive head trauma imaging, eye exam, and protection actions",
+      applies: requiresAbusiveHeadTraumaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAbusiveHeadTraumaTimeCriticalActions,
+      issue:
+        "abusive head trauma time-critical actions must include airway, seizure, intracranial-pressure, cerebral-perfusion, PICU, neurosurgery, or stabilization planning, CT head, noncontrast head CT, MRI head/brain, or neuroimaging, skeletal survey with skull, spine, ribs, or long-bone imaging, ophthalmology, ophthalmologic, fundoscopic, retinal exam, or retinal-hemorrhage evaluation, and child protective, CPS, child welfare, social work, child-abuse pediatrics, mandated-report, mandatory-report, or safe-discharge escalation",
+    },
+    {
+      name: "abusive_head_trauma_treatment_safety",
+      label: "Abusive head trauma mimics, occult injury, and disposition safety",
+      applies: requiresAbusiveHeadTraumaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAbusiveHeadTraumaTreatmentSafetyCheck,
+      issue:
+        "abusive head trauma safety checks must include developmental mechanism plausibility or inconsistent/revised history review, coagulopathy, coagulation, PT/PTT, factor, hematology, metabolic bone, or bone-fragility mimic review, occult abdominal or visceral injury screening with AST, ALT, CMP, troponin, urinalysis, or abdominal CT, repeat or follow-up skeletal survey planning in 10 to 14 days or 2 to 3 weeks, and safe home, safety plan, safe placement, child protective, CPS, child welfare, or law enforcement disposition safeguards",
     },
     {
       name: "ectopic_pregnancy_time_critical_actions",
