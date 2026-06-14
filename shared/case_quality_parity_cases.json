@@ -6980,6 +6980,119 @@
     }
   },
   {
+    "name": "major_burn_requires_airway_tbsa_fluids_and_transfer_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "major burn time-critical actions must include airway assessment"
+    ],
+    "overrides": {
+      "diagnosis": "Major thermal burn with inhalation injury",
+      "patient_demographics": {
+        "age": 42,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Flame burn after apartment fire",
+      "history_of_present_illness": "Patient rescued from enclosed apartment fire has major thermal burn with deep partial-thickness burn and full-thickness burn over 25% TBSA, perioral burns, singed nasal hairs, carbonaceous sputum, circumferential forearm eschar, tachycardia, and hypovolemic shock concern.",
+      "key_teaching_points": [
+        "Major burns are classified by depth and percentage TBSA involved",
+        "Inhalation injury signs such as perioral burns, singed nasal hairs, or carbonaceous sputum require airway assessment and early intubation planning",
+        "Large partial-thickness and full-thickness burns require lactated Ringer fluid resuscitation adjusted to urine output and burn center consultation"
+      ],
+      "clinical_red_flags": [
+        "Deep partial-thickness burn, full-thickness burn, 25% TBSA, hypovolemic shock, or large burn",
+        "Perioral burns, singed nasal hairs, carbonaceous sputum, smoke inhalation, circumferential eschar, or inhalation injury"
+      ],
+      "time_critical_actions": [
+        "Clean wounds and give analgesia",
+        "Arrange outpatient dressing follow-up"
+      ],
+      "contraindication_checks": [
+        "Prevent hypothermia with warm room, warming blankets, dry coverings, and temperature monitoring",
+        "Titrate fluid to urine output with hourly reassessment and monitor for fluid overload, heart failure, and compartment syndrome",
+        "Review circumferential eschar and escharotomy need for limb perfusion or ventilation restriction",
+        "Check tetanus status and update Tdap if indicated",
+        "Avoid prophylactic systemic antibiotics; use topical antimicrobial wound care when indicated"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Burns",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/injuries-poisoning/burns/burns",
+          "supports": [
+            "major burn diagnosis and risk stratification",
+            "burns are classified by depth and percentage TBSA involved",
+            "inhalation injury signs such as perioral burns, singed nasal hairs, or carbonaceous sputum require airway assessment and early intubation planning",
+            "large partial-thickness and full-thickness burns require lactated Ringer fluid resuscitation adjusted to urine output",
+            "burn center consultation, referral, or transfer for large or severe burns",
+            "prevent hypothermia with warm environment, dry coverings, and temperature monitoring",
+            "titrate fluid to urine output with hourly reassessment and monitor for fluid overload, heart failure, and compartment syndrome",
+            "circumferential eschar and escharotomy need for limb perfusion or ventilation restriction",
+            "tetanus status and Tdap review",
+            "avoid prophylactic systemic antibiotics and use topical antimicrobial wound care when indicated"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "major_burn_requires_hypothermia_fluid_eschar_tetanus_and_antibiotic_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "major burn safety checks must include hypothermia prevention"
+    ],
+    "overrides": {
+      "diagnosis": "Major thermal burn with inhalation injury",
+      "patient_demographics": {
+        "age": 42,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Flame burn after apartment fire",
+      "history_of_present_illness": "Patient rescued from enclosed apartment fire has major thermal burn with deep partial-thickness burn and full-thickness burn over 25% TBSA, perioral burns, singed nasal hairs, carbonaceous sputum, circumferential forearm eschar, tachycardia, and hypovolemic shock concern.",
+      "key_teaching_points": [
+        "Major burns are classified by depth and percentage TBSA involved",
+        "Inhalation injury signs such as perioral burns, singed nasal hairs, or carbonaceous sputum require airway assessment and early intubation planning",
+        "Large partial-thickness and full-thickness burns require lactated Ringer fluid resuscitation adjusted to urine output and burn center consultation"
+      ],
+      "clinical_red_flags": [
+        "Deep partial-thickness burn, full-thickness burn, 25% TBSA, hypovolemic shock, or large burn",
+        "Perioral burns, singed nasal hairs, carbonaceous sputum, smoke inhalation, circumferential eschar, or inhalation injury"
+      ],
+      "time_critical_actions": [
+        "Assess airway and give 100% oxygen with early intubation and ventilation support for smoke inhalation or inhalation injury",
+        "Extinguish ongoing burning, remove clothing, cool the burn, and flush or irrigate chemical exposure after brush off if powder is present",
+        "Estimate TBSA and depth using rule of nines or Lund-Browder with partial thickness and full thickness burn mapping",
+        "Place large-bore 14 gauge or 16 gauge IV access and start lactated Ringer Parkland fluid resuscitation with urine output monitoring",
+        "Consult burn center and arrange burn specialist referral or transfer"
+      ],
+      "contraindication_checks": [
+        "Medication allergy review before analgesia",
+        "Renal function before contrast imaging"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Burns",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/injuries-poisoning/burns/burns",
+          "supports": [
+            "major burn diagnosis and risk stratification",
+            "burns are classified by depth and percentage TBSA involved",
+            "airway assessment, 100% oxygen, early intubation, and ventilation support for smoke inhalation or inhalation injury",
+            "extinguish ongoing burning, remove clothing, cool the burn, and flush or irrigate chemical exposure after brush off if powder is present",
+            "TBSA and depth estimation using rule of nines or Lund-Browder with partial thickness and full thickness burn mapping",
+            "large-bore 14 gauge or 16 gauge IV access and lactated Ringer Parkland fluid resuscitation with urine output monitoring",
+            "burn center consultation, referral, or transfer",
+            "medication allergy review before analgesia",
+            "renal function before contrast imaging"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "upper_gi_bleed_requires_resuscitation_labs_endoscopy_and_medical_therapy",
     "expected_passed": false,
     "expected_issue_substrings": [

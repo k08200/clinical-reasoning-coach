@@ -212,6 +212,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "cyanide_poisoning_treatment_safety",
         "snakebite_envenomation_time_critical_actions",
         "snakebite_envenomation_treatment_safety",
+        "major_burn_time_critical_actions",
+        "major_burn_treatment_safety",
         "opioid_toxicity_time_critical_actions",
         "opioid_toxicity_treatment_safety",
         "sickle_splenic_sequestration_time_critical_actions",
@@ -12137,6 +12139,137 @@ def test_quality_gate_requires_snakebite_harmful_first_aid_observation_coagulopa
     assert not report.passed
     assert any(
         "snakebite envenomation safety checks must include avoidance of harmful first aid"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_major_burn_airway_tbsa_fluids_and_transfer_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Major thermal burn with inhalation injury"
+    case["patient_demographics"] = {
+        "age": 42,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Flame burn after apartment fire"
+    case["history_of_present_illness"] = (
+        "Patient rescued from enclosed apartment fire has major thermal burn with "
+        "deep partial-thickness burn and full-thickness burn over 25% TBSA, "
+        "perioral burns, singed nasal hairs, carbonaceous sputum, circumferential "
+        "forearm eschar, tachycardia, and hypovolemic shock concern."
+    )
+    case["key_teaching_points"] = [
+        "Major burns are classified by depth and percentage TBSA involved",
+        "Inhalation injury signs such as perioral burns, singed nasal hairs, or carbonaceous sputum require airway assessment and early intubation planning",
+        "Large partial-thickness and full-thickness burns require lactated Ringer fluid resuscitation adjusted to urine output and burn center consultation",
+    ]
+    case["clinical_red_flags"] = [
+        "Deep partial-thickness burn, full-thickness burn, 25% TBSA, hypovolemic shock, or large burn",
+        "Perioral burns, singed nasal hairs, carbonaceous sputum, smoke inhalation, circumferential eschar, or inhalation injury",
+    ]
+    case["time_critical_actions"] = [
+        "Clean wounds and give analgesia",
+        "Arrange outpatient dressing follow-up",
+    ]
+    case["contraindication_checks"] = [
+        "Prevent hypothermia with warm room, warming blankets, dry coverings, and temperature monitoring",
+        "Titrate fluid to urine output with hourly reassessment and monitor for fluid overload, heart failure, and compartment syndrome",
+        "Review circumferential eschar and escharotomy need for limb perfusion or ventilation restriction",
+        "Check tetanus status and update Tdap if indicated",
+        "Avoid prophylactic systemic antibiotics; use topical antimicrobial wound care when indicated",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Burns",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/burns/burns",
+            "supports": [
+                "major burn diagnosis and risk stratification",
+                "burns are classified by depth and percentage TBSA involved",
+                "inhalation injury signs such as perioral burns, singed nasal hairs, or carbonaceous sputum require airway assessment and early intubation planning",
+                "large partial-thickness and full-thickness burns require lactated Ringer fluid resuscitation adjusted to urine output",
+                "burn center consultation, referral, or transfer for large or severe burns",
+                "prevent hypothermia with warm environment, dry coverings, and temperature monitoring",
+                "titrate fluid to urine output with hourly reassessment and monitor for fluid overload, heart failure, and compartment syndrome",
+                "circumferential eschar and escharotomy need for limb perfusion or ventilation restriction",
+                "tetanus status and Tdap review",
+                "avoid prophylactic systemic antibiotics and use topical antimicrobial wound care when indicated",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "major burn time-critical actions must include airway assessment"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_major_burn_hypothermia_fluid_eschar_tetanus_and_antibiotic_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Major thermal burn with inhalation injury"
+    case["patient_demographics"] = {
+        "age": 42,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Flame burn after apartment fire"
+    case["history_of_present_illness"] = (
+        "Patient rescued from enclosed apartment fire has major thermal burn with "
+        "deep partial-thickness burn and full-thickness burn over 25% TBSA, "
+        "perioral burns, singed nasal hairs, carbonaceous sputum, circumferential "
+        "forearm eschar, tachycardia, and hypovolemic shock concern."
+    )
+    case["key_teaching_points"] = [
+        "Major burns are classified by depth and percentage TBSA involved",
+        "Inhalation injury signs such as perioral burns, singed nasal hairs, or carbonaceous sputum require airway assessment and early intubation planning",
+        "Large partial-thickness and full-thickness burns require lactated Ringer fluid resuscitation adjusted to urine output and burn center consultation",
+    ]
+    case["clinical_red_flags"] = [
+        "Deep partial-thickness burn, full-thickness burn, 25% TBSA, hypovolemic shock, or large burn",
+        "Perioral burns, singed nasal hairs, carbonaceous sputum, smoke inhalation, circumferential eschar, or inhalation injury",
+    ]
+    case["time_critical_actions"] = [
+        "Assess airway and give 100% oxygen with early intubation and ventilation support for smoke inhalation or inhalation injury",
+        "Extinguish ongoing burning, remove clothing, cool the burn, and flush or irrigate chemical exposure after brush off if powder is present",
+        "Estimate TBSA and depth using rule of nines or Lund-Browder with partial thickness and full thickness burn mapping",
+        "Place large-bore 14 gauge or 16 gauge IV access and start lactated Ringer Parkland fluid resuscitation with urine output monitoring",
+        "Consult burn center and arrange burn specialist referral or transfer",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before analgesia",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Burns",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/burns/burns",
+            "supports": [
+                "major burn diagnosis and risk stratification",
+                "burns are classified by depth and percentage TBSA involved",
+                "airway assessment, 100% oxygen, early intubation, and ventilation support for smoke inhalation or inhalation injury",
+                "extinguish ongoing burning, remove clothing, cool the burn, and flush or irrigate chemical exposure after brush off if powder is present",
+                "TBSA and depth estimation using rule of nines or Lund-Browder with partial thickness and full thickness burn mapping",
+                "large-bore 14 gauge or 16 gauge IV access and lactated Ringer Parkland fluid resuscitation with urine output monitoring",
+                "burn center consultation, referral, or transfer",
+                "medication allergy review before analgesia",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "major burn safety checks must include hypothermia prevention"
         in issue
         for issue in report.critical_issues
     )

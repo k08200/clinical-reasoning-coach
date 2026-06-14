@@ -8878,6 +8878,115 @@ SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS = (
     "pressure",
     "surgical consult",
 )
+MAJOR_BURN_CONTEXT_TERMS = (
+    "burn injury",
+    "chemical burn",
+    "deep partial-thickness burn",
+    "electrical burn",
+    "flame burn",
+    "full-thickness burn",
+    "major burn",
+    "partial-thickness burn",
+    "scald burn",
+    "thermal burn",
+)
+MAJOR_BURN_SEVERITY_TERMS = (
+    "10% tbsa",
+    "20% tbsa",
+    "carbonaceous sputum",
+    "circumferential",
+    "deep partial",
+    "eschar",
+    "full thickness",
+    "full-thickness",
+    "hypovolemic shock",
+    "inhalation injury",
+    "large burn",
+    "perioral burns",
+    "shock",
+    "singed nasal hairs",
+)
+MAJOR_BURN_AIRWAY_ACTION_TERMS = (
+    "100% oxygen",
+    "airway",
+    "early intubation",
+    "intubation",
+    "smoke inhalation",
+    "ventilation",
+)
+MAJOR_BURN_STOP_IRRIGATION_ACTION_TERMS = (
+    "brush off",
+    "chemical",
+    "cool",
+    "extinguish",
+    "flush",
+    "irrigate",
+    "remove clothing",
+    "smoldering",
+)
+MAJOR_BURN_TBSA_DEPTH_ACTION_TERMS = (
+    "depth",
+    "full thickness",
+    "full-thickness",
+    "lund-browder",
+    "partial thickness",
+    "partial-thickness",
+    "rule of nines",
+    "tbsa",
+)
+MAJOR_BURN_FLUID_URINE_ACTION_TERMS = (
+    "14 gauge",
+    "16 gauge",
+    "fluid resuscitation",
+    "iv fluid",
+    "lactated ringer",
+    "large-bore",
+    "parkland",
+    "urine output",
+)
+MAJOR_BURN_CENTER_ACTION_TERMS = (
+    "burn center",
+    "burn specialist",
+    "consult",
+    "referral",
+    "transfer",
+)
+MAJOR_BURN_HYPOTHERMIA_SAFETY_TERMS = (
+    "dry",
+    "hypothermia",
+    "temperature",
+    "warm",
+    "warming",
+)
+MAJOR_BURN_FLUID_TITRATION_SAFETY_TERMS = (
+    "0.5 ml/kg/hr",
+    "1.0 ml/kg/hour",
+    "compartment syndrome",
+    "fluid overload",
+    "heart failure",
+    "hourly",
+    "urine output",
+)
+MAJOR_BURN_ESCHAROTOMY_SAFETY_TERMS = (
+    "circumferential",
+    "compartment pressure",
+    "eschar",
+    "escharotomy",
+    "perfusion",
+    "ventilation restriction",
+)
+MAJOR_BURN_TETANUS_SAFETY_TERMS = (
+    "tdap",
+    "tetanus",
+)
+MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = (
+    "avoid prophylactic",
+    "no prophylactic",
+    "not prophylactic",
+    "prophylactic systemic antibiotic",
+    "systemic antibiotics only",
+    "topical antimicrobial",
+)
 OPIOID_TOXICITY_CONTEXT_TERMS = (
     "fentanyl overdose",
     "heroin overdose",
@@ -13691,6 +13800,37 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "serum sickness, reaction, or premedication needs, and compartment-"
                 "syndrome or fasciotomy caution with pressure measurement, surgical "
                 "consultation, or antivenom-first planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="major_burn_time_critical_actions",
+            applies=_requires_major_burn_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_major_burn_time_critical_actions,
+            issue=(
+                "major burn time-critical actions must include airway assessment "
+                "or early intubation with 100% oxygen or ventilation support for "
+                "inhalation injury, extinguishing ongoing burning plus clothing "
+                "removal or chemical irrigation, TBSA and burn-depth assessment "
+                "with rule-of-nines or Lund-Browder planning, large-bore IV "
+                "lactated-Ringer or Parkland fluid resuscitation with urine-output "
+                "monitoring, and burn center consultation, referral, or transfer"
+            ),
+        ),
+        DomainSafetyGate(
+            name="major_burn_treatment_safety",
+            applies=_requires_major_burn_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_major_burn_treatment_safety_check,
+            issue=(
+                "major burn safety checks must include hypothermia prevention "
+                "with warming, dry coverings, or temperature monitoring, fluid "
+                "titration to urine output with hourly reassessment and fluid-"
+                "overload, heart-failure, or compartment-syndrome monitoring, "
+                "circumferential eschar or escharotomy review for perfusion or "
+                "ventilation restriction, tetanus status or Tdap review, and "
+                "antibiotic stewardship such as avoiding routine prophylactic "
+                "systemic antibiotics or using topical antimicrobials when indicated"
             ),
         ),
         DomainSafetyGate(
@@ -21127,6 +21267,100 @@ def _has_snakebite_envenomation_treatment_safety_check(checks: list[Any]) -> boo
         and has_coagulopathy_safety
         and has_antivenom_reaction_safety
         and has_compartment_fasciotomy_safety
+    )
+
+
+def _requires_major_burn_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in MAJOR_BURN_CONTEXT_TERMS
+    )
+    has_major_burn_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in MAJOR_BURN_SEVERITY_TERMS
+    )
+    return has_context and has_major_burn_risk
+
+
+def _has_major_burn_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_airway_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_AIRWAY_ACTION_TERMS
+    )
+    has_stop_irrigation_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_STOP_IRRIGATION_ACTION_TERMS
+    )
+    has_tbsa_depth_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_TBSA_DEPTH_ACTION_TERMS
+    )
+    has_fluid_urine_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_FLUID_URINE_ACTION_TERMS
+    )
+    has_burn_center_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_CENTER_ACTION_TERMS
+    )
+    return (
+        has_airway_action
+        and has_stop_irrigation_action
+        and has_tbsa_depth_action
+        and has_fluid_urine_action
+        and has_burn_center_action
+    )
+
+
+def _has_major_burn_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_hypothermia_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MAJOR_BURN_HYPOTHERMIA_SAFETY_TERMS
+    )
+    has_fluid_titration_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MAJOR_BURN_FLUID_TITRATION_SAFETY_TERMS
+    )
+    has_escharotomy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MAJOR_BURN_ESCHAROTOMY_SAFETY_TERMS
+    )
+    has_tetanus_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MAJOR_BURN_TETANUS_SAFETY_TERMS
+    )
+    has_antibiotic_stewardship = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS
+    )
+    return (
+        has_hypothermia_safety
+        and has_fluid_titration_safety
+        and has_escharotomy_safety
+        and has_tetanus_safety
+        and has_antibiotic_stewardship
     )
 
 

@@ -9705,6 +9705,127 @@ const SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS = [
   "surgical consult",
 ];
 
+const MAJOR_BURN_CONTEXT_TERMS = [
+  "burn injury",
+  "chemical burn",
+  "deep partial-thickness burn",
+  "electrical burn",
+  "flame burn",
+  "full-thickness burn",
+  "major burn",
+  "partial-thickness burn",
+  "scald burn",
+  "thermal burn",
+];
+
+const MAJOR_BURN_SEVERITY_TERMS = [
+  "10% tbsa",
+  "20% tbsa",
+  "carbonaceous sputum",
+  "circumferential",
+  "deep partial",
+  "eschar",
+  "full thickness",
+  "full-thickness",
+  "hypovolemic shock",
+  "inhalation injury",
+  "large burn",
+  "perioral burns",
+  "shock",
+  "singed nasal hairs",
+];
+
+const MAJOR_BURN_AIRWAY_ACTION_TERMS = [
+  "100% oxygen",
+  "airway",
+  "early intubation",
+  "intubation",
+  "smoke inhalation",
+  "ventilation",
+];
+
+const MAJOR_BURN_STOP_IRRIGATION_ACTION_TERMS = [
+  "brush off",
+  "chemical",
+  "cool",
+  "extinguish",
+  "flush",
+  "irrigate",
+  "remove clothing",
+  "smoldering",
+];
+
+const MAJOR_BURN_TBSA_DEPTH_ACTION_TERMS = [
+  "depth",
+  "full thickness",
+  "full-thickness",
+  "lund-browder",
+  "partial thickness",
+  "partial-thickness",
+  "rule of nines",
+  "tbsa",
+];
+
+const MAJOR_BURN_FLUID_URINE_ACTION_TERMS = [
+  "14 gauge",
+  "16 gauge",
+  "fluid resuscitation",
+  "iv fluid",
+  "lactated ringer",
+  "large-bore",
+  "parkland",
+  "urine output",
+];
+
+const MAJOR_BURN_CENTER_ACTION_TERMS = [
+  "burn center",
+  "burn specialist",
+  "consult",
+  "referral",
+  "transfer",
+];
+
+const MAJOR_BURN_HYPOTHERMIA_SAFETY_TERMS = [
+  "dry",
+  "hypothermia",
+  "temperature",
+  "warm",
+  "warming",
+];
+
+const MAJOR_BURN_FLUID_TITRATION_SAFETY_TERMS = [
+  "0.5 ml/kg/hr",
+  "1.0 ml/kg/hour",
+  "compartment syndrome",
+  "fluid overload",
+  "heart failure",
+  "hourly",
+  "urine output",
+];
+
+const MAJOR_BURN_ESCHAROTOMY_SAFETY_TERMS = [
+  "circumferential",
+  "compartment pressure",
+  "eschar",
+  "escharotomy",
+  "perfusion",
+  "ventilation restriction",
+];
+
+const MAJOR_BURN_TETANUS_SAFETY_TERMS = [
+  "tdap",
+  "tetanus",
+];
+
+const MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = [
+  "avoid prophylactic",
+  "no prophylactic",
+  "not prophylactic",
+  "prophylactic systemic antibiotic",
+  "systemic antibiotics only",
+  "topical antimicrobial",
+];
+
 const OPIOID_TOXICITY_CONTEXT_TERMS = [
   "fentanyl overdose",
   "heroin overdose",
@@ -17415,6 +17536,81 @@ function hasSnakebiteEnvenomationTreatmentSafetyCheck(checks: string[]): boolean
   );
 }
 
+function requiresMajorBurnSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = MAJOR_BURN_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  const hasMajorBurnRisk = MAJOR_BURN_SEVERITY_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasMajorBurnRisk;
+}
+
+function hasMajorBurnTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAirwayAction = MAJOR_BURN_AIRWAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasStopIrrigationAction = MAJOR_BURN_STOP_IRRIGATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTbsaDepthAction = MAJOR_BURN_TBSA_DEPTH_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFluidUrineAction = MAJOR_BURN_FLUID_URINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBurnCenterAction = MAJOR_BURN_CENTER_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasAirwayAction &&
+    hasStopIrrigationAction &&
+    hasTbsaDepthAction &&
+    hasFluidUrineAction &&
+    hasBurnCenterAction
+  );
+}
+
+function hasMajorBurnTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasHypothermiaSafety = MAJOR_BURN_HYPOTHERMIA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFluidTitrationSafety = MAJOR_BURN_FLUID_TITRATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEscharotomySafety = MAJOR_BURN_ESCHAROTOMY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTetanusSafety = MAJOR_BURN_TETANUS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntibioticStewardship = MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasHypothermiaSafety &&
+    hasFluidTitrationSafety &&
+    hasEscharotomySafety &&
+    hasTetanusSafety &&
+    hasAntibioticStewardship
+  );
+}
+
 function requiresOpioidToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -20113,6 +20309,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSnakebiteEnvenomationTreatmentSafetyCheck,
       issue:
         "snakebite envenomation safety checks must include avoidance of harmful first aid such as tourniquet, incision, suction, ice, or electric shock, at least 8-hour observation or longer serial monitoring when envenomation findings are present, coagulopathy monitoring with platelets, PT/INR, fibrinogen, bleeding, or defibrination, antivenom reaction monitoring for hypersensitivity, serum sickness, reaction, or premedication needs, and compartment-syndrome or fasciotomy caution with pressure measurement, surgical consultation, or antivenom-first planning",
+    },
+    {
+      name: "major_burn_time_critical_actions",
+      label: "Major burn airway, TBSA, fluids, and transfer",
+      applies: requiresMajorBurnSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasMajorBurnTimeCriticalActions,
+      issue:
+        "major burn time-critical actions must include airway assessment or early intubation with 100% oxygen or ventilation support for inhalation injury, extinguishing ongoing burning plus clothing removal or chemical irrigation, TBSA and burn-depth assessment with rule-of-nines or Lund-Browder planning, large-bore IV lactated-Ringer or Parkland fluid resuscitation with urine-output monitoring, and burn center consultation, referral, or transfer",
+    },
+    {
+      name: "major_burn_treatment_safety",
+      label: "Major burn hypothermia, fluids, eschar, and infection safety",
+      applies: requiresMajorBurnSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasMajorBurnTreatmentSafetyCheck,
+      issue:
+        "major burn safety checks must include hypothermia prevention with warming, dry coverings, or temperature monitoring, fluid titration to urine output with hourly reassessment and fluid-overload, heart-failure, or compartment-syndrome monitoring, circumferential eschar or escharotomy review for perfusion or ventilation restriction, tetanus status or Tdap review, and antibiotic stewardship such as avoiding routine prophylactic systemic antibiotics or using topical antimicrobials when indicated",
     },
     {
       name: "opioid_toxicity_time_critical_actions",
