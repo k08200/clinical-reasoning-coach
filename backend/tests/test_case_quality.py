@@ -79,6 +79,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "placental_abruption_treatment_safety",
         "umbilical_cord_prolapse_time_critical_actions",
         "umbilical_cord_prolapse_treatment_safety",
+        "shoulder_dystocia_time_critical_actions",
+        "shoulder_dystocia_treatment_safety",
         "severe_preeclampsia_time_critical_actions",
         "severe_preeclampsia_treatment_safety",
         "hypertensive_emergency_time_critical_actions",
@@ -2344,6 +2346,135 @@ def test_quality_gate_requires_umbilical_cord_prolapse_cord_handling_no_delay_de
     assert not report.passed
     assert any(
         "umbilical cord prolapse safety checks must include minimal cord handling"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_shoulder_dystocia_help_mcroberts_suprapubic_and_second_line_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Shoulder dystocia"
+    case["patient_demographics"] = {
+        "age": 31,
+        "sex": "female",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fetal head delivered but shoulders stuck"
+    case["history_of_present_illness"] = (
+        "During vaginal birth, fetal head has delivered and gentle traction failed. "
+        "The shoulders remain impacted at the symphysis with turtle sign, prolonged "
+        "head-to-body interval, maternal diabetes, suspected macrosomia, and concern "
+        "for shoulder dystocia."
+    )
+    case["key_teaching_points"] = [
+        "Shoulder dystocia requires immediate systematic maneuvers after the head delivers and gentle traction fails",
+        "McRoberts maneuver and suprapubic pressure are first-line",
+        "Avoid fundal pressure and excessive downward or lateral traction",
+    ]
+    case["clinical_red_flags"] = [
+        "Turtle sign with head delivered and shoulders impacted",
+        "Prolonged head-to-body interval with neonatal hypoxia or brachial plexus injury risk",
+    ]
+    case["time_critical_actions"] = [
+        "Apply gentle traction and wait for next contraction",
+        "Prepare routine postpartum care",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid fundal pressure and avoid excessive downward traction or lateral traction; use routine axial traction only",
+        "Episiotomy is not always necessary and should be considered only for internal access to posterior arm or internal rotation",
+        "Assess maternal postpartum hemorrhage, third degree or fourth degree perineal tear, and have neonatal clinician examine for brachial plexus injury or fracture",
+        "Document head-to-body interval, timing, and maneuvers/manoeuvres used during shoulder dystocia",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Shoulder Dystocia Green-top Guideline No. 42",
+            "organization": "Royal College of Obstetricians and Gynaecologists",
+            "url": "https://www.rcog.org.uk/media/ewgpnmio/gtg_42.pdf",
+            "supports": [
+                "shoulder dystocia diagnosis and risk stratification after fetal head delivers and gentle traction fails",
+                "turtle sign with head delivered and shoulders impacted",
+                "prolonged head-to-body interval with neonatal hypoxia or brachial plexus injury risk",
+                "McRoberts maneuver and suprapubic pressure are first-line",
+                "avoid fundal pressure and excessive downward or lateral traction",
+                "episiotomy is not always necessary and should be considered only for internal access",
+                "maternal postpartum hemorrhage, third degree or fourth degree perineal tear, neonatal brachial plexus injury, and fracture assessment",
+                "document head-to-body interval, timing, and maneuvers/manoeuvres",
+                "gentle traction and wait for next contraction",
+                "routine postpartum care",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "shoulder dystocia time-critical actions must include immediate help call"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_shoulder_dystocia_traction_episiotomy_injury_and_documentation_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Shoulder dystocia"
+    case["patient_demographics"] = {
+        "age": 31,
+        "sex": "female",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fetal head delivered but shoulders stuck"
+    case["history_of_present_illness"] = (
+        "During vaginal birth, fetal head has delivered and gentle traction failed. "
+        "The shoulders remain impacted at the symphysis with turtle sign, prolonged "
+        "head-to-body interval, maternal diabetes, suspected macrosomia, and concern "
+        "for shoulder dystocia."
+    )
+    case["key_teaching_points"] = [
+        "Shoulder dystocia requires immediate systematic maneuvers after the head delivers and gentle traction fails",
+        "McRoberts maneuver and suprapubic pressure are first-line",
+        "Avoid fundal pressure and excessive downward or lateral traction",
+    ]
+    case["clinical_red_flags"] = [
+        "Turtle sign with head delivered and shoulders impacted",
+        "Prolonged head-to-body interval with neonatal hypoxia or brachial plexus injury risk",
+    ]
+    case["time_critical_actions"] = [
+        "Declare shoulder dystocia and call for help including experienced obstetrician, anaesthetist, and neonatal resuscitation team",
+        "Perform McRoberts manoeuvre first",
+        "Apply suprapubic pressure with routine axial traction",
+        "If unresolved, proceed to second-line manoeuvres such as delivery of posterior arm, internal rotation, Rubin, Woods screw, all-fours, or Gaskin",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before analgesia",
+        "Pregnancy status already confirmed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Shoulder Dystocia Green-top Guideline No. 42",
+            "organization": "Royal College of Obstetricians and Gynaecologists",
+            "url": "https://www.rcog.org.uk/media/ewgpnmio/gtg_42.pdf",
+            "supports": [
+                "shoulder dystocia diagnosis and risk stratification after fetal head delivers and gentle traction fails",
+                "turtle sign with head delivered and shoulders impacted",
+                "prolonged head-to-body interval with neonatal hypoxia or brachial plexus injury risk",
+                "declare shoulder dystocia and call for help including experienced obstetrician, anaesthetist, and neonatal resuscitation team",
+                "perform McRoberts manoeuvre first",
+                "apply suprapubic pressure with routine axial traction",
+                "second-line manoeuvres such as delivery of posterior arm, internal rotation, Rubin, Woods screw, all-fours, or Gaskin",
+                "medication allergy before analgesia",
+                "pregnancy status already confirmed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "shoulder dystocia safety checks must include avoiding fundal pressure"
         in issue
         for issue in report.critical_issues
     )

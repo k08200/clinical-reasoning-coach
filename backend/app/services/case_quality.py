@@ -2133,6 +2133,80 @@ UMBILICAL_CORD_PROLAPSE_NEONATAL_SAFETY_TERMS = (
     "newborn resuscitation",
     "paired cord blood",
 )
+SHOULDER_DYSTOCIA_CONTEXT_TERMS = (
+    "impacted shoulder",
+    "shoulder dystocia",
+    "turtle sign",
+)
+SHOULDER_DYSTOCIA_RISK_TERMS = (
+    "brachial plexus",
+    "diabetes",
+    "gentle traction failed",
+    "head delivered",
+    "head-to-body",
+    "macrosomia",
+    "postpartum hemorrhage",
+    "prolonged head",
+    "turtle sign",
+)
+SHOULDER_DYSTOCIA_HELP_ACTION_TERMS = (
+    "anaesthetist",
+    "anesthetist",
+    "call for help",
+    "declare shoulder dystocia",
+    "experienced obstetrician",
+    "neonatal resuscitation",
+    "shoulder dystocia",
+)
+SHOULDER_DYSTOCIA_FIRST_LINE_ACTION_TERMS = (
+    "mcroberts",
+    "mcroberts manoeuvre",
+    "mcroberts maneuver",
+)
+SHOULDER_DYSTOCIA_SUPRAPUBIC_ACTION_TERMS = (
+    "suprapubic pressure",
+)
+SHOULDER_DYSTOCIA_SECOND_LINE_ACTION_TERMS = (
+    "all-fours",
+    "delivery of posterior arm",
+    "gaskin",
+    "internal manoeuvre",
+    "internal maneuver",
+    "internal rotation",
+    "posterior arm",
+    "rubin",
+    "woods screw",
+)
+SHOULDER_DYSTOCIA_TRACTION_FUNDAL_SAFETY_TERMS = (
+    "avoid downward traction",
+    "avoid excessive traction",
+    "avoid fundal pressure",
+    "fundal pressure should not",
+    "no fundal pressure",
+    "not use fundal pressure",
+    "routine axial traction only",
+)
+SHOULDER_DYSTOCIA_EPISIOTOMY_ACCESS_SAFETY_TERMS = (
+    "episiotomy",
+    "internal access",
+    "not always necessary",
+)
+SHOULDER_DYSTOCIA_MATERNAL_NEONATAL_INJURY_SAFETY_TERMS = (
+    "brachial plexus",
+    "fracture",
+    "neonatal clinician",
+    "postpartum hemorrhage",
+    "perineal tear",
+    "third degree",
+    "fourth degree",
+)
+SHOULDER_DYSTOCIA_DOCUMENTATION_SAFETY_TERMS = (
+    "documentation",
+    "document",
+    "head-to-body",
+    "manoeuvre",
+    "maneuver",
+)
 HYPERTENSIVE_EMERGENCY_DIRECT_CONTEXT_TERMS = (
     "hypertensive emergency",
     "hypertensive encephalopathy",
@@ -12419,6 +12493,36 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="shoulder_dystocia_time_critical_actions",
+            applies=_requires_shoulder_dystocia_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_shoulder_dystocia_time_critical_actions,
+            issue=(
+                "shoulder dystocia time-critical actions must include immediate "
+                "help call or clear shoulder-dystocia declaration with obstetric, "
+                "anaesthesia/anesthetist, or neonatal resuscitation support, "
+                "McRoberts manoeuvre/maneuver first, suprapubic pressure, and "
+                "second-line manoeuvres/maneuvers such as posterior-arm delivery, "
+                "internal rotation, Rubin, Woods screw, all-fours, or Gaskin if "
+                "initial measures fail"
+            ),
+        ),
+        DomainSafetyGate(
+            name="shoulder_dystocia_treatment_safety",
+            applies=_requires_shoulder_dystocia_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_shoulder_dystocia_treatment_safety_check,
+            issue=(
+                "shoulder dystocia safety checks must include avoiding fundal "
+                "pressure and excessive lateral/downward traction with routine "
+                "axial traction only, episiotomy not routinely required except "
+                "for internal access, maternal and neonatal injury assessment for "
+                "postpartum hemorrhage, severe perineal tear, brachial plexus "
+                "injury, fracture, or neonatal clinician review, and documentation "
+                "of head-to-body interval, timing, and manoeuvres/maneuvers"
+            ),
+        ),
+        DomainSafetyGate(
             name="severe_preeclampsia_time_critical_actions",
             applies=_requires_severe_preeclampsia_safety_check,
             field_name="time_critical_actions",
@@ -16480,6 +16584,85 @@ def _has_umbilical_cord_prolapse_treatment_safety_check(checks: list[Any]) -> bo
         and has_no_delay_tocolysis_safety
         and has_delivery_mode_safety
         and has_neonatal_safety
+    )
+
+
+def _requires_shoulder_dystocia_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SHOULDER_DYSTOCIA_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in SHOULDER_DYSTOCIA_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_shoulder_dystocia_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_help = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SHOULDER_DYSTOCIA_HELP_ACTION_TERMS
+    )
+    has_first_line = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SHOULDER_DYSTOCIA_FIRST_LINE_ACTION_TERMS
+    )
+    has_suprapubic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SHOULDER_DYSTOCIA_SUPRAPUBIC_ACTION_TERMS
+    )
+    has_second_line = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SHOULDER_DYSTOCIA_SECOND_LINE_ACTION_TERMS
+    )
+    return has_help and has_first_line and has_suprapubic and has_second_line
+
+
+def _has_shoulder_dystocia_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_traction_fundal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SHOULDER_DYSTOCIA_TRACTION_FUNDAL_SAFETY_TERMS
+    )
+    has_episiotomy_access_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SHOULDER_DYSTOCIA_EPISIOTOMY_ACCESS_SAFETY_TERMS
+    )
+    has_maternal_neonatal_injury_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SHOULDER_DYSTOCIA_MATERNAL_NEONATAL_INJURY_SAFETY_TERMS
+    )
+    has_documentation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SHOULDER_DYSTOCIA_DOCUMENTATION_SAFETY_TERMS
+    )
+    return (
+        has_traction_fundal_safety
+        and has_episiotomy_access_safety
+        and has_maternal_neonatal_injury_safety
+        and has_documentation_safety
     )
 
 
