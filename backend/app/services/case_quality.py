@@ -697,6 +697,40 @@ ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS = (
     "재발",
     "관찰",
 )
+ANAPHYLAXIS_REPEAT_IM_EPINEPHRINE_SAFETY_TERMS = (
+    "5 minutes",
+    "five minutes",
+    "im epinephrine",
+    "intramuscular epinephrine",
+    "repeat",
+    "second dose",
+)
+ANAPHYLAXIS_IV_EPINEPHRINE_SAFETY_TERMS = (
+    "avoid iv",
+    "cardiac arrest",
+    "experienced specialist",
+    "intravenous adrenaline",
+    "intravenous epinephrine",
+    "iv adrenaline",
+    "iv epinephrine",
+)
+ANAPHYLAXIS_ADJUNCT_NOT_FIRST_LINE_TERMS = (
+    "adjunct",
+    "antihistamine",
+    "corticosteroid",
+    "do not delay epinephrine",
+    "hydrocortisone",
+    "not first-line",
+    "steroid",
+)
+ANAPHYLAXIS_REFRACTORY_ESCALATION_SAFETY_TERMS = (
+    "adrenaline infusion",
+    "beta-blocker",
+    "epinephrine infusion",
+    "glucagon",
+    "refractory",
+    "vasopressor",
+)
 EPIGLOTTITIS_DIRECT_CONTEXT_TERMS = (
     "acute epiglottitis",
     "adult epiglottitis",
@@ -11057,6 +11091,22 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="anaphylaxis_medication_safety",
+            applies=_requires_anaphylaxis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_anaphylaxis_medication_safety_check,
+            issue=(
+                "anaphylaxis medication safety checks must include repeat IM "
+                "epinephrine every 5 minutes or second-dose planning, IV "
+                "epinephrine restriction to cardiac arrest or experienced "
+                "specialist infusion settings, antihistamine or corticosteroid "
+                "adjunct-only review that does not delay epinephrine, and "
+                "refractory anaphylaxis escalation with epinephrine infusion, "
+                "vasopressor, glucagon for beta-blocker exposure, or specialist "
+                "support"
+            ),
+        ),
+        DomainSafetyGate(
             name="epiglottitis_time_critical_actions",
             applies=_requires_epiglottitis_safety_check,
             field_name="time_critical_actions",
@@ -14098,6 +14148,32 @@ def _has_anaphylaxis_observation_safety_check(checks: list[Any]) -> bool:
         for term in ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS
     )
     return has_trigger_review and has_observation
+
+
+def _has_anaphylaxis_medication_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_repeat_im_epinephrine = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ANAPHYLAXIS_REPEAT_IM_EPINEPHRINE_SAFETY_TERMS
+    )
+    has_iv_epinephrine_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ANAPHYLAXIS_IV_EPINEPHRINE_SAFETY_TERMS
+    )
+    has_adjunct_not_first_line = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ANAPHYLAXIS_ADJUNCT_NOT_FIRST_LINE_TERMS
+    )
+    has_refractory_escalation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ANAPHYLAXIS_REFRACTORY_ESCALATION_SAFETY_TERMS
+    )
+    return (
+        has_repeat_im_epinephrine
+        and has_iv_epinephrine_safety
+        and has_adjunct_not_first_line
+        and has_refractory_escalation
+    )
 
 
 def _requires_epiglottitis_safety_check(data: dict[str, Any]) -> bool:

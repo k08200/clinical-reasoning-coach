@@ -52,6 +52,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "pediatric_septic_shock_treatment_safety",
         "anaphylaxis_time_critical_actions",
         "anaphylaxis_observation_safety",
+        "anaphylaxis_medication_safety",
         "epiglottitis_time_critical_actions",
         "epiglottitis_treatment_safety",
         "croup_time_critical_actions",
@@ -552,6 +553,44 @@ def test_quality_gate_requires_anaphylaxis_trigger_and_observation_safety():
     assert not report.passed
     assert any(
         "anaphylaxis safety checks must include trigger or allergen exposure review" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_anaphylaxis_epinephrine_route_adjunct_and_refractory_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Anaphylaxis after peanut exposure"
+    case["clinical_red_flags"] = [
+        "Diffuse urticaria with wheeze and hypotension",
+        "Angioedema with progressive airway symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Give intramuscular epinephrine immediately for suspected anaphylaxis",
+        "Assess airway, oxygenation, and prepare for intubation if swelling progresses",
+        "Give IV fluids and escalate shock management if hypotension persists",
+    ]
+    case["contraindication_checks"] = [
+        "Remove allergen exposure and stop the trigger if possible",
+        "Observe for biphasic reaction, recurrence, or rebound after initial stabilization",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        *case["clinical_sources"][0]["supports"],
+        "anaphylaxis diagnosis and severity assessment",
+        "diffuse urticaria with wheeze and hypotension as red flags",
+        "angioedema with progressive airway symptoms",
+        "intramuscular epinephrine timing for anaphylaxis",
+        "airway oxygenation assessment in anaphylaxis",
+        "fluid resuscitation for hypotension in anaphylaxis",
+        "remove allergen exposure and stop the trigger if possible",
+        "biphasic reaction, recurrence, or rebound observation after anaphylaxis",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "anaphylaxis medication safety checks must include repeat IM epinephrine"
+        in issue
         for issue in report.critical_issues
     )
 

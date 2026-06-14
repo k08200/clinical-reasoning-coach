@@ -1195,6 +1195,46 @@
     }
   },
   {
+    "name": "anaphylaxis_requires_epinephrine_route_adjunct_and_refractory_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "anaphylaxis medication safety checks must include repeat IM epinephrine"
+    ],
+    "overrides": {
+      "diagnosis": "Anaphylaxis after peanut exposure",
+      "clinical_red_flags": [
+        "Diffuse urticaria with wheeze and hypotension",
+        "Angioedema with progressive airway symptoms"
+      ],
+      "time_critical_actions": [
+        "Give intramuscular epinephrine immediately for suspected anaphylaxis",
+        "Assess airway, oxygenation, and prepare for intubation if swelling progresses",
+        "Give IV fluids and escalate shock management if hypotension persists"
+      ],
+      "contraindication_checks": [
+        "Remove allergen exposure and stop the trigger if possible",
+        "Observe for biphasic reaction, recurrence, or rebound after initial stabilization"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Emergency treatment of anaphylactic reactions",
+          "organization": "Resuscitation Council UK",
+          "url": "https://www.resus.org.uk/library/additional-guidance/guidance-anaphylaxis",
+          "supports": [
+            "anaphylaxis diagnosis and severity assessment",
+            "diffuse urticaria with wheeze and hypotension as red flags",
+            "angioedema with progressive airway symptoms",
+            "intramuscular epinephrine timing for anaphylaxis",
+            "airway oxygenation assessment in anaphylaxis",
+            "fluid resuscitation for hypotension in anaphylaxis",
+            "remove allergen exposure and stop the trigger if possible",
+            "biphasic reaction, recurrence, or rebound observation after anaphylaxis"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "epiglottitis_requires_airway_specialist_antibiotics_and_monitoring",
     "expected_passed": false,
     "expected_issue_substrings": [

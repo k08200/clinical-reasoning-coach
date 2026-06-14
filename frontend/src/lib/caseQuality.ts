@@ -724,6 +724,44 @@ const ANAPHYLAXIS_OBSERVATION_SAFETY_TERMS = [
   "관찰",
 ];
 
+const ANAPHYLAXIS_REPEAT_IM_EPINEPHRINE_SAFETY_TERMS = [
+  "5 minutes",
+  "five minutes",
+  "im epinephrine",
+  "intramuscular epinephrine",
+  "repeat",
+  "second dose",
+];
+
+const ANAPHYLAXIS_IV_EPINEPHRINE_SAFETY_TERMS = [
+  "avoid iv",
+  "cardiac arrest",
+  "experienced specialist",
+  "intravenous adrenaline",
+  "intravenous epinephrine",
+  "iv adrenaline",
+  "iv epinephrine",
+];
+
+const ANAPHYLAXIS_ADJUNCT_NOT_FIRST_LINE_TERMS = [
+  "adjunct",
+  "antihistamine",
+  "corticosteroid",
+  "do not delay epinephrine",
+  "hydrocortisone",
+  "not first-line",
+  "steroid",
+];
+
+const ANAPHYLAXIS_REFRACTORY_ESCALATION_SAFETY_TERMS = [
+  "adrenaline infusion",
+  "beta-blocker",
+  "epinephrine infusion",
+  "glucagon",
+  "refractory",
+  "vasopressor",
+];
+
 const EPIGLOTTITIS_DIRECT_CONTEXT_TERMS = [
   "acute epiglottitis",
   "adult epiglottitis",
@@ -11927,6 +11965,28 @@ function hasAnaphylaxisObservationSafetyCheck(checks: string[]): boolean {
   return hasTriggerReview && hasObservation;
 }
 
+function hasAnaphylaxisMedicationSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasRepeatImEpinephrine = ANAPHYLAXIS_REPEAT_IM_EPINEPHRINE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasIvEpinephrineSafety = ANAPHYLAXIS_IV_EPINEPHRINE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAdjunctNotFirstLine = ANAPHYLAXIS_ADJUNCT_NOT_FIRST_LINE_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRefractoryEscalation = ANAPHYLAXIS_REFRACTORY_ESCALATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasRepeatImEpinephrine &&
+    hasIvEpinephrineSafety &&
+    hasAdjunctNotFirstLine &&
+    hasRefractoryEscalation
+  );
+}
+
 function requiresEpiglottitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -18236,6 +18296,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasAnaphylaxisObservationSafetyCheck,
       issue:
         "anaphylaxis safety checks must include trigger or allergen exposure review and observation for biphasic reaction or recurrence",
+    },
+    {
+      name: "anaphylaxis_medication_safety",
+      label: "Anaphylaxis medication safety",
+      applies: requiresAnaphylaxisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAnaphylaxisMedicationSafetyCheck,
+      issue:
+        "anaphylaxis medication safety checks must include repeat IM epinephrine every 5 minutes or second-dose planning, IV epinephrine restriction to cardiac arrest or experienced specialist infusion settings, antihistamine or corticosteroid adjunct-only review that does not delay epinephrine, and refractory anaphylaxis escalation with epinephrine infusion, vasopressor, glucagon for beta-blocker exposure, or specialist support",
     },
     {
       name: "epiglottitis_time_critical_actions",
