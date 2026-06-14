@@ -7208,6 +7208,121 @@
     }
   },
   {
+    "name": "caustic_ingestion_requires_airway_history_endoscopy_ct_and_escalation_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "caustic ingestion time-critical actions must include ABC airway"
+    ],
+    "overrides": {
+      "diagnosis": "Caustic alkali ingestion with airway edema",
+      "patient_demographics": {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Drooling and stridor after drain cleaner ingestion",
+      "history_of_present_illness": "Patient intentionally ingested concentrated alkaline drain cleaner one hour ago and now has caustic ingestion with drooling, odynophagia, dysphagia, vomiting, chest pain, abdominal pain, hematemesis, oral edema, stridor, vocal changes, respiratory distress, and concern for perforation or mediastinitis.",
+      "key_teaching_points": [
+        "Caustic ingestions can injure the pharynx, esophagus, stomach, or duodenum",
+        "Airway stabilization comes before endoscopic injury assessment",
+        "Endoscopy, CT, surgery, poison center, and toxicology coordination may be required"
+      ],
+      "clinical_red_flags": [
+        "Drooling, oral edema, stridor, vocal changes, or respiratory distress",
+        "Chest pain, abdominal pain, hematemesis, perforation, mediastinitis, or peritonitis"
+      ],
+      "time_critical_actions": [
+        "Keep NPO and observe symptoms",
+        "Give analgesia and antiemetic support"
+      ],
+      "contraindication_checks": [
+        "Avoid neutralization, dilution, activated charcoal, induced vomiting, and emesis after caustic ingestion",
+        "Avoid blind NG tube, blind nasogastric tube, or orogastric placement unless specialist-guided",
+        "Review endoscopy timing: early endoscopy within 12 to 24 hours when appropriate, avoid high-risk endoscopy around 48 hours or when perforation contraindication is suspected",
+        "Use steroid or corticosteroid and antibiotics only for selected injury, infection, or perforation contexts",
+        "Plan long-term stricture, dysphagia follow-up, esophageal cancer carcinoma surveillance"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Caustic Ingestions",
+          "organization": "NCBI Bookshelf / StatPearls",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK557442/",
+          "supports": [
+            "caustic ingestion diagnosis and risk stratification",
+            "drooling, oral edema, stridor, vocal changes, respiratory distress, chest pain, abdominal pain, hematemesis, perforation, mediastinitis, and peritonitis as severity markers",
+            "ABC airway, breathing, circulation, intubation, ventilation, resuscitation, or stabilization planning",
+            "5 Ws exposure history for product, substance, amount, concentration, time, intentionality, and co-ingestion",
+            "early EGD upper endoscopy, endoscopic, gastroenterology, or GI consult planning",
+            "CT computed tomography for perforation, mediastinitis, peritonitis, or surgical abdomen concern",
+            "poison center, toxicology, toxicologist, surgery, or surgical consult escalation",
+            "avoid neutralization, dilution, activated charcoal, induced vomiting, and emesis",
+            "blind NG tube, blind nasogastric tube, or orogastric placement specialist review",
+            "endoscopy timing within 12 to 24 hours and perforation contraindication review",
+            "steroid, corticosteroid, and antibiotic stewardship",
+            "long-term stricture, dysphagia follow-up, esophageal cancer, carcinoma, or surveillance planning"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "caustic_ingestion_requires_avoid_neutralization_blind_tube_timing_steroid_and_long_term_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "caustic ingestion safety checks must include avoidance of neutralization"
+    ],
+    "overrides": {
+      "diagnosis": "Caustic alkali ingestion with airway edema",
+      "patient_demographics": {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Drooling and stridor after drain cleaner ingestion",
+      "history_of_present_illness": "Patient intentionally ingested concentrated alkaline drain cleaner one hour ago and now has caustic ingestion with drooling, odynophagia, dysphagia, vomiting, chest pain, abdominal pain, hematemesis, oral edema, stridor, vocal changes, respiratory distress, and concern for perforation or mediastinitis.",
+      "key_teaching_points": [
+        "Caustic ingestions can injure the pharynx, esophagus, stomach, or duodenum",
+        "Airway stabilization comes before endoscopic injury assessment",
+        "Endoscopy, CT, surgery, poison center, and toxicology coordination may be required"
+      ],
+      "clinical_red_flags": [
+        "Drooling, oral edema, stridor, vocal changes, or respiratory distress",
+        "Chest pain, abdominal pain, hematemesis, perforation, mediastinitis, or peritonitis"
+      ],
+      "time_critical_actions": [
+        "Stabilize ABC airway breathing circulation; prepare intubation, ventilation, resuscitation, and monitoring",
+        "Document 5 Ws exposure history including product substance, amount, concentration, time, intentionality, and co-ingestion",
+        "Consult gastroenterology GI consult for early EGD upper endoscopy and endoscopic injury grading",
+        "Obtain CT computed tomography if perforation, mediastinitis, peritonitis, or surgical abdomen is suspected",
+        "Call poison center, toxicology, toxicologist, surgery, and surgical consult for escalation"
+      ],
+      "contraindication_checks": [
+        "Medication allergy review before analgesia",
+        "Renal function before contrast imaging"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Caustic Ingestions",
+          "organization": "NCBI Bookshelf / StatPearls",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK557442/",
+          "supports": [
+            "caustic ingestion diagnosis and risk stratification",
+            "drooling, oral edema, stridor, vocal changes, respiratory distress, chest pain, abdominal pain, hematemesis, perforation, mediastinitis, and peritonitis as severity markers",
+            "ABC airway, breathing, circulation, intubation, ventilation, resuscitation, or stabilization planning",
+            "5 Ws exposure history for product, substance, amount, concentration, time, intentionality, and co-ingestion",
+            "early EGD upper endoscopy, endoscopic, gastroenterology, or GI consult planning",
+            "CT computed tomography for perforation, mediastinitis, peritonitis, or surgical abdomen concern",
+            "poison center, toxicology, toxicologist, surgery, or surgical consult escalation",
+            "medication allergy review before analgesia",
+            "renal function before contrast imaging"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "upper_gi_bleed_requires_resuscitation_labs_endoscopy_and_medical_therapy",
     "expected_passed": false,
     "expected_issue_substrings": [

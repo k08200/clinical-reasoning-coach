@@ -216,6 +216,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "major_burn_treatment_safety",
         "methemoglobinemia_time_critical_actions",
         "methemoglobinemia_treatment_safety",
+        "caustic_ingestion_time_critical_actions",
+        "caustic_ingestion_treatment_safety",
         "opioid_toxicity_time_critical_actions",
         "opioid_toxicity_treatment_safety",
         "sickle_splenic_sequestration_time_critical_actions",
@@ -12405,6 +12407,141 @@ def test_quality_gate_requires_methemoglobinemia_pulse_ox_g6pd_interaction_rebou
     assert not report.passed
     assert any(
         "methemoglobinemia safety checks must include pulse oximetry unreliability"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_caustic_ingestion_airway_history_endoscopy_ct_and_escalation_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Caustic alkali ingestion with airway edema"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Drooling and stridor after drain cleaner ingestion"
+    case["history_of_present_illness"] = (
+        "Patient intentionally ingested concentrated alkaline drain cleaner one "
+        "hour ago and now has caustic ingestion with drooling, odynophagia, "
+        "dysphagia, vomiting, chest pain, abdominal pain, hematemesis, oral edema, "
+        "stridor, vocal changes, respiratory distress, and concern for perforation "
+        "or mediastinitis."
+    )
+    case["key_teaching_points"] = [
+        "Caustic ingestions can injure the pharynx, esophagus, stomach, or duodenum",
+        "Airway stabilization comes before endoscopic injury assessment",
+        "Endoscopy, CT, surgery, poison center, and toxicology coordination may be required",
+    ]
+    case["clinical_red_flags"] = [
+        "Drooling, oral edema, stridor, vocal changes, or respiratory distress",
+        "Chest pain, abdominal pain, hematemesis, perforation, mediastinitis, or peritonitis",
+    ]
+    case["time_critical_actions"] = [
+        "Keep NPO and observe symptoms",
+        "Give analgesia and antiemetic support",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid neutralization, dilution, activated charcoal, induced vomiting, and emesis after caustic ingestion",
+        "Avoid blind NG tube, blind nasogastric tube, or orogastric placement unless specialist-guided",
+        "Review endoscopy timing: early endoscopy within 12 to 24 hours when appropriate, avoid high-risk endoscopy around 48 hours or when perforation contraindication is suspected",
+        "Use steroid or corticosteroid and antibiotics only for selected injury, infection, or perforation contexts",
+        "Plan long-term stricture, dysphagia follow-up, esophageal cancer carcinoma surveillance",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Caustic Ingestions",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK557442/",
+            "supports": [
+                "caustic ingestion diagnosis and risk stratification",
+                "drooling, oral edema, stridor, vocal changes, respiratory distress, chest pain, abdominal pain, hematemesis, perforation, mediastinitis, and peritonitis as severity markers",
+                "ABC airway, breathing, circulation, intubation, ventilation, resuscitation, or stabilization planning",
+                "5 Ws exposure history for product, substance, amount, concentration, time, intentionality, and co-ingestion",
+                "early EGD upper endoscopy, endoscopic, gastroenterology, or GI consult planning",
+                "CT computed tomography for perforation, mediastinitis, peritonitis, or surgical abdomen concern",
+                "poison center, toxicology, toxicologist, surgery, or surgical consult escalation",
+                "avoid neutralization, dilution, activated charcoal, induced vomiting, and emesis",
+                "blind NG tube, blind nasogastric tube, or orogastric placement specialist review",
+                "endoscopy timing within 12 to 24 hours and perforation contraindication review",
+                "steroid, corticosteroid, and antibiotic stewardship",
+                "long-term stricture, dysphagia follow-up, esophageal cancer, carcinoma, or surveillance planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "caustic ingestion time-critical actions must include ABC airway"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_caustic_ingestion_avoid_neutralization_blind_tube_timing_steroid_and_long_term_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Caustic alkali ingestion with airway edema"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Drooling and stridor after drain cleaner ingestion"
+    case["history_of_present_illness"] = (
+        "Patient intentionally ingested concentrated alkaline drain cleaner one "
+        "hour ago and now has caustic ingestion with drooling, odynophagia, "
+        "dysphagia, vomiting, chest pain, abdominal pain, hematemesis, oral edema, "
+        "stridor, vocal changes, respiratory distress, and concern for perforation "
+        "or mediastinitis."
+    )
+    case["key_teaching_points"] = [
+        "Caustic ingestions can injure the pharynx, esophagus, stomach, or duodenum",
+        "Airway stabilization comes before endoscopic injury assessment",
+        "Endoscopy, CT, surgery, poison center, and toxicology coordination may be required",
+    ]
+    case["clinical_red_flags"] = [
+        "Drooling, oral edema, stridor, vocal changes, or respiratory distress",
+        "Chest pain, abdominal pain, hematemesis, perforation, mediastinitis, or peritonitis",
+    ]
+    case["time_critical_actions"] = [
+        "Stabilize ABC airway breathing circulation; prepare intubation, ventilation, resuscitation, and monitoring",
+        "Document 5 Ws exposure history including product substance, amount, concentration, time, intentionality, and co-ingestion",
+        "Consult gastroenterology GI consult for early EGD upper endoscopy and endoscopic injury grading",
+        "Obtain CT computed tomography if perforation, mediastinitis, peritonitis, or surgical abdomen is suspected",
+        "Call poison center, toxicology, toxicologist, surgery, and surgical consult for escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before analgesia",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Caustic Ingestions",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK557442/",
+            "supports": [
+                "caustic ingestion diagnosis and risk stratification",
+                "drooling, oral edema, stridor, vocal changes, respiratory distress, chest pain, abdominal pain, hematemesis, perforation, mediastinitis, and peritonitis as severity markers",
+                "ABC airway, breathing, circulation, intubation, ventilation, resuscitation, or stabilization planning",
+                "5 Ws exposure history for product, substance, amount, concentration, time, intentionality, and co-ingestion",
+                "early EGD upper endoscopy, endoscopic, gastroenterology, or GI consult planning",
+                "CT computed tomography for perforation, mediastinitis, peritonitis, or surgical abdomen concern",
+                "poison center, toxicology, toxicologist, surgery, or surgical consult escalation",
+                "medication allergy review before analgesia",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "caustic ingestion safety checks must include avoidance of neutralization"
         in issue
         for issue in report.critical_issues
     )

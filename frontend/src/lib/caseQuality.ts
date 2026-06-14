@@ -9927,6 +9927,130 @@ const METHEMOGLOBINEMIA_ALTERNATIVE_THERAPY_SAFETY_TERMS = [
   "refractory",
 ];
 
+const CAUSTIC_INGESTION_CONTEXT_TERMS = [
+  "acid ingestion",
+  "alkali ingestion",
+  "caustic ingestion",
+  "caustic injury",
+  "corrosive ingestion",
+  "drain cleaner ingestion",
+  "lye ingestion",
+];
+
+const CAUSTIC_INGESTION_SEVERITY_TERMS = [
+  "abdominal pain",
+  "airway edema",
+  "chest pain",
+  "drooling",
+  "dysphagia",
+  "hematemesis",
+  "mediastinitis",
+  "odynophagia",
+  "oral edema",
+  "perforation",
+  "peritonitis",
+  "respiratory distress",
+  "stridor",
+  "vocal changes",
+  "vomiting",
+];
+
+const CAUSTIC_AIRWAY_STABILIZATION_ACTION_TERMS = [
+  "abc",
+  "airway",
+  "breathing",
+  "circulation",
+  "intubation",
+  "resuscitation",
+  "stabilize",
+  "ventilation",
+];
+
+const CAUSTIC_EXPOSURE_HISTORY_ACTION_TERMS = [
+  "5 ws",
+  "amount",
+  "co-ingestion",
+  "concentration",
+  "intentional",
+  "intentionality",
+  "product",
+  "substance",
+  "time",
+  "what",
+  "when",
+];
+
+const CAUSTIC_ENDOSCOPY_ACTION_TERMS = [
+  "egd",
+  "endoscopic",
+  "endoscopy",
+  "gastroenterology",
+  "gi consult",
+  "upper endoscopy",
+];
+
+const CAUSTIC_CT_PERFORATION_ACTION_TERMS = [
+  "computed tomography",
+  "ct",
+  "mediastinitis",
+  "perforation",
+  "peritonitis",
+  "surgical abdomen",
+];
+
+const CAUSTIC_ESCALATION_ACTION_TERMS = [
+  "poison center",
+  "poison control",
+  "surgery",
+  "surgical consult",
+  "toxicologist",
+  "toxicology",
+];
+
+const CAUSTIC_EMESIS_NEUTRALIZATION_SAFETY_TERMS = [
+  "activated charcoal",
+  "charcoal",
+  "dilution",
+  "emesis",
+  "induced vomiting",
+  "neutralization",
+  "neutralize",
+  "vomiting",
+];
+
+const CAUSTIC_BLIND_TUBE_SAFETY_TERMS = [
+  "blind nasogastric",
+  "blind ng",
+  "nasogastric",
+  "ng tube",
+  "orogastric",
+];
+
+const CAUSTIC_ENDOSCOPY_TIMING_SAFETY_TERMS = [
+  "12 hours",
+  "24 hours",
+  "48 hours",
+  "early endoscopy",
+  "endoscopy timing",
+  "perforation contraindication",
+];
+
+const CAUSTIC_STEROID_ANTIBIOTIC_SAFETY_TERMS = [
+  "antibiotics only",
+  "corticosteroid",
+  "infection",
+  "perforation",
+  "steroid",
+];
+
+const CAUSTIC_LONG_TERM_COMPLICATION_SAFETY_TERMS = [
+  "carcinoma",
+  "dysphagia follow-up",
+  "esophageal cancer",
+  "stricture",
+  "surveillance",
+];
+
 const OPIOID_TOXICITY_CONTEXT_TERMS = [
   "fentanyl overdose",
   "heroin overdose",
@@ -17789,6 +17913,83 @@ function hasMethemoglobinemiaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresCausticIngestionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = CAUSTIC_INGESTION_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasSeverity = CAUSTIC_INGESTION_SEVERITY_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasSeverity;
+}
+
+function hasCausticIngestionTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAirwayStabilization = CAUSTIC_AIRWAY_STABILIZATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasExposureHistory = CAUSTIC_EXPOSURE_HISTORY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEndoscopy = CAUSTIC_ENDOSCOPY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCtPerforation = CAUSTIC_CT_PERFORATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = CAUSTIC_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasAirwayStabilization &&
+    hasExposureHistory &&
+    hasEndoscopy &&
+    hasCtPerforation &&
+    hasEscalation
+  );
+}
+
+function hasCausticIngestionTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasEmesisNeutralizationSafety = CAUSTIC_EMESIS_NEUTRALIZATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBlindTubeSafety = CAUSTIC_BLIND_TUBE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEndoscopyTimingSafety = CAUSTIC_ENDOSCOPY_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidAntibioticSafety = CAUSTIC_STEROID_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLongTermComplicationSafety = CAUSTIC_LONG_TERM_COMPLICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasEmesisNeutralizationSafety &&
+    hasBlindTubeSafety &&
+    hasEndoscopyTimingSafety &&
+    hasSteroidAntibioticSafety &&
+    hasLongTermComplicationSafety
+  );
+}
+
 function requiresOpioidToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -20523,6 +20724,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasMethemoglobinemiaTreatmentSafetyCheck,
       issue:
         "methemoglobinemia safety checks must include pulse oximetry unreliability or saturation-gap review, G6PD deficiency or hemolysis risk before methylene blue, serotonergic medication, SSRI, MAOI, or linezolid interaction review before methylene blue, rebound or serial methemoglobin/co-oximetry monitoring especially after dapsone, and alternative therapy planning such as ascorbic acid, exchange transfusion, or hyperbaric oxygen when methylene blue is contraindicated or refractory",
+    },
+    {
+      name: "caustic_ingestion_time_critical_actions",
+      label: "Caustic ingestion airway, endoscopy, CT, and escalation",
+      applies: requiresCausticIngestionSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasCausticIngestionTimeCriticalActions,
+      issue:
+        "caustic ingestion time-critical actions must include ABC airway, breathing, circulation, intubation, ventilation, resuscitation, or stabilization planning, exposure history for product, substance, amount, concentration, time, intentionality, or co-ingestion, early EGD, upper endoscopy, endoscopic, gastroenterology, or GI consultation planning, CT, computed tomography, perforation, mediastinitis, peritonitis, surgical-abdomen, or surgical evaluation, and poison center, toxicology, toxicologist, surgery, or surgical consultation escalation",
+    },
+    {
+      name: "caustic_ingestion_treatment_safety",
+      label: "Caustic ingestion harmful intervention and follow-up safety",
+      applies: requiresCausticIngestionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasCausticIngestionTreatmentSafetyCheck,
+      issue:
+        "caustic ingestion safety checks must include avoidance of neutralization, dilution, activated charcoal, induced vomiting, or emesis, avoidance or specialist-guided review of blind NG, nasogastric, or orogastric tube placement, endoscopy timing or contraindication review for early endoscopy within 12 to 24 hours and avoiding high-risk endoscopy around 48 hours or when perforation is suspected, steroid or antibiotic stewardship with corticosteroids or antibiotics reserved for selected injury, infection, or perforation contexts, and long-term stricture, dysphagia follow-up, esophageal cancer, carcinoma, or surveillance planning",
     },
     {
       name: "opioid_toxicity_time_critical_actions",
