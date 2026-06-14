@@ -77,6 +77,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "postpartum_hemorrhage_treatment_safety",
         "placental_abruption_time_critical_actions",
         "placental_abruption_treatment_safety",
+        "umbilical_cord_prolapse_time_critical_actions",
+        "umbilical_cord_prolapse_treatment_safety",
         "severe_preeclampsia_time_critical_actions",
         "severe_preeclampsia_treatment_safety",
         "hypertensive_emergency_time_critical_actions",
@@ -2206,6 +2208,142 @@ def test_quality_gate_requires_placental_abruption_previa_coag_delivery_and_shoc
     assert not report.passed
     assert any(
         "placental abruption safety checks must include placenta previa exclusion"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_umbilical_cord_prolapse_fhr_compression_position_and_delivery_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Umbilical cord prolapse with fetal bradycardia"
+    case["patient_demographics"] = {
+        "age": 30,
+        "sex": "female",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Visible cord after membrane rupture"
+    case["history_of_present_illness"] = (
+        "Laboring patient has ruptured membranes with high presenting part, "
+        "visible prolapsed cord at the introitus, abnormal fetal heart tracing, "
+        "prolonged bradycardia, variable decelerations, and concern for umbilical "
+        "cord prolapse causing fetal distress."
+    )
+    case["key_teaching_points"] = [
+        "Umbilical cord prolapse can cause acute fetal hypoxia and birth asphyxia",
+        "Abnormal fetal heart rate after membrane rupture should prompt speculum or digital vaginal examination",
+        "Initial management relieves cord compression while preparing immediate birth",
+    ]
+    case["clinical_red_flags"] = [
+        "Prolapsed cord with fetal bradycardia and variable deceleration",
+        "Ruptured membranes with high presenting part, breech, non-cephalic presentation, or polyhydramnios",
+    ]
+    case["time_critical_actions"] = [
+        "Continue fetal observation and wait for repeat tracing",
+        "Notify outpatient obstetric clinic after reassessment",
+    ]
+    case["contraindication_checks"] = [
+        "Use minimal handling of the exposed cord to prevent vasospasm; manual replacement of the cord is not recommended and do not replace it to continue labor",
+        "Positioning, bladder filling, and tocolysis with terbutaline must not delay immediate birth preparation",
+        "Review delivery mode: cesarean or caesarean if vaginal birth is not imminent, category 1 if abnormal fetal heart rate, category 2 only with normal trace and continuous fetal assessment, or operative vaginal birth if imminent",
+        "Ensure neonatal resuscitation team attends and plan paired cord blood gas, cord pH, and base excess measurement",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Umbilical Cord Prolapse Green-top Guideline No. 50",
+            "organization": "Royal College of Obstetricians and Gynaecologists",
+            "url": "https://www.rcog.org.uk/media/3wykswng/gtg-50-umbilicalcordprolapse-2014.pdf",
+            "supports": [
+                "umbilical cord prolapse with fetal bradycardia diagnosis and risk stratification",
+                "umbilical cord prolapse can cause acute fetal hypoxia and birth asphyxia",
+                "abnormal fetal heart rate after membrane rupture should prompt speculum or digital vaginal examination",
+                "initial management relieves cord compression while preparing immediate birth",
+                "prolapsed cord with fetal bradycardia and variable deceleration",
+                "ruptured membranes with high presenting part, breech, non-cephalic presentation, or polyhydramnios",
+                "fetal observation and repeat tracing",
+                "outpatient obstetric clinic after reassessment",
+                "minimal handling of exposed cord to prevent vasospasm; manual replacement of the cord is not recommended and do not replace it to continue labor",
+                "positioning, bladder filling, and tocolysis with terbutaline must not delay immediate birth preparation",
+                "delivery mode with cesarean or caesarean if vaginal birth is not imminent, category 1 if abnormal fetal heart rate, category 2 only with normal trace and continuous fetal assessment, or operative vaginal birth if imminent",
+                "neonatal resuscitation team attends and paired cord blood gas, cord pH, and base excess measurement",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "umbilical cord prolapse time-critical actions must include fetal heart assessment"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_umbilical_cord_prolapse_cord_handling_no_delay_delivery_and_neonatal_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Umbilical cord prolapse with fetal distress"
+    case["patient_demographics"] = {
+        "age": 30,
+        "sex": "female",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Visible cord after membrane rupture"
+    case["history_of_present_illness"] = (
+        "Laboring patient has ruptured membranes with high presenting part, "
+        "visible prolapsed cord at the introitus, abnormal fetal heart tracing, "
+        "prolonged bradycardia, variable decelerations, and concern for umbilical "
+        "cord prolapse causing fetal distress."
+    )
+    case["key_teaching_points"] = [
+        "Umbilical cord prolapse can cause acute fetal hypoxia and birth asphyxia",
+        "Abnormal fetal heart rate after membrane rupture should prompt speculum or digital vaginal examination",
+        "Initial management relieves cord compression while preparing immediate birth",
+    ]
+    case["clinical_red_flags"] = [
+        "Prolapsed cord with fetal bradycardia and variable deceleration",
+        "Ruptured membranes with high presenting part, breech, non-cephalic presentation, or polyhydramnios",
+    ]
+    case["time_critical_actions"] = [
+        "Assess fetal heart rate FHR and perform speculum or digital vaginal examination for suspected cord prolapse",
+        "Call for help and immediate assistance from obstetric team, anaesthesia, emergency theatre, operating room, and immediate birth team",
+        "Relieve compression by manual elevation of the presenting part or bladder filling and bladder distension",
+        "Place patient in knee-chest, left lateral head down, Trendelenburg, or exaggerated Sims position",
+        "Plan urgent delivery with category 1 cesarean or caesarean within 30 minutes, or operative vaginal delivery if birth is imminent",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before anesthesia",
+        "Pregnancy status already confirmed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Umbilical Cord Prolapse Green-top Guideline No. 50",
+            "organization": "Royal College of Obstetricians and Gynaecologists",
+            "url": "https://www.rcog.org.uk/media/3wykswng/gtg-50-umbilicalcordprolapse-2014.pdf",
+            "supports": [
+                "umbilical cord prolapse with fetal distress diagnosis and risk stratification",
+                "umbilical cord prolapse can cause acute fetal hypoxia and birth asphyxia",
+                "abnormal fetal heart rate after membrane rupture should prompt speculum or digital vaginal examination",
+                "initial management relieves cord compression while preparing immediate birth",
+                "prolapsed cord with fetal bradycardia and variable deceleration",
+                "ruptured membranes with high presenting part, breech, non-cephalic presentation, or polyhydramnios",
+                "fetal heart rate FHR assessment and speculum or digital vaginal examination for suspected cord prolapse",
+                "call for help and immediate assistance from obstetric team, anaesthesia, emergency theatre, operating room, and immediate birth team",
+                "relieve compression by manual elevation of the presenting part or bladder filling and bladder distension",
+                "knee-chest, left lateral head down, Trendelenburg, or exaggerated Sims position",
+                "urgent delivery with category 1 cesarean or caesarean within 30 minutes, or operative vaginal delivery if birth is imminent",
+                "medication allergy before anesthesia",
+                "pregnancy status already confirmed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "umbilical cord prolapse safety checks must include minimal cord handling"
         in issue
         for issue in report.critical_issues
     )

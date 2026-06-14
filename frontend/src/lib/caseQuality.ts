@@ -2194,6 +2194,113 @@ const PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS = [
   "transfusion",
 ];
 
+const UMBILICAL_CORD_PROLAPSE_CONTEXT_TERMS = [
+  "cord presentation",
+  "cord prolapse",
+  "funic presentation",
+  "prolapsed cord",
+  "umbilical cord prolapse",
+];
+
+const UMBILICAL_CORD_PROLAPSE_RISK_TERMS = [
+  "abnormal fetal heart",
+  "bradycardia",
+  "breech",
+  "fetal distress",
+  "high presenting part",
+  "membrane rupture",
+  "non-cephalic",
+  "polyhydramnios",
+  "ruptured membranes",
+  "unengaged presenting part",
+  "variable deceleration",
+  "visible cord",
+];
+
+const UMBILICAL_CORD_PROLAPSE_FHR_DIAGNOSIS_ACTION_TERMS = [
+  "digital vaginal examination",
+  "fetal heart",
+  "fhr",
+  "speculum",
+  "vaginal examination",
+  "variable deceleration",
+];
+
+const UMBILICAL_CORD_PROLAPSE_ASSISTANCE_ACTION_TERMS = [
+  "assistance",
+  "call for help",
+  "emergency theatre",
+  "immediate birth",
+  "obstetric",
+  "operating room",
+  "theatre",
+];
+
+const UMBILICAL_CORD_PROLAPSE_COMPRESSION_RELIEF_ACTION_TERMS = [
+  "bladder filling",
+  "bladder distension",
+  "elevate presenting part",
+  "manual elevation",
+  "presenting part elevated",
+  "relieve compression",
+];
+
+const UMBILICAL_CORD_PROLAPSE_POSITION_ACTION_TERMS = [
+  "exaggerated sims",
+  "head down",
+  "knee-chest",
+  "left lateral",
+  "trendelenburg",
+];
+
+const UMBILICAL_CORD_PROLAPSE_DELIVERY_ACTION_TERMS = [
+  "category 1",
+  "cesarean",
+  "caesarean",
+  "delivery",
+  "emergency birth",
+  "operative vaginal",
+  "within 30 minutes",
+];
+
+const UMBILICAL_CORD_PROLAPSE_CORD_HANDLING_SAFETY_TERMS = [
+  "avoid handling",
+  "minimal handling",
+  "not recommended",
+  "prevent vasospasm",
+  "vasospasm",
+  "do not replace",
+  "manual replacement",
+];
+
+const UMBILICAL_CORD_PROLAPSE_NO_DELAY_TOCOLYSIS_SAFETY_TERMS = [
+  "do not delay",
+  "must not delay",
+  "no unnecessary delay",
+  "tocolysis",
+  "terbutaline",
+];
+
+const UMBILICAL_CORD_PROLAPSE_DELIVERY_MODE_SAFETY_TERMS = [
+  "category 1",
+  "category 2",
+  "caesarean",
+  "cesarean",
+  "continuous assessment",
+  "continuous fetal",
+  "operative vaginal",
+  "vaginal birth imminent",
+];
+
+const UMBILICAL_CORD_PROLAPSE_NEONATAL_SAFETY_TERMS = [
+  "base excess",
+  "cord gas",
+  "cord ph",
+  "neonatal resuscitation",
+  "newborn resuscitation",
+  "paired cord blood",
+];
+
 const HYPERTENSIVE_EMERGENCY_DIRECT_CONTEXT_TERMS = [
   "hypertensive emergency",
   "hypertensive encephalopathy",
@@ -13683,6 +13790,74 @@ function hasPlacentalAbruptionTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresUmbilicalCordProlapseSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = UMBILICAL_CORD_PROLAPSE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = UMBILICAL_CORD_PROLAPSE_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasUmbilicalCordProlapseTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasFhrDiagnosis = UMBILICAL_CORD_PROLAPSE_FHR_DIAGNOSIS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAssistance = UMBILICAL_CORD_PROLAPSE_ASSISTANCE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCompressionRelief = UMBILICAL_CORD_PROLAPSE_COMPRESSION_RELIEF_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPositioning = UMBILICAL_CORD_PROLAPSE_POSITION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDelivery = UMBILICAL_CORD_PROLAPSE_DELIVERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasFhrDiagnosis && hasAssistance && hasCompressionRelief && hasPositioning && hasDelivery;
+}
+
+function hasUmbilicalCordProlapseTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasCordHandlingSafety = UMBILICAL_CORD_PROLAPSE_CORD_HANDLING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNoDelayTocolysisSafety =
+    UMBILICAL_CORD_PROLAPSE_NO_DELAY_TOCOLYSIS_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDeliveryModeSafety = UMBILICAL_CORD_PROLAPSE_DELIVERY_MODE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNeonatalSafety = UMBILICAL_CORD_PROLAPSE_NEONATAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasCordHandlingSafety &&
+    hasNoDelayTocolysisSafety &&
+    hasDeliveryModeSafety &&
+    hasNeonatalSafety
+  );
+}
+
 function requiresSeverePreeclampsiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -20061,6 +20236,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasPlacentalAbruptionTreatmentSafetyCheck,
       issue:
         "placental abruption safety checks must include placenta previa exclusion before pelvic examination and recognition that normal ultrasound does not rule out abruption, coagulation, fibrinogen, platelet, blood type, Rh immune globulin, or Kleihauer-Betke assessment, delivery or prompt cesarean criteria for maternal or fetal instability, ongoing bleeding, deterioration, term, or near-term pregnancy, and shock, DIC, coagulopathy, transfusion, blood-product, massive-transfusion, or fibrinogen safeguards",
+    },
+    {
+      name: "umbilical_cord_prolapse_time_critical_actions",
+      label: "Umbilical cord prolapse emergency actions",
+      applies: requiresUmbilicalCordProlapseSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasUmbilicalCordProlapseTimeCriticalActions,
+      issue:
+        "umbilical cord prolapse time-critical actions must include fetal heart assessment or speculum/digital vaginal examination, immediate assistance, obstetric, theatre, operating-room, or immediate-birth preparation, presenting-part elevation, manual elevation, bladder filling, bladder distension, or cord-compression relief, knee-chest, left-lateral, head-down, Trendelenburg, or exaggerated Sims positioning, and urgent delivery, category-1 cesarean/caesarean, operative vaginal birth if imminent, or within-30-minute birth planning",
+    },
+    {
+      name: "umbilical_cord_prolapse_treatment_safety",
+      label: "Umbilical cord prolapse treatment safety",
+      applies: requiresUmbilicalCordProlapseSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasUmbilicalCordProlapseTreatmentSafetyCheck,
+      issue:
+        "umbilical cord prolapse safety checks must include minimal cord handling, vasospasm prevention, and avoiding or not relying on manual cord replacement, no-delay safeguards for position, bladder filling, tocolysis, or terbutaline while preparing birth, delivery mode review including cesarean/caesarean when vaginal birth is not imminent, category-1 for abnormal fetal heart rate, category-2 only with normal trace and continuous assessment, and neonatal resuscitation plus paired cord blood gas, pH, or base-excess planning",
     },
     {
       name: "severe_preeclampsia_time_critical_actions",

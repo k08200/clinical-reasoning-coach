@@ -2037,6 +2037,102 @@ PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS = (
     "shock",
     "transfusion",
 )
+UMBILICAL_CORD_PROLAPSE_CONTEXT_TERMS = (
+    "cord presentation",
+    "cord prolapse",
+    "funic presentation",
+    "prolapsed cord",
+    "umbilical cord prolapse",
+)
+UMBILICAL_CORD_PROLAPSE_RISK_TERMS = (
+    "abnormal fetal heart",
+    "bradycardia",
+    "breech",
+    "fetal distress",
+    "high presenting part",
+    "membrane rupture",
+    "non-cephalic",
+    "polyhydramnios",
+    "ruptured membranes",
+    "unengaged presenting part",
+    "variable deceleration",
+    "visible cord",
+)
+UMBILICAL_CORD_PROLAPSE_FHR_DIAGNOSIS_ACTION_TERMS = (
+    "digital vaginal examination",
+    "fetal heart",
+    "fhr",
+    "speculum",
+    "vaginal examination",
+    "variable deceleration",
+)
+UMBILICAL_CORD_PROLAPSE_ASSISTANCE_ACTION_TERMS = (
+    "assistance",
+    "call for help",
+    "emergency theatre",
+    "immediate birth",
+    "obstetric",
+    "operating room",
+    "theatre",
+)
+UMBILICAL_CORD_PROLAPSE_COMPRESSION_RELIEF_ACTION_TERMS = (
+    "bladder filling",
+    "bladder distension",
+    "elevate presenting part",
+    "manual elevation",
+    "presenting part elevated",
+    "relieve compression",
+)
+UMBILICAL_CORD_PROLAPSE_POSITION_ACTION_TERMS = (
+    "exaggerated sims",
+    "head down",
+    "knee-chest",
+    "left lateral",
+    "trendelenburg",
+)
+UMBILICAL_CORD_PROLAPSE_DELIVERY_ACTION_TERMS = (
+    "category 1",
+    "cesarean",
+    "caesarean",
+    "delivery",
+    "emergency birth",
+    "operative vaginal",
+    "within 30 minutes",
+)
+UMBILICAL_CORD_PROLAPSE_CORD_HANDLING_SAFETY_TERMS = (
+    "avoid handling",
+    "minimal handling",
+    "not recommended",
+    "prevent vasospasm",
+    "vasospasm",
+    "do not replace",
+    "manual replacement",
+)
+UMBILICAL_CORD_PROLAPSE_NO_DELAY_TOCOLYSIS_SAFETY_TERMS = (
+    "do not delay",
+    "must not delay",
+    "no unnecessary delay",
+    "tocolysis",
+    "terbutaline",
+)
+UMBILICAL_CORD_PROLAPSE_DELIVERY_MODE_SAFETY_TERMS = (
+    "category 1",
+    "category 2",
+    "caesarean",
+    "cesarean",
+    "continuous assessment",
+    "continuous fetal",
+    "operative vaginal",
+    "vaginal birth imminent",
+)
+UMBILICAL_CORD_PROLAPSE_NEONATAL_SAFETY_TERMS = (
+    "base excess",
+    "cord gas",
+    "cord ph",
+    "neonatal resuscitation",
+    "newborn resuscitation",
+    "paired cord blood",
+)
 HYPERTENSIVE_EMERGENCY_DIRECT_CONTEXT_TERMS = (
     "hypertensive emergency",
     "hypertensive encephalopathy",
@@ -12289,6 +12385,40 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="umbilical_cord_prolapse_time_critical_actions",
+            applies=_requires_umbilical_cord_prolapse_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_umbilical_cord_prolapse_time_critical_actions,
+            issue=(
+                "umbilical cord prolapse time-critical actions must include fetal "
+                "heart assessment or speculum/digital vaginal examination, "
+                "immediate assistance, obstetric, theatre, operating-room, or "
+                "immediate-birth preparation, presenting-part elevation, manual "
+                "elevation, bladder filling, bladder distension, or cord-compression "
+                "relief, knee-chest, left-lateral, head-down, Trendelenburg, or "
+                "exaggerated Sims positioning, and urgent delivery, category-1 "
+                "cesarean/caesarean, operative vaginal birth if imminent, or "
+                "within-30-minute birth planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="umbilical_cord_prolapse_treatment_safety",
+            applies=_requires_umbilical_cord_prolapse_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_umbilical_cord_prolapse_treatment_safety_check,
+            issue=(
+                "umbilical cord prolapse safety checks must include minimal cord "
+                "handling, vasospasm prevention, and avoiding or not relying on "
+                "manual cord replacement, no-delay safeguards for position, bladder "
+                "filling, tocolysis, or terbutaline while preparing birth, delivery "
+                "mode review including cesarean/caesarean when vaginal birth is "
+                "not imminent, category-1 for abnormal fetal heart rate, category-2 "
+                "only with normal trace and continuous assessment, and neonatal "
+                "resuscitation plus paired cord blood gas, pH, or base-excess "
+                "planning"
+            ),
+        ),
+        DomainSafetyGate(
             name="severe_preeclampsia_time_critical_actions",
             applies=_requires_severe_preeclampsia_safety_check,
             field_name="time_critical_actions",
@@ -16261,6 +16391,95 @@ def _has_placental_abruption_treatment_safety_check(checks: list[Any]) -> bool:
         and has_coag_rh_safety
         and has_stability_delivery_safety
         and has_shock_dic_safety
+    )
+
+
+def _requires_umbilical_cord_prolapse_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in UMBILICAL_CORD_PROLAPSE_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in UMBILICAL_CORD_PROLAPSE_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_umbilical_cord_prolapse_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_fhr_diagnosis = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UMBILICAL_CORD_PROLAPSE_FHR_DIAGNOSIS_ACTION_TERMS
+    )
+    has_assistance = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UMBILICAL_CORD_PROLAPSE_ASSISTANCE_ACTION_TERMS
+    )
+    has_compression_relief = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UMBILICAL_CORD_PROLAPSE_COMPRESSION_RELIEF_ACTION_TERMS
+    )
+    has_positioning = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UMBILICAL_CORD_PROLAPSE_POSITION_ACTION_TERMS
+    )
+    has_delivery = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UMBILICAL_CORD_PROLAPSE_DELIVERY_ACTION_TERMS
+    )
+    return (
+        has_fhr_diagnosis
+        and has_assistance
+        and has_compression_relief
+        and has_positioning
+        and has_delivery
+    )
+
+
+def _has_umbilical_cord_prolapse_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_cord_handling_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UMBILICAL_CORD_PROLAPSE_CORD_HANDLING_SAFETY_TERMS
+    )
+    has_no_delay_tocolysis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UMBILICAL_CORD_PROLAPSE_NO_DELAY_TOCOLYSIS_SAFETY_TERMS
+    )
+    has_delivery_mode_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UMBILICAL_CORD_PROLAPSE_DELIVERY_MODE_SAFETY_TERMS
+    )
+    has_neonatal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UMBILICAL_CORD_PROLAPSE_NEONATAL_SAFETY_TERMS
+    )
+    return (
+        has_cord_handling_safety
+        and has_no_delay_tocolysis_safety
+        and has_delivery_mode_safety
+        and has_neonatal_safety
     )
 
 
