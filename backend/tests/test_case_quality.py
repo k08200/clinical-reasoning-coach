@@ -144,6 +144,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "acute_pancreatitis_treatment_safety",
         "small_bowel_obstruction_time_critical_actions",
         "small_bowel_obstruction_treatment_safety",
+        "pediatric_midgut_volvulus_time_critical_actions",
+        "pediatric_midgut_volvulus_treatment_safety",
         "acute_appendicitis_time_critical_actions",
         "acute_appendicitis_treatment_safety",
         "acute_mesenteric_ischemia_time_critical_actions",
@@ -7034,6 +7036,142 @@ def test_quality_gate_requires_small_bowel_obstruction_strangulation_nonoperativ
     assert not report.passed
     assert any(
         "small bowel obstruction safety checks must include strangulation"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_pediatric_midgut_volvulus_ugi_surgery_resuscitation_and_ischemia_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Intestinal malrotation with midgut volvulus"
+    case["patient_demographics"] = {
+        "age": 1,
+        "sex": "male",
+        "weight_kg": 9,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Bilious vomiting in an infant"
+    case["history_of_present_illness"] = (
+        "Young infant has sudden green bilious vomiting, abdominal distension, "
+        "dehydration, lethargy, elevated lactate, metabolic acidosis, and concern "
+        "for suspected malrotation with midgut volvulus and bowel obstruction."
+    )
+    case["key_teaching_points"] = [
+        "Bilious emesis in an infant requires evaluation for intestinal obstruction and malrotation with volvulus",
+        "Upper GI series evaluates the duodenal jejunal junction and ligament of Treitz when malrotation is suspected",
+        "Midgut volvulus can cause bowel ischemia, bowel necrosis, shock, and urgent operative need",
+    ]
+    case["clinical_red_flags"] = [
+        "Green vomiting, bilious emesis, abdominal distension, dehydration, or lethargy in a young infant",
+        "Lactate elevation, acidosis, peritonitis, shock, bloody stool, bowel ischemia, or bowel necrosis",
+    ]
+    case["time_critical_actions"] = [
+        "Give antiemetic support and reassess feeding tolerance",
+        "Order outpatient pediatric follow-up if symptoms continue",
+    ]
+    case["contraindication_checks"] = [
+        "Do not treat as reflux or gastroenteritis and do not reassure when infant bilious emesis is present",
+        "Recognize a normal abdominal radiograph or normal x-ray does not exclude malrotation",
+        "Review imaging limitations including false negative or equivocal UGI, SMV/SMA relationship, whirlpool sign, and contrast enema being less direct",
+        "Do not delay urgent surgery or emergent surgery when bowel ischemia or bowel necrosis is suspected",
+        "Safeguard aspiration, dehydration, electrolyte, glucose, and hypoglycemia risks with weight-based dosing safety check",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "ACR Appropriateness Criteria: Vomiting in Infants",
+            "organization": "American College of Radiology",
+            "url": "https://acsearch.acr.org/docs/69445/Narrative/",
+            "supports": [
+                "infant bilious vomiting diagnosis and malrotation risk stratification",
+                "bilious emesis in an infant requires evaluation for intestinal obstruction and malrotation with volvulus",
+                "upper GI series evaluates the duodenal jejunal junction and ligament of Treitz when malrotation is suspected",
+                "midgut volvulus can cause bowel ischemia, bowel necrosis, shock, and urgent operative need",
+                "green vomiting, bilious emesis, abdominal distension, dehydration, and lethargy in a young infant",
+                "lactate elevation, acidosis, peritonitis, shock, bloody stool, bowel ischemia, and bowel necrosis as severity markers",
+                "fluoroscopy upper GI UGI imaging to evaluate malrotation",
+                "pediatric surgery, surgeon, operative, Ladd, or surgical consult escalation",
+                "NPO, IV fluids, resuscitation, NG tube, nasogastric, or orogastric decompression",
+                "bowel ischemia, bowel necrosis, lactate, acidosis, peritonitis, shock, serial abdominal exam, and complication monitoring",
+                "do not treat as reflux or gastroenteritis and do not reassure when infant bilious emesis is present",
+                "normal abdominal radiograph or normal x-ray does not exclude malrotation",
+                "false negative or equivocal UGI, SMV/SMA relationship, whirlpool sign, and contrast enema being less direct",
+                "do not delay urgent surgery or emergent surgery when bowel ischemia or bowel necrosis is suspected",
+                "aspiration, dehydration, electrolyte, glucose, hypoglycemia, and weight-based dosing safety check",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "pediatric midgut volvulus time-critical actions must include urgent fluoroscopy upper GI"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_pediatric_midgut_volvulus_reflux_xray_imaging_delay_and_metabolic_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Intestinal malrotation with midgut volvulus"
+    case["patient_demographics"] = {
+        "age": 1,
+        "sex": "male",
+        "weight_kg": 9,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Bilious vomiting in an infant"
+    case["history_of_present_illness"] = (
+        "Young infant has sudden green bilious vomiting, abdominal distension, "
+        "dehydration, lethargy, elevated lactate, metabolic acidosis, and concern "
+        "for suspected malrotation with midgut volvulus and bowel obstruction."
+    )
+    case["key_teaching_points"] = [
+        "Bilious emesis in an infant requires evaluation for intestinal obstruction and malrotation with volvulus",
+        "Upper GI series evaluates the duodenal jejunal junction and ligament of Treitz when malrotation is suspected",
+        "Midgut volvulus can cause bowel ischemia, bowel necrosis, shock, and urgent operative need",
+    ]
+    case["clinical_red_flags"] = [
+        "Green vomiting, bilious emesis, abdominal distension, dehydration, or lethargy in a young infant",
+        "Lactate elevation, acidosis, peritonitis, shock, bloody stool, bowel ischemia, or bowel necrosis",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain urgent fluoroscopy upper GI UGI to assess the duodenal jejunal junction and ligament of Treitz for malrotation",
+        "Call pediatric surgery for immediate surgeon surgical consult, operative planning, and Ladd procedure readiness",
+        "Keep NPO, establish IV access, give IV fluids resuscitation, and place NG tube nasogastric or orogastric decompression",
+        "Trend lactate and acidosis with serial abdominal exam for bowel ischemia, bowel necrosis, peritonitis, and shock",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before analgesia",
+        "Weight-based dosing safety check before antibiotics or analgesia",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "ACR Appropriateness Criteria: Vomiting in Infants",
+            "organization": "American College of Radiology",
+            "url": "https://acsearch.acr.org/docs/69445/Narrative/",
+            "supports": [
+                "infant bilious vomiting diagnosis and malrotation risk stratification",
+                "bilious emesis in an infant requires evaluation for intestinal obstruction and malrotation with volvulus",
+                "upper GI series evaluates the duodenal jejunal junction and ligament of Treitz when malrotation is suspected",
+                "midgut volvulus can cause bowel ischemia, bowel necrosis, shock, and urgent operative need",
+                "green vomiting, bilious emesis, abdominal distension, dehydration, and lethargy in a young infant",
+                "lactate elevation, acidosis, peritonitis, shock, bloody stool, bowel ischemia, and bowel necrosis as severity markers",
+                "urgent fluoroscopy upper GI UGI to assess the duodenal jejunal junction and ligament of Treitz for malrotation",
+                "pediatric surgery immediate surgeon surgical consult, operative planning, and Ladd procedure readiness",
+                "NPO, IV access, IV fluids resuscitation, NG tube nasogastric or orogastric decompression",
+                "lactate and acidosis with serial abdominal exam for bowel ischemia, bowel necrosis, peritonitis, and shock",
+                "medication allergy review before analgesia",
+                "weight-based dosing safety check before antibiotics or analgesia",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "pediatric midgut volvulus safety checks must include avoiding reassurance"
         in issue
         for issue in report.critical_issues
     )

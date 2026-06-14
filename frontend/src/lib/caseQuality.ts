@@ -5921,6 +5921,126 @@ const SMALL_BOWEL_OBSTRUCTION_ASPIRATION_ETIOLOGY_SAFETY_TERMS = [
   "흡인",
 ];
 
+const PEDIATRIC_MIDGUT_VOLVULUS_CONTEXT_TERMS = [
+  "intestinal malrotation",
+  "ladd",
+  "malrotation",
+  "malrotation with volvulus",
+  "midgut volvulus",
+  "suspected malrotation",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_INFANT_TERMS = [
+  "infant",
+  "neonate",
+  "neonatal",
+  "newborn",
+  "young infant",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_BILIOUS_RISK_TERMS = [
+  "bilious emesis",
+  "bilious vomiting",
+  "bowel obstruction",
+  "green emesis",
+  "green vomiting",
+  "intestinal obstruction",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_SEVERITY_TERMS = [
+  "abdominal distension",
+  "acidosis",
+  "bloody stool",
+  "bowel ischemia",
+  "bowel necrosis",
+  "dehydration",
+  "lactate",
+  "peritonitis",
+  "shock",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_UGI_ACTION_TERMS = [
+  "duodenal jejunal",
+  "fluoroscopy",
+  "ligament of treitz",
+  "upper gi",
+  "ugi",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_ACTION_TERMS = [
+  "emergent surgery",
+  "ladd",
+  "operative",
+  "pediatric surgery",
+  "surgery",
+  "surgical consult",
+  "surgeon",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_RESUSCITATION_ACTION_TERMS = [
+  "decompression",
+  "fluid",
+  "fluids",
+  "iv access",
+  "nasogastric",
+  "ng tube",
+  "npo",
+  "orogastric",
+  "resuscitation",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ACTION_TERMS = [
+  "abdominal exam",
+  "acidosis",
+  "bowel ischemia",
+  "bowel necrosis",
+  "lactate",
+  "peritonitis",
+  "shock",
+  "serial exam",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_REFLUX_REASSURANCE_SAFETY_TERMS = [
+  "do not reassure",
+  "do not treat as reflux",
+  "not benign reflux",
+  "not gastroenteritis",
+  "not reflux",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_NORMAL_XRAY_SAFETY_TERMS = [
+  "does not exclude",
+  "normal abdominal radiograph",
+  "normal radiograph",
+  "normal x-ray",
+  "not exclude",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_IMAGING_LIMITATION_SAFETY_TERMS = [
+  "contrast enema",
+  "equivocal ugi",
+  "false negative",
+  "less direct",
+  "smv/sma",
+  "whirlpool",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_DELAY_SAFETY_TERMS = [
+  "bowel ischemia",
+  "bowel necrosis",
+  "do not delay",
+  "emergent surgery",
+  "urgent surgery",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_METABOLIC_ASPIRATION_SAFETY_TERMS = [
+  "aspiration",
+  "dehydration",
+  "electrolyte",
+  "glucose",
+  "hypoglycemia",
+];
+
 const ACUTE_APPENDICITIS_CONTEXT_TERMS = [
   "acute appendicitis",
   "appendiceal abscess",
@@ -15410,6 +15530,83 @@ function hasSmallBowelObstructionTreatmentSafetyCheck(checks: string[]): boolean
   );
 }
 
+function requiresPediatricMidgutVolvulusSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = PEDIATRIC_MIDGUT_VOLVULUS_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasInfantContext = PEDIATRIC_MIDGUT_VOLVULUS_INFANT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasBiliousRisk = PEDIATRIC_MIDGUT_VOLVULUS_BILIOUS_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasSeverity = PEDIATRIC_MIDGUT_VOLVULUS_SEVERITY_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasBiliousRisk && (hasInfantContext || hasSeverity);
+}
+
+function hasPediatricMidgutVolvulusTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasUgi = PEDIATRIC_MIDGUT_VOLVULUS_UGI_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSurgery = PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasResuscitation = PEDIATRIC_MIDGUT_VOLVULUS_RESUSCITATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIschemiaMonitoring = PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return hasUgi && hasSurgery && hasResuscitation && hasIschemiaMonitoring;
+}
+
+function hasPediatricMidgutVolvulusTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasRefluxReassuranceSafety =
+    PEDIATRIC_MIDGUT_VOLVULUS_REFLUX_REASSURANCE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasNormalXraySafety = PEDIATRIC_MIDGUT_VOLVULUS_NORMAL_XRAY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasImagingLimitationSafety =
+    PEDIATRIC_MIDGUT_VOLVULUS_IMAGING_LIMITATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDelaySafety = PEDIATRIC_MIDGUT_VOLVULUS_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMetabolicAspirationSafety =
+    PEDIATRIC_MIDGUT_VOLVULUS_METABOLIC_ASPIRATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasRefluxReassuranceSafety &&
+    hasNormalXraySafety &&
+    hasImagingLimitationSafety &&
+    hasDelaySafety &&
+    hasMetabolicAspirationSafety
+  );
+}
+
 function requiresAcuteAppendicitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -20076,6 +20273,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSmallBowelObstructionTreatmentSafetyCheck,
       issue:
         "small bowel obstruction safety checks must include strangulation or ischemia red-flag review for peritonitis, continuous pain, fever, leukocytosis, acidosis, lactate, or closed-loop obstruction, nonoperative management limits with serial exams, water-soluble contrast or Gastrografin, complete obstruction, failure to resolve, conservative management, or 72-hour reassessment, perforation, free air, infarction, gangrene, sepsis, broad-spectrum antibiotics, or antibiotic planning, and aspiration or etiology review for vomiting, adhesions, hernia, incarcerated hernia, volvulus, tumor, or malignancy",
+    },
+    {
+      name: "pediatric_midgut_volvulus_time_critical_actions",
+      label: "Pediatric midgut volvulus imaging and surgery actions",
+      applies: requiresPediatricMidgutVolvulusSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasPediatricMidgutVolvulusTimeCriticalActions,
+      issue:
+        "pediatric midgut volvulus time-critical actions must include urgent fluoroscopy upper GI, UGI, duodenal-jejunal junction, or ligament-of-Treitz imaging to evaluate malrotation, immediate pediatric surgery, surgeon, operative, Ladd, or surgical consultation escalation, NPO, IV fluids, resuscitation, NG tube, nasogastric, or orogastric decompression planning, and bowel ischemia, bowel necrosis, lactate, acidosis, peritonitis, shock, serial abdominal exam, or complication monitoring",
+    },
+    {
+      name: "pediatric_midgut_volvulus_treatment_safety",
+      label: "Pediatric midgut volvulus delay and imaging-limit safety",
+      applies: requiresPediatricMidgutVolvulusSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasPediatricMidgutVolvulusTreatmentSafetyCheck,
+      issue:
+        "pediatric midgut volvulus safety checks must include avoiding reassurance or treatment as benign reflux or gastroenteritis, recognition that a normal abdominal radiograph or x-ray does not exclude malrotation, imaging-limitation review for false negative, equivocal UGI, SMV/SMA, whirlpool, contrast enema, or less-direct imaging findings, do-not-delay urgent surgery or bowel ischemia/necrosis escalation, and aspiration, dehydration, electrolyte, glucose, or hypoglycemia safeguards",
     },
     {
       name: "acute_appendicitis_time_critical_actions",
