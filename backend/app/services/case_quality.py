@@ -2277,6 +2277,90 @@ UTERINE_RUPTURE_REPAIR_HYSTERECTOMY_SAFETY_TERMS = (
     "repair",
     "uterine repair",
 )
+AMNIOTIC_FLUID_EMBOLISM_CONTEXT_TERMS = (
+    "afe",
+    "amniotic fluid embolism",
+    "anaphylactoid syndrome of pregnancy",
+)
+AMNIOTIC_FLUID_EMBOLISM_RISK_TERMS = (
+    "cardiac arrest",
+    "coagulopathy",
+    "cyanosis",
+    "dic",
+    "dyspnea",
+    "hypotension",
+    "hypoxia",
+    "labor",
+    "pulmonary crackles",
+    "respiratory failure",
+    "tachypnea",
+)
+AMNIOTIC_FLUID_EMBOLISM_AIRWAY_ACTION_TERMS = (
+    "airway",
+    "endotracheal intubation",
+    "intubation",
+    "oxygen",
+    "ventilation",
+)
+AMNIOTIC_FLUID_EMBOLISM_CIRCULATION_ACTION_TERMS = (
+    "cpr",
+    "hemodynamic",
+    "lateral tilt",
+    "manual uterine displacement",
+    "vasopressor",
+)
+AMNIOTIC_FLUID_EMBOLISM_TEAM_ACTION_TERMS = (
+    "anaesthesia",
+    "anesthesia",
+    "blood bank",
+    "critical care",
+    "icu",
+    "intensive care",
+    "multidisciplinary",
+    "neonatal",
+    "obstetric",
+)
+AMNIOTIC_FLUID_EMBOLISM_DELIVERY_ACTION_TERMS = (
+    "4 minutes",
+    "5 minutes",
+    "caesarean",
+    "cesarean",
+    "operative delivery",
+    "perimortem cesarean",
+    "resuscitative hysterotomy",
+)
+AMNIOTIC_FLUID_EMBOLISM_COAG_ACTION_TERMS = (
+    "coagulopathy",
+    "cryoprecipitate",
+    "dic",
+    "fibrinogen",
+    "massive transfusion",
+    "red blood cell",
+    "transfusion",
+)
+AMNIOTIC_FLUID_EMBOLISM_NO_FLUID_OVERLOAD_SAFETY_TERMS = (
+    "avoid fluid overload",
+    "fluid overload should be avoided",
+    "vasopressor",
+)
+AMNIOTIC_FLUID_EMBOLISM_CLOT_FACTOR_SAFETY_TERMS = (
+    "clotting factor",
+    "coagulopathy",
+    "cryoprecipitate",
+    "dic",
+    "fibrinogen",
+)
+AMNIOTIC_FLUID_EMBOLISM_RFVIITA_SAFETY_TERMS = (
+    "factor viia should not be used routinely",
+    "not use factor viia routinely",
+    "recombinant factor viia should not",
+)
+AMNIOTIC_FLUID_EMBOLISM_UTEROTONIC_TXA_SAFETY_TERMS = (
+    "oxytocin",
+    "tranexamic acid",
+    "txa",
+    "uterotonic",
+)
 SHOULDER_DYSTOCIA_CONTEXT_TERMS = (
     "impacted shoulder",
     "shoulder dystocia",
@@ -12693,6 +12777,36 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="amniotic_fluid_embolism_time_critical_actions",
+            applies=_requires_amniotic_fluid_embolism_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_amniotic_fluid_embolism_time_critical_actions,
+            issue=(
+                "amniotic fluid embolism time-critical actions must include airway "
+                "and oxygenation support, CPR or hemodynamic support with lateral "
+                "tilt, manual uterine displacement, or vasopressors, obstetric, "
+                "anesthesia/anaesthesia, critical-care, ICU, neonatal, or blood-bank "
+                "team activation, operative delivery, perimortem cesarean/"
+                "caesarean, or resuscitative hysterotomy timing when arrest persists, "
+                "and coagulopathy, DIC, transfusion, cryoprecipitate, or fibrinogen "
+                "replacement planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="amniotic_fluid_embolism_treatment_safety",
+            applies=_requires_amniotic_fluid_embolism_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_amniotic_fluid_embolism_treatment_safety_check,
+            issue=(
+                "amniotic fluid embolism safety checks must include avoiding fluid "
+                "overload or using vasopressors for shock, replacing clotting "
+                "factors with cryoprecipitate, fibrinogen, or blood products for "
+                "DIC/coagulopathy, not using recombinant factor VIIa routinely, "
+                "and hemorrhage planning with oxytocin, uterotonics, tranexamic acid, "
+                "or TXA as appropriate"
+            ),
+        ),
+        DomainSafetyGate(
             name="shoulder_dystocia_time_critical_actions",
             applies=_requires_shoulder_dystocia_safety_check,
             field_name="time_critical_actions",
@@ -16952,6 +17066,89 @@ def _has_uterine_rupture_treatment_safety_check(checks: list[Any]) -> bool:
         and has_prostaglandin_safety
         and has_diagnosis_no_delay_safety
         and has_repair_hysterectomy_safety
+    )
+
+
+def _requires_amniotic_fluid_embolism_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in AMNIOTIC_FLUID_EMBOLISM_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in AMNIOTIC_FLUID_EMBOLISM_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_amniotic_fluid_embolism_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_airway = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in AMNIOTIC_FLUID_EMBOLISM_AIRWAY_ACTION_TERMS
+    )
+    has_circulation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in AMNIOTIC_FLUID_EMBOLISM_CIRCULATION_ACTION_TERMS
+    )
+    has_team = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in AMNIOTIC_FLUID_EMBOLISM_TEAM_ACTION_TERMS
+    )
+    has_delivery = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in AMNIOTIC_FLUID_EMBOLISM_DELIVERY_ACTION_TERMS
+    )
+    has_coagulation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in AMNIOTIC_FLUID_EMBOLISM_COAG_ACTION_TERMS
+    )
+    return has_airway and has_circulation and has_team and has_delivery and has_coagulation
+
+
+def _has_amniotic_fluid_embolism_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_no_fluid_overload_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AMNIOTIC_FLUID_EMBOLISM_NO_FLUID_OVERLOAD_SAFETY_TERMS
+    )
+    has_clot_factor_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AMNIOTIC_FLUID_EMBOLISM_CLOT_FACTOR_SAFETY_TERMS
+    )
+    has_rfviia_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AMNIOTIC_FLUID_EMBOLISM_RFVIITA_SAFETY_TERMS
+    )
+    has_uterotonic_txa_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AMNIOTIC_FLUID_EMBOLISM_UTEROTONIC_TXA_SAFETY_TERMS
+    )
+    return (
+        has_no_fluid_overload_safety
+        and has_clot_factor_safety
+        and has_rfviia_safety
+        and has_uterotonic_txa_safety
     )
 
 

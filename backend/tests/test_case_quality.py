@@ -83,6 +83,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "vasa_previa_treatment_safety",
         "uterine_rupture_time_critical_actions",
         "uterine_rupture_treatment_safety",
+        "amniotic_fluid_embolism_time_critical_actions",
+        "amniotic_fluid_embolism_treatment_safety",
         "shoulder_dystocia_time_critical_actions",
         "shoulder_dystocia_treatment_safety",
         "severe_preeclampsia_time_critical_actions",
@@ -2693,6 +2695,142 @@ def test_quality_gate_requires_uterine_rupture_labor_prostaglandin_no_delay_and_
     assert not report.passed
     assert any(
         "uterine rupture safety checks must include stopping labor"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_amniotic_fluid_embolism_airway_hemodynamic_delivery_and_coagulation_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Amniotic fluid embolism"
+    case["patient_demographics"] = {
+        "age": 35,
+        "sex": "female",
+        "weight_kg": 76,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden dyspnea, hypotension, and DIC during delivery"
+    case["history_of_present_illness"] = (
+        "During labor and delivery, patient suddenly develops dyspnea, cyanosis, "
+        "hypoxia, tachypnea, hypotension, tachycardia, pulmonary crackles, "
+        "respiratory failure, DIC, coagulopathy, and concern for amniotic fluid "
+        "embolism with possible cardiac arrest."
+    )
+    case["key_teaching_points"] = [
+        "Amniotic fluid embolism is a clinical syndrome of hypoxia, hypotension, and coagulopathy",
+        "AFE can cause sudden respiratory failure, cardiac arrest, DIC, and high mortality",
+        "Management requires immediate respiratory, hemodynamic, delivery, and coagulation support",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden dyspnea, hypoxia, hypotension, tachycardia, and pulmonary crackles during labor",
+        "DIC, coagulopathy, cardiac arrest, or rapidly worsening respiratory failure",
+    ]
+    case["time_critical_actions"] = [
+        "Order chest imaging and observe response",
+        "Reassess after delivery if symptoms persist",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid fluid overload and use vasopressors as needed for hemodynamic support",
+        "Replace clotting factors with cryoprecipitate, fibrinogen, and blood products for DIC and coagulopathy",
+        "Do not use recombinant factor VIIa routinely; reserve factor VIIa only for persistent heavy bleeding despite other clotting factors",
+        "Give oxytocin or other uterotonics for atony/hemorrhage and consider tranexamic acid TXA for hemorrhage",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Amniotic Fluid Embolism",
+            "organization": "MSD Manual Professional Edition",
+            "url": "https://www.msdmanuals.com/professional/gynecology-and-obstetrics/intrapartum-complications/amniotic-fluid-embolism",
+            "supports": [
+                "amniotic fluid embolism diagnosis and risk stratification",
+                "amniotic fluid embolism is a clinical syndrome of hypoxia, hypotension, and coagulopathy",
+                "AFE can cause sudden respiratory failure, cardiac arrest, DIC, and high mortality",
+                "management requires immediate respiratory, hemodynamic, delivery, and coagulation support",
+                "sudden dyspnea, hypoxia, hypotension, tachycardia, and pulmonary crackles during labor",
+                "DIC, coagulopathy, cardiac arrest, or rapidly worsening respiratory failure",
+                "chest imaging and observation response",
+                "reassessment after delivery if symptoms persist",
+                "avoid fluid overload and use vasopressors as needed for hemodynamic support",
+                "replace clotting factors with cryoprecipitate, fibrinogen, and blood products for DIC and coagulopathy",
+                "do not use recombinant factor VIIa routinely",
+                "oxytocin, uterotonics, tranexamic acid, and TXA for hemorrhage",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "amniotic fluid embolism time-critical actions must include airway"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_amniotic_fluid_embolism_fluid_coag_factor_viia_and_hemorrhage_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Amniotic fluid embolism with cardiac arrest"
+    case["patient_demographics"] = {
+        "age": 35,
+        "sex": "female",
+        "weight_kg": 76,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden dyspnea, hypotension, and DIC during delivery"
+    case["history_of_present_illness"] = (
+        "During labor and delivery, patient suddenly develops dyspnea, cyanosis, "
+        "hypoxia, tachypnea, hypotension, tachycardia, pulmonary crackles, "
+        "respiratory failure, DIC, coagulopathy, and concern for amniotic fluid "
+        "embolism with possible cardiac arrest."
+    )
+    case["key_teaching_points"] = [
+        "Amniotic fluid embolism is a clinical syndrome of hypoxia, hypotension, and coagulopathy",
+        "AFE can cause sudden respiratory failure, cardiac arrest, DIC, and high mortality",
+        "Management requires immediate respiratory, hemodynamic, delivery, and coagulation support",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden dyspnea, hypoxia, hypotension, tachycardia, and pulmonary crackles during labor",
+        "DIC, coagulopathy, cardiac arrest, or rapidly worsening respiratory failure",
+    ]
+    case["time_critical_actions"] = [
+        "Secure airway with oxygen, endotracheal intubation, and ventilation for respiratory arrest or failure",
+        "Start CPR if needed, monitor heart rate, use lateral tilt or manual uterine displacement, and give vasopressors for hemodynamic support",
+        "Activate obstetric, anesthesia, critical care, ICU, neonatal, and blood bank teams",
+        "If cardiac arrest persists, prepare perimortem cesarean or resuscitative hysterotomy at 4 minutes with delivery by 5 minutes for viable fetus",
+        "Prepare red blood cell transfusion, cryoprecipitate, fibrinogen, and massive transfusion for DIC coagulopathy",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before anesthesia",
+        "Pregnancy status already confirmed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Amniotic Fluid Embolism",
+            "organization": "MSD Manual Professional Edition",
+            "url": "https://www.msdmanuals.com/professional/gynecology-and-obstetrics/intrapartum-complications/amniotic-fluid-embolism",
+            "supports": [
+                "amniotic fluid embolism with cardiac arrest diagnosis and risk stratification",
+                "amniotic fluid embolism is a clinical syndrome of hypoxia, hypotension, and coagulopathy",
+                "AFE can cause sudden respiratory failure, cardiac arrest, DIC, and high mortality",
+                "management requires immediate respiratory, hemodynamic, delivery, and coagulation support",
+                "sudden dyspnea, hypoxia, hypotension, tachycardia, and pulmonary crackles during labor",
+                "DIC, coagulopathy, cardiac arrest, or rapidly worsening respiratory failure",
+                "airway with oxygen, endotracheal intubation, and ventilation for respiratory arrest or failure",
+                "CPR, heart rate monitoring, lateral tilt, manual uterine displacement, and vasopressors for hemodynamic support",
+                "obstetric, anesthesia, critical care, ICU, neonatal, and blood bank teams",
+                "perimortem cesarean or resuscitative hysterotomy at 4 minutes with delivery by 5 minutes for viable fetus",
+                "red blood cell transfusion, cryoprecipitate, fibrinogen, and massive transfusion for DIC coagulopathy",
+                "medication allergy before anesthesia",
+                "pregnancy status already confirmed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "amniotic fluid embolism safety checks must include avoiding fluid overload"
         in issue
         for issue in report.critical_issues
     )

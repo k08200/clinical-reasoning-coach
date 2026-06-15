@@ -2465,6 +2465,101 @@ const UTERINE_RUPTURE_REPAIR_HYSTERECTOMY_SAFETY_TERMS = [
   "uterine repair",
 ];
 
+const AMNIOTIC_FLUID_EMBOLISM_CONTEXT_TERMS = [
+  "afe",
+  "amniotic fluid embolism",
+  "anaphylactoid syndrome of pregnancy",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_RISK_TERMS = [
+  "cardiac arrest",
+  "coagulopathy",
+  "cyanosis",
+  "dic",
+  "dyspnea",
+  "hypotension",
+  "hypoxia",
+  "labor",
+  "pulmonary crackles",
+  "respiratory failure",
+  "tachypnea",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_AIRWAY_ACTION_TERMS = [
+  "airway",
+  "endotracheal intubation",
+  "intubation",
+  "oxygen",
+  "ventilation",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_CIRCULATION_ACTION_TERMS = [
+  "cpr",
+  "hemodynamic",
+  "lateral tilt",
+  "manual uterine displacement",
+  "vasopressor",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_TEAM_ACTION_TERMS = [
+  "anaesthesia",
+  "anesthesia",
+  "blood bank",
+  "critical care",
+  "icu",
+  "intensive care",
+  "multidisciplinary",
+  "neonatal",
+  "obstetric",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_DELIVERY_ACTION_TERMS = [
+  "4 minutes",
+  "5 minutes",
+  "caesarean",
+  "cesarean",
+  "operative delivery",
+  "perimortem cesarean",
+  "resuscitative hysterotomy",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_COAG_ACTION_TERMS = [
+  "coagulopathy",
+  "cryoprecipitate",
+  "dic",
+  "fibrinogen",
+  "massive transfusion",
+  "red blood cell",
+  "transfusion",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_NO_FLUID_OVERLOAD_SAFETY_TERMS = [
+  "avoid fluid overload",
+  "fluid overload should be avoided",
+  "vasopressor",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_CLOT_FACTOR_SAFETY_TERMS = [
+  "clotting factor",
+  "coagulopathy",
+  "cryoprecipitate",
+  "dic",
+  "fibrinogen",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_RFVIITA_SAFETY_TERMS = [
+  "factor viia should not be used routinely",
+  "not use factor viia routinely",
+  "recombinant factor viia should not",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_UTEROTONIC_TXA_SAFETY_TERMS = [
+  "oxytocin",
+  "tranexamic acid",
+  "txa",
+  "uterotonic",
+];
+
 const SHOULDER_DYSTOCIA_CONTEXT_TERMS = [
   "impacted shoulder",
   "shoulder dystocia",
@@ -14233,6 +14328,77 @@ function hasUterineRuptureTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresAmnioticFluidEmbolismSafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = AMNIOTIC_FLUID_EMBOLISM_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = AMNIOTIC_FLUID_EMBOLISM_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasAmnioticFluidEmbolismTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAirway = AMNIOTIC_FLUID_EMBOLISM_AIRWAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCirculation = AMNIOTIC_FLUID_EMBOLISM_CIRCULATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTeam = AMNIOTIC_FLUID_EMBOLISM_TEAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDelivery = AMNIOTIC_FLUID_EMBOLISM_DELIVERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCoagulation = AMNIOTIC_FLUID_EMBOLISM_COAG_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAirway && hasCirculation && hasTeam && hasDelivery && hasCoagulation;
+}
+
+function hasAmnioticFluidEmbolismTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNoFluidOverloadSafety =
+    AMNIOTIC_FLUID_EMBOLISM_NO_FLUID_OVERLOAD_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasClotFactorSafety = AMNIOTIC_FLUID_EMBOLISM_CLOT_FACTOR_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRfviiaSafety = AMNIOTIC_FLUID_EMBOLISM_RFVIITA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasUterotonicTxaSafety =
+    AMNIOTIC_FLUID_EMBOLISM_UTEROTONIC_TXA_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasNoFluidOverloadSafety &&
+    hasClotFactorSafety &&
+    hasRfviiaSafety &&
+    hasUterotonicTxaSafety
+  );
+}
+
 function requiresShoulderDystociaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -20730,6 +20896,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasUterineRuptureTreatmentSafetyCheck,
       issue:
         "uterine rupture safety checks must include stopping labor, TOLAC/VBAC, oxytocin, or trial of labor when rupture is suspected, avoiding prostaglandins such as misoprostol in prior-cesarean vaginal-birth attempts, not delaying laparotomy for imaging when rupture is suspected, and repair, hysterectomy, bladder-laceration, or hemorrhage contingency planning",
+    },
+    {
+      name: "amniotic_fluid_embolism_time_critical_actions",
+      label: "Amniotic fluid embolism resuscitation actions",
+      applies: requiresAmnioticFluidEmbolismSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAmnioticFluidEmbolismTimeCriticalActions,
+      issue:
+        "amniotic fluid embolism time-critical actions must include airway and oxygenation support, CPR or hemodynamic support with lateral tilt, manual uterine displacement, or vasopressors, obstetric, anesthesia/anaesthesia, critical-care, ICU, neonatal, or blood-bank team activation, operative delivery, perimortem cesarean/caesarean, or resuscitative hysterotomy timing when arrest persists, and coagulopathy, DIC, transfusion, cryoprecipitate, or fibrinogen replacement planning",
+    },
+    {
+      name: "amniotic_fluid_embolism_treatment_safety",
+      label: "Amniotic fluid embolism treatment safety",
+      applies: requiresAmnioticFluidEmbolismSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasAmnioticFluidEmbolismTreatmentSafetyCheck,
+      issue:
+        "amniotic fluid embolism safety checks must include avoiding fluid overload or using vasopressors for shock, replacing clotting factors with cryoprecipitate, fibrinogen, or blood products for DIC/coagulopathy, not using recombinant factor VIIa routinely, and hemorrhage planning with oxytocin, uterotonics, tranexamic acid, or TXA as appropriate",
     },
     {
       name: "shoulder_dystocia_time_critical_actions",
