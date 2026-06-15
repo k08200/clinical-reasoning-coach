@@ -2385,6 +2385,86 @@ const VASA_PREVIA_PROCEDURE_AVOIDANCE_SAFETY_TERMS = [
   "no amniotomy",
 ];
 
+const UTERINE_RUPTURE_CONTEXT_TERMS = [
+  "ruptured uterus",
+  "uterine rupture",
+  "uterine scar dehiscence",
+];
+
+const UTERINE_RUPTURE_RISK_TERMS = [
+  "fetal bradycardia",
+  "hypovolemia",
+  "loss of fetal station",
+  "myomectomy",
+  "previous cesarean",
+  "prior cesarean",
+  "severe abdominal pain",
+  "tolac",
+  "vbac",
+  "variable decelerations",
+];
+
+const UTERINE_RUPTURE_FETAL_MATERNAL_ACTION_TERMS = [
+  "continuous fetal",
+  "fetal bradycardia",
+  "fetal heart",
+  "fetal monitoring",
+  "maternal resuscitation",
+  "shock",
+];
+
+const UTERINE_RUPTURE_TEAM_ACTION_TERMS = [
+  "anaesthesia",
+  "anesthesia",
+  "blood bank",
+  "neonatal",
+  "obstetric",
+  "surgical team",
+];
+
+const UTERINE_RUPTURE_LAPAROTOMY_DELIVERY_ACTION_TERMS = [
+  "cesarean",
+  "caesarean",
+  "emergency delivery",
+  "immediate laparotomy",
+  "laparotomy",
+];
+
+const UTERINE_RUPTURE_HEMORRHAGE_ACTION_TERMS = [
+  "crossmatch",
+  "hemorrhage",
+  "massive transfusion",
+  "transfusion",
+];
+
+const UTERINE_RUPTURE_NO_LABOR_SAFETY_TERMS = [
+  "do not continue labor",
+  "stop labor",
+  "stop oxytocin",
+  "stop tolac",
+  "stop trial of labor",
+];
+
+const UTERINE_RUPTURE_PROSTAGLANDIN_SAFETY_TERMS = [
+  "avoid prostaglandin",
+  "misoprostol",
+  "prostaglandins should not",
+];
+
+const UTERINE_RUPTURE_DIAGNOSIS_NO_DELAY_SAFETY_TERMS = [
+  "diagnosis by laparotomy",
+  "do not delay laparotomy",
+  "laparotomy confirms",
+  "no imaging delay",
+];
+
+const UTERINE_RUPTURE_REPAIR_HYSTERECTOMY_SAFETY_TERMS = [
+  "bladder laceration",
+  "hysterectomy",
+  "repair",
+  "uterine repair",
+];
+
 const SHOULDER_DYSTOCIA_CONTEXT_TERMS = [
   "impacted shoulder",
   "shoulder dystocia",
@@ -14088,6 +14168,71 @@ function hasVasaPreviaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresUterineRuptureSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = UTERINE_RUPTURE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = UTERINE_RUPTURE_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasUterineRuptureTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasFetalMaternalAssessment = UTERINE_RUPTURE_FETAL_MATERNAL_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTeam = UTERINE_RUPTURE_TEAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLaparotomyDelivery = UTERINE_RUPTURE_LAPAROTOMY_DELIVERY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHemorrhage = UTERINE_RUPTURE_HEMORRHAGE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasFetalMaternalAssessment && hasTeam && hasLaparotomyDelivery && hasHemorrhage;
+}
+
+function hasUterineRuptureTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNoLaborSafety = UTERINE_RUPTURE_NO_LABOR_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasProstaglandinSafety = UTERINE_RUPTURE_PROSTAGLANDIN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDiagnosisNoDelaySafety = UTERINE_RUPTURE_DIAGNOSIS_NO_DELAY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRepairHysterectomySafety =
+    UTERINE_RUPTURE_REPAIR_HYSTERECTOMY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasNoLaborSafety &&
+    hasProstaglandinSafety &&
+    hasDiagnosisNoDelaySafety &&
+    hasRepairHysterectomySafety
+  );
+}
+
 function requiresShoulderDystociaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -20567,6 +20712,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasVasaPreviaTreatmentSafetyCheck,
       issue:
         "vasa previa safety checks must include not delaying delivery for antenatal corticosteroids or fetal lung maturity testing when active hemorrhage or delivery indication is present, stable vasa previa delivery planning at 34-37 weeks or before labor/rupture, antenatal corticosteroid criteria for expectant late preterm management if delivery is likely within 7 days, and avoidance of amniotomy, fetal scalp electrode, membrane rupture, labor, or vaginal delivery when unprotected fetal vessels are at risk",
+    },
+    {
+      name: "uterine_rupture_time_critical_actions",
+      label: "Uterine rupture emergency actions",
+      applies: requiresUterineRuptureSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasUterineRuptureTimeCriticalActions,
+      issue:
+        "uterine rupture time-critical actions must include immediate fetal and maternal assessment or resuscitation, obstetric, anaesthesia/anesthesia, neonatal, surgical, or blood-bank activation, emergency laparotomy with cesarean/caesarean delivery planning, and hemorrhage or transfusion preparation",
+    },
+    {
+      name: "uterine_rupture_treatment_safety",
+      label: "Uterine rupture labor and operative safety",
+      applies: requiresUterineRuptureSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasUterineRuptureTreatmentSafetyCheck,
+      issue:
+        "uterine rupture safety checks must include stopping labor, TOLAC/VBAC, oxytocin, or trial of labor when rupture is suspected, avoiding prostaglandins such as misoprostol in prior-cesarean vaginal-birth attempts, not delaying laparotomy for imaging when rupture is suspected, and repair, hysterectomy, bladder-laceration, or hemorrhage contingency planning",
     },
     {
       name: "shoulder_dystocia_time_critical_actions",

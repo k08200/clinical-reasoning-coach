@@ -2207,6 +2207,76 @@ VASA_PREVIA_PROCEDURE_AVOIDANCE_SAFETY_TERMS = (
     "fetal scalp electrode",
     "no amniotomy",
 )
+UTERINE_RUPTURE_CONTEXT_TERMS = (
+    "ruptured uterus",
+    "uterine rupture",
+    "uterine scar dehiscence",
+)
+UTERINE_RUPTURE_RISK_TERMS = (
+    "fetal bradycardia",
+    "hypovolemia",
+    "loss of fetal station",
+    "myomectomy",
+    "previous cesarean",
+    "prior cesarean",
+    "severe abdominal pain",
+    "tolac",
+    "vbac",
+    "variable decelerations",
+)
+UTERINE_RUPTURE_FETAL_MATERNAL_ACTION_TERMS = (
+    "continuous fetal",
+    "fetal bradycardia",
+    "fetal heart",
+    "fetal monitoring",
+    "maternal resuscitation",
+    "shock",
+)
+UTERINE_RUPTURE_TEAM_ACTION_TERMS = (
+    "anaesthesia",
+    "anesthesia",
+    "blood bank",
+    "neonatal",
+    "obstetric",
+    "surgical team",
+)
+UTERINE_RUPTURE_LAPAROTOMY_DELIVERY_ACTION_TERMS = (
+    "cesarean",
+    "caesarean",
+    "emergency delivery",
+    "immediate laparotomy",
+    "laparotomy",
+)
+UTERINE_RUPTURE_HEMORRHAGE_ACTION_TERMS = (
+    "crossmatch",
+    "hemorrhage",
+    "massive transfusion",
+    "transfusion",
+)
+UTERINE_RUPTURE_NO_LABOR_SAFETY_TERMS = (
+    "do not continue labor",
+    "stop labor",
+    "stop oxytocin",
+    "stop tolac",
+    "stop trial of labor",
+)
+UTERINE_RUPTURE_PROSTAGLANDIN_SAFETY_TERMS = (
+    "avoid prostaglandin",
+    "misoprostol",
+    "prostaglandins should not",
+)
+UTERINE_RUPTURE_DIAGNOSIS_NO_DELAY_SAFETY_TERMS = (
+    "diagnosis by laparotomy",
+    "do not delay laparotomy",
+    "laparotomy confirms",
+    "no imaging delay",
+)
+UTERINE_RUPTURE_REPAIR_HYSTERECTOMY_SAFETY_TERMS = (
+    "bladder laceration",
+    "hysterectomy",
+    "repair",
+    "uterine repair",
+)
 SHOULDER_DYSTOCIA_CONTEXT_TERMS = (
     "impacted shoulder",
     "shoulder dystocia",
@@ -12596,6 +12666,33 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="uterine_rupture_time_critical_actions",
+            applies=_requires_uterine_rupture_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_uterine_rupture_time_critical_actions,
+            issue=(
+                "uterine rupture time-critical actions must include immediate "
+                "fetal and maternal assessment or resuscitation, obstetric, "
+                "anaesthesia/anesthesia, neonatal, surgical, or blood-bank "
+                "activation, emergency laparotomy with cesarean/caesarean "
+                "delivery planning, and hemorrhage or transfusion preparation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="uterine_rupture_treatment_safety",
+            applies=_requires_uterine_rupture_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_uterine_rupture_treatment_safety_check,
+            issue=(
+                "uterine rupture safety checks must include stopping labor, "
+                "TOLAC/VBAC, oxytocin, or trial of labor when rupture is suspected, "
+                "avoiding prostaglandins such as misoprostol in prior-cesarean "
+                "vaginal-birth attempts, not delaying laparotomy for imaging when "
+                "rupture is suspected, and repair, hysterectomy, bladder-laceration, "
+                "or hemorrhage contingency planning"
+            ),
+        ),
+        DomainSafetyGate(
             name="shoulder_dystocia_time_critical_actions",
             applies=_requires_shoulder_dystocia_safety_check,
             field_name="time_critical_actions",
@@ -16771,6 +16868,90 @@ def _has_vasa_previa_treatment_safety_check(checks: list[Any]) -> bool:
         and has_delivery_timing_safety
         and has_steroid_expectant_safety
         and has_procedure_avoidance_safety
+    )
+
+
+def _requires_uterine_rupture_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in UTERINE_RUPTURE_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in UTERINE_RUPTURE_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_uterine_rupture_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_fetal_maternal_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UTERINE_RUPTURE_FETAL_MATERNAL_ACTION_TERMS
+    )
+    has_team = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UTERINE_RUPTURE_TEAM_ACTION_TERMS
+    )
+    has_laparotomy_delivery = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UTERINE_RUPTURE_LAPAROTOMY_DELIVERY_ACTION_TERMS
+    )
+    has_hemorrhage = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UTERINE_RUPTURE_HEMORRHAGE_ACTION_TERMS
+    )
+    return (
+        has_fetal_maternal_assessment
+        and has_team
+        and has_laparotomy_delivery
+        and has_hemorrhage
+    )
+
+
+def _has_uterine_rupture_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_no_labor_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UTERINE_RUPTURE_NO_LABOR_SAFETY_TERMS
+    )
+    has_prostaglandin_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UTERINE_RUPTURE_PROSTAGLANDIN_SAFETY_TERMS
+    )
+    has_diagnosis_no_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UTERINE_RUPTURE_DIAGNOSIS_NO_DELAY_SAFETY_TERMS
+    )
+    has_repair_hysterectomy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UTERINE_RUPTURE_REPAIR_HYSTERECTOMY_SAFETY_TERMS
+    )
+    return (
+        has_no_labor_safety
+        and has_prostaglandin_safety
+        and has_diagnosis_no_delay_safety
+        and has_repair_hysterectomy_safety
     )
 
 

@@ -4190,6 +4190,118 @@
     }
   },
   {
+    "name": "uterine_rupture_requires_fetal_maternal_laparotomy_and_transfusion_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "uterine rupture time-critical actions must include immediate fetal"
+    ],
+    "overrides": {
+      "diagnosis": "Suspected uterine rupture during TOLAC",
+      "patient_demographics": {
+        "age": 33,
+        "sex": "female",
+        "weight_kg": 78,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Severe abdominal pain and fetal bradycardia during labor",
+      "history_of_present_illness": "Pregnant patient attempting VBAC after prior cesarean develops sudden severe constant abdominal pain during TOLAC with fetal bradycardia, variable decelerations, loss of fetal station, vaginal bleeding, hypotension, tachycardia, and concern for uterine rupture with maternal hemorrhage.",
+      "key_teaching_points": [
+        "Uterine rupture after prior cesarean can cause maternal hemorrhage and fetal compromise",
+        "Fetal bradycardia, loss of fetal station, hypovolemia, and severe abdominal pain are red flags",
+        "Treatment is immediate laparotomy with cesarean delivery and hysterectomy if necessary"
+      ],
+      "clinical_red_flags": [
+        "Fetal bradycardia with variable decelerations during TOLAC",
+        "Loss of fetal station, severe constant abdominal pain, and hypovolemia"
+      ],
+      "time_critical_actions": [
+        "Repeat cervical exam and continue observation",
+        "Prepare routine vaginal delivery if labor progresses"
+      ],
+      "contraindication_checks": [
+        "Stop TOLAC and stop oxytocin; do not continue labor when uterine rupture is suspected",
+        "Avoid prostaglandin induction such as misoprostol because prostaglandins should not be used in prior-cesarean vaginal-birth attempts",
+        "Diagnosis by laparotomy; do not delay laparotomy for ultrasound or other imaging when rupture is suspected",
+        "Prepare uterine repair or hysterectomy and assess bladder laceration and hemorrhage contingencies"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Uterine Rupture",
+          "organization": "MSD Manual Professional Edition",
+          "url": "https://www.msdmanuals.com/professional/gynecology-and-obstetrics/intrapartum-complications/uterine-rupture",
+          "supports": [
+            "suspected uterine rupture during TOLAC diagnosis and risk stratification",
+            "uterine rupture after prior cesarean can cause maternal hemorrhage and fetal compromise",
+            "fetal bradycardia, loss of fetal station, hypovolemia, and severe abdominal pain are red flags",
+            "treatment is immediate laparotomy with cesarean delivery and hysterectomy if necessary",
+            "repeat cervical exam and continue observation",
+            "routine vaginal delivery if labor progresses",
+            "stop TOLAC and stop oxytocin; do not continue labor when uterine rupture is suspected",
+            "avoid prostaglandin induction such as misoprostol because prostaglandins should not be used in prior-cesarean vaginal-birth attempts",
+            "diagnosis by laparotomy and do not delay laparotomy for ultrasound or other imaging when rupture is suspected",
+            "uterine repair or hysterectomy and bladder laceration and hemorrhage contingencies"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "uterine_rupture_requires_labor_prostaglandin_no_delay_and_repair_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "uterine rupture safety checks must include stopping labor"
+    ],
+    "overrides": {
+      "diagnosis": "Suspected uterine rupture during VBAC attempt",
+      "patient_demographics": {
+        "age": 33,
+        "sex": "female",
+        "weight_kg": 78,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Severe abdominal pain and fetal bradycardia during labor",
+      "history_of_present_illness": "Pregnant patient attempting VBAC after prior cesarean develops sudden severe constant abdominal pain during TOLAC with fetal bradycardia, variable decelerations, loss of fetal station, vaginal bleeding, hypotension, tachycardia, and concern for uterine rupture with maternal hemorrhage.",
+      "key_teaching_points": [
+        "Uterine rupture after prior cesarean can cause maternal hemorrhage and fetal compromise",
+        "Fetal bradycardia, loss of fetal station, hypovolemia, and severe abdominal pain are red flags",
+        "Treatment is immediate laparotomy with cesarean delivery and hysterectomy if necessary"
+      ],
+      "clinical_red_flags": [
+        "Fetal bradycardia with variable decelerations during TOLAC",
+        "Loss of fetal station, severe constant abdominal pain, and hypovolemia"
+      ],
+      "time_critical_actions": [
+        "Start continuous fetal monitoring and maternal resuscitation for shock",
+        "Activate obstetric, anesthesia, neonatal, surgical team, and blood bank support",
+        "Move for immediate laparotomy with emergency cesarean delivery",
+        "Prepare crossmatch, massive transfusion, and hemorrhage protocol"
+      ],
+      "contraindication_checks": [
+        "Medication allergy before anesthesia",
+        "Pregnancy status already confirmed"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Uterine Rupture",
+          "organization": "MSD Manual Professional Edition",
+          "url": "https://www.msdmanuals.com/professional/gynecology-and-obstetrics/intrapartum-complications/uterine-rupture",
+          "supports": [
+            "suspected uterine rupture during VBAC attempt diagnosis and risk stratification",
+            "uterine rupture after prior cesarean can cause maternal hemorrhage and fetal compromise",
+            "fetal bradycardia, loss of fetal station, hypovolemia, and severe abdominal pain are red flags",
+            "treatment is immediate laparotomy with cesarean delivery and hysterectomy if necessary",
+            "continuous fetal monitoring and maternal resuscitation for shock",
+            "obstetric, anesthesia, neonatal, surgical team, and blood bank support",
+            "immediate laparotomy with emergency cesarean delivery",
+            "crossmatch, massive transfusion, and hemorrhage protocol",
+            "medication allergy before anesthesia",
+            "pregnancy status already confirmed"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "shoulder_dystocia_requires_traction_episiotomy_injury_and_documentation_safety",
     "expected_passed": false,
     "expected_issue_substrings": [
