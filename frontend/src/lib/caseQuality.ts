@@ -2301,6 +2301,90 @@ const UMBILICAL_CORD_PROLAPSE_NEONATAL_SAFETY_TERMS = [
   "paired cord blood",
 ];
 
+const VASA_PREVIA_CONTEXT_TERMS = [
+  "fetal vessels",
+  "unprotected fetal vessels",
+  "vasa praevia",
+  "vasa previa",
+  "velamentous cord",
+];
+
+const VASA_PREVIA_RISK_TERMS = [
+  "active hemorrhage",
+  "fetal bradycardia",
+  "fetal hemorrhage",
+  "late preterm bleeding",
+  "painless bleeding",
+  "ruptured membranes",
+  "sudden bleeding",
+  "vaginal bleeding",
+];
+
+const VASA_PREVIA_FETAL_ASSESSMENT_ACTION_TERMS = [
+  "continuous fetal",
+  "fetal heart",
+  "fetal monitoring",
+  "fetal status",
+];
+
+const VASA_PREVIA_TEAM_BLOOD_ACTION_TERMS = [
+  "anaesthesia",
+  "anesthesia",
+  "blood bank",
+  "mfm",
+  "neonatal",
+  "obstetric",
+];
+
+const VASA_PREVIA_DELIVERY_ACTION_TERMS = [
+  "cesarean",
+  "caesarean",
+  "delivery",
+  "immediate birth",
+  "urgent birth",
+];
+
+const VASA_PREVIA_NEONATAL_BLOOD_ACTION_TERMS = [
+  "neonatal resuscitation",
+  "newborn resuscitation",
+  "packed red",
+  "transfusion",
+];
+
+const VASA_PREVIA_NO_DELAY_SAFETY_TERMS = [
+  "do not delay delivery",
+  "delivery should not be delayed",
+  "fetal lung maturity testing should not",
+  "not delay delivery",
+];
+
+const VASA_PREVIA_DELIVERY_TIMING_SAFETY_TERMS = [
+  "34 and 37",
+  "34-37",
+  "before labor",
+  "before labour",
+  "before rupture",
+  "cesarean",
+  "caesarean",
+];
+
+const VASA_PREVIA_STEROID_EXPECTANT_SAFETY_TERMS = [
+  "34 0/7",
+  "36 6/7",
+  "antenatal corticosteroids",
+  "betamethasone",
+  "within 7 days",
+];
+
+const VASA_PREVIA_PROCEDURE_AVOIDANCE_SAFETY_TERMS = [
+  "avoid amniotomy",
+  "avoid fetal scalp",
+  "avoid vaginal delivery",
+  "do not rupture membranes",
+  "fetal scalp electrode",
+  "no amniotomy",
+];
+
 const SHOULDER_DYSTOCIA_CONTEXT_TERMS = [
   "impacted shoulder",
   "shoulder dystocia",
@@ -13940,6 +14024,70 @@ function hasUmbilicalCordProlapseTreatmentSafetyCheck(checks: string[]): boolean
   );
 }
 
+function requiresVasaPreviaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = VASA_PREVIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = VASA_PREVIA_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasVasaPreviaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasFetalAssessment = VASA_PREVIA_FETAL_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTeamBlood = VASA_PREVIA_TEAM_BLOOD_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDelivery = VASA_PREVIA_DELIVERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeonatalBlood = VASA_PREVIA_NEONATAL_BLOOD_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasFetalAssessment && hasTeamBlood && hasDelivery && hasNeonatalBlood;
+}
+
+function hasVasaPreviaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNoDelaySafety = VASA_PREVIA_NO_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDeliveryTimingSafety = VASA_PREVIA_DELIVERY_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidExpectantSafety = VASA_PREVIA_STEROID_EXPECTANT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasProcedureAvoidanceSafety = VASA_PREVIA_PROCEDURE_AVOIDANCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasNoDelaySafety &&
+    hasDeliveryTimingSafety &&
+    hasSteroidExpectantSafety &&
+    hasProcedureAvoidanceSafety
+  );
+}
+
 function requiresShoulderDystociaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -20401,6 +20549,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasUmbilicalCordProlapseTreatmentSafetyCheck,
       issue:
         "umbilical cord prolapse safety checks must include minimal cord handling, vasospasm prevention, and avoiding or not relying on manual cord replacement, no-delay safeguards for position, bladder filling, tocolysis, or terbutaline while preparing birth, delivery mode review including cesarean/caesarean when vaginal birth is not imminent, category-1 for abnormal fetal heart rate, category-2 only with normal trace and continuous assessment, and neonatal resuscitation plus paired cord blood gas, pH, or base-excess planning",
+    },
+    {
+      name: "vasa_previa_time_critical_actions",
+      label: "Vasa previa emergency actions",
+      applies: requiresVasaPreviaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasVasaPreviaTimeCriticalActions,
+      issue:
+        "vasa previa time-critical actions must include fetal heart or continuous fetal-status assessment, obstetric/MFM, anaesthesia/anesthesia, neonatal, or blood-bank escalation, urgent cesarean/caesarean delivery or immediate birth planning, and neonatal resuscitation or transfusion preparation for fetal hemorrhage",
+    },
+    {
+      name: "vasa_previa_treatment_safety",
+      label: "Vasa previa delivery safety",
+      applies: requiresVasaPreviaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasVasaPreviaTreatmentSafetyCheck,
+      issue:
+        "vasa previa safety checks must include not delaying delivery for antenatal corticosteroids or fetal lung maturity testing when active hemorrhage or delivery indication is present, stable vasa previa delivery planning at 34-37 weeks or before labor/rupture, antenatal corticosteroid criteria for expectant late preterm management if delivery is likely within 7 days, and avoidance of amniotomy, fetal scalp electrode, membrane rupture, labor, or vaginal delivery when unprotected fetal vessels are at risk",
     },
     {
       name: "shoulder_dystocia_time_critical_actions",

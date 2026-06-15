@@ -79,6 +79,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "placental_abruption_treatment_safety",
         "umbilical_cord_prolapse_time_critical_actions",
         "umbilical_cord_prolapse_treatment_safety",
+        "vasa_previa_time_critical_actions",
+        "vasa_previa_treatment_safety",
         "shoulder_dystocia_time_critical_actions",
         "shoulder_dystocia_treatment_safety",
         "severe_preeclampsia_time_critical_actions",
@@ -2411,6 +2413,154 @@ def test_quality_gate_requires_shoulder_dystocia_help_mcroberts_suprapubic_and_s
     assert not report.passed
     assert any(
         "shoulder dystocia time-critical actions must include immediate help call"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_vasa_previa_fetal_assessment_delivery_and_neonatal_blood_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Vasa previa with ruptured membranes and fetal bradycardia"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 74,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden painless vaginal bleeding after membrane rupture"
+    case["history_of_present_illness"] = (
+        "Pregnant patient at 35 weeks with known vasa previa and velamentous cord "
+        "insertion develops sudden painless bleeding after ruptured membranes. "
+        "Fetal heart tracing shows sustained fetal bradycardia and concern for "
+        "fetal hemorrhage from unprotected fetal vessels."
+    )
+    case["key_teaching_points"] = [
+        "Vasa previa can cause acute fetal hemorrhage after membrane rupture",
+        "Sudden bleeding with fetal bradycardia requires immediate cesarean delivery planning",
+        "Stable vasa previa requires planned late-preterm delivery rather than labor",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden painless bleeding after ruptured membranes in known vasa previa",
+        "Sustained fetal bradycardia suggesting fetal hemorrhage",
+    ]
+    case["time_critical_actions"] = [
+        "Observe bleeding pattern and repeat fetal tracing later",
+        "Discuss outpatient follow-up with obstetrics",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay delivery for antenatal corticosteroids or fetal lung maturity testing when active hemorrhage is present",
+        "Plan stable vasa previa cesarean delivery at 34-37 weeks or before labor and rupture of membranes",
+        "Give antenatal corticosteroids such as betamethasone for expectant late preterm management if delivery is likely within 7 days between 34 0/7 and 36 6/7 weeks",
+        "Avoid amniotomy, fetal scalp electrode, membrane rupture, labor, and vaginal delivery when unprotected fetal vessels are at risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "SMFM Consult Series #44: Management of bleeding in the late preterm period",
+            "organization": "Society for Maternal-Fetal Medicine",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/29079144/",
+            "supports": [
+                "vasa previa with late preterm bleeding diagnosis and delivery planning",
+                "stable women with vasa previa should have delivery between 34 and 37 weeks",
+                "active hemorrhage in the late preterm period should not delay delivery for antenatal corticosteroids",
+                "fetal lung maturity testing should not be used when an indication for delivery is present",
+                "antenatal corticosteroids for expectant late preterm management if delivery likely within 7 days between 34 0/7 and 36 6/7 weeks",
+            ],
+        },
+        {
+            "title": "Survival of twins after acute fetal hemorrhage from ruptured vasa previa",
+            "organization": "PubMed",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/2649828/",
+            "supports": [
+                "sudden bleeding after ruptured vasa previa with sustained fetal bradycardia",
+                "immediate cesarean section for fetal hemorrhage from ruptured vasa previa",
+                "neonatal resuscitation and transfusion after exsanguination",
+                "observe bleeding pattern and repeat fetal tracing later",
+                "outpatient follow-up with obstetrics",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "vasa previa time-critical actions must include fetal heart"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_vasa_previa_no_delay_timing_steroids_and_procedure_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Vasa previa with late preterm bleeding"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 74,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden painless vaginal bleeding after membrane rupture"
+    case["history_of_present_illness"] = (
+        "Pregnant patient at 35 weeks with known vasa previa and velamentous cord "
+        "insertion develops sudden painless bleeding after ruptured membranes. "
+        "Fetal heart tracing shows sustained fetal bradycardia and concern for "
+        "fetal hemorrhage from unprotected fetal vessels."
+    )
+    case["key_teaching_points"] = [
+        "Vasa previa can cause acute fetal hemorrhage after membrane rupture",
+        "Sudden bleeding with fetal bradycardia requires immediate cesarean delivery planning",
+        "Stable vasa previa requires planned late-preterm delivery rather than labor",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden painless bleeding after ruptured membranes in known vasa previa",
+        "Sustained fetal bradycardia suggesting fetal hemorrhage",
+    ]
+    case["time_critical_actions"] = [
+        "Start continuous fetal monitoring and fetal heart assessment",
+        "Activate obstetric, MFM, anesthesia, neonatal, and blood bank teams",
+        "Prepare urgent cesarean delivery and immediate birth for suspected ruptured vasa previa",
+        "Prepare neonatal resuscitation and packed red cell transfusion for fetal hemorrhage",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before anesthesia",
+        "Confirm pregnancy status before imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "SMFM Consult Series #44: Management of bleeding in the late preterm period",
+            "organization": "Society for Maternal-Fetal Medicine",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/29079144/",
+            "supports": [
+                "vasa previa with late preterm bleeding diagnosis and delivery planning",
+                "stable women with vasa previa should have delivery between 34 and 37 weeks",
+                "active hemorrhage in the late preterm period should not delay delivery for antenatal corticosteroids",
+                "fetal lung maturity testing should not be used when an indication for delivery is present",
+                "antenatal corticosteroids for expectant late preterm management if delivery likely within 7 days between 34 0/7 and 36 6/7 weeks",
+                "medication allergy before anesthesia",
+                "pregnancy status before imaging",
+            ],
+        },
+        {
+            "title": "Survival of twins after acute fetal hemorrhage from ruptured vasa previa",
+            "organization": "PubMed",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/2649828/",
+            "supports": [
+                "sudden bleeding after ruptured vasa previa with sustained fetal bradycardia",
+                "immediate cesarean section for fetal hemorrhage from ruptured vasa previa",
+                "neonatal resuscitation and transfusion after exsanguination",
+                "continuous fetal monitoring and fetal heart assessment",
+                "obstetric, MFM, anesthesia, neonatal, and blood bank teams",
+                "urgent cesarean delivery and immediate birth for suspected ruptured vasa previa",
+                "neonatal resuscitation and packed red cell transfusion for fetal hemorrhage",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "vasa previa safety checks must include not delaying delivery"
         in issue
         for issue in report.critical_issues
     )

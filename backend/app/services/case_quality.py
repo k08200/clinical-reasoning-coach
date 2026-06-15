@@ -2133,6 +2133,80 @@ UMBILICAL_CORD_PROLAPSE_NEONATAL_SAFETY_TERMS = (
     "newborn resuscitation",
     "paired cord blood",
 )
+VASA_PREVIA_CONTEXT_TERMS = (
+    "fetal vessels",
+    "unprotected fetal vessels",
+    "vasa praevia",
+    "vasa previa",
+    "velamentous cord",
+)
+VASA_PREVIA_RISK_TERMS = (
+    "active hemorrhage",
+    "fetal bradycardia",
+    "fetal hemorrhage",
+    "late preterm bleeding",
+    "painless bleeding",
+    "ruptured membranes",
+    "sudden bleeding",
+    "vaginal bleeding",
+)
+VASA_PREVIA_FETAL_ASSESSMENT_ACTION_TERMS = (
+    "continuous fetal",
+    "fetal heart",
+    "fetal monitoring",
+    "fetal status",
+)
+VASA_PREVIA_TEAM_BLOOD_ACTION_TERMS = (
+    "anaesthesia",
+    "anesthesia",
+    "blood bank",
+    "mfm",
+    "neonatal",
+    "obstetric",
+)
+VASA_PREVIA_DELIVERY_ACTION_TERMS = (
+    "cesarean",
+    "caesarean",
+    "delivery",
+    "immediate birth",
+    "urgent birth",
+)
+VASA_PREVIA_NEONATAL_BLOOD_ACTION_TERMS = (
+    "neonatal resuscitation",
+    "newborn resuscitation",
+    "packed red",
+    "transfusion",
+)
+VASA_PREVIA_NO_DELAY_SAFETY_TERMS = (
+    "do not delay delivery",
+    "delivery should not be delayed",
+    "fetal lung maturity testing should not",
+    "not delay delivery",
+)
+VASA_PREVIA_DELIVERY_TIMING_SAFETY_TERMS = (
+    "34 and 37",
+    "34-37",
+    "before labor",
+    "before labour",
+    "before rupture",
+    "cesarean",
+    "caesarean",
+)
+VASA_PREVIA_STEROID_EXPECTANT_SAFETY_TERMS = (
+    "34 0/7",
+    "36 6/7",
+    "antenatal corticosteroids",
+    "betamethasone",
+    "within 7 days",
+)
+VASA_PREVIA_PROCEDURE_AVOIDANCE_SAFETY_TERMS = (
+    "avoid amniotomy",
+    "avoid fetal scalp",
+    "avoid vaginal delivery",
+    "do not rupture membranes",
+    "fetal scalp electrode",
+    "no amniotomy",
+)
 SHOULDER_DYSTOCIA_CONTEXT_TERMS = (
     "impacted shoulder",
     "shoulder dystocia",
@@ -12493,6 +12567,35 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="vasa_previa_time_critical_actions",
+            applies=_requires_vasa_previa_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_vasa_previa_time_critical_actions,
+            issue=(
+                "vasa previa time-critical actions must include fetal heart or "
+                "continuous fetal-status assessment, obstetric/MFM, anaesthesia/"
+                "anesthesia, neonatal, or blood-bank escalation, urgent cesarean/"
+                "caesarean delivery or immediate birth planning, and neonatal "
+                "resuscitation or transfusion preparation for fetal hemorrhage"
+            ),
+        ),
+        DomainSafetyGate(
+            name="vasa_previa_treatment_safety",
+            applies=_requires_vasa_previa_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_vasa_previa_treatment_safety_check,
+            issue=(
+                "vasa previa safety checks must include not delaying delivery "
+                "for antenatal corticosteroids or fetal lung maturity testing "
+                "when active hemorrhage or delivery indication is present, stable "
+                "vasa previa delivery planning at 34-37 weeks or before labor/"
+                "rupture, antenatal corticosteroid criteria for expectant late "
+                "preterm management if delivery is likely within 7 days, and "
+                "avoidance of amniotomy, fetal scalp electrode, membrane rupture, "
+                "labor, or vaginal delivery when unprotected fetal vessels are at risk"
+            ),
+        ),
+        DomainSafetyGate(
             name="shoulder_dystocia_time_critical_actions",
             applies=_requires_shoulder_dystocia_safety_check,
             field_name="time_critical_actions",
@@ -16584,6 +16687,90 @@ def _has_umbilical_cord_prolapse_treatment_safety_check(checks: list[Any]) -> bo
         and has_no_delay_tocolysis_safety
         and has_delivery_mode_safety
         and has_neonatal_safety
+    )
+
+
+def _requires_vasa_previa_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in VASA_PREVIA_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in VASA_PREVIA_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_vasa_previa_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_fetal_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VASA_PREVIA_FETAL_ASSESSMENT_ACTION_TERMS
+    )
+    has_team_blood = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VASA_PREVIA_TEAM_BLOOD_ACTION_TERMS
+    )
+    has_delivery = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VASA_PREVIA_DELIVERY_ACTION_TERMS
+    )
+    has_neonatal_blood = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VASA_PREVIA_NEONATAL_BLOOD_ACTION_TERMS
+    )
+    return (
+        has_fetal_assessment
+        and has_team_blood
+        and has_delivery
+        and has_neonatal_blood
+    )
+
+
+def _has_vasa_previa_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_no_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VASA_PREVIA_NO_DELAY_SAFETY_TERMS
+    )
+    has_delivery_timing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VASA_PREVIA_DELIVERY_TIMING_SAFETY_TERMS
+    )
+    has_steroid_expectant_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VASA_PREVIA_STEROID_EXPECTANT_SAFETY_TERMS
+    )
+    has_procedure_avoidance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VASA_PREVIA_PROCEDURE_AVOIDANCE_SAFETY_TERMS
+    )
+    return (
+        has_no_delay_safety
+        and has_delivery_timing_safety
+        and has_steroid_expectant_safety
+        and has_procedure_avoidance_safety
     )
 
 
