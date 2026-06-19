@@ -1790,7 +1790,10 @@
       "contraindication_checks": [
         "Antimicrobial allergy, renal function, and vancomycin dosing review",
         "Head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
-        "Dexamethasone before or with antibiotics when bacterial meningitis is possible"
+        "Dexamethasone before or with antibiotics when bacterial meningitis is possible",
+        "Give antibiotics before imaging if LP or CT would cause a clinically significant delay; blood cultures then antibiotics within 1 hour",
+        "Review CT-before-LP indications including papilledema, focal neurologic deficit, focal seizure, abnormal pupillary reaction, low GCS, altered consciousness, raised intracranial pressure, mass lesion, space-occupying lesion, or immunocompromised status",
+        "Review Listeria coverage with ampicillin or benzylpenicillin for older adult, pregnant, or immunocompromised patients"
       ],
       "clinical_sources": [
         {
@@ -1805,7 +1808,79 @@
             "empiric ceftriaxone and vancomycin immediately",
             "antimicrobial allergy, renal function, and vancomycin dosing review",
             "head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
-            "dexamethasone before or with antibiotics when bacterial meningitis is possible"
+            "dexamethasone before or with antibiotics when bacterial meningitis is possible",
+            "antibiotics before imaging if LP or CT would cause a clinically significant delay; blood cultures then antibiotics within 1 hour",
+            "CT-before-LP indications including papilledema, focal neurologic deficit, focal seizure, abnormal pupillary reaction, low GCS, altered consciousness, raised intracranial pressure, mass lesion, space-occupying lesion, or immunocompromised status",
+            "Listeria coverage with ampicillin or benzylpenicillin for older adult, pregnant, or immunocompromised patients"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "cns_infection_requires_antibiotic_delay_ct_indication_and_listeria_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "CNS infection safety checks must include antibiotics-before-imaging"
+    ],
+    "overrides": {
+      "diagnosis": "Bacterial meningitis in an immunocompromised older adult",
+      "patient_demographics": {
+        "age": 72,
+        "sex": "male",
+        "weight_kg": 73,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Fever, headache, confusion, and neck stiffness",
+      "history_of_present_illness": "Older immunocompromised patient has abrupt fever, severe headache, neck stiffness, photophobia, altered consciousness, and possible bacterial meningitis.",
+      "key_teaching_points": [
+        "Bacterial meningitis is a medical emergency requiring immediate antibiotics",
+        "LP and neuroimaging sequencing should not delay treatment",
+        "Older or immunocompromised adults need Listeria coverage review"
+      ],
+      "clinical_red_flags": [
+        "Fever, headache, neck stiffness, photophobia, and altered consciousness",
+        "Older age, immunocompromised status, focal seizure, papilledema, abnormal pupils, low GCS, or sepsis risk"
+      ],
+      "time_critical_actions": [
+        "Obtain blood cultures promptly without delaying empiric antibiotics",
+        "Start empiric ceftriaxone and vancomycin immediately within 1 hour",
+        "Assess lumbar puncture or head CT before LP pathway in parallel",
+        "Give dexamethasone before or with antibiotics when bacterial meningitis is possible"
+      ],
+      "contraindication_checks": [
+        "Antimicrobial allergy, renal function, and vancomycin dosing review",
+        "Head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
+        "Dexamethasone before or with antibiotics when bacterial meningitis is possible"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Acute Bacterial Meningitis",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/neurologic-disorders/meningitis/acute-bacterial-meningitis",
+          "supports": [
+            "bacterial meningitis in an immunocompromised older adult diagnosis and risk stratification",
+            "bacterial meningitis is a medical emergency requiring immediate antibiotics",
+            "LP and neuroimaging sequencing should not delay treatment",
+            "older or immunocompromised adults need Listeria coverage review",
+            "fever, headache, neck stiffness, photophobia, and altered consciousness as red flags",
+            "older age, immunocompromised status, focal seizure, papilledema, abnormal pupils, low GCS, or sepsis risk as severity markers",
+            "blood cultures promptly without delaying empiric antibiotics",
+            "empiric ceftriaxone and vancomycin immediately within 1 hour",
+            "lumbar puncture or head CT before LP pathway in parallel",
+            "dexamethasone before or with antibiotics when bacterial meningitis is possible",
+            "antimicrobial allergy, renal function, and vancomycin dosing review",
+            "head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern"
+          ]
+        },
+        {
+          "title": "Meningitis (bacterial) and meningococcal disease",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/ng240/chapter/Recommendations",
+          "supports": [
+            "antibiotics before imaging if LP or CT would cause a clinically significant delay; blood cultures then antibiotics within 1 hour",
+            "CT-before-LP indications including papilledema, focal neurologic deficit, focal seizure, abnormal pupillary reaction, low GCS, altered consciousness, raised intracranial pressure, mass lesion, space-occupying lesion, or immunocompromised status",
+            "Listeria coverage with ampicillin or benzylpenicillin for older adult, pregnant, or immunocompromised patients"
           ]
         }
       ]

@@ -1433,6 +1433,17 @@ CNS_INFECTION_ANTIBIOTIC_ACTION_TERMS = (
     "항균제",
     "항생제",
 )
+CNS_INFECTION_NO_DELAY_ACTION_TERMS = (
+    "do not delay",
+    "immediate",
+    "immediately",
+    "no delay",
+    "not delay",
+    "within 1 hour",
+    "within one hour",
+    "지연",
+    "즉시",
+)
 CNS_INFECTION_LP_CT_ACTION_TERMS = (
     "ct before lp",
     "head ct",
@@ -1490,6 +1501,41 @@ CNS_INFECTION_STEROID_SAFETY_TERMS = (
     "steroids",
     "덱사메타손",
     "스테로이드",
+)
+CNS_INFECTION_DELAY_SAFETY_TERMS = (
+    "antibiotics before imaging",
+    "antibiotics before neuroimaging",
+    "blood cultures then antibiotics",
+    "clinically significant delay",
+    "do not delay antibiotics",
+    "imaging must not delay",
+    "lp must not delay",
+    "not delay antibiotics",
+    "stabilize before imaging",
+    "within 1 hour",
+    "within one hour",
+)
+CNS_INFECTION_CT_BEFORE_LP_INDICATION_SAFETY_TERMS = (
+    "abnormal pupillary",
+    "altered consciousness",
+    "ct before lp",
+    "focal neurologic",
+    "focal seizure",
+    "gcs",
+    "immunocompromised",
+    "mass lesion",
+    "papilledema",
+    "raised intracranial pressure",
+    "space-occupying lesion",
+)
+CNS_INFECTION_LISTERIA_COVERAGE_SAFETY_TERMS = (
+    "ampicillin",
+    "benzylpenicillin",
+    "immunocompromised",
+    "listeria",
+    "older adult",
+    "pregnancy",
+    "pregnant",
 )
 ENCEPHALITIS_CONTEXT_TERMS = (
     "encephalitis",
@@ -14816,8 +14862,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_cns_infection_time_critical_actions,
             issue=(
                 "CNS infection time-critical actions must include blood cultures, "
-                "immediate empiric antibiotics, lumbar puncture or CT-before-LP "
-                "pathway, and dexamethasone timing when bacterial meningitis is possible"
+                "immediate or within-1-hour empiric antibiotics that are not delayed "
+                "for lumbar puncture, CT, MRI, or neuroimaging, lumbar puncture or "
+                "CT-before-LP pathway, and dexamethasone timing when bacterial "
+                "meningitis is possible"
             ),
         ),
         DomainSafetyGate(
@@ -14829,6 +14877,23 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "CNS infection safety checks must include antimicrobial allergy or "
                 "renal dosing review, lumbar puncture contraindications, and "
                 "dexamethasone timing relative to antibiotics"
+            ),
+        ),
+        DomainSafetyGate(
+            name="cns_infection_delay_coverage_safety",
+            applies=_requires_cns_infection_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_cns_infection_delay_coverage_safety_check,
+            issue=(
+                "CNS infection safety checks must include antibiotics-before-imaging, "
+                "blood-cultures-then-antibiotics, LP/imaging-not-to-delay, clinically "
+                "significant delay, stabilize-before-imaging, or within-1-hour antibiotic "
+                "planning, CT-before-LP indication review for papilledema, focal "
+                "neurologic deficit, focal seizure, abnormal pupils, low GCS, altered "
+                "consciousness, raised intracranial pressure, mass lesion, space-"
+                "occupying lesion, or immunocompromised status, and Listeria/ampicillin "
+                "or benzylpenicillin coverage review for older adult, pregnant, or "
+                "immunocompromised patients"
             ),
         ),
         DomainSafetyGate(
@@ -19352,6 +19417,10 @@ def _has_cns_infection_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in CNS_INFECTION_ANTIBIOTIC_ACTION_TERMS
     )
+    has_no_delay = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CNS_INFECTION_NO_DELAY_ACTION_TERMS
+    )
     has_lp_or_ct_pathway = any(
         _contains_safety_term(normalized_actions, term)
         for term in CNS_INFECTION_LP_CT_ACTION_TERMS
@@ -19360,7 +19429,13 @@ def _has_cns_infection_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in CNS_INFECTION_STEROID_ACTION_TERMS
     )
-    return has_cultures and has_antibiotics and has_lp_or_ct_pathway and has_steroid_timing
+    return (
+        has_cultures
+        and has_antibiotics
+        and has_no_delay
+        and has_lp_or_ct_pathway
+        and has_steroid_timing
+    )
 
 
 def _has_cns_infection_lp_steroid_safety_check(checks: list[Any]) -> bool:
@@ -19378,6 +19453,23 @@ def _has_cns_infection_lp_steroid_safety_check(checks: list[Any]) -> bool:
         for term in CNS_INFECTION_STEROID_SAFETY_TERMS
     )
     return has_antimicrobial_safety and has_lp_safety and has_steroid_timing
+
+
+def _has_cns_infection_delay_coverage_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CNS_INFECTION_DELAY_SAFETY_TERMS
+    )
+    has_ct_before_lp_indication = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CNS_INFECTION_CT_BEFORE_LP_INDICATION_SAFETY_TERMS
+    )
+    has_listeria_coverage = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CNS_INFECTION_LISTERIA_COVERAGE_SAFETY_TERMS
+    )
+    return has_delay_safety and has_ct_before_lp_indication and has_listeria_coverage
 
 
 def _requires_encephalitis_safety_check(data: dict[str, Any]) -> bool:

@@ -1533,6 +1533,18 @@ const CNS_INFECTION_ANTIBIOTIC_ACTION_TERMS = [
   "항생제",
 ];
 
+const CNS_INFECTION_NO_DELAY_ACTION_TERMS = [
+  "do not delay",
+  "immediate",
+  "immediately",
+  "no delay",
+  "not delay",
+  "within 1 hour",
+  "within one hour",
+  "지연",
+  "즉시",
+];
+
 const CNS_INFECTION_LP_CT_ACTION_TERMS = [
   "ct before lp",
   "head ct",
@@ -1594,6 +1606,44 @@ const CNS_INFECTION_STEROID_SAFETY_TERMS = [
   "steroids",
   "덱사메타손",
   "스테로이드",
+];
+
+const CNS_INFECTION_DELAY_SAFETY_TERMS = [
+  "antibiotics before imaging",
+  "antibiotics before neuroimaging",
+  "blood cultures then antibiotics",
+  "clinically significant delay",
+  "do not delay antibiotics",
+  "imaging must not delay",
+  "lp must not delay",
+  "not delay antibiotics",
+  "stabilize before imaging",
+  "within 1 hour",
+  "within one hour",
+];
+
+const CNS_INFECTION_CT_BEFORE_LP_INDICATION_SAFETY_TERMS = [
+  "abnormal pupillary",
+  "altered consciousness",
+  "ct before lp",
+  "focal neurologic",
+  "focal seizure",
+  "gcs",
+  "immunocompromised",
+  "mass lesion",
+  "papilledema",
+  "raised intracranial pressure",
+  "space-occupying lesion",
+];
+
+const CNS_INFECTION_LISTERIA_COVERAGE_SAFETY_TERMS = [
+  "ampicillin",
+  "benzylpenicillin",
+  "immunocompromised",
+  "listeria",
+  "older adult",
+  "pregnancy",
+  "pregnant",
 ];
 
 const ENCEPHALITIS_CONTEXT_TERMS = [
@@ -16258,13 +16308,16 @@ function hasCnsInfectionTimeCriticalActions(actions: string[]): boolean {
   const hasAntibiotics = CNS_INFECTION_ANTIBIOTIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasNoDelay = CNS_INFECTION_NO_DELAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasLpOrCtPathway = CNS_INFECTION_LP_CT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasSteroidTiming = CNS_INFECTION_STEROID_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasCultures && hasAntibiotics && hasLpOrCtPathway && hasSteroidTiming;
+  return hasCultures && hasAntibiotics && hasNoDelay && hasLpOrCtPathway && hasSteroidTiming;
 }
 
 function hasCnsInfectionLpSteroidSafetyCheck(checks: string[]): boolean {
@@ -16279,6 +16332,20 @@ function hasCnsInfectionLpSteroidSafetyCheck(checks: string[]): boolean {
     containsSafetyTerm(normalizedChecks, term),
   );
   return hasAntimicrobialSafety && hasLpSafety && hasSteroidTiming;
+}
+
+function hasCnsInfectionDelayCoverageSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDelaySafety = CNS_INFECTION_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCtBeforeLpIndication = CNS_INFECTION_CT_BEFORE_LP_INDICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasListeriaCoverage = CNS_INFECTION_LISTERIA_COVERAGE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasDelaySafety && hasCtBeforeLpIndication && hasListeriaCoverage;
 }
 
 function requiresEncephalitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -24759,7 +24826,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasCnsInfectionTimeCriticalActions,
       issue:
-        "CNS infection time-critical actions must include blood cultures, immediate empiric antibiotics, lumbar puncture or CT-before-LP pathway, and dexamethasone timing when bacterial meningitis is possible",
+        "CNS infection time-critical actions must include blood cultures, immediate or within-1-hour empiric antibiotics that are not delayed for lumbar puncture, CT, MRI, or neuroimaging, lumbar puncture or CT-before-LP pathway, and dexamethasone timing when bacterial meningitis is possible",
     },
     {
       name: "cns_infection_lp_steroid_safety",
@@ -24769,6 +24836,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCnsInfectionLpSteroidSafetyCheck,
       issue:
         "CNS infection safety checks must include antimicrobial allergy or renal dosing review, lumbar puncture contraindications, and dexamethasone timing relative to antibiotics",
+    },
+    {
+      name: "cns_infection_delay_coverage_safety",
+      label: "CNS infection delay and coverage safety",
+      applies: requiresCnsInfectionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasCnsInfectionDelayCoverageSafetyCheck,
+      issue:
+        "CNS infection safety checks must include antibiotics-before-imaging, blood-cultures-then-antibiotics, LP/imaging-not-to-delay, clinically significant delay, stabilize-before-imaging, or within-1-hour antibiotic planning, CT-before-LP indication review for papilledema, focal neurologic deficit, focal seizure, abnormal pupils, low GCS, altered consciousness, raised intracranial pressure, mass lesion, space-occupying lesion, or immunocompromised status, and Listeria/ampicillin or benzylpenicillin coverage review for older adult, pregnant, or immunocompromised patients",
     },
     {
       name: "encephalitis_time_critical_actions",
