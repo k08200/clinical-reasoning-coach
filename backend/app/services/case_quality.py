@@ -1348,6 +1348,102 @@ ENCEPHALITIS_DIFFERENTIAL_EMPIRIC_SAFETY_TERMS = (
     "rickettsial",
     "vancomycin",
 )
+SUICIDE_SELF_HARM_CONTEXT_TERMS = (
+    "self harm",
+    "self injury",
+    "self-harm",
+    "self-injury",
+    "suicidal ideation",
+    "suicide attempt",
+    "suicide risk",
+    "thinking about killing yourself",
+    "thoughts of killing yourself",
+    "wanting to die",
+    "wants to die",
+)
+SUICIDE_SELF_HARM_RISK_TERMS = (
+    "access to means",
+    "current suicidal thoughts",
+    "firearm",
+    "gun",
+    "hopeless",
+    "intent",
+    "lethal means",
+    "method",
+    "overdose",
+    "plan",
+    "prior attempt",
+    "substance use",
+    "suicide note",
+    "thinking about killing",
+)
+SUICIDE_RISK_ASSESSMENT_ACTION_TERMS = (
+    "asq",
+    "brief suicide safety assessment",
+    "intent",
+    "plan",
+    "suicide risk assessment",
+    "suicide safety assessment",
+)
+SUICIDE_MEANS_RESTRICTION_ACTION_TERMS = (
+    "access to means",
+    "firearm",
+    "gun",
+    "lethal means",
+    "medications",
+    "remove dangerous items",
+    "secure dangerous items",
+)
+SUICIDE_OBSERVATION_ESCALATION_ACTION_TERMS = (
+    "1:1",
+    "cannot be left alone",
+    "constant observation",
+    "emergency psychiatric evaluation",
+    "mental health evaluation",
+    "psychiatry",
+    "psych consult",
+    "sitter",
+    "urgent/stat",
+)
+SUICIDE_CRISIS_RESOURCE_ACTION_TERMS = (
+    "988",
+    "crisis",
+    "crisis line",
+    "lifeline",
+    "safety plan",
+)
+SUICIDE_PAST_ATTEMPT_SAFETY_TERMS = (
+    "past behavior",
+    "past self-injury",
+    "prior attempt",
+    "previous attempt",
+    "suicide attempt history",
+)
+SUICIDE_SUBSTANCE_MEDICAL_SAFETY_TERMS = (
+    "alcohol",
+    "intoxication",
+    "medical clearance",
+    "overdose",
+    "substance use",
+    "toxicity",
+)
+SUICIDE_DISPOSITION_SAFETY_TERMS = (
+    "do not discharge",
+    "emergency psychiatric evaluation",
+    "full mental health",
+    "involuntary",
+    "psychiatric hold",
+    "safe disposition",
+    "safety plan",
+)
+SUICIDE_SUPPORT_FOLLOWUP_SAFETY_TERMS = (
+    "follow-up",
+    "mental health referral",
+    "resource list",
+    "support network",
+    "trusted person",
+    "warm handoff",
+)
 MENINGOCOCCEMIA_CONTEXT_TERMS = (
     "invasive meningococcal disease",
     "meningococcemia",
@@ -12938,6 +13034,36 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="suicide_self_harm_time_critical_actions",
+            applies=_requires_suicide_self_harm_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_suicide_self_harm_time_critical_actions,
+            issue=(
+                "suicide/self-harm time-critical actions must include structured "
+                "suicide risk assessment for current thoughts, plan, intent, "
+                "and access to means, lethal-means restriction or securing "
+                "medications/firearms/dangerous items, constant observation or "
+                "urgent mental-health/psychiatric evaluation when current "
+                "suicidal thoughts or imminent risk is present, and "
+                "crisis/safety planning such as 988 or crisis resources"
+            ),
+        ),
+        DomainSafetyGate(
+            name="suicide_self_harm_treatment_safety",
+            applies=_requires_suicide_self_harm_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_suicide_self_harm_treatment_safety_check,
+            issue=(
+                "suicide/self-harm safety checks must include prior attempt or "
+                "past self-injury review, intoxication, overdose, substance-use, "
+                "or medical-clearance review, safe disposition with no discharge "
+                "until emergency psychiatric/full mental-health evaluation, "
+                "safety plan, or hold criteria are addressed, and support "
+                "network, trusted person, resource list, referral, or warm "
+                "follow-up planning"
+            ),
+        ),
+        DomainSafetyGate(
             name="meningococcemia_time_critical_actions",
             applies=_requires_meningococcemia_safety_check,
             field_name="time_critical_actions",
@@ -16838,6 +16964,89 @@ def _has_encephalitis_treatment_safety_check(checks: list[Any]) -> bool:
         and has_no_delay_safety
         and has_repeat_pcr_safety
         and has_differential_empiric_safety
+    )
+
+
+def _requires_suicide_self_harm_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SUICIDE_SELF_HARM_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in SUICIDE_SELF_HARM_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_suicide_self_harm_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_risk_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SUICIDE_RISK_ASSESSMENT_ACTION_TERMS
+    )
+    has_means_restriction = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SUICIDE_MEANS_RESTRICTION_ACTION_TERMS
+    )
+    has_observation_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SUICIDE_OBSERVATION_ESCALATION_ACTION_TERMS
+    )
+    has_crisis_resource = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SUICIDE_CRISIS_RESOURCE_ACTION_TERMS
+    )
+    return (
+        has_risk_assessment
+        and has_means_restriction
+        and has_observation_escalation
+        and has_crisis_resource
+    )
+
+
+def _has_suicide_self_harm_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_past_attempt_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUICIDE_PAST_ATTEMPT_SAFETY_TERMS
+    )
+    has_substance_medical_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUICIDE_SUBSTANCE_MEDICAL_SAFETY_TERMS
+    )
+    has_disposition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUICIDE_DISPOSITION_SAFETY_TERMS
+    )
+    has_support_followup = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SUICIDE_SUPPORT_FOLLOWUP_SAFETY_TERMS
+    )
+    return (
+        has_past_attempt_review
+        and has_substance_medical_review
+        and has_disposition_safety
+        and has_support_followup
     )
 
 

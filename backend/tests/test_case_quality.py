@@ -66,6 +66,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "cns_infection_lp_steroid_safety",
         "encephalitis_time_critical_actions",
         "encephalitis_treatment_safety",
+        "suicide_self_harm_time_critical_actions",
+        "suicide_self_harm_treatment_safety",
         "meningococcemia_time_critical_actions",
         "meningococcemia_treatment_safety",
         "febrile_infant_time_critical_actions",
@@ -1401,6 +1403,140 @@ def test_quality_gate_requires_encephalitis_acyclovir_renal_no_delay_repeat_pcr_
     assert not report.passed
     assert any(
         "encephalitis safety checks must include acyclovir renal dosing"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_suicide_risk_assessment_means_restriction_observation_and_crisis_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suicidal ideation with firearm plan"
+    case["patient_demographics"] = {
+        "age": 29,
+        "sex": "female",
+        "weight_kg": 65,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Suicidal ideation with plan and access to firearm"
+    case["history_of_present_illness"] = (
+        "Patient reports current suicidal thoughts, wanting to die, hopelessness, "
+        "a detailed plan to shoot herself, access to a firearm at home, prior "
+        "suicide attempt by overdose, alcohol use tonight, and a goodbye note."
+    )
+    case["key_teaching_points"] = [
+        "Suicide risk assessment should ask about current suicidal thoughts, frequency, plan, intent, method, and access to means",
+        "Current suicidal thoughts or imminent risk requires urgent mental health evaluation and the patient cannot be left alone",
+        "Lethal means restriction includes removing or securing firearms, medications, and other dangerous items",
+    ]
+    case["clinical_red_flags"] = [
+        "Current suicidal thoughts with plan, intent, feasible method, firearm access, or suicide note",
+        "Prior suicide attempt, hopelessness, intoxication, substance use, agitation, or lack of support",
+    ]
+    case["time_critical_actions"] = [
+        "Offer outpatient counseling resources",
+        "Reassess mood at primary care follow-up",
+    ]
+    case["contraindication_checks"] = [
+        "Review prior attempt and past self-injury history including method, date, intent, and treatment",
+        "Assess intoxication, alcohol use, overdose, substance use, toxicity, and medical clearance needs",
+        "Do not discharge until emergency psychiatric evaluation, full mental health safety evaluation, psychiatric hold or involuntary criteria, and safety plan are addressed",
+        "Confirm support network or trusted person, provide resource list, mental health referral, and warm follow-up planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Adult Emergency Department Brief Suicide Safety Assessment Guide",
+            "organization": "National Institute of Mental Health",
+            "url": "https://www.nimh.nih.gov/research/research-conducted-at-nimh/asq-toolkit-materials/adult-ed/adult-emergency-department-brief-suicide-safety-assessment-guide",
+            "supports": [
+                "suicidal ideation with firearm plan diagnosis and risk stratification",
+                "current suicidal thoughts, wanting to die, hopelessness, a detailed plan to shoot herself, access to a firearm at home, prior suicide attempt by overdose, alcohol use tonight, and a goodbye note",
+                "suicide risk assessment should ask about current suicidal thoughts, frequency, plan, intent, method, and access to means",
+                "current suicidal thoughts or imminent risk requires urgent mental health evaluation and the patient cannot be left alone",
+                "lethal means restriction includes removing or securing firearms, medications, and other dangerous items",
+                "current suicidal thoughts with plan, intent, feasible method, firearm access, or suicide note",
+                "prior suicide attempt, hopelessness, intoxication, substance use, agitation, or lack of support",
+                "outpatient counseling resources",
+                "mood at primary care follow-up",
+                "prior attempt and past self-injury history including method, date, intent, and treatment",
+                "intoxication, alcohol use, overdose, substance use, toxicity, and medical clearance needs",
+                "do not discharge until emergency psychiatric evaluation, full mental health safety evaluation, psychiatric hold or involuntary criteria, and safety plan are addressed",
+                "support network or trusted person, resource list, mental health referral, and warm follow-up planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "suicide/self-harm time-critical actions must include structured suicide risk assessment"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_suicide_prior_attempt_medical_clearance_safe_disposition_and_followup_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suicidal ideation with firearm plan"
+    case["patient_demographics"] = {
+        "age": 29,
+        "sex": "female",
+        "weight_kg": 65,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Suicidal ideation with plan and access to firearm"
+    case["history_of_present_illness"] = (
+        "Patient reports current suicidal thoughts, wanting to die, hopelessness, "
+        "a detailed plan to shoot herself, access to a firearm at home, prior "
+        "suicide attempt by overdose, alcohol use tonight, and a goodbye note."
+    )
+    case["key_teaching_points"] = [
+        "Suicide risk assessment should ask about current suicidal thoughts, frequency, plan, intent, method, and access to means",
+        "Current suicidal thoughts or imminent risk requires urgent mental health evaluation and the patient cannot be left alone",
+        "Lethal means restriction includes removing or securing firearms, medications, and other dangerous items",
+    ]
+    case["clinical_red_flags"] = [
+        "Current suicidal thoughts with plan, intent, feasible method, firearm access, or suicide note",
+        "Prior suicide attempt, hopelessness, intoxication, substance use, agitation, or lack of support",
+    ]
+    case["time_critical_actions"] = [
+        "Perform ASQ or brief suicide safety assessment including current suicidal thoughts, frequency, plan, intent, method, and access to means",
+        "Restrict lethal means by securing firearm, gun, medications, and other dangerous items with family or law enforcement support",
+        "Place on 1:1 constant observation with sitter, cannot be left alone, and request urgent/STAT emergency psychiatric or mental health evaluation",
+        "Create safety plan and provide 988 Suicide & Crisis Lifeline crisis resources",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before sleep aid",
+        "Pregnancy status before imaging if relevant",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Adult Emergency Department Brief Suicide Safety Assessment Guide",
+            "organization": "National Institute of Mental Health",
+            "url": "https://www.nimh.nih.gov/research/research-conducted-at-nimh/asq-toolkit-materials/adult-ed/adult-emergency-department-brief-suicide-safety-assessment-guide",
+            "supports": [
+                "suicidal ideation with firearm plan diagnosis and risk stratification",
+                "current suicidal thoughts, wanting to die, hopelessness, a detailed plan to shoot herself, access to a firearm at home, prior suicide attempt by overdose, alcohol use tonight, and a goodbye note",
+                "suicide risk assessment should ask about current suicidal thoughts, frequency, plan, intent, method, and access to means",
+                "current suicidal thoughts or imminent risk requires urgent mental health evaluation and the patient cannot be left alone",
+                "lethal means restriction includes removing or securing firearms, medications, and other dangerous items",
+                "current suicidal thoughts with plan, intent, feasible method, firearm access, or suicide note",
+                "prior suicide attempt, hopelessness, intoxication, substance use, agitation, or lack of support",
+                "ASQ or brief suicide safety assessment including current suicidal thoughts, frequency, plan, intent, method, and access to means",
+                "lethal means by securing firearm, gun, medications, and other dangerous items with family or law enforcement support",
+                "1:1 constant observation with sitter, cannot be left alone, and urgent/STAT emergency psychiatric or mental health evaluation",
+                "safety plan and 988 Suicide & Crisis Lifeline crisis resources",
+                "medication allergy before sleep aid",
+                "pregnancy status before imaging if relevant",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "suicide/self-harm safety checks must include prior attempt"
         in issue
         for issue in report.critical_issues
     )

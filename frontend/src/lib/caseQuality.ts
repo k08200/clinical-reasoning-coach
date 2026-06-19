@@ -1440,6 +1440,112 @@ const ENCEPHALITIS_DIFFERENTIAL_EMPIRIC_SAFETY_TERMS = [
   "vancomycin",
 ];
 
+const SUICIDE_SELF_HARM_CONTEXT_TERMS = [
+  "self harm",
+  "self injury",
+  "self-harm",
+  "self-injury",
+  "suicidal ideation",
+  "suicide attempt",
+  "suicide risk",
+  "thinking about killing yourself",
+  "thoughts of killing yourself",
+  "wanting to die",
+  "wants to die",
+];
+
+const SUICIDE_SELF_HARM_RISK_TERMS = [
+  "access to means",
+  "current suicidal thoughts",
+  "firearm",
+  "gun",
+  "hopeless",
+  "intent",
+  "lethal means",
+  "method",
+  "overdose",
+  "plan",
+  "prior attempt",
+  "substance use",
+  "suicide note",
+  "thinking about killing",
+];
+
+const SUICIDE_RISK_ASSESSMENT_ACTION_TERMS = [
+  "asq",
+  "brief suicide safety assessment",
+  "intent",
+  "plan",
+  "suicide risk assessment",
+  "suicide safety assessment",
+];
+
+const SUICIDE_MEANS_RESTRICTION_ACTION_TERMS = [
+  "access to means",
+  "firearm",
+  "gun",
+  "lethal means",
+  "medications",
+  "remove dangerous items",
+  "secure dangerous items",
+];
+
+const SUICIDE_OBSERVATION_ESCALATION_ACTION_TERMS = [
+  "1:1",
+  "cannot be left alone",
+  "constant observation",
+  "emergency psychiatric evaluation",
+  "mental health evaluation",
+  "psychiatry",
+  "psych consult",
+  "sitter",
+  "urgent/stat",
+];
+
+const SUICIDE_CRISIS_RESOURCE_ACTION_TERMS = [
+  "988",
+  "crisis",
+  "crisis line",
+  "lifeline",
+  "safety plan",
+];
+
+const SUICIDE_PAST_ATTEMPT_SAFETY_TERMS = [
+  "past behavior",
+  "past self-injury",
+  "prior attempt",
+  "previous attempt",
+  "suicide attempt history",
+];
+
+const SUICIDE_SUBSTANCE_MEDICAL_SAFETY_TERMS = [
+  "alcohol",
+  "intoxication",
+  "medical clearance",
+  "overdose",
+  "substance use",
+  "toxicity",
+];
+
+const SUICIDE_DISPOSITION_SAFETY_TERMS = [
+  "do not discharge",
+  "emergency psychiatric evaluation",
+  "full mental health",
+  "involuntary",
+  "psychiatric hold",
+  "safe disposition",
+  "safety plan",
+];
+
+const SUICIDE_SUPPORT_FOLLOWUP_SAFETY_TERMS = [
+  "follow-up",
+  "mental health referral",
+  "resource list",
+  "support network",
+  "trusted person",
+  "warm handoff",
+];
+
 const MENINGOCOCCEMIA_CONTEXT_TERMS = [
   "invasive meningococcal disease",
   "meningococcemia",
@@ -14183,6 +14289,69 @@ function hasEncephalitisTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresSuicideSelfHarmSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = SUICIDE_SELF_HARM_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = SUICIDE_SELF_HARM_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasSuicideSelfHarmTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasRiskAssessment = SUICIDE_RISK_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMeansRestriction = SUICIDE_MEANS_RESTRICTION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasObservationEscalation = SUICIDE_OBSERVATION_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCrisisResource = SUICIDE_CRISIS_RESOURCE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasRiskAssessment && hasMeansRestriction && hasObservationEscalation && hasCrisisResource;
+}
+
+function hasSuicideSelfHarmTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasPastAttemptReview = SUICIDE_PAST_ATTEMPT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSubstanceMedicalReview = SUICIDE_SUBSTANCE_MEDICAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDispositionSafety = SUICIDE_DISPOSITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSupportFollowup = SUICIDE_SUPPORT_FOLLOWUP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasPastAttemptReview &&
+    hasSubstanceMedicalReview &&
+    hasDispositionSafety &&
+    hasSupportFollowup
+  );
+}
+
 function requiresMeningococcemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -21529,6 +21698,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasEncephalitisTreatmentSafetyCheck,
       issue:
         "encephalitis safety checks must include acyclovir renal dosing or hydration review, explicit do-not-delay acyclovir planning while LP, imaging, or PCR is pending, repeat HSV PCR or 3-7 day retesting when suspicion remains after a negative PCR, and bacterial meningitis or rickettsial empiric-therapy differential review",
+    },
+    {
+      name: "suicide_self_harm_time_critical_actions",
+      label: "Suicide/self-harm immediate safety actions",
+      applies: requiresSuicideSelfHarmSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSuicideSelfHarmTimeCriticalActions,
+      issue:
+        "suicide/self-harm time-critical actions must include structured suicide risk assessment for current thoughts, plan, intent, and access to means, lethal-means restriction or securing medications/firearms/dangerous items, constant observation or urgent mental-health/psychiatric evaluation when current suicidal thoughts or imminent risk is present, and crisis/safety planning such as 988 or crisis resources",
+    },
+    {
+      name: "suicide_self_harm_treatment_safety",
+      label: "Suicide/self-harm disposition safety",
+      applies: requiresSuicideSelfHarmSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSuicideSelfHarmTreatmentSafetyCheck,
+      issue:
+        "suicide/self-harm safety checks must include prior attempt or past self-injury review, intoxication, overdose, substance-use, or medical-clearance review, safe disposition with no discharge until emergency psychiatric/full mental-health evaluation, safety plan, or hold criteria are addressed, and support network, trusted person, resource list, referral, or warm follow-up planning",
     },
     {
       name: "meningococcemia_time_critical_actions",
