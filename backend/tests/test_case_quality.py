@@ -79,6 +79,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "placental_abruption_treatment_safety",
         "placenta_previa_time_critical_actions",
         "placenta_previa_treatment_safety",
+        "placenta_accreta_time_critical_actions",
+        "placenta_accreta_treatment_safety",
         "umbilical_cord_prolapse_time_critical_actions",
         "umbilical_cord_prolapse_treatment_safety",
         "vasa_previa_time_critical_actions",
@@ -2352,6 +2354,142 @@ def test_quality_gate_requires_placenta_previa_no_digital_exam_timing_unstable_d
     assert not report.passed
     assert any(
         "placenta previa safety checks must include avoiding digital cervical"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_placenta_accreta_imaging_team_blood_and_planned_delivery_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Placenta accreta spectrum with placenta previa"
+    case["patient_demographics"] = {
+        "age": 37,
+        "sex": "female",
+        "weight_kg": 78,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Placenta previa over prior cesarean scar"
+    case["history_of_present_illness"] = (
+        "Pregnant patient at 31 weeks has placenta previa over a prior cesarean "
+        "scar with ultrasound placental lacunae, suspected placenta accreta "
+        "spectrum, possible placenta increta, bladder invasion concern, and "
+        "massive hemorrhage risk."
+    )
+    case["key_teaching_points"] = [
+        "Placenta accreta spectrum can cause severe life-threatening hemorrhage",
+        "Placenta previa with prior cesarean is a major risk factor for placenta accreta spectrum",
+        "Optimal outcomes require antenatal diagnosis and planned multidisciplinary delivery before labor or bleeding",
+    ]
+    case["clinical_red_flags"] = [
+        "Placenta previa over prior cesarean scar with placental lacunae",
+        "Suspected placenta increta, percreta, bladder invasion, or massive hemorrhage risk",
+    ]
+    case["time_critical_actions"] = [
+        "Repeat outpatient ultrasound and review placental location",
+        "Plan routine cesarean delivery if bleeding remains stable",
+    ]
+    case["contraindication_checks"] = [
+        "Refer to a tertiary Level III or Level IV maternal care center for suspected placenta accreta spectrum",
+        "Avoid forced placental removal and do not remove placenta; leave placenta in situ at cesarean hysterectomy",
+        "Plan delivery before labor or bleeding at 34 0/7 to 35 6/7 weeks with corticosteroids when indicated",
+        "Coordinate blood bank, massive transfusion, hemorrhage checklist, fibrinogen, platelet, PT/PTT, tranexamic acid, and TXA safeguards",
+        "Plan for bladder, urology, pelvic organ, cystectomy, ICU, and critical care injury contingencies",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Placenta Accreta Spectrum",
+            "organization": "ACOG / SMFM Obstetric Care Consensus",
+            "url": "https://www.acog.org/clinical/clinical-guidance/obstetric-care-consensus/articles/2018/12/placenta-accreta-spectrum",
+            "supports": [
+                "placenta accreta spectrum with placenta previa diagnosis and risk stratification",
+                "placenta accreta spectrum can cause severe life-threatening hemorrhage",
+                "placenta previa with prior cesarean is a major risk factor for placenta accreta spectrum",
+                "optimal outcomes require antenatal diagnosis and planned multidisciplinary delivery before labor or bleeding",
+                "placenta previa over prior cesarean scar with placental lacunae",
+                "suspected placenta increta, percreta, bladder invasion, or massive hemorrhage risk",
+                "repeat outpatient ultrasound and review placental location",
+                "routine cesarean delivery if bleeding remains stable",
+                "referral to tertiary Level III or Level IV maternal care center for suspected placenta accreta spectrum",
+                "avoid forced placental removal and do not remove placenta; leave placenta in situ at cesarean hysterectomy",
+                "delivery before labor or bleeding at 34 0/7 to 35 6/7 weeks with corticosteroids when indicated",
+                "blood bank, massive transfusion, hemorrhage checklist, fibrinogen, platelet, PT/PTT, tranexamic acid, and TXA safeguards",
+                "bladder, urology, pelvic organ, cystectomy, ICU, and critical care injury contingencies",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "placenta accreta spectrum time-critical actions must include antenatal ultrasound"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_placenta_accreta_referral_no_removal_timing_hemorrhage_and_organ_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Placenta accreta spectrum with suspected percreta"
+    case["patient_demographics"] = {
+        "age": 37,
+        "sex": "female",
+        "weight_kg": 78,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Placenta previa over prior cesarean scar"
+    case["history_of_present_illness"] = (
+        "Pregnant patient at 31 weeks has placenta previa over a prior cesarean "
+        "scar with ultrasound placental lacunae, suspected placenta accreta "
+        "spectrum, possible placenta percreta, bladder invasion concern, and "
+        "massive hemorrhage risk."
+    )
+    case["key_teaching_points"] = [
+        "Placenta accreta spectrum can cause severe life-threatening hemorrhage",
+        "Placenta previa with prior cesarean is a major risk factor for placenta accreta spectrum",
+        "Optimal outcomes require antenatal diagnosis and planned multidisciplinary delivery before labor or bleeding",
+    ]
+    case["clinical_red_flags"] = [
+        "Placenta previa over prior cesarean scar with placental lacunae",
+        "Suspected placenta increta, percreta, bladder invasion, or massive hemorrhage risk",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm antenatal ultrasound, Doppler, MRI, and placental lacunae assessment for placenta accreta spectrum",
+        "Activate multidisciplinary MFM, maternal-fetal medicine, anesthesia, gynecologic oncology, urology, critical care, neonatal, and experienced surgeon teams",
+        "Coordinate blood bank, hemorrhage protocol, blood products, transfusion, and massive transfusion preparation",
+        "Schedule cesarean hysterectomy at 34 0/7 to 35 6/7 weeks",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before anesthesia",
+        "Pregnancy status already confirmed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Placenta Accreta Spectrum",
+            "organization": "ACOG / SMFM Obstetric Care Consensus",
+            "url": "https://www.acog.org/clinical/clinical-guidance/obstetric-care-consensus/articles/2018/12/placenta-accreta-spectrum",
+            "supports": [
+                "placenta accreta spectrum with suspected percreta diagnosis and risk stratification",
+                "placenta accreta spectrum can cause severe life-threatening hemorrhage",
+                "placenta previa with prior cesarean is a major risk factor for placenta accreta spectrum",
+                "optimal outcomes require antenatal diagnosis and planned multidisciplinary delivery before labor or bleeding",
+                "placenta previa over prior cesarean scar with placental lacunae",
+                "suspected placenta increta, percreta, bladder invasion, or massive hemorrhage risk",
+                "antenatal ultrasound, Doppler, MRI, and placental lacunae assessment for placenta accreta spectrum",
+                "multidisciplinary MFM, maternal-fetal medicine, anesthesia, gynecologic oncology, urology, critical care, neonatal, and experienced surgeon teams",
+                "blood bank, hemorrhage protocol, blood products, transfusion, and massive transfusion preparation",
+                "scheduled cesarean hysterectomy at 34 0/7 to 35 6/7 weeks",
+                "medication allergy before anesthesia",
+                "pregnancy status already confirmed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "placenta accreta spectrum safety checks must include referral"
         in issue
         for issue in report.critical_issues
     )

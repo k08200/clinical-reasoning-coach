@@ -2294,6 +2294,111 @@ const PLACENTA_PREVIA_EXPECTANT_SAFETY_TERMS = [
   "modified activity",
 ];
 
+const PLACENTA_ACCRETA_CONTEXT_TERMS = [
+  "morbidly adherent placenta",
+  "placenta accreta",
+  "placenta accreta spectrum",
+  "placenta increta",
+  "placenta percreta",
+];
+
+const PLACENTA_ACCRETA_RISK_TERMS = [
+  "bladder invasion",
+  "cesarean scar",
+  "hemorrhage",
+  "low-lying placenta",
+  "massive hemorrhage",
+  "placenta previa",
+  "placental lacunae",
+  "previous cesarean",
+  "prior cesarean",
+  "uterine scar",
+];
+
+const PLACENTA_ACCRETA_IMAGING_ACTION_TERMS = [
+  "doppler",
+  "mri",
+  "placental lacunae",
+  "ultrasound",
+  "ultrasonography",
+];
+
+const PLACENTA_ACCRETA_TEAM_ACTION_TERMS = [
+  "anesthesia",
+  "anaesthesia",
+  "critical care",
+  "experienced surgeon",
+  "gynecologic oncology",
+  "maternal-fetal",
+  "mfm",
+  "multidisciplinary",
+  "neonatal",
+  "urology",
+];
+
+const PLACENTA_ACCRETA_BLOOD_ACTION_TERMS = [
+  "blood bank",
+  "blood product",
+  "hemorrhage protocol",
+  "massive transfusion",
+  "transfusion",
+];
+
+const PLACENTA_ACCRETA_DELIVERY_ACTION_TERMS = [
+  "34 0/7",
+  "35 6/7",
+  "caesarean hysterectomy",
+  "cesarean hysterectomy",
+  "scheduled caesarean",
+  "scheduled cesarean",
+];
+
+const PLACENTA_ACCRETA_REFERRAL_SAFETY_TERMS = [
+  "level iii",
+  "level iv",
+  "maternal care",
+  "referral",
+  "tertiary",
+];
+
+const PLACENTA_ACCRETA_NO_REMOVAL_SAFETY_TERMS = [
+  "avoid placental removal",
+  "do not remove placenta",
+  "forced placental removal",
+  "leave placenta in situ",
+  "placenta left in situ",
+];
+
+const PLACENTA_ACCRETA_TIMING_SAFETY_TERMS = [
+  "34 0/7",
+  "34 weeks",
+  "35 6/7",
+  "before labor",
+  "before the onset of labor",
+  "corticosteroids",
+];
+
+const PLACENTA_ACCRETA_HEMORRHAGE_SAFETY_TERMS = [
+  "blood bank",
+  "fibrinogen",
+  "hemorrhage checklist",
+  "massive transfusion",
+  "platelet",
+  "pt",
+  "ptt",
+  "tranexamic acid",
+  "txa",
+];
+
+const PLACENTA_ACCRETA_ORGAN_INJURY_SAFETY_TERMS = [
+  "bladder",
+  "critical care",
+  "cystectomy",
+  "icu",
+  "pelvic organ",
+  "urology",
+];
+
 const UMBILICAL_CORD_PROLAPSE_CONTEXT_TERMS = [
   "cord presentation",
   "cord prolapse",
@@ -14299,6 +14404,73 @@ function hasPlacentaPreviaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresPlacentaAccretaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = PLACENTA_ACCRETA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = PLACENTA_ACCRETA_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasPlacentaAccretaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasImaging = PLACENTA_ACCRETA_IMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTeam = PLACENTA_ACCRETA_TEAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBlood = PLACENTA_ACCRETA_BLOOD_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDelivery = PLACENTA_ACCRETA_DELIVERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasImaging && hasTeam && hasBlood && hasDelivery;
+}
+
+function hasPlacentaAccretaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasReferralSafety = PLACENTA_ACCRETA_REFERRAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNoRemovalSafety = PLACENTA_ACCRETA_NO_REMOVAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTimingSafety = PLACENTA_ACCRETA_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHemorrhageSafety = PLACENTA_ACCRETA_HEMORRHAGE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOrganInjurySafety = PLACENTA_ACCRETA_ORGAN_INJURY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasReferralSafety &&
+    hasNoRemovalSafety &&
+    hasTimingSafety &&
+    hasHemorrhageSafety &&
+    hasOrganInjurySafety
+  );
+}
+
 function requiresUmbilicalCordProlapseSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -21028,6 +21200,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasPlacentaPreviaTreatmentSafetyCheck,
       issue:
         "placenta previa safety checks must include avoiding digital cervical or pelvic examination until placenta previa is excluded by ultrasound, ultrasound or transvaginal ultrasonography before pelvic examination for bleeding after 20 weeks, stable cesarean/caesarean delivery timing at 36 to 37 6/7 weeks without lung maturity documentation, immediate cesarean delivery for severe, uncontrolled, or heavy bleeding, maternal hemodynamic instability, or nonreassuring fetal status, and expectant management safeguards such as hospitalization, modified activity, avoidance of sexual activity, or corticosteroids when early delivery risk is present",
+    },
+    {
+      name: "placenta_accreta_time_critical_actions",
+      label: "Placenta accreta planned delivery actions",
+      applies: requiresPlacentaAccretaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasPlacentaAccretaTimeCriticalActions,
+      issue:
+        "placenta accreta spectrum time-critical actions must include antenatal ultrasound, ultrasonography, Doppler, MRI, or placental lacunae assessment, multidisciplinary team activation with MFM, maternal-fetal medicine, anesthesia, gynecologic oncology, urology, critical care, neonatal, or experienced surgeons, blood bank, hemorrhage protocol, blood-product, transfusion, or massive-transfusion preparation, and scheduled cesarean/caesarean hysterectomy or planned 34 0/7 to 35 6/7 week delivery",
+    },
+    {
+      name: "placenta_accreta_treatment_safety",
+      label: "Placenta accreta hemorrhage and removal safety",
+      applies: requiresPlacentaAccretaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasPlacentaAccretaTreatmentSafetyCheck,
+      issue:
+        "placenta accreta spectrum safety checks must include referral to a tertiary, Level III, or Level IV maternal-care center, avoiding forced placental removal by leaving placenta in situ, planned delivery before labor or bleeding at 34 0/7 to 35 6/7 weeks with corticosteroids when indicated, massive-transfusion, blood-bank, hemorrhage-checklist, fibrinogen, platelet, PT/PTT, TXA, or tranexamic-acid safeguards, and bladder, urology, pelvic organ, cystectomy, ICU, or critical-care injury planning",
     },
     {
       name: "umbilical_cord_prolapse_time_critical_actions",
