@@ -5871,6 +5871,102 @@ METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_TREATMENT_SAFETY_TERMS = (
     "surgical suitability",
     "tokuhashi",
 )
+OPEN_FRACTURE_CONTEXT_TERMS = (
+    "compound fracture",
+    "gustilo",
+    "open fracture",
+    "open long bone fracture",
+    "open tibia fracture",
+    "open tibial fracture",
+)
+OPEN_FRACTURE_RISK_TERMS = (
+    "bone protruding",
+    "contaminated",
+    "crush",
+    "devascularized limb",
+    "dirt",
+    "exposed bone",
+    "farm injury",
+    "fracture wound",
+    "high-energy",
+    "soil",
+    "vascular injury",
+)
+OPEN_FRACTURE_ANTIBIOTIC_ACTION_TERMS = (
+    "antibiotic",
+    "cefazolin",
+    "cefuroxime",
+    "cephalosporin",
+    "gentamicin",
+    "iv antibiotics",
+    "piperacillin-tazobactam",
+    "prophylactic intravenous antibiotics",
+)
+OPEN_FRACTURE_DRESSING_ACTION_TERMS = (
+    "cover wound",
+    "do not irrigate",
+    "occlusive dressing",
+    "saline-soaked dressing",
+    "sterile dressing",
+    "wet dressing",
+)
+OPEN_FRACTURE_NEUROVASCULAR_ACTION_TERMS = (
+    "circulation",
+    "motor",
+    "neurovascular",
+    "pulse",
+    "sensation",
+    "sensory",
+    "vascular injury",
+)
+OPEN_FRACTURE_ORTHOPLASTIC_ACTION_TERMS = (
+    "debridement",
+    "fixation",
+    "orthopedic",
+    "orthopaedic",
+    "orthoplastic",
+    "plastic surgery",
+    "soft tissue cover",
+    "wound excision",
+)
+OPEN_FRACTURE_TETANUS_SAFETY_TERMS = (
+    "tdap",
+    "tetanus",
+    "tetanus immune globulin",
+    "tig",
+    "vaccination",
+    "vaccine",
+)
+OPEN_FRACTURE_ED_IRRIGATION_SAFETY_TERMS = (
+    "do not irrigate",
+    "no ed irrigation",
+    "saline-soaked dressing",
+    "avoid irrigation",
+    "before wound excision",
+)
+OPEN_FRACTURE_TIMING_TRANSFER_SAFETY_TERMS = (
+    "12 hours",
+    "24 hours",
+    "72 hours",
+    "highly contaminated",
+    "immediate wound excision",
+    "major trauma centre",
+    "orthoplastic centre",
+    "soft tissue cover",
+    "transfer",
+    "wound excision",
+)
+OPEN_FRACTURE_VASCULAR_COMPARTMENT_SAFETY_TERMS = (
+    "compartment syndrome",
+    "continued blood loss",
+    "devascularized",
+    "expanding hematoma",
+    "expanding haematoma",
+    "hard signs",
+    "neurovascular",
+    "serial assessment",
+    "vascular injury",
+)
 ACUTE_COMPARTMENT_SYNDROME_CONTEXT_TERMS = (
     "acute compartment syndrome",
     "compartment syndrome",
@@ -14823,6 +14919,40 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="open_fracture_time_critical_actions",
+            applies=_requires_open_fracture_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_open_fracture_time_critical_actions,
+            issue=(
+                "open fracture time-critical actions must include immediate "
+                "prophylactic IV antibiotics such as cefazolin, cefuroxime, "
+                "cephalosporin, gentamicin, or broad-spectrum antibiotics, "
+                "saline-soaked, sterile, wet, or occlusive dressing or covered "
+                "wound with no ED irrigation, neurovascular assessment with pulse, "
+                "motor, sensory, circulation, or vascular-injury review, and "
+                "urgent orthopedic, orthopaedic, plastic-surgery, orthoplastic, "
+                "wound-excision, debridement, fixation, or soft-tissue-cover planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="open_fracture_treatment_safety",
+            applies=_requires_open_fracture_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_open_fracture_treatment_safety_check,
+            issue=(
+                "open fracture safety checks must include tetanus vaccination, "
+                "Tdap, TIG, tetanus immune globulin, or immunization review, "
+                "avoidance of ED irrigation before wound excision with "
+                "saline-soaked or occlusive dressing, debridement or wound-excision "
+                "timing and transfer planning such as immediate highly-contaminated "
+                "wound excision, 12-hour high-energy, 24-hour other open-fracture, "
+                "72-hour soft-tissue cover, major trauma centre, or orthoplastic "
+                "centre review, and vascular or compartment monitoring with hard "
+                "signs, continued blood loss, expanding hematoma, devascularized "
+                "limb, neurovascular serial assessment, or compartment syndrome"
+            ),
+        ),
+        DomainSafetyGate(
             name="acute_compartment_syndrome_time_critical_actions",
             applies=_requires_acute_compartment_syndrome_safety_check,
             field_name="time_critical_actions",
@@ -21335,6 +21465,85 @@ def _has_metastatic_spinal_cord_compression_treatment_safety_check(
         and has_steroid_safety
         and has_imaging_safety
         and has_stability_treatment_safety
+    )
+
+
+def _requires_open_fracture_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in OPEN_FRACTURE_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in OPEN_FRACTURE_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_open_fracture_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_antibiotics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_FRACTURE_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_dressing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_FRACTURE_DRESSING_ACTION_TERMS
+    )
+    has_neurovascular = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_FRACTURE_NEUROVASCULAR_ACTION_TERMS
+    )
+    has_orthoplastic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_FRACTURE_ORTHOPLASTIC_ACTION_TERMS
+    )
+    return has_antibiotics and has_dressing and has_neurovascular and has_orthoplastic
+
+
+def _has_open_fracture_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_tetanus = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_FRACTURE_TETANUS_SAFETY_TERMS
+    )
+    has_ed_irrigation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_FRACTURE_ED_IRRIGATION_SAFETY_TERMS
+    )
+    has_timing_transfer = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_FRACTURE_TIMING_TRANSFER_SAFETY_TERMS
+    )
+    has_vascular_compartment = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_FRACTURE_VASCULAR_COMPARTMENT_SAFETY_TERMS
+    )
+    return (
+        has_tetanus
+        and has_ed_irrigation_safety
+        and has_timing_transfer
+        and has_vascular_compartment
     )
 
 

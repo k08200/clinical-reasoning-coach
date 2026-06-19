@@ -152,6 +152,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "cauda_equina_delay_safety",
         "metastatic_spinal_cord_compression_time_critical_actions",
         "metastatic_spinal_cord_compression_treatment_safety",
+        "open_fracture_time_critical_actions",
+        "open_fracture_treatment_safety",
         "acute_compartment_syndrome_time_critical_actions",
         "acute_compartment_syndrome_treatment_safety",
         "acute_limb_ischemia_time_critical_actions",
@@ -7577,6 +7579,158 @@ def test_quality_gate_requires_mscc_neuro_steroid_imaging_and_stability_treatmen
     assert any(
         "metastatic spinal cord compression safety checks must include serial neurologic"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_open_fracture_antibiotics_dressing_neurovascular_and_orthoplastic_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Gustilo type III open tibial fracture"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "male",
+        "weight_kg": 84,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Open fracture with exposed bone after motorcycle crash"
+    case["history_of_present_illness"] = (
+        "Patient has a high-energy open tibia fracture with exposed bone, "
+        "contaminated fracture wound with soil and dirt, crush injury, and "
+        "concern for vascular injury."
+    )
+    case["key_teaching_points"] = [
+        "Open fractures require immediate prophylactic intravenous antibiotics",
+        "The wound should be protected with a saline-soaked occlusive dressing before wound excision",
+        "Neurovascular status and vascular injury risk must be documented and repeated",
+        "Long-bone open fractures need urgent orthoplastic planning for debridement, fixation, and soft tissue cover",
+    ]
+    case["clinical_red_flags"] = [
+        "Exposed bone, soil contamination, high-energy mechanism, crush injury, or Gustilo type III wound",
+        "Hard signs of vascular injury, continued blood loss, expanding hematoma, devascularized limb, or compartment syndrome",
+    ]
+    case["time_critical_actions"] = [
+        "Give analgesia and obtain plain radiographs",
+        "Admit for observation after splinting",
+    ]
+    case["contraindication_checks"] = [
+        "Review tetanus vaccination, Tdap, TIG, tetanus immune globulin, and immunization history",
+        "Do not irrigate in the ED before wound excision; use a saline-soaked dressing with an occlusive dressing",
+        "Plan transfer to a major trauma centre or orthoplastic centre with immediate wound excision for highly contaminated wounds, 12 hours for high-energy wounds, 24 hours for other open fractures, and 72 hours for soft tissue cover",
+        "Monitor hard signs, continued blood loss, expanding hematoma, devascularized limb, serial neurovascular assessment, and compartment syndrome",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Fractures (complex): assessment and management",
+            "organization": "NICE",
+            "url": "https://www.nice.org.uk/guidance/ng37/chapter/recommendations",
+            "supports": [
+                "gustilo type III open tibial fracture diagnosis and risk stratification",
+                "open fracture with exposed bone after motorcycle crash",
+                "high-energy open tibia fracture with exposed bone, contaminated fracture wound with soil and dirt, crush injury, and vascular injury concern",
+                "open fractures require immediate prophylactic intravenous antibiotics",
+                "wound protected with saline-soaked occlusive dressing before wound excision",
+                "neurovascular status and vascular injury risk must be documented and repeated",
+                "long-bone open fractures need urgent orthoplastic planning for debridement, fixation, and soft tissue cover",
+                "exposed bone, soil contamination, high-energy mechanism, crush injury, or Gustilo type III wound as red flags",
+                "hard signs of vascular injury, continued blood loss, expanding hematoma, devascularized limb, or compartment syndrome as red flags",
+                "analgesia and plain radiographs",
+                "admission for observation after splinting",
+                "no ED irrigation before wound excision and saline-soaked occlusive dressing",
+                "transfer to major trauma centre or orthoplastic centre with immediate wound excision for highly contaminated wounds, 12 hours for high-energy wounds, 24 hours for other open fractures, and 72 hours for soft tissue cover",
+                "hard signs, continued blood loss, expanding hematoma, devascularized limb, serial neurovascular assessment, and compartment syndrome monitoring",
+            ],
+        },
+        {
+            "title": "Clinical Guidance for Wound Management to Prevent Tetanus",
+            "organization": "CDC",
+            "url": "https://www.cdc.gov/tetanus/hcp/clinical-guidance/index.html",
+            "supports": [
+                "compound fractures are dirty or major wounds for tetanus exposure risk",
+                "tetanus vaccination, Tdap, TIG, tetanus immune globulin, and immunization history review",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "open fracture time-critical actions must include immediate prophylactic IV antibiotics"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_open_fracture_tetanus_irrigation_timing_transfer_and_vascular_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Open long bone fracture"
+    case["patient_demographics"] = {
+        "age": 41,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Contaminated compound fracture with visible bone"
+    case["history_of_present_illness"] = (
+        "Patient has an open long bone fracture after a high-energy farm injury "
+        "with bone protruding, exposed bone, soil contamination, crush mechanism, "
+        "and concern for devascularized limb."
+    )
+    case["key_teaching_points"] = [
+        "Open fractures need immediate antibiotics and orthoplastic care",
+        "Neurovascular documentation is required for limb injury",
+        "Compound fractures are dirty wounds that need tetanus vaccine and TIG assessment",
+    ]
+    case["clinical_red_flags"] = [
+        "Bone protruding, exposed bone, contaminated wound, farm injury, soil, dirt, or crush mechanism",
+        "Vascular injury, devascularized limb, hard signs, continued blood loss, or expanding hematoma",
+    ]
+    case["time_critical_actions"] = [
+        "Give immediate IV antibiotics with cefazolin cephalosporin and gentamicin broad-spectrum coverage",
+        "Cover wound with saline-soaked sterile dressing and occlusive dressing; do not irrigate in the ED",
+        "Document neurovascular exam with pulse, motor, sensory, circulation, and vascular injury assessment",
+        "Call orthopedic, orthopaedic, plastic surgery, and orthoplastic team for wound excision, debridement, fixation, and soft tissue cover",
+    ]
+    case["contraindication_checks"] = [
+        "Check medication allergy before cefazolin",
+        "Confirm renal function before gentamicin",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Fractures (complex): assessment and management",
+            "organization": "NICE",
+            "url": "https://www.nice.org.uk/guidance/ng37/chapter/recommendations",
+            "supports": [
+                "open long bone fracture diagnosis and risk stratification",
+                "contaminated compound fracture with visible bone",
+                "open long bone fracture after high-energy farm injury with bone protruding, exposed bone, soil contamination, crush mechanism, and devascularized limb concern",
+                "open fractures need immediate antibiotics and orthoplastic care",
+                "neurovascular documentation is required for limb injury",
+                "bone protruding, exposed bone, contaminated wound, farm injury, soil, dirt, or crush mechanism as red flags",
+                "vascular injury, devascularized limb, hard signs, continued blood loss, or expanding hematoma as red flags",
+                "immediate IV antibiotics with cefazolin cephalosporin and gentamicin broad-spectrum coverage",
+                "saline-soaked sterile dressing and occlusive dressing with no ED irrigation",
+                "neurovascular exam with pulse, motor, sensory, circulation, and vascular injury assessment",
+                "orthopedic, orthopaedic, plastic surgery, and orthoplastic team for wound excision, debridement, fixation, and soft tissue cover",
+                "medication allergy before cefazolin",
+                "renal function before gentamicin",
+            ],
+        },
+        {
+            "title": "Clinical Guidance for Wound Management to Prevent Tetanus",
+            "organization": "CDC",
+            "url": "https://www.cdc.gov/tetanus/hcp/clinical-guidance/index.html",
+            "supports": [
+                "compound fractures are dirty wounds that need tetanus vaccine and TIG assessment",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "open fracture safety checks must include tetanus vaccination" in issue
         for issue in report.critical_issues
     )
 

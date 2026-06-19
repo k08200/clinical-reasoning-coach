@@ -6425,6 +6425,112 @@ const METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_TREATMENT_SAFETY_TERMS = [
   "tokuhashi",
 ];
 
+const OPEN_FRACTURE_CONTEXT_TERMS = [
+  "compound fracture",
+  "gustilo",
+  "open fracture",
+  "open long bone fracture",
+  "open tibia fracture",
+  "open tibial fracture",
+];
+
+const OPEN_FRACTURE_RISK_TERMS = [
+  "bone protruding",
+  "contaminated",
+  "crush",
+  "devascularized limb",
+  "dirt",
+  "exposed bone",
+  "farm injury",
+  "fracture wound",
+  "high-energy",
+  "soil",
+  "vascular injury",
+];
+
+const OPEN_FRACTURE_ANTIBIOTIC_ACTION_TERMS = [
+  "antibiotic",
+  "cefazolin",
+  "cefuroxime",
+  "cephalosporin",
+  "gentamicin",
+  "iv antibiotics",
+  "piperacillin-tazobactam",
+  "prophylactic intravenous antibiotics",
+];
+
+const OPEN_FRACTURE_DRESSING_ACTION_TERMS = [
+  "cover wound",
+  "do not irrigate",
+  "occlusive dressing",
+  "saline-soaked dressing",
+  "sterile dressing",
+  "wet dressing",
+];
+
+const OPEN_FRACTURE_NEUROVASCULAR_ACTION_TERMS = [
+  "circulation",
+  "motor",
+  "neurovascular",
+  "pulse",
+  "sensation",
+  "sensory",
+  "vascular injury",
+];
+
+const OPEN_FRACTURE_ORTHOPLASTIC_ACTION_TERMS = [
+  "debridement",
+  "fixation",
+  "orthopedic",
+  "orthopaedic",
+  "orthoplastic",
+  "plastic surgery",
+  "soft tissue cover",
+  "wound excision",
+];
+
+const OPEN_FRACTURE_TETANUS_SAFETY_TERMS = [
+  "tdap",
+  "tetanus",
+  "tetanus immune globulin",
+  "tig",
+  "vaccination",
+  "vaccine",
+];
+
+const OPEN_FRACTURE_ED_IRRIGATION_SAFETY_TERMS = [
+  "do not irrigate",
+  "no ed irrigation",
+  "saline-soaked dressing",
+  "avoid irrigation",
+  "before wound excision",
+];
+
+const OPEN_FRACTURE_TIMING_TRANSFER_SAFETY_TERMS = [
+  "12 hours",
+  "24 hours",
+  "72 hours",
+  "highly contaminated",
+  "immediate wound excision",
+  "major trauma centre",
+  "orthoplastic centre",
+  "soft tissue cover",
+  "transfer",
+  "wound excision",
+];
+
+const OPEN_FRACTURE_VASCULAR_COMPARTMENT_SAFETY_TERMS = [
+  "compartment syndrome",
+  "continued blood loss",
+  "devascularized",
+  "expanding hematoma",
+  "expanding haematoma",
+  "hard signs",
+  "neurovascular",
+  "serial assessment",
+  "vascular injury",
+];
+
 const ACUTE_COMPARTMENT_SYNDROME_CONTEXT_TERMS = [
   "acute compartment syndrome",
   "compartment syndrome",
@@ -17703,6 +17809,65 @@ function hasMetastaticSpinalCordCompressionTreatmentSafetyCheck(checks: string[]
   return hasNeuroMonitoring && hasSteroidSafety && hasImagingSafety && hasStabilityTreatmentSafety;
 }
 
+function requiresOpenFractureSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = OPEN_FRACTURE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = OPEN_FRACTURE_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasOpenFractureTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAntibiotics = OPEN_FRACTURE_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDressing = OPEN_FRACTURE_DRESSING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeurovascular = OPEN_FRACTURE_NEUROVASCULAR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOrthoplastic = OPEN_FRACTURE_ORTHOPLASTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAntibiotics && hasDressing && hasNeurovascular && hasOrthoplastic;
+}
+
+function hasOpenFractureTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasTetanus = OPEN_FRACTURE_TETANUS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEdIrrigationSafety = OPEN_FRACTURE_ED_IRRIGATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTimingTransfer = OPEN_FRACTURE_TIMING_TRANSFER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVascularCompartment = OPEN_FRACTURE_VASCULAR_COMPARTMENT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasTetanus && hasEdIrrigationSafety && hasTimingTransfer && hasVascularCompartment;
+}
+
 function requiresAcuteCompartmentSyndromeSafetyCheck(
   detail: ClinicalCaseReviewDetail,
 ): boolean {
@@ -23309,6 +23474,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasMetastaticSpinalCordCompressionTreatmentSafetyCheck,
       issue:
         "metastatic spinal cord compression safety checks must include serial neurologic, bladder, or bowel monitoring, steroid safety with glucose, PPI, taper, or discontinuation if MSCC is ruled out, imaging safeguards such as CT if MRI is contraindicated and not using plain x-ray to rule out MSCC, and spinal stability, prognosis, SINS, Tokuhashi, surgical suitability, or radiotherapy-within-24-hours treatment review",
+    },
+    {
+      name: "open_fracture_time_critical_actions",
+      label: "Open fracture antibiotics and orthoplastic actions",
+      applies: requiresOpenFractureSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasOpenFractureTimeCriticalActions,
+      issue:
+        "open fracture time-critical actions must include immediate prophylactic IV antibiotics such as cefazolin, cefuroxime, cephalosporin, gentamicin, or broad-spectrum antibiotics, saline-soaked, sterile, wet, or occlusive dressing or covered wound with no ED irrigation, neurovascular assessment with pulse, motor, sensory, circulation, or vascular-injury review, and urgent orthopedic, orthopaedic, plastic-surgery, orthoplastic, wound-excision, debridement, fixation, or soft-tissue-cover planning",
+    },
+    {
+      name: "open_fracture_treatment_safety",
+      label: "Open fracture tetanus and debridement safety",
+      applies: requiresOpenFractureSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasOpenFractureTreatmentSafetyCheck,
+      issue:
+        "open fracture safety checks must include tetanus vaccination, Tdap, TIG, tetanus immune globulin, or immunization review, avoidance of ED irrigation before wound excision with saline-soaked or occlusive dressing, debridement or wound-excision timing and transfer planning such as immediate highly-contaminated wound excision, 12-hour high-energy, 24-hour other open-fracture, 72-hour soft-tissue cover, major trauma centre, or orthoplastic centre review, and vascular or compartment monitoring with hard signs, continued blood loss, expanding hematoma, devascularized limb, neurovascular serial assessment, or compartment syndrome",
     },
     {
       name: "acute_compartment_syndrome_time_critical_actions",
