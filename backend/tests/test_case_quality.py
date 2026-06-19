@@ -267,6 +267,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "sjs_ten_treatment_safety",
         "dress_time_critical_actions",
         "dress_treatment_safety",
+        "ssss_time_critical_actions",
+        "ssss_treatment_safety",
         "methemoglobinemia_time_critical_actions",
         "methemoglobinemia_treatment_safety",
         "caustic_ingestion_time_critical_actions",
@@ -16116,6 +16118,143 @@ def test_quality_gate_requires_dress_organ_relapse_viral_rechallenge_and_immunom
     assert not report.passed
     assert any(
         "DRESS/DIHS safety checks must include severe organ complication review"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ssss_source_admission_antibiotic_fluid_and_wound_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Staphylococcal scalded skin syndrome"
+    case["patient_demographics"] = {
+        "age": 2,
+        "sex": "male",
+        "weight_kg": 13,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, irritability, and painful skin peeling"
+    case["history_of_present_illness"] = (
+        "Toddler has staphylococcal scalded skin syndrome with fever, irritability, "
+        "diffuse tender erythema, flaccid bullae, positive Nikolsky sign, skin "
+        "sloughing, desquamation, perioral crusting, and suspected exfoliative "
+        "toxin from Staphylococcus aureus."
+    )
+    case["key_teaching_points"] = [
+        "SSSS is a toxin-mediated Staphylococcus aureus illness with superficial blistering and desquamation",
+        "Children require hospitalization because fluid loss, dehydration, hypothermia, and infection complications can progress quickly",
+        "Treatment requires prompt IV anti-staphylococcal antibiotics plus supportive fluid, electrolyte, temperature, wound, and pain care",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever, irritability, skin tenderness, flaccid bullae, Nikolsky sign, desquamation, epidermal detachment, or skin sloughing",
+        "Dehydration, electrolyte imbalance, hypothermia, sepsis, pneumonia, renal failure, adult immunosuppression, or renal impairment",
+    ]
+    case["time_critical_actions"] = [
+        "Give oral antihistamine and topical steroid for rash comfort",
+        "Arrange outpatient dermatology follow-up if peeling worsens",
+    ]
+    case["contraindication_checks"] = [
+        "Review MRSA risk including healthcare exposure or skilled nursing exposure and use vancomycin if MRSA is suspected",
+        "Avoid silver sulfadiazine, avoid NSAID/ibuprofen with kidney impairment risk, and avoid clindamycin monotherapy when clindamycin resistance is possible",
+        "Review differential diagnosis for mucosa-sparing SSSS versus SJS/TEN, toxic epidermal necrolysis, bullous impetigo, or AGEP",
+        "Monitor dehydration, electrolyte imbalance, hypothermia, sepsis, pneumonia, and renal failure complications",
+        "Assess Staph aureus carrier state, decolonization, nursery outbreak or outbreak control, and hand washing prevention planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Staphylococcal scalded skin syndrome",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK448135/",
+            "supports": [
+                "staphylococcal scalded skin syndrome diagnosis and risk stratification",
+                "SSSS is a toxin-mediated Staphylococcus aureus illness with superficial blistering and desquamation",
+                "fever, irritability, skin tenderness, flaccid bullae, Nikolsky sign, desquamation, epidermal detachment, and skin sloughing as clinical features",
+                "children require hospitalization because fluid loss, dehydration, hypothermia, and infection complications can progress quickly",
+                "diagnostic/source evaluation with skin swab, blood culture, source of infection, nasopharynx, conjunctiva, Staph aureus, or skin biopsy review",
+                "hospitalization with dermatology, ICU, intensive care, or burn unit escalation",
+                "prompt IV anti-staphylococcal antibiotics including flucloxacillin, cefazolin, nafcillin, oxacillin, or vancomycin",
+                "supportive fluid, dehydration, electrolyte, temperature, and hypothermia management",
+                "wound care with nonadherent dressing, burn dressing, emollient, petroleum jelly, pain control, or pain relief",
+                "MRSA risk including healthcare exposure or skilled nursing exposure and vancomycin if MRSA is suspected",
+                "avoid silver sulfadiazine, avoid NSAID/ibuprofen with kidney impairment risk, and avoid clindamycin monotherapy when clindamycin resistance is possible",
+                "differential diagnosis for mucosa-sparing SSSS versus SJS/TEN, toxic epidermal necrolysis, bullous impetigo, or AGEP",
+                "monitor dehydration, electrolyte imbalance, hypothermia, sepsis, pneumonia, and renal failure complications",
+                "Staph aureus carrier state, decolonization, nursery outbreak or outbreak control, and hand washing prevention planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "staphylococcal scalded skin syndrome time-critical actions must include diagnostic/source evaluation"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ssss_mrsa_medication_harm_differential_complication_and_outbreak_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Adult staphylococcal scalded skin syndrome with renal failure risk"
+    case["patient_demographics"] = {
+        "age": 69,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Painful erythema, bullae, and sloughing after wound infection"
+    case["history_of_present_illness"] = (
+        "Older adult with chronic kidney disease and suspected Staph aureus wound "
+        "source has adult SSSS/Ritter disease with fever, flaccid bullae, positive "
+        "Nikolsky sign, widespread desquamation, epidermal detachment, skin sloughing, "
+        "hypotension, and renal failure risk."
+    )
+    case["key_teaching_points"] = [
+        "Adult SSSS is uncommon but has high mortality, especially with renal impairment or immunosuppression",
+        "Treatment requires prompt anti-staphylococcal IV antibiotics and supportive burn-style care",
+        "Mucosal sparing helps distinguish SSSS from SJS/TEN, but serious mimics must be reviewed",
+    ]
+    case["clinical_red_flags"] = [
+        "Adult SSSS, renal impairment, immunosuppression, hypotension, fever, flaccid bullae, Nikolsky sign, desquamation, or skin sloughing",
+        "Sepsis, pneumonia, renal failure, dehydration, electrolyte imbalance, hypothermia, or secondary infection",
+    ]
+    case["time_critical_actions"] = [
+        "Send skin swab, blood culture, nasopharynx and conjunctiva swabs, evaluate source of infection, and consider skin biopsy for Staph aureus toxin illness",
+        "Admit for hospitalization with dermatology, ICU/intensive care, and burn unit escalation because adult disease is severe",
+        "Start IV antibiotic anti-staphylococcal therapy with cefazolin or nafcillin/oxacillin and use vancomycin if MRSA is suspected",
+        "Give fluid support, correct dehydration and electrolyte imbalance, monitor temperature, and prevent hypothermia",
+        "Provide wound care with nonadherent dressing, burn dressing, emollient or petroleum jelly, plus pain control/pain relief",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before analgesia",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Staphylococcal scalded skin syndrome",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK448135/",
+            "supports": [
+                "adult staphylococcal scalded skin syndrome with renal failure risk diagnosis and risk stratification",
+                "adult SSSS is uncommon but has high mortality, especially with renal impairment or immunosuppression",
+                "treatment requires prompt anti-staphylococcal IV antibiotics and supportive burn-style care",
+                "mucosal sparing helps distinguish SSSS from SJS/TEN, but serious mimics must be reviewed",
+                "skin swab, blood culture, nasopharynx and conjunctiva swabs, source of infection, and skin biopsy for Staph aureus toxin illness",
+                "hospitalization with dermatology, ICU/intensive care, and burn unit escalation because adult disease is severe",
+                "IV antibiotic anti-staphylococcal therapy with cefazolin or nafcillin/oxacillin and vancomycin if MRSA is suspected",
+                "fluid support, dehydration and electrolyte imbalance correction, temperature monitoring, and hypothermia prevention",
+                "wound care with nonadherent dressing, burn dressing, emollient or petroleum jelly, plus pain control/pain relief",
+                "medication allergy review before analgesia",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "staphylococcal scalded skin syndrome safety checks must include MRSA"
         in issue
         for issue in report.critical_issues
     )

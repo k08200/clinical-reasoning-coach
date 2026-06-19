@@ -11637,6 +11637,107 @@ DRESS_ALTERNATIVE_IMMUNOMODULATOR_SAFETY_TERMS = (
     "plasmapheresis",
     "rituximab",
 )
+SSSS_CONTEXT_TERMS = (
+    "ritter disease",
+    "ritter's disease",
+    "scalded skin syndrome",
+    "ssss",
+    "staphylococcal scalded skin",
+)
+SSSS_RISK_TERMS = (
+    "blister",
+    "bullae",
+    "desquamation",
+    "epidermal detachment",
+    "exfoliative toxin",
+    "exotoxin",
+    "flaccid bullae",
+    "nikolsky",
+    "skin sloughing",
+    "staphylococcus aureus",
+)
+SSSS_DIAGNOSTIC_SOURCE_ACTION_TERMS = (
+    "blood culture",
+    "conjunctiva",
+    "nasopharynx",
+    "source of infection",
+    "skin biopsy",
+    "skin swab",
+    "staph aureus",
+    "swab",
+)
+SSSS_ADMISSION_ESCALATION_ACTION_TERMS = (
+    "burn unit",
+    "dermatology",
+    "hospitalisation",
+    "hospitalization",
+    "icu",
+    "intensive care",
+)
+SSSS_ANTISTAPH_ANTIBIOTIC_ACTION_TERMS = (
+    "anti-staphylococcal",
+    "cefazolin",
+    "flucloxacillin",
+    "iv antibiotic",
+    "nafcillin",
+    "oxacillin",
+    "vancomycin",
+)
+SSSS_FLUID_TEMP_ACTION_TERMS = (
+    "dehydration",
+    "electrolyte",
+    "fluid",
+    "hypothermia",
+    "temperature",
+)
+SSSS_WOUND_PAIN_ACTION_TERMS = (
+    "burn dressing",
+    "emollient",
+    "nonadherent dressing",
+    "pain control",
+    "pain relief",
+    "petroleum jelly",
+    "wound care",
+)
+SSSS_MRSA_VANCOMYCIN_SAFETY_TERMS = (
+    "healthcare exposure",
+    "mrsa",
+    "skilled nursing",
+    "vancomycin",
+)
+SSSS_MEDICATION_HARM_SAFETY_TERMS = (
+    "avoid ibuprofen",
+    "avoid nsaid",
+    "avoid silver sulfadiazine",
+    "clindamycin resistance",
+    "clindamycin monotherapy",
+    "kidney impairment",
+    "silver sulfadiazine",
+)
+SSSS_DIFFERENTIAL_SAFETY_TERMS = (
+    "agep",
+    "bullous impetigo",
+    "mucosa",
+    "sjs/ten",
+    "stevens-johnson",
+    "toxic epidermal necrolysis",
+)
+SSSS_COMPLICATION_MONITORING_SAFETY_TERMS = (
+    "dehydration",
+    "electrolyte imbalance",
+    "hypothermia",
+    "pneumonia",
+    "renal failure",
+    "sepsis",
+)
+SSSS_CARRIER_OUTBREAK_SAFETY_TERMS = (
+    "carrier",
+    "decolonization",
+    "hand washing",
+    "nursery outbreak",
+    "outbreak",
+    "staph aureus carrier",
+)
 METHEMOGLOBINEMIA_CONTEXT_TERMS = (
     "acquired methemoglobinemia",
     "methemoglobin",
@@ -17533,6 +17634,42 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "and alternative immunomodulator review such as cyclosporine/"
                 "ciclosporin, IVIG, plasmapheresis, mycophenolate, rituximab, or "
                 "cyclophosphamide when corticosteroid response is inadequate"
+            ),
+        ),
+        DomainSafetyGate(
+            name="ssss_time_critical_actions",
+            applies=_requires_ssss_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_ssss_time_critical_actions,
+            issue=(
+                "staphylococcal scalded skin syndrome time-critical actions must "
+                "include diagnostic/source evaluation with skin swab, blood culture, "
+                "source of infection, nasopharynx, conjunctiva, Staph aureus, or "
+                "skin-biopsy review, hospitalisation/hospitalization, dermatology, "
+                "ICU, intensive-care, or burn-unit escalation, prompt IV anti-"
+                "staphylococcal antibiotics such as flucloxacillin, cefazolin, "
+                "nafcillin, oxacillin, or vancomycin, fluid, dehydration, "
+                "electrolyte, temperature, or hypothermia support, and wound-care, "
+                "nonadherent-dressing, burn-dressing, emollient, petroleum-jelly, "
+                "pain-control, or pain-relief planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="ssss_treatment_safety",
+            applies=_requires_ssss_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_ssss_treatment_safety_check,
+            issue=(
+                "staphylococcal scalded skin syndrome safety checks must include "
+                "MRSA, vancomycin, healthcare-exposure, or skilled-nursing review, "
+                "medication harm review such as avoiding silver sulfadiazine, "
+                "avoiding NSAIDs/ibuprofen with kidney impairment risk, and avoiding "
+                "clindamycin monotherapy when resistance is possible, differential "
+                "review for mucosal sparing versus SJS/TEN, toxic epidermal "
+                "necrolysis, bullous impetigo, or AGEP, complication monitoring for "
+                "dehydration, electrolyte imbalance, hypothermia, sepsis, pneumonia, "
+                "or renal failure, and carrier, decolonization, nursery outbreak, "
+                "outbreak, Staph aureus carrier, or hand-washing prevention planning"
             ),
         ),
         DomainSafetyGate(
@@ -27479,6 +27616,100 @@ def _has_dress_treatment_safety_check(checks: list[Any]) -> bool:
         and has_viral_autoimmune_safety
         and has_rechallenge_cross_reaction_safety
         and has_alternative_immunomodulator_safety
+    )
+
+
+def _requires_ssss_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SSSS_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in SSSS_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_ssss_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_diagnostic_source = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SSSS_DIAGNOSTIC_SOURCE_ACTION_TERMS
+    )
+    has_admission_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SSSS_ADMISSION_ESCALATION_ACTION_TERMS
+    )
+    has_antistaph_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SSSS_ANTISTAPH_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_fluid_temp = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SSSS_FLUID_TEMP_ACTION_TERMS
+    )
+    has_wound_pain = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SSSS_WOUND_PAIN_ACTION_TERMS
+    )
+    return (
+        has_diagnostic_source
+        and has_admission_escalation
+        and has_antistaph_antibiotic
+        and has_fluid_temp
+        and has_wound_pain
+    )
+
+
+def _has_ssss_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_mrsa_vancomycin_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SSSS_MRSA_VANCOMYCIN_SAFETY_TERMS
+    )
+    has_medication_harm_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SSSS_MEDICATION_HARM_SAFETY_TERMS
+    )
+    has_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SSSS_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_complication_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SSSS_COMPLICATION_MONITORING_SAFETY_TERMS
+    )
+    has_carrier_outbreak_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SSSS_CARRIER_OUTBREAK_SAFETY_TERMS
+    )
+    return (
+        has_mrsa_vancomycin_safety
+        and has_medication_harm_safety
+        and has_differential_safety
+        and has_complication_monitoring
+        and has_carrier_outbreak_safety
     )
 
 
