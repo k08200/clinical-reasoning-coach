@@ -11418,6 +11418,117 @@ MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = (
     "systemic antibiotics only",
     "topical antimicrobial",
 )
+SJS_TEN_CONTEXT_TERMS = (
+    "epidermal necrolysis",
+    "sjs",
+    "sjs/ten",
+    "stevens johnson",
+    "stevens-johnson",
+    "toxic epidermal necrolysis",
+)
+SJS_TEN_RISK_TERMS = (
+    "allopurinol",
+    "blister",
+    "carbamazepine",
+    "conjunctivitis",
+    "desquamation",
+    "epidermal detachment",
+    "lamotrigine",
+    "mucosal",
+    "nikolsky",
+    "phenytoin",
+    "skin pain",
+    "skin sloughing",
+    "sulfonamide",
+    "targetoid",
+)
+SJS_TEN_CULPRIT_DRUG_ACTION_TERMS = (
+    "culprit drug",
+    "discontinue",
+    "offending drug",
+    "stop medication",
+    "stop the drug",
+    "withdraw",
+)
+SJS_TEN_ADMISSION_ESCALATION_ACTION_TERMS = (
+    "burn center",
+    "burn unit",
+    "dermatology",
+    "hospital admission",
+    "icu",
+    "intensive care",
+)
+SJS_TEN_BSA_SCORTEN_ACTION_TERMS = (
+    "abcd-10",
+    "body surface area",
+    "bsa",
+    "epidermal detachment",
+    "scorten",
+    "skin detachment",
+)
+SJS_TEN_SUPPORTIVE_CARE_ACTION_TERMS = (
+    "fluid replacement",
+    "fluid resuscitation",
+    "nutritional support",
+    "pain control",
+    "pain relief",
+    "temperature",
+    "warm room",
+)
+SJS_TEN_MUCOSAL_EYE_ACTION_TERMS = (
+    "eye care",
+    "mucosal",
+    "ophthalmology",
+    "ophthalmologist",
+    "oral care",
+)
+SJS_TEN_WOUND_INFECTION_SAFETY_TERMS = (
+    "avoid adhesive",
+    "bacterial culture",
+    "infection monitoring",
+    "infection surveillance",
+    "non-adherent",
+    "reverse isolation",
+    "sterile handling",
+    "swab",
+    "wound care",
+)
+SJS_TEN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = (
+    "avoid prophylactic antibiotic",
+    "no prophylactic antibiotic",
+    "not prophylactic antibiotic",
+    "prophylactic antibiotics are not recommended",
+    "systemic antibiotics only if infection",
+)
+SJS_TEN_AIRWAY_ORGAN_SAFETY_TERMS = (
+    "acute respiratory distress",
+    "airway",
+    "ards",
+    "intubation",
+    "kidney",
+    "liver",
+    "organ failure",
+    "pneumonia",
+    "respiratory distress",
+)
+SJS_TEN_MEDICATION_RECHALLENGE_SAFETY_TERMS = (
+    "avoid related medicines",
+    "avoid structurally related",
+    "cross-reaction",
+    "do not rechallenge",
+    "drug allergy",
+    "recurrence",
+    "rechallenge",
+)
+SJS_TEN_ADJUNCT_RISK_SAFETY_TERMS = (
+    "ciclosporin",
+    "cyclosporine",
+    "infection risk",
+    "ivig",
+    "renal impairment",
+    "steroid",
+    "thalidomide",
+)
 METHEMOGLOBINEMIA_CONTEXT_TERMS = (
     "acquired methemoglobinemia",
     "methemoglobin",
@@ -17240,6 +17351,41 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "ventilation restriction, tetanus status or Tdap review, and "
                 "antibiotic stewardship such as avoiding routine prophylactic "
                 "systemic antibiotics or using topical antimicrobials when indicated"
+            ),
+        ),
+        DomainSafetyGate(
+            name="sjs_ten_time_critical_actions",
+            applies=_requires_sjs_ten_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_sjs_ten_time_critical_actions,
+            issue=(
+                "SJS/TEN time-critical actions must include immediate cessation, "
+                "withdrawal, or discontinuation of the culprit/offending drug, "
+                "hospital admission with dermatology, ICU, intensive-care, burn-"
+                "unit, or burn-center escalation, BSA, body-surface-area, skin-"
+                "detachment, epidermal-detachment, SCORTEN, or ABCD-10 severity "
+                "assessment, supportive care with fluid replacement/resuscitation, "
+                "nutrition, temperature/warm-room maintenance, and pain control, "
+                "and mucosal, oral, eye-care, ophthalmology, or ophthalmologist "
+                "assessment"
+            ),
+        ),
+        DomainSafetyGate(
+            name="sjs_ten_treatment_safety",
+            applies=_requires_sjs_ten_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_sjs_ten_treatment_safety_check,
+            issue=(
+                "SJS/TEN safety checks must include sterile handling, reverse "
+                "isolation, non-adherent dressings, avoid-adhesive, wound-care, "
+                "or infection surveillance, antibiotic stewardship such as avoiding "
+                "prophylactic systemic antibiotics or using systemic antibiotics "
+                "only if infection develops, airway, respiratory distress, ARDS, "
+                "pneumonia, kidney, liver, or organ-failure monitoring, avoidance "
+                "of rechallenge or structurally related medicines with drug-allergy/"
+                "cross-reaction documentation, and adjunct therapy risk review "
+                "including steroid, IVIG, cyclosporine/ciclosporin, renal "
+                "impairment, infection risk, or thalidomide avoidance"
             ),
         ),
         DomainSafetyGate(
@@ -26998,6 +27144,100 @@ def _has_major_burn_treatment_safety_check(checks: list[Any]) -> bool:
         and has_escharotomy_safety
         and has_tetanus_safety
         and has_antibiotic_stewardship
+    )
+
+
+def _requires_sjs_ten_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SJS_TEN_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in SJS_TEN_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_sjs_ten_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_culprit_drug_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_CULPRIT_DRUG_ACTION_TERMS
+    )
+    has_admission_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_ADMISSION_ESCALATION_ACTION_TERMS
+    )
+    has_bsa_scorten = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_BSA_SCORTEN_ACTION_TERMS
+    )
+    has_supportive_care = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_SUPPORTIVE_CARE_ACTION_TERMS
+    )
+    has_mucosal_eye = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_MUCOSAL_EYE_ACTION_TERMS
+    )
+    return (
+        has_culprit_drug_action
+        and has_admission_escalation
+        and has_bsa_scorten
+        and has_supportive_care
+        and has_mucosal_eye
+    )
+
+
+def _has_sjs_ten_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_wound_infection_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_WOUND_INFECTION_SAFETY_TERMS
+    )
+    has_antibiotic_stewardship = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS
+    )
+    has_airway_organ_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_AIRWAY_ORGAN_SAFETY_TERMS
+    )
+    has_medication_rechallenge = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_MEDICATION_RECHALLENGE_SAFETY_TERMS
+    )
+    has_adjunct_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_ADJUNCT_RISK_SAFETY_TERMS
+    )
+    return (
+        has_wound_infection_safety
+        and has_antibiotic_stewardship
+        and has_airway_organ_safety
+        and has_medication_rechallenge
+        and has_adjunct_risk_safety
     )
 
 

@@ -10036,6 +10036,124 @@
     }
   },
   {
+    "name": "sjs_ten_requires_drug_stop_bsa_support_and_eye_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "SJS/TEN time-critical actions must include immediate cessation"
+    ],
+    "overrides": {
+      "diagnosis": "Stevens-Johnson syndrome / toxic epidermal necrolysis overlap",
+      "patient_demographics": {
+        "age": 38,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Painful rash with mouth ulcers and red eyes after lamotrigine",
+      "history_of_present_illness": "Patient recently started lamotrigine and now has suspected SJS/TEN with fever, conjunctivitis, painful targetoid rash, flaccid blistering, positive Nikolsky sign, mucosal erosions, skin pain, and epidermal detachment involving 12% body surface area.",
+      "key_teaching_points": [
+        "SJS/TEN is a potentially fatal medication-associated reaction with sheet-like skin and mucosal loss",
+        "Common triggers include lamotrigine, carbamazepine, phenytoin, allopurinol, sulfonamides, beta-lactams, and NSAIDs",
+        "Severity is assessed by BSA/body surface area skin detachment and SCORTEN or ABCD-10 criteria",
+        "Care requires stopping the culprit drug, hospital admission with dermatology and burn unit or ICU escalation, supportive fluid/nutrition/temperature/pain care, and ophthalmology assessment"
+      ],
+      "clinical_red_flags": [
+        "Fever, skin pain, targetoid rash, blister, Nikolsky sign, desquamation, epidermal detachment, or skin sloughing",
+        "Mucosal involvement, mouth ulcers, conjunctivitis, red eyes, respiratory distress, infection, sepsis, kidney injury, liver injury, shock, or organ failure"
+      ],
+      "time_critical_actions": [
+        "Give oral antihistamine and outpatient dermatology follow-up",
+        "Continue lamotrigine until rash evolution is clearer"
+      ],
+      "contraindication_checks": [
+        "Use sterile handling, reverse isolation, non-adherent dressings, avoid adhesive tape, wound care, and infection surveillance",
+        "Avoid prophylactic antibiotic use; systemic antibiotics only if infection develops",
+        "Monitor airway, respiratory distress, ARDS, pneumonia, kidney, liver, and organ failure complications",
+        "Document drug allergy, avoid rechallenge, avoid structurally related medicines, and review cross-reaction or recurrence risk",
+        "Review adjunct therapy risks including steroid infection risk, IVIG uncertainty, cyclosporine/ciclosporin renal impairment, and thalidomide avoidance"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Stevens-Johnson syndrome / toxic epidermal necrolysis",
+          "organization": "DermNet",
+          "url": "https://dermnetnz.org/topics/stevens-johnson-syndrome-toxic-epidermal-necrolysis",
+          "supports": [
+            "Stevens-Johnson syndrome and toxic epidermal necrolysis diagnosis and risk stratification",
+            "SJS/TEN is a potentially fatal medication-associated reaction with sheet-like skin and mucosal loss",
+            "common triggers include lamotrigine, carbamazepine, phenytoin, allopurinol, sulfonamides, beta-lactams, and NSAIDs",
+            "fever, conjunctivitis, painful targetoid rash, flaccid blistering, Nikolsky sign, mucosal erosions, skin pain, and epidermal detachment as clinical features",
+            "severity assessment by BSA/body surface area skin detachment and SCORTEN or ABCD-10 criteria",
+            "cessation, withdrawal, or discontinuation of the culprit/offending drug",
+            "hospital admission with dermatology and burn unit or ICU escalation",
+            "supportive care with fluid replacement or fluid resuscitation, nutritional support, temperature warm room maintenance, and pain control",
+            "mucosal, oral, eye care, ophthalmology, or ophthalmologist assessment",
+            "sterile handling, reverse isolation, non-adherent dressings, avoid adhesive tape, wound care, and infection surveillance",
+            "avoid prophylactic antibiotic use and use systemic antibiotics only if infection develops",
+            "airway, respiratory distress, ARDS, pneumonia, kidney, liver, and organ failure complication monitoring",
+            "drug allergy, avoid rechallenge, avoid structurally related medicines, cross-reaction, or recurrence risk",
+            "adjunct therapy risks including steroid infection risk, IVIG uncertainty, cyclosporine/ciclosporin renal impairment, and thalidomide avoidance"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "sjs_ten_requires_wound_antibiotic_organ_rechallenge_and_adjunct_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "SJS/TEN safety checks must include sterile handling"
+    ],
+    "overrides": {
+      "diagnosis": "Toxic epidermal necrolysis after allopurinol",
+      "patient_demographics": {
+        "age": 64,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Diffuse painful skin sloughing with oral and ocular mucosal erosions",
+      "history_of_present_illness": "Patient recently started allopurinol and presents with toxic epidermal necrolysis, fever, skin pain, widespread blistering, desquamation, mucosal erosions, conjunctivitis, Nikolsky sign, and epidermal detachment over 35% BSA with concern for sepsis and organ failure.",
+      "key_teaching_points": [
+        "TEN has extensive epidermal detachment and can cause dehydration, infection, ARDS, shock, kidney failure, and multiple organ failure",
+        "Immediate culprit drug cessation improves outcomes when performed early",
+        "Hospital admission to ICU, burn unit, or burn center with specialist care improves survival"
+      ],
+      "clinical_red_flags": [
+        "Toxic epidermal necrolysis, SJS/TEN, skin sloughing, epidermal detachment, Nikolsky sign, blister, mucosal erosions, conjunctivitis, or targetoid lesions",
+        "Infection, sepsis, acute respiratory distress, ARDS, pneumonia, shock, kidney failure, liver injury, thromboembolism, DIC, or organ failure"
+      ],
+      "time_critical_actions": [
+        "Immediately discontinue the culprit drug, stop the drug, and withdraw allopurinol as the offending drug",
+        "Admit to hospital with dermatology, ICU intensive care, burn unit, and burn center escalation",
+        "Estimate BSA/body surface area and skin detachment with SCORTEN and ABCD-10 severity assessment",
+        "Provide supportive care with fluid replacement/resuscitation, nutritional support, warm room temperature maintenance, and pain control",
+        "Assess mucosal surfaces with oral care plus eye care and urgent ophthalmology/ophthalmologist evaluation"
+      ],
+      "contraindication_checks": [
+        "Medication allergy review before analgesia",
+        "Renal function before contrast imaging"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Stevens-Johnson syndrome / toxic epidermal necrolysis",
+          "organization": "DermNet",
+          "url": "https://dermnetnz.org/topics/stevens-johnson-syndrome-toxic-epidermal-necrolysis",
+          "supports": [
+            "toxic epidermal necrolysis after allopurinol diagnosis and risk stratification",
+            "TEN has extensive epidermal detachment and can cause dehydration, infection, ARDS, shock, kidney failure, and multiple organ failure",
+            "immediate culprit drug cessation improves outcomes when performed early",
+            "hospital admission to ICU, burn unit, or burn center with specialist care improves survival",
+            "BSA/body surface area and skin detachment with SCORTEN and ABCD-10 severity assessment",
+            "supportive care with fluid replacement/resuscitation, nutritional support, warm room temperature maintenance, and pain control",
+            "mucosal surfaces with oral care plus eye care and urgent ophthalmology/ophthalmologist evaluation",
+            "medication allergy review before analgesia",
+            "renal function before contrast imaging"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "methemoglobinemia_requires_oxygen_source_coox_methylene_and_toxicology_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

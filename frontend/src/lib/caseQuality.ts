@@ -12524,6 +12524,129 @@ const MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = [
   "topical antimicrobial",
 ];
 
+const SJS_TEN_CONTEXT_TERMS = [
+  "epidermal necrolysis",
+  "sjs",
+  "sjs/ten",
+  "stevens johnson",
+  "stevens-johnson",
+  "toxic epidermal necrolysis",
+];
+
+const SJS_TEN_RISK_TERMS = [
+  "allopurinol",
+  "blister",
+  "carbamazepine",
+  "conjunctivitis",
+  "desquamation",
+  "epidermal detachment",
+  "lamotrigine",
+  "mucosal",
+  "nikolsky",
+  "phenytoin",
+  "skin pain",
+  "skin sloughing",
+  "sulfonamide",
+  "targetoid",
+];
+
+const SJS_TEN_CULPRIT_DRUG_ACTION_TERMS = [
+  "culprit drug",
+  "discontinue",
+  "offending drug",
+  "stop medication",
+  "stop the drug",
+  "withdraw",
+];
+
+const SJS_TEN_ADMISSION_ESCALATION_ACTION_TERMS = [
+  "burn center",
+  "burn unit",
+  "dermatology",
+  "hospital admission",
+  "icu",
+  "intensive care",
+];
+
+const SJS_TEN_BSA_SCORTEN_ACTION_TERMS = [
+  "abcd-10",
+  "body surface area",
+  "bsa",
+  "epidermal detachment",
+  "scorten",
+  "skin detachment",
+];
+
+const SJS_TEN_SUPPORTIVE_CARE_ACTION_TERMS = [
+  "fluid replacement",
+  "fluid resuscitation",
+  "nutritional support",
+  "pain control",
+  "pain relief",
+  "temperature",
+  "warm room",
+];
+
+const SJS_TEN_MUCOSAL_EYE_ACTION_TERMS = [
+  "eye care",
+  "mucosal",
+  "ophthalmology",
+  "ophthalmologist",
+  "oral care",
+];
+
+const SJS_TEN_WOUND_INFECTION_SAFETY_TERMS = [
+  "avoid adhesive",
+  "bacterial culture",
+  "infection monitoring",
+  "infection surveillance",
+  "non-adherent",
+  "reverse isolation",
+  "sterile handling",
+  "swab",
+  "wound care",
+];
+
+const SJS_TEN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = [
+  "avoid prophylactic antibiotic",
+  "no prophylactic antibiotic",
+  "not prophylactic antibiotic",
+  "prophylactic antibiotics are not recommended",
+  "systemic antibiotics only if infection",
+];
+
+const SJS_TEN_AIRWAY_ORGAN_SAFETY_TERMS = [
+  "acute respiratory distress",
+  "airway",
+  "ards",
+  "intubation",
+  "kidney",
+  "liver",
+  "organ failure",
+  "pneumonia",
+  "respiratory distress",
+];
+
+const SJS_TEN_MEDICATION_RECHALLENGE_SAFETY_TERMS = [
+  "avoid related medicines",
+  "avoid structurally related",
+  "cross-reaction",
+  "do not rechallenge",
+  "drug allergy",
+  "recurrence",
+  "rechallenge",
+];
+
+const SJS_TEN_ADJUNCT_RISK_SAFETY_TERMS = [
+  "ciclosporin",
+  "cyclosporine",
+  "infection risk",
+  "ivig",
+  "renal impairment",
+  "steroid",
+  "thalidomide",
+];
+
 const METHEMOGLOBINEMIA_CONTEXT_TERMS = [
   "acquired methemoglobinemia",
   "methemoglobin",
@@ -22207,6 +22330,79 @@ function hasMajorBurnTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresSjsTenSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = SJS_TEN_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  const hasRisk = SJS_TEN_RISK_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  return hasContext && hasRisk;
+}
+
+function hasSjsTenTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCulpritDrugAction = SJS_TEN_CULPRIT_DRUG_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAdmissionEscalation = SJS_TEN_ADMISSION_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBsaScorten = SJS_TEN_BSA_SCORTEN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSupportiveCare = SJS_TEN_SUPPORTIVE_CARE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMucosalEye = SJS_TEN_MUCOSAL_EYE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasCulpritDrugAction &&
+    hasAdmissionEscalation &&
+    hasBsaScorten &&
+    hasSupportiveCare &&
+    hasMucosalEye
+  );
+}
+
+function hasSjsTenTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasWoundInfectionSafety = SJS_TEN_WOUND_INFECTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntibioticStewardship = SJS_TEN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAirwayOrganSafety = SJS_TEN_AIRWAY_ORGAN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMedicationRechallenge = SJS_TEN_MEDICATION_RECHALLENGE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAdjunctRiskSafety = SJS_TEN_ADJUNCT_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasWoundInfectionSafety &&
+    hasAntibioticStewardship &&
+    hasAirwayOrganSafety &&
+    hasMedicationRechallenge &&
+    hasAdjunctRiskSafety
+  );
+}
+
 function requiresMethemoglobinemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -25518,6 +25714,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasMajorBurnTreatmentSafetyCheck,
       issue:
         "major burn safety checks must include hypothermia prevention with warming, dry coverings, or temperature monitoring, fluid titration to urine output with hourly reassessment and fluid-overload, heart-failure, or compartment-syndrome monitoring, circumferential eschar or escharotomy review for perfusion or ventilation restriction, tetanus status or Tdap review, and antibiotic stewardship such as avoiding routine prophylactic systemic antibiotics or using topical antimicrobials when indicated",
+    },
+    {
+      name: "sjs_ten_time_critical_actions",
+      label: "SJS/TEN drug stop, severity, support, and eye actions",
+      applies: requiresSjsTenSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasSjsTenTimeCriticalActions,
+      issue:
+        "SJS/TEN time-critical actions must include immediate cessation, withdrawal, or discontinuation of the culprit/offending drug, hospital admission with dermatology, ICU, intensive-care, burn-unit, or burn-center escalation, BSA, body-surface-area, skin-detachment, epidermal-detachment, SCORTEN, or ABCD-10 severity assessment, supportive care with fluid replacement/resuscitation, nutrition, temperature/warm-room maintenance, and pain control, and mucosal, oral, eye-care, ophthalmology, or ophthalmologist assessment",
+    },
+    {
+      name: "sjs_ten_treatment_safety",
+      label: "SJS/TEN wound, infection, organ, and medication safety",
+      applies: requiresSjsTenSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSjsTenTreatmentSafetyCheck,
+      issue:
+        "SJS/TEN safety checks must include sterile handling, reverse isolation, non-adherent dressings, avoid-adhesive, wound-care, or infection surveillance, antibiotic stewardship such as avoiding prophylactic systemic antibiotics or using systemic antibiotics only if infection develops, airway, respiratory distress, ARDS, pneumonia, kidney, liver, or organ-failure monitoring, avoidance of rechallenge or structurally related medicines with drug-allergy/cross-reaction documentation, and adjunct therapy risk review including steroid, IVIG, cyclosporine/ciclosporin, renal impairment, infection risk, or thalidomide avoidance",
     },
     {
       name: "methemoglobinemia_time_critical_actions",
