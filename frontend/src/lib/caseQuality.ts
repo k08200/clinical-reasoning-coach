@@ -7307,6 +7307,136 @@ const PEDIATRIC_MIDGUT_VOLVULUS_METABOLIC_ASPIRATION_SAFETY_TERMS = [
   "hypoglycemia",
 ];
 
+const NECROTIZING_ENTEROCOLITIS_CONTEXT_TERMS = [
+  "nec",
+  "necrotising enterocolitis",
+  "necrotizing enterocolitis",
+  "suspected nec",
+];
+
+const NECROTIZING_ENTEROCOLITIS_NEONATAL_CONTEXT_TERMS = [
+  "extremely low birth weight",
+  "infant",
+  "low birth weight",
+  "neonate",
+  "neonatal",
+  "newborn",
+  "premature",
+  "preterm",
+  "very low birth weight",
+];
+
+const NECROTIZING_ENTEROCOLITIS_RISK_TERMS = [
+  "abdominal discoloration",
+  "abdominal distension",
+  "abdominal distention",
+  "bloody stool",
+  "bilious emesis",
+  "bilious gastric residual",
+  "bilious vomiting",
+  "feeding intolerance",
+  "hematochezia",
+  "ileus",
+  "pneumatosis",
+  "portal venous gas",
+];
+
+const NECROTIZING_ENTEROCOLITIS_FEEDING_STOP_ACTION_TERMS = [
+  "bowel rest",
+  "feedings stopped",
+  "nil per os",
+  "npo",
+  "stop enteral feeds",
+  "stop feeds",
+  "withhold feeds",
+];
+
+const NECROTIZING_ENTEROCOLITIS_DECOMPRESSION_ACTION_TERMS = [
+  "decompression",
+  "gastric decompression",
+  "nasogastric",
+  "ng tube",
+  "og tube",
+  "orogastric",
+  "suction",
+];
+
+const NECROTIZING_ENTEROCOLITIS_SUPPORT_ACTION_TERMS = [
+  "crystalloid",
+  "fluid",
+  "fluids",
+  "nicu",
+  "parenteral nutrition",
+  "pn",
+  "resuscitation",
+  "tpn",
+];
+
+const NECROTIZING_ENTEROCOLITIS_ANTIBIOTIC_ACTION_TERMS = [
+  "ampicillin",
+  "antibiotic",
+  "broad-spectrum",
+  "gentamicin",
+  "metronidazole",
+  "piperacillin",
+  "tazobactam",
+];
+
+const NECROTIZING_ENTEROCOLITIS_MONITORING_ACTION_TERMS = [
+  "abdominal radiograph",
+  "abdominal x-ray",
+  "blood culture",
+  "cbc",
+  "complete blood count",
+  "platelet",
+  "serial abdominal",
+  "serial exam",
+  "serial x-ray",
+];
+
+const NECROTIZING_ENTEROCOLITIS_SURGERY_SAFETY_TERMS = [
+  "neonatal surgery",
+  "pediatric surgery",
+  "surgery consult",
+  "surgical consult",
+  "surgeon",
+];
+
+const NECROTIZING_ENTEROCOLITIS_PERFORATION_SAFETY_TERMS = [
+  "free air",
+  "intestinal perforation",
+  "perforation",
+  "peritonitis",
+  "pneumoperitoneum",
+  "portal venous gas",
+];
+
+const NECROTIZING_ENTEROCOLITIS_WORSENING_SAFETY_TERMS = [
+  "acidosis",
+  "blood gas",
+  "clinical deterioration",
+  "lactate",
+  "shock",
+  "thrombocytopenia",
+  "worsening",
+];
+
+const NECROTIZING_ENTEROCOLITIS_ISOLATION_SAFETY_TERMS = [
+  "cluster",
+  "contact precautions",
+  "infection control",
+  "isolation",
+  "outbreak",
+];
+
+const NECROTIZING_ENTEROCOLITIS_COMPLICATION_FOLLOWUP_SAFETY_TERMS = [
+  "intestinal failure",
+  "parenteral nutrition",
+  "short bowel",
+  "stricture",
+  "trophic feeds",
+];
+
 const ACUTE_APPENDICITIS_CONTEXT_TERMS = [
   "acute appendicitis",
   "appendiceal abscess",
@@ -17677,6 +17807,80 @@ function hasPediatricMidgutVolvulusTreatmentSafetyCheck(checks: string[]): boole
   );
 }
 
+function requiresNecrotizingEnterocolitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = NECROTIZING_ENTEROCOLITIS_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasNeonatalContext = NECROTIZING_ENTEROCOLITIS_NEONATAL_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = NECROTIZING_ENTEROCOLITIS_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasNeonatalContext && hasRisk;
+}
+
+function hasNecrotizingEnterocolitisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasFeedingStop = NECROTIZING_ENTEROCOLITIS_FEEDING_STOP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDecompression = NECROTIZING_ENTEROCOLITIS_DECOMPRESSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSupport = NECROTIZING_ENTEROCOLITIS_SUPPORT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibiotics = NECROTIZING_ENTEROCOLITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMonitoring = NECROTIZING_ENTEROCOLITIS_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasFeedingStop && hasDecompression && hasSupport && hasAntibiotics && hasMonitoring;
+}
+
+function hasNecrotizingEnterocolitisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasSurgerySafety = NECROTIZING_ENTEROCOLITIS_SURGERY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPerforationSafety = NECROTIZING_ENTEROCOLITIS_PERFORATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasWorseningSafety = NECROTIZING_ENTEROCOLITIS_WORSENING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasIsolationSafety = NECROTIZING_ENTEROCOLITIS_ISOLATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasComplicationFollowup =
+    NECROTIZING_ENTEROCOLITIS_COMPLICATION_FOLLOWUP_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasSurgerySafety &&
+    hasPerforationSafety &&
+    hasWorseningSafety &&
+    hasIsolationSafety &&
+    hasComplicationFollowup
+  );
+}
+
 function requiresAcuteAppendicitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -22643,6 +22847,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasPediatricMidgutVolvulusTreatmentSafetyCheck,
       issue:
         "pediatric midgut volvulus safety checks must include avoiding reassurance or treatment as benign reflux or gastroenteritis, recognition that a normal abdominal radiograph or x-ray does not exclude malrotation, imaging-limitation review for false negative, equivocal UGI, SMV/SMA, whirlpool, contrast enema, or less-direct imaging findings, do-not-delay urgent surgery or bowel ischemia/necrosis escalation, and aspiration, dehydration, electrolyte, glucose, or hypoglycemia safeguards",
+    },
+    {
+      name: "necrotizing_enterocolitis_time_critical_actions",
+      label: "Necrotizing enterocolitis emergency actions",
+      applies: requiresNecrotizingEnterocolitisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasNecrotizingEnterocolitisTimeCriticalActions,
+      issue:
+        "necrotizing enterocolitis time-critical actions must include immediate feeding cessation, bowel rest, NPO, or stopping enteral feeds, gastric decompression with NG/OG tube, nasogastric, or suction, IV fluid resuscitation, NICU support, parenteral nutrition, PN, or TPN planning, broad-spectrum antibiotics such as ampicillin/gentamicin, piperacillin-tazobactam, or anaerobic coverage, and serial abdominal radiographs, CBC/platelets, blood culture, blood gas, or serial abdominal exam monitoring",
+    },
+    {
+      name: "necrotizing_enterocolitis_treatment_safety",
+      label: "Necrotizing enterocolitis surgery and complication safety",
+      applies: requiresNecrotizingEnterocolitisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasNecrotizingEnterocolitisTreatmentSafetyCheck,
+      issue:
+        "necrotizing enterocolitis safety checks must include early pediatric or neonatal surgery consultation, perforation, pneumoperitoneum, free air, peritonitis, or portal venous gas surgery triggers, worsening acidosis, thrombocytopenia, blood gas, shock, lactate, or clinical deterioration despite support, isolation, infection-control, cluster, or outbreak precautions, and stricture, short bowel, intestinal failure, parenteral nutrition, or trophic-feed follow-up planning",
     },
     {
       name: "acute_appendicitis_time_critical_actions",
