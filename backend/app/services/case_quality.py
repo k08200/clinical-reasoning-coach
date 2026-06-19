@@ -1657,6 +1657,153 @@ FEBRILE_INFANT_LOW_RISK_SAFETY_TERMS = (
     "shared decision",
     "urinalysis",
 )
+NEONATAL_SEPSIS_CONTEXT_TERMS = (
+    "early-onset neonatal infection",
+    "early onset neonatal infection",
+    "early-onset sepsis",
+    "early onset sepsis",
+    "gbs",
+    "group b strep",
+    "group b streptococcus",
+    "late-onset neonatal infection",
+    "late onset neonatal infection",
+    "late-onset sepsis",
+    "late onset sepsis",
+    "neonatal bacterial infection",
+    "neonatal infection",
+    "neonatal meningitis",
+    "neonatal sepsis",
+    "newborn sepsis",
+)
+NEONATAL_SEPSIS_NEONATAL_CONTEXT_TERMS = (
+    "days old",
+    "first month",
+    "infant",
+    "neonate",
+    "neonatal",
+    "newborn",
+    "preterm",
+    "weeks old",
+)
+NEONATAL_SEPSIS_MATERNAL_RISK_TERMS = (
+    "chorioamnionitis",
+    "gbs bacteriuria",
+    "gbs colonization",
+    "maternal fever",
+    "maternal sepsis",
+    "prolonged rupture",
+    "rupture of membranes",
+)
+NEONATAL_SEPSIS_RISK_TERMS = (
+    "abdominal distension",
+    "altered responsiveness",
+    "apnea",
+    "apnoea",
+    "ashen",
+    "bradycardia",
+    "bulging fontanelle",
+    "cyanosis",
+    "fever",
+    "feeding difficulty",
+    "floppiness",
+    "grunting",
+    "hypoglycemia",
+    "hypothermia",
+    "hypoxia",
+    "mechanical ventilation",
+    "metabolic acidosis",
+    "mottled",
+    "non-blanching rash",
+    "poor feeding",
+    "respiratory distress",
+    "seizure",
+    "shock",
+    "tachycardia",
+    "temperature abnormality",
+    "thrombocytopenia",
+)
+NEONATAL_SEPSIS_ASSESSMENT_ACTION_TERMS = (
+    "immediate clinical assessment",
+    "maternal history",
+    "neonatal history",
+    "physical examination",
+    "vital signs",
+)
+NEONATAL_SEPSIS_CULTURE_CRP_ACTION_TERMS = (
+    "blood culture",
+    "blood cultures",
+)
+NEONATAL_SEPSIS_BASELINE_MARKER_ACTION_TERMS = (
+    "baseline crp",
+    "c-reactive protein",
+    "cbc",
+    "crp",
+)
+NEONATAL_SEPSIS_BETA_LACTAM_ACTION_TERMS = (
+    "amoxicillin",
+    "ampicillin",
+    "benzylpenicillin",
+    "penicillin",
+)
+NEONATAL_SEPSIS_GRAM_NEGATIVE_ACTION_TERMS = (
+    "cefotaxime",
+    "gentamicin",
+)
+NEONATAL_SEPSIS_LP_ACTION_TERMS = (
+    "csf",
+    "lumbar puncture",
+    "meningitis",
+    "spinal tap",
+)
+NEONATAL_SEPSIS_STABILIZATION_ACTION_TERMS = (
+    "airway",
+    "fluid",
+    "fluids",
+    "glucose",
+    "icu",
+    "mechanical ventilation",
+    "nicu",
+    "oxygen",
+    "respiratory support",
+    "shock",
+    "vasopressor",
+    "ventilation",
+)
+NEONATAL_SEPSIS_ANTIBIOTIC_DELAY_SAFETY_TERMS = (
+    "do not delay",
+    "do-not-delay",
+    "do not wait",
+    "not wait for test results",
+    "without waiting",
+)
+NEONATAL_SEPSIS_LP_CONTRAINDICATION_SAFETY_TERMS = (
+    "bleeding risk",
+    "raised intracranial pressure",
+    "respiratory compromise",
+    "shock",
+    "stabilize before lumbar puncture",
+    "uncontrolled seizure",
+    "unprotected airway",
+)
+NEONATAL_SEPSIS_GENTAMICIN_SAFETY_TERMS = (
+    "creatinine",
+    "gentamicin concentration",
+    "gentamicin level",
+    "renal",
+    "trough",
+)
+NEONATAL_SEPSIS_DURATION_REASSESSMENT_SAFETY_TERMS = (
+    "24 hours",
+    "36 hours",
+    "48 hours",
+    "7 days",
+    "blood culture",
+    "clinical progress",
+    "crp trend",
+    "daily review",
+    "negative culture",
+    "positive culture",
+)
 NEONATAL_HSV_CONTEXT_TERMS = (
     "congenital herpes simplex",
     "congenital hsv",
@@ -13347,6 +13494,40 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="neonatal_sepsis_time_critical_actions",
+            applies=_requires_neonatal_sepsis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_neonatal_sepsis_time_critical_actions,
+            issue=(
+                "neonatal sepsis or meningitis time-critical actions must include "
+                "immediate clinical assessment with maternal/neonatal history, "
+                "physical examination, or vital signs, blood culture before "
+                "antibiotics, baseline CRP, C-reactive protein, CBC, or infection "
+                "marker assessment, empiric neonatal antibiotics with "
+                "ampicillin, amoxicillin, benzylpenicillin, or penicillin plus "
+                "gentamicin or cefotaxime, lumbar puncture, CSF, meningitis, or "
+                "LP pathway planning, and NICU, airway, oxygen, glucose, fluid, "
+                "shock, vasopressor, or respiratory support stabilization"
+            ),
+        ),
+        DomainSafetyGate(
+            name="neonatal_sepsis_treatment_safety",
+            applies=_requires_neonatal_sepsis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_neonatal_sepsis_treatment_safety_check,
+            issue=(
+                "neonatal sepsis or meningitis safety checks must include not "
+                "delaying antibiotics or not waiting for test results, lumbar "
+                "puncture contraindication or stabilization review for unprotected "
+                "airway, respiratory compromise, shock, uncontrolled seizure, "
+                "bleeding risk, or raised intracranial pressure, gentamicin trough, "
+                "level, concentration, renal, or creatinine monitoring, and "
+                "duration or reassessment planning using 36-hour, 48-hour, "
+                "7-day, culture, CRP trend, clinical-progress, daily-review, "
+                "positive-culture, or negative-culture criteria"
+            ),
+        ),
+        DomainSafetyGate(
             name="neonatal_hsv_time_critical_actions",
             applies=_requires_neonatal_hsv_safety_check,
             field_name="time_critical_actions",
@@ -17527,6 +17708,116 @@ def _has_febrile_infant_treatment_safety_check(checks: list[Any]) -> bool:
         and has_ceftriaxone_safety
         and has_disposition_safety
         and has_low_risk_followup
+    )
+
+
+def _requires_neonatal_sepsis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    demographics = data.get("patient_demographics") or {}
+    age = demographics.get("age")
+    if isinstance(age, (int, float)) and age == 0:
+        risk_text = f"{risk_text} infant neonate"
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEONATAL_SEPSIS_CONTEXT_TERMS
+    )
+    has_neonatal_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEONATAL_SEPSIS_NEONATAL_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEONATAL_SEPSIS_RISK_TERMS
+    )
+    has_maternal_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEONATAL_SEPSIS_MATERNAL_RISK_TERMS
+    )
+    return has_context and has_neonatal_context and (has_risk or has_maternal_risk)
+
+
+def _has_neonatal_sepsis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_SEPSIS_ASSESSMENT_ACTION_TERMS
+    )
+    has_blood_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_SEPSIS_CULTURE_CRP_ACTION_TERMS
+    )
+    has_baseline_marker = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_SEPSIS_BASELINE_MARKER_ACTION_TERMS
+    )
+    has_beta_lactam = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_SEPSIS_BETA_LACTAM_ACTION_TERMS
+    )
+    has_gram_negative_coverage = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_SEPSIS_GRAM_NEGATIVE_ACTION_TERMS
+    )
+    has_lp_pathway = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_SEPSIS_LP_ACTION_TERMS
+    )
+    has_stabilization = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_SEPSIS_STABILIZATION_ACTION_TERMS
+    )
+    return (
+        has_assessment
+        and has_blood_culture
+        and has_baseline_marker
+        and has_beta_lactam
+        and has_gram_negative_coverage
+        and has_lp_pathway
+        and has_stabilization
+    )
+
+
+def _has_neonatal_sepsis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_antibiotic_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_SEPSIS_ANTIBIOTIC_DELAY_SAFETY_TERMS
+    )
+    has_lp_contraindication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_SEPSIS_LP_CONTRAINDICATION_SAFETY_TERMS
+    )
+    has_gentamicin_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_SEPSIS_GENTAMICIN_SAFETY_TERMS
+    )
+    has_duration_reassessment_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_SEPSIS_DURATION_REASSESSMENT_SAFETY_TERMS
+    )
+    return (
+        has_antibiotic_delay_safety
+        and has_lp_contraindication_safety
+        and has_gentamicin_safety
+        and has_duration_reassessment_safety
     )
 
 

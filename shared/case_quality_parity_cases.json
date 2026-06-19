@@ -2034,6 +2034,165 @@
     }
   },
   {
+    "name": "neonatal_sepsis_requires_cultures_antibiotics_lp_and_stabilization_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "neonatal sepsis or meningitis time-critical actions must include"
+    ],
+    "overrides": {
+      "diagnosis": "Early-onset neonatal sepsis",
+      "patient_demographics": {
+        "age": 0,
+        "sex": "female",
+        "weight_kg": 3.1,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "2-day-old newborn with apnea, grunting, hypoxia, and shock",
+      "history_of_present_illness": "Term neonate developed apnea, grunting, oxygen requirement, tachycardia, poor feeding, altered responsiveness, hypoglycemia, metabolic acidosis, and signs of shock after prolonged rupture of membranes and maternal chorioamnionitis concerning for early-onset neonatal infection from group B streptococcus.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "58/34",
+          "hr": 188,
+          "rr": 72,
+          "temp_c": 36.1,
+          "spo2": 86
+        },
+        "general": "Ill appearing neonate with altered responsiveness and poor feeding",
+        "cardiovascular": "Tachycardia, cool mottled extremities, delayed capillary refill",
+        "pulmonary": "Grunting, retractions, and apnea requiring oxygen",
+        "abdomen": "Mild abdominal distension",
+        "neuro": "Low tone without focal deficit",
+        "skin": "Mottled and ashen without vesicles"
+      },
+      "initial_labs": {
+        "glucose": "38 mg/dL",
+        "base_deficit": "12 mmol/L",
+        "platelets": "88000/uL",
+        "crp": "pending"
+      },
+      "key_teaching_points": [
+        "Neonatal infection red flags include apnea, seizures, mechanical ventilation need, shock, respiratory distress, hypoxia, temperature abnormality, altered responsiveness, poor feeding, thrombocytopenia, hypoglycemia, and metabolic acidosis",
+        "Babies with red flags should start antibiotics without waiting for test results",
+        "Blood culture and baseline CRP should be obtained before antibiotics, and lumbar puncture should be performed when safe if there is strong clinical suspicion or meningitis concern"
+      ],
+      "clinical_red_flags": [
+        "Apnea, shock, oxygen requirement, grunting, tachycardia, poor feeding, altered responsiveness, hypoglycemia, metabolic acidosis, and thrombocytopenia",
+        "Maternal chorioamnionitis, prolonged rupture of membranes, and group B streptococcus risk"
+      ],
+      "time_critical_actions": [
+        "Admit to NICU and give oxygen for respiratory distress",
+        "Correct hypoglycemia and monitor perfusion"
+      ],
+      "contraindication_checks": [
+        "Do not delay antibiotics or wait for test results when red flags are present",
+        "Stabilize before lumbar puncture when there is unprotected airway, respiratory compromise, shock, uncontrolled seizure, bleeding risk, or raised intracranial pressure",
+        "Monitor gentamicin trough concentration, gentamicin level, renal function, and creatinine before repeat dosing",
+        "Reassess at 36 hours and 48 hours using blood culture results, CRP trend, clinical progress, and daily review; treat for 7 days when culture positive or strongly suspected sepsis persists"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Neonatal infection: antibiotics for prevention and treatment",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/ng195",
+          "supports": [
+            "early-onset neonatal sepsis diagnosis and risk stratification",
+            "neonate with apnea, grunting, oxygen requirement, tachycardia, poor feeding, altered responsiveness, hypoglycemia, metabolic acidosis, shock, prolonged rupture of membranes, maternal chorioamnionitis, and group B streptococcus risk",
+            "neonatal infection red flags include apnea, seizures, mechanical ventilation need, shock, respiratory distress, hypoxia, temperature abnormality, altered responsiveness, poor feeding, thrombocytopenia, hypoglycemia, and metabolic acidosis",
+            "babies with red flags should start antibiotics without waiting for test results",
+            "blood culture and baseline CRP should be obtained before antibiotics, and lumbar puncture should be performed when safe if there is strong clinical suspicion or meningitis concern",
+            "NICU admission and oxygen for respiratory distress",
+            "hypoglycemia correction and perfusion monitoring",
+            "do not delay antibiotics or wait for test results when red flags are present",
+            "stabilize before lumbar puncture when there is unprotected airway, respiratory compromise, shock, uncontrolled seizure, bleeding risk, or raised intracranial pressure",
+            "gentamicin trough concentration, gentamicin level, renal function, and creatinine monitoring before repeat dosing",
+            "reassess at 36 hours and 48 hours using blood culture results, CRP trend, clinical progress, daily review, and 7 days of treatment when culture positive or strongly suspected sepsis persists"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "neonatal_sepsis_requires_no_delay_lp_gentamicin_and_duration_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "neonatal sepsis or meningitis safety checks must include"
+    ],
+    "overrides": {
+      "diagnosis": "Neonatal meningitis from suspected late-onset neonatal infection",
+      "patient_demographics": {
+        "age": 0,
+        "sex": "male",
+        "weight_kg": 3.5,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "18-day-old infant with fever, seizure, and bulging fontanelle",
+      "history_of_present_illness": "Infant has fever, seizure, bulging fontanelle, weak high-pitched cry, poor feeding, persistent tachycardia, mottled skin, and possible neonatal meningitis from late-onset neonatal infection.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "70/40",
+          "hr": 176,
+          "rr": 58,
+          "temp_c": 38.4,
+          "spo2": 94
+        },
+        "general": "Ill appearing infant with weak high-pitched cry",
+        "cardiovascular": "Persistent tachycardia with mottled skin",
+        "pulmonary": "Tachypnea without apnea",
+        "abdomen": "Soft",
+        "neuro": "Postictal with bulging fontanelle",
+        "skin": "Mottled, no vesicles"
+      },
+      "initial_labs": {
+        "crp": "42 mg/L",
+        "glucose": "62 mg/dL",
+        "platelets": "112000/uL",
+        "blood_culture": "pending"
+      },
+      "key_teaching_points": [
+        "Late-onset neonatal infection can present with fever, poor feeding, persistent tachycardia, mottled appearance, seizures, and bulging fontanelle",
+        "Suspected neonatal meningitis requires CSF testing when safe and empiric IV antibiotics with neonatal meningitis coverage",
+        "Gentamicin monitoring and duration reassessment are required during neonatal sepsis treatment"
+      ],
+      "clinical_red_flags": [
+        "Seizure, bulging fontanelle, temperature abnormality, poor feeding, persistent tachycardia, and mottled skin",
+        "Possible neonatal meningitis or late-onset neonatal infection admitted from home"
+      ],
+      "time_critical_actions": [
+        "Perform immediate clinical assessment with maternal history, neonatal history, physical examination, and vital signs",
+        "Obtain blood culture before antibiotics and baseline CRP C-reactive protein with CBC",
+        "Start empiric neonatal antibiotics with IV amoxicillin plus cefotaxime for suspected meningitis",
+        "Plan lumbar puncture for CSF cell count, glucose, protein, Gram stain, culture, and PCR when safe",
+        "Admit to NICU for airway, oxygen, glucose, fluid, shock, vasopressor, or respiratory support stabilization as needed"
+      ],
+      "contraindication_checks": [
+        "Review medication allergies",
+        "Confirm weight-based dosing before antibiotics"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Neonatal infection: antibiotics for prevention and treatment",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/ng195",
+          "supports": [
+            "neonatal meningitis from suspected late-onset neonatal infection diagnosis and risk stratification",
+            "infant with fever, seizure, bulging fontanelle, weak high-pitched cry, poor feeding, persistent tachycardia, mottled skin, and possible neonatal meningitis",
+            "late-onset neonatal infection can present with fever, poor feeding, persistent tachycardia, mottled appearance, seizures, and bulging fontanelle",
+            "suspected neonatal meningitis requires CSF testing when safe and empiric IV antibiotics with neonatal meningitis coverage",
+            "gentamicin monitoring and duration reassessment are required during neonatal sepsis treatment",
+            "seizure, bulging fontanelle, temperature abnormality, poor feeding, persistent tachycardia, and mottled skin as clinical red flags",
+            "immediate clinical assessment with maternal history, neonatal history, physical examination, and vital signs",
+            "blood culture before antibiotics and baseline CRP C-reactive protein with CBC",
+            "empiric neonatal antibiotics with IV amoxicillin plus cefotaxime for suspected meningitis",
+            "lumbar puncture for CSF cell count, glucose, protein, Gram stain, culture, and PCR when safe",
+            "NICU airway, oxygen, glucose, fluid, shock, vasopressor, or respiratory support stabilization",
+            "medication allergy review",
+            "weight-based dosing before antibiotics"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "neonatal_hsv_requires_acyclovir_surface_csf_blood_alt_and_sepsis_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

@@ -1782,6 +1782,168 @@ const FEBRILE_INFANT_LOW_RISK_SAFETY_TERMS = [
   "urinalysis",
 ];
 
+const NEONATAL_SEPSIS_CONTEXT_TERMS = [
+  "early-onset neonatal infection",
+  "early onset neonatal infection",
+  "early-onset sepsis",
+  "early onset sepsis",
+  "gbs",
+  "group b strep",
+  "group b streptococcus",
+  "late-onset neonatal infection",
+  "late onset neonatal infection",
+  "late-onset sepsis",
+  "late onset sepsis",
+  "neonatal bacterial infection",
+  "neonatal infection",
+  "neonatal meningitis",
+  "neonatal sepsis",
+  "newborn sepsis",
+];
+
+const NEONATAL_SEPSIS_NEONATAL_CONTEXT_TERMS = [
+  "days old",
+  "first month",
+  "infant",
+  "neonate",
+  "neonatal",
+  "newborn",
+  "preterm",
+  "weeks old",
+];
+
+const NEONATAL_SEPSIS_MATERNAL_RISK_TERMS = [
+  "chorioamnionitis",
+  "gbs bacteriuria",
+  "gbs colonization",
+  "maternal fever",
+  "maternal sepsis",
+  "prolonged rupture",
+  "rupture of membranes",
+];
+
+const NEONATAL_SEPSIS_RISK_TERMS = [
+  "abdominal distension",
+  "altered responsiveness",
+  "apnea",
+  "apnoea",
+  "ashen",
+  "bradycardia",
+  "bulging fontanelle",
+  "cyanosis",
+  "fever",
+  "feeding difficulty",
+  "floppiness",
+  "grunting",
+  "hypoglycemia",
+  "hypothermia",
+  "hypoxia",
+  "mechanical ventilation",
+  "metabolic acidosis",
+  "mottled",
+  "non-blanching rash",
+  "poor feeding",
+  "respiratory distress",
+  "seizure",
+  "shock",
+  "tachycardia",
+  "temperature abnormality",
+  "thrombocytopenia",
+];
+
+const NEONATAL_SEPSIS_ASSESSMENT_ACTION_TERMS = [
+  "immediate clinical assessment",
+  "maternal history",
+  "neonatal history",
+  "physical examination",
+  "vital signs",
+];
+
+const NEONATAL_SEPSIS_CULTURE_CRP_ACTION_TERMS = [
+  "blood culture",
+  "blood cultures",
+];
+
+const NEONATAL_SEPSIS_BASELINE_MARKER_ACTION_TERMS = [
+  "baseline crp",
+  "c-reactive protein",
+  "cbc",
+  "crp",
+];
+
+const NEONATAL_SEPSIS_BETA_LACTAM_ACTION_TERMS = [
+  "amoxicillin",
+  "ampicillin",
+  "benzylpenicillin",
+  "penicillin",
+];
+
+const NEONATAL_SEPSIS_GRAM_NEGATIVE_ACTION_TERMS = [
+  "cefotaxime",
+  "gentamicin",
+];
+
+const NEONATAL_SEPSIS_LP_ACTION_TERMS = [
+  "csf",
+  "lumbar puncture",
+  "meningitis",
+  "spinal tap",
+];
+
+const NEONATAL_SEPSIS_STABILIZATION_ACTION_TERMS = [
+  "airway",
+  "fluid",
+  "fluids",
+  "glucose",
+  "icu",
+  "mechanical ventilation",
+  "nicu",
+  "oxygen",
+  "respiratory support",
+  "shock",
+  "vasopressor",
+  "ventilation",
+];
+
+const NEONATAL_SEPSIS_ANTIBIOTIC_DELAY_SAFETY_TERMS = [
+  "do not delay",
+  "do-not-delay",
+  "do not wait",
+  "not wait for test results",
+  "without waiting",
+];
+
+const NEONATAL_SEPSIS_LP_CONTRAINDICATION_SAFETY_TERMS = [
+  "bleeding risk",
+  "raised intracranial pressure",
+  "respiratory compromise",
+  "shock",
+  "stabilize before lumbar puncture",
+  "uncontrolled seizure",
+  "unprotected airway",
+];
+
+const NEONATAL_SEPSIS_GENTAMICIN_SAFETY_TERMS = [
+  "creatinine",
+  "gentamicin concentration",
+  "gentamicin level",
+  "renal",
+  "trough",
+];
+
+const NEONATAL_SEPSIS_DURATION_REASSESSMENT_SAFETY_TERMS = [
+  "24 hours",
+  "36 hours",
+  "48 hours",
+  "7 days",
+  "blood culture",
+  "clinical progress",
+  "crp trend",
+  "daily review",
+  "negative culture",
+  "positive culture",
+];
+
 const NEONATAL_HSV_CONTEXT_TERMS = [
   "congenital herpes simplex",
   "congenital hsv",
@@ -14754,6 +14916,92 @@ function hasFebrileInfantTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresNeonatalSepsisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    detail.patient_demographics?.age === 0 ? "infant neonate" : "",
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = NEONATAL_SEPSIS_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasNeonatalContext = NEONATAL_SEPSIS_NEONATAL_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = NEONATAL_SEPSIS_RISK_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  const hasMaternalRisk = NEONATAL_SEPSIS_MATERNAL_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasNeonatalContext && (hasRisk || hasMaternalRisk);
+}
+
+function hasNeonatalSepsisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAssessment = NEONATAL_SEPSIS_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodCulture = NEONATAL_SEPSIS_CULTURE_CRP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBaselineMarker = NEONATAL_SEPSIS_BASELINE_MARKER_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBetaLactam = NEONATAL_SEPSIS_BETA_LACTAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasGramNegativeCoverage = NEONATAL_SEPSIS_GRAM_NEGATIVE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLpPathway = NEONATAL_SEPSIS_LP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasStabilization = NEONATAL_SEPSIS_STABILIZATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasAssessment &&
+    hasBloodCulture &&
+    hasBaselineMarker &&
+    hasBetaLactam &&
+    hasGramNegativeCoverage &&
+    hasLpPathway &&
+    hasStabilization
+  );
+}
+
+function hasNeonatalSepsisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAntibioticDelaySafety = NEONATAL_SEPSIS_ANTIBIOTIC_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLpContraindicationSafety = NEONATAL_SEPSIS_LP_CONTRAINDICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasGentamicinSafety = NEONATAL_SEPSIS_GENTAMICIN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDurationReassessmentSafety =
+    NEONATAL_SEPSIS_DURATION_REASSESSMENT_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasAntibioticDelaySafety &&
+    hasLpContraindicationSafety &&
+    hasGentamicinSafety &&
+    hasDurationReassessmentSafety
+  );
+}
+
 function requiresNeonatalHsvSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -22159,6 +22407,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasFebrileInfantTreatmentSafetyCheck,
       issue:
         "febrile infant safety checks must include not delaying antibiotics in ill-appearing infants, ceftriaxone neonatal safety review, admission or culture-observation criteria, and low-risk discharge or reliable follow-up criteria",
+    },
+    {
+      name: "neonatal_sepsis_time_critical_actions",
+      label: "Neonatal sepsis cultures, antibiotics, and stabilization",
+      applies: requiresNeonatalSepsisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasNeonatalSepsisTimeCriticalActions,
+      issue:
+        "neonatal sepsis or meningitis time-critical actions must include immediate clinical assessment with maternal/neonatal history, physical examination, or vital signs, blood culture before antibiotics, baseline CRP, C-reactive protein, CBC, or infection marker assessment, empiric neonatal antibiotics with ampicillin, amoxicillin, benzylpenicillin, or penicillin plus gentamicin or cefotaxime, lumbar puncture, CSF, meningitis, or LP pathway planning, and NICU, airway, oxygen, glucose, fluid, shock, vasopressor, or respiratory support stabilization",
+    },
+    {
+      name: "neonatal_sepsis_treatment_safety",
+      label: "Neonatal sepsis LP and antibiotic safety",
+      applies: requiresNeonatalSepsisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasNeonatalSepsisTreatmentSafetyCheck,
+      issue:
+        "neonatal sepsis or meningitis safety checks must include not delaying antibiotics or not waiting for test results, lumbar puncture contraindication or stabilization review for unprotected airway, respiratory compromise, shock, uncontrolled seizure, bleeding risk, or raised intracranial pressure, gentamicin trough, level, concentration, renal, or creatinine monitoring, and duration or reassessment planning using 36-hour, 48-hour, 7-day, culture, CRP trend, clinical-progress, daily-review, positive-culture, or negative-culture criteria",
     },
     {
       name: "neonatal_hsv_time_critical_actions",
