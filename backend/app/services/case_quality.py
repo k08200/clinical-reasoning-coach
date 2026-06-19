@@ -1657,6 +1657,123 @@ FEBRILE_INFANT_LOW_RISK_SAFETY_TERMS = (
     "shared decision",
     "urinalysis",
 )
+NEONATAL_HSV_CONTEXT_TERMS = (
+    "congenital herpes simplex",
+    "congenital hsv",
+    "disseminated hsv",
+    "neonatal herpes",
+    "neonatal herpes simplex",
+    "neonatal hsv",
+    "sem disease",
+    "skin eye mouth hsv",
+)
+NEONATAL_HSV_NEONATAL_CONTEXT_TERMS = (
+    "days old",
+    "first month",
+    "infant",
+    "neonate",
+    "neonatal",
+    "newborn",
+    "up to 6 weeks",
+    "weeks old",
+)
+NEONATAL_HSV_RISK_TERMS = (
+    "abnormal csf",
+    "active lesions at delivery",
+    "apnea",
+    "coagulopathy",
+    "conjunctivitis",
+    "csf pleocytosis",
+    "elevated liver",
+    "fever",
+    "hepatitis",
+    "hypothermia",
+    "lethargy",
+    "maternal genital herpes",
+    "mucocutaneous vesicles",
+    "negative bacterial cultures",
+    "poor feeding",
+    "respiratory distress",
+    "seizure",
+    "sepsis-like",
+    "thrombocytopenia",
+    "transaminitis",
+    "vesicle",
+    "vesicular",
+)
+NEONATAL_HSV_ACYCLOVIR_ACTION_TERMS = (
+    "20 mg/kg",
+    "intravenous acyclovir",
+    "iv acyclovir",
+    "parenteral acyclovir",
+    "systemic acyclovir",
+)
+NEONATAL_HSV_SURFACE_LESION_ACTION_TERMS = (
+    "anus",
+    "conjunctiva",
+    "lesion pcr",
+    "mouth",
+    "mucosal surface",
+    "nasopharynx",
+    "skin vesicle",
+    "surface culture",
+    "surface cultures",
+    "surface pcr",
+    "vesicle culture",
+)
+NEONATAL_HSV_CSF_ACTION_TERMS = (
+    "csf hsv pcr",
+    "lumbar puncture",
+)
+NEONATAL_HSV_BLOOD_ALT_ACTION_TERMS = (
+    "alt",
+    "blood hsv pcr",
+    "serum alt",
+    "transaminase",
+    "whole blood pcr",
+)
+NEONATAL_HSV_SEPSIS_COVERAGE_ACTION_TERMS = (
+    "ampicillin",
+    "blood culture",
+    "blood cultures",
+    "empiric antibiotics",
+    "gentamicin",
+    "nicu",
+    "sepsis evaluation",
+    "supportive care",
+)
+NEONATAL_HSV_DURATION_REPEAT_CSF_SAFETY_TERMS = (
+    "14 days",
+    "21 days",
+    "repeat csf pcr",
+    "repeat lumbar puncture",
+    "suppressive",
+    "six months",
+)
+NEONATAL_HSV_RENAL_ANC_SAFETY_TERMS = (
+    "absolute neutrophil",
+    "anc",
+    "creatinine",
+    "dose adjustment",
+    "hydration",
+    "neutropenia",
+    "renal",
+)
+NEONATAL_HSV_OPHTHALMOLOGY_NEURO_SAFETY_TERMS = (
+    "audiology",
+    "eye exam",
+    "head ultrasound",
+    "mri",
+    "neuroimaging",
+    "ophthalmology",
+)
+NEONATAL_HSV_EXPERT_EXPOSURE_SAFETY_TERMS = (
+    "active lesion",
+    "infectious disease",
+    "maternal",
+    "pediatric infectious disease",
+    "scalp electrode",
+)
 NEONATAL_HYPERBILIRUBINEMIA_CONTEXT_TERMS = (
     "acute bilirubin encephalopathy",
     "kernicterus",
@@ -13230,6 +13347,37 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="neonatal_hsv_time_critical_actions",
+            applies=_requires_neonatal_hsv_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_neonatal_hsv_time_critical_actions,
+            issue=(
+                "neonatal HSV time-critical actions must include immediate IV "
+                "or systemic acyclovir such as 20 mg/kg, HSV surface or lesion "
+                "testing from mouth, nasopharynx, conjunctiva, anus, skin "
+                "vesicles, or mucosal surfaces, CSF HSV PCR plus blood HSV PCR "
+                "or ALT/transaminase evaluation, and concurrent neonatal sepsis "
+                "evaluation or supportive coverage such as blood cultures, "
+                "ampicillin/gentamicin, empiric antibiotics, or NICU support"
+            ),
+        ),
+        DomainSafetyGate(
+            name="neonatal_hsv_treatment_safety",
+            applies=_requires_neonatal_hsv_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_neonatal_hsv_treatment_safety_check,
+            issue=(
+                "neonatal HSV safety checks must include treatment duration or "
+                "repeat-CSF planning such as 14 days for SEM disease, 21 days "
+                "for CNS/disseminated disease, repeat CSF PCR, lumbar puncture, "
+                "or suppressive therapy, renal dosing, hydration, creatinine, "
+                "neutropenia, or ANC monitoring, ophthalmology, eye exam, "
+                "neuroimaging, MRI, head ultrasound, or audiology assessment, "
+                "and pediatric infectious disease or maternal exposure review "
+                "including active lesions or scalp electrode risk"
+            ),
+        ),
+        DomainSafetyGate(
             name="neonatal_hyperbilirubinemia_time_critical_actions",
             applies=_requires_neonatal_hyperbilirubinemia_safety_check,
             field_name="time_critical_actions",
@@ -17379,6 +17527,102 @@ def _has_febrile_infant_treatment_safety_check(checks: list[Any]) -> bool:
         and has_ceftriaxone_safety
         and has_disposition_safety
         and has_low_risk_followup
+    )
+
+
+def _requires_neonatal_hsv_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    demographics = data.get("patient_demographics") or {}
+    age = demographics.get("age")
+    if isinstance(age, (int, float)) and age == 0:
+        risk_text = f"{risk_text} infant neonate"
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEONATAL_HSV_CONTEXT_TERMS
+    )
+    has_neonatal_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEONATAL_HSV_NEONATAL_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in NEONATAL_HSV_RISK_TERMS
+    )
+    return has_context and has_neonatal_context and has_risk
+
+
+def _has_neonatal_hsv_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_acyclovir = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_HSV_ACYCLOVIR_ACTION_TERMS
+    )
+    has_surface_lesion_testing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_HSV_SURFACE_LESION_ACTION_TERMS
+    )
+    has_csf_testing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_HSV_CSF_ACTION_TERMS
+    )
+    has_blood_alt_testing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_HSV_BLOOD_ALT_ACTION_TERMS
+    )
+    has_sepsis_coverage = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEONATAL_HSV_SEPSIS_COVERAGE_ACTION_TERMS
+    )
+    return (
+        has_acyclovir
+        and has_surface_lesion_testing
+        and has_csf_testing
+        and has_blood_alt_testing
+        and has_sepsis_coverage
+    )
+
+
+def _has_neonatal_hsv_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_duration_repeat_csf = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_HSV_DURATION_REPEAT_CSF_SAFETY_TERMS
+    )
+    has_renal_anc_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_HSV_RENAL_ANC_SAFETY_TERMS
+    )
+    has_ophthalmology_neuro_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_HSV_OPHTHALMOLOGY_NEURO_SAFETY_TERMS
+    )
+    has_expert_exposure_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEONATAL_HSV_EXPERT_EXPOSURE_SAFETY_TERMS
+    )
+    return (
+        has_duration_repeat_csf
+        and has_renal_anc_safety
+        and has_ophthalmology_neuro_safety
+        and has_expert_exposure_safety
     )
 
 

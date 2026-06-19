@@ -72,6 +72,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "meningococcemia_treatment_safety",
         "febrile_infant_time_critical_actions",
         "febrile_infant_treatment_safety",
+        "neonatal_hsv_time_critical_actions",
+        "neonatal_hsv_treatment_safety",
         "neonatal_hyperbilirubinemia_time_critical_actions",
         "neonatal_hyperbilirubinemia_treatment_safety",
         "abusive_head_trauma_time_critical_actions",
@@ -1802,6 +1804,186 @@ def test_quality_gate_requires_febrile_infant_antibiotic_ceftriaxone_disposition
     assert not report.passed
     assert any(
         "febrile infant safety checks must include not delaying antibiotics" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_neonatal_hsv_acyclovir_surface_csf_blood_alt_and_sepsis_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Neonatal HSV disease"
+    case["patient_demographics"] = {
+        "age": 0,
+        "sex": "female",
+        "weight_kg": 3.2,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "12-day-old newborn with fever, vesicular rash, and seizure"
+    case["history_of_present_illness"] = (
+        "Neonate has fever, poor feeding, lethargy, mucocutaneous vesicles, "
+        "conjunctivitis, apnea, seizure, thrombocytopenia, transaminitis, and "
+        "maternal genital herpes with active lesions at delivery concerning for "
+        "neonatal herpes simplex infection."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "72/42", "hr": 184, "rr": 54, "temp_c": 38.5, "spo2": 92},
+        "general": "Ill appearing neonate with poor feeding and lethargy",
+        "cardiovascular": "Tachycardic with delayed capillary refill",
+        "pulmonary": "Apnea episodes with mild respiratory distress",
+        "abdomen": "Soft with mild hepatomegaly",
+        "neuro": "Postictal with intermittent abnormal movements",
+        "skin": "Grouped vesicular lesions on erythematous base",
+    }
+    case["initial_labs"] = {
+        "platelets": "76000/uL",
+        "alt": "248 U/L",
+        "csf": "pleocytosis",
+        "glucose": "64 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Neonatal HSV can present with vesicles, sepsis-like illness, seizures, hepatitis, or abnormal CSF findings",
+        "Known or suspected neonatal herpes requires prompt systemic acyclovir while diagnostic testing is obtained",
+        "Evaluation should include surface or lesion testing plus CSF HSV PCR, blood HSV PCR, and ALT or transaminase assessment",
+    ]
+    case["clinical_red_flags"] = [
+        "Mucocutaneous vesicles, fever, hypothermia, lethargy, poor feeding, apnea, respiratory distress, or conjunctivitis",
+        "Seizure, CSF pleocytosis, transaminitis, hepatitis, thrombocytopenia, coagulopathy, or sepsis-like illness with negative bacterial cultures",
+    ]
+    case["time_critical_actions"] = [
+        "Admit to NICU and monitor seizures",
+        "Check glucose and electrolytes before antiseizure medication",
+    ]
+    case["contraindication_checks"] = [
+        "Plan 14 days of IV acyclovir for SEM disease or 21 days for CNS or disseminated disease, with repeat lumbar puncture and repeat CSF PCR near end of therapy and six months suppressive therapy when indicated",
+        "Monitor renal dosing, hydration, creatinine, neutropenia, absolute neutrophil count, and ANC during acyclovir therapy",
+        "Obtain ophthalmology eye exam, neuroimaging with MRI or head ultrasound, and audiology assessment for baseline complications",
+        "Consult pediatric infectious disease and review maternal active lesion exposure, scalp electrode use, and delivery risk factors",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Genital Herpes - STI Treatment Guidelines",
+            "organization": "Centers for Disease Control and Prevention",
+            "url": "https://www.cdc.gov/std/treatment-guidelines/herpes.htm",
+            "supports": [
+                "neonatal HSV disease diagnosis and risk stratification",
+                "known or suspected neonatal herpes requires prompt systemic acyclovir while diagnostic testing is obtained",
+                "neonate with fever, poor feeding, lethargy, mucocutaneous vesicles, conjunctivitis, apnea, seizure, thrombocytopenia, transaminitis, and maternal genital herpes with active lesions at delivery",
+                "mucocutaneous vesicles, fever, hypothermia, lethargy, poor feeding, apnea, respiratory distress, or conjunctivitis as red flags",
+                "seizure, CSF pleocytosis, transaminitis, hepatitis, thrombocytopenia, coagulopathy, or sepsis-like illness with negative bacterial cultures as severity markers",
+                "NICU admission and seizure monitoring",
+                "glucose and electrolytes before antiseizure medication",
+                "14 days of IV acyclovir for SEM disease or 21 days for CNS or disseminated disease, repeat lumbar puncture and repeat CSF PCR near end of therapy, and six months suppressive therapy",
+                "renal dosing, hydration, creatinine, neutropenia, absolute neutrophil count, and ANC monitoring during acyclovir therapy",
+                "ophthalmology eye exam, neuroimaging with MRI or head ultrasound, and audiology assessment",
+                "pediatric infectious disease consultation and maternal active lesion exposure, scalp electrode use, and delivery risk factors",
+            ],
+        },
+        {
+            "title": "Congenital Herpes Simplex",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK507897/",
+            "supports": [
+                "neonatal HSV can present with vesicles, sepsis-like illness, seizures, hepatitis, or abnormal CSF findings",
+                "evaluation should include surface or lesion testing plus CSF HSV PCR, blood HSV PCR, and ALT or transaminase assessment",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "neonatal HSV time-critical actions must include immediate IV"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_neonatal_hsv_duration_repeat_csf_renal_anc_eye_neuro_and_expert_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Congenital HSV with CNS disease"
+    case["patient_demographics"] = {
+        "age": 0,
+        "sex": "male",
+        "weight_kg": 3.4,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "3-week-old infant with seizures, fever, and vesicular lesions"
+    case["history_of_present_illness"] = (
+        "Three-week-old infant has fever, irritability, poor feeding, apnea, "
+        "vesicular skin lesions, CSF pleocytosis, focal seizure, elevated liver "
+        "transaminases, and negative bacterial cultures concerning for congenital "
+        "HSV with CNS disease."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "76/44", "hr": 172, "rr": 50, "temp_c": 38.3, "spo2": 95},
+        "general": "Irritable infant with poor feeding",
+        "cardiovascular": "Tachycardic but perfusing",
+        "pulmonary": "Intermittent apnea after seizure",
+        "abdomen": "Soft without distension",
+        "neuro": "Focal seizure activity and decreased alertness",
+        "skin": "Vesicular rash involving scalp and trunk",
+    }
+    case["initial_labs"] = {
+        "csf": "pleocytosis with HSV PCR pending",
+        "alt": "312 U/L",
+        "platelets": "98000/uL",
+        "blood_culture": "pending",
+    }
+    case["key_teaching_points"] = [
+        "Congenital HSV should be considered in infants up to 6 weeks with vesicles, sepsis-like illness, CSF pleocytosis, seizures, or transaminitis",
+        "Parenteral acyclovir is standard care for all neonates with HSV disease",
+        "CNS or disseminated HSV requires longer treatment and repeat CSF PCR documentation",
+    ]
+    case["clinical_red_flags"] = [
+        "Vesicular rash, fever, apnea, poor feeding, irritability, or sepsis-like illness",
+        "CSF pleocytosis, seizure, focal neurologic signs, transaminitis, thrombocytopenia, hepatitis, or coagulopathy",
+    ]
+    case["time_critical_actions"] = [
+        "Start immediate IV acyclovir 20 mg/kg systemic acyclovir for suspected neonatal HSV",
+        "Send HSV surface cultures and surface PCR from mouth, nasopharynx, conjunctiva, anus, and skin vesicle lesion PCR",
+        "Perform lumbar puncture for CSF HSV PCR, send whole blood PCR or blood HSV PCR, and check ALT transaminase level",
+        "Continue neonatal sepsis evaluation with blood cultures, empiric antibiotics including ampicillin and gentamicin, and NICU supportive care",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before antibiotics",
+        "Weight-based dosing safety check for all antimicrobials",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Genital Herpes - STI Treatment Guidelines",
+            "organization": "Centers for Disease Control and Prevention",
+            "url": "https://www.cdc.gov/std/treatment-guidelines/herpes.htm",
+            "supports": [
+                "congenital HSV with CNS disease diagnosis and risk stratification",
+                "three-week-old infant with fever, irritability, poor feeding, apnea, vesicular skin lesions, CSF pleocytosis, focal seizure, elevated liver transaminases, and negative bacterial cultures",
+                "parenteral acyclovir is standard care for all neonates with HSV disease",
+                "CNS or disseminated HSV requires longer treatment and repeat CSF PCR documentation",
+                "vesicular rash, fever, apnea, poor feeding, irritability, or sepsis-like illness as red flags",
+                "CSF pleocytosis, seizure, focal neurologic signs, transaminitis, thrombocytopenia, hepatitis, or coagulopathy as severity markers",
+                "immediate IV acyclovir 20 mg/kg systemic acyclovir for suspected neonatal HSV",
+                "HSV surface cultures and surface PCR from mouth, nasopharynx, conjunctiva, anus, and skin vesicle lesion PCR",
+                "lumbar puncture for CSF HSV PCR, whole blood PCR or blood HSV PCR, and ALT transaminase level",
+                "neonatal sepsis evaluation with blood cultures, empiric antibiotics including ampicillin and gentamicin, and NICU supportive care",
+                "medication allergy review before antibiotics",
+                "weight-based dosing safety check for all antimicrobials",
+            ],
+        },
+        {
+            "title": "Congenital Herpes Simplex",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK507897/",
+            "supports": [
+                "congenital HSV should be considered in infants up to 6 weeks with vesicles, sepsis-like illness, CSF pleocytosis, seizures, or transaminitis",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "neonatal HSV safety checks must include treatment duration"
+        in issue
         for issue in report.critical_issues
     )
 

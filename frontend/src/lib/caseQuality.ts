@@ -1782,6 +1782,135 @@ const FEBRILE_INFANT_LOW_RISK_SAFETY_TERMS = [
   "urinalysis",
 ];
 
+const NEONATAL_HSV_CONTEXT_TERMS = [
+  "congenital herpes simplex",
+  "congenital hsv",
+  "disseminated hsv",
+  "neonatal herpes",
+  "neonatal herpes simplex",
+  "neonatal hsv",
+  "sem disease",
+  "skin eye mouth hsv",
+];
+
+const NEONATAL_HSV_NEONATAL_CONTEXT_TERMS = [
+  "days old",
+  "first month",
+  "infant",
+  "neonate",
+  "neonatal",
+  "newborn",
+  "up to 6 weeks",
+  "weeks old",
+];
+
+const NEONATAL_HSV_RISK_TERMS = [
+  "abnormal csf",
+  "active lesions at delivery",
+  "apnea",
+  "coagulopathy",
+  "conjunctivitis",
+  "csf pleocytosis",
+  "elevated liver",
+  "fever",
+  "hepatitis",
+  "hypothermia",
+  "lethargy",
+  "maternal genital herpes",
+  "mucocutaneous vesicles",
+  "negative bacterial cultures",
+  "poor feeding",
+  "respiratory distress",
+  "seizure",
+  "sepsis-like",
+  "thrombocytopenia",
+  "transaminitis",
+  "vesicle",
+  "vesicular",
+];
+
+const NEONATAL_HSV_ACYCLOVIR_ACTION_TERMS = [
+  "20 mg/kg",
+  "intravenous acyclovir",
+  "iv acyclovir",
+  "parenteral acyclovir",
+  "systemic acyclovir",
+];
+
+const NEONATAL_HSV_SURFACE_LESION_ACTION_TERMS = [
+  "anus",
+  "conjunctiva",
+  "lesion pcr",
+  "mouth",
+  "mucosal surface",
+  "nasopharynx",
+  "skin vesicle",
+  "surface culture",
+  "surface cultures",
+  "surface pcr",
+  "vesicle culture",
+];
+
+const NEONATAL_HSV_CSF_ACTION_TERMS = [
+  "csf hsv pcr",
+  "lumbar puncture",
+];
+
+const NEONATAL_HSV_BLOOD_ALT_ACTION_TERMS = [
+  "alt",
+  "blood hsv pcr",
+  "serum alt",
+  "transaminase",
+  "whole blood pcr",
+];
+
+const NEONATAL_HSV_SEPSIS_COVERAGE_ACTION_TERMS = [
+  "ampicillin",
+  "blood culture",
+  "blood cultures",
+  "empiric antibiotics",
+  "gentamicin",
+  "nicu",
+  "sepsis evaluation",
+  "supportive care",
+];
+
+const NEONATAL_HSV_DURATION_REPEAT_CSF_SAFETY_TERMS = [
+  "14 days",
+  "21 days",
+  "repeat csf pcr",
+  "repeat lumbar puncture",
+  "suppressive",
+  "six months",
+];
+
+const NEONATAL_HSV_RENAL_ANC_SAFETY_TERMS = [
+  "absolute neutrophil",
+  "anc",
+  "creatinine",
+  "dose adjustment",
+  "hydration",
+  "neutropenia",
+  "renal",
+];
+
+const NEONATAL_HSV_OPHTHALMOLOGY_NEURO_SAFETY_TERMS = [
+  "audiology",
+  "eye exam",
+  "head ultrasound",
+  "mri",
+  "neuroimaging",
+  "ophthalmology",
+];
+
+const NEONATAL_HSV_EXPERT_EXPOSURE_SAFETY_TERMS = [
+  "active lesion",
+  "infectious disease",
+  "maternal",
+  "pediatric infectious disease",
+  "scalp electrode",
+];
+
 const NEONATAL_HYPERBILIRUBINEMIA_CONTEXT_TERMS = [
   "acute bilirubin encephalopathy",
   "kernicterus",
@@ -14625,6 +14754,80 @@ function hasFebrileInfantTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresNeonatalHsvSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    detail.patient_demographics?.age === 0 ? "infant neonate" : "",
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = NEONATAL_HSV_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasNeonatalContext = NEONATAL_HSV_NEONATAL_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = NEONATAL_HSV_RISK_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  return hasContext && hasNeonatalContext && hasRisk;
+}
+
+function hasNeonatalHsvTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAcyclovir = NEONATAL_HSV_ACYCLOVIR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSurfaceLesionTesting = NEONATAL_HSV_SURFACE_LESION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCsfTesting = NEONATAL_HSV_CSF_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodAltTesting = NEONATAL_HSV_BLOOD_ALT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSepsisCoverage = NEONATAL_HSV_SEPSIS_COVERAGE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasAcyclovir &&
+    hasSurfaceLesionTesting &&
+    hasCsfTesting &&
+    hasBloodAltTesting &&
+    hasSepsisCoverage
+  );
+}
+
+function hasNeonatalHsvTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasDurationRepeatCsf = NEONATAL_HSV_DURATION_REPEAT_CSF_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRenalAncSafety = NEONATAL_HSV_RENAL_ANC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOphthalmologyNeuroSafety = NEONATAL_HSV_OPHTHALMOLOGY_NEURO_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasExpertExposureSafety = NEONATAL_HSV_EXPERT_EXPOSURE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasDurationRepeatCsf &&
+    hasRenalAncSafety &&
+    hasOphthalmologyNeuroSafety &&
+    hasExpertExposureSafety
+  );
+}
+
 function requiresNeonatalHyperbilirubinemiaSafetyCheck(
   detail: ClinicalCaseReviewDetail,
 ): boolean {
@@ -21956,6 +22159,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasFebrileInfantTreatmentSafetyCheck,
       issue:
         "febrile infant safety checks must include not delaying antibiotics in ill-appearing infants, ceftriaxone neonatal safety review, admission or culture-observation criteria, and low-risk discharge or reliable follow-up criteria",
+    },
+    {
+      name: "neonatal_hsv_time_critical_actions",
+      label: "Neonatal HSV immediate evaluation and acyclovir",
+      applies: requiresNeonatalHsvSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasNeonatalHsvTimeCriticalActions,
+      issue:
+        "neonatal HSV time-critical actions must include immediate IV or systemic acyclovir such as 20 mg/kg, HSV surface or lesion testing from mouth, nasopharynx, conjunctiva, anus, skin vesicles, or mucosal surfaces, CSF HSV PCR plus blood HSV PCR or ALT/transaminase evaluation, and concurrent neonatal sepsis evaluation or supportive coverage such as blood cultures, ampicillin/gentamicin, empiric antibiotics, or NICU support",
+    },
+    {
+      name: "neonatal_hsv_treatment_safety",
+      label: "Neonatal HSV duration and follow-up safety",
+      applies: requiresNeonatalHsvSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasNeonatalHsvTreatmentSafetyCheck,
+      issue:
+        "neonatal HSV safety checks must include treatment duration or repeat-CSF planning such as 14 days for SEM disease, 21 days for CNS/disseminated disease, repeat CSF PCR, lumbar puncture, or suppressive therapy, renal dosing, hydration, creatinine, neutropenia, or ANC monitoring, ophthalmology, eye exam, neuroimaging, MRI, head ultrasound, or audiology assessment, and pediatric infectious disease or maternal exposure review including active lesions or scalp electrode risk",
     },
     {
       name: "neonatal_hyperbilirubinemia_time_critical_actions",
