@@ -9519,6 +9519,133 @@ const GUILLAIN_BARRE_SUPPORTIVE_SAFETY_TERMS = [
   "vte",
 ];
 
+const MYASTHENIC_CRISIS_DIRECT_CONTEXT_TERMS = [
+  "acetylcholine receptor antibody",
+  "achr antibody",
+  "musk antibody",
+  "myasthenia gravis",
+  "myasthenic crisis",
+  "myasthenic exacerbation",
+  "neuromuscular junction disorder",
+];
+
+const MYASTHENIC_CRISIS_RISK_TERMS = [
+  "bulbar weakness",
+  "difficulty counting",
+  "diplopia",
+  "dysarthria",
+  "dysphagia",
+  "dyspnea",
+  "facial weakness",
+  "hypophonia",
+  "neck flexor weakness",
+  "ptosis",
+  "respiratory distress",
+  "respiratory failure",
+  "weak cough",
+];
+
+const MYASTHENIC_CRISIS_RESPIRATORY_ACTION_TERMS = [
+  "fvc",
+  "negative inspiratory force",
+  "nif",
+  "peak expiratory flow",
+  "pef",
+  "respiratory function",
+  "serial vital capacity",
+  "vc",
+  "vital capacity",
+];
+
+const MYASTHENIC_CRISIS_AIRWAY_ICU_ACTION_TERMS = [
+  "airway",
+  "elective intubation",
+  "icu",
+  "intensive care",
+  "intubation",
+  "mechanical ventilation",
+  "ventilation",
+];
+
+const MYASTHENIC_CRISIS_IMMUNOTHERAPY_ACTION_TERMS = [
+  "intravenous immunoglobulin",
+  "ivig",
+  "pe",
+  "plasma exchange",
+  "plasmapheresis",
+];
+
+const MYASTHENIC_CRISIS_PRECIPITANT_ACTION_TERMS = [
+  "aspiration",
+  "infection",
+  "medication",
+  "precipitant",
+  "pneumonia",
+  "pregnancy",
+  "surgery",
+  "trigger",
+];
+
+const MYASTHENIC_CRISIS_MEDICATION_AVOIDANCE_SAFETY_TERMS = [
+  "aminoglycoside",
+  "beta blocker",
+  "calcium channel blocker",
+  "ciprofloxacin",
+  "erythromycin",
+  "fluoroquinolone",
+  "gentamicin",
+  "macrolide",
+  "magnesium",
+  "phenytoin",
+  "procainamide",
+  "quinidine",
+  "quinolone",
+  "streptomycin",
+];
+
+const MYASTHENIC_CRISIS_ACETYLCHOLINESTERASE_SAFETY_TERMS = [
+  "acetylcholinesterase inhibitor",
+  "cholinergic crisis",
+  "discontinue pyridostigmine",
+  "excessive secretions",
+  "hold pyridostigmine",
+  "lower pyridostigmine",
+  "pulmonary secretions",
+  "pyridostigmine",
+];
+
+const MYASTHENIC_CRISIS_STEROID_MONITORING_SAFETY_TERMS = [
+  "bulbar symptoms",
+  "hospital setting",
+  "monitor respiratory function",
+  "prednisone",
+  "respiratory monitoring",
+  "steroid",
+  "worsening",
+];
+
+const MYASTHENIC_CRISIS_NIV_INTUBATION_SAFETY_TERMS = [
+  "aspiration",
+  "bipap",
+  "bulbar weakness",
+  "hypercapnia",
+  "nif",
+  "niv",
+  "noninvasive ventilation",
+  "pcO2",
+  "tachypnea",
+  "work of breathing",
+];
+
+const MYASTHENIC_CRISIS_PARALYTIC_SAFETY_TERMS = [
+  "neuromuscular blocker",
+  "nondepolarizing",
+  "paralytic",
+  "reduced dose",
+  "succinylcholine",
+  "vecuronium",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -19957,6 +20084,74 @@ function hasGuillainBarreTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresMyasthenicCrisisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = MYASTHENIC_CRISIS_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = MYASTHENIC_CRISIS_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasMyasthenicCrisisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasRespiratoryMonitoring = MYASTHENIC_CRISIS_RESPIRATORY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAirwayIcu = MYASTHENIC_CRISIS_AIRWAY_ICU_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImmunotherapy = MYASTHENIC_CRISIS_IMMUNOTHERAPY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPrecipitantReview = MYASTHENIC_CRISIS_PRECIPITANT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasRespiratoryMonitoring && hasAirwayIcu && hasImmunotherapy && hasPrecipitantReview;
+}
+
+function hasMyasthenicCrisisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasMedicationAvoidance = MYASTHENIC_CRISIS_MEDICATION_AVOIDANCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAcheiSafety = MYASTHENIC_CRISIS_ACETYLCHOLINESTERASE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidMonitoring = MYASTHENIC_CRISIS_STEROID_MONITORING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNivIntubationSafety = MYASTHENIC_CRISIS_NIV_INTUBATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasParalyticSafety = MYASTHENIC_CRISIS_PARALYTIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasMedicationAvoidance &&
+    hasAcheiSafety &&
+    hasSteroidMonitoring &&
+    hasNivIntubationSafety &&
+    hasParalyticSafety
+  );
+}
+
 function requiresDkaTreatmentSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -24326,6 +24521,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasGuillainBarreTreatmentSafetyCheck,
       issue:
         "Guillain-Barre syndrome safety checks must include avoidance of corticosteroids or glucocorticoids because steroids are not recommended, avoiding sequential or combined IVIG and plasma exchange unless specifically justified because combination therapy is not beneficial, autonomic monitoring for dysautonomia, blood pressure, bradycardia, arrhythmia, ECG, telemetry, or cardiac monitoring, and supportive safety for venous thrombosis, VTE, DVT, aspiration, swallow, bowel, pain control, rehabilitation, skin breakdown, or pressure injury",
+    },
+    {
+      name: "myasthenic_crisis_time_critical_actions",
+      label: "Myasthenic crisis respiratory emergency actions",
+      applies: requiresMyasthenicCrisisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasMyasthenicCrisisTimeCriticalActions,
+      issue:
+        "myasthenic crisis time-critical actions must include respiratory function monitoring with vital capacity, VC, FVC, NIF, negative inspiratory force, PEF, peak expiratory flow, or serial vital capacity, ICU, intensive care, airway, elective intubation, intubation, mechanical ventilation, or ventilation support, IVIG, intravenous immunoglobulin, plasma exchange, plasmapheresis, or PE disease-modifying therapy, and precipitant review for infection, pneumonia, aspiration, surgery, pregnancy, medication, trigger, or medication discontinuation",
+    },
+    {
+      name: "myasthenic_crisis_treatment_safety",
+      label: "Myasthenic crisis treatment safety",
+      applies: requiresMyasthenicCrisisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasMyasthenicCrisisTreatmentSafetyCheck,
+      issue:
+        "myasthenic crisis safety checks must include medication avoidance or caution for aminoglycosides, gentamicin, streptomycin, macrolides, erythromycin, fluoroquinolones, quinolones, ciprofloxacin, beta blockers, calcium channel blockers, magnesium, phenytoin, procainamide, or quinidine, acetylcholinesterase inhibitor or pyridostigmine holding/lowering/discontinuation with excessive pulmonary secretion or cholinergic-crisis review, steroid or prednisone initiation only with hospital respiratory monitoring because worsening can occur especially with bulbar symptoms, NIV, BiPAP, hypercapnia, PCO2, tachypnea, work-of-breathing, aspiration, or bulbar-weakness intubation safety, and neuromuscular blocker, paralytic, succinylcholine, vecuronium, nondepolarizing, or reduced-dose airway medication safety",
     },
     {
       name: "dka_time_critical_actions",

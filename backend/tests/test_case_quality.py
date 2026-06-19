@@ -208,6 +208,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "organophosphate_toxicity_treatment_safety",
         "guillain_barre_time_critical_actions",
         "guillain_barre_treatment_safety",
+        "myasthenic_crisis_time_critical_actions",
+        "myasthenic_crisis_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "dka_advanced_insulin_transition_safety",
@@ -11708,6 +11710,161 @@ def test_quality_gate_requires_guillain_barre_steroid_combination_autonomic_and_
     assert not report.passed
     assert any(
         "Guillain-Barre syndrome safety checks must include avoidance of corticosteroids"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_myasthenic_crisis_respiratory_icu_immunotherapy_and_trigger_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Myasthenic crisis with respiratory failure"
+    case["patient_demographics"] = {
+        "age": 68,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Dyspnea, weak cough, and dysphagia"
+    case["history_of_present_illness"] = (
+        "Patient with myasthenia gravis and acetylcholine receptor antibody "
+        "positivity presents with ptosis, diplopia, dysarthria, dysphagia, "
+        "bulbar weakness, neck flexor weakness, weak cough, difficulty counting, "
+        "respiratory distress, and impending respiratory failure after pneumonia."
+    )
+    case["past_medical_history"] = "Myasthenia gravis on pyridostigmine"
+    case["physical_exam"] = {
+        "vitals": {"bp": "154/86", "hr": 112, "rr": 30, "spo2": 91},
+        "general": "Fatigued, hypophonic, and unable to count to 20 in one breath",
+        "pulmonary": "Weak cough, accessory muscle use, and shallow respirations",
+        "neuro": "Ptosis, diplopia, facial weakness, dysarthria, dysphagia, and neck flexor weakness",
+    }
+    case["initial_labs"] = {
+        "nif": "Pending negative inspiratory force",
+        "vc": "Pending vital capacity",
+        "abg": "Mild hypercapnia",
+    }
+    case["key_teaching_points"] = [
+        "Myasthenic crisis is worsening myasthenia gravis weakness causing respiratory failure that may require intubation and mechanical ventilation",
+        "Vital capacity, VC, FVC, NIF, negative inspiratory force, PEF, and peak expiratory flow help assess respiratory muscle weakness",
+        "IVIG intravenous immunoglobulin or plasma exchange/PE/plasmapheresis are disease-modifying treatments",
+        "Infection, pneumonia, aspiration, surgery, pregnancy, and medications can precipitate crisis and should be reviewed",
+    ]
+    case["clinical_red_flags"] = [
+        "Dyspnea, weak cough, difficulty counting, neck flexor weakness, accessory muscle use, respiratory distress, or respiratory failure",
+        "Bulbar weakness, dysphagia, dysarthria, hypophonia, facial weakness, ptosis, or diplopia",
+    ]
+    case["time_critical_actions"] = [
+        "Give nebulized bronchodilator and observe in clinic",
+        "Arrange outpatient neurology follow-up",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid or use caution with aminoglycoside, gentamicin, streptomycin, macrolide, erythromycin, fluoroquinolone, quinolone, ciprofloxacin, beta blocker, calcium channel blocker, magnesium, phenytoin, procainamide, and quinidine triggers",
+        "Hold pyridostigmine or lower/discontinue acetylcholinesterase inhibitor during respiratory distress, and review cholinergic crisis or excessive pulmonary secretions",
+        "Start steroid or prednisone only in a hospital setting with respiratory monitoring because worsening can occur, especially with bulbar symptoms",
+        "Use NIV or BiPAP cautiously and intubate for hypercapnia, rising PCO2, tachypnea, increased work of breathing, aspiration risk, or bulbar weakness",
+        "Use neuromuscular blocker or paralytic carefully; review succinylcholine, vecuronium, nondepolarizing sensitivity, and reduced-dose airway medication safety",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Myasthenic Crisis",
+            "organization": "Neurohospitalist / PMC",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3726100/",
+            "supports": [
+                "myasthenic crisis with respiratory failure diagnosis and risk stratification",
+                "myasthenic crisis is worsening myasthenia gravis weakness causing respiratory failure that may require intubation and mechanical ventilation",
+                "vital capacity, VC, FVC, NIF, negative inspiratory force, PEF, and peak expiratory flow help assess respiratory muscle weakness",
+                "IVIG intravenous immunoglobulin or plasma exchange PE plasmapheresis are disease-modifying treatments",
+                "infection, pneumonia, aspiration, surgery, pregnancy, and medications can precipitate crisis",
+                "dyspnea, weak cough, difficulty counting, neck flexor weakness, accessory muscle use, respiratory distress, or respiratory failure as red flags",
+                "bulbar weakness, dysphagia, dysarthria, hypophonia, facial weakness, ptosis, or diplopia as severity markers",
+                "avoid or use caution with aminoglycoside, gentamicin, streptomycin, macrolide, erythromycin, fluoroquinolone, quinolone, ciprofloxacin, beta blocker, calcium channel blocker, magnesium, phenytoin, procainamide, and quinidine triggers",
+                "hold pyridostigmine or lower/discontinue acetylcholinesterase inhibitor during respiratory distress, and review cholinergic crisis or excessive pulmonary secretions",
+                "steroid or prednisone initiation only in a hospital setting with respiratory monitoring because worsening can occur, especially with bulbar symptoms",
+                "NIV or BiPAP caution and intubation for hypercapnia, rising PCO2, tachypnea, increased work of breathing, aspiration risk, or bulbar weakness",
+                "neuromuscular blocker or paralytic caution; succinylcholine, vecuronium, nondepolarizing sensitivity, and reduced-dose airway medication safety",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "myasthenic crisis time-critical actions must include respiratory function"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_myasthenic_crisis_medication_pyridostigmine_steroid_niv_and_paralytic_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Myasthenic exacerbation with bulbar weakness"
+    case["patient_demographics"] = {
+        "age": 59,
+        "sex": "male",
+        "weight_kg": 78,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Progressive dysarthria and dyspnea"
+    case["history_of_present_illness"] = (
+        "Patient with MuSK antibody myasthenia gravis presents with ptosis, "
+        "diplopia, facial weakness, hypophonia, dysarthria, dysphagia, bulbar "
+        "weakness, weak cough, difficulty counting, dyspnea, and respiratory "
+        "distress after starting ciprofloxacin for pneumonia."
+    )
+    case["past_medical_history"] = "Myasthenia gravis treated with pyridostigmine"
+    case["physical_exam"] = {
+        "vitals": {"bp": "146/84", "hr": 108, "rr": 28, "spo2": 92},
+        "general": "Hypophonic and fatigues while speaking",
+        "pulmonary": "Weak cough and accessory muscle use",
+        "neuro": "Ptosis, diplopia, facial weakness, dysarthria, dysphagia, and bulbar weakness",
+    }
+    case["key_teaching_points"] = [
+        "Myasthenic crisis can involve upper airway, bulbar, and respiratory muscles",
+        "Monitor respiratory function with vital capacity/VC/FVC, NIF or negative inspiratory force, PEF, and peak expiratory flow",
+        "Escalate to ICU intensive care for airway, elective intubation, intubation, mechanical ventilation, and ventilation support when respiratory failure is impending",
+        "Treat severe crisis with IVIG intravenous immunoglobulin or plasma exchange PE/plasmapheresis",
+        "Review precipitant triggers including infection, pneumonia, aspiration, surgery, pregnancy, and medications",
+    ]
+    case["clinical_red_flags"] = [
+        "Dyspnea, weak cough, difficulty counting, respiratory distress, respiratory failure, or neck flexor weakness",
+        "Bulbar weakness, dysphagia, dysarthria, hypophonia, facial weakness, ptosis, or diplopia",
+    ]
+    case["time_critical_actions"] = [
+        "Measure serial vital capacity, VC, FVC, NIF, negative inspiratory force, PEF, and peak expiratory flow for respiratory function monitoring",
+        "Admit ICU intensive care and prepare airway support, elective intubation, intubation, mechanical ventilation, or ventilation support",
+        "Start IVIG intravenous immunoglobulin or plasma exchange PE/plasmapheresis disease-modifying therapy",
+        "Review and stop precipitant triggers including infection, pneumonia, aspiration, surgery, pregnancy, and medication causes",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before analgesics",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Myasthenic Crisis",
+            "organization": "Neurohospitalist / PMC",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3726100/",
+            "supports": [
+                "myasthenic exacerbation with bulbar weakness diagnosis and risk stratification",
+                "myasthenic crisis can involve upper airway, bulbar, and respiratory muscles",
+                "respiratory function monitoring with vital capacity VC FVC NIF negative inspiratory force PEF and peak expiratory flow",
+                "ICU intensive care airway elective intubation intubation mechanical ventilation and ventilation support for impending respiratory failure",
+                "IVIG intravenous immunoglobulin or plasma exchange PE plasmapheresis disease-modifying therapy",
+                "precipitant triggers including infection, pneumonia, aspiration, surgery, pregnancy, and medications",
+                "dyspnea, weak cough, difficulty counting, respiratory distress, respiratory failure, or neck flexor weakness as red flags",
+                "bulbar weakness, dysphagia, dysarthria, hypophonia, facial weakness, ptosis, or diplopia as severity markers",
+                "medication allergy before analgesics",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "myasthenic crisis safety checks must include medication avoidance"
         in issue
         for issue in report.critical_issues
     )

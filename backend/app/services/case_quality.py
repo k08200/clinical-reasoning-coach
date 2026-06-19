@@ -8689,6 +8689,122 @@ GUILLAIN_BARRE_SUPPORTIVE_SAFETY_TERMS = (
     "venous thrombosis",
     "vte",
 )
+MYASTHENIC_CRISIS_DIRECT_CONTEXT_TERMS = (
+    "acetylcholine receptor antibody",
+    "achr antibody",
+    "musk antibody",
+    "myasthenia gravis",
+    "myasthenic crisis",
+    "myasthenic exacerbation",
+    "neuromuscular junction disorder",
+)
+MYASTHENIC_CRISIS_RISK_TERMS = (
+    "bulbar weakness",
+    "difficulty counting",
+    "diplopia",
+    "dysarthria",
+    "dysphagia",
+    "dyspnea",
+    "facial weakness",
+    "hypophonia",
+    "neck flexor weakness",
+    "ptosis",
+    "respiratory distress",
+    "respiratory failure",
+    "weak cough",
+)
+MYASTHENIC_CRISIS_RESPIRATORY_ACTION_TERMS = (
+    "fvc",
+    "negative inspiratory force",
+    "nif",
+    "peak expiratory flow",
+    "pef",
+    "respiratory function",
+    "serial vital capacity",
+    "vc",
+    "vital capacity",
+)
+MYASTHENIC_CRISIS_AIRWAY_ICU_ACTION_TERMS = (
+    "airway",
+    "elective intubation",
+    "icu",
+    "intensive care",
+    "intubation",
+    "mechanical ventilation",
+    "ventilation",
+)
+MYASTHENIC_CRISIS_IMMUNOTHERAPY_ACTION_TERMS = (
+    "intravenous immunoglobulin",
+    "ivig",
+    "pe",
+    "plasma exchange",
+    "plasmapheresis",
+)
+MYASTHENIC_CRISIS_PRECIPITANT_ACTION_TERMS = (
+    "aspiration",
+    "infection",
+    "medication",
+    "precipitant",
+    "pneumonia",
+    "pregnancy",
+    "surgery",
+    "trigger",
+)
+MYASTHENIC_CRISIS_MEDICATION_AVOIDANCE_SAFETY_TERMS = (
+    "aminoglycoside",
+    "beta blocker",
+    "calcium channel blocker",
+    "ciprofloxacin",
+    "erythromycin",
+    "fluoroquinolone",
+    "gentamicin",
+    "macrolide",
+    "magnesium",
+    "phenytoin",
+    "procainamide",
+    "quinidine",
+    "quinolone",
+    "streptomycin",
+)
+MYASTHENIC_CRISIS_ACETYLCHOLINESTERASE_SAFETY_TERMS = (
+    "acetylcholinesterase inhibitor",
+    "cholinergic crisis",
+    "discontinue pyridostigmine",
+    "excessive secretions",
+    "hold pyridostigmine",
+    "lower pyridostigmine",
+    "pulmonary secretions",
+    "pyridostigmine",
+)
+MYASTHENIC_CRISIS_STEROID_MONITORING_SAFETY_TERMS = (
+    "bulbar symptoms",
+    "hospital setting",
+    "monitor respiratory function",
+    "prednisone",
+    "respiratory monitoring",
+    "steroid",
+    "worsening",
+)
+MYASTHENIC_CRISIS_NIV_INTUBATION_SAFETY_TERMS = (
+    "aspiration",
+    "bipap",
+    "bulbar weakness",
+    "hypercapnia",
+    "nif",
+    "niv",
+    "noninvasive ventilation",
+    "pcO2",
+    "tachypnea",
+    "work of breathing",
+)
+MYASTHENIC_CRISIS_PARALYTIC_SAFETY_TERMS = (
+    "neuromuscular blocker",
+    "nondepolarizing",
+    "paralytic",
+    "reduced dose",
+    "succinylcholine",
+    "vecuronium",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -16001,6 +16117,44 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "monitoring, and supportive safety for venous thrombosis, VTE, DVT, "
                 "aspiration, swallow, bowel, pain control, rehabilitation, skin "
                 "breakdown, or pressure injury"
+            ),
+        ),
+        DomainSafetyGate(
+            name="myasthenic_crisis_time_critical_actions",
+            applies=_requires_myasthenic_crisis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_myasthenic_crisis_time_critical_actions,
+            issue=(
+                "myasthenic crisis time-critical actions must include respiratory "
+                "function monitoring with vital capacity, VC, FVC, NIF, negative "
+                "inspiratory force, PEF, peak expiratory flow, or serial vital "
+                "capacity, ICU, intensive care, airway, elective intubation, "
+                "intubation, mechanical ventilation, or ventilation support, IVIG, "
+                "intravenous immunoglobulin, plasma exchange, plasmapheresis, or "
+                "PE disease-modifying therapy, and precipitant review for infection, "
+                "pneumonia, aspiration, surgery, pregnancy, medication, trigger, or "
+                "medication discontinuation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="myasthenic_crisis_treatment_safety",
+            applies=_requires_myasthenic_crisis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_myasthenic_crisis_treatment_safety_check,
+            issue=(
+                "myasthenic crisis safety checks must include medication avoidance "
+                "or caution for aminoglycosides, gentamicin, streptomycin, macrolides, "
+                "erythromycin, fluoroquinolones, quinolones, ciprofloxacin, beta "
+                "blockers, calcium channel blockers, magnesium, phenytoin, "
+                "procainamide, or quinidine, acetylcholinesterase inhibitor or "
+                "pyridostigmine holding/lowering/discontinuation with excessive "
+                "pulmonary secretion or cholinergic-crisis review, steroid or "
+                "prednisone initiation only with hospital respiratory monitoring "
+                "because worsening can occur especially with bulbar symptoms, NIV, "
+                "BiPAP, hypercapnia, PCO2, tachypnea, work-of-breathing, aspiration, "
+                "or bulbar-weakness intubation safety, and neuromuscular blocker, "
+                "paralytic, succinylcholine, vecuronium, nondepolarizing, or "
+                "reduced-dose airway medication safety"
             ),
         ),
         DomainSafetyGate(
@@ -23949,6 +24103,95 @@ def _has_guillain_barre_treatment_safety_check(checks: list[Any]) -> bool:
         and has_sequential_therapy_safety
         and has_autonomic_safety
         and has_supportive_safety
+    )
+
+
+def _requires_myasthenic_crisis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in MYASTHENIC_CRISIS_DIRECT_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in MYASTHENIC_CRISIS_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_myasthenic_crisis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_respiratory_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYASTHENIC_CRISIS_RESPIRATORY_ACTION_TERMS
+    )
+    has_airway_icu = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYASTHENIC_CRISIS_AIRWAY_ICU_ACTION_TERMS
+    )
+    has_immunotherapy = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYASTHENIC_CRISIS_IMMUNOTHERAPY_ACTION_TERMS
+    )
+    has_precipitant_review = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYASTHENIC_CRISIS_PRECIPITANT_ACTION_TERMS
+    )
+    return (
+        has_respiratory_monitoring
+        and has_airway_icu
+        and has_immunotherapy
+        and has_precipitant_review
+    )
+
+
+def _has_myasthenic_crisis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_medication_avoidance = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYASTHENIC_CRISIS_MEDICATION_AVOIDANCE_SAFETY_TERMS
+    )
+    has_achei_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYASTHENIC_CRISIS_ACETYLCHOLINESTERASE_SAFETY_TERMS
+    )
+    has_steroid_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYASTHENIC_CRISIS_STEROID_MONITORING_SAFETY_TERMS
+    )
+    has_niv_intubation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYASTHENIC_CRISIS_NIV_INTUBATION_SAFETY_TERMS
+    )
+    has_paralytic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYASTHENIC_CRISIS_PARALYTIC_SAFETY_TERMS
+    )
+    return (
+        has_medication_avoidance
+        and has_achei_safety
+        and has_steroid_monitoring
+        and has_niv_intubation_safety
+        and has_paralytic_safety
     )
 
 
