@@ -7052,6 +7052,33 @@ const SPINAL_EPIDURAL_ABSCESS_CONTEXT_TERMS = [
   "척추 경막외 농양",
 ];
 
+const SPINAL_EPIDURAL_ABSCESS_PAIN_FEVER_RED_FLAG_TERMS = [
+  "atraumatic back pain",
+  "back pain",
+  "fever",
+  "focal spine tenderness",
+  "percussion tenderness",
+  "radicular pain",
+  "spine tenderness",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_NEURO_RISK_RED_FLAG_TERMS = [
+  "bacteremia",
+  "bladder",
+  "bowel",
+  "diabetes",
+  "immunosuppression",
+  "iv drug",
+  "ivdu",
+  "neurologic deficit",
+  "recent infection",
+  "recent spinal procedure",
+  "saddle anesthesia",
+  "sepsis",
+  "sensory",
+  "weakness",
+];
+
 const SPINAL_EPIDURAL_ABSCESS_MRI_ACTION_TERMS = [
   "contrast mri",
   "emergency mri",
@@ -7133,6 +7160,41 @@ const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS = [
   "neurologic compromise",
   "unstable",
   "배양",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_LP_AVOIDANCE_SAFETY_TERMS = [
+  "avoid lumbar puncture",
+  "avoid lp",
+  "contraindicated",
+  "cord herniation",
+  "do not perform lp",
+  "lumbar puncture",
+  "lp",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_DRAINAGE_DECOMPRESSION_SAFETY_TERMS = [
+  "bowel",
+  "bladder",
+  "decompression",
+  "drainage",
+  "immediate drainage",
+  "neurologic compromise",
+  "neurosurgery",
+  "paresis",
+  "surgical drain",
+  "weakness",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_COVERAGE_SAFETY_TERMS = [
+  "anaerobe",
+  "cefepime",
+  "ceftazidime",
+  "ceftriaxone",
+  "gram-negative",
+  "meropenem",
+  "mrsa",
+  "staphylococcus",
+  "vancomycin",
 ];
 
 const SEPTIC_ARTHRITIS_CONTEXT_TERMS = [
@@ -19392,6 +19454,17 @@ function requiresSpinalEpiduralAbscessSafetyCheck(detail: ClinicalCaseReviewDeta
   );
 }
 
+function hasSpinalEpiduralAbscessRedFlags(redFlags: string[]): boolean {
+  const normalizedRedFlags = redFlags.join(" ").toLowerCase();
+  const hasPainFever = SPINAL_EPIDURAL_ABSCESS_PAIN_FEVER_RED_FLAG_TERMS.some((term) =>
+    containsSafetyTerm(normalizedRedFlags, term),
+  );
+  const hasNeuroRisk = SPINAL_EPIDURAL_ABSCESS_NEURO_RISK_RED_FLAG_TERMS.some((term) =>
+    containsSafetyTerm(normalizedRedFlags, term),
+  );
+  return hasPainFever && hasNeuroRisk;
+}
+
 function hasSpinalEpiduralAbscessTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
   const hasMri = SPINAL_EPIDURAL_ABSCESS_MRI_ACTION_TERMS.some((term) =>
@@ -19422,6 +19495,22 @@ function hasSpinalEpiduralAbscessTreatmentSafetyCheck(checks: string[]): boolean
       containsSafetyTerm(normalizedChecks, term),
     );
   return hasNeuroSepsisSafety && hasRiskSourceSafety && hasAntibioticTimingSafety;
+}
+
+function hasSpinalEpiduralAbscessLpDrainageAntibioticSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasLpAvoidance = SPINAL_EPIDURAL_ABSCESS_LP_AVOIDANCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDrainageDecompression =
+    SPINAL_EPIDURAL_ABSCESS_DRAINAGE_DECOMPRESSION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAntibioticCoverage =
+    SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_COVERAGE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return hasLpAvoidance && hasDrainageDecompression && hasAntibioticCoverage;
 }
 
 function requiresSepticArthritisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -25555,6 +25644,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
         "spinal epidural abscess time-critical actions must include urgent MRI spine or whole-spine imaging, blood cultures, ESR, CRP, source cultures, or microbiology workup, empiric IV antibiotics, and neurosurgery, spine surgery, decompression, drainage, or source-control escalation",
     },
     {
+      name: "spinal_epidural_abscess_red_flags",
+      label: "Spinal epidural abscess red flags",
+      applies: requiresSpinalEpiduralAbscessSafetyCheck,
+      fieldName: "clinical_red_flags",
+      validator: hasSpinalEpiduralAbscessRedFlags,
+      issue:
+        "spinal epidural abscess red flags must include atraumatic back pain, radicular pain, fever, focal spine tenderness, or percussion tenderness plus neurologic deficit, weakness, sensory change, saddle anesthesia, bowel/bladder dysfunction, sepsis, bacteremia, diabetes, IVDU, immunosuppression, recent infection, or recent spinal procedure risk",
+    },
+    {
       name: "spinal_epidural_abscess_treatment_safety",
       label: "Spinal epidural abscess treatment safety",
       applies: requiresSpinalEpiduralAbscessSafetyCheck,
@@ -25562,6 +25660,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSpinalEpiduralAbscessTreatmentSafetyCheck,
       issue:
         "spinal epidural abscess safety checks must include neurologic deficit, bowel or bladder dysfunction, serial neurologic exams, or sepsis monitoring, bacteremia, endocarditis, diabetes, IVDU, immunosuppression, recent spinal procedure, staphylococcal, or source-risk review, and culture-before-antibiotics, biopsy, or do-not-delay empiric antibiotics for unstable or neurologic compromise planning",
+    },
+    {
+      name: "spinal_epidural_abscess_lp_drainage_antibiotic_safety",
+      label: "Spinal epidural abscess LP, drainage, and antibiotic safety",
+      applies: requiresSpinalEpiduralAbscessSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasSpinalEpiduralAbscessLpDrainageAntibioticSafetyCheck,
+      issue:
+        "spinal epidural abscess safety checks must include avoiding lumbar puncture/LP or noting LP contraindication and cord-herniation risk, immediate neurosurgery, surgical drainage, decompression, or drainage planning for neurologic compromise, weakness, paresis, or bowel/bladder dysfunction, and empiric antibiotic coverage for staphylococcus/MRSA plus anaerobe, gram-negative, vancomycin, ceftriaxone, cefepime, ceftazidime, or meropenem risk",
     },
     {
       name: "septic_arthritis_time_critical_actions",

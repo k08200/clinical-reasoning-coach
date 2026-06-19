@@ -6444,6 +6444,31 @@ SPINAL_EPIDURAL_ABSCESS_CONTEXT_TERMS = (
     "vertebral osteomyelitis with epidural extension",
     "척추 경막외 농양",
 )
+SPINAL_EPIDURAL_ABSCESS_PAIN_FEVER_RED_FLAG_TERMS = (
+    "atraumatic back pain",
+    "back pain",
+    "fever",
+    "focal spine tenderness",
+    "percussion tenderness",
+    "radicular pain",
+    "spine tenderness",
+)
+SPINAL_EPIDURAL_ABSCESS_NEURO_RISK_RED_FLAG_TERMS = (
+    "bacteremia",
+    "bladder",
+    "bowel",
+    "diabetes",
+    "immunosuppression",
+    "iv drug",
+    "ivdu",
+    "neurologic deficit",
+    "recent infection",
+    "recent spinal procedure",
+    "saddle anesthesia",
+    "sepsis",
+    "sensory",
+    "weakness",
+)
 SPINAL_EPIDURAL_ABSCESS_MRI_ACTION_TERMS = (
     "contrast mri",
     "emergency mri",
@@ -6519,6 +6544,38 @@ SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS = (
     "neurologic compromise",
     "unstable",
     "배양",
+)
+SPINAL_EPIDURAL_ABSCESS_LP_AVOIDANCE_SAFETY_TERMS = (
+    "avoid lumbar puncture",
+    "avoid lp",
+    "contraindicated",
+    "cord herniation",
+    "do not perform lp",
+    "lumbar puncture",
+    "lp",
+)
+SPINAL_EPIDURAL_ABSCESS_DRAINAGE_DECOMPRESSION_SAFETY_TERMS = (
+    "bowel",
+    "bladder",
+    "decompression",
+    "drainage",
+    "immediate drainage",
+    "neurologic compromise",
+    "neurosurgery",
+    "paresis",
+    "surgical drain",
+    "weakness",
+)
+SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_COVERAGE_SAFETY_TERMS = (
+    "anaerobe",
+    "cefepime",
+    "ceftazidime",
+    "ceftriaxone",
+    "gram-negative",
+    "meropenem",
+    "mrsa",
+    "staphylococcus",
+    "vancomycin",
 )
 SEPTIC_ARTHRITIS_CONTEXT_TERMS = (
     "acute septic arthritis",
@@ -16224,6 +16281,20 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="spinal_epidural_abscess_red_flags",
+            applies=_requires_spinal_epidural_abscess_safety_check,
+            field_name="clinical_red_flags",
+            validator=_has_spinal_epidural_abscess_red_flags,
+            issue=(
+                "spinal epidural abscess red flags must include atraumatic back "
+                "pain, radicular pain, fever, focal spine tenderness, or percussion "
+                "tenderness plus neurologic deficit, weakness, sensory change, "
+                "saddle anesthesia, bowel/bladder dysfunction, sepsis, bacteremia, "
+                "diabetes, IVDU, immunosuppression, recent infection, or recent "
+                "spinal procedure risk"
+            ),
+        ),
+        DomainSafetyGate(
             name="spinal_epidural_abscess_treatment_safety",
             applies=_requires_spinal_epidural_abscess_safety_check,
             field_name="contraindication_checks",
@@ -16236,6 +16307,21 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "source-risk review, and culture-before-antibiotics, biopsy, "
                 "or do-not-delay empiric antibiotics for unstable or neurologic "
                 "compromise planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="spinal_epidural_abscess_lp_drainage_antibiotic_safety",
+            applies=_requires_spinal_epidural_abscess_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_spinal_epidural_abscess_lp_drainage_antibiotic_safety_check,
+            issue=(
+                "spinal epidural abscess safety checks must include avoiding "
+                "lumbar puncture/LP or noting LP contraindication and cord-herniation "
+                "risk, immediate neurosurgery, surgical drainage, decompression, "
+                "or drainage planning for neurologic compromise, weakness, paresis, "
+                "or bowel/bladder dysfunction, and empiric antibiotic coverage for "
+                "staphylococcus/MRSA plus anaerobe, gram-negative, vancomycin, "
+                "ceftriaxone, cefepime, ceftazidime, or meropenem risk"
             ),
         ),
         DomainSafetyGate(
@@ -23433,6 +23519,19 @@ def _requires_spinal_epidural_abscess_safety_check(data: dict[str, Any]) -> bool
     )
 
 
+def _has_spinal_epidural_abscess_red_flags(red_flags: list[Any]) -> bool:
+    normalized_red_flags = " ".join(str(red_flag).lower() for red_flag in red_flags)
+    has_pain_fever = any(
+        _contains_safety_term(normalized_red_flags, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_PAIN_FEVER_RED_FLAG_TERMS
+    )
+    has_neuro_risk = any(
+        _contains_safety_term(normalized_red_flags, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_NEURO_RISK_RED_FLAG_TERMS
+    )
+    return has_pain_fever and has_neuro_risk
+
+
 def _has_spinal_epidural_abscess_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
     has_mri = any(
@@ -23472,6 +23571,27 @@ def _has_spinal_epidural_abscess_treatment_safety_check(checks: list[Any]) -> bo
         has_neuro_sepsis_safety
         and has_risk_source_safety
         and has_antibiotic_timing_safety
+    )
+
+
+def _has_spinal_epidural_abscess_lp_drainage_antibiotic_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_lp_avoidance = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_LP_AVOIDANCE_SAFETY_TERMS
+    )
+    has_drainage_decompression = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_DRAINAGE_DECOMPRESSION_SAFETY_TERMS
+    )
+    has_antibiotic_coverage = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_COVERAGE_SAFETY_TERMS
+    )
+    return (
+        has_lp_avoidance
+        and has_drainage_decompression
+        and has_antibiotic_coverage
     )
 
 
