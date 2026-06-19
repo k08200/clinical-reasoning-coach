@@ -60,6 +60,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "deep_neck_infection_treatment_safety",
         "croup_time_critical_actions",
         "croup_treatment_safety",
+        "foreign_body_airway_time_critical_actions",
+        "foreign_body_airway_treatment_safety",
         "orbital_cellulitis_time_critical_actions",
         "orbital_cellulitis_treatment_safety",
         "gi_bleed_time_critical_actions",
@@ -1051,6 +1053,144 @@ def test_quality_gate_requires_croup_observation_differential_low_value_and_disp
     assert not report.passed
     assert any(
         "croup safety checks must include observation for recurrence" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_foreign_body_airway_age_specific_maneuvers_monitoring_and_bronchoscopy_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Foreign body airway obstruction from aspirated peanut"
+    case["patient_demographics"] = {
+        "age": 2,
+        "sex": "male",
+        "weight_kg": 12,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Choking episode with cyanosis and unilateral wheeze"
+    case["history_of_present_illness"] = (
+        "Toddler choked on peanut with witnessed aspiration, sudden cough, weak "
+        "cough and cannot cough effectively, stridor, cyanosis, hypoxia, "
+        "respiratory distress, unilateral wheeze, and asymmetric breath sounds."
+    )
+    case["key_teaching_points"] = [
+        "Choking is life-threatening and requires airway, ability to cough or speak, oxygenation, pulse oximetry, and ventilation assessment",
+        "Infants under 1 year need back blows and chest thrusts, while children older than 1 year need back blows and abdominal thrusts or Heimlich pathway",
+        "Persistent suspected airway foreign body needs ENT, pulmonology, anesthesia, rigid bronchoscopy, bronchoscopy, and foreign body removal escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "Inability to speak or cannot talk, cannot cough, weak cough, cyanosis, hypoxia, respiratory distress, and stridor",
+        "Absent breath sounds, asymmetric breath sounds, unilateral wheeze, and witnessed aspiration",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain chest x-ray and observe",
+        "Give nebulized bronchodilator",
+    ]
+    case["contraindication_checks"] = [
+        "No blind finger sweep; visible object only before removal",
+        "Normal chest x-ray or normal radiograph does not rule out radiolucent airway foreign body",
+        "For partial obstruction with effective cough, encourage coughing and let cough rather than unnecessary thrusts",
+        "After foreign body removal, observation for persistent symptoms, airway edema, stridor, infection; antibiotics not routine and steroids not routine unless indicated",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Choking: First aid",
+            "organization": "Mayo Clinic",
+            "url": "https://www.mayoclinic.org/first-aid/first-aid-choking/basics/art-20056637",
+            "supports": [
+                "choking is life-threatening and can cut off oxygen",
+                "inability to talk, weak cough, strained breathing, and blue skin are choking signs",
+                "infants under 1 year need back blows and chest thrusts",
+                "children older than 1 year need back blows and abdominal thrusts or Heimlich pathway",
+                "only sweep if an object is visible and avoid blind finger sweep",
+            ],
+        },
+        {
+            "title": "Foreign body aspiration",
+            "organization": "Royal Children's Hospital Melbourne",
+            "url": "https://www.rch.org.au/clinicalguide/guideline_index/Foreign_bodies_inhaled/",
+            "supports": [
+                "witnessed aspiration, unilateral wheeze, asymmetric breath sounds, stridor, cyanosis, and respiratory distress suggest airway foreign body",
+                "normal radiograph does not rule out foreign body aspiration",
+                "rigid bronchoscopy, bronchoscopy, anesthesia, ENT, and pulmonology escalation support foreign body removal",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "foreign body airway obstruction time-critical actions must include airway"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_foreign_body_airway_blind_sweep_xray_partial_obstruction_and_post_removal_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Tracheobronchial foreign body aspiration"
+    case["patient_demographics"] = {
+        "age": 4,
+        "sex": "female",
+        "weight_kg": 17,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Witnessed choking episode with persistent wheezing"
+    case["history_of_present_illness"] = (
+        "Child had a choking episode after aspirated toy fragment with sudden "
+        "cough, respiratory distress, intermittent hypoxia, unilateral wheeze, "
+        "asymmetric breath sounds, and concern for inhaled foreign body."
+    )
+    case["key_teaching_points"] = [
+        "Assess airway, choking severity, ability to speak, effective cough, oxygenation, pulse oximetry, and ventilation",
+        "Infant under 1 year pathway uses 5 back blows or back slaps and chest thrust or chest compressions",
+        "Child or adult older than 1 year pathway uses back blows, abdominal thrusts, Heimlich, or chest thrust when appropriate",
+        "ENT, otolaryngology, pulmonology, and anesthesia escalation for rigid bronchoscopy, bronchoscopy, and foreign body removal is time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Cannot talk, cannot cough, weak cough, cyanosis, hypoxia, respiratory distress, stridor, or unilateral wheeze",
+        "Witnessed aspiration with persistent wheezing or asymmetric breath sounds",
+    ]
+    case["time_critical_actions"] = [
+        "Assess airway and choking severity including ability to speak, effective cough, oxygenation, pulse oximetry, and ventilation",
+        "For infants under 1 year, use 5 back blows/back slaps and chest thrust/chest compressions",
+        "For child or adult older than 1 year, use back blows then abdominal thrust or Heimlich; use chest thrust if pregnant or large body",
+        "Escalate ENT/otolaryngology, pulmonology, and anesthesia for rigid bronchoscopy/bronchoscopy and foreign body removal",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before sedation",
+        "NPO status before procedure",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Choking: First aid",
+            "organization": "Mayo Clinic",
+            "url": "https://www.mayoclinic.org/first-aid/first-aid-choking/basics/art-20056637",
+            "supports": [
+                "choking can cut off oxygen and is life-threatening",
+                "inability to talk or cough, noisy breathing, and blue lips are choking warning signs",
+                "back blows, abdominal thrusts, chest thrusts, and infant chest compressions are age-specific choking interventions",
+                "do not do a finger sweep unless the object is visible",
+            ],
+        },
+        {
+            "title": "Foreign body aspiration",
+            "organization": "Royal Children's Hospital Melbourne",
+            "url": "https://www.rch.org.au/clinicalguide/guideline_index/Foreign_bodies_inhaled/",
+            "supports": [
+                "normal chest x-ray or normal radiograph can miss radiolucent foreign body aspiration",
+                "persistent symptoms after choking need bronchoscopy and foreign body removal escalation",
+                "post-removal observation for persistent symptoms, airway edema, stridor, and infection is important",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "foreign body airway obstruction safety checks must include no blind finger sweep"
+        in issue
         for issue in report.critical_issues
     )
 

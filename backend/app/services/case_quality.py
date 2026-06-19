@@ -1109,6 +1109,108 @@ CROUP_DISPOSITION_ESCALATION_SAFETY_TERMS = (
     "poor response",
     "return precautions",
 )
+FOREIGN_BODY_AIRWAY_CONTEXT_TERMS = (
+    "airway foreign body",
+    "aspirated food",
+    "aspirated foreign body",
+    "aspirated nut",
+    "aspirated peanut",
+    "aspirated toy",
+    "bronchial foreign body",
+    "choked on",
+    "choking episode",
+    "foreign body airway obstruction",
+    "foreign body aspiration",
+    "inhaled foreign body",
+    "tracheobronchial foreign body",
+)
+FOREIGN_BODY_AIRWAY_RISK_TERMS = (
+    "absent breath sounds",
+    "asymmetric breath sounds",
+    "cannot cough",
+    "cannot talk",
+    "choking",
+    "cyanosis",
+    "hypoxia",
+    "inability to speak",
+    "respiratory distress",
+    "stridor",
+    "sudden cough",
+    "unilateral wheeze",
+    "weak cough",
+    "wheezing",
+    "witnessed aspiration",
+)
+FOREIGN_BODY_AIRWAY_ASSESSMENT_ACTION_TERMS = (
+    "airway",
+    "cannot talk",
+    "choking severity",
+    "effective cough",
+    "oxygen",
+    "pulse oximetry",
+    "respiratory distress",
+    "speak",
+    "ventilation",
+)
+FOREIGN_BODY_AIRWAY_INFANT_ACTION_TERMS = (
+    "5 back blows",
+    "back blows",
+    "back slaps",
+    "chest compressions",
+    "chest thrust",
+    "infant",
+    "under 1",
+    "younger than 1",
+)
+FOREIGN_BODY_AIRWAY_CHILD_ADULT_ACTION_TERMS = (
+    "abdominal thrust",
+    "back blows",
+    "back slaps",
+    "chest thrust",
+    "heimlich",
+    "older than 1",
+)
+FOREIGN_BODY_AIRWAY_BRONCHOSCOPY_ACTION_TERMS = (
+    "anesthesia",
+    "bronchoscopy",
+    "ent",
+    "foreign body removal",
+    "otolaryngology",
+    "pulmonology",
+    "rigid bronchoscopy",
+)
+FOREIGN_BODY_AIRWAY_NO_BLIND_SWEEP_SAFETY_TERMS = (
+    "avoid blind finger",
+    "blind finger sweep",
+    "do not finger sweep",
+    "no blind finger",
+    "visible object only",
+)
+FOREIGN_BODY_AIRWAY_XRAY_LIMITATION_SAFETY_TERMS = (
+    "does not rule out",
+    "normal chest x-ray",
+    "normal radiograph",
+    "normal x-ray",
+    "radiolucent",
+)
+FOREIGN_BODY_AIRWAY_PARTIAL_OBSTRUCTION_SAFETY_TERMS = (
+    "effective cough",
+    "encourage cough",
+    "encourage coughing",
+    "forceful cough",
+    "let cough",
+    "partial obstruction",
+)
+FOREIGN_BODY_AIRWAY_POST_REMOVAL_SAFETY_TERMS = (
+    "airway edema",
+    "antibiotics not routine",
+    "infection",
+    "observation",
+    "persistent symptoms",
+    "post-removal",
+    "steroids not routine",
+    "stridor",
+)
 ORBITAL_CELLULITIS_DIRECT_CONTEXT_TERMS = (
     "orbital cellulitis",
     "postseptal cellulitis",
@@ -13558,6 +13660,36 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="foreign_body_airway_time_critical_actions",
+            applies=_requires_foreign_body_airway_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_foreign_body_airway_time_critical_actions,
+            issue=(
+                "foreign body airway obstruction time-critical actions must "
+                "include airway or choking severity assessment with ability to "
+                "speak, cough, oxygenation, pulse oximetry, or ventilation review, "
+                "infant under-1-year back blows or chest thrusts, child or adult "
+                "back blows, abdominal thrusts, Heimlich, or chest thrust pathway, "
+                "and ENT, otolaryngology, pulmonology, anesthesia, rigid "
+                "bronchoscopy, bronchoscopy, or foreign-body removal escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="foreign_body_airway_treatment_safety",
+            applies=_requires_foreign_body_airway_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_foreign_body_airway_treatment_safety_check,
+            issue=(
+                "foreign body airway obstruction safety checks must include no "
+                "blind finger sweep or visible-object-only removal, normal "
+                "chest x-ray, normal radiograph, radiolucent-object, or imaging "
+                "does-not-rule-out review, partial-obstruction management with "
+                "effective or forceful cough and encouraged coughing, and "
+                "post-removal observation, persistent symptom, airway edema, "
+                "stridor, infection, or non-routine antibiotic or steroid review"
+            ),
+        ),
+        DomainSafetyGate(
             name="orbital_cellulitis_time_critical_actions",
             applies=_requires_orbital_cellulitis_safety_check,
             field_name="time_critical_actions",
@@ -17518,6 +17650,90 @@ def _has_croup_treatment_safety_check(checks: list[Any]) -> bool:
         and has_differential_red_flags
         and has_low_value_therapy_safety
         and has_disposition_escalation
+    )
+
+
+def _requires_foreign_body_airway_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in FOREIGN_BODY_AIRWAY_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in FOREIGN_BODY_AIRWAY_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_foreign_body_airway_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in FOREIGN_BODY_AIRWAY_ASSESSMENT_ACTION_TERMS
+    )
+    has_infant_maneuvers = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in FOREIGN_BODY_AIRWAY_INFANT_ACTION_TERMS
+    )
+    has_child_adult_maneuvers = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in FOREIGN_BODY_AIRWAY_CHILD_ADULT_ACTION_TERMS
+    )
+    has_bronchoscopy_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in FOREIGN_BODY_AIRWAY_BRONCHOSCOPY_ACTION_TERMS
+    )
+    return (
+        has_assessment
+        and has_infant_maneuvers
+        and has_child_adult_maneuvers
+        and has_bronchoscopy_escalation
+    )
+
+
+def _has_foreign_body_airway_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_no_blind_sweep = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FOREIGN_BODY_AIRWAY_NO_BLIND_SWEEP_SAFETY_TERMS
+    )
+    has_xray_limitation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FOREIGN_BODY_AIRWAY_XRAY_LIMITATION_SAFETY_TERMS
+    )
+    has_partial_obstruction = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FOREIGN_BODY_AIRWAY_PARTIAL_OBSTRUCTION_SAFETY_TERMS
+    )
+    has_post_removal = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FOREIGN_BODY_AIRWAY_POST_REMOVAL_SAFETY_TERMS
+    )
+    return (
+        has_no_blind_sweep
+        and has_xray_limitation
+        and has_partial_obstruction
+        and has_post_removal
     )
 
 

@@ -1179,6 +1179,118 @@ const CROUP_DISPOSITION_ESCALATION_SAFETY_TERMS = [
   "return precautions",
 ];
 
+const FOREIGN_BODY_AIRWAY_CONTEXT_TERMS = [
+  "airway foreign body",
+  "aspirated food",
+  "aspirated foreign body",
+  "aspirated nut",
+  "aspirated peanut",
+  "aspirated toy",
+  "bronchial foreign body",
+  "choked on",
+  "choking episode",
+  "foreign body airway obstruction",
+  "foreign body aspiration",
+  "inhaled foreign body",
+  "tracheobronchial foreign body",
+];
+
+const FOREIGN_BODY_AIRWAY_RISK_TERMS = [
+  "absent breath sounds",
+  "asymmetric breath sounds",
+  "cannot cough",
+  "cannot talk",
+  "choking",
+  "cyanosis",
+  "hypoxia",
+  "inability to speak",
+  "respiratory distress",
+  "stridor",
+  "sudden cough",
+  "unilateral wheeze",
+  "weak cough",
+  "wheezing",
+  "witnessed aspiration",
+];
+
+const FOREIGN_BODY_AIRWAY_ASSESSMENT_ACTION_TERMS = [
+  "airway",
+  "cannot talk",
+  "choking severity",
+  "effective cough",
+  "oxygen",
+  "pulse oximetry",
+  "respiratory distress",
+  "speak",
+  "ventilation",
+];
+
+const FOREIGN_BODY_AIRWAY_INFANT_ACTION_TERMS = [
+  "5 back blows",
+  "back blows",
+  "back slaps",
+  "chest compressions",
+  "chest thrust",
+  "infant",
+  "under 1",
+  "younger than 1",
+];
+
+const FOREIGN_BODY_AIRWAY_CHILD_ADULT_ACTION_TERMS = [
+  "abdominal thrust",
+  "back blows",
+  "back slaps",
+  "chest thrust",
+  "heimlich",
+  "older than 1",
+];
+
+const FOREIGN_BODY_AIRWAY_BRONCHOSCOPY_ACTION_TERMS = [
+  "anesthesia",
+  "bronchoscopy",
+  "ent",
+  "foreign body removal",
+  "otolaryngology",
+  "pulmonology",
+  "rigid bronchoscopy",
+];
+
+const FOREIGN_BODY_AIRWAY_NO_BLIND_SWEEP_SAFETY_TERMS = [
+  "avoid blind finger",
+  "blind finger sweep",
+  "do not finger sweep",
+  "no blind finger",
+  "visible object only",
+];
+
+const FOREIGN_BODY_AIRWAY_XRAY_LIMITATION_SAFETY_TERMS = [
+  "does not rule out",
+  "normal chest x-ray",
+  "normal radiograph",
+  "normal x-ray",
+  "radiolucent",
+];
+
+const FOREIGN_BODY_AIRWAY_PARTIAL_OBSTRUCTION_SAFETY_TERMS = [
+  "effective cough",
+  "encourage cough",
+  "encourage coughing",
+  "forceful cough",
+  "let cough",
+  "partial obstruction",
+];
+
+const FOREIGN_BODY_AIRWAY_POST_REMOVAL_SAFETY_TERMS = [
+  "airway edema",
+  "antibiotics not routine",
+  "infection",
+  "observation",
+  "persistent symptoms",
+  "post-removal",
+  "steroids not routine",
+  "stridor",
+];
+
 const ORBITAL_CELLULITIS_DIRECT_CONTEXT_TERMS = [
   "orbital cellulitis",
   "postseptal cellulitis",
@@ -14783,6 +14895,65 @@ function hasCroupTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresForeignBodyAirwaySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = FOREIGN_BODY_AIRWAY_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = FOREIGN_BODY_AIRWAY_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasForeignBodyAirwayTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAssessment = FOREIGN_BODY_AIRWAY_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasInfantManeuvers = FOREIGN_BODY_AIRWAY_INFANT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasChildAdultManeuvers = FOREIGN_BODY_AIRWAY_CHILD_ADULT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBronchoscopyEscalation = FOREIGN_BODY_AIRWAY_BRONCHOSCOPY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAssessment && hasInfantManeuvers && hasChildAdultManeuvers && hasBronchoscopyEscalation;
+}
+
+function hasForeignBodyAirwayTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNoBlindSweep = FOREIGN_BODY_AIRWAY_NO_BLIND_SWEEP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasXrayLimitation = FOREIGN_BODY_AIRWAY_XRAY_LIMITATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPartialObstruction = FOREIGN_BODY_AIRWAY_PARTIAL_OBSTRUCTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPostRemoval = FOREIGN_BODY_AIRWAY_POST_REMOVAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasNoBlindSweep && hasXrayLimitation && hasPartialObstruction && hasPostRemoval;
+}
+
 function requiresOrbitalCellulitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -22646,6 +22817,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCroupTreatmentSafetyCheck,
       issue:
         "croup safety checks must include observation for recurrence or return of stridor for 2-4 hours after epinephrine, red-flag differential review for toxic appearance, drooling, dysphagia, epiglottitis, bacterial tracheitis, foreign body, or anaphylaxis, avoidance of routine antibiotics, bronchodilators, humidified air, or mist therapy in typical croup, and disposition or escalation planning for poor or unsustained response, impending respiratory failure, PICU, anesthesia, ENT, ORL, or return precautions",
+    },
+    {
+      name: "foreign_body_airway_time_critical_actions",
+      label: "Foreign body airway emergency actions",
+      applies: requiresForeignBodyAirwaySafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasForeignBodyAirwayTimeCriticalActions,
+      issue:
+        "foreign body airway obstruction time-critical actions must include airway or choking severity assessment with ability to speak, cough, oxygenation, pulse oximetry, or ventilation review, infant under-1-year back blows or chest thrusts, child or adult back blows, abdominal thrusts, Heimlich, or chest thrust pathway, and ENT, otolaryngology, pulmonology, anesthesia, rigid bronchoscopy, bronchoscopy, or foreign-body removal escalation",
+    },
+    {
+      name: "foreign_body_airway_treatment_safety",
+      label: "Foreign body airway treatment safety",
+      applies: requiresForeignBodyAirwaySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasForeignBodyAirwayTreatmentSafetyCheck,
+      issue:
+        "foreign body airway obstruction safety checks must include no blind finger sweep or visible-object-only removal, normal chest x-ray, normal radiograph, radiolucent-object, or imaging does-not-rule-out review, partial-obstruction management with effective or forceful cough and encouraged coughing, and post-removal observation, persistent symptom, airway edema, stridor, infection, or non-routine antibiotic or steroid review",
     },
     {
       name: "orbital_cellulitis_time_critical_actions",
