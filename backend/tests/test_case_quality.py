@@ -214,6 +214,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "botulism_treatment_safety",
         "tick_paralysis_time_critical_actions",
         "tick_paralysis_treatment_safety",
+        "myocarditis_time_critical_actions",
+        "myocarditis_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "dka_advanced_insulin_transition_safety",
@@ -12153,6 +12155,153 @@ def test_quality_gate_requires_tick_paralysis_ivig_mouthparts_observation_and_in
     assert any(
         "tick paralysis safety checks must include avoiding unnecessary IVIG"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_myocarditis_ecg_troponin_echo_admission_and_shock_escalation_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Fulminant myocarditis with cardiogenic shock"
+    case["patient_demographics"] = {
+        "age": 19,
+        "sex": "male",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Chest pain, dyspnea, palpitations, and syncope after viral illness"
+    case["history_of_present_illness"] = (
+        "Patient has suspected acute myocarditis after viral illness with chest "
+        "pain, dyspnea, palpitations, syncope, troponin elevation, ST elevation, "
+        "ventricular tachycardia, reduced ejection fraction, cardiogenic shock, "
+        "and near cardiac arrest."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "78/42", "hr": 146, "rr": 28, "spo2": 91},
+        "general": "Ill appearing and diaphoretic",
+        "cardiovascular": "Tachycardic with S3 gallop and poor perfusion",
+        "pulmonary": "Rales and increased work of breathing",
+    }
+    case["initial_labs"] = {
+        "troponin": "markedly elevated",
+        "ecg": "ST elevation with runs of ventricular tachycardia",
+        "lactate": "5.1",
+    }
+    case["key_teaching_points"] = [
+        "Myocarditis can present with chest pain, troponin elevation, heart failure, arrhythmias, cardiogenic shock, and cardiac arrest",
+        "ECG or EKG and troponin/cardiac markers plus echocardiogram, echo, TTE, ejection fraction, or cardiac MRI help evaluate suspected myocarditis",
+        "Suspected myocarditis requires hospital admission with cardiology and telemetry for arrhythmia and decompensation monitoring",
+        "Fulminant myocarditis may need ICU, vasopressor, inotrope, defibrillation, ECMO, Impella, or mechanical circulatory support",
+    ]
+    case["clinical_red_flags"] = [
+        "Syncope, palpitations, ventricular tachycardia, heart block, cardiac arrest, or malignant arrhythmia",
+        "Cardiogenic shock, hypotension, heart failure, reduced ejection fraction, dyspnea, or chest pain with troponin elevation",
+    ]
+    case["time_critical_actions"] = [
+        "Give NSAID and discharge with outpatient follow-up",
+        "Allow return to sports once chest pain improves",
+    ]
+    case["contraindication_checks"] = [
+        "Limit physical activity with exercise restriction, no sports, return-to-play review, and avoid exercise or stress testing during acute symptoms",
+        "Avoid NSAIDs and other cardiotoxic drugs that may worsen myocarditis healing",
+        "For chest pain mimicking ACS, rule out ACS with coronary CTA, coronary CT angiogram, cardiac catheterization, or coronary disease evaluation",
+        "Use cardiac MRI and consider endomyocardial biopsy/biopsy for worsening, high-degree AV block, cardiogenic shock, tertiary care, mechanical assist, or cardiac transplant escalation",
+        "Plan follow-up echo, repeat echocardiogram, arrhythmia monitoring, and wearable defibrillator review when EF is reduced",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Viral Myocarditis",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK459259/",
+            "supports": [
+                "fulminant myocarditis with cardiogenic shock diagnosis and risk stratification",
+                "myocarditis can present with chest pain, troponin elevation, heart failure, arrhythmias, cardiogenic shock, and cardiac arrest",
+                "ECG or EKG and troponin/cardiac markers plus echocardiogram, echo, TTE, ejection fraction, or cardiac MRI evaluation",
+                "hospital admission with cardiology and telemetry for arrhythmia and decompensation monitoring",
+                "ICU, vasopressor, inotrope, defibrillation, ECMO, Impella, or mechanical circulatory support for fulminant myocarditis",
+                "syncope, palpitations, ventricular tachycardia, heart block, cardiac arrest, or malignant arrhythmia as red flags",
+                "cardiogenic shock, hypotension, heart failure, reduced ejection fraction, dyspnea, or chest pain with troponin elevation as severity markers",
+                "activity limitation with exercise restriction, no sports, return-to-play review, and stress testing avoidance during acute symptoms",
+                "avoid NSAIDs and cardiotoxic drugs",
+                "rule out ACS with coronary CTA, cardiac catheterization, or coronary disease evaluation when chest pain mimics ACS",
+                "cardiac MRI and endomyocardial biopsy for worsening, high-degree AV block, cardiogenic shock, tertiary care, mechanical assist, or cardiac transplant escalation",
+                "follow-up echo, repeat echocardiogram, arrhythmia monitoring, and wearable defibrillator review when EF is reduced",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "myocarditis time-critical actions must include ECG" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_myocarditis_activity_nsaid_coronary_mri_biopsy_and_followup_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute viral myocarditis with ventricular arrhythmia risk"
+    case["patient_demographics"] = {
+        "age": 24,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Chest pain and palpitations after influenza-like illness"
+    case["history_of_present_illness"] = (
+        "Young adult has viral myocarditis with chest pain, dyspnea, palpitations, "
+        "troponin elevation, nonspecific ST changes, heart failure symptoms, "
+        "reduced ejection fraction, and nonsustained ventricular tachycardia."
+    )
+    case["initial_labs"] = {
+        "troponin": "elevated",
+        "ecg": "ST segment changes and nonsustained ventricular tachycardia",
+        "echo": "reduced ejection fraction",
+    }
+    case["key_teaching_points"] = [
+        "Myocarditis can mimic acute coronary syndrome with chest pain, ECG changes, troponin elevation, and wall motion abnormality",
+        "TTE or echocardiogram assesses ventricular function and cardiac MRI supports myocarditis diagnosis",
+        "Hospital admission, cardiology consultation, telemetry, and decompensation monitoring are needed for suspected myocarditis",
+        "ICU, vasopressor, inotrope, defibrillation, ventricular arrhythmia treatment, ECMO, Impella, or mechanical circulatory support are needed if fulminant shock develops",
+    ]
+    case["clinical_red_flags"] = [
+        "Syncope, palpitations, ventricular tachycardia, heart block, cardiac arrest, or arrhythmia",
+        "Reduced ejection fraction, heart failure, dyspnea, cardiogenic shock, chest pain, or elevated troponin",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain 12-lead ECG/EKG with ST segment review and repeat troponin/cardiac markers",
+        "Order echocardiogram/TTE to assess ejection fraction and cardiac MRI when stable",
+        "Admit to hospital with cardiology consultation and telemetry monitoring for arrhythmia or decompensation",
+        "Escalate ICU with vasopressor, inotrope, defibrillation, ventricular arrhythmia care, ECMO, Impella, or mechanical circulatory support if fulminant shock occurs",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antiemetics",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Viral Myocarditis",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK459259/",
+            "supports": [
+                "acute viral myocarditis with ventricular arrhythmia risk diagnosis and risk stratification",
+                "myocarditis can mimic acute coronary syndrome with chest pain, ECG changes, troponin elevation, and wall motion abnormality",
+                "TTE or echocardiogram assesses ventricular function and cardiac MRI supports myocarditis diagnosis",
+                "hospital admission, cardiology consultation, telemetry, and decompensation monitoring for suspected myocarditis",
+                "ICU, vasopressor, inotrope, defibrillation, ventricular arrhythmia treatment, ECMO, Impella, or mechanical circulatory support if fulminant shock develops",
+                "syncope, palpitations, ventricular tachycardia, heart block, cardiac arrest, or arrhythmia as red flags",
+                "reduced ejection fraction, heart failure, dyspnea, cardiogenic shock, chest pain, or elevated troponin as severity markers",
+                "medication allergy before antiemetics",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "myocarditis safety checks must include activity limitation" in issue
         for issue in report.critical_issues
     )
 

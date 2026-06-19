@@ -9843,6 +9843,124 @@ const TICK_PARALYSIS_INFECTION_SAFETY_TERMS = [
   "tick-borne infection",
 ];
 
+const MYOCARDITIS_DIRECT_CONTEXT_TERMS = [
+  "acute myocarditis",
+  "fulminant myocarditis",
+  "inflammatory cardiomyopathy",
+  "myocarditis",
+  "myopericarditis",
+  "viral myocarditis",
+];
+
+const MYOCARDITIS_RISK_TERMS = [
+  "arrhythmia",
+  "cardiac arrest",
+  "cardiogenic shock",
+  "chest pain",
+  "dyspnea",
+  "heart block",
+  "heart failure",
+  "palpitations",
+  "reduced ejection fraction",
+  "st elevation",
+  "syncope",
+  "troponin",
+  "ventricular tachycardia",
+];
+
+const MYOCARDITIS_ECG_TROPONIN_ACTION_TERMS = [
+  "12-lead ecg",
+  "cardiac markers",
+  "ecg",
+  "ekg",
+  "st segment",
+  "troponin",
+];
+
+const MYOCARDITIS_ECHO_IMAGING_ACTION_TERMS = [
+  "cardiac mri",
+  "echocardiogram",
+  "echo",
+  "ejection fraction",
+  "tte",
+];
+
+const MYOCARDITIS_ADMISSION_ACTION_TERMS = [
+  "admit",
+  "hospital",
+  "hospitalization",
+  "hospitalize",
+];
+
+const MYOCARDITIS_MONITORING_ACTION_TERMS = [
+  "arrhythmia monitoring",
+  "cardiology",
+  "decompensation monitoring",
+  "monitoring",
+  "telemetry",
+];
+
+const MYOCARDITIS_SHOCK_ARRHYTHMIA_ACTION_TERMS = [
+  "defibrillation",
+  "ecmo",
+  "icu",
+  "impella",
+  "inotrope",
+  "mechanical circulatory support",
+  "vasopressor",
+  "ventricular arrhythmia",
+];
+
+const MYOCARDITIS_ACTIVITY_RESTRICTION_SAFETY_TERMS = [
+  "avoid exercise",
+  "avoid stress testing",
+  "exercise restriction",
+  "no sports",
+  "physical activity limited",
+  "return to play",
+];
+
+const MYOCARDITIS_NSAID_CARDIOTOXIC_SAFETY_TERMS = [
+  "avoid cardiotoxic",
+  "avoid cardiotoxic drugs",
+  "avoid nsaid",
+  "avoid nsaids",
+  "avoid nonsteroidal anti-inflammatory",
+  "cardiotoxic drugs",
+  "no nsaid",
+  "no nsaids",
+  "nsaid avoidance",
+  "nsaids avoidance",
+];
+
+const MYOCARDITIS_CORONARY_EXCLUSION_SAFETY_TERMS = [
+  "cardiac catheterization",
+  "coronary cta",
+  "coronary ct angiogram",
+  "coronary disease",
+  "exclude acs",
+  "rule out acs",
+];
+
+const MYOCARDITIS_BIOPSY_TERTIARY_SAFETY_TERMS = [
+  "biopsy",
+  "cardiac mri",
+  "cardiac transplant",
+  "endomyocardial biopsy",
+  "high-degree av block",
+  "mechanical assist",
+  "tertiary care",
+  "worsening",
+];
+
+const MYOCARDITIS_FOLLOWUP_MONITORING_SAFETY_TERMS = [
+  "arrhythmia monitoring",
+  "follow-up echo",
+  "repeat echocardiogram",
+  "repeat echo",
+  "wearable defibrillator",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -20465,6 +20583,77 @@ function hasTickParalysisTreatmentSafetyCheck(checks: string[]): boolean {
   return hasIvigPlexSafety && hasMouthpartsSafety && hasObservationSafety && hasInfectionSafety;
 }
 
+function requiresMyocarditisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = MYOCARDITIS_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = MYOCARDITIS_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasMyocarditisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasEcgTroponin = MYOCARDITIS_ECG_TROPONIN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEchoImaging = MYOCARDITIS_ECHO_IMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAdmission = MYOCARDITIS_ADMISSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMonitoring = MYOCARDITIS_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasShockArrhythmia = MYOCARDITIS_SHOCK_ARRHYTHMIA_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasEcgTroponin && hasEchoImaging && hasAdmission && hasMonitoring && hasShockArrhythmia;
+}
+
+function hasMyocarditisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasActivityRestriction = MYOCARDITIS_ACTIVITY_RESTRICTION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNsaidCardiotoxic = MYOCARDITIS_NSAID_CARDIOTOXIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCoronaryExclusion = MYOCARDITIS_CORONARY_EXCLUSION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBiopsyTertiary = MYOCARDITIS_BIOPSY_TERTIARY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFollowupMonitoring = MYOCARDITIS_FOLLOWUP_MONITORING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasActivityRestriction &&
+    hasNsaidCardiotoxic &&
+    hasCoronaryExclusion &&
+    hasBiopsyTertiary &&
+    hasFollowupMonitoring
+  );
+}
+
 function requiresDkaTreatmentSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -24888,6 +25077,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasTickParalysisTreatmentSafetyCheck,
       issue:
         "tick paralysis safety checks must include avoiding unnecessary IVIG, immune globulin, plasmapheresis, or PLEX because these are not helpful for tick paralysis, removing the entire tick without leaving embedded mouthparts, inpatient observation or 24-48 hour monitoring for respiratory compromise or Ixodes holocyclus/Australian tick worsening after removal, and fever, rash, Lyme, ehrlichiosis, Rocky Mountain spotted fever, rickettsial, or other tick-borne infection review",
+    },
+    {
+      name: "myocarditis_time_critical_actions",
+      label: "Myocarditis monitoring and shock actions",
+      applies: requiresMyocarditisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasMyocarditisTimeCriticalActions,
+      issue:
+        "myocarditis time-critical actions must include ECG, EKG, 12-lead ECG, ST-segment, troponin, or cardiac-marker assessment, echocardiogram, echo, TTE, ejection-fraction, or cardiac-MRI imaging, hospital admission with cardiology, telemetry, or arrhythmia/decompensation monitoring, and ICU, vasopressor, inotrope, defibrillation, ventricular-arrhythmia, ECMO, Impella, or mechanical-circulatory-support escalation for fulminant shock or malignant arrhythmia",
+    },
+    {
+      name: "myocarditis_treatment_safety",
+      label: "Myocarditis treatment safety",
+      applies: requiresMyocarditisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasMyocarditisTreatmentSafetyCheck,
+      issue:
+        "myocarditis safety checks must include activity limitation, no sports, exercise restriction, return-to-play, or avoid stress testing review, avoidance of NSAIDs or cardiotoxic drugs, coronary CTA, cardiac catheterization, coronary-disease, ACS rule-out, or exclude-ACS review when chest pain mimics ACS, cardiac MRI, endomyocardial biopsy, biopsy, high-degree AV block, worsening, tertiary-care, mechanical-assist, or transplant escalation review, and follow-up echo, repeat echocardiogram, arrhythmia monitoring, or wearable-defibrillator planning",
     },
     {
       name: "dka_time_critical_actions",

@@ -8982,6 +8982,112 @@ TICK_PARALYSIS_INFECTION_SAFETY_TERMS = (
     "rocky mountain spotted fever",
     "tick-borne infection",
 )
+MYOCARDITIS_DIRECT_CONTEXT_TERMS = (
+    "acute myocarditis",
+    "fulminant myocarditis",
+    "inflammatory cardiomyopathy",
+    "myocarditis",
+    "myopericarditis",
+    "viral myocarditis",
+)
+MYOCARDITIS_RISK_TERMS = (
+    "arrhythmia",
+    "cardiac arrest",
+    "cardiogenic shock",
+    "chest pain",
+    "dyspnea",
+    "heart block",
+    "heart failure",
+    "palpitations",
+    "reduced ejection fraction",
+    "st elevation",
+    "syncope",
+    "troponin",
+    "ventricular tachycardia",
+)
+MYOCARDITIS_ECG_TROPONIN_ACTION_TERMS = (
+    "12-lead ecg",
+    "cardiac markers",
+    "ecg",
+    "ekg",
+    "st segment",
+    "troponin",
+)
+MYOCARDITIS_ECHO_IMAGING_ACTION_TERMS = (
+    "cardiac mri",
+    "echocardiogram",
+    "echo",
+    "ejection fraction",
+    "tte",
+)
+MYOCARDITIS_ADMISSION_ACTION_TERMS = (
+    "admit",
+    "hospital",
+    "hospitalization",
+    "hospitalize",
+)
+MYOCARDITIS_MONITORING_ACTION_TERMS = (
+    "arrhythmia monitoring",
+    "cardiology",
+    "decompensation monitoring",
+    "monitoring",
+    "telemetry",
+)
+MYOCARDITIS_SHOCK_ARRHYTHMIA_ACTION_TERMS = (
+    "defibrillation",
+    "ecmo",
+    "icu",
+    "impella",
+    "inotrope",
+    "mechanical circulatory support",
+    "vasopressor",
+    "ventricular arrhythmia",
+)
+MYOCARDITIS_ACTIVITY_RESTRICTION_SAFETY_TERMS = (
+    "avoid exercise",
+    "avoid stress testing",
+    "exercise restriction",
+    "no sports",
+    "physical activity limited",
+    "return to play",
+)
+MYOCARDITIS_NSAID_CARDIOTOXIC_SAFETY_TERMS = (
+    "avoid cardiotoxic",
+    "avoid cardiotoxic drugs",
+    "avoid nsaid",
+    "avoid nsaids",
+    "avoid nonsteroidal anti-inflammatory",
+    "cardiotoxic drugs",
+    "no nsaid",
+    "no nsaids",
+    "nsaid avoidance",
+    "nsaids avoidance",
+)
+MYOCARDITIS_CORONARY_EXCLUSION_SAFETY_TERMS = (
+    "cardiac catheterization",
+    "coronary cta",
+    "coronary ct angiogram",
+    "coronary disease",
+    "exclude acs",
+    "rule out acs",
+)
+MYOCARDITIS_BIOPSY_TERTIARY_SAFETY_TERMS = (
+    "biopsy",
+    "cardiac mri",
+    "cardiac transplant",
+    "endomyocardial biopsy",
+    "high-degree av block",
+    "mechanical assist",
+    "tertiary care",
+    "worsening",
+)
+MYOCARDITIS_FOLLOWUP_MONITORING_SAFETY_TERMS = (
+    "arrhythmia monitoring",
+    "follow-up echo",
+    "repeat echocardiogram",
+    "repeat echo",
+    "wearable defibrillator",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -16396,6 +16502,39 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "tick worsening after removal, and fever, rash, Lyme, ehrlichiosis, "
                 "Rocky Mountain spotted fever, rickettsial, or other tick-borne "
                 "infection review"
+            ),
+        ),
+        DomainSafetyGate(
+            name="myocarditis_time_critical_actions",
+            applies=_requires_myocarditis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_myocarditis_time_critical_actions,
+            issue=(
+                "myocarditis time-critical actions must include ECG, EKG, 12-lead "
+                "ECG, ST-segment, troponin, or cardiac-marker assessment, "
+                "echocardiogram, echo, TTE, ejection-fraction, or cardiac-MRI "
+                "imaging, hospital admission with cardiology, telemetry, or "
+                "arrhythmia/decompensation monitoring, and ICU, vasopressor, "
+                "inotrope, defibrillation, ventricular-arrhythmia, ECMO, Impella, "
+                "or mechanical-circulatory-support escalation for fulminant shock "
+                "or malignant arrhythmia"
+            ),
+        ),
+        DomainSafetyGate(
+            name="myocarditis_treatment_safety",
+            applies=_requires_myocarditis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_myocarditis_treatment_safety_check,
+            issue=(
+                "myocarditis safety checks must include activity limitation, no "
+                "sports, exercise restriction, return-to-play, or avoid stress "
+                "testing review, avoidance of NSAIDs or cardiotoxic drugs, coronary "
+                "CTA, cardiac catheterization, coronary-disease, ACS rule-out, or "
+                "exclude-ACS review when chest pain mimics ACS, cardiac MRI, "
+                "endomyocardial biopsy, biopsy, high-degree AV block, worsening, "
+                "tertiary-care, mechanical-assist, or transplant escalation review, "
+                "and follow-up echo, repeat echocardiogram, arrhythmia monitoring, "
+                "or wearable-defibrillator planning"
             ),
         ),
         DomainSafetyGate(
@@ -24601,6 +24740,100 @@ def _has_tick_paralysis_treatment_safety_check(checks: list[Any]) -> bool:
         and has_mouthparts_safety
         and has_observation_safety
         and has_infection_safety
+    )
+
+
+def _requires_myocarditis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in MYOCARDITIS_DIRECT_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in MYOCARDITIS_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_myocarditis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_ecg_troponin = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYOCARDITIS_ECG_TROPONIN_ACTION_TERMS
+    )
+    has_echo_imaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYOCARDITIS_ECHO_IMAGING_ACTION_TERMS
+    )
+    has_admission = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYOCARDITIS_ADMISSION_ACTION_TERMS
+    )
+    has_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYOCARDITIS_MONITORING_ACTION_TERMS
+    )
+    has_shock_arrhythmia = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MYOCARDITIS_SHOCK_ARRHYTHMIA_ACTION_TERMS
+    )
+    return (
+        has_ecg_troponin
+        and has_echo_imaging
+        and has_admission
+        and has_monitoring
+        and has_shock_arrhythmia
+    )
+
+
+def _has_myocarditis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_activity_restriction = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYOCARDITIS_ACTIVITY_RESTRICTION_SAFETY_TERMS
+    )
+    has_nsaid_cardiotoxic = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYOCARDITIS_NSAID_CARDIOTOXIC_SAFETY_TERMS
+    )
+    has_coronary_exclusion = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYOCARDITIS_CORONARY_EXCLUSION_SAFETY_TERMS
+    )
+    has_biopsy_tertiary = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYOCARDITIS_BIOPSY_TERTIARY_SAFETY_TERMS
+    )
+    has_followup_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MYOCARDITIS_FOLLOWUP_MONITORING_SAFETY_TERMS
+    )
+    return (
+        has_activity_restriction
+        and has_nsaid_cardiotoxic
+        and has_coronary_exclusion
+        and has_biopsy_tertiary
+        and has_followup_monitoring
     )
 
 
