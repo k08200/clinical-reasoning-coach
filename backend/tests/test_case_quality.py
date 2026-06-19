@@ -206,6 +206,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "tca_toxicity_treatment_safety",
         "organophosphate_toxicity_time_critical_actions",
         "organophosphate_toxicity_treatment_safety",
+        "guillain_barre_time_critical_actions",
+        "guillain_barre_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "dka_advanced_insulin_transition_safety",
@@ -11532,6 +11534,181 @@ def test_quality_gate_requires_organophosphate_toxicity_succinylcholine_labs_pra
     assert not report.passed
     assert any(
         "organophosphate toxicity safety checks must include succinylcholine" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_guillain_barre_respiratory_monitoring_immunotherapy_and_icu_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Guillain-Barre syndrome with rapidly progressive weakness"
+    case["patient_demographics"] = {
+        "age": 52,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Ascending weakness and shortness of breath"
+    case["history_of_present_illness"] = (
+        "Patient has suspected Guillain-Barre syndrome after diarrheal illness "
+        "with ascending weakness, areflexia, facial weakness, bulbar weakness, "
+        "rapid progression, respiratory muscle weakness, dysautonomia, and now "
+        "unable to walk."
+    )
+    case["past_medical_history"] = "Recent Campylobacter-like gastroenteritis"
+    case["physical_exam"] = {
+        "vitals": {"bp": "176/92 then 88/54", "hr": 42, "rr": 24, "spo2": 93},
+        "general": "Weak and anxious with shallow breathing",
+        "cardiovascular": "Labile blood pressure and bradycardia",
+        "pulmonary": "Weak cough and reduced respiratory excursion",
+        "neuro": "Symmetric ascending weakness, areflexia, facial weakness, and bulbar dysphagia",
+    }
+    case["initial_labs"] = {
+        "csf": "Planned lumbar puncture for albuminocytologic dissociation",
+        "ncs": "Nerve conduction study pending",
+    }
+    case["key_teaching_points"] = [
+        "GBS causes progressive weakness with diminished or absent reflexes and may compromise respiration",
+        "Hospitalization with neurology evaluation is needed for suspected Guillain-Barre with rapid progression or inability to walk",
+        "Serial forced vital capacity, vital capacity, NIF, negative inspiratory force, MIP, or MEP monitoring anticipates respiratory failure",
+        "IVIG or plasma exchange are disease-modifying therapies and ICU airway escalation is needed for bulbar or respiratory muscle weakness",
+    ]
+    case["clinical_red_flags"] = [
+        "Rapid progression, inability to walk, bulbar weakness, facial weakness, respiratory muscle weakness, or weak cough",
+        "Dysautonomia, autonomic instability, bradycardia, arrhythmia, labile blood pressure, or respiratory failure",
+    ]
+    case["time_critical_actions"] = [
+        "Order outpatient EMG next week",
+        "Give oral prednisone and reassess tomorrow",
+    ]
+    case["contraindication_checks"] = [
+        "No corticosteroids because steroids are not recommended for Guillain-Barre syndrome",
+        "Avoid sequential therapy and do not combine IVIG and plasma exchange; use monotherapy because combination not beneficial",
+        "Use telemetry ECG cardiac monitoring for dysautonomia, blood pressure instability, bradycardia, and arrhythmia",
+        "Provide supportive safety with VTE/DVT and venous thrombosis prophylaxis, swallow aspiration precautions, bowel care, pain control, skin breakdown or pressure injury prevention, and rehabilitation",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Guillain-Barre Syndrome",
+            "organization": "American Family Physician",
+            "url": "https://www.aafp.org/pubs/afp/issues/2013/0201/p191.html",
+            "supports": [
+                "Guillain-Barre syndrome with rapidly progressive weakness diagnosis and risk stratification",
+                "GBS causes progressive weakness with diminished or absent reflexes and may compromise respiration",
+                "supportive care includes monitoring for respiratory and autonomic complications and preventing venous thrombosis, skin breakdown, and deconditioning",
+                "plasma exchange improves outcomes and intravenous immune globulin hastens recovery",
+                "corticosteroids have not demonstrated benefit",
+                "rapid progression, inability to walk, bulbar weakness, facial weakness, respiratory muscle weakness, or weak cough as red flags",
+                "dysautonomia, autonomic instability, bradycardia, arrhythmia, labile blood pressure, or respiratory failure as severity markers",
+                "hospitalization and neurology evaluation with lumbar puncture and nerve conduction study planning",
+                "serial forced vital capacity, vital capacity, NIF, negative inspiratory force, MIP, and MEP monitoring",
+                "IVIG or plasma exchange disease-modifying therapy with ICU airway escalation for bulbar or respiratory muscle weakness",
+                "steroids not recommended for Guillain-Barre syndrome",
+                "avoid sequential therapy and do not combine IVIG and plasma exchange because combination not beneficial",
+                "telemetry ECG cardiac monitoring for dysautonomia, blood pressure instability, bradycardia, and arrhythmia",
+                "VTE/DVT and venous thrombosis prophylaxis, swallow aspiration precautions, bowel care, pain control, skin breakdown or pressure injury prevention, and rehabilitation",
+            ],
+        },
+        {
+            "title": "Guillain-Barre Syndrome",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK532254/",
+            "supports": [
+                "IVIG and plasma exchange are equally effective in GBS and can shorten time to recovery when initiated early",
+                "corticosteroids are not beneficial and may result in worse clinical outcomes",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "Guillain-Barre syndrome time-critical actions must include admission"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_guillain_barre_steroid_combination_autonomic_and_supportive_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute inflammatory demyelinating polyradiculoneuropathy"
+    case["patient_demographics"] = {
+        "age": 61,
+        "sex": "male",
+        "weight_kg": 80,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Rapidly progressive leg weakness"
+    case["history_of_present_illness"] = (
+        "Patient has AIDP variant of Guillain-Barre syndrome with ascending "
+        "weakness, hyporeflexia, areflexia, nonambulatory status, facial weakness, "
+        "bulbar weakness, autonomic instability, and respiratory muscle weakness."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "190/96 then 92/50", "hr": 38, "rr": 22, "spo2": 94},
+        "general": "Cannot stand without assistance",
+        "cardiovascular": "Bradycardia and labile blood pressure",
+        "pulmonary": "Weak cough and difficulty counting aloud",
+        "neuro": "Symmetric weakness with absent reflexes",
+    }
+    case["key_teaching_points"] = [
+        "Guillain-Barre syndrome can cause rapidly progressive weakness, autonomic instability, and respiratory failure",
+        "Hospitalize and involve neurology for lumbar puncture and nerve conduction study confirmation",
+        "Serial respiratory monitoring with FVC, vital capacity, NIF, negative inspiratory force, MIP, or MEP should guide ICU and intubation decisions",
+        "Treat with IVIG intravenous immunoglobulin or plasma exchange PLEX/plasmapheresis",
+    ]
+    case["clinical_red_flags"] = [
+        "Nonambulatory status, rapid progression, bulbar weakness, facial weakness, respiratory muscle weakness, or weak cough",
+        "Dysautonomia, bradycardia, arrhythmia, blood pressure instability, or respiratory failure",
+    ]
+    case["time_critical_actions"] = [
+        "Admit to hospital and consult neurology; plan lumbar puncture and nerve conduction study/NCS",
+        "Measure serial respiratory monitoring with FVC, forced vital capacity, vital capacity, NIF, negative inspiratory force, MIP, and MEP",
+        "Start IVIG intravenous immunoglobulin or plasma exchange PLEX/plasmapheresis disease-modifying therapy",
+        "Escalate to ICU for airway monitoring, intubation, mechanical ventilation, ventilation support, respiratory failure, or bulbar weakness",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before analgesics",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Guillain-Barre Syndrome",
+            "organization": "American Family Physician",
+            "url": "https://www.aafp.org/pubs/afp/issues/2013/0201/p191.html",
+            "supports": [
+                "acute inflammatory demyelinating polyradiculoneuropathy diagnosis and risk stratification",
+                "Guillain-Barre syndrome can cause rapidly progressive weakness, autonomic instability, and respiratory failure",
+                "hospitalization and neurology involvement for lumbar puncture and nerve conduction study confirmation",
+                "respiratory and autonomic complications require close monitoring",
+                "plasma exchange and intravenous immune globulin are disease-modifying treatments",
+                "corticosteroids have not demonstrated benefit",
+                "nonambulatory status, rapid progression, bulbar weakness, facial weakness, respiratory muscle weakness, or weak cough as red flags",
+                "dysautonomia, bradycardia, arrhythmia, blood pressure instability, or respiratory failure as severity markers",
+                "serial respiratory monitoring with FVC, forced vital capacity, vital capacity, NIF, negative inspiratory force, MIP, and MEP",
+                "ICU airway monitoring, intubation, mechanical ventilation, ventilation support, respiratory failure, or bulbar weakness escalation",
+                "medication allergy before analgesics",
+                "renal function before contrast imaging",
+            ],
+        },
+        {
+            "title": "Guillain-Barre Syndrome",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK532254/",
+            "supports": [
+                "IVIG and plasma exchange are equally effective",
+                "neither redosing with a second course of IVIG nor combining IVIG with plasmapheresis has proven beneficial",
+                "corticosteroids are not beneficial in GBS and may result in worse clinical outcomes",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "Guillain-Barre syndrome safety checks must include avoidance of corticosteroids"
+        in issue
         for issue in report.critical_issues
     )
 

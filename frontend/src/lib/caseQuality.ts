@@ -9411,6 +9411,114 @@ const ORGANOPHOSPHATE_TOXICITY_DECON_DELAY_SAFETY_TERMS = [
   "vomit",
 ];
 
+const GUILLAIN_BARRE_DIRECT_CONTEXT_TERMS = [
+  "acute inflammatory demyelinating polyradiculoneuropathy",
+  "acute motor axonal neuropathy",
+  "aidp",
+  "gbs",
+  "guillain barre",
+  "guillain-barré",
+  "guillain-barre",
+  "miller fisher",
+  "polyradiculoneuropathy",
+];
+
+const GUILLAIN_BARRE_NEURO_RISK_TERMS = [
+  "areflexia",
+  "ascending weakness",
+  "autonomic instability",
+  "bulbar weakness",
+  "dysautonomia",
+  "facial weakness",
+  "hyporeflexia",
+  "nonambulatory",
+  "rapid progression",
+  "respiratory muscle weakness",
+  "unable to walk",
+];
+
+const GUILLAIN_BARRE_ADMISSION_NEURO_ACTION_TERMS = [
+  "admit",
+  "hospital",
+  "hospitalize",
+  "lumbar puncture",
+  "nerve conduction",
+  "neurology",
+  "ncs",
+];
+
+const GUILLAIN_BARRE_RESPIRATORY_MONITOR_ACTION_TERMS = [
+  "fvc",
+  "forced vital capacity",
+  "mep",
+  "mip",
+  "negative inspiratory force",
+  "nif",
+  "respiratory monitoring",
+  "serial vital capacity",
+  "vital capacity",
+];
+
+const GUILLAIN_BARRE_IMMUNOTHERAPY_ACTION_TERMS = [
+  "intravenous immunoglobulin",
+  "ivig",
+  "plasma exchange",
+  "plasmapheresis",
+  "plex",
+];
+
+const GUILLAIN_BARRE_ICU_AIRWAY_ACTION_TERMS = [
+  "airway",
+  "bulbar",
+  "icu",
+  "intubation",
+  "mechanical ventilation",
+  "respiratory failure",
+  "ventilation",
+];
+
+const GUILLAIN_BARRE_STEROID_AVOIDANCE_SAFETY_TERMS = [
+  "avoid corticosteroid",
+  "avoid glucocorticoid",
+  "corticosteroids not recommended",
+  "glucocorticoids not recommended",
+  "no corticosteroids",
+  "steroids not recommended",
+];
+
+const GUILLAIN_BARRE_SEQUENTIAL_THERAPY_SAFETY_TERMS = [
+  "avoid combining",
+  "avoid sequential",
+  "combination not beneficial",
+  "do not combine",
+  "ivig and plasma exchange",
+  "monotherapy",
+  "sequential therapy not recommended",
+];
+
+const GUILLAIN_BARRE_AUTONOMIC_SAFETY_TERMS = [
+  "arrhythmia",
+  "blood pressure",
+  "bradycardia",
+  "cardiac monitoring",
+  "dysautonomia",
+  "ecg",
+  "telemetry",
+];
+
+const GUILLAIN_BARRE_SUPPORTIVE_SAFETY_TERMS = [
+  "aspiration",
+  "bowel",
+  "dvt",
+  "pain control",
+  "pressure injury",
+  "rehabilitation",
+  "skin breakdown",
+  "swallow",
+  "venous thrombosis",
+  "vte",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -19780,6 +19888,75 @@ function hasPediatricSepticShockTreatmentSafetyCheck(checks: string[]): boolean 
   );
 }
 
+function requiresGuillainBarreSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = GUILLAIN_BARRE_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasNeuroRisk = GUILLAIN_BARRE_NEURO_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasNeuroRisk;
+}
+
+function hasGuillainBarreTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAdmissionNeurology = GUILLAIN_BARRE_ADMISSION_NEURO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRespiratoryMonitoring = GUILLAIN_BARRE_RESPIRATORY_MONITOR_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImmunotherapy = GUILLAIN_BARRE_IMMUNOTHERAPY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIcuAirwayEscalation = GUILLAIN_BARRE_ICU_AIRWAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasAdmissionNeurology &&
+    hasRespiratoryMonitoring &&
+    hasImmunotherapy &&
+    hasIcuAirwayEscalation
+  );
+}
+
+function hasGuillainBarreTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasSteroidAvoidance = GUILLAIN_BARRE_STEROID_AVOIDANCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSequentialTherapySafety = GUILLAIN_BARRE_SEQUENTIAL_THERAPY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAutonomicSafety = GUILLAIN_BARRE_AUTONOMIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSupportiveSafety = GUILLAIN_BARRE_SUPPORTIVE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasSteroidAvoidance &&
+    hasSequentialTherapySafety &&
+    hasAutonomicSafety &&
+    hasSupportiveSafety
+  );
+}
+
 function requiresDkaTreatmentSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -24131,6 +24308,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasOrganophosphateToxicityTreatmentSafetyCheck,
       issue:
         "organophosphate toxicity safety checks must include succinylcholine avoidance or prolonged-paralysis airway safety, cholinesterase, RBC AChE, BuChE, arterial-blood-gas, treat-before-labs, or do-not-wait laboratory safety, atropine-before-pralidoxime, pralidoxime infusion, slow-infusion, rapid-administration, or cardiac-arrest risk review, ICU, 48-hour, recurring, intermediate-syndrome, tidal-volume, negative-inspiratory-force, respiratory-failure, or ventilatory-support monitoring, and decontamination not delaying care plus clothing, PPE, soap-and-water, vomit, or bodily-secretion contamination precautions",
+    },
+    {
+      name: "guillain_barre_time_critical_actions",
+      label: "Guillain-Barre respiratory and immunotherapy actions",
+      applies: requiresGuillainBarreSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasGuillainBarreTimeCriticalActions,
+      issue:
+        "Guillain-Barre syndrome time-critical actions must include admission or neurology evaluation with lumbar puncture, nerve conduction study, NCS, hospital, or hospitalization planning, serial respiratory monitoring with FVC, forced vital capacity, vital capacity, NIF, negative inspiratory force, MIP, or MEP, IVIG, intravenous immunoglobulin, plasma exchange, plasmapheresis, or PLEX disease-modifying therapy, and ICU, airway, intubation, mechanical ventilation, respiratory-failure, ventilation, or bulbar escalation",
+    },
+    {
+      name: "guillain_barre_treatment_safety",
+      label: "Guillain-Barre treatment safety",
+      applies: requiresGuillainBarreSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasGuillainBarreTreatmentSafetyCheck,
+      issue:
+        "Guillain-Barre syndrome safety checks must include avoidance of corticosteroids or glucocorticoids because steroids are not recommended, avoiding sequential or combined IVIG and plasma exchange unless specifically justified because combination therapy is not beneficial, autonomic monitoring for dysautonomia, blood pressure, bradycardia, arrhythmia, ECG, telemetry, or cardiac monitoring, and supportive safety for venous thrombosis, VTE, DVT, aspiration, swallow, bowel, pain control, rehabilitation, skin breakdown, or pressure injury",
     },
     {
       name: "dka_time_critical_actions",

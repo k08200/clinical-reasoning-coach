@@ -8591,6 +8591,104 @@ ORGANOPHOSPHATE_TOXICITY_DECON_DELAY_SAFETY_TERMS = (
     "soap and water",
     "vomit",
 )
+GUILLAIN_BARRE_DIRECT_CONTEXT_TERMS = (
+    "acute inflammatory demyelinating polyradiculoneuropathy",
+    "acute motor axonal neuropathy",
+    "aidp",
+    "gbs",
+    "guillain barre",
+    "guillain-barré",
+    "guillain-barre",
+    "miller fisher",
+    "polyradiculoneuropathy",
+)
+GUILLAIN_BARRE_NEURO_RISK_TERMS = (
+    "areflexia",
+    "ascending weakness",
+    "autonomic instability",
+    "bulbar weakness",
+    "dysautonomia",
+    "facial weakness",
+    "hyporeflexia",
+    "nonambulatory",
+    "rapid progression",
+    "respiratory muscle weakness",
+    "unable to walk",
+)
+GUILLAIN_BARRE_ADMISSION_NEURO_ACTION_TERMS = (
+    "admit",
+    "hospital",
+    "hospitalize",
+    "lumbar puncture",
+    "nerve conduction",
+    "neurology",
+    "ncs",
+)
+GUILLAIN_BARRE_RESPIRATORY_MONITOR_ACTION_TERMS = (
+    "fvc",
+    "forced vital capacity",
+    "mep",
+    "mip",
+    "negative inspiratory force",
+    "nif",
+    "respiratory monitoring",
+    "serial vital capacity",
+    "vital capacity",
+)
+GUILLAIN_BARRE_IMMUNOTHERAPY_ACTION_TERMS = (
+    "intravenous immunoglobulin",
+    "ivig",
+    "plasma exchange",
+    "plasmapheresis",
+    "plex",
+)
+GUILLAIN_BARRE_ICU_AIRWAY_ACTION_TERMS = (
+    "airway",
+    "bulbar",
+    "icu",
+    "intubation",
+    "mechanical ventilation",
+    "respiratory failure",
+    "ventilation",
+)
+GUILLAIN_BARRE_STEROID_AVOIDANCE_SAFETY_TERMS = (
+    "avoid corticosteroid",
+    "avoid glucocorticoid",
+    "corticosteroids not recommended",
+    "glucocorticoids not recommended",
+    "no corticosteroids",
+    "steroids not recommended",
+)
+GUILLAIN_BARRE_SEQUENTIAL_THERAPY_SAFETY_TERMS = (
+    "avoid combining",
+    "avoid sequential",
+    "combination not beneficial",
+    "do not combine",
+    "ivig and plasma exchange",
+    "monotherapy",
+    "sequential therapy not recommended",
+)
+GUILLAIN_BARRE_AUTONOMIC_SAFETY_TERMS = (
+    "arrhythmia",
+    "blood pressure",
+    "bradycardia",
+    "cardiac monitoring",
+    "dysautonomia",
+    "ecg",
+    "telemetry",
+)
+GUILLAIN_BARRE_SUPPORTIVE_SAFETY_TERMS = (
+    "aspiration",
+    "bowel",
+    "dvt",
+    "pain control",
+    "pressure injury",
+    "rehabilitation",
+    "skin breakdown",
+    "swallow",
+    "venous thrombosis",
+    "vte",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -15869,6 +15967,40 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "ventilatory-support monitoring, and decontamination not delaying "
                 "care plus clothing, PPE, soap-and-water, vomit, or bodily-secretion "
                 "contamination precautions"
+            ),
+        ),
+        DomainSafetyGate(
+            name="guillain_barre_time_critical_actions",
+            applies=_requires_guillain_barre_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_guillain_barre_time_critical_actions,
+            issue=(
+                "Guillain-Barre syndrome time-critical actions must include "
+                "admission or neurology evaluation with lumbar puncture, nerve "
+                "conduction study, NCS, hospital, or hospitalization planning, "
+                "serial respiratory monitoring with FVC, forced vital capacity, "
+                "vital capacity, NIF, negative inspiratory force, MIP, or MEP, "
+                "IVIG, intravenous immunoglobulin, plasma exchange, plasmapheresis, "
+                "or PLEX disease-modifying therapy, and ICU, airway, intubation, "
+                "mechanical ventilation, respiratory-failure, ventilation, or "
+                "bulbar escalation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="guillain_barre_treatment_safety",
+            applies=_requires_guillain_barre_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_guillain_barre_treatment_safety_check,
+            issue=(
+                "Guillain-Barre syndrome safety checks must include avoidance of "
+                "corticosteroids or glucocorticoids because steroids are not "
+                "recommended, avoiding sequential or combined IVIG and plasma "
+                "exchange unless specifically justified because combination therapy "
+                "is not beneficial, autonomic monitoring for dysautonomia, blood "
+                "pressure, bradycardia, arrhythmia, ECG, telemetry, or cardiac "
+                "monitoring, and supportive safety for venous thrombosis, VTE, DVT, "
+                "aspiration, swallow, bowel, pain control, rehabilitation, skin "
+                "breakdown, or pressure injury"
             ),
         ),
         DomainSafetyGate(
@@ -23733,6 +23865,90 @@ def _has_organophosphate_toxicity_treatment_safety_check(checks: list[Any]) -> b
         and has_pralidoxime_order_safety
         and has_monitoring_safety
         and has_decon_delay_safety
+    )
+
+
+def _requires_guillain_barre_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in GUILLAIN_BARRE_DIRECT_CONTEXT_TERMS
+    )
+    has_neuro_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in GUILLAIN_BARRE_NEURO_RISK_TERMS
+    )
+    return has_context and has_neuro_risk
+
+
+def _has_guillain_barre_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_admission_neurology = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in GUILLAIN_BARRE_ADMISSION_NEURO_ACTION_TERMS
+    )
+    has_respiratory_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in GUILLAIN_BARRE_RESPIRATORY_MONITOR_ACTION_TERMS
+    )
+    has_immunotherapy = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in GUILLAIN_BARRE_IMMUNOTHERAPY_ACTION_TERMS
+    )
+    has_icu_airway_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in GUILLAIN_BARRE_ICU_AIRWAY_ACTION_TERMS
+    )
+    return (
+        has_admission_neurology
+        and has_respiratory_monitoring
+        and has_immunotherapy
+        and has_icu_airway_escalation
+    )
+
+
+def _has_guillain_barre_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_steroid_avoidance = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in GUILLAIN_BARRE_STEROID_AVOIDANCE_SAFETY_TERMS
+    )
+    has_sequential_therapy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in GUILLAIN_BARRE_SEQUENTIAL_THERAPY_SAFETY_TERMS
+    )
+    has_autonomic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in GUILLAIN_BARRE_AUTONOMIC_SAFETY_TERMS
+    )
+    has_supportive_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in GUILLAIN_BARRE_SUPPORTIVE_SAFETY_TERMS
+    )
+    return (
+        has_steroid_avoidance
+        and has_sequential_therapy_safety
+        and has_autonomic_safety
+        and has_supportive_safety
     )
 
 
