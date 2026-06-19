@@ -8805,6 +8805,97 @@ MYASTHENIC_CRISIS_PARALYTIC_SAFETY_TERMS = (
     "succinylcholine",
     "vecuronium",
 )
+BOTULISM_DIRECT_CONTEXT_TERMS = (
+    "botulinum toxin",
+    "botulism",
+    "clostridium botulinum",
+    "foodborne botulism",
+    "infant botulism",
+    "wound botulism",
+)
+BOTULISM_RISK_TERMS = (
+    "blurred vision",
+    "cranial nerve palsy",
+    "descending flaccid paralysis",
+    "diplopia",
+    "dysphagia",
+    "flaccid paralysis",
+    "ocular palsy",
+    "poor feeding",
+    "ptosis",
+    "respiratory distress",
+    "respiratory failure",
+    "slurred speech",
+    "weak cry",
+    "weakness",
+)
+BOTULISM_PUBLIC_HEALTH_ACTION_TERMS = (
+    "babybig",
+    "cdc",
+    "clinical botulism service",
+    "health department",
+    "infant botulism treatment",
+    "public health",
+    "state health",
+)
+BOTULISM_ANTITOXIN_ACTION_TERMS = (
+    "antitoxin",
+    "babybig",
+    "botulism immune globulin",
+    "heptavalent",
+    "human botulism immune globulin",
+)
+BOTULISM_RESPIRATORY_ACTION_TERMS = (
+    "icu",
+    "intensive care",
+    "mechanical ventilation",
+    "respiratory function",
+    "respiratory monitoring",
+    "ventilator",
+    "ventilatory support",
+)
+BOTULISM_SPECIMEN_SOURCE_ACTION_TERMS = (
+    "food sample",
+    "serum",
+    "source",
+    "specimen",
+    "stool",
+    "toxin testing",
+    "wound",
+)
+BOTULISM_NO_WAIT_LAB_SAFETY_TERMS = (
+    "do not wait",
+    "lab confirmation",
+    "laboratory confirmation",
+    "not delay",
+    "treat empirically",
+)
+BOTULISM_INFANT_ANTITOXIN_SAFETY_TERMS = (
+    "babybig",
+    "botulism immune globulin",
+    "heptavalent",
+    "human botulism immune globulin",
+    "infant",
+)
+BOTULISM_WOUND_SOURCE_SAFETY_TERMS = (
+    "antibiotic",
+    "debridement",
+    "source control",
+    "surgical",
+    "wound botulism",
+)
+BOTULISM_SUPPORTIVE_COMPLICATION_SAFETY_TERMS = (
+    "bladder",
+    "bowel",
+    "communication",
+    "dry eyes",
+    "dry mouth",
+    "dvt",
+    "pressure ulcers",
+    "rehabilitation",
+    "secretions",
+    "urinary tract infection",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -16155,6 +16246,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "or bulbar-weakness intubation safety, and neuromuscular blocker, "
                 "paralytic, succinylcholine, vecuronium, nondepolarizing, or "
                 "reduced-dose airway medication safety"
+            ),
+        ),
+        DomainSafetyGate(
+            name="botulism_time_critical_actions",
+            applies=_requires_botulism_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_botulism_time_critical_actions,
+            issue=(
+                "botulism time-critical actions must include immediate state health "
+                "department, public health, CDC Clinical Botulism Service, or "
+                "Infant Botulism Treatment consultation, antitoxin planning with "
+                "heptavalent antitoxin, BabyBIG, botulism immune globulin, or "
+                "human botulism immune globulin, respiratory monitoring, respiratory "
+                "function, ICU, intensive care, mechanical ventilation, ventilator, "
+                "or ventilatory support, and serum, stool, food sample, wound, "
+                "specimen, source, or toxin testing coordination"
+            ),
+        ),
+        DomainSafetyGate(
+            name="botulism_treatment_safety",
+            applies=_requires_botulism_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_botulism_treatment_safety_check,
+            issue=(
+                "botulism safety checks must include not delaying or waiting for "
+                "laboratory confirmation before empiric treatment, infant-specific "
+                "antitoxin planning such as BabyBIG or human botulism immune "
+                "globulin versus heptavalent antitoxin, wound botulism source "
+                "control with surgical debridement and antibiotic review, and "
+                "supportive complication prevention for bladder, bowel, urinary "
+                "tract infection, DVT, pressure ulcers, dry eyes, dry mouth, "
+                "secretions, communication, or rehabilitation"
             ),
         ),
         DomainSafetyGate(
@@ -24192,6 +24315,90 @@ def _has_myasthenic_crisis_treatment_safety_check(checks: list[Any]) -> bool:
         and has_steroid_monitoring
         and has_niv_intubation_safety
         and has_paralytic_safety
+    )
+
+
+def _requires_botulism_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in BOTULISM_DIRECT_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in BOTULISM_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_botulism_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_public_health = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BOTULISM_PUBLIC_HEALTH_ACTION_TERMS
+    )
+    has_antitoxin = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BOTULISM_ANTITOXIN_ACTION_TERMS
+    )
+    has_respiratory_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BOTULISM_RESPIRATORY_ACTION_TERMS
+    )
+    has_specimen_source = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BOTULISM_SPECIMEN_SOURCE_ACTION_TERMS
+    )
+    return (
+        has_public_health
+        and has_antitoxin
+        and has_respiratory_support
+        and has_specimen_source
+    )
+
+
+def _has_botulism_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_no_wait_lab = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BOTULISM_NO_WAIT_LAB_SAFETY_TERMS
+    )
+    has_infant_antitoxin = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BOTULISM_INFANT_ANTITOXIN_SAFETY_TERMS
+    )
+    has_wound_source = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BOTULISM_WOUND_SOURCE_SAFETY_TERMS
+    )
+    has_supportive_complication = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BOTULISM_SUPPORTIVE_COMPLICATION_SAFETY_TERMS
+    )
+    return (
+        has_no_wait_lab
+        and has_infant_antitoxin
+        and has_wound_source
+        and has_supportive_complication
     )
 
 

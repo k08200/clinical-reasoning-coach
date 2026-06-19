@@ -210,6 +210,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "guillain_barre_treatment_safety",
         "myasthenic_crisis_time_critical_actions",
         "myasthenic_crisis_treatment_safety",
+        "botulism_time_critical_actions",
+        "botulism_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "dka_advanced_insulin_transition_safety",
@@ -11866,6 +11868,151 @@ def test_quality_gate_requires_myasthenic_crisis_medication_pyridostigmine_stero
     assert any(
         "myasthenic crisis safety checks must include medication avoidance"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_botulism_public_health_antitoxin_respiratory_and_specimen_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Foodborne botulism with descending flaccid paralysis"
+    case["patient_demographics"] = {
+        "age": 44,
+        "sex": "female",
+        "weight_kg": 67,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Diplopia, dysphagia, and weakness after home-canned food"
+    case["history_of_present_illness"] = (
+        "Patient ate home-canned vegetables and developed botulism symptoms with "
+        "blurred vision, diplopia, ptosis, slurred speech, dysphagia, cranial "
+        "nerve palsy, symmetric descending flaccid paralysis, weakness, respiratory "
+        "distress, and concern for respiratory failure."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "132/76", "hr": 96, "rr": 24, "spo2": 93},
+        "general": "Awake and fully conscious but weak",
+        "pulmonary": "Shallow respirations with weak cough",
+        "neuro": "Bilateral ptosis, ocular palsy, dysarthria, dysphagia, and descending weakness",
+    }
+    case["key_teaching_points"] = [
+        "Botulism causes symmetric descending flaccid paralysis beginning with cranial nerves and can progress to respiratory failure",
+        "Suspected botulism requires immediate public health consultation and antitoxin release without waiting for laboratory confirmation",
+        "ICU respiratory function monitoring and mechanical ventilation may be required for weeks to months",
+        "Serum, stool, food sample, wound specimen, source investigation, and toxin testing should be coordinated through public health",
+    ]
+    case["clinical_red_flags"] = [
+        "Diplopia, ptosis, blurred vision, ocular palsy, slurred speech, dysphagia, or cranial nerve palsy",
+        "Descending flaccid paralysis, weakness, respiratory distress, respiratory failure, or preserved consciousness",
+    ]
+    case["time_critical_actions"] = [
+        "Order outpatient neurology follow-up",
+        "Give antiemetic and observe for oral intake",
+    ]
+    case["contraindication_checks"] = [
+        "Do not wait for laboratory confirmation; treatment should not delay and suspected botulism should be treated empirically",
+        "For infant botulism, use infant-specific BabyBIG or human botulism immune globulin rather than default adult heptavalent antitoxin pathways",
+        "For wound botulism, arrange surgical debridement, source control, and antibiotic review",
+        "Prevent supportive complications with bladder and bowel care, urinary tract infection prevention, DVT prophylaxis, pressure ulcers prevention, dry eyes, dry mouth, secretions management, communication support, and rehabilitation",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Clinical Overview of Botulism",
+            "organization": "CDC",
+            "url": "https://www.cdc.gov/botulism/hcp/clinical-overview/index.html",
+            "supports": [
+                "foodborne botulism with descending flaccid paralysis diagnosis and risk stratification",
+                "botulism causes symmetric descending flaccid paralysis beginning with cranial nerves and can progress to respiratory failure",
+                "suspected botulism requires immediate public health consultation and antitoxin release without waiting for laboratory confirmation",
+                "ICU respiratory function monitoring and mechanical ventilation may be required for weeks to months",
+                "serum, stool, food sample, wound specimen, source investigation, and toxin testing coordination through public health",
+                "diplopia, ptosis, blurred vision, ocular palsy, slurred speech, dysphagia, or cranial nerve palsy as red flags",
+                "descending flaccid paralysis, weakness, respiratory distress, respiratory failure, or preserved consciousness as severity markers",
+                "no waiting for laboratory confirmation and empiric treatment without delay",
+                "infant-specific BabyBIG or human botulism immune globulin versus adult heptavalent antitoxin pathways",
+                "wound botulism surgical debridement, source control, and antibiotic review",
+                "bladder and bowel care, urinary tract infection prevention, DVT prophylaxis, pressure ulcers prevention, dry eyes, dry mouth, secretions management, communication support, and rehabilitation",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "botulism time-critical actions must include immediate state health"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_botulism_no_wait_infant_wound_and_supportive_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Infant botulism with respiratory distress"
+    case["patient_demographics"] = {
+        "age": 0.4,
+        "sex": "male",
+        "weight_kg": 7,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Poor feeding, weak cry, constipation, and respiratory distress"
+    case["history_of_present_illness"] = (
+        "Infant botulism is suspected after honey exposure with constipation, poor "
+        "feeding, ptosis, sluggish pupils, weak cry, diminished suck and gag, "
+        "flaccid paralysis, weakness, respiratory distress, and possible respiratory "
+        "failure."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "82/48", "hr": 152, "rr": 34, "spo2": 92},
+        "general": "Lethargic but arousable infant with weak cry",
+        "pulmonary": "Weak respiratory effort",
+        "neuro": "Poor suck, ptosis, hypotonia, and flaccid weakness",
+    }
+    case["key_teaching_points"] = [
+        "Infant botulism can present with constipation, poor feeding, weak cry, ptosis, diminished suck and gag, and respiratory distress",
+        "Call state health department, public health, CDC, or Infant Botulism Treatment program immediately",
+        "Request BabyBIG, botulism immune globulin, human botulism immune globulin, or heptavalent antitoxin when appropriate",
+        "Monitor respiratory function in ICU or intensive care and provide ventilator, ventilatory support, or mechanical ventilation if needed",
+        "Coordinate stool specimen, serum, toxin testing, and source investigation",
+    ]
+    case["clinical_red_flags"] = [
+        "Poor feeding, weak cry, ptosis, sluggish pupils, diminished suck, diminished gag, or flaccid paralysis",
+        "Weakness, respiratory distress, respiratory failure, ocular palsy, dysphagia, or cranial nerve palsy",
+    ]
+    case["time_critical_actions"] = [
+        "Call state health department, public health, CDC, or Infant Botulism Treatment program immediately",
+        "Request BabyBIG, botulism immune globulin, human botulism immune globulin, or heptavalent antitoxin when appropriate",
+        "Monitor respiratory function in ICU intensive care and provide ventilator, ventilatory support, or mechanical ventilation if needed",
+        "Coordinate stool specimen, serum, wound or food sample if relevant, source investigation, and toxin testing",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antipyretics",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Clinical Overview of Botulism",
+            "organization": "CDC",
+            "url": "https://www.cdc.gov/botulism/hcp/clinical-overview/index.html",
+            "supports": [
+                "infant botulism with respiratory distress diagnosis and risk stratification",
+                "infant botulism can present with constipation, poor feeding, weak cry, ptosis, diminished suck and gag, and respiratory distress",
+                "state health department, public health, CDC, or Infant Botulism Treatment consultation",
+                "BabyBIG, botulism immune globulin, human botulism immune globulin, or heptavalent antitoxin when appropriate",
+                "respiratory function monitoring in ICU or intensive care and ventilator, ventilatory support, or mechanical ventilation if needed",
+                "stool specimen, serum, toxin testing, and source investigation coordination",
+                "poor feeding, weak cry, ptosis, sluggish pupils, diminished suck, diminished gag, or flaccid paralysis as red flags",
+                "weakness, respiratory distress, respiratory failure, ocular palsy, dysphagia, or cranial nerve palsy as severity markers",
+                "medication allergy before antipyretics",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "botulism safety checks must include not delaying" in issue
         for issue in report.critical_issues
     )
 

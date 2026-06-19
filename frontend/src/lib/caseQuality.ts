@@ -9646,6 +9646,107 @@ const MYASTHENIC_CRISIS_PARALYTIC_SAFETY_TERMS = [
   "vecuronium",
 ];
 
+const BOTULISM_DIRECT_CONTEXT_TERMS = [
+  "botulinum toxin",
+  "botulism",
+  "clostridium botulinum",
+  "foodborne botulism",
+  "infant botulism",
+  "wound botulism",
+];
+
+const BOTULISM_RISK_TERMS = [
+  "blurred vision",
+  "cranial nerve palsy",
+  "descending flaccid paralysis",
+  "diplopia",
+  "dysphagia",
+  "flaccid paralysis",
+  "ocular palsy",
+  "poor feeding",
+  "ptosis",
+  "respiratory distress",
+  "respiratory failure",
+  "slurred speech",
+  "weak cry",
+  "weakness",
+];
+
+const BOTULISM_PUBLIC_HEALTH_ACTION_TERMS = [
+  "babybig",
+  "cdc",
+  "clinical botulism service",
+  "health department",
+  "infant botulism treatment",
+  "public health",
+  "state health",
+];
+
+const BOTULISM_ANTITOXIN_ACTION_TERMS = [
+  "antitoxin",
+  "babybig",
+  "botulism immune globulin",
+  "heptavalent",
+  "human botulism immune globulin",
+];
+
+const BOTULISM_RESPIRATORY_ACTION_TERMS = [
+  "icu",
+  "intensive care",
+  "mechanical ventilation",
+  "respiratory function",
+  "respiratory monitoring",
+  "ventilator",
+  "ventilatory support",
+];
+
+const BOTULISM_SPECIMEN_SOURCE_ACTION_TERMS = [
+  "food sample",
+  "serum",
+  "source",
+  "specimen",
+  "stool",
+  "toxin testing",
+  "wound",
+];
+
+const BOTULISM_NO_WAIT_LAB_SAFETY_TERMS = [
+  "do not wait",
+  "lab confirmation",
+  "laboratory confirmation",
+  "not delay",
+  "treat empirically",
+];
+
+const BOTULISM_INFANT_ANTITOXIN_SAFETY_TERMS = [
+  "babybig",
+  "botulism immune globulin",
+  "heptavalent",
+  "human botulism immune globulin",
+  "infant",
+];
+
+const BOTULISM_WOUND_SOURCE_SAFETY_TERMS = [
+  "antibiotic",
+  "debridement",
+  "source control",
+  "surgical",
+  "wound botulism",
+];
+
+const BOTULISM_SUPPORTIVE_COMPLICATION_SAFETY_TERMS = [
+  "bladder",
+  "bowel",
+  "communication",
+  "dry eyes",
+  "dry mouth",
+  "dvt",
+  "pressure ulcers",
+  "rehabilitation",
+  "secretions",
+  "urinary tract infection",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -20152,6 +20253,63 @@ function hasMyasthenicCrisisTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresBotulismSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = BOTULISM_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = BOTULISM_RISK_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  return hasContext && hasRisk;
+}
+
+function hasBotulismTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasPublicHealth = BOTULISM_PUBLIC_HEALTH_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntitoxin = BOTULISM_ANTITOXIN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRespiratorySupport = BOTULISM_RESPIRATORY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSpecimenSource = BOTULISM_SPECIMEN_SOURCE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasPublicHealth && hasAntitoxin && hasRespiratorySupport && hasSpecimenSource;
+}
+
+function hasBotulismTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNoWaitLab = BOTULISM_NO_WAIT_LAB_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInfantAntitoxin = BOTULISM_INFANT_ANTITOXIN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasWoundSource = BOTULISM_WOUND_SOURCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSupportiveComplication = BOTULISM_SUPPORTIVE_COMPLICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasNoWaitLab && hasInfantAntitoxin && hasWoundSource && hasSupportiveComplication;
+}
+
 function requiresDkaTreatmentSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -24539,6 +24697,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasMyasthenicCrisisTreatmentSafetyCheck,
       issue:
         "myasthenic crisis safety checks must include medication avoidance or caution for aminoglycosides, gentamicin, streptomycin, macrolides, erythromycin, fluoroquinolones, quinolones, ciprofloxacin, beta blockers, calcium channel blockers, magnesium, phenytoin, procainamide, or quinidine, acetylcholinesterase inhibitor or pyridostigmine holding/lowering/discontinuation with excessive pulmonary secretion or cholinergic-crisis review, steroid or prednisone initiation only with hospital respiratory monitoring because worsening can occur especially with bulbar symptoms, NIV, BiPAP, hypercapnia, PCO2, tachypnea, work-of-breathing, aspiration, or bulbar-weakness intubation safety, and neuromuscular blocker, paralytic, succinylcholine, vecuronium, nondepolarizing, or reduced-dose airway medication safety",
+    },
+    {
+      name: "botulism_time_critical_actions",
+      label: "Botulism antitoxin and ventilatory actions",
+      applies: requiresBotulismSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasBotulismTimeCriticalActions,
+      issue:
+        "botulism time-critical actions must include immediate state health department, public health, CDC Clinical Botulism Service, or Infant Botulism Treatment consultation, antitoxin planning with heptavalent antitoxin, BabyBIG, botulism immune globulin, or human botulism immune globulin, respiratory monitoring, respiratory function, ICU, intensive care, mechanical ventilation, ventilator, or ventilatory support, and serum, stool, food sample, wound, specimen, source, or toxin testing coordination",
+    },
+    {
+      name: "botulism_treatment_safety",
+      label: "Botulism treatment safety",
+      applies: requiresBotulismSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasBotulismTreatmentSafetyCheck,
+      issue:
+        "botulism safety checks must include not delaying or waiting for laboratory confirmation before empiric treatment, infant-specific antitoxin planning such as BabyBIG or human botulism immune globulin versus heptavalent antitoxin, wound botulism source control with surgical debridement and antibiotic review, and supportive complication prevention for bladder, bowel, urinary tract infection, DVT, pressure ulcers, dry eyes, dry mouth, secretions, communication, or rehabilitation",
     },
     {
       name: "dka_time_critical_actions",
