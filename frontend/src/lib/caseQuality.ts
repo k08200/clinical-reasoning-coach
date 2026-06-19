@@ -1361,6 +1361,85 @@ const CNS_INFECTION_STEROID_SAFETY_TERMS = [
   "스테로이드",
 ];
 
+const ENCEPHALITIS_CONTEXT_TERMS = [
+  "encephalitis",
+  "herpes encephalitis",
+  "herpes simplex encephalitis",
+  "hsv encephalitis",
+  "meningoencephalitis",
+];
+
+const ENCEPHALITIS_RISK_TERMS = [
+  "altered mental status",
+  "aphasia",
+  "behavior change",
+  "confusion",
+  "focal neurologic",
+  "fever",
+  "new seizure",
+  "seizure",
+  "temporal lobe",
+];
+
+const ENCEPHALITIS_ACYCLOVIR_ACTION_TERMS = ["acyclovir", "aciclovir"];
+
+const ENCEPHALITIS_NEUROIMAGING_ACTION_TERMS = [
+  "brain mri",
+  "ct",
+  "mri",
+  "neuroimaging",
+];
+
+const ENCEPHALITIS_CSF_HSV_ACTION_TERMS = [
+  "csf",
+  "herpes simplex pcr",
+  "hsv pcr",
+  "lp",
+  "lumbar puncture",
+  "pcr",
+];
+
+const ENCEPHALITIS_EEG_SEIZURE_ACTION_TERMS = [
+  "eeg",
+  "nonconvulsive",
+  "seizure",
+  "status epilepticus",
+];
+
+const ENCEPHALITIS_ACYCLOVIR_RENAL_SAFETY_TERMS = [
+  "creatinine",
+  "hydration",
+  "kidney",
+  "renal",
+  "renal dosing",
+];
+
+const ENCEPHALITIS_NO_DELAY_SAFETY_TERMS = [
+  "do not delay acyclovir",
+  "do not wait",
+  "empiric acyclovir",
+  "pending diagnostic",
+  "pending lp",
+  "pending pcr",
+];
+
+const ENCEPHALITIS_REPEAT_PCR_SAFETY_TERMS = [
+  "3-7 days",
+  "3 to 7 days",
+  "negative hsv pcr",
+  "repeat hsv pcr",
+  "repeat pcr",
+  "temporal lobe",
+];
+
+const ENCEPHALITIS_DIFFERENTIAL_EMPIRIC_SAFETY_TERMS = [
+  "bacterial meningitis",
+  "ceftriaxone",
+  "doxycycline",
+  "rickettsial",
+  "vancomycin",
+];
+
 const MENINGOCOCCEMIA_CONTEXT_TERMS = [
   "invasive meningococcal disease",
   "meningococcemia",
@@ -14041,6 +14120,69 @@ function hasCnsInfectionLpSteroidSafetyCheck(checks: string[]): boolean {
   return hasAntimicrobialSafety && hasLpSafety && hasSteroidTiming;
 }
 
+function requiresEncephalitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = ENCEPHALITIS_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = ENCEPHALITIS_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasEncephalitisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAcyclovir = ENCEPHALITIS_ACYCLOVIR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeuroimaging = ENCEPHALITIS_NEUROIMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCsfHsv = ENCEPHALITIS_CSF_HSV_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEegSeizure = ENCEPHALITIS_EEG_SEIZURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAcyclovir && hasNeuroimaging && hasCsfHsv && hasEegSeizure;
+}
+
+function hasEncephalitisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAcyclovirRenalSafety = ENCEPHALITIS_ACYCLOVIR_RENAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNoDelaySafety = ENCEPHALITIS_NO_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRepeatPcrSafety = ENCEPHALITIS_REPEAT_PCR_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferentialEmpiricSafety = ENCEPHALITIS_DIFFERENTIAL_EMPIRIC_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasAcyclovirRenalSafety &&
+    hasNoDelaySafety &&
+    hasRepeatPcrSafety &&
+    hasDifferentialEmpiricSafety
+  );
+}
+
 function requiresMeningococcemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -21369,6 +21511,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasCnsInfectionLpSteroidSafetyCheck,
       issue:
         "CNS infection safety checks must include antimicrobial allergy or renal dosing review, lumbar puncture contraindications, and dexamethasone timing relative to antibiotics",
+    },
+    {
+      name: "encephalitis_time_critical_actions",
+      label: "Encephalitis emergency actions",
+      applies: requiresEncephalitisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasEncephalitisTimeCriticalActions,
+      issue:
+        "encephalitis time-critical actions must include immediate IV acyclovir, MRI or neuroimaging, lumbar puncture/CSF HSV PCR testing, and EEG or seizure assessment",
+    },
+    {
+      name: "encephalitis_treatment_safety",
+      label: "Encephalitis treatment safety",
+      applies: requiresEncephalitisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasEncephalitisTreatmentSafetyCheck,
+      issue:
+        "encephalitis safety checks must include acyclovir renal dosing or hydration review, explicit do-not-delay acyclovir planning while LP, imaging, or PCR is pending, repeat HSV PCR or 3-7 day retesting when suspicion remains after a negative PCR, and bacterial meningitis or rickettsial empiric-therapy differential review",
     },
     {
       name: "meningococcemia_time_critical_actions",

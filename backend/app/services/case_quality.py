@@ -1276,6 +1276,78 @@ CNS_INFECTION_STEROID_SAFETY_TERMS = (
     "덱사메타손",
     "스테로이드",
 )
+ENCEPHALITIS_CONTEXT_TERMS = (
+    "encephalitis",
+    "herpes encephalitis",
+    "herpes simplex encephalitis",
+    "hsv encephalitis",
+    "meningoencephalitis",
+)
+ENCEPHALITIS_RISK_TERMS = (
+    "altered mental status",
+    "aphasia",
+    "behavior change",
+    "confusion",
+    "focal neurologic",
+    "fever",
+    "new seizure",
+    "seizure",
+    "temporal lobe",
+)
+ENCEPHALITIS_ACYCLOVIR_ACTION_TERMS = (
+    "acyclovir",
+    "aciclovir",
+)
+ENCEPHALITIS_NEUROIMAGING_ACTION_TERMS = (
+    "brain mri",
+    "ct",
+    "mri",
+    "neuroimaging",
+)
+ENCEPHALITIS_CSF_HSV_ACTION_TERMS = (
+    "csf",
+    "herpes simplex pcr",
+    "hsv pcr",
+    "lp",
+    "lumbar puncture",
+    "pcr",
+)
+ENCEPHALITIS_EEG_SEIZURE_ACTION_TERMS = (
+    "eeg",
+    "nonconvulsive",
+    "seizure",
+    "status epilepticus",
+)
+ENCEPHALITIS_ACYCLOVIR_RENAL_SAFETY_TERMS = (
+    "creatinine",
+    "hydration",
+    "kidney",
+    "renal",
+    "renal dosing",
+)
+ENCEPHALITIS_NO_DELAY_SAFETY_TERMS = (
+    "do not delay acyclovir",
+    "do not wait",
+    "empiric acyclovir",
+    "pending diagnostic",
+    "pending lp",
+    "pending pcr",
+)
+ENCEPHALITIS_REPEAT_PCR_SAFETY_TERMS = (
+    "3-7 days",
+    "3 to 7 days",
+    "negative hsv pcr",
+    "repeat hsv pcr",
+    "repeat pcr",
+    "temporal lobe",
+)
+ENCEPHALITIS_DIFFERENTIAL_EMPIRIC_SAFETY_TERMS = (
+    "bacterial meningitis",
+    "ceftriaxone",
+    "doxycycline",
+    "rickettsial",
+    "vancomycin",
+)
 MENINGOCOCCEMIA_CONTEXT_TERMS = (
     "invasive meningococcal disease",
     "meningococcemia",
@@ -12842,6 +12914,30 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="encephalitis_time_critical_actions",
+            applies=_requires_encephalitis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_encephalitis_time_critical_actions,
+            issue=(
+                "encephalitis time-critical actions must include immediate IV "
+                "acyclovir, MRI or neuroimaging, lumbar puncture/CSF HSV PCR "
+                "testing, and EEG or seizure assessment"
+            ),
+        ),
+        DomainSafetyGate(
+            name="encephalitis_treatment_safety",
+            applies=_requires_encephalitis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_encephalitis_treatment_safety_check,
+            issue=(
+                "encephalitis safety checks must include acyclovir renal dosing "
+                "or hydration review, explicit do-not-delay acyclovir planning "
+                "while LP, imaging, or PCR is pending, repeat HSV PCR or 3-7 day "
+                "retesting when suspicion remains after a negative PCR, and "
+                "bacterial meningitis or rickettsial empiric-therapy differential review"
+            ),
+        ),
+        DomainSafetyGate(
             name="meningococcemia_time_critical_actions",
             applies=_requires_meningococcemia_safety_check,
             field_name="time_critical_actions",
@@ -16665,6 +16761,84 @@ def _has_cns_infection_lp_steroid_safety_check(checks: list[Any]) -> bool:
         for term in CNS_INFECTION_STEROID_SAFETY_TERMS
     )
     return has_antimicrobial_safety and has_lp_safety and has_steroid_timing
+
+
+def _requires_encephalitis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ENCEPHALITIS_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in ENCEPHALITIS_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_encephalitis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_acyclovir = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ENCEPHALITIS_ACYCLOVIR_ACTION_TERMS
+    )
+    has_neuroimaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ENCEPHALITIS_NEUROIMAGING_ACTION_TERMS
+    )
+    has_csf_hsv = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ENCEPHALITIS_CSF_HSV_ACTION_TERMS
+    )
+    has_eeg_seizure = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ENCEPHALITIS_EEG_SEIZURE_ACTION_TERMS
+    )
+    return has_acyclovir and has_neuroimaging and has_csf_hsv and has_eeg_seizure
+
+
+def _has_encephalitis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_acyclovir_renal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ENCEPHALITIS_ACYCLOVIR_RENAL_SAFETY_TERMS
+    )
+    has_no_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ENCEPHALITIS_NO_DELAY_SAFETY_TERMS
+    )
+    has_repeat_pcr_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ENCEPHALITIS_REPEAT_PCR_SAFETY_TERMS
+    )
+    has_differential_empiric_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ENCEPHALITIS_DIFFERENTIAL_EMPIRIC_SAFETY_TERMS
+    )
+    return (
+        has_acyclovir_renal_safety
+        and has_no_delay_safety
+        and has_repeat_pcr_safety
+        and has_differential_empiric_safety
+    )
 
 
 def _requires_meningococcemia_safety_check(data: dict[str, Any]) -> bool:
