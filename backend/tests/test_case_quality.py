@@ -56,6 +56,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "anaphylaxis_medication_safety",
         "epiglottitis_time_critical_actions",
         "epiglottitis_treatment_safety",
+        "deep_neck_infection_time_critical_actions",
+        "deep_neck_infection_treatment_safety",
         "croup_time_critical_actions",
         "croup_treatment_safety",
         "orbital_cellulitis_time_critical_actions",
@@ -784,6 +786,140 @@ def test_quality_gate_requires_epiglottitis_agitation_airway_backup_steroid_and_
     assert not report.passed
     assert any(
         "epiglottitis safety checks must include avoiding agitation" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_deep_neck_infection_airway_antibiotics_imaging_and_source_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Ludwig angina with impending airway compromise"
+    case["patient_demographics"] = {
+        "age": 56,
+        "sex": "male",
+        "weight_kg": 88,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Dental infection with neck swelling, trismus, drooling, and dyspnea"
+    case["history_of_present_illness"] = (
+        "Patient has odontogenic dental infection progressing to Ludwig angina with "
+        "floor of mouth cellulitis, bilateral submandibular swelling, tongue elevation, "
+        "trismus, dysphagia, drooling, hot potato voice, respiratory distress, and "
+        "airway obstruction risk."
+    )
+    case["key_teaching_points"] = [
+        "Deep neck space infection can rapidly cause airway compromise",
+        "Airway protection, broad-spectrum IV antibiotics, and source control are priorities",
+        "Imaging should follow airway stabilization when airway risk is present",
+    ]
+    case["clinical_red_flags"] = [
+        "Drooling, dysphagia, trismus, tongue elevation, floor of mouth swelling, stridor, or inability to manage secretions",
+        "Diabetes, immunocompromised state, MRSA risk, sepsis, mediastinitis, aspiration pneumonia, or airway obstruction",
+    ]
+    case["time_critical_actions"] = [
+        "Start IV fluids and analgesia",
+        "Obtain dental evaluation after admission",
+    ]
+    case["contraindication_checks"] = [
+        "Airway first: secure airway before CT and proceed with imaging only when stable for imaging",
+        "Avoid blind nasotracheal intubation, avoid sedation, avoid supine positioning, and prepare cricothyrotomy backup, surgical airway backup, and tracheostomy backup",
+        "Review diabetes, immunocompromised state, MRSA, gram-negative coverage, vancomycin, piperacillin-tazobactam, or meropenem when indicated",
+        "Plan drainage for abscess or no clinical improvement and monitor airway obstruction, mediastinitis, descending necrotizing mediastinitis, aspiration pneumonia, and sepsis",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Ludwig Angina",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK482354/",
+            "supports": [
+                "ludwig angina with impending airway compromise diagnosis and risk stratification",
+                "deep neck space infection can rapidly cause airway compromise",
+                "odontogenic dental infection progressing to floor of mouth cellulitis",
+                "bilateral submandibular swelling, tongue elevation, trismus, dysphagia, drooling, hot potato voice, respiratory distress, and airway obstruction risk",
+                "airway protection, broad-spectrum IV antibiotics, and source control are priorities",
+                "imaging should follow airway stabilization when airway risk is present",
+                "drooling, dysphagia, trismus, tongue elevation, floor of mouth swelling, stridor, or inability to manage secretions as red flags",
+                "diabetes, immunocompromised state, MRSA risk, sepsis, mediastinitis, aspiration pneumonia, or airway obstruction as risk markers",
+                "airway first with airway secured before CT and imaging only when stable",
+                "avoid blind nasotracheal intubation, avoid sedation, avoid supine positioning, and prepare cricothyrotomy backup, surgical airway backup, and tracheostomy backup",
+                "diabetes, immunocompromised state, MRSA, gram-negative coverage, vancomycin, piperacillin-tazobactam, or meropenem review",
+                "drainage for abscess or no clinical improvement and monitoring for airway obstruction, mediastinitis, descending necrotizing mediastinitis, aspiration pneumonia, and sepsis",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "deep neck infection time-critical actions must include airway assessment"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_deep_neck_infection_airway_first_mrsa_drainage_and_complication_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Retropharyngeal abscess with airway risk"
+    case["patient_demographics"] = {
+        "age": 44,
+        "sex": "female",
+        "weight_kg": 72,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Deep neck infection with fever, neck swelling, dysphagia, and voice change"
+    case["history_of_present_illness"] = (
+        "Patient has retropharyngeal abscess with deep neck infection, fever, neck "
+        "swelling, dysphagia, trismus, drooling, voice change, respiratory distress, "
+        "and concern for airway compromise."
+    )
+    case["key_teaching_points"] = [
+        "Retropharyngeal abscess can cause airway obstruction and sepsis",
+        "Airway readiness and specialist escalation should occur with IV antibiotics",
+        "CT neck with contrast and source control are needed when stable enough",
+    ]
+    case["clinical_red_flags"] = [
+        "Neck swelling, dysphagia, trismus, drooling, hot potato voice, respiratory distress, or airway compromise",
+        "Abscess progression, sepsis, airway obstruction, mediastinitis, or aspiration pneumonia",
+    ]
+    case["time_critical_actions"] = [
+        "Assess airway and oxygen; plan awake fiberoptic nasotracheal intubation with surgical airway, cricothyrotomy, and tracheostomy backup",
+        "Escalate to ENT otolaryngology, anesthesia, oral maxillofacial surgery or OMFS, ICU, and intensivist support",
+        "Start IV broad-spectrum antibiotics with ampicillin-sulbactam plus anaerobic coverage; consider clindamycin, metronidazole, or vancomycin",
+        "After airway is stable, obtain CT neck with contrast, blood culture, abscess evaluation, drainage, source control, and tooth extraction if odontogenic",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review",
+        "Weight-based dosing confirmation",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Ludwig Angina",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK482354/",
+            "supports": [
+                "retropharyngeal abscess with airway risk diagnosis and risk stratification",
+                "deep neck infection with fever, neck swelling, dysphagia, trismus, drooling, voice change, respiratory distress, and airway compromise",
+                "retropharyngeal abscess can cause airway obstruction and sepsis",
+                "airway readiness and specialist escalation should occur with IV antibiotics",
+                "CT neck with contrast and source control are needed when stable enough",
+                "neck swelling, dysphagia, trismus, drooling, hot potato voice, respiratory distress, or airway compromise as red flags",
+                "abscess progression, sepsis, airway obstruction, mediastinitis, or aspiration pneumonia risk",
+                "airway and oxygen with awake fiberoptic nasotracheal intubation and surgical airway, cricothyrotomy, and tracheostomy backup",
+                "ENT otolaryngology, anesthesia, oral maxillofacial surgery or OMFS, ICU, and intensivist support",
+                "IV broad-spectrum antibiotics with ampicillin-sulbactam plus anaerobic coverage and clindamycin, metronidazole, or vancomycin",
+                "after airway is stable obtain CT neck with contrast, blood culture, abscess evaluation, drainage, source control, and tooth extraction if odontogenic",
+                "medication allergy review",
+                "weight-based dosing confirmation",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "deep neck infection safety checks must include airway-first sequencing"
+        in issue
         for issue in report.critical_issues
     )
 

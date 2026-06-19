@@ -898,6 +898,119 @@ EPIGLOTTITIS_COMPLICATION_RISK_SAFETY_TERMS = (
     "sepsis",
     "기도폐쇄",
 )
+DEEP_NECK_INFECTION_CONTEXT_TERMS = (
+    "deep neck infection",
+    "deep neck space infection",
+    "deep neck space abscess",
+    "floor of mouth cellulitis",
+    "ludwig angina",
+    "ludwig's angina",
+    "parapharyngeal abscess",
+    "parapharyngeal infection",
+    "retropharyngeal abscess",
+    "retropharyngeal infection",
+    "submandibular space infection",
+    "submental space infection",
+    "sublingual space infection",
+)
+DEEP_NECK_INFECTION_RISK_TERMS = (
+    "airway compromise",
+    "airway obstruction",
+    "bull neck",
+    "dental infection",
+    "drooling",
+    "dysphagia",
+    "floor of mouth swelling",
+    "hot potato voice",
+    "inability to manage secretions",
+    "neck swelling",
+    "odontogenic",
+    "respiratory distress",
+    "stridor",
+    "submandibular swelling",
+    "tongue elevation",
+    "trismus",
+    "voice change",
+)
+DEEP_NECK_AIRWAY_ACTION_TERMS = (
+    "airway",
+    "awake fiberoptic",
+    "awake fibreoptic",
+    "cricothyrotomy",
+    "fiberoptic intubation",
+    "intubation",
+    "nasotracheal",
+    "oxygen",
+    "secure airway",
+    "surgical airway",
+    "tracheostomy",
+)
+DEEP_NECK_SPECIALIST_ACTION_TERMS = (
+    "anesthesia",
+    "anaesthesia",
+    "ent",
+    "icu",
+    "intensivist",
+    "oral maxillofacial",
+    "otolaryngology",
+    "omfs",
+)
+DEEP_NECK_ANTIBIOTIC_ACTION_TERMS = (
+    "ampicillin-sulbactam",
+    "anaerobic",
+    "antibiotic",
+    "broad-spectrum",
+    "clindamycin",
+    "metronidazole",
+    "piperacillin-tazobactam",
+    "vancomycin",
+)
+DEEP_NECK_IMAGING_SOURCE_ACTION_TERMS = (
+    "abscess",
+    "blood culture",
+    "contrast ct",
+    "ct neck",
+    "drainage",
+    "incision and drainage",
+    "source control",
+    "tooth extraction",
+)
+DEEP_NECK_AIRWAY_FIRST_SAFETY_TERMS = (
+    "after airway",
+    "airway first",
+    "airway secured",
+    "before ct",
+    "imaging after airway",
+    "stable for imaging",
+)
+DEEP_NECK_AVOID_AIRWAY_HARM_SAFETY_TERMS = (
+    "avoid blind nasotracheal",
+    "avoid sedation",
+    "avoid supine",
+    "cricothyrotomy backup",
+    "front-of-neck",
+    "surgical airway backup",
+    "tracheostomy backup",
+)
+DEEP_NECK_MRSA_IMMUNOCOMPROMISED_SAFETY_TERMS = (
+    "diabetes",
+    "gram-negative",
+    "immunocompromised",
+    "meropenem",
+    "mrsa",
+    "piperacillin-tazobactam",
+    "vancomycin",
+)
+DEEP_NECK_DRAINAGE_COMPLICATION_SAFETY_TERMS = (
+    "abscess",
+    "airway obstruction",
+    "aspiration pneumonia",
+    "descending necrotizing mediastinitis",
+    "drainage",
+    "mediastinitis",
+    "no clinical improvement",
+    "sepsis",
+)
 CROUP_CONTEXT_TERMS = (
     "barky cough",
     "croup",
@@ -13283,6 +13396,42 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="deep_neck_infection_time_critical_actions",
+            applies=_requires_deep_neck_infection_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_deep_neck_infection_time_critical_actions,
+            issue=(
+                "deep neck infection time-critical actions must include airway "
+                "assessment or airway-control planning with oxygen, awake "
+                "fiberoptic or nasotracheal intubation, surgical airway, "
+                "cricothyrotomy, tracheostomy, or secure-airway planning, ENT, "
+                "otolaryngology, anesthesia, oral-maxillofacial surgery, ICU, "
+                "intensivist, or specialist escalation, IV broad-spectrum "
+                "antibiotics such as ampicillin-sulbactam, clindamycin, "
+                "metronidazole, piperacillin-tazobactam, vancomycin, or "
+                "anaerobic coverage, and CT neck with contrast, blood culture, "
+                "abscess, drainage, source control, or tooth extraction planning"
+            ),
+        ),
+        DomainSafetyGate(
+            name="deep_neck_infection_treatment_safety",
+            applies=_requires_deep_neck_infection_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_deep_neck_infection_treatment_safety_check,
+            issue=(
+                "deep neck infection safety checks must include airway-first "
+                "sequencing such as airway secured before CT or imaging only when "
+                "stable, avoidance of airway harm such as blind nasotracheal "
+                "intubation, avoidable sedation, supine positioning, or "
+                "surgical-airway backup planning, MRSA, diabetes, "
+                "immunocompromised, gram-negative, vancomycin, meropenem, or "
+                "piperacillin-tazobactam coverage review, and drainage or "
+                "complication planning for abscess, no clinical improvement, "
+                "airway obstruction, mediastinitis, descending necrotizing "
+                "mediastinitis, aspiration pneumonia, or sepsis"
+            ),
+        ),
+        DomainSafetyGate(
             name="croup_time_critical_actions",
             applies=_requires_croup_safety_check,
             field_name="time_critical_actions",
@@ -17077,6 +17226,85 @@ def _has_epiglottitis_treatment_safety_check(checks: list[Any]) -> bool:
         and has_airway_backup
         and has_steroid_adjunct
         and has_complication_risk
+    )
+
+
+def _requires_deep_neck_infection_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in DEEP_NECK_INFECTION_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in DEEP_NECK_INFECTION_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_deep_neck_infection_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_airway = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DEEP_NECK_AIRWAY_ACTION_TERMS
+    )
+    has_specialist = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DEEP_NECK_SPECIALIST_ACTION_TERMS
+    )
+    has_antibiotics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DEEP_NECK_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_imaging_source = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DEEP_NECK_IMAGING_SOURCE_ACTION_TERMS
+    )
+    return has_airway and has_specialist and has_antibiotics and has_imaging_source
+
+
+def _has_deep_neck_infection_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_airway_first = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DEEP_NECK_AIRWAY_FIRST_SAFETY_TERMS
+    )
+    has_avoid_airway_harm = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DEEP_NECK_AVOID_AIRWAY_HARM_SAFETY_TERMS
+    )
+    has_mrsa_immunocompromised = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DEEP_NECK_MRSA_IMMUNOCOMPROMISED_SAFETY_TERMS
+    )
+    has_drainage_complication = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DEEP_NECK_DRAINAGE_COMPLICATION_SAFETY_TERMS
+    )
+    return (
+        has_airway_first
+        and has_avoid_airway_harm
+        and has_mrsa_immunocompromised
+        and has_drainage_complication
     )
 
 

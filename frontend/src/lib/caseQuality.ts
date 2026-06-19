@@ -948,6 +948,129 @@ const EPIGLOTTITIS_COMPLICATION_RISK_SAFETY_TERMS = [
   "기도폐쇄",
 ];
 
+const DEEP_NECK_INFECTION_CONTEXT_TERMS = [
+  "deep neck infection",
+  "deep neck space infection",
+  "deep neck space abscess",
+  "floor of mouth cellulitis",
+  "ludwig angina",
+  "ludwig's angina",
+  "parapharyngeal abscess",
+  "parapharyngeal infection",
+  "retropharyngeal abscess",
+  "retropharyngeal infection",
+  "submandibular space infection",
+  "submental space infection",
+  "sublingual space infection",
+];
+
+const DEEP_NECK_INFECTION_RISK_TERMS = [
+  "airway compromise",
+  "airway obstruction",
+  "bull neck",
+  "dental infection",
+  "drooling",
+  "dysphagia",
+  "floor of mouth swelling",
+  "hot potato voice",
+  "inability to manage secretions",
+  "neck swelling",
+  "odontogenic",
+  "respiratory distress",
+  "stridor",
+  "submandibular swelling",
+  "tongue elevation",
+  "trismus",
+  "voice change",
+];
+
+const DEEP_NECK_AIRWAY_ACTION_TERMS = [
+  "airway",
+  "awake fiberoptic",
+  "awake fibreoptic",
+  "cricothyrotomy",
+  "fiberoptic intubation",
+  "intubation",
+  "nasotracheal",
+  "oxygen",
+  "secure airway",
+  "surgical airway",
+  "tracheostomy",
+];
+
+const DEEP_NECK_SPECIALIST_ACTION_TERMS = [
+  "anesthesia",
+  "anaesthesia",
+  "ent",
+  "icu",
+  "intensivist",
+  "oral maxillofacial",
+  "otolaryngology",
+  "omfs",
+];
+
+const DEEP_NECK_ANTIBIOTIC_ACTION_TERMS = [
+  "ampicillin-sulbactam",
+  "anaerobic",
+  "antibiotic",
+  "broad-spectrum",
+  "clindamycin",
+  "metronidazole",
+  "piperacillin-tazobactam",
+  "vancomycin",
+];
+
+const DEEP_NECK_IMAGING_SOURCE_ACTION_TERMS = [
+  "abscess",
+  "blood culture",
+  "contrast ct",
+  "ct neck",
+  "drainage",
+  "incision and drainage",
+  "source control",
+  "tooth extraction",
+];
+
+const DEEP_NECK_AIRWAY_FIRST_SAFETY_TERMS = [
+  "after airway",
+  "airway first",
+  "airway secured",
+  "before ct",
+  "imaging after airway",
+  "stable for imaging",
+];
+
+const DEEP_NECK_AVOID_AIRWAY_HARM_SAFETY_TERMS = [
+  "avoid blind nasotracheal",
+  "avoid sedation",
+  "avoid supine",
+  "cricothyrotomy backup",
+  "front-of-neck",
+  "surgical airway backup",
+  "tracheostomy backup",
+];
+
+const DEEP_NECK_MRSA_IMMUNOCOMPROMISED_SAFETY_TERMS = [
+  "diabetes",
+  "gram-negative",
+  "immunocompromised",
+  "meropenem",
+  "mrsa",
+  "piperacillin-tazobactam",
+  "vancomycin",
+];
+
+const DEEP_NECK_DRAINAGE_COMPLICATION_SAFETY_TERMS = [
+  "abscess",
+  "airway obstruction",
+  "aspiration pneumonia",
+  "descending necrotizing mediastinitis",
+  "drainage",
+  "mediastinitis",
+  "no clinical improvement",
+  "sepsis",
+];
+
 const CROUP_CONTEXT_TERMS = [
   "barky cough",
   "croup",
@@ -14433,6 +14556,65 @@ function hasEpiglottitisTreatmentSafetyCheck(checks: string[]): boolean {
   return hasAgitationSafety && hasAirwayBackup && hasSteroidAdjunct && hasComplicationRisk;
 }
 
+function requiresDeepNeckInfectionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = DEEP_NECK_INFECTION_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = DEEP_NECK_INFECTION_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasDeepNeckInfectionTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAirway = DEEP_NECK_AIRWAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSpecialist = DEEP_NECK_SPECIALIST_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntibiotics = DEEP_NECK_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImagingSource = DEEP_NECK_IMAGING_SOURCE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAirway && hasSpecialist && hasAntibiotics && hasImagingSource;
+}
+
+function hasDeepNeckInfectionTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasAirwayFirst = DEEP_NECK_AIRWAY_FIRST_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAvoidAirwayHarm = DEEP_NECK_AVOID_AIRWAY_HARM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMrsaImmunocompromised = DEEP_NECK_MRSA_IMMUNOCOMPROMISED_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDrainageComplication = DEEP_NECK_DRAINAGE_COMPLICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasAirwayFirst && hasAvoidAirwayHarm && hasMrsaImmunocompromised && hasDrainageComplication;
+}
+
 function requiresCroupSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -22263,6 +22445,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasEpiglottitisTreatmentSafetyCheck,
       issue:
         "epiglottitis safety checks must include avoiding agitation, unnecessary throat exam, tongue depressor, avoidable procedures, or sedation that could precipitate airway collapse, anesthesia, ENT, failed-airway, surgical-airway, tracheostomy, or front-of-neck backup planning, corticosteroid, dexamethasone, methylprednisolone, or steroid-adjunct consideration, and complication-risk review for rapid deterioration, airway compromise, respiratory failure, abscess, diabetes, immunocompromised state, sepsis, or airway obstruction",
+    },
+    {
+      name: "deep_neck_infection_time_critical_actions",
+      label: "Deep neck infection airway and source control",
+      applies: requiresDeepNeckInfectionSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasDeepNeckInfectionTimeCriticalActions,
+      issue:
+        "deep neck infection time-critical actions must include airway assessment or airway-control planning with oxygen, awake fiberoptic or nasotracheal intubation, surgical airway, cricothyrotomy, tracheostomy, or secure-airway planning, ENT, otolaryngology, anesthesia, oral-maxillofacial surgery, ICU, intensivist, or specialist escalation, IV broad-spectrum antibiotics such as ampicillin-sulbactam, clindamycin, metronidazole, piperacillin-tazobactam, vancomycin, or anaerobic coverage, and CT neck with contrast, blood culture, abscess, drainage, source control, or tooth extraction planning",
+    },
+    {
+      name: "deep_neck_infection_treatment_safety",
+      label: "Deep neck infection airway safety",
+      applies: requiresDeepNeckInfectionSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasDeepNeckInfectionTreatmentSafetyCheck,
+      issue:
+        "deep neck infection safety checks must include airway-first sequencing such as airway secured before CT or imaging only when stable, avoidance of airway harm such as blind nasotracheal intubation, avoidable sedation, supine positioning, or surgical-airway backup planning, MRSA, diabetes, immunocompromised, gram-negative, vancomycin, meropenem, or piperacillin-tazobactam coverage review, and drainage or complication planning for abscess, no clinical improvement, airway obstruction, mediastinitis, descending necrotizing mediastinitis, aspiration pneumonia, or sepsis",
     },
     {
       name: "croup_time_critical_actions",
