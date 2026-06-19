@@ -8896,6 +8896,92 @@ BOTULISM_SUPPORTIVE_COMPLICATION_SAFETY_TERMS = (
     "secretions",
     "urinary tract infection",
 )
+TICK_PARALYSIS_DIRECT_CONTEXT_TERMS = (
+    "paralysis tick",
+    "tick neurotoxin",
+    "tick paralysis",
+)
+TICK_PARALYSIS_RISK_TERMS = (
+    "acute ataxia",
+    "areflexia",
+    "ascending paralysis",
+    "ascending weakness",
+    "ataxia",
+    "facial palsy",
+    "flaccid paralysis",
+    "ophthalmoplegia",
+    "respiratory failure",
+    "tick attached",
+    "weakness",
+)
+TICK_PARALYSIS_SEARCH_ACTION_TERMS = (
+    "axilla",
+    "behind the ears",
+    "full skin exam",
+    "hairline",
+    "interdigital",
+    "perineum",
+    "scalp",
+    "skin search",
+    "tick search",
+)
+TICK_PARALYSIS_REMOVAL_ACTION_TERMS = (
+    "complete tick removal",
+    "fine forceps",
+    "remove tick",
+    "remove the tick",
+    "steady traction",
+    "tick removal",
+)
+TICK_PARALYSIS_RESPIRATORY_ACTION_TERMS = (
+    "abg",
+    "blood gas",
+    "intubation",
+    "mechanical ventilation",
+    "pulmonary function",
+    "respiratory monitoring",
+    "respiratory support",
+)
+TICK_PARALYSIS_DIFFERENTIAL_ACTION_TERMS = (
+    "botulism",
+    "guillain-barre",
+    "guillain barre",
+    "miller fisher",
+    "myasthenia",
+    "spinal cord",
+)
+TICK_PARALYSIS_IVIG_PLEX_SAFETY_TERMS = (
+    "immune globulin not helpful",
+    "ivig not helpful",
+    "plasmapheresis not helpful",
+    "plex not helpful",
+    "unnecessary ivig",
+    "unnecessary plasmapheresis",
+)
+TICK_PARALYSIS_MOUTHPARTS_SAFETY_TERMS = (
+    "avoid leaving mouthparts",
+    "embedded mouthparts",
+    "mouth parts",
+    "mouthparts",
+    "remove entire tick",
+)
+TICK_PARALYSIS_OBSERVATION_SAFETY_TERMS = (
+    "australian tick",
+    "inpatient observation",
+    "ixodes holocyclus",
+    "respiratory compromise",
+    "worsen after removal",
+    "24 to 48 hours",
+)
+TICK_PARALYSIS_INFECTION_SAFETY_TERMS = (
+    "ehrlichiosis",
+    "fever",
+    "lyme",
+    "rash",
+    "rickettsial",
+    "rocky mountain spotted fever",
+    "tick-borne infection",
+)
 DKA_TREATMENT_TRIGGER_TERMS = (
     "anion gap",
     "diabetic ketoacidosis",
@@ -16278,6 +16364,38 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "supportive complication prevention for bladder, bowel, urinary "
                 "tract infection, DVT, pressure ulcers, dry eyes, dry mouth, "
                 "secretions, communication, or rehabilitation"
+            ),
+        ),
+        DomainSafetyGate(
+            name="tick_paralysis_time_critical_actions",
+            applies=_requires_tick_paralysis_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_tick_paralysis_time_critical_actions,
+            issue=(
+                "tick paralysis time-critical actions must include a complete skin "
+                "and tick search including scalp, behind ears, hairline, axilla, "
+                "interdigital spaces, or perineum, complete tick removal using "
+                "fine forceps, steady traction, remove tick, or tick removal, "
+                "respiratory monitoring or support with pulmonary function testing, "
+                "ABG, blood gas, intubation, or mechanical ventilation when needed, "
+                "and differential review for Guillain-Barre, Miller Fisher, "
+                "botulism, myasthenia, or spinal cord disease"
+            ),
+        ),
+        DomainSafetyGate(
+            name="tick_paralysis_treatment_safety",
+            applies=_requires_tick_paralysis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_tick_paralysis_treatment_safety_check,
+            issue=(
+                "tick paralysis safety checks must include avoiding unnecessary "
+                "IVIG, immune globulin, plasmapheresis, or PLEX because these are "
+                "not helpful for tick paralysis, removing the entire tick without "
+                "leaving embedded mouthparts, inpatient observation or 24-48 hour "
+                "monitoring for respiratory compromise or Ixodes holocyclus/Australian "
+                "tick worsening after removal, and fever, rash, Lyme, ehrlichiosis, "
+                "Rocky Mountain spotted fever, rickettsial, or other tick-borne "
+                "infection review"
             ),
         ),
         DomainSafetyGate(
@@ -24399,6 +24517,90 @@ def _has_botulism_treatment_safety_check(checks: list[Any]) -> bool:
         and has_infant_antitoxin
         and has_wound_source
         and has_supportive_complication
+    )
+
+
+def _requires_tick_paralysis_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in TICK_PARALYSIS_DIRECT_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in TICK_PARALYSIS_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_tick_paralysis_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_tick_search = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TICK_PARALYSIS_SEARCH_ACTION_TERMS
+    )
+    has_tick_removal = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TICK_PARALYSIS_REMOVAL_ACTION_TERMS
+    )
+    has_respiratory_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TICK_PARALYSIS_RESPIRATORY_ACTION_TERMS
+    )
+    has_differential_review = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TICK_PARALYSIS_DIFFERENTIAL_ACTION_TERMS
+    )
+    return (
+        has_tick_search
+        and has_tick_removal
+        and has_respiratory_support
+        and has_differential_review
+    )
+
+
+def _has_tick_paralysis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_ivig_plex_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TICK_PARALYSIS_IVIG_PLEX_SAFETY_TERMS
+    )
+    has_mouthparts_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TICK_PARALYSIS_MOUTHPARTS_SAFETY_TERMS
+    )
+    has_observation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TICK_PARALYSIS_OBSERVATION_SAFETY_TERMS
+    )
+    has_infection_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TICK_PARALYSIS_INFECTION_SAFETY_TERMS
+    )
+    return (
+        has_ivig_plex_safety
+        and has_mouthparts_safety
+        and has_observation_safety
+        and has_infection_safety
     )
 
 

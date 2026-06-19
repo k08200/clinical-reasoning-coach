@@ -212,6 +212,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "myasthenic_crisis_treatment_safety",
         "botulism_time_critical_actions",
         "botulism_treatment_safety",
+        "tick_paralysis_time_critical_actions",
+        "tick_paralysis_treatment_safety",
         "dka_time_critical_actions",
         "dka_contraindication_safety",
         "dka_advanced_insulin_transition_safety",
@@ -12013,6 +12015,144 @@ def test_quality_gate_requires_botulism_no_wait_infant_wound_and_supportive_safe
     assert not report.passed
     assert any(
         "botulism safety checks must include not delaying" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_tick_paralysis_skin_search_removal_respiratory_and_differential_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Tick paralysis with ascending weakness"
+    case["patient_demographics"] = {
+        "age": 7,
+        "sex": "female",
+        "weight_kg": 24,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Acute ataxia and ascending weakness after camping"
+    case["history_of_present_illness"] = (
+        "Child presents after camping with acute ataxia, ascending weakness, "
+        "areflexia, flaccid paralysis, facial palsy, ophthalmoplegia, tick attached "
+        "near the scalp, and worsening respiratory effort concerning for tick paralysis."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "96/58", "hr": 112, "rr": 28, "spo2": 93},
+        "general": "Alert child with progressive weakness",
+        "pulmonary": "Shallow breathing with weak cough",
+        "neuro": "Ataxia, areflexia, ascending weakness, and facial palsy",
+    }
+    case["key_teaching_points"] = [
+        "Tick paralysis is an acute ataxia progressing to ascending paralysis and can mimic Guillain-Barre syndrome",
+        "A careful full skin exam and tick search should include scalp, behind the ears, hairline, axilla, interdigital spaces, and perineum",
+        "Treatment is complete tick removal with fine forceps and steady traction plus supportive care",
+        "Respiratory involvement needs pulmonary function testing, ABG or blood gas, respiratory monitoring, intubation, and mechanical ventilation if needed",
+    ]
+    case["clinical_red_flags"] = [
+        "Acute ataxia, ascending paralysis, ascending weakness, areflexia, flaccid paralysis, facial palsy, or ophthalmoplegia",
+        "Respiratory failure, weak cough, tick attached, rapid progression, or preserved mental status",
+    ]
+    case["time_critical_actions"] = [
+        "Send CSF and start IVIG for possible GBS",
+        "Arrange outpatient neurology follow-up",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid unnecessary IVIG, immune globulin, plasmapheresis, or PLEX because these are not helpful for tick paralysis",
+        "Remove entire tick and avoid leaving embedded mouthparts or mouth parts in the wound",
+        "Use inpatient observation and 24 to 48 hours monitoring for respiratory compromise or Ixodes holocyclus Australian tick worsening after removal",
+        "Review fever, rash, Lyme, ehrlichiosis, Rocky Mountain spotted fever, rickettsial disease, and other tick-borne infection clues",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tick Paralysis",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK470478/",
+            "supports": [
+                "tick paralysis with ascending weakness diagnosis and risk stratification",
+                "tick paralysis is acute ataxia progressing to ascending paralysis and can mimic Guillain-Barre syndrome",
+                "full skin exam and tick search including scalp, behind the ears, hairline, axilla, interdigital spaces, and perineum",
+                "complete tick removal with fine forceps and steady traction plus supportive care",
+                "respiratory involvement needs pulmonary function testing, ABG or blood gas, respiratory monitoring, intubation, and mechanical ventilation if needed",
+                "acute ataxia, ascending paralysis, ascending weakness, areflexia, flaccid paralysis, facial palsy, or ophthalmoplegia as red flags",
+                "respiratory failure, weak cough, tick attached, rapid progression, or preserved mental status as severity markers",
+                "avoid unnecessary IVIG, immune globulin, plasmapheresis, or PLEX because these are not helpful for tick paralysis",
+                "remove entire tick and avoid leaving embedded mouthparts or mouth parts in the wound",
+                "inpatient observation and 24 to 48 hours monitoring for respiratory compromise or Ixodes holocyclus Australian tick worsening after removal",
+                "fever, rash, Lyme, ehrlichiosis, Rocky Mountain spotted fever, rickettsial disease, and other tick-borne infection review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "tick paralysis time-critical actions must include a complete skin"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_tick_paralysis_ivig_mouthparts_observation_and_infection_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Tick neurotoxin paralysis"
+    case["patient_demographics"] = {
+        "age": 5,
+        "sex": "male",
+        "weight_kg": 19,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Rapid flaccid paralysis and trouble breathing"
+    case["history_of_present_illness"] = (
+        "Child has tick paralysis from a paralysis tick with acute ataxia, "
+        "ascending paralysis, areflexia, flaccid paralysis, ophthalmoplegia, "
+        "weakness, and early respiratory failure after a tick was found at the hairline."
+    )
+    case["key_teaching_points"] = [
+        "Tick paralysis is caused by tick salivary neurotoxin and can progress to respiratory failure and death if untreated",
+        "Diagnosis requires a careful scalp, behind the ears, hairline, axilla, interdigital spaces, perineum, and full skin exam tick search",
+        "Remove the tick completely with fine forceps, steady traction, remove tick or tick removal technique",
+        "Check pulmonary function, ABG or blood gas, respiratory monitoring, respiratory support, intubation, or mechanical ventilation when severe",
+        "Review Guillain-Barre, Miller Fisher, botulism, myasthenia, and spinal cord disease mimics",
+    ]
+    case["clinical_red_flags"] = [
+        "Acute ataxia, ascending weakness, ascending paralysis, areflexia, flaccid paralysis, or ophthalmoplegia",
+        "Respiratory failure, rapid progression, facial palsy, tick attached, or no fever",
+    ]
+    case["time_critical_actions"] = [
+        "Perform full skin exam and tick search of scalp, behind the ears, hairline, axilla, interdigital spaces, and perineum",
+        "Use fine forceps and steady traction for complete tick removal",
+        "Assess pulmonary function, ABG blood gas, respiratory monitoring, respiratory support, intubation, or mechanical ventilation when needed",
+        "Review Guillain-Barre, Miller Fisher, botulism, myasthenia, and spinal cord disease mimics",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before analgesics",
+        "Renal function before imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tick Paralysis",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK470478/",
+            "supports": [
+                "tick neurotoxin paralysis diagnosis and risk stratification",
+                "tick paralysis is caused by tick salivary neurotoxin and can progress to respiratory failure and death if untreated",
+                "careful scalp, behind the ears, hairline, axilla, interdigital spaces, perineum, and full skin exam tick search",
+                "complete tick removal with fine forceps, steady traction, remove tick or tick removal technique",
+                "pulmonary function, ABG or blood gas, respiratory monitoring, respiratory support, intubation, or mechanical ventilation when severe",
+                "Guillain-Barre, Miller Fisher, botulism, myasthenia, and spinal cord disease mimics",
+                "acute ataxia, ascending weakness, ascending paralysis, areflexia, flaccid paralysis, or ophthalmoplegia as red flags",
+                "respiratory failure, rapid progression, facial palsy, tick attached, or no fever as severity markers",
+                "medication allergy before analgesics",
+                "renal function before imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "tick paralysis safety checks must include avoiding unnecessary IVIG"
+        in issue
         for issue in report.critical_issues
     )
 

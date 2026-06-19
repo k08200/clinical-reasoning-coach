@@ -9747,6 +9747,102 @@ const BOTULISM_SUPPORTIVE_COMPLICATION_SAFETY_TERMS = [
   "urinary tract infection",
 ];
 
+const TICK_PARALYSIS_DIRECT_CONTEXT_TERMS = [
+  "paralysis tick",
+  "tick neurotoxin",
+  "tick paralysis",
+];
+
+const TICK_PARALYSIS_RISK_TERMS = [
+  "acute ataxia",
+  "areflexia",
+  "ascending paralysis",
+  "ascending weakness",
+  "ataxia",
+  "facial palsy",
+  "flaccid paralysis",
+  "ophthalmoplegia",
+  "respiratory failure",
+  "tick attached",
+  "weakness",
+];
+
+const TICK_PARALYSIS_SEARCH_ACTION_TERMS = [
+  "axilla",
+  "behind the ears",
+  "full skin exam",
+  "hairline",
+  "interdigital",
+  "perineum",
+  "scalp",
+  "skin search",
+  "tick search",
+];
+
+const TICK_PARALYSIS_REMOVAL_ACTION_TERMS = [
+  "complete tick removal",
+  "fine forceps",
+  "remove tick",
+  "remove the tick",
+  "steady traction",
+  "tick removal",
+];
+
+const TICK_PARALYSIS_RESPIRATORY_ACTION_TERMS = [
+  "abg",
+  "blood gas",
+  "intubation",
+  "mechanical ventilation",
+  "pulmonary function",
+  "respiratory monitoring",
+  "respiratory support",
+];
+
+const TICK_PARALYSIS_DIFFERENTIAL_ACTION_TERMS = [
+  "botulism",
+  "guillain-barre",
+  "guillain barre",
+  "miller fisher",
+  "myasthenia",
+  "spinal cord",
+];
+
+const TICK_PARALYSIS_IVIG_PLEX_SAFETY_TERMS = [
+  "immune globulin not helpful",
+  "ivig not helpful",
+  "plasmapheresis not helpful",
+  "plex not helpful",
+  "unnecessary ivig",
+  "unnecessary plasmapheresis",
+];
+
+const TICK_PARALYSIS_MOUTHPARTS_SAFETY_TERMS = [
+  "avoid leaving mouthparts",
+  "embedded mouthparts",
+  "mouth parts",
+  "mouthparts",
+  "remove entire tick",
+];
+
+const TICK_PARALYSIS_OBSERVATION_SAFETY_TERMS = [
+  "australian tick",
+  "inpatient observation",
+  "ixodes holocyclus",
+  "respiratory compromise",
+  "worsen after removal",
+  "24 to 48 hours",
+];
+
+const TICK_PARALYSIS_INFECTION_SAFETY_TERMS = [
+  "ehrlichiosis",
+  "fever",
+  "lyme",
+  "rash",
+  "rickettsial",
+  "rocky mountain spotted fever",
+  "tick-borne infection",
+];
+
 const DKA_TREATMENT_TRIGGER_TERMS = [
   "anion gap",
   "diabetic ketoacidosis",
@@ -20310,6 +20406,65 @@ function hasBotulismTreatmentSafetyCheck(checks: string[]): boolean {
   return hasNoWaitLab && hasInfantAntitoxin && hasWoundSource && hasSupportiveComplication;
 }
 
+function requiresTickParalysisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = TICK_PARALYSIS_DIRECT_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = TICK_PARALYSIS_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasTickParalysisTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasTickSearch = TICK_PARALYSIS_SEARCH_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTickRemoval = TICK_PARALYSIS_REMOVAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRespiratorySupport = TICK_PARALYSIS_RESPIRATORY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDifferentialReview = TICK_PARALYSIS_DIFFERENTIAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasTickSearch && hasTickRemoval && hasRespiratorySupport && hasDifferentialReview;
+}
+
+function hasTickParalysisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasIvigPlexSafety = TICK_PARALYSIS_IVIG_PLEX_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMouthpartsSafety = TICK_PARALYSIS_MOUTHPARTS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasObservationSafety = TICK_PARALYSIS_OBSERVATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInfectionSafety = TICK_PARALYSIS_INFECTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasIvigPlexSafety && hasMouthpartsSafety && hasObservationSafety && hasInfectionSafety;
+}
+
 function requiresDkaTreatmentSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.diagnosis,
@@ -24715,6 +24870,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasBotulismTreatmentSafetyCheck,
       issue:
         "botulism safety checks must include not delaying or waiting for laboratory confirmation before empiric treatment, infant-specific antitoxin planning such as BabyBIG or human botulism immune globulin versus heptavalent antitoxin, wound botulism source control with surgical debridement and antibiotic review, and supportive complication prevention for bladder, bowel, urinary tract infection, DVT, pressure ulcers, dry eyes, dry mouth, secretions, communication, or rehabilitation",
+    },
+    {
+      name: "tick_paralysis_time_critical_actions",
+      label: "Tick paralysis search and respiratory actions",
+      applies: requiresTickParalysisSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasTickParalysisTimeCriticalActions,
+      issue:
+        "tick paralysis time-critical actions must include a complete skin and tick search including scalp, behind ears, hairline, axilla, interdigital spaces, or perineum, complete tick removal using fine forceps, steady traction, remove tick, or tick removal, respiratory monitoring or support with pulmonary function testing, ABG, blood gas, intubation, or mechanical ventilation when needed, and differential review for Guillain-Barre, Miller Fisher, botulism, myasthenia, or spinal cord disease",
+    },
+    {
+      name: "tick_paralysis_treatment_safety",
+      label: "Tick paralysis treatment safety",
+      applies: requiresTickParalysisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasTickParalysisTreatmentSafetyCheck,
+      issue:
+        "tick paralysis safety checks must include avoiding unnecessary IVIG, immune globulin, plasmapheresis, or PLEX because these are not helpful for tick paralysis, removing the entire tick without leaving embedded mouthparts, inpatient observation or 24-48 hour monitoring for respiratory compromise or Ixodes holocyclus/Australian tick worsening after removal, and fever, rash, Lyme, ehrlichiosis, Rocky Mountain spotted fever, rickettsial, or other tick-borne infection review",
     },
     {
       name: "dka_time_critical_actions",
