@@ -2194,6 +2194,106 @@ const PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS = [
   "transfusion",
 ];
 
+const PLACENTA_PREVIA_CONTEXT_TERMS = [
+  "low-lying placenta",
+  "placenta previa",
+  "placenta praevia",
+];
+
+const PLACENTA_PREVIA_RISK_TERMS = [
+  "antepartum bleeding",
+  "hemorrhagic shock",
+  "late pregnancy bleeding",
+  "nonreassuring fetal",
+  "painless bleeding",
+  "painless vaginal bleeding",
+  "second trimester bleeding",
+  "third trimester bleeding",
+  "vaginal bleeding",
+];
+
+const PLACENTA_PREVIA_ULTRASOUND_ACTION_TERMS = [
+  "transvaginal ultrasound",
+  "transvaginal ultrasonography",
+  "ultrasound",
+  "ultrasonography",
+];
+
+const PLACENTA_PREVIA_FETAL_MONITOR_ACTION_TERMS = [
+  "continuous fetal",
+  "fetal heart",
+  "fetal monitoring",
+  "fetal status",
+  "fhr",
+  "nonreassuring",
+];
+
+const PLACENTA_PREVIA_HEMORRHAGE_ACTION_TERMS = [
+  "blood product",
+  "crossmatch",
+  "hemodynamic",
+  "hemorrhage",
+  "iv access",
+  "large-bore",
+  "shock",
+  "transfusion",
+  "type and screen",
+];
+
+const PLACENTA_PREVIA_CESAREAN_ACTION_TERMS = [
+  "caesarean",
+  "cesarean",
+  "delivery",
+  "immediate cesarean",
+  "operative",
+];
+
+const PLACENTA_PREVIA_NO_DIGITAL_EXAM_SAFETY_TERMS = [
+  "avoid digital",
+  "digital cervical examination",
+  "digital exam",
+  "do not perform pelvic",
+  "no digital",
+  "pelvic examination is contraindicated",
+];
+
+const PLACENTA_PREVIA_EXCLUDE_BY_ULTRASOUND_SAFETY_TERMS = [
+  "exclude placenta previa",
+  "rule out placenta previa",
+  "transvaginal ultrasound",
+  "transvaginal ultrasonography",
+  "ultrasound before pelvic",
+  "ultrasonography before pelvic",
+];
+
+const PLACENTA_PREVIA_STABLE_TIMING_SAFETY_TERMS = [
+  "36 to 37",
+  "36-37",
+  "36 to 37 6/7",
+  "36-37 6/7",
+  "cesarean",
+  "caesarean",
+  "lung maturity is not necessary",
+];
+
+const PLACENTA_PREVIA_UNSTABLE_DELIVERY_SAFETY_TERMS = [
+  "heavy bleeding",
+  "immediate cesarean",
+  "maternal hemodynamic instability",
+  "mother or fetus is unstable",
+  "nonreassuring fetal",
+  "severe bleeding",
+  "uncontrolled bleeding",
+];
+
+const PLACENTA_PREVIA_EXPECTANT_SAFETY_TERMS = [
+  "abstinence",
+  "avoidance of sexual activity",
+  "corticosteroid",
+  "hospitalization",
+  "modified activity",
+];
+
 const UMBILICAL_CORD_PROLAPSE_CONTEXT_TERMS = [
   "cord presentation",
   "cord prolapse",
@@ -14131,6 +14231,74 @@ function hasPlacentalAbruptionTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresPlacentaPreviaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = PLACENTA_PREVIA_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = PLACENTA_PREVIA_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasPlacentaPreviaTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasUltrasound = PLACENTA_PREVIA_ULTRASOUND_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFetalMonitoring = PLACENTA_PREVIA_FETAL_MONITOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHemorrhage = PLACENTA_PREVIA_HEMORRHAGE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCesarean = PLACENTA_PREVIA_CESAREAN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasUltrasound && hasFetalMonitoring && hasHemorrhage && hasCesarean;
+}
+
+function hasPlacentaPreviaTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasNoDigitalExamSafety = PLACENTA_PREVIA_NO_DIGITAL_EXAM_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasExcludeByUltrasoundSafety =
+    PLACENTA_PREVIA_EXCLUDE_BY_ULTRASOUND_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasStableTimingSafety = PLACENTA_PREVIA_STABLE_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasUnstableDeliverySafety = PLACENTA_PREVIA_UNSTABLE_DELIVERY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasExpectantSafety = PLACENTA_PREVIA_EXPECTANT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasNoDigitalExamSafety &&
+    hasExcludeByUltrasoundSafety &&
+    hasStableTimingSafety &&
+    hasUnstableDeliverySafety &&
+    hasExpectantSafety
+  );
+}
+
 function requiresUmbilicalCordProlapseSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -20842,6 +21010,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasPlacentalAbruptionTreatmentSafetyCheck,
       issue:
         "placental abruption safety checks must include placenta previa exclusion before pelvic examination and recognition that normal ultrasound does not rule out abruption, coagulation, fibrinogen, platelet, blood type, Rh immune globulin, or Kleihauer-Betke assessment, delivery or prompt cesarean criteria for maternal or fetal instability, ongoing bleeding, deterioration, term, or near-term pregnancy, and shock, DIC, coagulopathy, transfusion, blood-product, massive-transfusion, or fibrinogen safeguards",
+    },
+    {
+      name: "placenta_previa_time_critical_actions",
+      label: "Placenta previa bleeding actions",
+      applies: requiresPlacentaPreviaSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasPlacentaPreviaTimeCriticalActions,
+      issue:
+        "placenta previa time-critical actions must include ultrasound or transvaginal ultrasonography diagnosis, fetal heart rate or continuous fetal monitoring, hemorrhage stabilization with large-bore IV, type-and-screen, crossmatch, transfusion, blood products, shock, or hemodynamic support, and cesarean/caesarean, immediate cesarean, delivery, or operative escalation for severe bleeding or nonreassuring fetal status",
+    },
+    {
+      name: "placenta_previa_treatment_safety",
+      label: "Placenta previa exam and delivery safety",
+      applies: requiresPlacentaPreviaSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasPlacentaPreviaTreatmentSafetyCheck,
+      issue:
+        "placenta previa safety checks must include avoiding digital cervical or pelvic examination until placenta previa is excluded by ultrasound, ultrasound or transvaginal ultrasonography before pelvic examination for bleeding after 20 weeks, stable cesarean/caesarean delivery timing at 36 to 37 6/7 weeks without lung maturity documentation, immediate cesarean delivery for severe, uncontrolled, or heavy bleeding, maternal hemodynamic instability, or nonreassuring fetal status, and expectant management safeguards such as hospitalization, modified activity, avoidance of sexual activity, or corticosteroids when early delivery risk is present",
     },
     {
       name: "umbilical_cord_prolapse_time_critical_actions",

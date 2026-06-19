@@ -2037,6 +2037,95 @@ PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS = (
     "shock",
     "transfusion",
 )
+PLACENTA_PREVIA_CONTEXT_TERMS = (
+    "low-lying placenta",
+    "placenta previa",
+    "placenta praevia",
+)
+PLACENTA_PREVIA_RISK_TERMS = (
+    "antepartum bleeding",
+    "hemorrhagic shock",
+    "late pregnancy bleeding",
+    "nonreassuring fetal",
+    "painless bleeding",
+    "painless vaginal bleeding",
+    "second trimester bleeding",
+    "third trimester bleeding",
+    "vaginal bleeding",
+)
+PLACENTA_PREVIA_ULTRASOUND_ACTION_TERMS = (
+    "transvaginal ultrasound",
+    "transvaginal ultrasonography",
+    "ultrasound",
+    "ultrasonography",
+)
+PLACENTA_PREVIA_FETAL_MONITOR_ACTION_TERMS = (
+    "continuous fetal",
+    "fetal heart",
+    "fetal monitoring",
+    "fetal status",
+    "fhr",
+    "nonreassuring",
+)
+PLACENTA_PREVIA_HEMORRHAGE_ACTION_TERMS = (
+    "blood product",
+    "crossmatch",
+    "hemodynamic",
+    "hemorrhage",
+    "iv access",
+    "large-bore",
+    "shock",
+    "transfusion",
+    "type and screen",
+)
+PLACENTA_PREVIA_CESAREAN_ACTION_TERMS = (
+    "caesarean",
+    "cesarean",
+    "delivery",
+    "immediate cesarean",
+    "operative",
+)
+PLACENTA_PREVIA_NO_DIGITAL_EXAM_SAFETY_TERMS = (
+    "avoid digital",
+    "digital cervical examination",
+    "digital exam",
+    "do not perform pelvic",
+    "no digital",
+    "pelvic examination is contraindicated",
+)
+PLACENTA_PREVIA_EXCLUDE_BY_ULTRASOUND_SAFETY_TERMS = (
+    "exclude placenta previa",
+    "rule out placenta previa",
+    "transvaginal ultrasound",
+    "transvaginal ultrasonography",
+    "ultrasound before pelvic",
+    "ultrasonography before pelvic",
+)
+PLACENTA_PREVIA_STABLE_TIMING_SAFETY_TERMS = (
+    "36 to 37",
+    "36-37",
+    "36 to 37 6/7",
+    "36-37 6/7",
+    "cesarean",
+    "caesarean",
+    "lung maturity is not necessary",
+)
+PLACENTA_PREVIA_UNSTABLE_DELIVERY_SAFETY_TERMS = (
+    "heavy bleeding",
+    "immediate cesarean",
+    "maternal hemodynamic instability",
+    "mother or fetus is unstable",
+    "nonreassuring fetal",
+    "severe bleeding",
+    "uncontrolled bleeding",
+)
+PLACENTA_PREVIA_EXPECTANT_SAFETY_TERMS = (
+    "abstinence",
+    "avoidance of sexual activity",
+    "corticosteroid",
+    "hospitalization",
+    "modified activity",
+)
 UMBILICAL_CORD_PROLAPSE_CONTEXT_TERMS = (
     "cord presentation",
     "cord prolapse",
@@ -12687,6 +12776,39 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="placenta_previa_time_critical_actions",
+            applies=_requires_placenta_previa_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_placenta_previa_time_critical_actions,
+            issue=(
+                "placenta previa time-critical actions must include ultrasound "
+                "or transvaginal ultrasonography diagnosis, fetal heart rate or "
+                "continuous fetal monitoring, hemorrhage stabilization with "
+                "large-bore IV, type-and-screen, crossmatch, transfusion, blood "
+                "products, shock, or hemodynamic support, and cesarean/caesarean, "
+                "immediate cesarean, delivery, or operative escalation for severe "
+                "bleeding or nonreassuring fetal status"
+            ),
+        ),
+        DomainSafetyGate(
+            name="placenta_previa_treatment_safety",
+            applies=_requires_placenta_previa_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_placenta_previa_treatment_safety_check,
+            issue=(
+                "placenta previa safety checks must include avoiding digital "
+                "cervical or pelvic examination until placenta previa is excluded "
+                "by ultrasound, ultrasound or transvaginal ultrasonography before "
+                "pelvic examination for bleeding after 20 weeks, stable cesarean/"
+                "caesarean delivery timing at 36 to 37 6/7 weeks without lung "
+                "maturity documentation, immediate cesarean delivery for severe, "
+                "uncontrolled, or heavy bleeding, maternal hemodynamic instability, "
+                "or nonreassuring fetal status, and expectant management safeguards "
+                "such as hospitalization, modified activity, avoidance of sexual "
+                "activity, or corticosteroids when early delivery risk is present"
+            ),
+        ),
+        DomainSafetyGate(
             name="umbilical_cord_prolapse_time_critical_actions",
             applies=_requires_umbilical_cord_prolapse_safety_check,
             field_name="time_critical_actions",
@@ -15943,7 +16065,6 @@ def _requires_croup_safety_check(data: dict[str, Any]) -> bool:
         "key_teaching_points",
         "time_critical_actions",
         "clinical_red_flags",
-        "clinical_sources",
         "physical_exam",
         "initial_labs",
     ):
@@ -16809,6 +16930,89 @@ def _has_placental_abruption_treatment_safety_check(checks: list[Any]) -> bool:
         and has_coag_rh_safety
         and has_stability_delivery_safety
         and has_shock_dic_safety
+    )
+
+
+def _requires_placenta_previa_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in PLACENTA_PREVIA_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in PLACENTA_PREVIA_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_placenta_previa_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_ultrasound = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTA_PREVIA_ULTRASOUND_ACTION_TERMS
+    )
+    has_fetal_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTA_PREVIA_FETAL_MONITOR_ACTION_TERMS
+    )
+    has_hemorrhage = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTA_PREVIA_HEMORRHAGE_ACTION_TERMS
+    )
+    has_cesarean = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTA_PREVIA_CESAREAN_ACTION_TERMS
+    )
+    return has_ultrasound and has_fetal_monitoring and has_hemorrhage and has_cesarean
+
+
+def _has_placenta_previa_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_no_digital_exam_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_NO_DIGITAL_EXAM_SAFETY_TERMS
+    )
+    has_exclude_by_ultrasound_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_EXCLUDE_BY_ULTRASOUND_SAFETY_TERMS
+    )
+    has_stable_timing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_STABLE_TIMING_SAFETY_TERMS
+    )
+    has_unstable_delivery_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_UNSTABLE_DELIVERY_SAFETY_TERMS
+    )
+    has_expectant_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_EXPECTANT_SAFETY_TERMS
+    )
+    return (
+        has_no_digital_exam_safety
+        and has_exclude_by_ultrasound_safety
+        and has_stable_timing_safety
+        and has_unstable_delivery_safety
+        and has_expectant_safety
     )
 
 

@@ -77,6 +77,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "postpartum_hemorrhage_treatment_safety",
         "placental_abruption_time_critical_actions",
         "placental_abruption_treatment_safety",
+        "placenta_previa_time_critical_actions",
+        "placenta_previa_treatment_safety",
         "umbilical_cord_prolapse_time_critical_actions",
         "umbilical_cord_prolapse_treatment_safety",
         "vasa_previa_time_critical_actions",
@@ -2216,6 +2218,140 @@ def test_quality_gate_requires_placental_abruption_previa_coag_delivery_and_shoc
     assert not report.passed
     assert any(
         "placental abruption safety checks must include placenta previa exclusion"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_placenta_previa_ultrasound_fetal_hemorrhage_and_cesarean_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Placenta previa with heavy bleeding"
+    case["patient_demographics"] = {
+        "age": 36,
+        "sex": "female",
+        "weight_kg": 73,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Painless vaginal bleeding at 32 weeks"
+    case["history_of_present_illness"] = (
+        "Pregnant patient at 32 weeks has known placenta previa with sudden "
+        "painless vaginal bleeding, recurrent late pregnancy bleeding, tachycardia, "
+        "hypotension, and concern for hemorrhagic shock and nonreassuring fetal status."
+    )
+    case["key_teaching_points"] = [
+        "Placenta previa typically causes painless vaginal bleeding after 20 weeks",
+        "Diagnosis is by ultrasonography, and transvaginal ultrasonography is accurate and safe",
+        "Severe bleeding or nonreassuring fetal status requires immediate cesarean delivery",
+    ]
+    case["clinical_red_flags"] = [
+        "Painless vaginal bleeding after 20 weeks with known placenta previa",
+        "Heavy bleeding, hemorrhagic shock, hypotension, or nonreassuring fetal status",
+    ]
+    case["time_critical_actions"] = [
+        "Trend bleeding amount and observe contractions",
+        "Repeat outpatient imaging if bleeding stops",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid digital cervical examination and do not perform pelvic examination until placenta previa is excluded by ultrasound",
+        "Use ultrasound before pelvic examination and transvaginal ultrasonography before pelvic exam for bleeding after 20 weeks",
+        "Plan stable placenta previa cesarean delivery at 36 to 37 6/7 weeks; lung maturity is not necessary",
+        "Proceed to immediate cesarean for heavy bleeding, uncontrolled bleeding, maternal hemodynamic instability, or nonreassuring fetal status",
+        "For first bleeding before 36 weeks, use hospitalization, modified activity, avoidance of sexual activity, and corticosteroids when early delivery risk is present",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Placenta Previa",
+            "organization": "MSD Manual Professional Edition",
+            "url": "https://www.msdmanuals.com/professional/gynecology-and-obstetrics/antenatal-complications/placenta-previa",
+            "supports": [
+                "placenta previa with heavy bleeding diagnosis and risk stratification",
+                "placenta previa typically causes painless vaginal bleeding after 20 weeks",
+                "diagnosis is by ultrasonography and transvaginal ultrasonography is accurate and safe",
+                "severe bleeding or nonreassuring fetal status requires immediate cesarean delivery",
+                "painless vaginal bleeding after 20 weeks with known placenta previa",
+                "heavy bleeding, hemorrhagic shock, hypotension, or nonreassuring fetal status",
+                "bleeding amount trend and contraction observation",
+                "outpatient imaging if bleeding stops",
+                "avoid digital cervical examination and do not perform pelvic examination until placenta previa is excluded by ultrasound",
+                "ultrasound before pelvic examination and transvaginal ultrasonography before pelvic exam for bleeding after 20 weeks",
+                "stable placenta previa cesarean delivery at 36 to 37 6/7 weeks and lung maturity is not necessary",
+                "immediate cesarean for heavy bleeding, uncontrolled bleeding, maternal hemodynamic instability, or nonreassuring fetal status",
+                "hospitalization, modified activity, avoidance of sexual activity, and corticosteroids when early delivery risk is present",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "placenta previa time-critical actions must include ultrasound"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_placenta_previa_no_digital_exam_timing_unstable_delivery_and_expectant_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Placenta previa with third trimester bleeding"
+    case["patient_demographics"] = {
+        "age": 36,
+        "sex": "female",
+        "weight_kg": 73,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Painless vaginal bleeding at 32 weeks"
+    case["history_of_present_illness"] = (
+        "Pregnant patient at 32 weeks has known placenta previa with sudden "
+        "painless vaginal bleeding, recurrent late pregnancy bleeding, tachycardia, "
+        "hypotension, and concern for hemorrhagic shock and nonreassuring fetal status."
+    )
+    case["key_teaching_points"] = [
+        "Placenta previa typically causes painless vaginal bleeding after 20 weeks",
+        "Diagnosis is by ultrasonography, and transvaginal ultrasonography is accurate and safe",
+        "Severe bleeding or nonreassuring fetal status requires immediate cesarean delivery",
+    ]
+    case["clinical_red_flags"] = [
+        "Painless vaginal bleeding after 20 weeks with known placenta previa",
+        "Heavy bleeding, hemorrhagic shock, hypotension, or nonreassuring fetal status",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm placenta previa by ultrasound and transvaginal ultrasonography",
+        "Start continuous fetal monitoring and fetal heart rate FHR assessment for nonreassuring fetal status",
+        "Stabilize hemorrhage with large-bore IV access, type and screen, crossmatch, transfusion, blood products, shock, and hemodynamic support",
+        "Escalate to immediate cesarean delivery and operative team if severe bleeding or fetal status worsens",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before anesthesia",
+        "Pregnancy status already confirmed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Placenta Previa",
+            "organization": "MSD Manual Professional Edition",
+            "url": "https://www.msdmanuals.com/professional/gynecology-and-obstetrics/antenatal-complications/placenta-previa",
+            "supports": [
+                "placenta previa with third trimester bleeding diagnosis and risk stratification",
+                "placenta previa typically causes painless vaginal bleeding after 20 weeks",
+                "diagnosis is by ultrasonography and transvaginal ultrasonography is accurate and safe",
+                "severe bleeding or nonreassuring fetal status requires immediate cesarean delivery",
+                "painless vaginal bleeding after 20 weeks with known placenta previa",
+                "heavy bleeding, hemorrhagic shock, hypotension, or nonreassuring fetal status",
+                "placenta previa by ultrasound and transvaginal ultrasonography",
+                "continuous fetal monitoring and fetal heart rate FHR assessment for nonreassuring fetal status",
+                "hemorrhage stabilization with large-bore IV access, type and screen, crossmatch, transfusion, blood products, shock, and hemodynamic support",
+                "immediate cesarean delivery and operative team if severe bleeding or fetal status worsens",
+                "medication allergy before anesthesia",
+                "pregnancy status already confirmed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "placenta previa safety checks must include avoiding digital cervical"
         in issue
         for issue in report.critical_issues
     )
