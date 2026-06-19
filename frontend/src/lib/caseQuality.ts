@@ -12647,6 +12647,126 @@ const SJS_TEN_ADJUNCT_RISK_SAFETY_TERMS = [
   "thalidomide",
 ];
 
+const DRESS_CONTEXT_TERMS = [
+  "dihs",
+  "dress syndrome",
+  "drug hypersensitivity syndrome",
+  "drug induced hypersensitivity syndrome",
+  "drug reaction with eosinophilia",
+  "eosinophilia and systemic symptoms",
+];
+
+const DRESS_RISK_TERMS = [
+  "allopurinol",
+  "atypical lymphocyte",
+  "carbamazepine",
+  "dapsone",
+  "eosinophilia",
+  "facial edema",
+  "facial swelling",
+  "fever",
+  "hepatitis",
+  "lamotrigine",
+  "lymphadenopathy",
+  "morbilliform",
+  "phenytoin",
+  "sulfonamide",
+  "vancomycin",
+];
+
+const DRESS_CULPRIT_DRUG_ACTION_TERMS = [
+  "all suspect medicines",
+  "culprit drug",
+  "discontinue",
+  "offending drug",
+  "stop medication",
+  "stop the drug",
+  "withdraw",
+];
+
+const DRESS_LAB_ORGAN_ACTION_TERMS = [
+  "blood count",
+  "cbc",
+  "coagulation",
+  "eosinophil",
+  "lft",
+  "liver function",
+  "renal function",
+];
+
+const DRESS_DIAGNOSTIC_SEVERITY_ACTION_TERMS = [
+  "drug timeline",
+  "hospitalisation",
+  "hospitalization",
+  "regiscar",
+  "skin biopsy",
+  "temporal association",
+];
+
+const DRESS_CARDIOPULMONARY_ACTION_TERMS = [
+  "chest x-ray",
+  "ecg",
+  "echocardiogram",
+  "myocarditis",
+  "pneumonitis",
+  "troponin",
+];
+
+const DRESS_SUPPORTIVE_STEROID_ACTION_TERMS = [
+  "corticosteroid",
+  "electrolytes",
+  "fluid",
+  "prednisone",
+  "slow taper",
+  "supportive care",
+  "warm environment",
+];
+
+const DRESS_SEVERE_ORGAN_SAFETY_TERMS = [
+  "acute liver failure",
+  "fulminant myocarditis",
+  "haemophagocytosis",
+  "hemophagocytosis",
+  "multiorgan failure",
+];
+
+const DRESS_STEROID_TAPER_RELAPSE_SAFETY_TERMS = [
+  "relapse",
+  "slow taper",
+  "steroid taper",
+  "withdraw very slowly",
+];
+
+const DRESS_VIRAL_AUTOIMMUNE_SAFETY_TERMS = [
+  "autoimmune",
+  "cmv",
+  "ebv",
+  "hhv-6",
+  "human herpesvirus",
+  "thyroid",
+  "viral serology",
+];
+
+const DRESS_RECHALLENGE_CROSS_REACTION_SAFETY_TERMS = [
+  "avoid all three",
+  "avoid causative",
+  "avoid rechallenge",
+  "cross-reaction",
+  "drug allergy",
+  "first-degree relatives",
+  "rechallenge",
+];
+
+const DRESS_ALTERNATIVE_IMMUNOMODULATOR_SAFETY_TERMS = [
+  "ciclosporin",
+  "cyclophosphamide",
+  "cyclosporine",
+  "ivig",
+  "mycophenolate",
+  "plasmapheresis",
+  "rituximab",
+];
+
 const METHEMOGLOBINEMIA_CONTEXT_TERMS = [
   "acquired methemoglobinemia",
   "methemoglobin",
@@ -22403,6 +22523,79 @@ function hasSjsTenTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresDressSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = DRESS_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  const hasRisk = DRESS_RISK_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  return hasContext && hasRisk;
+}
+
+function hasDressTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCulpritDrugAction = DRESS_CULPRIT_DRUG_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLabOrganAction = DRESS_LAB_ORGAN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDiagnosticSeverityAction = DRESS_DIAGNOSTIC_SEVERITY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCardiopulmonaryAction = DRESS_CARDIOPULMONARY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSupportiveSteroidAction = DRESS_SUPPORTIVE_STEROID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasCulpritDrugAction &&
+    hasLabOrganAction &&
+    hasDiagnosticSeverityAction &&
+    hasCardiopulmonaryAction &&
+    hasSupportiveSteroidAction
+  );
+}
+
+function hasDressTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasSevereOrganSafety = DRESS_SEVERE_ORGAN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidTaperRelapseSafety = DRESS_STEROID_TAPER_RELAPSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasViralAutoimmuneSafety = DRESS_VIRAL_AUTOIMMUNE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRechallengeCrossReactionSafety = DRESS_RECHALLENGE_CROSS_REACTION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAlternativeImmunomodulatorSafety = DRESS_ALTERNATIVE_IMMUNOMODULATOR_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasSevereOrganSafety &&
+    hasSteroidTaperRelapseSafety &&
+    hasViralAutoimmuneSafety &&
+    hasRechallengeCrossReactionSafety &&
+    hasAlternativeImmunomodulatorSafety
+  );
+}
+
 function requiresMethemoglobinemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -25732,6 +25925,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSjsTenTreatmentSafetyCheck,
       issue:
         "SJS/TEN safety checks must include sterile handling, reverse isolation, non-adherent dressings, avoid-adhesive, wound-care, or infection surveillance, antibiotic stewardship such as avoiding prophylactic systemic antibiotics or using systemic antibiotics only if infection develops, airway, respiratory distress, ARDS, pneumonia, kidney, liver, or organ-failure monitoring, avoidance of rechallenge or structurally related medicines with drug-allergy/cross-reaction documentation, and adjunct therapy risk review including steroid, IVIG, cyclosporine/ciclosporin, renal impairment, infection risk, or thalidomide avoidance",
+    },
+    {
+      name: "dress_time_critical_actions",
+      label: "DRESS drug stop, organ labs, severity, and steroid actions",
+      applies: requiresDressSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasDressTimeCriticalActions,
+      issue:
+        "DRESS/DIHS time-critical actions must include immediate cessation, withdrawal, or discontinuation of all suspect/culprit/offending medicines, CBC, blood-count, eosinophil, coagulation, liver-function, LFT, or renal-function testing, diagnostic severity assessment with hospitalisation/hospitalization, RegiSCAR, skin biopsy, drug timeline, or temporal-association review, cardiac or pulmonary evaluation with ECG, troponin, echocardiogram, myocarditis, chest X-ray, or pneumonitis review, and supportive care with fluid, electrolytes, warm environment, corticosteroid, prednisone, or slow-taper planning when severe organ involvement is present",
+    },
+    {
+      name: "dress_treatment_safety",
+      label: "DRESS organ, relapse, viral, rechallenge, and immunomodulator safety",
+      applies: requiresDressSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasDressTreatmentSafetyCheck,
+      issue:
+        "DRESS/DIHS safety checks must include severe organ complication review for acute liver failure, multiorgan failure, fulminant myocarditis, or hemophagocytosis/haemophagocytosis, steroid taper or relapse monitoring with slow taper or withdraw-very-slowly planning, viral or autoimmune follow-up with HHV-6, human herpesvirus, EBV, CMV, viral serology, thyroid, or autoimmune review, rechallenge/cross-reaction prevention with drug-allergy, avoid-causative, avoid-rechallenge, avoid-all-three aromatic anticonvulsants, cross-reaction, or first-degree-relative warning, and alternative immunomodulator review such as cyclosporine/ciclosporin, IVIG, plasmapheresis, mycophenolate, rituximab, or cyclophosphamide when corticosteroid response is inadequate",
     },
     {
       name: "methemoglobinemia_time_critical_actions",

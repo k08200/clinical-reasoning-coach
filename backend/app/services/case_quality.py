@@ -11529,6 +11529,114 @@ SJS_TEN_ADJUNCT_RISK_SAFETY_TERMS = (
     "steroid",
     "thalidomide",
 )
+DRESS_CONTEXT_TERMS = (
+    "dihs",
+    "dress syndrome",
+    "drug hypersensitivity syndrome",
+    "drug induced hypersensitivity syndrome",
+    "drug reaction with eosinophilia",
+    "eosinophilia and systemic symptoms",
+)
+DRESS_RISK_TERMS = (
+    "allopurinol",
+    "atypical lymphocyte",
+    "carbamazepine",
+    "dapsone",
+    "eosinophilia",
+    "facial edema",
+    "facial swelling",
+    "fever",
+    "hepatitis",
+    "lamotrigine",
+    "lymphadenopathy",
+    "morbilliform",
+    "phenytoin",
+    "sulfonamide",
+    "vancomycin",
+)
+DRESS_CULPRIT_DRUG_ACTION_TERMS = (
+    "all suspect medicines",
+    "culprit drug",
+    "discontinue",
+    "offending drug",
+    "stop medication",
+    "stop the drug",
+    "withdraw",
+)
+DRESS_LAB_ORGAN_ACTION_TERMS = (
+    "blood count",
+    "cbc",
+    "coagulation",
+    "eosinophil",
+    "lft",
+    "liver function",
+    "renal function",
+)
+DRESS_DIAGNOSTIC_SEVERITY_ACTION_TERMS = (
+    "drug timeline",
+    "hospitalisation",
+    "hospitalization",
+    "regiscar",
+    "skin biopsy",
+    "temporal association",
+)
+DRESS_CARDIOPULMONARY_ACTION_TERMS = (
+    "chest x-ray",
+    "ecg",
+    "echocardiogram",
+    "myocarditis",
+    "pneumonitis",
+    "troponin",
+)
+DRESS_SUPPORTIVE_STEROID_ACTION_TERMS = (
+    "corticosteroid",
+    "electrolytes",
+    "fluid",
+    "prednisone",
+    "slow taper",
+    "supportive care",
+    "warm environment",
+)
+DRESS_SEVERE_ORGAN_SAFETY_TERMS = (
+    "acute liver failure",
+    "fulminant myocarditis",
+    "haemophagocytosis",
+    "hemophagocytosis",
+    "multiorgan failure",
+)
+DRESS_STEROID_TAPER_RELAPSE_SAFETY_TERMS = (
+    "relapse",
+    "slow taper",
+    "steroid taper",
+    "withdraw very slowly",
+)
+DRESS_VIRAL_AUTOIMMUNE_SAFETY_TERMS = (
+    "autoimmune",
+    "cmv",
+    "ebv",
+    "hhv-6",
+    "human herpesvirus",
+    "thyroid",
+    "viral serology",
+)
+DRESS_RECHALLENGE_CROSS_REACTION_SAFETY_TERMS = (
+    "avoid all three",
+    "avoid causative",
+    "avoid rechallenge",
+    "cross-reaction",
+    "drug allergy",
+    "first-degree relatives",
+    "rechallenge",
+)
+DRESS_ALTERNATIVE_IMMUNOMODULATOR_SAFETY_TERMS = (
+    "ciclosporin",
+    "cyclophosphamide",
+    "cyclosporine",
+    "ivig",
+    "mycophenolate",
+    "plasmapheresis",
+    "rituximab",
+)
 METHEMOGLOBINEMIA_CONTEXT_TERMS = (
     "acquired methemoglobinemia",
     "methemoglobin",
@@ -17386,6 +17494,45 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "cross-reaction documentation, and adjunct therapy risk review "
                 "including steroid, IVIG, cyclosporine/ciclosporin, renal "
                 "impairment, infection risk, or thalidomide avoidance"
+            ),
+        ),
+        DomainSafetyGate(
+            name="dress_time_critical_actions",
+            applies=_requires_dress_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_dress_time_critical_actions,
+            issue=(
+                "DRESS/DIHS time-critical actions must include immediate cessation, "
+                "withdrawal, or discontinuation of all suspect/culprit/offending "
+                "medicines, CBC, blood-count, eosinophil, coagulation, liver-"
+                "function, LFT, or renal-function testing, diagnostic severity "
+                "assessment with hospitalisation/hospitalization, RegiSCAR, skin "
+                "biopsy, drug timeline, or temporal-association review, cardiac "
+                "or pulmonary evaluation with ECG, troponin, echocardiogram, "
+                "myocarditis, chest X-ray, or pneumonitis review, and supportive "
+                "care with fluid, electrolytes, warm environment, corticosteroid, "
+                "prednisone, or slow-taper planning when severe organ involvement "
+                "is present"
+            ),
+        ),
+        DomainSafetyGate(
+            name="dress_treatment_safety",
+            applies=_requires_dress_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_dress_treatment_safety_check,
+            issue=(
+                "DRESS/DIHS safety checks must include severe organ complication "
+                "review for acute liver failure, multiorgan failure, fulminant "
+                "myocarditis, or hemophagocytosis/haemophagocytosis, steroid taper "
+                "or relapse monitoring with slow taper or withdraw-very-slowly "
+                "planning, viral or autoimmune follow-up with HHV-6, human "
+                "herpesvirus, EBV, CMV, viral serology, thyroid, or autoimmune "
+                "review, rechallenge/cross-reaction prevention with drug-allergy, "
+                "avoid-causative, avoid-rechallenge, avoid-all-three aromatic "
+                "anticonvulsants, cross-reaction, or first-degree-relative warning, "
+                "and alternative immunomodulator review such as cyclosporine/"
+                "ciclosporin, IVIG, plasmapheresis, mycophenolate, rituximab, or "
+                "cyclophosphamide when corticosteroid response is inadequate"
             ),
         ),
         DomainSafetyGate(
@@ -27238,6 +27385,100 @@ def _has_sjs_ten_treatment_safety_check(checks: list[Any]) -> bool:
         and has_airway_organ_safety
         and has_medication_rechallenge
         and has_adjunct_risk_safety
+    )
+
+
+def _requires_dress_safety_check(data: dict[str, Any]) -> bool:
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in DRESS_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in DRESS_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_dress_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_culprit_drug_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DRESS_CULPRIT_DRUG_ACTION_TERMS
+    )
+    has_lab_organ_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DRESS_LAB_ORGAN_ACTION_TERMS
+    )
+    has_diagnostic_severity_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DRESS_DIAGNOSTIC_SEVERITY_ACTION_TERMS
+    )
+    has_cardiopulmonary_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DRESS_CARDIOPULMONARY_ACTION_TERMS
+    )
+    has_supportive_steroid_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DRESS_SUPPORTIVE_STEROID_ACTION_TERMS
+    )
+    return (
+        has_culprit_drug_action
+        and has_lab_organ_action
+        and has_diagnostic_severity_action
+        and has_cardiopulmonary_action
+        and has_supportive_steroid_action
+    )
+
+
+def _has_dress_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_severe_organ_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DRESS_SEVERE_ORGAN_SAFETY_TERMS
+    )
+    has_steroid_taper_relapse_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DRESS_STEROID_TAPER_RELAPSE_SAFETY_TERMS
+    )
+    has_viral_autoimmune_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DRESS_VIRAL_AUTOIMMUNE_SAFETY_TERMS
+    )
+    has_rechallenge_cross_reaction_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DRESS_RECHALLENGE_CROSS_REACTION_SAFETY_TERMS
+    )
+    has_alternative_immunomodulator_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DRESS_ALTERNATIVE_IMMUNOMODULATOR_SAFETY_TERMS
+    )
+    return (
+        has_severe_organ_safety
+        and has_steroid_taper_relapse_safety
+        and has_viral_autoimmune_safety
+        and has_rechallenge_cross_reaction_safety
+        and has_alternative_immunomodulator_safety
     )
 
 

@@ -265,6 +265,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "major_burn_treatment_safety",
         "sjs_ten_time_critical_actions",
         "sjs_ten_treatment_safety",
+        "dress_time_critical_actions",
+        "dress_treatment_safety",
         "methemoglobinemia_time_critical_actions",
         "methemoglobinemia_treatment_safety",
         "caustic_ingestion_time_critical_actions",
@@ -15978,6 +15980,143 @@ def test_quality_gate_requires_sjs_ten_wound_antibiotic_organ_rechallenge_and_ad
     assert not report.passed
     assert any(
         "SJS/TEN safety checks must include sterile handling" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_dress_drug_stop_labs_severity_cardiopulmonary_and_steroid_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "DRESS syndrome from carbamazepine"
+    case["patient_demographics"] = {
+        "age": 47,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, facial swelling, and diffuse rash after carbamazepine"
+    case["history_of_present_illness"] = (
+        "Patient started carbamazepine 5 weeks ago and now has drug reaction with "
+        "eosinophilia and systemic symptoms, high fever, morbilliform rash, facial "
+        "edema, lymphadenopathy, eosinophilia, atypical lymphocytes, hepatitis with "
+        "elevated liver enzymes, renal function change, dyspnea, and concern for "
+        "myocarditis or pneumonitis."
+    )
+    case["key_teaching_points"] = [
+        "DRESS/DIHS is a severe cutaneous adverse reaction with fever, rash, hematologic abnormalities, lymphadenopathy, and internal organ inflammation",
+        "Common triggers include carbamazepine, phenytoin, lamotrigine, allopurinol, sulfonamides, dapsone, vancomycin, and other medicines",
+        "Diagnosis requires careful drug timeline or temporal association review and RegiSCAR-style severity assessment",
+        "Testing should include CBC/blood count, eosinophils, coagulation, liver function/LFT, renal function, and cardiopulmonary evaluation such as ECG, troponin, echocardiogram, chest X-ray, myocarditis, or pneumonitis review",
+    ]
+    case["clinical_red_flags"] = [
+        "High fever, morbilliform rash, facial edema or facial swelling, lymphadenopathy, eosinophilia, atypical lymphocyte, thrombocytopenia, or mucosal involvement",
+        "Hepatitis, acute liver failure, kidney injury, myocarditis, pneumonitis, ARDS, meningitis, encephalitis, multiorgan failure, or hemophagocytosis",
+    ]
+    case["time_critical_actions"] = [
+        "Treat itching with antihistamine and arrange outpatient rash follow-up",
+        "Continue carbamazepine until confirmatory testing returns",
+    ]
+    case["contraindication_checks"] = [
+        "Review severe organ complications including acute liver failure, multiorgan failure, fulminant myocarditis, and hemophagocytosis or haemophagocytosis",
+        "Plan steroid taper relapse monitoring with slow taper or withdraw very slowly because recurrence can occur as dose reduces",
+        "Send viral serology for HHV-6/human herpesvirus, EBV, CMV, and plan thyroid or autoimmune follow-up",
+        "Document drug allergy, avoid rechallenge, avoid causative drug, review cross-reaction, avoid all three aromatic anticonvulsants, and warn first-degree relatives",
+        "Review alternative immunomodulators such as cyclosporine/ciclosporin, IVIG, plasmapheresis, mycophenolate, rituximab, or cyclophosphamide if steroid response is inadequate",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Drug hypersensitivity syndrome",
+            "organization": "DermNet",
+            "url": "https://dermnetnz.org/topics/drug-hypersensitivity-syndrome",
+            "supports": [
+                "DRESS syndrome from carbamazepine diagnosis and risk stratification",
+                "DRESS/DIHS is a severe cutaneous adverse reaction with fever, rash, hematologic abnormalities, lymphadenopathy, and internal organ inflammation",
+                "common triggers include carbamazepine, phenytoin, lamotrigine, allopurinol, sulfonamides, dapsone, vancomycin, and other medicines",
+                "careful drug timeline or temporal association review and RegiSCAR-style severity assessment",
+                "CBC/blood count, eosinophils, coagulation, liver function/LFT, renal function, and cardiopulmonary evaluation such as ECG, troponin, echocardiogram, chest X-ray, myocarditis, or pneumonitis review",
+                "immediate withdrawal or discontinuation of all suspect medicines or the culprit/offending drug",
+                "supportive care with fluid, electrolytes, warm environment, corticosteroid, prednisone, or slow taper planning when severe organ involvement is present",
+                "severe organ complications including acute liver failure, multiorgan failure, fulminant myocarditis, and hemophagocytosis or haemophagocytosis",
+                "steroid taper relapse monitoring with slow taper or withdraw very slowly because recurrence can occur as dose reduces",
+                "viral serology for HHV-6/human herpesvirus, EBV, CMV, and thyroid or autoimmune follow-up",
+                "drug allergy, avoid rechallenge, avoid causative drug, cross-reaction, avoid all three aromatic anticonvulsants, and first-degree relatives warning",
+                "alternative immunomodulators such as cyclosporine/ciclosporin, IVIG, plasmapheresis, mycophenolate, rituximab, or cyclophosphamide if steroid response is inadequate",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "DRESS/DIHS time-critical actions must include immediate cessation"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_dress_organ_relapse_viral_rechallenge_and_immunomodulator_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Drug induced hypersensitivity syndrome from allopurinol"
+    case["patient_demographics"] = {
+        "age": 71,
+        "sex": "male",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "High fever and morbilliform eruption after allopurinol"
+    case["history_of_present_illness"] = (
+        "Patient started allopurinol 6 weeks ago and now has drug hypersensitivity "
+        "syndrome DIHS/DRESS with high fever, facial swelling, morbilliform eruption, "
+        "lymphadenopathy, eosinophilia, atypical lymphocytes, hepatitis, renal "
+        "function impairment, cough, and dyspnea."
+    )
+    case["key_teaching_points"] = [
+        "Drug hypersensitivity syndrome can continue for weeks to months despite drug withdrawal and may relapse",
+        "Deaths can occur from acute liver failure, multiorgan failure, fulminant myocarditis, and hemophagocytosis",
+        "Systemic corticosteroids are generally used for severe cases but should be tapered slowly if effective",
+    ]
+    case["clinical_red_flags"] = [
+        "High fever, morbilliform rash, facial swelling, lymphadenopathy, eosinophilia, atypical lymphocyte, hepatitis, or renal function change",
+        "Myocarditis, pneumonitis, acute liver failure, multiorgan failure, hemophagocytosis, meningitis, encephalitis, or endocrine autoimmune complications",
+    ]
+    case["time_critical_actions"] = [
+        "Immediately discontinue all suspect medicines, stop medication, withdraw allopurinol, and document it as the culprit/offending drug",
+        "Obtain CBC/blood count with eosinophil count, coagulation studies, liver function/LFT, and renal function testing",
+        "Admit for hospitalization and assess RegiSCAR criteria with drug timeline, temporal association, and skin biopsy if needed",
+        "Evaluate cardiopulmonary involvement with ECG, troponin, echocardiogram for myocarditis, and chest X-ray for pneumonitis",
+        "Provide supportive care with fluid, electrolytes, warm environment, corticosteroid or prednisone, and slow taper planning for severe organ involvement",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before analgesia",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Drug hypersensitivity syndrome",
+            "organization": "DermNet",
+            "url": "https://dermnetnz.org/topics/drug-hypersensitivity-syndrome",
+            "supports": [
+                "drug induced hypersensitivity syndrome from allopurinol diagnosis and risk stratification",
+                "drug hypersensitivity syndrome can continue for weeks to months despite drug withdrawal and may relapse",
+                "deaths can occur from acute liver failure, multiorgan failure, fulminant myocarditis, and hemophagocytosis",
+                "systemic corticosteroids are generally used for severe cases but should be tapered slowly if effective",
+                "immediate discontinuation of all suspect medicines and withdrawal of allopurinol as the culprit/offending drug",
+                "CBC/blood count with eosinophil count, coagulation studies, liver function/LFT, and renal function testing",
+                "hospitalization and RegiSCAR criteria with drug timeline, temporal association, and skin biopsy if needed",
+                "ECG, troponin, echocardiogram for myocarditis, and chest X-ray for pneumonitis",
+                "supportive care with fluid, electrolytes, warm environment, corticosteroid or prednisone, and slow taper planning for severe organ involvement",
+                "medication allergy review before analgesia",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "DRESS/DIHS safety checks must include severe organ complication review"
+        in issue
         for issue in report.critical_issues
     )
 
