@@ -269,6 +269,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "dress_treatment_safety",
         "ssss_time_critical_actions",
         "ssss_treatment_safety",
+        "toxic_shock_time_critical_actions",
+        "toxic_shock_treatment_safety",
         "methemoglobinemia_time_critical_actions",
         "methemoglobinemia_treatment_safety",
         "caustic_ingestion_time_critical_actions",
@@ -16256,6 +16258,154 @@ def test_quality_gate_requires_ssss_mrsa_medication_harm_differential_complicati
     assert any(
         "staphylococcal scalded skin syndrome safety checks must include MRSA"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_toxic_shock_icu_cultures_antibiotics_source_control_and_organ_monitoring_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Streptococcal toxic shock syndrome from necrotizing fasciitis"
+    case["patient_demographics"] = {
+        "age": 54,
+        "sex": "male",
+        "weight_kg": 84,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, severe leg pain, rash, and shock"
+    case["history_of_present_illness"] = (
+        "Patient has suspected streptococcal toxic shock syndrome with sudden fever, "
+        "severe soft tissue pain at a necrotizing fasciitis site, diffuse erythroderma "
+        "rash, hypotension, septic shock, tachycardia, renal injury, thrombocytopenia, "
+        "hepatic dysfunction, ARDS, and multiorgan failure."
+    )
+    case["key_teaching_points"] = [
+        "Toxic shock syndrome can be caused by Streptococcus pyogenes or Staphylococcus aureus exotoxins and can progress rapidly to shock and multiorgan failure",
+        "STSS requires hospitalization, aggressive fluid resuscitation, ICU organ support, early antibiotics, and surgical source control",
+        "Cultures and source evaluation should not delay resuscitation, toxin-suppressing antibiotics, and debridement or drainage when deep infection is present",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever, hypotension, septic shock, erythroderma rash, desquamation, severe soft tissue pain, necrotizing fasciitis, or tampon/device source",
+        "Renal failure, hepatic dysfunction, thrombocytopenia, coagulopathy, elevated CK, ARDS, cardiopulmonary failure, or multiorgan failure",
+    ]
+    case["time_critical_actions"] = [
+        "Observe in the emergency department and repeat vital signs",
+        "Give oral antibiotics after outpatient surgical clinic evaluation",
+    ]
+    case["contraindication_checks"] = [
+        "Tailor confirmed group A strep or streptococcal toxic shock regimen to penicillin plus clindamycin",
+        "Review staphylococcal/MSSA/MRSA regimen including nafcillin, oxacillin, vancomycin, or MRSA coverage",
+        "Consider IVIG or IV immune globulin early for severe disease or refractory shock",
+        "Review differential diagnoses including Kawasaki disease, scarlet fever, SSSS/staphylococcal scalded skin, Stevens-Johnson syndrome, meningococcemia, Rocky Mountain spotted fever, and leptospirosis",
+        "Prevent recurrence with tampon or menstrual cup avoidance/replacement guidance, avoid hyperabsorbent tampons, and mupirocin or chlorhexidine decolonization when indicated",
+        "Review household contact prophylaxis and screening; CDC does not routinely recommend prophylaxis but standard infection control is needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Clinical Guidance for Streptococcal Toxic Shock Syndrome",
+            "organization": "CDC",
+            "url": "https://www.cdc.gov/group-a-strep/hcp/clinical-guidance/streptococcal-toxic-shock-syndrome.html",
+            "supports": [
+                "streptococcal toxic shock syndrome from necrotizing fasciitis diagnosis and risk stratification",
+                "STSS is rapidly progressing infection involving shock and multi-organ failure",
+                "hospitalization, fluid resuscitation, ICU intensive care, vasopressor, ventilation, renal replacement, hemodialysis, or organ support planning",
+                "blood culture, wound culture, throat, vagina, nose, CT, MRI, or soft tissue imaging to identify organism and source",
+                "empiric toxin-suppressing antibiotics with clindamycin or linezolid plus beta-lactam, penicillin, vancomycin, daptomycin, or ceftaroline",
+                "source control with debridement, drainage, irrigation, foreign body or device removal, remove tampon, or surgery",
+                "renal, hepatic/liver, platelet, coagulation, CK, or cardiopulmonary monitoring",
+                "group A strep or streptococcal regimen tailoring with penicillin plus clindamycin",
+                "IVIG or IV immune globulin can be considered early for severely ill patients",
+                "household contact prophylaxis and screening are not routinely recommended but standard infection control is needed",
+            ],
+        },
+        {
+            "title": "Toxic Shock Syndrome",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/infectious-diseases/gram-positive-cocci/toxic-shock-syndrome-tss",
+            "supports": [
+                "toxic shock syndrome caused by staphylococcal or streptococcal exotoxins",
+                "high fever, hypotension, diffuse erythematous rash, and multiple organ dysfunction can rapidly progress to severe shock",
+                "cultures from wound, vagina, throat, nose, blood, CT, MRI, and soft tissue imaging source evaluation",
+                "empiric antibiotics include beta-lactam, vancomycin, daptomycin, or ceftaroline plus clindamycin or linezolid pending cultures",
+                "source decontamination, foreign body removal, irrigation, debridement, and surgery source control",
+                "MSSA/MRSA regimen review with nafcillin, oxacillin, vancomycin, or MRSA coverage",
+                "differential review for Kawasaki, scarlet fever, SSSS, staphylococcal scalded skin, Stevens-Johnson, meningococcemia, Rocky Mountain spotted fever, and leptospirosis",
+                "recurrence prevention with tampons, menstrual cups, avoid hyperabsorbent tampon, mupirocin, and chlorhexidine",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "toxic shock syndrome time-critical actions must include immediate hospitalization"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_toxic_shock_regimen_ivig_differential_recurrence_and_contact_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Staphylococcal toxic shock syndrome after retained tampon"
+    case["patient_demographics"] = {
+        "age": 23,
+        "sex": "female",
+        "weight_kg": 57,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "High fever, vomiting, rash, confusion, and hypotension"
+    case["history_of_present_illness"] = (
+        "Patient has menstrual toxic shock syndrome after retained tampon with high "
+        "fever, vomiting, diarrhea, diffuse erythroderma rash, mucosal hyperemia, "
+        "hypotension, shock, confusion, renal impairment, thrombocytopenia, elevated "
+        "CK, and later desquamation risk from Staphylococcus aureus toxin."
+    )
+    case["key_teaching_points"] = [
+        "Staphylococcal toxic shock syndrome can occur with tampons or other vaginal devices and can recur if risk devices continue",
+        "Immediate treatment requires intensive support, device removal, cultures, source decontamination, and toxin-suppressing antibiotic therapy",
+        "Severe TSS may need IVIG in addition to antibiotics and source control",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever, hypotension, shock, rash, erythroderma, mucosal hyperemia, vomiting, diarrhea, confusion, or desquamation",
+        "Renal impairment, hepatic injury, thrombocytopenia, elevated CK, ARDS, cardiopulmonary failure, or multiorgan failure",
+    ]
+    case["time_critical_actions"] = [
+        "Hospitalize immediately in ICU/intensive care with fluid resuscitation, vasopressor, ventilation, renal replacement/hemodialysis, and organ support planning",
+        "Obtain blood culture and cultures from vagina, wound, throat, and nose; use CT/MRI or soft tissue imaging if source is unclear",
+        "Start empiric toxin-suppressing antibiotics with clindamycin or linezolid plus vancomycin, beta-lactam, daptomycin, or ceftaroline pending cultures",
+        "Remove tampon immediately and perform source control with foreign body/device removal, drainage, irrigation, debridement, or surgery if needed",
+        "Monitor renal, hepatic/liver, platelet, coagulation, CK, and cardiopulmonary function continuously",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy review before analgesia",
+        "Renal function before contrast imaging",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Toxic Shock Syndrome",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/infectious-diseases/gram-positive-cocci/toxic-shock-syndrome-tss",
+            "supports": [
+                "staphylococcal toxic shock syndrome after retained tampon diagnosis and risk stratification",
+                "staphylococcal toxic shock syndrome can occur with tampons or other vaginal devices and can recur if risk devices continue",
+                "immediate treatment requires intensive support, device removal, cultures, source decontamination, and toxin-suppressing antibiotic therapy",
+                "severe TSS may need IVIG in addition to antibiotics and source control",
+                "hospitalize immediately in ICU/intensive care with fluid resuscitation, vasopressor, ventilation, renal replacement/hemodialysis, and organ support planning",
+                "blood culture and cultures from vagina, wound, throat, and nose; CT/MRI or soft tissue imaging if source is unclear",
+                "empiric toxin-suppressing antibiotics with clindamycin or linezolid plus vancomycin, beta-lactam, daptomycin, or ceftaroline pending cultures",
+                "remove tampon immediately and perform source control with foreign body/device removal, drainage, irrigation, debridement, or surgery if needed",
+                "renal, hepatic/liver, platelet, coagulation, CK, and cardiopulmonary monitoring",
+                "medication allergy review before analgesia",
+                "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "toxic shock syndrome safety checks must include group-A-strep" in issue
         for issue in report.critical_issues
     )
 

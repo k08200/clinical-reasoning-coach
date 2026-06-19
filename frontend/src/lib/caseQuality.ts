@@ -12880,6 +12880,138 @@ const SSSS_CARRIER_OUTBREAK_SAFETY_TERMS = [
   "staph aureus carrier",
 ];
 
+const TOXIC_SHOCK_CONTEXT_TERMS = [
+  "group a strep toxic shock",
+  "menstrual toxic shock",
+  "staphylococcal toxic shock",
+  "streptococcal toxic shock",
+  "toxic shock syndrome",
+];
+
+const TOXIC_SHOCK_RISK_TERMS = [
+  "ards",
+  "desquamation",
+  "erythroderma",
+  "hypotension",
+  "multi-organ failure",
+  "multiorgan failure",
+  "necrotizing fasciitis",
+  "organ failure",
+  "rash",
+  "septic shock",
+  "shock",
+  "staphylococcus aureus",
+  "streptococcus pyogenes",
+  "tampon",
+];
+
+const TOXIC_SHOCK_RESUSCITATION_ACTION_TERMS = [
+  "fluid resuscitation",
+  "hemodialysis",
+  "hospitalization",
+  "icu",
+  "intensive care",
+  "organ support",
+  "renal replacement",
+  "vasopressor",
+  "ventilation",
+];
+
+const TOXIC_SHOCK_CULTURE_SOURCE_ACTION_TERMS = [
+  "blood culture",
+  "culture",
+  "ct",
+  "mri",
+  "nose",
+  "soft tissue imaging",
+  "throat",
+  "vagina",
+  "wound",
+];
+
+const TOXIC_SHOCK_TOXIN_ANTIBIOTIC_ACTION_TERMS = [
+  "beta-lactam",
+  "ceftaroline",
+  "clindamycin",
+  "daptomycin",
+  "linezolid",
+  "penicillin",
+  "toxin suppression",
+  "vancomycin",
+];
+
+const TOXIC_SHOCK_SOURCE_CONTROL_ACTION_TERMS = [
+  "debridement",
+  "device removal",
+  "drainage",
+  "foreign body",
+  "irrigation",
+  "remove tampon",
+  "source control",
+  "surgery",
+];
+
+const TOXIC_SHOCK_ORGAN_MONITORING_ACTION_TERMS = [
+  "cardiopulmonary",
+  "coagulation",
+  "ck",
+  "hepatic",
+  "liver",
+  "platelet",
+  "renal",
+];
+
+const TOXIC_SHOCK_GAS_REGIMEN_SAFETY_TERMS = [
+  "clindamycin",
+  "group a strep",
+  "penicillin",
+  "streptococcal",
+];
+
+const TOXIC_SHOCK_STAPH_MRSA_SAFETY_TERMS = [
+  "mssa",
+  "mrsa",
+  "nafcillin",
+  "oxacillin",
+  "staphylococcal",
+  "vancomycin",
+];
+
+const TOXIC_SHOCK_IVIG_SEVERE_SAFETY_TERMS = [
+  "iv immune globulin",
+  "ivig",
+  "refractory shock",
+  "severe",
+];
+
+const TOXIC_SHOCK_DIFFERENTIAL_SAFETY_TERMS = [
+  "kawasaki",
+  "leptospirosis",
+  "meningococcemia",
+  "rocky mountain spotted fever",
+  "scarlet fever",
+  "ssss",
+  "staphylococcal scalded skin",
+  "stevens-johnson",
+];
+
+const TOXIC_SHOCK_RECURRENCE_PREVENTION_SAFETY_TERMS = [
+  "avoid hyperabsorbent tampon",
+  "chlorhexidine",
+  "menstrual cup",
+  "mupirocin",
+  "recurrence",
+  "tampon",
+];
+
+const TOXIC_SHOCK_CONTACT_PROPHYLAXIS_SAFETY_TERMS = [
+  "household contact",
+  "not routinely recommend",
+  "prophylaxis",
+  "screening",
+  "standard infection control",
+];
+
 const METHEMOGLOBINEMIA_CONTEXT_TERMS = [
   "acquired methemoglobinemia",
   "methemoglobin",
@@ -22782,6 +22914,85 @@ function hasSsssTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresToxicShockSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = TOXIC_SHOCK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = TOXIC_SHOCK_RISK_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  return hasContext && hasRisk;
+}
+
+function hasToxicShockTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasResuscitation = TOXIC_SHOCK_RESUSCITATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCultureSource = TOXIC_SHOCK_CULTURE_SOURCE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasToxinAntibiotic = TOXIC_SHOCK_TOXIN_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSourceControl = TOXIC_SHOCK_SOURCE_CONTROL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOrganMonitoring = TOXIC_SHOCK_ORGAN_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasResuscitation &&
+    hasCultureSource &&
+    hasToxinAntibiotic &&
+    hasSourceControl &&
+    hasOrganMonitoring
+  );
+}
+
+function hasToxicShockTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasGasRegimenSafety = TOXIC_SHOCK_GAS_REGIMEN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasStaphMrsaSafety = TOXIC_SHOCK_STAPH_MRSA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasIvigSevereSafety = TOXIC_SHOCK_IVIG_SEVERE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferentialSafety = TOXIC_SHOCK_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRecurrencePreventionSafety = TOXIC_SHOCK_RECURRENCE_PREVENTION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasContactProphylaxisSafety = TOXIC_SHOCK_CONTACT_PROPHYLAXIS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasGasRegimenSafety &&
+    hasStaphMrsaSafety &&
+    hasIvigSevereSafety &&
+    hasDifferentialSafety &&
+    hasRecurrencePreventionSafety &&
+    hasContactProphylaxisSafety
+  );
+}
+
 function requiresMethemoglobinemiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
     detail.chief_complaint,
@@ -26147,6 +26358,24 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSsssTreatmentSafetyCheck,
       issue:
         "staphylococcal scalded skin syndrome safety checks must include MRSA, vancomycin, healthcare-exposure, or skilled-nursing review, medication harm review such as avoiding silver sulfadiazine, avoiding NSAIDs/ibuprofen with kidney impairment risk, and avoiding clindamycin monotherapy when resistance is possible, differential review for mucosal sparing versus SJS/TEN, toxic epidermal necrolysis, bullous impetigo, or AGEP, complication monitoring for dehydration, electrolyte imbalance, hypothermia, sepsis, pneumonia, or renal failure, and carrier, decolonization, nursery outbreak, outbreak, Staph aureus carrier, or hand-washing prevention planning",
+    },
+    {
+      name: "toxic_shock_time_critical_actions",
+      label: "TSS shock support, antibiotics, source control, and monitoring",
+      applies: requiresToxicShockSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasToxicShockTimeCriticalActions,
+      issue:
+        "toxic shock syndrome time-critical actions must include immediate hospitalization, ICU/intensive-care, fluid resuscitation, vasopressor, ventilation, renal-replacement, hemodialysis, or organ-support planning, blood culture or cultures from wound, vagina, throat, nose, CT, MRI, or soft-tissue imaging to identify the organism/source, empiric toxin-suppressing antibiotics with clindamycin or linezolid plus beta-lactam, penicillin, vancomycin, daptomycin, or ceftaroline, source control with tampon/foreign-body/device removal, drainage, irrigation, debridement, or surgery, and renal, hepatic/liver, platelet, coagulation, CK, or cardiopulmonary monitoring",
+    },
+    {
+      name: "toxic_shock_treatment_safety",
+      label: "TSS regimen, IVIG, differential, recurrence, and contact safety",
+      applies: requiresToxicShockSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasToxicShockTreatmentSafetyCheck,
+      issue:
+        "toxic shock syndrome safety checks must include group-A-strep/streptococcal regimen tailoring with penicillin plus clindamycin, staphylococcal/MSSA/MRSA regimen review with nafcillin, oxacillin, vancomycin, or MRSA coverage, IVIG or IV immune globulin consideration for severe or refractory shock, differential review for Kawasaki, scarlet fever, SSSS, staphylococcal scalded skin, Stevens-Johnson, meningococcemia, Rocky Mountain spotted fever, or leptospirosis, recurrence prevention with tampon, menstrual-cup, avoid-hyperabsorbent-tampon, mupirocin, or chlorhexidine guidance, and household-contact, prophylaxis, screening, not-routinely-recommend, or standard infection control review",
     },
     {
       name: "methemoglobinemia_time_critical_actions",
