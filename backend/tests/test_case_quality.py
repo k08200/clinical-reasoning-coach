@@ -261,6 +261,8 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "cyanide_poisoning_treatment_safety",
         "snakebite_envenomation_time_critical_actions",
         "snakebite_envenomation_treatment_safety",
+        "necrotizing_soft_tissue_infection_red_flags",
+        "fournier_gas_gangrene_treatment_safety",
         "major_burn_time_critical_actions",
         "major_burn_treatment_safety",
         "sjs_ten_time_critical_actions",
@@ -318,6 +320,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "aortic_dissection_monitoring_targets_safety",
     }
     assert {gate.field_name for gate in gates} <= {
+        "clinical_red_flags",
         "time_critical_actions",
         "contraindication_checks",
     }
@@ -10222,6 +10225,156 @@ def test_quality_gate_requires_necrotizing_soft_tissue_infection_toxin_repeat_de
     assert not report.passed
     assert any(
         "necrotizing soft tissue infection safety checks must include clindamycin"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_necrotizing_soft_tissue_infection_specific_red_flags():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Necrotizing fasciitis"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "male",
+        "weight_kg": 91,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Rapidly worsening arm pain with fever after minor trauma"
+    case["history_of_present_illness"] = (
+        "Patient with cirrhosis has suspected necrotizing soft tissue infection after "
+        "minor trauma with severe pain, spreading erythema, hypotension, and toxicity."
+    )
+    case["key_teaching_points"] = [
+        "Necrotizing fasciitis can have deceptively mild early skin findings",
+        "High suspicion requires immediate surgical exploration rather than waiting for imaging",
+        "Empiric antibiotics must cover polymicrobial NSTI while source control is arranged",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever and local skin infection",
+        "Tachycardia and malaise",
+    ]
+    case["time_critical_actions"] = [
+        "Call surgery urgently for immediate surgical exploration, operative debridement, fasciotomy, and source control",
+        "Start broad-spectrum empiric antibiotics with MRSA, gram-negative, anaerobic, vancomycin, piperacillin tazobactam, carbapenem, cefepime, or metronidazole coverage",
+        "Begin sepsis shock resuscitation with fluids, lactate monitoring, ICU escalation, vasopressors, and organ support",
+        "Document that CT imaging or LRINEC labs must not delay immediate source control",
+    ]
+    case["contraindication_checks"] = [
+        "Include toxin suppression with clindamycin or linezolid for group A strep, streptococcal NSTI, or clostridial gas gangrene concern",
+        "Plan repeat debridement, second look, or 24 to 48 hour source control reassessment until infection is controlled",
+        "Do not let LRINEC, imaging, CT, or diagnostic testing exclude NSTI or delay surgical exploration",
+        "Monitor shock, AKI renal injury, coagulopathy, organ failure, amputation risk, diabetes, and immunocompromised risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Clinical Guidance for Type II Necrotizing Fasciitis",
+            "organization": "CDC",
+            "url": "https://www.cdc.gov/group-a-strep/hcp/clinical-guidance/necrotizing-fasciitis.html",
+            "supports": [
+                "necrotizing fasciitis diagnosis and risk stratification",
+                "necrotizing fasciitis can have deceptively mild early skin findings",
+                "high suspicion requires immediate surgical exploration rather than waiting for imaging",
+                "empiric antibiotics must cover polymicrobial NSTI while source control is arranged",
+                "pain out of proportion, profound pain, rapidly progressive findings, bullae, crepitus, ecchymosis, dusky skin, skin necrosis, decreased sensation/anesthesia, or systemic toxicity as red flags",
+                "immediate surgical exploration, operative debridement, fasciotomy, and source control",
+                "broad-spectrum empiric antibiotics with MRSA, gram-negative, anaerobic, vancomycin, piperacillin tazobactam, carbapenem, cefepime, or metronidazole coverage",
+                "sepsis shock resuscitation with fluids, lactate monitoring, ICU escalation, vasopressors, and organ support",
+                "CT imaging or LRINEC labs must not delay immediate source control",
+                "toxin suppression with clindamycin or linezolid for group A strep, streptococcal NSTI, or gas gangrene concern",
+                "repeat debridement, second look, or 24 to 48 hour source control reassessment until infection is controlled",
+                "LRINEC, imaging, CT, or diagnostic testing should not exclude NSTI or delay surgical exploration",
+                "shock, AKI renal injury, coagulopathy, organ failure, amputation risk, diabetes, and immunocompromised risk monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "necrotizing soft tissue infection red flags must include pain out of proportion"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_fournier_or_gas_gangrene_penicillin_source_and_hbo_delay_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Fournier gangrene with clostridial gas gangrene concern"
+    case["patient_demographics"] = {
+        "age": 67,
+        "sex": "male",
+        "weight_kg": 86,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Perineal pain, fever, crepitus, and shock"
+    case["history_of_present_illness"] = (
+        "Diabetic patient has Fournier gangrene with perineal pain out of proportion, "
+        "scrotal swelling, crepitus, bullae, dusky skin, hypotension, and suspected "
+        "clostridial gas gangrene or myonecrosis."
+    )
+    case["key_teaching_points"] = [
+        "Fournier gangrene is a necrotizing soft tissue infection needing immediate source control",
+        "Gas gangrene requires urgent exploration, debridement, intensive support, and broad antimicrobial coverage",
+        "Hyperbaric oxygen must not delay resuscitation or surgical debridement",
+    ]
+    case["clinical_red_flags"] = [
+        "Pain out of proportion, rapidly progressive perineal infection, bullae, crepitus, dusky skin, skin necrosis, anesthesia, or systemic toxicity",
+        "Shock, organ failure, diabetes, immunocompromise, perineal, scrotal, urinary, or fecal source",
+    ]
+    case["time_critical_actions"] = [
+        "Call surgery and urology urgently for immediate surgical exploration, operative debridement, fasciotomy, and source control",
+        "Start broad-spectrum empiric antibiotics with MRSA, gram-negative, anaerobic, vancomycin, piperacillin tazobactam, carbapenem, cefepime, or metronidazole coverage",
+        "Begin sepsis shock resuscitation with fluids, lactate monitoring, ICU escalation, vasopressors, and organ support",
+        "Document that CT imaging or LRINEC labs must not delay immediate source control",
+    ]
+    case["contraindication_checks"] = [
+        "Medication allergy before antibiotics",
+        "Renal dosing before contrast imaging",
+        "Plan repeat debridement, second look, or 24 to 48 hour source control reassessment until infection is controlled",
+        "Do not let LRINEC, imaging, CT, or diagnostic testing exclude NSTI or delay surgical exploration",
+        "Monitor shock, AKI renal injury, coagulopathy, organ failure, amputation risk, diabetes, and immunocompromised risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "IDSA 2014 Skin and Soft Tissue Infection Guideline",
+            "organization": "IDSA",
+            "url": "https://www.idsociety.org/practice-guideline/skin-and-soft-tissue-infections/",
+            "supports": [
+                "Fournier gangrene with clostridial gas gangrene concern diagnosis and risk stratification",
+                "Fournier gangrene is a necrotizing soft tissue infection needing immediate source control",
+                "gas gangrene requires urgent exploration, debridement, intensive support, and broad antimicrobial coverage",
+                "hyperbaric oxygen must not delay resuscitation or surgical debridement",
+                "pain out of proportion, rapidly progressive perineal infection, bullae, crepitus, dusky skin, skin necrosis, anesthesia, or systemic toxicity as red flags",
+                "shock, organ failure, diabetes, immunocompromise, perineal, scrotal, urinary, or fecal source as severity markers",
+                "immediate surgical exploration, operative debridement, fasciotomy, and source control",
+                "broad-spectrum empiric antibiotics with MRSA, gram-negative, anaerobic, vancomycin, piperacillin tazobactam, carbapenem, cefepime, or metronidazole coverage",
+                "sepsis shock resuscitation with fluids, lactate monitoring, ICU escalation, vasopressors, and organ support",
+                "CT imaging or LRINEC labs must not delay immediate source control",
+                "definitive penicillin or piperacillin plus clindamycin, linezolid, protein-synthesis, or toxin-suppression planning",
+                "perineal, perianal, scrotal, urinary, fecal, urology, colorectal, foreign-body, debridement, or source-control planning",
+                "hyperbaric oxygen/HBO not-recommended or do-not-delay resuscitation, surgery, or debridement safety",
+            ],
+        },
+        {
+            "title": "Clinical Guidance for Type II Necrotizing Fasciitis",
+            "organization": "CDC",
+            "url": "https://www.cdc.gov/group-a-strep/hcp/clinical-guidance/necrotizing-fasciitis.html",
+            "supports": [
+                "necrotizing fasciitis can have deceptively mild early skin findings",
+                "imaging may help but should never delay surgical exploration",
+                "group A strep necrotizing fasciitis treatment uses high-dose penicillin and clindamycin",
+                "first exploration wounds should be re-inspected 24 hours later",
+                "sepsis, shock, organ failure, amputation, and death are major complications",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "Fournier gangrene or clostridial gas gangrene safety checks must include"
         in issue
         for issue in report.critical_issues
     )

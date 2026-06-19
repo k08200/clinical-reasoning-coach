@@ -8292,6 +8292,20 @@ const NECROTIZING_SOFT_TISSUE_INFECTION_CONTEXT_TERMS = [
   "괴사성 근막염",
 ];
 
+const NECROTIZING_SOFT_TISSUE_INFECTION_RED_FLAG_TERMS = [
+  "anesthesia",
+  "bullae",
+  "crepitus",
+  "decreased sensation",
+  "dusky",
+  "ecchymosis",
+  "pain out of proportion",
+  "profound pain",
+  "rapidly progressive",
+  "skin necrosis",
+  "systemic toxicity",
+];
+
 const NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_ACTION_TERMS = [
   "debridement",
   "exploration",
@@ -8315,6 +8329,20 @@ const NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS = [
   "tazobactam",
   "vancomycin",
   "항생제",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_COVERAGE_ACTION_TERMS = [
+  "anaerobe",
+  "anaerobic",
+  "carbapenem",
+  "cefepime",
+  "gram-negative",
+  "meropenem",
+  "metronidazole",
+  "mrsa",
+  "piperacillin",
+  "tazobactam",
+  "vancomycin",
 ];
 
 const NECROTIZING_SOFT_TISSUE_INFECTION_RESUSCITATION_ACTION_TERMS = [
@@ -8386,6 +8414,53 @@ const NECROTIZING_SOFT_TISSUE_INFECTION_ORGAN_RISK_SAFETY_TERMS = [
   "shock",
   "괴사",
   "절단",
+];
+
+const FOURNIER_GAS_GANGRENE_CONTEXT_TERMS = [
+  "clostridial",
+  "clostridium",
+  "fournier",
+  "gas gangrene",
+  "genital",
+  "myonecrosis",
+  "perianal",
+  "perineal",
+  "perineum",
+  "scrotal",
+  "vulvar",
+];
+
+const FOURNIER_GAS_GANGRENE_PENICILLIN_SAFETY_TERMS = ["penicillin", "piperacillin"];
+
+const FOURNIER_GAS_GANGRENE_PROTEIN_SYNTHESIS_SAFETY_TERMS = [
+  "clindamycin",
+  "linezolid",
+  "protein synthesis",
+  "toxin",
+];
+
+const FOURNIER_GAS_GANGRENE_SOURCE_TEAM_SAFETY_TERMS = [
+  "colorectal",
+  "debridement",
+  "fecal",
+  "foreign body",
+  "perianal",
+  "perineal",
+  "scrotal",
+  "source control",
+  "urology",
+  "urinary",
+];
+
+const FOURNIER_GAS_GANGRENE_HBO_DELAY_SAFETY_TERMS = [
+  "debridement first",
+  "do not delay",
+  "hbo",
+  "hyperbaric",
+  "not delay",
+  "not recommended",
+  "resuscitation first",
+  "surgery first",
 ];
 
 const RUPTURED_AAA_CONTEXT_TERMS = [
@@ -20027,6 +20102,37 @@ function requiresNecrotizingSoftTissueInfectionSafetyCheck(
   );
 }
 
+function requiresFournierGasGangreneSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  if (!requiresNecrotizingSoftTissueInfectionSafetyCheck(detail)) {
+    return false;
+  }
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return FOURNIER_GAS_GANGRENE_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasNecrotizingSoftTissueInfectionRedFlags(redFlags: string[]): boolean {
+  const normalizedRedFlags = redFlags.join(" ").toLowerCase();
+  return NECROTIZING_SOFT_TISSUE_INFECTION_RED_FLAG_TERMS.some((term) =>
+    containsSafetyTerm(normalizedRedFlags, term),
+  );
+}
+
 function hasNecrotizingSoftTissueInfectionTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
   const hasSurgery = NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_ACTION_TERMS.some((term) =>
@@ -20035,13 +20141,16 @@ function hasNecrotizingSoftTissueInfectionTimeCriticalActions(actions: string[])
   const hasAntibiotic = NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasBroadCoverage = NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_COVERAGE_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
   const hasResuscitation = NECROTIZING_SOFT_TISSUE_INFECTION_RESUSCITATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   const hasDelayPrevention = NECROTIZING_SOFT_TISSUE_INFECTION_DELAY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasSurgery && hasAntibiotic && hasResuscitation && hasDelayPrevention;
+  return hasSurgery && hasAntibiotic && hasBroadCoverage && hasResuscitation && hasDelayPrevention;
 }
 
 function hasNecrotizingSoftTissueInfectionTreatmentSafetyCheck(checks: string[]): boolean {
@@ -20064,6 +20173,28 @@ function hasNecrotizingSoftTissueInfectionTreatmentSafetyCheck(checks: string[])
     hasRepeatSourceSafety &&
     hasDiagnosticLimitationSafety &&
     hasOrganRiskSafety
+  );
+}
+
+function hasFournierGasGangreneTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasPenicillinSafety = FOURNIER_GAS_GANGRENE_PENICILLIN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasProteinSynthesisSafety = FOURNIER_GAS_GANGRENE_PROTEIN_SYNTHESIS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSourceTeamSafety = FOURNIER_GAS_GANGRENE_SOURCE_TEAM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHboDelaySafety = FOURNIER_GAS_GANGRENE_HBO_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasPenicillinSafety &&
+    hasProteinSynthesisSafety &&
+    hasSourceTeamSafety &&
+    hasHboDelaySafety
   );
 }
 
@@ -25628,7 +25759,16 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasNecrotizingSoftTissueInfectionTimeCriticalActions,
       issue:
-        "necrotizing soft tissue infection time-critical actions must include urgent surgical exploration, operative debridement, fasciotomy, or surgical consultation, broad-spectrum empiric antibiotics, sepsis, shock, lactate, ICU, vasopressor, or fluid resuscitation, and explicit do-not-delay source-control or immediate time-critical management",
+        "necrotizing soft tissue infection time-critical actions must include urgent surgical exploration, operative debridement, fasciotomy, or surgical consultation, broad-spectrum empiric antibiotics with MRSA, gram-negative, anaerobic, vancomycin, piperacillin-tazobactam, carbapenem, cefepime, or metronidazole coverage, sepsis, shock, lactate, ICU, vasopressor, or fluid resuscitation, and explicit do-not-delay source-control or immediate time-critical management",
+    },
+    {
+      name: "necrotizing_soft_tissue_infection_red_flags",
+      label: "Necrotizing soft tissue infection red flags",
+      applies: requiresNecrotizingSoftTissueInfectionSafetyCheck,
+      fieldName: "clinical_red_flags",
+      validator: hasNecrotizingSoftTissueInfectionRedFlags,
+      issue:
+        "necrotizing soft tissue infection red flags must include pain out of proportion, profound pain, rapidly progressive findings, bullae, crepitus, ecchymosis, dusky skin, skin necrosis, decreased sensation/anesthesia, or systemic toxicity",
     },
     {
       name: "necrotizing_soft_tissue_infection_treatment_safety",
@@ -25638,6 +25778,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasNecrotizingSoftTissueInfectionTreatmentSafetyCheck,
       issue:
         "necrotizing soft tissue infection safety checks must include clindamycin, linezolid, group A strep, clostridial gas gangrene, or toxin-suppression planning, repeat, second-look, 24-to-48-hour debridement or source-control reassessment, LRINEC, imaging, or diagnostic testing not delaying surgical exploration, and shock, renal injury, coagulopathy, organ failure, amputation, diabetes, or immunocompromised risk monitoring",
+    },
+    {
+      name: "fournier_gas_gangrene_treatment_safety",
+      label: "Fournier or gas gangrene treatment safety",
+      applies: requiresFournierGasGangreneSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasFournierGasGangreneTreatmentSafetyCheck,
+      issue:
+        "Fournier gangrene or clostridial gas gangrene safety checks must include definitive penicillin or piperacillin plus clindamycin, linezolid, protein-synthesis, or toxin-suppression planning, perineal, perianal, scrotal, urinary, fecal, urology, colorectal, foreign-body, debridement, or source-control planning, and hyperbaric oxygen/HBO not-recommended or do-not-delay resuscitation, surgery, or debridement safety",
     },
     {
       name: "ruptured_aaa_time_critical_actions",

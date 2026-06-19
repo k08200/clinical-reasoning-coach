@@ -7571,6 +7571,19 @@ NECROTIZING_SOFT_TISSUE_INFECTION_CONTEXT_TERMS = (
     "nsti",
     "괴사성 근막염",
 )
+NECROTIZING_SOFT_TISSUE_INFECTION_RED_FLAG_TERMS = (
+    "anesthesia",
+    "bullae",
+    "crepitus",
+    "decreased sensation",
+    "dusky",
+    "ecchymosis",
+    "pain out of proportion",
+    "profound pain",
+    "rapidly progressive",
+    "skin necrosis",
+    "systemic toxicity",
+)
 NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_ACTION_TERMS = (
     "debridement",
     "exploration",
@@ -7593,6 +7606,19 @@ NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS = (
     "tazobactam",
     "vancomycin",
     "항생제",
+)
+NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_COVERAGE_ACTION_TERMS = (
+    "anaerobe",
+    "anaerobic",
+    "carbapenem",
+    "cefepime",
+    "gram-negative",
+    "meropenem",
+    "metronidazole",
+    "mrsa",
+    "piperacillin",
+    "tazobactam",
+    "vancomycin",
 )
 NECROTIZING_SOFT_TISSUE_INFECTION_RESUSCITATION_ACTION_TERMS = (
     "fluid",
@@ -7657,6 +7683,51 @@ NECROTIZING_SOFT_TISSUE_INFECTION_ORGAN_RISK_SAFETY_TERMS = (
     "shock",
     "괴사",
     "절단",
+)
+FOURNIER_GAS_GANGRENE_CONTEXT_TERMS = (
+    "clostridial",
+    "clostridium",
+    "fournier",
+    "gas gangrene",
+    "genital",
+    "myonecrosis",
+    "perianal",
+    "perineal",
+    "perineum",
+    "scrotal",
+    "vulvar",
+)
+FOURNIER_GAS_GANGRENE_PENICILLIN_SAFETY_TERMS = (
+    "penicillin",
+    "piperacillin",
+)
+FOURNIER_GAS_GANGRENE_PROTEIN_SYNTHESIS_SAFETY_TERMS = (
+    "clindamycin",
+    "linezolid",
+    "protein synthesis",
+    "toxin",
+)
+FOURNIER_GAS_GANGRENE_SOURCE_TEAM_SAFETY_TERMS = (
+    "colorectal",
+    "debridement",
+    "fecal",
+    "foreign body",
+    "perianal",
+    "perineal",
+    "scrotal",
+    "source control",
+    "urology",
+    "urinary",
+)
+FOURNIER_GAS_GANGRENE_HBO_DELAY_SAFETY_TERMS = (
+    "debridement first",
+    "do not delay",
+    "hbo",
+    "hyperbaric",
+    "not delay",
+    "not recommended",
+    "resuscitation first",
+    "surgery first",
 )
 RUPTURED_AAA_CONTEXT_TERMS = (
     "abdominal aortic aneurysm rupture",
@@ -16520,9 +16591,23 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "necrotizing soft tissue infection time-critical actions must "
                 "include urgent surgical exploration, operative debridement, "
                 "fasciotomy, or surgical consultation, broad-spectrum empiric "
-                "antibiotics, sepsis, shock, lactate, ICU, vasopressor, or fluid "
+                "antibiotics with MRSA, gram-negative, anaerobic, vancomycin, "
+                "piperacillin-tazobactam, carbapenem, cefepime, or metronidazole "
+                "coverage, sepsis, shock, lactate, ICU, vasopressor, or fluid "
                 "resuscitation, and explicit do-not-delay source-control or "
                 "immediate time-critical management"
+            ),
+        ),
+        DomainSafetyGate(
+            name="necrotizing_soft_tissue_infection_red_flags",
+            applies=_requires_necrotizing_soft_tissue_infection_safety_check,
+            field_name="clinical_red_flags",
+            validator=_has_necrotizing_soft_tissue_infection_red_flags,
+            issue=(
+                "necrotizing soft tissue infection red flags must include pain "
+                "out of proportion, profound pain, rapidly progressive findings, "
+                "bullae, crepitus, ecchymosis, dusky skin, skin necrosis, "
+                "decreased sensation/anesthesia, or systemic toxicity"
             ),
         ),
         DomainSafetyGate(
@@ -16538,6 +16623,21 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "or diagnostic testing not delaying surgical exploration, and "
                 "shock, renal injury, coagulopathy, organ failure, amputation, "
                 "diabetes, or immunocompromised risk monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="fournier_gas_gangrene_treatment_safety",
+            applies=_requires_fournier_gas_gangrene_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_fournier_gas_gangrene_treatment_safety_check,
+            issue=(
+                "Fournier gangrene or clostridial gas gangrene safety checks must "
+                "include definitive penicillin or piperacillin plus clindamycin, "
+                "linezolid, protein-synthesis, or toxin-suppression planning, "
+                "perineal, perianal, scrotal, urinary, fecal, urology, colorectal, "
+                "foreign-body, debridement, or source-control planning, and "
+                "hyperbaric oxygen/HBO not-recommended or do-not-delay "
+                "resuscitation, surgery, or debridement safety"
             ),
         ),
         DomainSafetyGate(
@@ -24229,6 +24329,43 @@ def _requires_necrotizing_soft_tissue_infection_safety_check(data: dict[str, Any
     )
 
 
+def _requires_fournier_gas_gangrene_safety_check(data: dict[str, Any]) -> bool:
+    if not _requires_necrotizing_soft_tissue_infection_safety_check(data):
+        return False
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in FOURNIER_GAS_GANGRENE_CONTEXT_TERMS
+    )
+
+
+def _has_necrotizing_soft_tissue_infection_red_flags(red_flags: list[Any]) -> bool:
+    normalized_red_flags = " ".join(str(red_flag).lower() for red_flag in red_flags)
+    return any(
+        _contains_safety_term(normalized_red_flags, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_RED_FLAG_TERMS
+    )
+
+
 def _has_necrotizing_soft_tissue_infection_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
     has_surgery = any(
@@ -24239,6 +24376,10 @@ def _has_necrotizing_soft_tissue_infection_time_critical_actions(actions: list[A
         _contains_safety_term(normalized_actions, term)
         for term in NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS
     )
+    has_broad_coverage = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_COVERAGE_ACTION_TERMS
+    )
     has_resuscitation = any(
         _contains_safety_term(normalized_actions, term)
         for term in NECROTIZING_SOFT_TISSUE_INFECTION_RESUSCITATION_ACTION_TERMS
@@ -24247,7 +24388,13 @@ def _has_necrotizing_soft_tissue_infection_time_critical_actions(actions: list[A
         _contains_safety_term(normalized_actions, term)
         for term in NECROTIZING_SOFT_TISSUE_INFECTION_DELAY_ACTION_TERMS
     )
-    return has_surgery and has_antibiotic and has_resuscitation and has_delay_prevention
+    return (
+        has_surgery
+        and has_antibiotic
+        and has_broad_coverage
+        and has_resuscitation
+        and has_delay_prevention
+    )
 
 
 def _has_necrotizing_soft_tissue_infection_treatment_safety_check(checks: list[Any]) -> bool:
@@ -24273,6 +24420,32 @@ def _has_necrotizing_soft_tissue_infection_treatment_safety_check(checks: list[A
         and has_repeat_source_safety
         and has_diagnostic_limitation_safety
         and has_organ_risk_safety
+    )
+
+
+def _has_fournier_gas_gangrene_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_penicillin_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FOURNIER_GAS_GANGRENE_PENICILLIN_SAFETY_TERMS
+    )
+    has_protein_synthesis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FOURNIER_GAS_GANGRENE_PROTEIN_SYNTHESIS_SAFETY_TERMS
+    )
+    has_source_team_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FOURNIER_GAS_GANGRENE_SOURCE_TEAM_SAFETY_TERMS
+    )
+    has_hbo_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in FOURNIER_GAS_GANGRENE_HBO_DELAY_SAFETY_TERMS
+    )
+    return (
+        has_penicillin_safety
+        and has_protein_synthesis_safety
+        and has_source_team_safety
+        and has_hbo_delay_safety
     )
 
 
