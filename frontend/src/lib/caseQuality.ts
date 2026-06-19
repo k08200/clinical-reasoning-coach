@@ -520,6 +520,73 @@ const SEPSIS_SOURCE_CONTROL_SAFETY_TERMS = [
   "source control",
 ];
 
+const ADULT_SEPTIC_SHOCK_CONTEXT_TERMS = [
+  "septic shock",
+  "sepsis-induced hypoperfusion",
+  "sepsis induced hypoperfusion",
+  "urosepsis with shock",
+];
+
+const ADULT_SEPTIC_SHOCK_RISK_TERMS = [
+  "altered mental status",
+  "hypoperfusion",
+  "hypotension",
+  "lactate",
+  "map",
+  "oliguria",
+  "organ dysfunction",
+  "poor perfusion",
+  "vasopressor",
+];
+
+const ADULT_SEPTIC_SHOCK_CULTURE_ACTION_TERMS = [
+  "blood culture",
+  "blood cultures",
+  "culture",
+  "cultures",
+];
+
+const ADULT_SEPTIC_SHOCK_ANTIMICROBIAL_ACTION_TERMS = [
+  "1 hour",
+  "broad-spectrum",
+  "broad spectrum",
+  "empiric antibiotic",
+  "empiric antimicrobial",
+  "immediate antibiotic",
+  "immediate antimicrobial",
+  "within 1 hour",
+  "within one hour",
+];
+
+const ADULT_SEPTIC_SHOCK_LACTATE_ACTION_TERMS = [
+  "lactate",
+  "repeat lactate",
+  "serial lactate",
+];
+
+const ADULT_SEPTIC_SHOCK_FLUID_ACTION_TERMS = [
+  "30 ml/kg",
+  "30 mL/kg",
+  "30ml/kg",
+  "balanced crystalloid",
+  "crystalloid",
+  "fluid resuscitation",
+];
+
+const ADULT_SEPTIC_SHOCK_VASOPRESSOR_ACTION_TERMS = [
+  "map 65",
+  "mean arterial pressure",
+  "norepinephrine",
+  "vasopressor",
+  "vasopressors",
+];
+
+const ADULT_SEPTIC_SHOCK_SOURCE_ICU_ACTION_TERMS = [
+  "critical care",
+  "icu",
+  "source control",
+];
+
 const PEDIATRIC_SEPTIC_SHOCK_CONTEXT_TERMS = [
   "child with septic shock",
   "paediatric septic shock",
@@ -18092,6 +18159,63 @@ function hasSepsisResuscitationSafetyCheck(checks: string[]): boolean {
   );
 }
 
+function requiresAdultSepticShockBundleSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  if (isPediatricAge(detail.patient_demographics.age)) {
+    return false;
+  }
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const hasContext = ADULT_SEPTIC_SHOCK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRisk = ADULT_SEPTIC_SHOCK_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasRisk;
+}
+
+function hasAdultSepticShockBundleActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCultures = ADULT_SEPTIC_SHOCK_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntimicrobials = ADULT_SEPTIC_SHOCK_ANTIMICROBIAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLactate = ADULT_SEPTIC_SHOCK_LACTATE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFluids = ADULT_SEPTIC_SHOCK_FLUID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVasopressor = ADULT_SEPTIC_SHOCK_VASOPRESSOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSourceOrIcu = ADULT_SEPTIC_SHOCK_SOURCE_ICU_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasCultures &&
+    hasAntimicrobials &&
+    hasLactate &&
+    hasFluids &&
+    hasVasopressor &&
+    hasSourceOrIcu
+  );
+}
+
 function requiresPediatricSepticShockSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   if (!isPediatricAge(detail.patient_demographics.age)) {
     return false;
@@ -21101,6 +21225,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasSepsisResuscitationSafetyCheck,
       issue:
         "sepsis safety checks must include perfusion or repeat-lactate reassessment, fluid responsiveness or overload review, MAP or norepinephrine vasopressor target planning, and source-control assessment",
+    },
+    {
+      name: "adult_septic_shock_bundle_actions",
+      label: "Adult septic shock bundle actions",
+      applies: requiresAdultSepticShockBundleSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasAdultSepticShockBundleActions,
+      issue:
+        "adult septic shock time-critical actions must include blood cultures without delaying treatment, immediate broad-spectrum antimicrobials ideally within 1 hour, lactate measurement or repeat lactate, 30 mL/kg or crystalloid fluid resuscitation, norepinephrine or vasopressor support targeting MAP 65, and source-control or ICU/critical-care escalation",
     },
     {
       name: "pediatric_septic_shock_time_critical_actions",

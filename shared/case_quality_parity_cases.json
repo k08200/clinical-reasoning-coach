@@ -337,6 +337,59 @@
     }
   },
   {
+    "name": "adult_septic_shock_requires_complete_bundle_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "adult septic shock time-critical actions must include blood cultures"
+    ],
+    "overrides": {
+      "diagnosis": "Adult septic shock secondary to urosepsis",
+      "key_teaching_points": [
+        "Septic shock requires early recognition and immediate escalation",
+        "Antibiotics within 1 hour and fluid resuscitation are time-critical",
+        "Lactate elevation suggests tissue hypoperfusion"
+      ],
+      "clinical_red_flags": [
+        "Hypotension with fever and altered mental status",
+        "Lactate 4.1 mmol/L suggesting tissue hypoperfusion",
+        "AKI and poor perfusion suggesting organ dysfunction"
+      ],
+      "time_critical_actions": [
+        "Start broad-spectrum antibiotics within 1 hour",
+        "Begin sepsis fluid resuscitation and reassessment",
+        "Escalate suspected septic shock urgently"
+      ],
+      "contraindication_checks": [
+        "Renal impairment and allergy history before antibiotic selection or dosing",
+        "Volume overload risk during fluid resuscitation in CKD or heart failure",
+        "Repeat lactate and reassess perfusion using capillary refill, urine output, and mental status",
+        "Fluid responsiveness, volume status, and fluid overload or pulmonary edema review during resuscitation",
+        "Target MAP 65 mean arterial pressure with norepinephrine vasopressor if hypotension persists",
+        "Assess source control including urinary obstruction drainage, abscess drainage, debridement, or device removal when indicated"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Surviving Sepsis Campaign Adult Guidelines",
+          "organization": "Society of Critical Care Medicine",
+          "url": "https://www.sccm.org/survivingsepsiscampaign/guidelines-and-resources/surviving-sepsis-campaign-adult-guidelines",
+          "supports": [
+            "adult septic shock secondary to urosepsis diagnosis and risk stratification",
+            "hypotension, fever, altered mental status, lactate 4.1, AKI, and poor perfusion",
+            "broad-spectrum antibiotics within 1 hour",
+            "sepsis fluid resuscitation and reassessment",
+            "suspected septic shock urgent escalation",
+            "renal impairment and allergy history before antibiotic selection or dosing",
+            "volume overload risk during fluid resuscitation in CKD or heart failure",
+            "repeat lactate and perfusion reassessment using capillary refill, urine output, and mental status",
+            "fluid responsiveness, volume status, and fluid overload or pulmonary edema review",
+            "target MAP 65 mean arterial pressure with norepinephrine vasopressor if hypotension persists",
+            "source control including urinary obstruction drainage, abscess drainage, debridement, or device removal"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "infection_therapy_requires_antimicrobial_safety_checks",
     "expected_passed": false,
     "expected_issue_substrings": [

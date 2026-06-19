@@ -48,6 +48,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "infection_antimicrobial_safety",
         "sepsis_resuscitation_actions",
         "sepsis_resuscitation_safety",
+        "adult_septic_shock_bundle_actions",
         "pediatric_septic_shock_time_critical_actions",
         "pediatric_septic_shock_treatment_safety",
         "anaphylaxis_time_critical_actions",
@@ -10507,6 +10508,35 @@ def test_quality_gate_requires_sepsis_perfusion_fluid_vasopressor_and_source_con
     assert not report.passed
     assert any(
         "sepsis safety checks must include perfusion or repeat-lactate reassessment"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_adult_septic_shock_complete_bundle_actions():
+    case = copy.deepcopy(CASE_POOL[1])
+    case["diagnosis"] = "Adult septic shock secondary to urosepsis"
+    case["time_critical_actions"] = [
+        "Start broad-spectrum antibiotics within 1 hour",
+        "Begin sepsis fluid resuscitation and reassessment",
+        "Escalate suspected septic shock urgently",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "adult septic shock secondary to urosepsis diagnosis and risk stratification",
+        "hypotension, fever, altered mental status, lactate 4.1, AKI, and poor perfusion",
+        "broad-spectrum antibiotics within 1 hour",
+        "sepsis fluid resuscitation and reassessment",
+        "suspected septic shock urgent escalation",
+        "renal impairment and allergy history before antibiotic selection or dosing",
+        "volume overload risk during fluid resuscitation in CKD or heart failure",
+        "need for vasopressors if hypotension persists after initial resuscitation",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "adult septic shock time-critical actions must include blood cultures"
         in issue
         for issue in report.critical_issues
     )

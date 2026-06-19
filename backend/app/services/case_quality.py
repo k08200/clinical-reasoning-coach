@@ -512,6 +512,65 @@ SEPSIS_SOURCE_CONTROL_SAFETY_TERMS = (
     "drainage",
     "source control",
 )
+ADULT_SEPTIC_SHOCK_CONTEXT_TERMS = (
+    "septic shock",
+    "sepsis-induced hypoperfusion",
+    "sepsis induced hypoperfusion",
+    "urosepsis with shock",
+)
+ADULT_SEPTIC_SHOCK_RISK_TERMS = (
+    "altered mental status",
+    "hypoperfusion",
+    "hypotension",
+    "lactate",
+    "map",
+    "oliguria",
+    "organ dysfunction",
+    "poor perfusion",
+    "vasopressor",
+)
+ADULT_SEPTIC_SHOCK_CULTURE_ACTION_TERMS = (
+    "blood culture",
+    "blood cultures",
+    "culture",
+    "cultures",
+)
+ADULT_SEPTIC_SHOCK_ANTIMICROBIAL_ACTION_TERMS = (
+    "1 hour",
+    "broad-spectrum",
+    "broad spectrum",
+    "empiric antibiotic",
+    "empiric antimicrobial",
+    "immediate antibiotic",
+    "immediate antimicrobial",
+    "within 1 hour",
+    "within one hour",
+)
+ADULT_SEPTIC_SHOCK_LACTATE_ACTION_TERMS = (
+    "lactate",
+    "repeat lactate",
+    "serial lactate",
+)
+ADULT_SEPTIC_SHOCK_FLUID_ACTION_TERMS = (
+    "30 ml/kg",
+    "30 mL/kg",
+    "30ml/kg",
+    "balanced crystalloid",
+    "crystalloid",
+    "fluid resuscitation",
+)
+ADULT_SEPTIC_SHOCK_VASOPRESSOR_ACTION_TERMS = (
+    "map 65",
+    "mean arterial pressure",
+    "norepinephrine",
+    "vasopressor",
+    "vasopressors",
+)
+ADULT_SEPTIC_SHOCK_SOURCE_ICU_ACTION_TERMS = (
+    "critical care",
+    "icu",
+    "source control",
+)
 PEDIATRIC_SEPTIC_SHOCK_CONTEXT_TERMS = (
     "child with septic shock",
     "paediatric septic shock",
@@ -12564,6 +12623,20 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="adult_septic_shock_bundle_actions",
+            applies=_requires_adult_septic_shock_bundle_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_adult_septic_shock_bundle_actions,
+            issue=(
+                "adult septic shock time-critical actions must include blood "
+                "cultures without delaying treatment, immediate broad-spectrum "
+                "antimicrobials ideally within 1 hour, lactate measurement or "
+                "repeat lactate, 30 mL/kg or crystalloid fluid resuscitation, "
+                "norepinephrine or vasopressor support targeting MAP 65, and "
+                "source-control or ICU/critical-care escalation"
+            ),
+        ),
+        DomainSafetyGate(
             name="pediatric_septic_shock_time_critical_actions",
             applies=_requires_pediatric_septic_shock_safety_check,
             field_name="time_critical_actions",
@@ -21904,6 +21977,76 @@ def _has_sepsis_resuscitation_safety_check(checks: list[Any]) -> bool:
         and has_fluid_reassessment
         and has_vasopressor_target
         and has_source_control
+    )
+
+
+def _requires_adult_septic_shock_bundle_safety_check(data: dict[str, Any]) -> bool:
+    demographics = data.get("patient_demographics") or {}
+    if _is_pediatric_age(demographics.get("age")):
+        return False
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    has_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in ADULT_SEPTIC_SHOCK_CONTEXT_TERMS
+    )
+    has_risk = any(
+        _contains_safety_term(risk_text, term)
+        for term in ADULT_SEPTIC_SHOCK_RISK_TERMS
+    )
+    return has_context and has_risk
+
+
+def _has_adult_septic_shock_bundle_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_cultures = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADULT_SEPTIC_SHOCK_CULTURE_ACTION_TERMS
+    )
+    has_antimicrobials = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADULT_SEPTIC_SHOCK_ANTIMICROBIAL_ACTION_TERMS
+    )
+    has_lactate = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADULT_SEPTIC_SHOCK_LACTATE_ACTION_TERMS
+    )
+    has_fluids = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADULT_SEPTIC_SHOCK_FLUID_ACTION_TERMS
+    )
+    has_vasopressor = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADULT_SEPTIC_SHOCK_VASOPRESSOR_ACTION_TERMS
+    )
+    has_source_or_icu = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADULT_SEPTIC_SHOCK_SOURCE_ICU_ACTION_TERMS
+    )
+    return (
+        has_cultures
+        and has_antimicrobials
+        and has_lactate
+        and has_fluids
+        and has_vasopressor
+        and has_source_or_icu
     )
 
 
