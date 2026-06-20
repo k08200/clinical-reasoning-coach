@@ -7422,6 +7422,7 @@ def test_quality_gate_requires_serotonin_syndrome_stop_support_sedation_cooling_
     ]
     case["contraindication_checks"] = [
         "Review differential diagnosis including NMS, neuroleptic malignant syndrome, malignant hyperthermia, anticholinergic toxicity, sympathomimetic toxicity, and sepsis",
+        "Confirm Hunter criteria pattern with recent serotonergic exposure or medication change within 24 hours plus spontaneous, inducible, or ocular clonus, tremor and hyperreflexia, hypertonia, or neuromuscular excitation",
         "Avoid physical restraint and avoid antipyretic-centered management with acetaminophen for serotonin hyperthermia",
         "Plan intubation, mechanical ventilation, neuromuscular blockade, and nondepolarizing paralysis if severe hyperthermia or temperature above 41 C develops",
         "Monitor CK creatine kinase, rhabdomyolysis, AKI, renal injury, electrolytes, and seizure complications",
@@ -7443,6 +7444,7 @@ def test_quality_gate_requires_serotonin_syndrome_stop_support_sedation_cooling_
                 "benzodiazepine chemical sedation with diazepam, lorazepam, or midazolam for agitation and muscle activity",
                 "active cooling and external cooling for hyperthermia with temperature monitoring",
                 "NMS, neuroleptic malignant syndrome, malignant hyperthermia, anticholinergic toxicity, sympathomimetic toxicity, and sepsis differential diagnosis",
+                "Hunter criteria pattern with recent serotonergic exposure or medication change within 24 hours plus spontaneous, inducible, or ocular clonus, tremor and hyperreflexia, hypertonia, or neuromuscular excitation",
                 "avoid physical restraint and avoid antipyretic-centered management with acetaminophen for serotonin hyperthermia",
                 "intubation, mechanical ventilation, neuromuscular blockade, and nondepolarizing paralysis if severe hyperthermia or temperature above 41 C develops",
                 "CK creatine kinase, rhabdomyolysis, AKI, renal injury, electrolytes, and seizure complications monitoring",
@@ -7576,6 +7578,7 @@ def test_quality_gate_requires_neuroleptic_malignant_syndrome_stop_support_cooli
     ]
     case["contraindication_checks"] = [
         "Review differential diagnosis including serotonin syndrome, malignant hyperthermia, heat stroke, CNS infection, meningitis, and sympathomimetic toxicity",
+        "Confirm dopamine antagonist exposure or antipsychotic exposure after dose increase and distinguish slower onset over days, lead-pipe rigidity, and decreased reflexes rather than clonus or hyperreflexia",
         "Avoid antipsychotic rechallenge or restart until recovery, wait an appropriate interval, and use lower potency if reintroduced",
         "Review bromocriptine, amantadine, dantrolene, benzodiazepine, ECT electroconvulsive therapy, liver risk, and psychosis worsening safety",
     ]
@@ -7596,6 +7599,7 @@ def test_quality_gate_requires_neuroleptic_malignant_syndrome_stop_support_cooli
                 "active cooling and aggressive cooling for hyperthermia with temperature monitoring",
                 "CK creatine kinase, rhabdomyolysis, AKI, renal function, and electrolyte complication monitoring",
                 "serotonin syndrome, malignant hyperthermia, heat stroke, CNS infection, meningitis, and sympathomimetic toxicity differential diagnosis",
+                "dopamine antagonist exposure or antipsychotic exposure after dose increase and slower onset over days, lead-pipe rigidity, and decreased reflexes rather than clonus or hyperreflexia distinction",
                 "avoid antipsychotic rechallenge or restart until recovery, wait an appropriate interval, and use lower potency if reintroduced",
                 "bromocriptine, amantadine, dantrolene, benzodiazepine, ECT electroconvulsive therapy, liver risk, and psychosis worsening safety",
             ],

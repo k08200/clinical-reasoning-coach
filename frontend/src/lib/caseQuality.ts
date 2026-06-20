@@ -6268,6 +6268,31 @@ const SEROTONIN_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = [
   "감별",
 ];
 
+const SEROTONIN_SYNDROME_HUNTER_DIAGNOSTIC_SAFETY_TERMS = [
+  "hunter",
+  "spontaneous clonus",
+  "inducible clonus",
+  "ocular clonus",
+  "tremor and hyperreflexia",
+  "hyperreflexia and clonus",
+  "hypertonia and temperature",
+  "neuromuscular excitation",
+  "neuromuscular hyperactivity",
+];
+
+const SEROTONIN_SYNDROME_EXPOSURE_TIMING_SAFETY_TERMS = [
+  "6 to 24",
+  "dose change",
+  "drug interaction",
+  "medication-change",
+  "medication change",
+  "new serotonergic",
+  "recent serotonergic",
+  "serotonergic exposure",
+  "serotonergic medication history",
+  "within 24",
+];
+
 const SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS = [
   "acetaminophen",
   "antipyretic",
@@ -6401,6 +6426,32 @@ const NEUROLEPTIC_MALIGNANT_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = [
   "serotonin syndrome",
   "sympathomimetic",
   "감별",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_EXPOSURE_DIFFERENTIATION_SAFETY_TERMS = [
+  "antipsychotic exposure",
+  "dopamine agonist withdrawal",
+  "dopamine-antagonist exposure",
+  "dopamine antagonist exposure",
+  "dopaminergic withdrawal",
+  "dose increase",
+  "neuroleptic exposure",
+  "parenteral",
+  "rapid dose",
+  "within 72",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_RIGIDITY_REFLEX_SAFETY_TERMS = [
+  "decreased-reflex",
+  "decreased reflex",
+  "hyporeflexia",
+  "lead pipe",
+  "not clonus",
+  "over days",
+  "rather than clonus",
+  "reduced reflex",
+  "slower onset",
+  "versus clonus",
 ];
 
 const NEUROLEPTIC_MALIGNANT_SYNDROME_RESTART_SAFETY_TERMS = [
@@ -19131,6 +19182,12 @@ function hasSerotoninSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
   const hasDifferentialSafety = SEROTONIN_SYNDROME_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasHunterDiagnosticSafety = SEROTONIN_SYNDROME_HUNTER_DIAGNOSTIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasExposureTimingSafety = SEROTONIN_SYNDROME_EXPOSURE_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasRestraintAntipyreticSafety = SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
@@ -19142,6 +19199,8 @@ function hasSerotoninSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
   );
   return (
     hasDifferentialSafety &&
+    hasHunterDiagnosticSafety &&
+    hasExposureTimingSafety &&
     hasRestraintAntipyreticSafety &&
     hasSevereHyperthermiaSafety &&
     hasComplicationMonitoring
@@ -19205,13 +19264,26 @@ function hasNeurolepticMalignantSyndromeTreatmentSafetyCheck(checks: string[]): 
   const hasDifferentialSafety = NEUROLEPTIC_MALIGNANT_SYNDROME_DIFFERENTIAL_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasExposureDifferentiationSafety =
+    NEUROLEPTIC_MALIGNANT_SYNDROME_EXPOSURE_DIFFERENTIATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasRigidityReflexSafety = NEUROLEPTIC_MALIGNANT_SYNDROME_RIGIDITY_REFLEX_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   const hasRestartSafety = NEUROLEPTIC_MALIGNANT_SYNDROME_RESTART_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasMedicationSafety = NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasDifferentialSafety && hasRestartSafety && hasMedicationSafety;
+  return (
+    hasDifferentialSafety &&
+    hasExposureDifferentiationSafety &&
+    hasRigidityReflexSafety &&
+    hasRestartSafety &&
+    hasMedicationSafety
+  );
 }
 
 function requiresCaudaEquinaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -25693,7 +25765,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSerotoninSyndromeTreatmentSafetyCheck,
       issue:
-        "serotonin syndrome safety checks must include differential review for NMS, malignant hyperthermia, anticholinergic, sympathomimetic, or sepsis mimics, avoidance of physical-restraint or antipyretic-centered management, severe-hyperthermia planning for intubation, mechanical ventilation, neuromuscular blockade, nondepolarizing paralysis, or temperature above 41 C, and monitoring for rhabdomyolysis, CK, renal injury, electrolytes, seizure, or AKI",
+        "serotonin syndrome safety checks must include differential review for NMS, malignant hyperthermia, anticholinergic, sympathomimetic, or sepsis mimics, Hunter-style diagnostic confirmation using clonus, hyperreflexia, hypertonia, or neuromuscular excitation, recent serotonergic exposure or medication-change timing, avoidance of physical-restraint or antipyretic-centered management, severe-hyperthermia planning for intubation, mechanical ventilation, neuromuscular blockade, nondepolarizing paralysis, or temperature above 41 C, and monitoring for rhabdomyolysis, CK, renal injury, electrolytes, seizure, or AKI",
     },
     {
       name: "neuroleptic_malignant_syndrome_time_critical_actions",
@@ -25711,7 +25783,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasNeurolepticMalignantSyndromeTreatmentSafetyCheck,
       issue:
-        "neuroleptic malignant syndrome safety checks must include differential review for serotonin syndrome, malignant hyperthermia, heat stroke, CNS infection, meningitis, or sympathomimetic mimics, antipsychotic rechallenge or restart prevention with waiting, lower-potency, or avoid-rechallenge planning, and bromocriptine, amantadine, dantrolene, ECT, liver, or psychosis medication-safety review",
+        "neuroleptic malignant syndrome safety checks must include differential review for serotonin syndrome, malignant hyperthermia, heat stroke, CNS infection, meningitis, or sympathomimetic mimics, dopamine-antagonist exposure, antipsychotic exposure, or dopamine-agonist withdrawal timing, lead-pipe rigidity, decreased-reflex, slower-onset, or clonus/hyperreflexia distinction from serotonin syndrome, antipsychotic rechallenge or restart prevention with waiting, lower-potency, or avoid-rechallenge planning, and bromocriptine, amantadine, dantrolene, ECT, liver, or psychosis medication-safety review",
     },
     {
       name: "cauda_equina_time_critical_actions",

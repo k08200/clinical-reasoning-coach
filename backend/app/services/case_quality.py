@@ -5729,6 +5729,29 @@ SEROTONIN_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = (
     "sympathomimetic",
     "감별",
 )
+SEROTONIN_SYNDROME_HUNTER_DIAGNOSTIC_SAFETY_TERMS = (
+    "hunter",
+    "spontaneous clonus",
+    "inducible clonus",
+    "ocular clonus",
+    "tremor and hyperreflexia",
+    "hyperreflexia and clonus",
+    "hypertonia and temperature",
+    "neuromuscular excitation",
+    "neuromuscular hyperactivity",
+)
+SEROTONIN_SYNDROME_EXPOSURE_TIMING_SAFETY_TERMS = (
+    "6 to 24",
+    "dose change",
+    "drug interaction",
+    "medication-change",
+    "medication change",
+    "new serotonergic",
+    "recent serotonergic",
+    "serotonergic exposure",
+    "serotonergic medication history",
+    "within 24",
+)
 SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS = (
     "acetaminophen",
     "antipyretic",
@@ -5850,6 +5873,30 @@ NEUROLEPTIC_MALIGNANT_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = (
     "serotonin syndrome",
     "sympathomimetic",
     "감별",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_EXPOSURE_DIFFERENTIATION_SAFETY_TERMS = (
+    "antipsychotic exposure",
+    "dopamine agonist withdrawal",
+    "dopamine-antagonist exposure",
+    "dopamine antagonist exposure",
+    "dopaminergic withdrawal",
+    "dose increase",
+    "neuroleptic exposure",
+    "parenteral",
+    "rapid dose",
+    "within 72",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_RIGIDITY_REFLEX_SAFETY_TERMS = (
+    "decreased-reflex",
+    "decreased reflex",
+    "hyporeflexia",
+    "lead pipe",
+    "not clonus",
+    "over days",
+    "rather than clonus",
+    "reduced reflex",
+    "slower onset",
+    "versus clonus",
 )
 NEUROLEPTIC_MALIGNANT_SYNDROME_RESTART_SAFETY_TERMS = (
     "avoid rechallenge",
@@ -16166,11 +16213,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "serotonin syndrome safety checks must include differential review "
                 "for NMS, malignant hyperthermia, anticholinergic, sympathomimetic, "
-                "or sepsis mimics, avoidance of physical-restraint or antipyretic-"
-                "centered management, severe-hyperthermia planning for intubation, "
-                "mechanical ventilation, neuromuscular blockade, nondepolarizing "
-                "paralysis, or temperature above 41 C, and monitoring for "
-                "rhabdomyolysis, CK, renal injury, electrolytes, seizure, or AKI"
+                "or sepsis mimics, Hunter-style diagnostic confirmation using "
+                "clonus, hyperreflexia, hypertonia, or neuromuscular excitation, "
+                "recent serotonergic exposure or medication-change timing, avoidance "
+                "of physical-restraint or antipyretic-centered management, severe-"
+                "hyperthermia planning for intubation, mechanical ventilation, "
+                "neuromuscular blockade, nondepolarizing paralysis, or temperature "
+                "above 41 C, and monitoring for rhabdomyolysis, CK, renal injury, "
+                "electrolytes, seizure, or AKI"
             ),
         ),
         DomainSafetyGate(
@@ -16197,6 +16247,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "neuroleptic malignant syndrome safety checks must include "
                 "differential review for serotonin syndrome, malignant hyperthermia, "
                 "heat stroke, CNS infection, meningitis, or sympathomimetic mimics, "
+                "dopamine-antagonist exposure, antipsychotic exposure, or dopamine-"
+                "agonist withdrawal timing, lead-pipe rigidity, decreased-reflex, "
+                "slower-onset, or clonus/hyperreflexia distinction from serotonin "
+                "syndrome, "
                 "antipsychotic rechallenge or restart prevention with waiting, "
                 "lower-potency, or avoid-rechallenge planning, and bromocriptine, "
                 "amantadine, dantrolene, ECT, liver, or psychosis medication-safety "
@@ -23071,6 +23125,14 @@ def _has_serotonin_syndrome_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in SEROTONIN_SYNDROME_DIFFERENTIAL_SAFETY_TERMS
     )
+    has_hunter_diagnostic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEROTONIN_SYNDROME_HUNTER_DIAGNOSTIC_SAFETY_TERMS
+    )
+    has_exposure_timing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEROTONIN_SYNDROME_EXPOSURE_TIMING_SAFETY_TERMS
+    )
     has_restraint_antipyretic_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS
@@ -23085,6 +23147,8 @@ def _has_serotonin_syndrome_treatment_safety_check(checks: list[Any]) -> bool:
     )
     return (
         has_differential_safety
+        and has_hunter_diagnostic_safety
+        and has_exposure_timing_safety
         and has_restraint_antipyretic_safety
         and has_severe_hyperthermia_safety
         and has_complication_monitoring
@@ -23177,6 +23241,14 @@ def _has_neuroleptic_malignant_syndrome_treatment_safety_check(
         _contains_safety_term(normalized_checks, term)
         for term in NEUROLEPTIC_MALIGNANT_SYNDROME_DIFFERENTIAL_SAFETY_TERMS
     )
+    has_exposure_differentiation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_EXPOSURE_DIFFERENTIATION_SAFETY_TERMS
+    )
+    has_rigidity_reflex_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_RIGIDITY_REFLEX_SAFETY_TERMS
+    )
     has_restart_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in NEUROLEPTIC_MALIGNANT_SYNDROME_RESTART_SAFETY_TERMS
@@ -23185,7 +23257,13 @@ def _has_neuroleptic_malignant_syndrome_treatment_safety_check(
         _contains_safety_term(normalized_checks, term)
         for term in NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_SAFETY_TERMS
     )
-    return has_differential_safety and has_restart_safety and has_medication_safety
+    return (
+        has_differential_safety
+        and has_exposure_differentiation_safety
+        and has_rigidity_reflex_safety
+        and has_restart_safety
+        and has_medication_safety
+    )
 
 
 def _requires_cauda_equina_safety_check(data: dict[str, Any]) -> bool:
