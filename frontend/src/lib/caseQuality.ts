@@ -1666,6 +1666,25 @@ const ENCEPHALITIS_RISK_TERMS = [
   "temporal lobe",
 ];
 
+const ENCEPHALITIS_MENTAL_STATUS_RED_FLAG_TERMS = [
+  "altered mental",
+  "behavior change",
+  "confusion",
+  "encephalopathy",
+  "memory",
+  "personality",
+  "psychosis",
+];
+
+const ENCEPHALITIS_FOCAL_SEIZURE_RED_FLAG_TERMS = [
+  "aphasia",
+  "focal neurologic",
+  "new seizure",
+  "seizure",
+  "status epilepticus",
+  "temporal lobe",
+];
+
 const ENCEPHALITIS_ACYCLOVIR_ACTION_TERMS = ["acyclovir", "aciclovir"];
 
 const ENCEPHALITIS_NEUROIMAGING_ACTION_TERMS = [
@@ -1723,6 +1742,47 @@ const ENCEPHALITIS_DIFFERENTIAL_EMPIRIC_SAFETY_TERMS = [
   "doxycycline",
   "rickettsial",
   "vancomycin",
+];
+
+const IMMUNOCOMPROMISED_ENCEPHALITIS_CONTEXT_TERMS = [
+  "aids",
+  "chemotherapy",
+  "hiv",
+  "immunocompromised",
+  "immunosuppressed",
+  "neutropenia",
+  "steroid",
+  "transplant",
+];
+
+const IMMUNOCOMPROMISED_ENCEPHALITIS_HERPESVIRUS_SAFETY_TERMS = [
+  "acyclovir",
+  "cmv",
+  "cytomegalovirus",
+  "foscarnet",
+  "ganciclovir",
+  "hhv-6",
+  "varicella",
+  "vzv",
+];
+
+const IMMUNOCOMPROMISED_ENCEPHALITIS_OPPORTUNISTIC_SAFETY_TERMS = [
+  "amphotericin",
+  "ampicillin",
+  "cryptococcus",
+  "jc virus",
+  "listeria",
+  "pml",
+  "toxoplasma",
+  "tuberculosis",
+];
+
+const IMMUNOCOMPROMISED_ENCEPHALITIS_HOST_RISK_SAFETY_TERMS = [
+  "cd4",
+  "hiv",
+  "immunosuppression",
+  "infectious disease",
+  "transplant",
 ];
 
 const SUICIDE_SELF_HARM_CONTEXT_TERMS = [
@@ -16372,6 +16432,42 @@ function requiresEncephalitisSafetyCheck(detail: ClinicalCaseReviewDetail): bool
   return hasContext && hasRisk;
 }
 
+function requiresImmunocompromisedEncephalitisSafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  if (!requiresEncephalitisSafetyCheck(detail)) {
+    return false;
+  }
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return IMMUNOCOMPROMISED_ENCEPHALITIS_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasEncephalitisRedFlags(redFlags: string[]): boolean {
+  const normalizedRedFlags = redFlags.join(" ").toLowerCase();
+  const hasMentalStatus = ENCEPHALITIS_MENTAL_STATUS_RED_FLAG_TERMS.some((term) =>
+    containsSafetyTerm(normalizedRedFlags, term),
+  );
+  const hasFocalSeizure = ENCEPHALITIS_FOCAL_SEIZURE_RED_FLAG_TERMS.some((term) =>
+    containsSafetyTerm(normalizedRedFlags, term),
+  );
+  return hasMentalStatus && hasFocalSeizure;
+}
+
 function hasEncephalitisTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
   const hasAcyclovir = ENCEPHALITIS_ACYCLOVIR_ACTION_TERMS.some((term) =>
@@ -16409,6 +16505,21 @@ function hasEncephalitisTreatmentSafetyCheck(checks: string[]): boolean {
     hasRepeatPcrSafety &&
     hasDifferentialEmpiricSafety
   );
+}
+
+function hasImmunocompromisedEncephalitisTreatmentSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasHerpesvirusSafety = IMMUNOCOMPROMISED_ENCEPHALITIS_HERPESVIRUS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOpportunisticSafety =
+    IMMUNOCOMPROMISED_ENCEPHALITIS_OPPORTUNISTIC_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasHostRiskSafety = IMMUNOCOMPROMISED_ENCEPHALITIS_HOST_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasHerpesvirusSafety && hasOpportunisticSafety && hasHostRiskSafety;
 }
 
 function requiresSuicideSelfHarmSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -24856,6 +24967,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
         "encephalitis time-critical actions must include immediate IV acyclovir, MRI or neuroimaging, lumbar puncture/CSF HSV PCR testing, and EEG or seizure assessment",
     },
     {
+      name: "encephalitis_red_flags",
+      label: "Encephalitis red flags",
+      applies: requiresEncephalitisSafetyCheck,
+      fieldName: "clinical_red_flags",
+      validator: hasEncephalitisRedFlags,
+      issue:
+        "encephalitis red flags must include altered mental status, confusion, encephalopathy, behavior/personality change, memory loss, or psychosis plus seizure, status epilepticus, aphasia, focal neurologic findings, or temporal-lobe concern",
+    },
+    {
       name: "encephalitis_treatment_safety",
       label: "Encephalitis treatment safety",
       applies: requiresEncephalitisSafetyCheck,
@@ -24863,6 +24983,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasEncephalitisTreatmentSafetyCheck,
       issue:
         "encephalitis safety checks must include acyclovir renal dosing or hydration review, explicit do-not-delay acyclovir planning while LP, imaging, or PCR is pending, repeat HSV PCR or 3-7 day retesting when suspicion remains after a negative PCR, and bacterial meningitis or rickettsial empiric-therapy differential review",
+    },
+    {
+      name: "immunocompromised_encephalitis_treatment_safety",
+      label: "Immunocompromised encephalitis treatment safety",
+      applies: requiresImmunocompromisedEncephalitisSafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasImmunocompromisedEncephalitisTreatmentSafetyCheck,
+      issue:
+        "immunocompromised encephalitis safety checks must include herpesvirus coverage or differential review for VZV/varicella, CMV/cytomegalovirus, HHV-6, ganciclovir, foscarnet, or acyclovir, opportunistic pathogen review for Listeria/ampicillin, toxoplasma, cryptococcus/amphotericin, JC virus/PML, or tuberculosis, and host-risk review for HIV/CD4, transplant, immunosuppression, or infectious-disease consultation",
     },
     {
       name: "suicide_self_harm_time_critical_actions",

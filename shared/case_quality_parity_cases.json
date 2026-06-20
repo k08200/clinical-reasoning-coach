@@ -2021,6 +2021,147 @@
     }
   },
   {
+    "name": "encephalitis_requires_specific_red_flags",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "encephalitis red flags must include altered mental status"
+    ],
+    "overrides": {
+      "diagnosis": "Suspected HSV encephalitis",
+      "chief_complaint": "Fever and confusion",
+      "history_of_present_illness": "Patient has fever, altered mental status, behavior change, and confusion concerning for encephalitis.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "128/76",
+          "hr": 108,
+          "rr": 19,
+          "temp_c": 38.8,
+          "spo2": 97
+        },
+        "neuro": "Confused but moving all extremities"
+      },
+      "initial_labs": {
+        "wbc": "12.9",
+        "creatinine": "0.9"
+      },
+      "key_teaching_points": [
+        "Encephalitis requires early recognition of altered mental status plus focal or seizure features",
+        "HSV encephalitis requires immediate acyclovir while diagnostic testing is pending",
+        "MRI, CSF HSV PCR, and EEG help identify treatable encephalitis and nonconvulsive seizures"
+      ],
+      "clinical_red_flags": [
+        "Fever with confusion and altered mental status",
+        "Behavior change and encephalopathy"
+      ],
+      "time_critical_actions": [
+        "Start immediate IV acyclovir for suspected HSV encephalitis",
+        "Obtain brain MRI or urgent neuroimaging",
+        "Perform lumbar puncture with CSF HSV PCR and other PCR testing unless contraindicated",
+        "Order EEG to assess nonconvulsive seizure activity or status epilepticus"
+      ],
+      "contraindication_checks": [
+        "Review creatinine, kidney function, renal dosing, and hydration before and during IV acyclovir",
+        "Do not delay acyclovir while MRI, LP, CSF HSV PCR, or diagnostic studies are pending",
+        "Repeat HSV PCR or repeat PCR in 3 to 7 days if initial HSV PCR is negative but temporal lobe syndrome remains compatible",
+        "Review bacterial meningitis empiric coverage with ceftriaxone and vancomycin and add doxycycline when rickettsial disease is clinically plausible"
+      ],
+      "clinical_sources": [
+        {
+          "title": "The Management of Encephalitis: Clinical Practice Guidelines by the Infectious Diseases Society of America",
+          "organization": "Infectious Diseases Society of America",
+          "url": "https://academic.oup.com/cid/article/47/3/303/313455",
+          "supports": [
+            "suspected HSV encephalitis diagnosis and risk stratification",
+            "encephalitis requires early recognition of altered mental status plus focal or seizure features",
+            "HSV encephalitis requires immediate acyclovir while diagnostic testing is pending",
+            "MRI, CSF HSV PCR, and EEG help identify treatable encephalitis and nonconvulsive seizures",
+            "altered mental status, confusion, encephalopathy, behavior/personality change, memory loss, or psychosis plus seizure, status epilepticus, aphasia, focal neurologic findings, or temporal-lobe concern as red flags",
+            "immediate IV acyclovir for suspected HSV encephalitis",
+            "brain MRI or urgent neuroimaging",
+            "lumbar puncture with CSF HSV PCR and other PCR testing unless contraindicated",
+            "EEG to assess nonconvulsive seizure activity or status epilepticus",
+            "creatinine, kidney function, renal dosing, and hydration before and during IV acyclovir",
+            "do not delay acyclovir while MRI, LP, CSF HSV PCR, or diagnostic studies are pending"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "immunocompromised_encephalitis_requires_herpesvirus_opportunistic_and_host_risk_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "immunocompromised encephalitis safety checks must include herpesvirus coverage"
+    ],
+    "overrides": {
+      "diagnosis": "Encephalitis in an immunocompromised transplant patient",
+      "patient_demographics": {
+        "age": 49,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Fever, confusion, seizure, and immunosuppression",
+      "history_of_present_illness": "Kidney transplant patient on tacrolimus and steroids has fever, altered mental status, new seizure, focal neurologic findings, and concern for encephalitis while immunosuppressed.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "118/70",
+          "hr": 116,
+          "rr": 21,
+          "temp_c": 39,
+          "spo2": 96
+        },
+        "neuro": "Confused with right arm drift after seizure"
+      },
+      "initial_labs": {
+        "wbc": "3.1",
+        "creatinine": "1.6"
+      },
+      "key_teaching_points": [
+        "Immunocompromised encephalitis requires HSV treatment plus broader opportunistic differential review",
+        "VZV, CMV, HHV-6, Listeria, toxoplasma, cryptococcus, JC virus/PML, and tuberculosis can mimic or cause encephalitis",
+        "Host-risk review should include transplant status, immunosuppression, HIV/CD4 when relevant, and infectious disease consultation"
+      ],
+      "clinical_red_flags": [
+        "Fever with altered mental status, confusion, and encephalopathy",
+        "New seizure, focal neurologic deficit, and temporal lobe or opportunistic infection concern"
+      ],
+      "time_critical_actions": [
+        "Start immediate IV acyclovir for suspected HSV encephalitis",
+        "Obtain brain MRI or urgent neuroimaging",
+        "Perform lumbar puncture with CSF HSV PCR and other PCR testing unless contraindicated",
+        "Order EEG to assess nonconvulsive seizure activity or status epilepticus"
+      ],
+      "contraindication_checks": [
+        "Review creatinine, kidney function, renal dosing, and hydration before and during IV acyclovir",
+        "Do not delay acyclovir while MRI, LP, CSF HSV PCR, or diagnostic studies are pending",
+        "Repeat HSV PCR or repeat PCR in 3 to 7 days if initial HSV PCR is negative but temporal lobe syndrome remains compatible",
+        "Review bacterial meningitis empiric coverage with ceftriaxone and vancomycin and add doxycycline when rickettsial disease is clinically plausible"
+      ],
+      "clinical_sources": [
+        {
+          "title": "The Management of Encephalitis: Clinical Practice Guidelines by the Infectious Diseases Society of America",
+          "organization": "Infectious Diseases Society of America",
+          "url": "https://academic.oup.com/cid/article/47/3/303/313455",
+          "supports": [
+            "encephalitis in an immunocompromised transplant patient diagnosis and risk stratification",
+            "immunocompromised encephalitis requires HSV treatment plus broader opportunistic differential review",
+            "VZV, CMV, HHV-6, Listeria, toxoplasma, cryptococcus, JC virus/PML, and tuberculosis can mimic or cause encephalitis",
+            "host-risk review should include transplant status, immunosuppression, HIV/CD4 when relevant, and infectious disease consultation",
+            "fever with altered mental status, confusion, and encephalopathy as red flags",
+            "new seizure, focal neurologic deficit, temporal lobe, or opportunistic infection concern as red flags",
+            "immediate IV acyclovir for suspected HSV encephalitis",
+            "brain MRI or urgent neuroimaging",
+            "lumbar puncture with CSF HSV PCR and other PCR testing unless contraindicated",
+            "EEG to assess nonconvulsive seizure activity or status epilepticus",
+            "creatinine, kidney function, renal dosing, and hydration before and during IV acyclovir",
+            "do not delay acyclovir while MRI, LP, CSF HSV PCR, or diagnostic studies are pending"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "suicide_self_harm_requires_risk_assessment_means_restriction_observation_and_crisis_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

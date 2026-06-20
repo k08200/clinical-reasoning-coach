@@ -1555,6 +1555,23 @@ ENCEPHALITIS_RISK_TERMS = (
     "seizure",
     "temporal lobe",
 )
+ENCEPHALITIS_MENTAL_STATUS_RED_FLAG_TERMS = (
+    "altered mental",
+    "behavior change",
+    "confusion",
+    "encephalopathy",
+    "memory",
+    "personality",
+    "psychosis",
+)
+ENCEPHALITIS_FOCAL_SEIZURE_RED_FLAG_TERMS = (
+    "aphasia",
+    "focal neurologic",
+    "new seizure",
+    "seizure",
+    "status epilepticus",
+    "temporal lobe",
+)
 ENCEPHALITIS_ACYCLOVIR_ACTION_TERMS = (
     "acyclovir",
     "aciclovir",
@@ -1608,6 +1625,43 @@ ENCEPHALITIS_DIFFERENTIAL_EMPIRIC_SAFETY_TERMS = (
     "doxycycline",
     "rickettsial",
     "vancomycin",
+)
+IMMUNOCOMPROMISED_ENCEPHALITIS_CONTEXT_TERMS = (
+    "aids",
+    "chemotherapy",
+    "hiv",
+    "immunocompromised",
+    "immunosuppressed",
+    "neutropenia",
+    "steroid",
+    "transplant",
+)
+IMMUNOCOMPROMISED_ENCEPHALITIS_HERPESVIRUS_SAFETY_TERMS = (
+    "acyclovir",
+    "cmv",
+    "cytomegalovirus",
+    "foscarnet",
+    "ganciclovir",
+    "hhv-6",
+    "varicella",
+    "vzv",
+)
+IMMUNOCOMPROMISED_ENCEPHALITIS_OPPORTUNISTIC_SAFETY_TERMS = (
+    "amphotericin",
+    "ampicillin",
+    "cryptococcus",
+    "jc virus",
+    "listeria",
+    "pml",
+    "toxoplasma",
+    "tuberculosis",
+)
+IMMUNOCOMPROMISED_ENCEPHALITIS_HOST_RISK_SAFETY_TERMS = (
+    "cd4",
+    "hiv",
+    "immunosuppression",
+    "infectious disease",
+    "transplant",
 )
 SUICIDE_SELF_HARM_CONTEXT_TERMS = (
     "self harm",
@@ -14908,6 +14962,18 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="encephalitis_red_flags",
+            applies=_requires_encephalitis_safety_check,
+            field_name="clinical_red_flags",
+            validator=_has_encephalitis_red_flags,
+            issue=(
+                "encephalitis red flags must include altered mental status, "
+                "confusion, encephalopathy, behavior/personality change, memory "
+                "loss, or psychosis plus seizure, status epilepticus, aphasia, "
+                "focal neurologic findings, or temporal-lobe concern"
+            ),
+        ),
+        DomainSafetyGate(
             name="encephalitis_treatment_safety",
             applies=_requires_encephalitis_safety_check,
             field_name="contraindication_checks",
@@ -14918,6 +14984,20 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "while LP, imaging, or PCR is pending, repeat HSV PCR or 3-7 day "
                 "retesting when suspicion remains after a negative PCR, and "
                 "bacterial meningitis or rickettsial empiric-therapy differential review"
+            ),
+        ),
+        DomainSafetyGate(
+            name="immunocompromised_encephalitis_treatment_safety",
+            applies=_requires_immunocompromised_encephalitis_safety_check,
+            field_name="contraindication_checks",
+            validator=_has_immunocompromised_encephalitis_treatment_safety_check,
+            issue=(
+                "immunocompromised encephalitis safety checks must include herpesvirus "
+                "coverage or differential review for VZV/varicella, CMV/cytomegalovirus, "
+                "HHV-6, ganciclovir, foscarnet, or acyclovir, opportunistic pathogen "
+                "review for Listeria/ampicillin, toxoplasma, cryptococcus/amphotericin, "
+                "JC virus/PML, or tuberculosis, and host-risk review for HIV/CD4, "
+                "transplant, immunosuppression, or infectious-disease consultation"
             ),
         ),
         DomainSafetyGate(
@@ -19503,6 +19583,47 @@ def _requires_encephalitis_safety_check(data: dict[str, Any]) -> bool:
     return has_context and has_risk
 
 
+def _requires_immunocompromised_encephalitis_safety_check(data: dict[str, Any]) -> bool:
+    if not _requires_encephalitis_safety_check(data):
+        return False
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in IMMUNOCOMPROMISED_ENCEPHALITIS_CONTEXT_TERMS
+    )
+
+
+def _has_encephalitis_red_flags(red_flags: list[Any]) -> bool:
+    normalized_red_flags = " ".join(str(red_flag).lower() for red_flag in red_flags)
+    has_mental_status = any(
+        _contains_safety_term(normalized_red_flags, term)
+        for term in ENCEPHALITIS_MENTAL_STATUS_RED_FLAG_TERMS
+    )
+    has_focal_seizure = any(
+        _contains_safety_term(normalized_red_flags, term)
+        for term in ENCEPHALITIS_FOCAL_SEIZURE_RED_FLAG_TERMS
+    )
+    return has_mental_status and has_focal_seizure
+
+
 def _has_encephalitis_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
     has_acyclovir = any(
@@ -19548,6 +19669,23 @@ def _has_encephalitis_treatment_safety_check(checks: list[Any]) -> bool:
         and has_repeat_pcr_safety
         and has_differential_empiric_safety
     )
+
+
+def _has_immunocompromised_encephalitis_treatment_safety_check(checks: list[Any]) -> bool:
+    normalized_checks = " ".join(str(check).lower() for check in checks)
+    has_herpesvirus_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in IMMUNOCOMPROMISED_ENCEPHALITIS_HERPESVIRUS_SAFETY_TERMS
+    )
+    has_opportunistic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in IMMUNOCOMPROMISED_ENCEPHALITIS_OPPORTUNISTIC_SAFETY_TERMS
+    )
+    has_host_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in IMMUNOCOMPROMISED_ENCEPHALITIS_HOST_RISK_SAFETY_TERMS
+    )
+    return has_herpesvirus_safety and has_opportunistic_safety and has_host_risk_safety
 
 
 def _requires_suicide_self_harm_safety_check(data: dict[str, Any]) -> bool:
