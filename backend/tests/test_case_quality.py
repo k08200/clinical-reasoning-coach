@@ -15888,6 +15888,8 @@ def test_quality_gate_requires_carbon_monoxide_oxygen_cohb_hbo_and_cardiac_neuro
     case["contraindication_checks"] = [
         "Document that normal pulse oximetry or SpO2 can be falsely normal and cannot exclude carbon monoxide poisoning",
         "Review hyperbaric oxygen criteria including pregnancy, neurologic symptoms, loss of consciousness, syncope, acidosis, cardiac ischemia, or high carboxyhemoglobin COHb",
+        "Do not rely on COHb alone because COHb levels do not correlate well with severity; interpret with time elapsed since leaving exposure, clinical symptoms, and history of exposure",
+        "Obtain pregnancy test for women of childbearing age and review fetal risk because pregnant women may need hyperbaric oxygen even with lower COHb",
         "Monitor cardiac ECG, troponin, lactate, metabolic acidosis, myocardial injury, delayed neurologic sequelae, and neurocognitive symptoms",
         "Assess smoke inhalation, burn, fire exposure, cyanide co-toxicity, lactate elevation, and hydroxocobalamin need",
     ]
@@ -15908,6 +15910,8 @@ def test_quality_gate_requires_carbon_monoxide_oxygen_cohb_hbo_and_cardiac_neuro
                 "ECG, troponin, lactate, neurologic exam, and altered mental status or syncope reassessment",
                 "normal pulse oximetry or SpO2 can be falsely normal and cannot exclude carbon monoxide poisoning",
                 "hyperbaric oxygen criteria including pregnancy, neurologic symptoms, loss of consciousness, syncope, acidosis, cardiac ischemia, or high carboxyhemoglobin COHb",
+                "COHb levels do not correlate well with severity and time elapsed since leaving exposure, clinical symptoms, and history of exposure must guide treatment intensity",
+                "pregnancy test for women of childbearing age and fetal risk review because pregnant women may need hyperbaric oxygen even with lower COHb",
                 "cardiac ECG, troponin, lactate, metabolic acidosis, myocardial injury, delayed neurologic sequelae, and neurocognitive symptoms monitoring",
                 "smoke inhalation, burn, fire exposure, cyanide co-toxicity, lactate elevation, and hydroxocobalamin need",
             ],
@@ -16022,6 +16026,7 @@ def test_quality_gate_requires_cyanide_source_oxygen_antidote_lactate_and_poison
         "Do not wait for cyanide level; give empiric antidote when clinical suspicion is high and do not delay treatment",
         "Assess smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and avoid nitrite-induced methemoglobinemia when oxygen delivery is impaired",
         "Monitor shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status",
+        "Use enclosed-space fire plus severe lactic acidosis, lactate above 8 to 10, or smoke inhalation with lactate elevation as a trigger for empiric treatment",
         "Monitor hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference",
     ]
     case["clinical_sources"] = [
@@ -16042,6 +16047,7 @@ def test_quality_gate_requires_cyanide_source_oxygen_antidote_lactate_and_poison
                 "do not wait for cyanide level and give empiric antidote when clinical suspicion is high",
                 "smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and nitrite-induced methemoglobinemia review",
                 "shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status monitoring",
+                "enclosed-space fire plus severe lactic acidosis, lactate above 8 to 10, or smoke inhalation with lactate elevation as empiric treatment trigger",
                 "hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference monitoring",
             ],
         }

@@ -12488,6 +12488,25 @@ const CARBON_MONOXIDE_HBO_CRITERIA_SAFETY_TERMS = [
   "임신",
 ];
 
+const CARBON_MONOXIDE_COHB_LIMITATION_SAFETY_TERMS = [
+  "clinical symptoms",
+  "cohb level limitation",
+  "cohb levels do not correlate",
+  "history of exposure",
+  "not correlate",
+  "room air for several hours",
+  "time elapsed",
+];
+
+const CARBON_MONOXIDE_PREGNANCY_TEST_SAFETY_TERMS = [
+  "childbearing age",
+  "fetal",
+  "pregnancy test",
+  "pregnant women",
+  "임신 검사",
+  "태아",
+];
+
 const CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS = [
   "arrhythmia",
   "cardiac",
@@ -12592,6 +12611,16 @@ const CYANIDE_SHOCK_NEURO_SAFETY_TERMS = [
   "syncope",
   "의식",
   "쇼크",
+];
+
+const CYANIDE_LACTATE_TRIGGER_SAFETY_TERMS = [
+  "enclosed-space fire",
+  "lactate > 8",
+  "lactate > 10",
+  "lactate above 8",
+  "lactate above 10",
+  "severe lactic acidosis",
+  "smoke inhalation with lactate",
 ];
 
 const CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS = [
@@ -22974,13 +23003,26 @@ function hasCarbonMonoxidePoisoningTreatmentSafetyCheck(checks: string[]): boole
   const hasHboCriteriaSafety = CARBON_MONOXIDE_HBO_CRITERIA_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasCohbLimitationSafety = CARBON_MONOXIDE_COHB_LIMITATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPregnancyTestSafety = CARBON_MONOXIDE_PREGNANCY_TEST_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   const hasComplicationSafety = CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasCyanideSmokeSafety = CARBON_MONOXIDE_CYANIDE_SMOKE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasPulseOxSafety && hasHboCriteriaSafety && hasComplicationSafety && hasCyanideSmokeSafety;
+  return (
+    hasPulseOxSafety &&
+    hasHboCriteriaSafety &&
+    hasCohbLimitationSafety &&
+    hasPregnancyTestSafety &&
+    hasComplicationSafety &&
+    hasCyanideSmokeSafety
+  );
 }
 
 function requiresCyanidePoisoningSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -23035,6 +23077,9 @@ function hasCyanidePoisoningTreatmentSafetyCheck(checks: string[]): boolean {
   const hasShockNeuroSafety = CYANIDE_SHOCK_NEURO_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasLactateTriggerSafety = CYANIDE_LACTATE_TRIGGER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasHydroxocobalaminEffectSafety = CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
@@ -23042,6 +23087,7 @@ function hasCyanidePoisoningTreatmentSafetyCheck(checks: string[]): boolean {
     hasDoNotWaitLevelSafety &&
     hasSmokeCoNitriteSafety &&
     hasShockNeuroSafety &&
+    hasLactateTriggerSafety &&
     hasHydroxocobalaminEffectSafety
   );
 }
@@ -26813,7 +26859,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasCarbonMonoxidePoisoningTreatmentSafetyCheck,
       issue:
-        "carbon monoxide poisoning safety checks must include pulse oximetry or SpO2 false-normal limitation review, hyperbaric oxygen criteria review for pregnancy, neurologic symptoms, loss of consciousness, syncope, acidosis, cardiac ischemia, or high carboxyhemoglobin, cardiac, ECG, troponin, lactate, metabolic acidosis, myocardial, delayed neurologic, or neurocognitive complication monitoring, and smoke inhalation, cyanide, hydroxocobalamin, burn, fire, or lactate co-toxicity assessment",
+        "carbon monoxide poisoning safety checks must include pulse oximetry or SpO2 false-normal limitation review, hyperbaric oxygen criteria review for pregnancy, neurologic symptoms, loss of consciousness, syncope, acidosis, cardiac ischemia, or high carboxyhemoglobin, COHb severity-correlation or elapsed-time limitation review using clinical symptoms and exposure history, pregnancy testing or fetal-risk review for women of childbearing age, cardiac, ECG, troponin, lactate, metabolic acidosis, myocardial, delayed neurologic, or neurocognitive complication monitoring, and smoke inhalation, cyanide, hydroxocobalamin, burn, fire, or lactate co-toxicity assessment",
     },
     {
       name: "cyanide_poisoning_time_critical_actions",
@@ -26831,7 +26877,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasCyanidePoisoningTreatmentSafetyCheck,
       issue:
-        "cyanide poisoning safety checks must include empiric antidote or do-not-wait cyanide-level planning, smoke inhalation, carbon monoxide, COHb, carboxyhemoglobin, or nitrite-avoidance review, shock, hypotension, cardiac arrest, coma, seizure, syncope, or altered mental status monitoring, and hydroxocobalamin blood pressure, red urine, chromaturia, lab-interference, or dialysis interference safety",
+        "cyanide poisoning safety checks must include empiric antidote or do-not-wait cyanide-level planning, smoke inhalation, carbon monoxide, COHb, carboxyhemoglobin, or nitrite-avoidance review, shock, hypotension, cardiac arrest, coma, seizure, syncope, or altered mental status monitoring, enclosed-space fire, severe lactic acidosis, lactate above 8 to 10, or smoke-inhalation lactate trigger review for empiric treatment, and hydroxocobalamin blood pressure, red urine, chromaturia, lab-interference, or dialysis interference safety",
     },
     {
       name: "snakebite_envenomation_time_critical_actions",

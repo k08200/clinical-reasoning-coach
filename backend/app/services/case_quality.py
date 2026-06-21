@@ -11392,6 +11392,23 @@ CARBON_MONOXIDE_HBO_CRITERIA_SAFETY_TERMS = (
     "syncope",
     "임신",
 )
+CARBON_MONOXIDE_COHB_LIMITATION_SAFETY_TERMS = (
+    "clinical symptoms",
+    "cohb level limitation",
+    "cohb levels do not correlate",
+    "history of exposure",
+    "not correlate",
+    "room air for several hours",
+    "time elapsed",
+)
+CARBON_MONOXIDE_PREGNANCY_TEST_SAFETY_TERMS = (
+    "childbearing age",
+    "fetal",
+    "pregnancy test",
+    "pregnant women",
+    "임신 검사",
+    "태아",
+)
 CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS = (
     "arrhythmia",
     "cardiac",
@@ -11487,6 +11504,15 @@ CYANIDE_SHOCK_NEURO_SAFETY_TERMS = (
     "syncope",
     "의식",
     "쇼크",
+)
+CYANIDE_LACTATE_TRIGGER_SAFETY_TERMS = (
+    "enclosed-space fire",
+    "lactate > 8",
+    "lactate > 10",
+    "lactate above 8",
+    "lactate above 10",
+    "severe lactic acidosis",
+    "smoke inhalation with lactate",
 )
 CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS = (
     "blood pressure",
@@ -17989,9 +18015,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "oximetry or SpO2 false-normal limitation review, hyperbaric "
                 "oxygen criteria review for pregnancy, neurologic symptoms, "
                 "loss of consciousness, syncope, acidosis, cardiac ischemia, "
-                "or high carboxyhemoglobin, cardiac, ECG, troponin, lactate, "
-                "metabolic acidosis, myocardial, delayed neurologic, or "
-                "neurocognitive complication monitoring, and smoke inhalation, "
+                "or high carboxyhemoglobin, COHb severity-correlation or elapsed-"
+                "time limitation review using clinical symptoms and exposure "
+                "history, pregnancy testing or fetal-risk review for women of "
+                "childbearing age, cardiac, ECG, troponin, lactate, metabolic "
+                "acidosis, myocardial, delayed neurologic, or neurocognitive "
+                "complication monitoring, and smoke inhalation, "
                 "cyanide, hydroxocobalamin, burn, fire, or lactate co-toxicity "
                 "assessment"
             ),
@@ -18020,9 +18049,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "or do-not-wait cyanide-level planning, smoke inhalation, carbon "
                 "monoxide, COHb, carboxyhemoglobin, or nitrite-avoidance review, "
                 "shock, hypotension, cardiac arrest, coma, seizure, syncope, or "
-                "altered mental status monitoring, and hydroxocobalamin blood "
-                "pressure, red urine, chromaturia, lab-interference, or dialysis "
-                "interference safety"
+                "altered mental status monitoring, enclosed-space fire, severe "
+                "lactic acidosis, lactate above 8 to 10, or smoke-inhalation "
+                "lactate trigger review for empiric treatment, and hydroxocobalamin "
+                "blood pressure, red urine, chromaturia, lab-interference, or "
+                "dialysis interference safety"
             ),
         ),
         DomainSafetyGate(
@@ -27937,6 +27968,14 @@ def _has_carbon_monoxide_poisoning_treatment_safety_check(checks: list[Any]) -> 
         _contains_safety_term(normalized_checks, term)
         for term in CARBON_MONOXIDE_HBO_CRITERIA_SAFETY_TERMS
     )
+    has_cohb_limitation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARBON_MONOXIDE_COHB_LIMITATION_SAFETY_TERMS
+    )
+    has_pregnancy_test_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARBON_MONOXIDE_PREGNANCY_TEST_SAFETY_TERMS
+    )
     has_complication_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS
@@ -27948,6 +27987,8 @@ def _has_carbon_monoxide_poisoning_treatment_safety_check(checks: list[Any]) -> 
     return (
         has_pulse_ox_safety
         and has_hbo_criteria_safety
+        and has_cohb_limitation_safety
+        and has_pregnancy_test_safety
         and has_complication_safety
         and has_cyanide_smoke_safety
     )
@@ -28020,6 +28061,10 @@ def _has_cyanide_poisoning_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in CYANIDE_SHOCK_NEURO_SAFETY_TERMS
     )
+    has_lactate_trigger_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CYANIDE_LACTATE_TRIGGER_SAFETY_TERMS
+    )
     has_hydroxocobalamin_effect_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS
@@ -28028,6 +28073,7 @@ def _has_cyanide_poisoning_treatment_safety_check(checks: list[Any]) -> bool:
         has_do_not_wait_level_safety
         and has_smoke_co_nitrite_safety
         and has_shock_neuro_safety
+        and has_lactate_trigger_safety
         and has_hydroxocobalamin_effect_safety
     )
 
