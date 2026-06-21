@@ -10002,7 +10002,9 @@
       "contraindication_checks": [
         "Review hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
         "Monitor vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury",
-        "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap"
+        "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+        "Do not wait for confirmatory levels when suspicion is high; give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+        "Plan cofactors with folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol"
       ],
       "clinical_sources": [
         {
@@ -10021,7 +10023,9 @@
             "severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
             "hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
             "vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury monitoring",
-            "ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap"
+            "ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+            "do not wait for confirmatory levels when suspicion is high and give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+            "folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol cofactor planning"
           ]
         }
       ]

@@ -15452,6 +15452,8 @@ def test_quality_gate_requires_toxic_alcohol_gap_antidote_dialysis_and_acidosis_
         "Review hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
         "Monitor vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury",
         "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+        "Do not wait for confirmatory levels when suspicion is high; give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+        "Plan cofactors with folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol",
     ]
     case["clinical_sources"] = [
         {
@@ -15471,6 +15473,8 @@ def test_quality_gate_requires_toxic_alcohol_gap_antidote_dialysis_and_acidosis_
                 "hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
                 "vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury monitoring",
                 "ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+                "do not wait for confirmatory levels when suspicion is high and give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+                "folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol cofactor planning",
             ],
         }
     ]

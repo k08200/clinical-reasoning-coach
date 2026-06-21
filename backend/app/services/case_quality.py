@@ -11100,6 +11100,25 @@ TOXIC_ALCOHOL_COINGESTION_DIFFERENTIAL_SAFETY_TERMS = (
     "salicylate",
     "동반",
 )
+TOXIC_ALCOHOL_EMPIRIC_ANTIDOTE_SAFETY_TERMS = (
+    "awaiting confirmation",
+    "do not wait",
+    "do-not-wait",
+    "empiric antidote",
+    "empiric fomepizole",
+    "high suspicion",
+    "immediate fomepizole",
+    "levels unavailable",
+    "suspected ingestion",
+)
+TOXIC_ALCOHOL_COFACTOR_SAFETY_TERMS = (
+    "folate",
+    "folic acid",
+    "folinic acid",
+    "pyridoxine",
+    "thiamine",
+    "vitamin b6",
+)
 LITHIUM_TOXICITY_DIRECT_CONTEXT_TERMS = (
     "lithium intoxication",
     "lithium overdose",
@@ -17871,9 +17890,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "review for severe acidosis, anion gap, coma, seizure, visual "
                 "symptoms, renal failure, kidney failure, or high-risk level, "
                 "vision, optic, renal, kidney, urine, hypocalcemia, or calcium "
-                "oxalate organ-injury monitoring, and ethanol, isopropanol, "
+                "oxalate organ-injury monitoring, ethanol, isopropanol, "
                 "salicylate, ketoacidosis, lactic acidosis, late presentation, "
-                "or co-ingestion differential review"
+                "or co-ingestion differential review, empiric fomepizole or "
+                "alcohol-dehydrogenase blockade without waiting for confirmatory "
+                "levels when suspicion is high, and folinic acid, folate, thiamine, "
+                "or pyridoxine cofactor planning"
             ),
         ),
         DomainSafetyGate(
@@ -27667,10 +27689,20 @@ def _has_toxic_alcohol_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in TOXIC_ALCOHOL_COINGESTION_DIFFERENTIAL_SAFETY_TERMS
     )
+    has_empiric_antidote_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_EMPIRIC_ANTIDOTE_SAFETY_TERMS
+    )
+    has_cofactor_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_COFACTOR_SAFETY_TERMS
+    )
     return (
         has_dialysis_indication_safety
         and has_organ_injury_safety
         and has_coingestion_differential_safety
+        and has_empiric_antidote_safety
+        and has_cofactor_safety
     )
 
 
