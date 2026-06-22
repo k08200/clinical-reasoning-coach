@@ -15461,15 +15461,30 @@ const PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS = [
   "항응고",
 ];
 
-const PE_REPERFUSION_ESCALATION_SAFETY_TERMS = [
+const PE_SYSTEMIC_THROMBOLYSIS_INDICATION_SAFETY_TERMS = [
+  "cardiac arrest",
+  "hemodynamic instability",
+  "high-risk pe",
+  "hypotension",
+  "obstructive shock",
+  "persistent hypotension",
+  "shock",
+  "systemic thrombolysis",
+  "thrombolysis indication",
+];
+
+const PE_CATHETER_SURGICAL_BACKUP_SAFETY_TERMS = [
   "catheter directed",
   "catheter-directed",
+  "catheter embolectomy",
+  "catheter intervention",
+  "catheter-directed thrombolysis",
+  "contraindication to thrombolysis",
   "embolectomy",
-  "reperfusion",
+  "failed thrombolysis",
   "surgical embolectomy",
-  "systemic thrombolysis",
-  "thrombolysis",
-  "재관류",
+  "thrombolysis contraindicated",
+  "thrombolysis failure",
 ];
 
 const PE_UNSTABLE_IMAGING_SAFETY_TERMS = [
@@ -24779,7 +24794,11 @@ function hasPeReperfusionEscalationSafetyCheck(checks: string[]): boolean {
   const hasAnticoagulationPlan = PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasReperfusionPlan = PE_REPERFUSION_ESCALATION_SAFETY_TERMS.some((term) =>
+  const hasSystemicThrombolysisIndication =
+    PE_SYSTEMIC_THROMBOLYSIS_INDICATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCatheterSurgicalBackup = PE_CATHETER_SURGICAL_BACKUP_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasUnstableImagingLogic = PE_UNSTABLE_IMAGING_SAFETY_TERMS.some((term) =>
@@ -24793,7 +24812,8 @@ function hasPeReperfusionEscalationSafetyCheck(checks: string[]): boolean {
   );
   return (
     hasAnticoagulationPlan &&
-    hasReperfusionPlan &&
+    hasSystemicThrombolysisIndication &&
+    hasCatheterSurgicalBackup &&
     hasUnstableImagingLogic &&
     hasAlternativeImagingReview &&
     hasPertOrDispositionEscalation
@@ -27385,7 +27405,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasPeReperfusionEscalationSafetyCheck,
       issue:
-        "PE reperfusion escalation safety checks must include anticoagulation initiation or contraindication planning, systemic thrombolysis or catheter/surgical embolectomy options for high-risk deterioration, unstable-patient bedside echo or no-delay imaging logic, renal/contrast or pregnancy alternative imaging review, and PERT, ICU, transfer, or specialist escalation",
+        "PE reperfusion escalation safety checks must include anticoagulation initiation or contraindication planning, systemic thrombolysis indication review for high-risk PE with shock, persistent hypotension, cardiac arrest, or hemodynamic instability, catheter-directed therapy or surgical/catheter embolectomy backup when thrombolysis is contraindicated, unavailable, or fails, unstable-patient bedside echo or no-delay imaging logic, renal/contrast or pregnancy alternative imaging review, and PERT, ICU, transfer, or specialist escalation",
     },
     {
       name: "acs_time_critical_actions",
