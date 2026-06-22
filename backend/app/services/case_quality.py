@@ -9431,25 +9431,51 @@ DKA_PHOSPHATE_SAFETY_TERMS = (
     "phosphate",
     "respiratory",
 )
-DKA_DEXTROSE_INSULIN_CONTINUATION_TERMS = (
+DKA_DEXTROSE_ADDITION_TERMS = (
     "200-250",
     "250 mg/dl",
-    "anion gap",
+    "dextrose",
+    "glucose reaches",
+    "glucose falls",
+)
+DKA_INSULIN_CONTINUATION_TERMS = (
     "continue insulin",
     "continued insulin",
-    "dextrose",
-    "ketone",
+    "insulin until",
+    "ongoing insulin",
 )
-DKA_TRANSITION_OVERLAP_SAFETY_TERMS = (
+DKA_KETOACIDOSIS_RESOLUTION_ENDPOINT_TERMS = (
+    "anion gap closure",
+    "dka resolution",
+    "ketone clearance",
+    "ketone resolution",
+    "ketoacidosis resolution",
+)
+DKA_BASAL_SUBCUTANEOUS_INSULIN_TERMS = (
     "basal insulin",
     "long-acting insulin",
-    "oral intake",
-    "overlap",
     "subcutaneous insulin",
+)
+DKA_IV_TO_SC_OVERLAP_TIMING_TERMS = (
+    "1-2 h",
+    "1-2 hour",
+    "before stopping iv insulin",
+    "before stopping intravenous insulin",
+    "overlap",
     "transition",
 )
+DKA_TRANSITION_READINESS_TERMS = (
+    "anion gap closure",
+    "dka resolution",
+    "eating",
+    "ketone clearance",
+    "ketone resolution",
+    "oral intake",
+)
 DKA_PRECIPITANT_SAFETY_TERMS = (
-    "medication",
+    "infection",
+    "medication contributor",
+    "medication contributors",
     "missed insulin",
     "myocardial infarction",
     "precipitant",
@@ -17478,11 +17504,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "DKA advanced safety checks must include bicarbonate restriction "
                 "or severe-acidosis pH review, phosphate replacement indications, "
-                "dextrose addition with continued insulin until ketone or DKA "
-                "resolution, subcutaneous basal-insulin overlap or transition "
-                "after DKA resolution and oral intake, and precipitant review for "
-                "myocardial infarction, stroke, SGLT2 inhibitor, medication, or "
-                "missed insulin"
+                "dextrose addition when glucose falls with continued insulin "
+                "until ketone, anion-gap, or DKA resolution, basal or "
+                "subcutaneous insulin overlap before stopping IV insulin once "
+                "DKA is resolved and oral intake is tolerated, and precipitant "
+                "review for infection, myocardial infarction, stroke, SGLT2 "
+                "inhibitor, medication contributors, or missed insulin"
             ),
         ),
         DomainSafetyGate(
@@ -26423,13 +26450,29 @@ def _has_dka_advanced_insulin_transition_safety_check(checks: list[Any]) -> bool
         _contains_safety_term(normalized_checks, term)
         for term in DKA_PHOSPHATE_SAFETY_TERMS
     )
-    has_dextrose_insulin_continuation = any(
+    has_dextrose_addition = any(
         _contains_safety_term(normalized_checks, term)
-        for term in DKA_DEXTROSE_INSULIN_CONTINUATION_TERMS
+        for term in DKA_DEXTROSE_ADDITION_TERMS
     )
-    has_transition_overlap = any(
+    has_insulin_continuation = any(
         _contains_safety_term(normalized_checks, term)
-        for term in DKA_TRANSITION_OVERLAP_SAFETY_TERMS
+        for term in DKA_INSULIN_CONTINUATION_TERMS
+    )
+    has_resolution_endpoint = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DKA_KETOACIDOSIS_RESOLUTION_ENDPOINT_TERMS
+    )
+    has_basal_subcutaneous_insulin = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DKA_BASAL_SUBCUTANEOUS_INSULIN_TERMS
+    )
+    has_iv_to_sc_overlap_timing = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DKA_IV_TO_SC_OVERLAP_TIMING_TERMS
+    )
+    has_transition_readiness = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DKA_TRANSITION_READINESS_TERMS
     )
     has_precipitant_review = any(
         _contains_safety_term(normalized_checks, term)
@@ -26438,8 +26481,12 @@ def _has_dka_advanced_insulin_transition_safety_check(checks: list[Any]) -> bool
     return (
         has_bicarbonate_safety
         and has_phosphate_safety
-        and has_dextrose_insulin_continuation
-        and has_transition_overlap
+        and has_dextrose_addition
+        and has_insulin_continuation
+        and has_resolution_endpoint
+        and has_basal_subcutaneous_insulin
+        and has_iv_to_sc_overlap_timing
+        and has_transition_readiness
         and has_precipitant_review
     )
 

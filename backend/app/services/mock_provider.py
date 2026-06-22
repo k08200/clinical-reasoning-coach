@@ -301,8 +301,9 @@ _SOURCE_DKA = {
         "time-critical monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
         "avoid routine bicarbonate unless severe acidosis with pH below 7.0",
         "phosphate replacement only for severe hypophosphatemia with cardiac or respiratory compromise",
-        "dextrose addition when glucose approaches 200-250 mg/dL with continued insulin until ketone resolution",
-        "basal insulin overlap or subcutaneous insulin transition after DKA resolution and oral intake",
+        "dextrose addition when glucose approaches 200-250 mg/dL",
+        "continued insulin until ketone resolution, anion-gap closure, or DKA resolution",
+        "basal or subcutaneous insulin overlap before stopping IV insulin after DKA resolution and oral intake",
         "precipitant review for SGLT2 inhibitor exposure, medication contributors, or missed insulin",
     ],
 }
@@ -319,8 +320,9 @@ _SOURCE_DKA_STATPEARLS = {
         "cerebral edema, osmolar shift, and persistent abdominal pain safety checks",
         "avoid routine bicarbonate and reserve for severe acidosis pH below 7.0",
         "phosphate safety indications include severe hypophosphatemia, cardiac compromise, or respiratory compromise",
-        "dextrose fluids with continued insulin until ketoacidosis or ketone resolution",
-        "subcutaneous basal insulin overlap during transition after DKA resolution and oral intake",
+        "dextrose fluids when glucose falls",
+        "continued insulin until ketoacidosis, ketone, or anion-gap resolution",
+        "subcutaneous basal insulin overlap before stopping IV insulin after DKA resolution and oral intake",
         "precipitant review including SGLT2 inhibitor exposure, medications, and missed insulin",
     ],
 }

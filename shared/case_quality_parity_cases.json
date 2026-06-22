@@ -658,6 +658,61 @@
     }
   },
   {
+    "name": "dka_requires_continued_insulin_until_resolution_after_dextrose",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "DKA advanced safety checks must include bicarbonate restriction"
+    ],
+    "overrides": {
+      "diagnosis": "Diabetic Ketoacidosis",
+      "key_teaching_points": [
+        "DKA criteria include acidosis and ketones",
+        "Potassium must be assessed before insulin",
+        "Anion gap closure is the transition endpoint"
+      ],
+      "clinical_red_flags": [
+        "Severe metabolic acidosis with Kussmaul respirations",
+        "Tachycardia, dehydration signs, AKI, and mild confusion",
+        "Hyperkalemia despite total body potassium depletion"
+      ],
+      "time_critical_actions": [
+        "Assess severity and initiate monitored DKA protocol with fluids and insulin planning",
+        "Check potassium before insulin and replace if low",
+        "Identify precipitating cause while closing the anion gap"
+      ],
+      "contraindication_checks": [
+        "Potassium below safe threshold before insulin infusion",
+        "Cerebral edema risk from overly rapid osmolar shifts",
+        "Avoid routine bicarbonate unless severe acidosis with pH below 7.0",
+        "Review phosphate replacement only for severe hypophosphatemia with cardiac or respiratory compromise",
+        "Add dextrose when glucose reaches 200-250 mg/dL",
+        "Overlap basal insulin or subcutaneous long-acting insulin before stopping IV insulin after DKA resolution and oral intake",
+        "Search precipitants including infection, SGLT2 inhibitor use, medication contributors, and missed insulin"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report",
+          "organization": "American Diabetes Association",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/39052901/",
+          "supports": [
+            "DKA diagnostic criteria include acidosis and ketones",
+            "severe metabolic acidosis with Kussmaul respirations",
+            "tachycardia, dehydration signs, AKI, and confusion in DKA severity assessment",
+            "hyperkalemia despite total body potassium depletion",
+            "time-critical monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
+            "potassium below safe threshold before insulin infusion",
+            "cerebral edema risk from overly rapid osmolar shifts",
+            "avoid routine bicarbonate unless severe acidosis with pH below 7.0",
+            "phosphate replacement only for severe hypophosphatemia with cardiac or respiratory compromise",
+            "dextrose addition when glucose reaches 200-250 mg/dL",
+            "basal or subcutaneous insulin overlap before stopping IV insulin after DKA resolution and oral intake",
+            "precipitant review for infection, SGLT2 inhibitor exposure, medication contributors, and missed insulin"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "pediatric_dka_requires_severity_fluids_insulin_electrolytes_and_neuro_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

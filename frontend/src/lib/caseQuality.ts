@@ -10325,27 +10325,57 @@ const DKA_PHOSPHATE_SAFETY_TERMS = [
   "respiratory",
 ];
 
-const DKA_DEXTROSE_INSULIN_CONTINUATION_TERMS = [
+const DKA_DEXTROSE_ADDITION_TERMS = [
   "200-250",
   "250 mg/dl",
-  "anion gap",
-  "continue insulin",
-  "continued insulin",
   "dextrose",
-  "ketone",
+  "glucose reaches",
+  "glucose falls",
 ];
 
-const DKA_TRANSITION_OVERLAP_SAFETY_TERMS = [
+const DKA_INSULIN_CONTINUATION_TERMS = [
+  "continue insulin",
+  "continued insulin",
+  "insulin until",
+  "ongoing insulin",
+];
+
+const DKA_KETOACIDOSIS_RESOLUTION_ENDPOINT_TERMS = [
+  "anion gap closure",
+  "dka resolution",
+  "ketone clearance",
+  "ketone resolution",
+  "ketoacidosis resolution",
+];
+
+const DKA_BASAL_SUBCUTANEOUS_INSULIN_TERMS = [
   "basal insulin",
   "long-acting insulin",
-  "oral intake",
-  "overlap",
   "subcutaneous insulin",
+];
+
+const DKA_IV_TO_SC_OVERLAP_TIMING_TERMS = [
+  "1-2 h",
+  "1-2 hour",
+  "before stopping iv insulin",
+  "before stopping intravenous insulin",
+  "overlap",
   "transition",
 ];
 
+const DKA_TRANSITION_READINESS_TERMS = [
+  "anion gap closure",
+  "dka resolution",
+  "eating",
+  "ketone clearance",
+  "ketone resolution",
+  "oral intake",
+];
+
 const DKA_PRECIPITANT_SAFETY_TERMS = [
-  "medication",
+  "infection",
+  "medication contributor",
+  "medication contributors",
   "missed insulin",
   "myocardial infarction",
   "precipitant",
@@ -21758,10 +21788,22 @@ function hasDkaAdvancedInsulinTransitionSafetyCheck(checks: string[]): boolean {
   const hasPhosphateSafety = DKA_PHOSPHATE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDextroseInsulinContinuation = DKA_DEXTROSE_INSULIN_CONTINUATION_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
+  const hasDextroseAddition = DKA_DEXTROSE_ADDITION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
   );
-  const hasTransitionOverlap = DKA_TRANSITION_OVERLAP_SAFETY_TERMS.some((term) =>
+  const hasInsulinContinuation = DKA_INSULIN_CONTINUATION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasResolutionEndpoint = DKA_KETOACIDOSIS_RESOLUTION_ENDPOINT_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBasalSubcutaneousInsulin = DKA_BASAL_SUBCUTANEOUS_INSULIN_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasIvToScOverlapTiming = DKA_IV_TO_SC_OVERLAP_TIMING_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTransitionReadiness = DKA_TRANSITION_READINESS_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasPrecipitantReview = DKA_PRECIPITANT_SAFETY_TERMS.some((term) =>
@@ -21770,8 +21812,12 @@ function hasDkaAdvancedInsulinTransitionSafetyCheck(checks: string[]): boolean {
   return (
     hasBicarbonateSafety &&
     hasPhosphateSafety &&
-    hasDextroseInsulinContinuation &&
-    hasTransitionOverlap &&
+    hasDextroseAddition &&
+    hasInsulinContinuation &&
+    hasResolutionEndpoint &&
+    hasBasalSubcutaneousInsulin &&
+    hasIvToScOverlapTiming &&
+    hasTransitionReadiness &&
     hasPrecipitantReview
   );
 }
@@ -26586,7 +26632,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasDkaAdvancedInsulinTransitionSafetyCheck,
       issue:
-        "DKA advanced safety checks must include bicarbonate restriction or severe-acidosis pH review, phosphate replacement indications, dextrose addition with continued insulin until ketone or DKA resolution, subcutaneous basal-insulin overlap or transition after DKA resolution and oral intake, and precipitant review for myocardial infarction, stroke, SGLT2 inhibitor, medication, or missed insulin",
+        "DKA advanced safety checks must include bicarbonate restriction or severe-acidosis pH review, phosphate replacement indications, dextrose addition when glucose falls with continued insulin until ketone, anion-gap, or DKA resolution, basal or subcutaneous insulin overlap before stopping IV insulin once DKA is resolved and oral intake is tolerated, and precipitant review for infection, myocardial infarction, stroke, SGLT2 inhibitor, medication contributors, or missed insulin",
     },
     {
       name: "pediatric_dka_time_critical_actions",
