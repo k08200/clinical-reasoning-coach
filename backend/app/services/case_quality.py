@@ -10272,14 +10272,16 @@ HYPERKALEMIA_CALCIUM_ACTION_TERMS = (
     "membrane stabilization",
     "칼슘",
 )
-HYPERKALEMIA_SHIFT_ACTION_TERMS = (
-    "albuterol",
+HYPERKALEMIA_INSULIN_SHIFT_ACTION_TERMS = (
+    "insulin",
+    "인슐린",
+)
+HYPERKALEMIA_GLUCOSE_COTHERAPY_ACTION_TERMS = (
+    "d10",
+    "d50",
     "dextrose",
     "glucose",
-    "insulin",
-    "salbutamol",
     "포도당",
-    "인슐린",
 )
 HYPERKALEMIA_REMOVAL_ACTION_TERMS = (
     "dialysis",
@@ -17762,8 +17764,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_hyperkalemia_time_critical_actions,
             issue=(
                 "severe hyperkalemia time-critical actions must include IV calcium "
-                "or cardiac membrane stabilization, potassium-shifting therapy, "
-                "and potassium removal or dialysis planning"
+                "or cardiac membrane stabilization, insulin-based potassium "
+                "shifting with dextrose or glucose co-therapy, and potassium "
+                "removal or dialysis planning"
             ),
         ),
         DomainSafetyGate(
@@ -27212,15 +27215,19 @@ def _has_hyperkalemia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in HYPERKALEMIA_CALCIUM_ACTION_TERMS
     )
-    has_shift = any(
+    has_insulin_shift = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HYPERKALEMIA_SHIFT_ACTION_TERMS
+        for term in HYPERKALEMIA_INSULIN_SHIFT_ACTION_TERMS
+    )
+    has_glucose_cotherapy = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERKALEMIA_GLUCOSE_COTHERAPY_ACTION_TERMS
     )
     has_removal = any(
         _contains_safety_term(normalized_actions, term)
         for term in HYPERKALEMIA_REMOVAL_ACTION_TERMS
     )
-    return has_calcium and has_shift and has_removal
+    return has_calcium and has_insulin_shift and has_glucose_cotherapy and has_removal
 
 
 def _has_hyperkalemia_treatment_safety_check(checks: list[Any]) -> bool:

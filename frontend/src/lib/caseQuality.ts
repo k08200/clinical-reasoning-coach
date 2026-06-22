@@ -11263,14 +11263,17 @@ const HYPERKALEMIA_CALCIUM_ACTION_TERMS = [
   "칼슘",
 ];
 
-const HYPERKALEMIA_SHIFT_ACTION_TERMS = [
-  "albuterol",
+const HYPERKALEMIA_INSULIN_SHIFT_ACTION_TERMS = [
+  "insulin",
+  "인슐린",
+];
+
+const HYPERKALEMIA_GLUCOSE_COTHERAPY_ACTION_TERMS = [
+  "d10",
+  "d50",
   "dextrose",
   "glucose",
-  "insulin",
-  "salbutamol",
   "포도당",
-  "인슐린",
 ];
 
 const HYPERKALEMIA_REMOVAL_ACTION_TERMS = [
@@ -22426,13 +22429,16 @@ function hasHyperkalemiaTimeCriticalActions(actions: string[]): boolean {
   const hasCalcium = HYPERKALEMIA_CALCIUM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasShift = HYPERKALEMIA_SHIFT_ACTION_TERMS.some((term) =>
+  const hasInsulinShift = HYPERKALEMIA_INSULIN_SHIFT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasGlucoseCotherapy = HYPERKALEMIA_GLUCOSE_COTHERAPY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasRemoval = HYPERKALEMIA_REMOVAL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasCalcium && hasShift && hasRemoval;
+  return hasCalcium && hasInsulinShift && hasGlucoseCotherapy && hasRemoval;
 }
 
 function hasHyperkalemiaTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26800,7 +26806,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasHyperkalemiaTimeCriticalActions,
       issue:
-        "severe hyperkalemia time-critical actions must include IV calcium or cardiac membrane stabilization, potassium-shifting therapy, and potassium removal or dialysis planning",
+        "severe hyperkalemia time-critical actions must include IV calcium or cardiac membrane stabilization, insulin-based potassium shifting with dextrose or glucose co-therapy, and potassium removal or dialysis planning",
     },
     {
       name: "hyperkalemia_treatment_safety",
