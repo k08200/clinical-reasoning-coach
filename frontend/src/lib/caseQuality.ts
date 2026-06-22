@@ -5322,29 +5322,40 @@ const SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS = [
   "포도당",
 ];
 
-const SEVERE_HYPOGLYCEMIA_RECHECK_FEEDING_ACTION_TERMS = [
+const SEVERE_HYPOGLYCEMIA_RECHECK_ACTION_TERMS = [
   "15 minutes",
-  "complex carbohydrate",
-  "continuous dextrose",
-  "dextrose infusion",
-  "meal",
-  "protein",
+  "glucose recheck",
   "recheck",
+  "repeat blood glucose",
   "repeat glucose",
-  "snack",
   "재측정",
 ];
 
-const SEVERE_HYPOGLYCEMIA_ESCALATION_CAUSE_ACTION_TERMS = [
-  "admit",
+const SEVERE_HYPOGLYCEMIA_SUSTAINED_GLUCOSE_ACTION_TERMS = [
+  "complex carbohydrate",
+  "continuous dextrose",
+  "dextrose infusion",
+  "feeding",
+  "meal",
+  "protein",
+  "snack",
+];
+
+const SEVERE_HYPOGLYCEMIA_PROLONGED_RISK_ACTION_TERMS = [
   "altered mental status",
-  "cause",
-  "hospitalize",
   "long-acting insulin",
-  "octreotide",
   "renal failure",
   "seizure",
   "sulfonylurea",
+];
+
+const SEVERE_HYPOGLYCEMIA_ESCALATION_ACTION_TERMS = [
+  "admit",
+  "hospitalize",
+  "monitoring",
+  "octreotide",
+  "observation",
+  "prolonged monitoring",
   "입원",
 ];
 
@@ -5359,14 +5370,18 @@ const SEVERE_HYPOGLYCEMIA_ROUTE_AIRWAY_SAFETY_TERMS = [
   "기도",
 ];
 
-const SEVERE_HYPOGLYCEMIA_RECURRENCE_MED_SAFETY_TERMS = [
+const SEVERE_HYPOGLYCEMIA_RECURRENCE_RISK_SAFETY_TERMS = [
   "long-acting insulin",
-  "octreotide",
-  "observation",
   "rebound",
   "recurrent",
   "sulfonylurea",
   "재발",
+];
+
+const SEVERE_HYPOGLYCEMIA_RECURRENCE_MITIGATION_SAFETY_TERMS = [
+  "octreotide",
+  "observation",
+  "prolonged monitoring",
 ];
 
 const SEVERE_HYPOGLYCEMIA_CAUSE_RISK_SAFETY_TERMS = [
@@ -18748,13 +18763,26 @@ function hasSevereHypoglycemiaTimeCriticalActions(actions: string[]): boolean {
   const hasDextroseOrGlucagon = SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasRecheckFeeding = SEVERE_HYPOGLYCEMIA_RECHECK_FEEDING_ACTION_TERMS.some((term) =>
+  const hasRecheck = SEVERE_HYPOGLYCEMIA_RECHECK_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasEscalationOrCause = SEVERE_HYPOGLYCEMIA_ESCALATION_CAUSE_ACTION_TERMS.some((term) =>
+  const hasSustainedGlucose = SEVERE_HYPOGLYCEMIA_SUSTAINED_GLUCOSE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasGlucoseCheck && hasDextroseOrGlucagon && hasRecheckFeeding && hasEscalationOrCause;
+  const hasProlongedRisk = SEVERE_HYPOGLYCEMIA_PROLONGED_RISK_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = SEVERE_HYPOGLYCEMIA_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasGlucoseCheck &&
+    hasDextroseOrGlucagon &&
+    hasRecheck &&
+    hasSustainedGlucose &&
+    hasProlongedRisk &&
+    hasEscalation
+  );
 }
 
 function hasSevereHypoglycemiaTreatmentSafetyCheck(checks: string[]): boolean {
@@ -18762,9 +18790,13 @@ function hasSevereHypoglycemiaTreatmentSafetyCheck(checks: string[]): boolean {
   const hasRouteAirwaySafety = SEVERE_HYPOGLYCEMIA_ROUTE_AIRWAY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasRecurrenceMedSafety = SEVERE_HYPOGLYCEMIA_RECURRENCE_MED_SAFETY_TERMS.some((term) =>
+  const hasRecurrenceRiskSafety = SEVERE_HYPOGLYCEMIA_RECURRENCE_RISK_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasRecurrenceMitigationSafety =
+    SEVERE_HYPOGLYCEMIA_RECURRENCE_MITIGATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasCauseRiskSafety = SEVERE_HYPOGLYCEMIA_CAUSE_RISK_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -18773,7 +18805,8 @@ function hasSevereHypoglycemiaTreatmentSafetyCheck(checks: string[]): boolean {
   );
   return (
     hasRouteAirwaySafety &&
-    hasRecurrenceMedSafety &&
+    hasRecurrenceRiskSafety &&
+    hasRecurrenceMitigationSafety &&
     hasCauseRiskSafety &&
     hasDischargePreventionSafety
   );
@@ -25804,7 +25837,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSevereHypoglycemiaTimeCriticalActions,
       issue:
-        "severe hypoglycemia time-critical actions must include bedside or point-of-care glucose confirmation, immediate oral glucose, IV dextrose, or glucagon therapy, repeat glucose checks with feeding or dextrose infusion to prevent recurrence, and cause or admission escalation for prolonged-risk cases",
+        "severe hypoglycemia time-critical actions must include bedside or point-of-care glucose confirmation, immediate oral glucose, IV dextrose, or glucagon therapy, repeat glucose checks, sustained carbohydrate feeding or dextrose infusion to prevent recurrence, prolonged-risk recognition for long-acting insulin, sulfonylurea, seizure, renal failure, or persistent altered mental status, and admission, observation, octreotide, or prolonged-monitoring escalation",
     },
     {
       name: "severe_hypoglycemia_treatment_safety",
@@ -25813,7 +25846,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSevereHypoglycemiaTreatmentSafetyCheck,
       issue:
-        "severe hypoglycemia safety checks must include airway or swallow route safety, recurrent hypoglycemia risk from sulfonylurea or long-acting insulin with octreotide or observation planning, renal, hepatic, alcohol, sepsis, or adrenal cause review, and discharge prevention such as education, dose adjustment, meal access, or glucagon planning",
+        "severe hypoglycemia safety checks must include airway or swallow route safety, recurrent hypoglycemia risk from sulfonylurea, long-acting insulin, rebound, or recurrent episodes, octreotide or observation planning, renal, hepatic, alcohol, sepsis, or adrenal cause review, and discharge prevention such as education, dose adjustment, meal access, or glucagon planning",
     },
     {
       name: "insulin_sulfonylurea_toxicity_time_critical_actions",

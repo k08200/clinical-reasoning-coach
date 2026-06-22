@@ -4874,28 +4874,37 @@ SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS = (
     "sugar",
     "포도당",
 )
-SEVERE_HYPOGLYCEMIA_RECHECK_FEEDING_ACTION_TERMS = (
+SEVERE_HYPOGLYCEMIA_RECHECK_ACTION_TERMS = (
     "15 minutes",
+    "glucose recheck",
+    "recheck",
+    "repeat blood glucose",
+    "repeat glucose",
+    "재측정",
+)
+SEVERE_HYPOGLYCEMIA_SUSTAINED_GLUCOSE_ACTION_TERMS = (
     "complex carbohydrate",
     "continuous dextrose",
     "dextrose infusion",
+    "feeding",
     "meal",
     "protein",
-    "recheck",
-    "repeat glucose",
     "snack",
-    "재측정",
 )
-SEVERE_HYPOGLYCEMIA_ESCALATION_CAUSE_ACTION_TERMS = (
-    "admit",
+SEVERE_HYPOGLYCEMIA_PROLONGED_RISK_ACTION_TERMS = (
     "altered mental status",
-    "cause",
-    "hospitalize",
     "long-acting insulin",
-    "octreotide",
     "renal failure",
     "seizure",
     "sulfonylurea",
+)
+SEVERE_HYPOGLYCEMIA_ESCALATION_ACTION_TERMS = (
+    "admit",
+    "hospitalize",
+    "monitoring",
+    "octreotide",
+    "observation",
+    "prolonged monitoring",
     "입원",
 )
 SEVERE_HYPOGLYCEMIA_ROUTE_AIRWAY_SAFETY_TERMS = (
@@ -4908,14 +4917,17 @@ SEVERE_HYPOGLYCEMIA_ROUTE_AIRWAY_SAFETY_TERMS = (
     "unconscious",
     "기도",
 )
-SEVERE_HYPOGLYCEMIA_RECURRENCE_MED_SAFETY_TERMS = (
+SEVERE_HYPOGLYCEMIA_RECURRENCE_RISK_SAFETY_TERMS = (
     "long-acting insulin",
-    "octreotide",
-    "observation",
     "rebound",
     "recurrent",
     "sulfonylurea",
     "재발",
+)
+SEVERE_HYPOGLYCEMIA_RECURRENCE_MITIGATION_SAFETY_TERMS = (
+    "octreotide",
+    "observation",
+    "prolonged monitoring",
 )
 SEVERE_HYPOGLYCEMIA_CAUSE_RISK_SAFETY_TERMS = (
     "adrenal",
@@ -16084,9 +16096,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "severe hypoglycemia time-critical actions must include bedside "
                 "or point-of-care glucose confirmation, immediate oral glucose, "
-                "IV dextrose, or glucagon therapy, repeat glucose checks with "
-                "feeding or dextrose infusion to prevent recurrence, and cause "
-                "or admission escalation for prolonged-risk cases"
+                "IV dextrose, or glucagon therapy, repeat glucose checks, "
+                "sustained carbohydrate feeding or dextrose infusion to prevent "
+                "recurrence, prolonged-risk recognition for long-acting insulin, "
+                "sulfonylurea, seizure, renal failure, or persistent altered "
+                "mental status, and admission, observation, octreotide, or "
+                "prolonged-monitoring escalation"
             ),
         ),
         DomainSafetyGate(
@@ -16096,11 +16111,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_severe_hypoglycemia_treatment_safety_check,
             issue=(
                 "severe hypoglycemia safety checks must include airway or swallow "
-                "route safety, recurrent hypoglycemia risk from sulfonylurea or "
-                "long-acting insulin with octreotide or observation planning, renal, "
-                "hepatic, alcohol, sepsis, or adrenal cause review, and discharge "
-                "prevention such as education, dose adjustment, meal access, or "
-                "glucagon planning"
+                "route safety, recurrent hypoglycemia risk from sulfonylurea, "
+                "long-acting insulin, rebound, or recurrent episodes, octreotide "
+                "or observation planning, renal, hepatic, alcohol, sepsis, or "
+                "adrenal cause review, and discharge prevention such as education, "
+                "dose adjustment, meal access, or glucagon planning"
             ),
         ),
         DomainSafetyGate(
@@ -22540,19 +22555,29 @@ def _has_severe_hypoglycemia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS
     )
-    has_recheck_feeding = any(
+    has_recheck = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_HYPOGLYCEMIA_RECHECK_FEEDING_ACTION_TERMS
+        for term in SEVERE_HYPOGLYCEMIA_RECHECK_ACTION_TERMS
     )
-    has_escalation_or_cause = any(
+    has_sustained_glucose = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_HYPOGLYCEMIA_ESCALATION_CAUSE_ACTION_TERMS
+        for term in SEVERE_HYPOGLYCEMIA_SUSTAINED_GLUCOSE_ACTION_TERMS
+    )
+    has_prolonged_risk = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOGLYCEMIA_PROLONGED_RISK_ACTION_TERMS
+    )
+    has_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOGLYCEMIA_ESCALATION_ACTION_TERMS
     )
     return (
         has_glucose_check
         and has_dextrose_or_glucagon
-        and has_recheck_feeding
-        and has_escalation_or_cause
+        and has_recheck
+        and has_sustained_glucose
+        and has_prolonged_risk
+        and has_escalation
     )
 
 
@@ -22562,9 +22587,13 @@ def _has_severe_hypoglycemia_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in SEVERE_HYPOGLYCEMIA_ROUTE_AIRWAY_SAFETY_TERMS
     )
-    has_recurrence_med_safety = any(
+    has_recurrence_risk_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_HYPOGLYCEMIA_RECURRENCE_MED_SAFETY_TERMS
+        for term in SEVERE_HYPOGLYCEMIA_RECURRENCE_RISK_SAFETY_TERMS
+    )
+    has_recurrence_mitigation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_HYPOGLYCEMIA_RECURRENCE_MITIGATION_SAFETY_TERMS
     )
     has_cause_risk_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -22576,7 +22605,8 @@ def _has_severe_hypoglycemia_treatment_safety_check(checks: list[Any]) -> bool:
     )
     return (
         has_route_airway_safety
-        and has_recurrence_med_safety
+        and has_recurrence_risk_safety
+        and has_recurrence_mitigation_safety
         and has_cause_risk_safety
         and has_discharge_prevention_safety
     )
