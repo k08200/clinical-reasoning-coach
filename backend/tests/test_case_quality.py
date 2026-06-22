@@ -16980,6 +16980,8 @@ def test_quality_gate_requires_methemoglobinemia_oxygen_source_coox_methylene_an
         "Review pulse oximetry unreliable saturation gap with SpO2 near 85% and compare calculated SaO2 or PaO2",
         "Screen G6PD deficiency and hemolysis risk before methylene blue when possible",
         "Review serotonergic medication, SSRI, MAOI, or linezolid interaction risk before methylene blue",
+        "Review methylene blue treatment threshold for symptomatic patients, end-organ damage, cardiac ischemia, altered mental status, or methemoglobin > 20 to 30%",
+        "Plan repeat dose or second dose after 30 to 60 minutes if symptoms persist or methemoglobin levels remain above treatment threshold",
         "Monitor rebound with serial methemoglobin and repeat co-oximetry especially after dapsone exposure",
         "Plan ascorbic acid, exchange transfusion, or hyperbaric oxygen if methylene blue is contraindicated or refractory",
     ]
@@ -16998,6 +17000,8 @@ def test_quality_gate_requires_methemoglobinemia_oxygen_source_coox_methylene_an
                 "pulse oximetry unreliable saturation gap with SpO2 near 85% and calculated SaO2 or PaO2 comparison",
                 "G6PD deficiency and hemolysis risk before methylene blue",
                 "serotonergic medication, SSRI, MAOI, or linezolid interaction risk before methylene blue",
+                "methylene blue treatment threshold for symptomatic patients, end-organ damage, cardiac ischemia, altered mental status, or methemoglobin > 20 to 30%",
+                "repeat dose or second dose after 30 to 60 minutes if symptoms persist or methemoglobin levels remain above treatment threshold",
                 "rebound serial methemoglobin and repeat co-oximetry especially after dapsone exposure",
                 "ascorbic acid, exchange transfusion, or hyperbaric oxygen if methylene blue is contraindicated or refractory",
             ],

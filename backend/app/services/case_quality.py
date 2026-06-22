@@ -12263,6 +12263,26 @@ METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS = (
     "serotonergic medication",
     "ssri",
 )
+METHEMOGLOBINEMIA_TREATMENT_THRESHOLD_SAFETY_TERMS = (
+    "20% to 30%",
+    "20 to 30",
+    "altered mental status",
+    "cardiac ischemia",
+    "end-organ damage",
+    "level exceeds 20",
+    "level exceeds 30",
+    "methemoglobin > 20",
+    "methemoglobin > 30",
+    "symptomatic",
+)
+METHEMOGLOBINEMIA_REPEAT_DOSE_SAFETY_TERMS = (
+    "30 to 60 minutes",
+    "remain above treatment threshold",
+    "repeat dose",
+    "second dose",
+    "symptoms persist",
+    "treatment refractoriness",
+)
 METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS = (
     "dapsone",
     "rebound",
@@ -18303,7 +18323,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "unreliability or saturation-gap review, G6PD deficiency or "
                 "hemolysis risk before methylene blue, serotonergic medication, "
                 "SSRI, MAOI, or linezolid interaction review before methylene "
-                "blue, rebound or serial methemoglobin/co-oximetry monitoring "
+                "blue, treatment-threshold review for symptoms, end-organ damage, "
+                "or methemoglobin above 20% to 30%, repeat-dose review after "
+                "30 to 60 minutes if symptoms persist or levels remain above "
+                "threshold, rebound or serial methemoglobin/co-oximetry monitoring "
                 "especially after dapsone, and alternative therapy planning such "
                 "as ascorbic acid, exchange transfusion, or hyperbaric oxygen "
                 "when methylene blue is contraindicated or refractory"
@@ -28741,6 +28764,14 @@ def _has_methemoglobinemia_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS
     )
+    has_treatment_threshold_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_TREATMENT_THRESHOLD_SAFETY_TERMS
+    )
+    has_repeat_dose_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_REPEAT_DOSE_SAFETY_TERMS
+    )
     has_rebound_monitoring_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS
@@ -28753,6 +28784,8 @@ def _has_methemoglobinemia_treatment_safety_check(checks: list[Any]) -> bool:
         has_pulse_ox_gap_safety
         and has_g6pd_hemolysis_safety
         and has_methylene_interaction_safety
+        and has_treatment_threshold_safety
+        and has_repeat_dose_safety
         and has_rebound_monitoring_safety
         and has_alternative_therapy_safety
     )

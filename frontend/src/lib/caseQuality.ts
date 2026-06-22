@@ -13457,6 +13457,28 @@ const METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS = [
   "ssri",
 ];
 
+const METHEMOGLOBINEMIA_TREATMENT_THRESHOLD_SAFETY_TERMS = [
+  "20% to 30%",
+  "20 to 30",
+  "altered mental status",
+  "cardiac ischemia",
+  "end-organ damage",
+  "level exceeds 20",
+  "level exceeds 30",
+  "methemoglobin > 20",
+  "methemoglobin > 30",
+  "symptomatic",
+];
+
+const METHEMOGLOBINEMIA_REPEAT_DOSE_SAFETY_TERMS = [
+  "30 to 60 minutes",
+  "remain above treatment threshold",
+  "repeat dose",
+  "second dose",
+  "symptoms persist",
+  "treatment refractoriness",
+];
+
 const METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS = [
   "dapsone",
   "rebound",
@@ -23621,6 +23643,12 @@ function hasMethemoglobinemiaTreatmentSafetyCheck(checks: string[]): boolean {
   const hasMethyleneInteractionSafety = METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasTreatmentThresholdSafety = METHEMOGLOBINEMIA_TREATMENT_THRESHOLD_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRepeatDoseSafety = METHEMOGLOBINEMIA_REPEAT_DOSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasReboundMonitoringSafety = METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
@@ -23631,6 +23659,8 @@ function hasMethemoglobinemiaTreatmentSafetyCheck(checks: string[]): boolean {
     hasPulseOxGapSafety &&
     hasG6pdHemolysisSafety &&
     hasMethyleneInteractionSafety &&
+    hasTreatmentThresholdSafety &&
+    hasRepeatDoseSafety &&
     hasReboundMonitoringSafety &&
     hasAlternativeTherapySafety
   );
@@ -27022,7 +27052,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasMethemoglobinemiaTreatmentSafetyCheck,
       issue:
-        "methemoglobinemia safety checks must include pulse oximetry unreliability or saturation-gap review, G6PD deficiency or hemolysis risk before methylene blue, serotonergic medication, SSRI, MAOI, or linezolid interaction review before methylene blue, rebound or serial methemoglobin/co-oximetry monitoring especially after dapsone, and alternative therapy planning such as ascorbic acid, exchange transfusion, or hyperbaric oxygen when methylene blue is contraindicated or refractory",
+        "methemoglobinemia safety checks must include pulse oximetry unreliability or saturation-gap review, G6PD deficiency or hemolysis risk before methylene blue, serotonergic medication, SSRI, MAOI, or linezolid interaction review before methylene blue, treatment-threshold review for symptoms, end-organ damage, or methemoglobin above 20% to 30%, repeat-dose review after 30 to 60 minutes if symptoms persist or levels remain above threshold, rebound or serial methemoglobin/co-oximetry monitoring especially after dapsone, and alternative therapy planning such as ascorbic acid, exchange transfusion, or hyperbaric oxygen when methylene blue is contraindicated or refractory",
     },
     {
       name: "caustic_ingestion_time_critical_actions",
