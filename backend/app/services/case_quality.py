@@ -11310,6 +11310,16 @@ SALICYLATE_INTUBATION_PH_SAFETY_TERMS = (
     "ventilator",
     "삽관",
 )
+SALICYLATE_ALKALINIZATION_TARGET_SAFETY_TERMS = (
+    "serum ph",
+    "urine output",
+    "urine ph",
+    "urine ph 7.5",
+    "urine ph 7.5 to 8",
+    "urinary ph",
+    "urinary ph 7.5",
+    "urinary ph 7.5 to 8",
+)
 SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS = (
     "cerebral edema",
     "glucose",
@@ -17986,8 +17996,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "status, seizure, renal failure, kidney failure, pulmonary edema, "
                 "or very high salicylate level, intubation or mechanical ventilation "
                 "pH-preservation planning with hyperventilation or bicarbonate "
-                "safeguards, and potassium, hypokalemia, glucose, hypoglycemia, "
-                "temperature, pulmonary edema, or cerebral edema monitoring"
+                "safeguards, serum pH, urine pH 7.5 to 8, urine-output, or "
+                "urinary-alkalinization target monitoring, and potassium, "
+                "hypokalemia, glucose, hypoglycemia, temperature, pulmonary edema, "
+                "or cerebral edema monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -27894,6 +27906,10 @@ def _has_salicylate_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in SALICYLATE_INTUBATION_PH_SAFETY_TERMS
     )
+    has_alkalinization_target_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SALICYLATE_ALKALINIZATION_TARGET_SAFETY_TERMS
+    )
     has_electrolyte_glucose_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS
@@ -27901,6 +27917,7 @@ def _has_salicylate_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
     return (
         has_dialysis_indication_safety
         and has_intubation_ph_safety
+        and has_alkalinization_target_safety
         and has_electrolyte_glucose_safety
     )
 

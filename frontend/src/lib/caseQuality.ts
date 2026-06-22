@@ -12398,6 +12398,17 @@ const SALICYLATE_INTUBATION_PH_SAFETY_TERMS = [
   "삽관",
 ];
 
+const SALICYLATE_ALKALINIZATION_TARGET_SAFETY_TERMS = [
+  "serum ph",
+  "urine output",
+  "urine ph",
+  "urine ph 7.5",
+  "urine ph 7.5 to 8",
+  "urinary ph",
+  "urinary ph 7.5",
+  "urinary ph 7.5 to 8",
+];
+
 const SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS = [
   "cerebral edema",
   "glucose",
@@ -22946,10 +22957,18 @@ function hasSalicylateToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   const hasIntubationPhSafety = SALICYLATE_INTUBATION_PH_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasAlkalinizationTargetSafety = SALICYLATE_ALKALINIZATION_TARGET_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   const hasElectrolyteGlucoseSafety = SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  return hasDialysisIndicationSafety && hasIntubationPhSafety && hasElectrolyteGlucoseSafety;
+  return (
+    hasDialysisIndicationSafety &&
+    hasIntubationPhSafety &&
+    hasAlkalinizationTargetSafety &&
+    hasElectrolyteGlucoseSafety
+  );
 }
 
 function requiresCarbonMonoxidePoisoningSafetyCheck(
@@ -26841,7 +26860,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSalicylateToxicityTreatmentSafetyCheck,
       issue:
-        "salicylate toxicity safety checks must include hemodialysis indication review for acidemia, severe acidosis, altered mental status, seizure, renal failure, kidney failure, pulmonary edema, or very high salicylate level, intubation or mechanical ventilation pH-preservation planning with hyperventilation or bicarbonate safeguards, and potassium, hypokalemia, glucose, hypoglycemia, temperature, pulmonary edema, or cerebral edema monitoring",
+        "salicylate toxicity safety checks must include hemodialysis indication review for acidemia, severe acidosis, altered mental status, seizure, renal failure, kidney failure, pulmonary edema, or very high salicylate level, intubation or mechanical ventilation pH-preservation planning with hyperventilation or bicarbonate safeguards, serum pH, urine pH 7.5 to 8, urine-output, or urinary-alkalinization target monitoring, and potassium, hypokalemia, glucose, hypoglycemia, temperature, pulmonary edema, or cerebral edema monitoring",
     },
     {
       name: "carbon_monoxide_poisoning_time_critical_actions",
