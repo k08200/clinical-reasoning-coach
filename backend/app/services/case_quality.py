@@ -9387,16 +9387,39 @@ DKA_TREATMENT_TRIGGER_TERMS = (
     "케톤산증",
     "인슐린",
 )
-DKA_POTASSIUM_ACTION_TERMS = (
-    "k",
-    "potassium",
-    "칼륨",
+DKA_POTASSIUM_BEFORE_INSULIN_ACTION_TERMS = (
+    "after potassium assessment",
+    "check potassium before insulin",
+    "defer insulin",
+    "delay insulin",
+    "following potassium assessment",
+    "hold insulin if potassium",
+    "insulin after potassium",
+    "insulin should be deferred",
+    "k before insulin",
+    "k below 3.5",
+    "k < 3.5",
+    "k <3.5",
+    "potassium assessment before insulin",
+    "potassium before insulin",
+    "potassium below 3.5",
+    "potassium below safe threshold before insulin",
+    "potassium threshold before insulin",
+    "replace potassium before insulin",
 )
-DKA_FLUID_INSULIN_ACTION_TERMS = (
+DKA_FLUID_ACTION_TERMS = (
     "fluid",
     "fluids",
-    "insulin",
+    "crystalloid",
+    "isotonic",
+    "saline",
     "수액",
+)
+DKA_INSULIN_ACTION_TERMS = (
+    "insulin",
+    "insulin infusion",
+    "insulin therapy",
+    "iv insulin",
     "인슐린",
 )
 DKA_CLOSURE_MONITORING_TERMS = (
@@ -26494,19 +26517,28 @@ def _requires_dka_treatment_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_dka_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_potassium = any(
+    has_potassium_before_insulin = any(
         _contains_safety_term(normalized_actions, term)
-        for term in DKA_POTASSIUM_ACTION_TERMS
+        for term in DKA_POTASSIUM_BEFORE_INSULIN_ACTION_TERMS
     )
-    has_fluid_insulin = any(
+    has_fluid = any(
         _contains_safety_term(normalized_actions, term)
-        for term in DKA_FLUID_INSULIN_ACTION_TERMS
+        for term in DKA_FLUID_ACTION_TERMS
+    )
+    has_insulin = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DKA_INSULIN_ACTION_TERMS
     )
     has_closure_monitoring = any(
         _contains_safety_term(normalized_actions, term)
         for term in DKA_CLOSURE_MONITORING_TERMS
     )
-    return has_potassium and has_fluid_insulin and has_closure_monitoring
+    return (
+        has_potassium_before_insulin
+        and has_fluid
+        and has_insulin
+        and has_closure_monitoring
+    )
 
 
 def _has_dka_contraindication_safety_check(checks: list[Any]) -> bool:

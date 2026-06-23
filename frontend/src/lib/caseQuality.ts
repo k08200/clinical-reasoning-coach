@@ -10287,13 +10287,41 @@ const DKA_TREATMENT_TRIGGER_TERMS = [
   "인슐린",
 ];
 
-const DKA_POTASSIUM_ACTION_TERMS = ["k", "potassium", "칼륨"];
+const DKA_POTASSIUM_BEFORE_INSULIN_ACTION_TERMS = [
+  "after potassium assessment",
+  "check potassium before insulin",
+  "defer insulin",
+  "delay insulin",
+  "following potassium assessment",
+  "hold insulin if potassium",
+  "insulin after potassium",
+  "insulin should be deferred",
+  "k before insulin",
+  "k below 3.5",
+  "k < 3.5",
+  "k <3.5",
+  "potassium assessment before insulin",
+  "potassium before insulin",
+  "potassium below 3.5",
+  "potassium below safe threshold before insulin",
+  "potassium threshold before insulin",
+  "replace potassium before insulin",
+];
 
-const DKA_FLUID_INSULIN_ACTION_TERMS = [
+const DKA_FLUID_ACTION_TERMS = [
   "fluid",
   "fluids",
-  "insulin",
+  "crystalloid",
+  "isotonic",
+  "saline",
   "수액",
+];
+
+const DKA_INSULIN_ACTION_TERMS = [
+  "insulin",
+  "insulin infusion",
+  "insulin therapy",
+  "iv insulin",
   "인슐린",
 ];
 
@@ -21845,16 +21873,19 @@ function requiresDkaTreatmentSafetyCheck(detail: ClinicalCaseReviewDetail): bool
 
 function hasDkaTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasPotassium = DKA_POTASSIUM_ACTION_TERMS.some((term) =>
+  const hasPotassiumBeforeInsulin = DKA_POTASSIUM_BEFORE_INSULIN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasFluidInsulin = DKA_FLUID_INSULIN_ACTION_TERMS.some((term) =>
+  const hasFluid = DKA_FLUID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasInsulin = DKA_INSULIN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasClosureMonitoring = DKA_CLOSURE_MONITORING_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasPotassium && hasFluidInsulin && hasClosureMonitoring;
+  return hasPotassiumBeforeInsulin && hasFluid && hasInsulin && hasClosureMonitoring;
 }
 
 function hasDkaContraindicationSafetyCheck(checks: string[]): boolean {

@@ -13265,6 +13265,42 @@ def test_quality_gate_requires_dka_potassium_and_closure_actions():
     )
 
 
+def test_quality_gate_requires_dka_explicit_potassium_before_insulin_not_monitoring_alone():
+    case = copy.deepcopy(CASE_POOL[3])
+    case["time_critical_actions"] = [
+        "Assess severity and initiate monitored DKA protocol with fluids and insulin planning",
+        "Monitor potassium and electrolytes during insulin therapy",
+        "Identify precipitating cause while closing the anion gap",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "DKA diagnostic pattern",
+        "acidosis, dehydration, and mental status severity markers",
+        "severe metabolic acidosis with Kussmaul respirations",
+        "tachycardia, dehydration signs, AKI, and confusion in DKA severity assessment",
+        "hyperkalemia despite total body potassium depletion",
+        "time-critical monitored DKA protocol with fluids and insulin planning",
+        "potassium and electrolyte monitoring during insulin therapy",
+        "identify precipitating cause while closing the anion gap",
+        "potassium below safe threshold before insulin infusion",
+        "cerebral edema risk from overly rapid osmolar shifts",
+        "persistent abdominal pain after metabolic correction requiring surgical reassessment",
+        "avoid routine bicarbonate unless severe acidosis with pH below 7.0",
+        "phosphate replacement only for severe hypophosphatemia with cardiac or respiratory compromise",
+        "dextrose addition when glucose approaches 200-250 mg/dL",
+        "continued insulin until ketone resolution, anion-gap closure, or DKA resolution",
+        "basal or subcutaneous insulin overlap before stopping IV insulin after DKA resolution and oral intake",
+        "precipitant review for SGLT2 inhibitor exposure, medication contributors, or missed insulin",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "DKA time-critical actions must include potassium-before-insulin" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_dka_potassium_and_osmolar_safety_checks():
     case = copy.deepcopy(CASE_POOL[3])
     case["contraindication_checks"] = [
