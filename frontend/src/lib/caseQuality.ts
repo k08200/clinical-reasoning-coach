@@ -11303,11 +11303,10 @@ const HYPERKALEMIA_CONTEXT_TERMS = [
 ];
 
 const HYPERKALEMIA_CALCIUM_ACTION_TERMS = [
+  "10% calcium",
   "calcium chloride",
   "calcium gluconate",
-  "cardiac membrane",
   "iv calcium",
-  "membrane stabilization",
   "칼슘",
 ];
 
@@ -11327,9 +11326,9 @@ const HYPERKALEMIA_GLUCOSE_COTHERAPY_ACTION_TERMS = [
 const HYPERKALEMIA_REMOVAL_ACTION_TERMS = [
   "dialysis",
   "diuretic",
+  "furosemide",
   "hemodialysis",
   "potassium binder",
-  "potassium removal",
   "sodium zirconium",
   "칼륨 제거",
   "투석",
@@ -26934,7 +26933,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasHyperkalemiaTimeCriticalActions,
       issue:
-        "severe hyperkalemia time-critical actions must include IV calcium or cardiac membrane stabilization, insulin-based potassium shifting with dextrose or glucose co-therapy, and potassium removal or dialysis planning",
+        "severe hyperkalemia time-critical actions must include IV calcium gluconate, calcium chloride, or equivalent IV calcium, insulin-based potassium shifting with dextrose or glucose co-therapy, and concrete potassium removal planning such as dialysis, diuretic, or potassium-binder therapy",
     },
     {
       name: "hyperkalemia_treatment_safety",

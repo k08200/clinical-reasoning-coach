@@ -10306,11 +10306,10 @@ HYPERKALEMIA_CONTEXT_TERMS = (
     "뾰족 t파",
 )
 HYPERKALEMIA_CALCIUM_ACTION_TERMS = (
+    "10% calcium",
     "calcium chloride",
     "calcium gluconate",
-    "cardiac membrane",
     "iv calcium",
-    "membrane stabilization",
     "칼슘",
 )
 HYPERKALEMIA_INSULIN_SHIFT_ACTION_TERMS = (
@@ -10327,9 +10326,9 @@ HYPERKALEMIA_GLUCOSE_COTHERAPY_ACTION_TERMS = (
 HYPERKALEMIA_REMOVAL_ACTION_TERMS = (
     "dialysis",
     "diuretic",
+    "furosemide",
     "hemodialysis",
     "potassium binder",
-    "potassium removal",
     "sodium zirconium",
     "칼륨 제거",
     "투석",
@@ -17831,9 +17830,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_hyperkalemia_time_critical_actions,
             issue=(
                 "severe hyperkalemia time-critical actions must include IV calcium "
-                "or cardiac membrane stabilization, insulin-based potassium "
-                "shifting with dextrose or glucose co-therapy, and potassium "
-                "removal or dialysis planning"
+                "gluconate, calcium chloride, or equivalent IV calcium, insulin-"
+                "based potassium shifting with dextrose or glucose co-therapy, "
+                "and concrete potassium removal planning such as dialysis, "
+                "diuretic, or potassium-binder therapy"
             ),
         ),
         DomainSafetyGate(
