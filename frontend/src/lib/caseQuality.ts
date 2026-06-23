@@ -11606,13 +11606,30 @@ const ADRENAL_CRISIS_CONTEXT_TERMS = [
 ];
 
 const ADRENAL_CRISIS_STEROID_ACTION_TERMS = [
-  "glucocorticoid",
-  "hydrocortisone",
+  "100 mg hydrocortisone",
+  "hydrocortisone 100 mg",
+  "hydrocortisone im",
+  "hydrocortisone iv",
+  "hydrocortisone sodium succinate",
+  "hydrocortisone stress dose",
+  "im hydrocortisone",
+  "intramuscular hydrocortisone",
+  "intravenous hydrocortisone",
+  "iv hydrocortisone",
+  "parenteral hydrocortisone",
   "parenteral steroid",
-  "stress dose",
-  "steroid",
-  "하이드로코르티손",
-  "스테로이드",
+  "solu-cortef",
+  "stress dose hydrocortisone",
+  "stress dose steroid",
+  "stress-dose hydrocortisone",
+  "stress-dose steroid",
+  "iv 하이드로코르티손",
+  "im 하이드로코르티손",
+  "근육 하이드로코르티손",
+  "정맥 하이드로코르티손",
+  "스트레스 용량 하이드로코르티손",
+  "하이드로코르티손 근육",
+  "하이드로코르티손 정맥",
 ];
 
 const ADRENAL_CRISIS_FLUID_GLUCOSE_ACTION_TERMS = [
@@ -26994,7 +27011,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAdrenalCrisisTimeCriticalActions,
       issue:
-        "adrenal crisis time-critical actions must include immediate hydrocortisone or stress-dose steroid, isotonic saline or dextrose resuscitation, and glucose, electrolyte, or hemodynamic monitoring",
+        "adrenal crisis time-critical actions must include immediate hydrocortisone by IV, IM, or parenteral route or stress-dose steroid, isotonic saline or dextrose resuscitation, and glucose, electrolyte, or hemodynamic monitoring",
     },
     {
       name: "adrenal_crisis_treatment_safety",

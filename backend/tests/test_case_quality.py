@@ -15336,6 +15336,116 @@ def test_quality_gate_requires_adrenal_crisis_hydrocortisone_fluids_and_monitori
     )
 
 
+def test_quality_gate_requires_adrenal_crisis_specific_hydrocortisone_not_generic_steroid():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Adrenal crisis"
+    case["chief_complaint"] = "Vomiting, weakness, and dizziness"
+    case["history_of_present_illness"] = (
+        "Patient with chronic steroid use presents with vomiting, abdominal pain, "
+        "confusion, hypotension, and fever after missed doses."
+    )
+    case["key_teaching_points"] = [
+        "Adrenal crisis is a life-threatening endocrine emergency",
+        "Hydrocortisone should not be delayed for confirmatory testing",
+        "Fluid resuscitation and glucose or electrolyte correction are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension with vomiting and confusion",
+        "Hyponatremia, hyperkalemia, and hypoglycemia with missed steroid doses",
+    ]
+    case["time_critical_actions"] = [
+        "Give steroid therapy immediately for suspected adrenal crisis",
+        "Start isotonic saline fluid resuscitation with dextrose if hypoglycemia is present",
+        "Monitor blood pressure, glucose, sodium, potassium, and shock response",
+    ]
+    case["contraindication_checks"] = [
+        "Draw cortisol if feasible but do not delay immediate hydrocortisone for testing",
+        "Monitor blood pressure, glucose, sodium, potassium, and other electrolytes during treatment",
+        "Review infection, sepsis, missed steroid doses, steroid withdrawal, and stress dosing triggers",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Adrenal Insufficiency: Identification and Management",
+            "organization": "National Institute for Health and Care Excellence",
+            "url": "https://www.nice.org.uk/guidance/ng243",
+            "supports": [
+                "adrenal crisis diagnosis and risk stratification",
+                "hypotension with vomiting and confusion as red flags",
+                "hyponatremia, hyperkalemia, and hypoglycemia with missed steroid doses as severity markers",
+                "steroid therapy immediately for suspected adrenal crisis",
+                "isotonic saline fluid resuscitation with dextrose if hypoglycemia is present",
+                "blood pressure, glucose, sodium, potassium, and shock response monitoring",
+                "draw cortisol if feasible but do not delay immediate hydrocortisone for testing",
+                "blood pressure, glucose, sodium, potassium, and electrolyte monitoring during treatment",
+                "infection, sepsis, missed steroid doses, steroid withdrawal, and stress dosing triggers",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "adrenal crisis time-critical actions must include immediate hydrocortisone" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_adrenal_crisis_hydrocortisone_route_or_stress_dose():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Adrenal crisis"
+    case["chief_complaint"] = "Vomiting, weakness, and dizziness"
+    case["history_of_present_illness"] = (
+        "Patient with chronic steroid use presents with vomiting, abdominal pain, "
+        "confusion, hypotension, and fever after missed doses."
+    )
+    case["key_teaching_points"] = [
+        "Adrenal crisis is a life-threatening endocrine emergency",
+        "Hydrocortisone should not be delayed for confirmatory testing",
+        "Fluid resuscitation and glucose or electrolyte correction are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension with vomiting and confusion",
+        "Hyponatremia, hyperkalemia, and hypoglycemia with missed steroid doses",
+    ]
+    case["time_critical_actions"] = [
+        "Give immediate hydrocortisone for suspected adrenal crisis",
+        "Start isotonic saline fluid resuscitation with dextrose if hypoglycemia is present",
+        "Monitor blood pressure, glucose, sodium, potassium, and shock response",
+    ]
+    case["contraindication_checks"] = [
+        "Draw cortisol if feasible but do not delay immediate hydrocortisone for testing",
+        "Monitor blood pressure, glucose, sodium, potassium, and other electrolytes during treatment",
+        "Review infection, sepsis, missed steroid doses, steroid withdrawal, and stress dosing triggers",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Adrenal Insufficiency: Identification and Management",
+            "organization": "National Institute for Health and Care Excellence",
+            "url": "https://www.nice.org.uk/guidance/ng243",
+            "supports": [
+                "adrenal crisis diagnosis and risk stratification",
+                "hypotension with vomiting and confusion as red flags",
+                "hyponatremia, hyperkalemia, and hypoglycemia with missed steroid doses as severity markers",
+                "immediate hydrocortisone for suspected adrenal crisis",
+                "isotonic saline fluid resuscitation with dextrose if hypoglycemia is present",
+                "blood pressure, glucose, sodium, potassium, and shock response monitoring",
+                "draw cortisol if feasible but do not delay immediate hydrocortisone for testing",
+                "blood pressure, glucose, sodium, potassium, and electrolyte monitoring during treatment",
+                "infection, sepsis, missed steroid doses, steroid withdrawal, and stress dosing triggers",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "adrenal crisis time-critical actions must include immediate hydrocortisone" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_adrenal_crisis_do_not_delay_monitoring_and_trigger_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Adrenal crisis"
