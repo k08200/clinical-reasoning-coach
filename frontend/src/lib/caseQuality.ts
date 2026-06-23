@@ -728,15 +728,22 @@ const ANAPHYLAXIS_CONTEXT_TERMS = [
 ];
 
 const ANAPHYLAXIS_EPINEPHRINE_ACTION_TERMS = [
-  "adrenaline",
-  "epi",
-  "epinephrine",
+  "adrenaline auto-injector",
+  "adrenaline autoinjector",
+  "adrenaline im",
+  "auto-injector",
+  "autoinjector",
+  "epi pen",
+  "epinephrine auto-injector",
+  "epinephrine autoinjector",
+  "epinephrine im",
+  "epipen",
   "im adrenaline",
   "im epinephrine",
   "intramuscular adrenaline",
   "intramuscular epinephrine",
-  "아드레날린",
-  "에피네프린",
+  "근육주사 아드레날린",
+  "근육주사 에피네프린",
 ];
 
 const ANAPHYLAXIS_AIRWAY_ACTION_TERMS = [

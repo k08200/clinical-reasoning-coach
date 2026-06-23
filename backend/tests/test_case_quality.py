@@ -596,6 +596,51 @@ def test_quality_gate_requires_anaphylaxis_time_critical_actions():
     )
 
 
+def test_quality_gate_requires_anaphylaxis_im_epinephrine_route_not_generic_epinephrine():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Anaphylaxis after peanut exposure"
+    case["clinical_red_flags"] = [
+        "Diffuse urticaria with wheeze and hypotension",
+        "Angioedema with progressive airway symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Give epinephrine immediately for suspected anaphylaxis",
+        "Assess airway, oxygenation, and prepare for intubation if swelling progresses",
+        "Give IV fluids and escalate shock management if hypotension persists",
+    ]
+    case["contraindication_checks"] = [
+        "Remove allergen exposure and stop the trigger if possible",
+        "Observe for biphasic reaction, recurrence, or rebound after initial stabilization",
+        "Plan repeat IM epinephrine every 5 minutes or second dose if symptoms persist",
+        "Restrict IV epinephrine to cardiac arrest or experienced specialist infusion settings",
+        "Use antihistamine or corticosteroid adjunct only and do not delay epinephrine",
+        "Escalate refractory anaphylaxis with epinephrine infusion, vasopressor, glucagon for beta-blocker exposure, or specialist support",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        *case["clinical_sources"][0]["supports"],
+        "anaphylaxis diagnosis and severity assessment",
+        "diffuse urticaria with wheeze and hypotension as red flags",
+        "angioedema with progressive airway symptoms",
+        "epinephrine immediately for suspected anaphylaxis",
+        "airway oxygenation assessment in anaphylaxis",
+        "fluid resuscitation for hypotension in anaphylaxis",
+        "remove allergen exposure and stop the trigger if possible",
+        "biphasic reaction, recurrence, or rebound observation after anaphylaxis",
+        "repeat IM epinephrine every 5 minutes or second dose if symptoms persist",
+        "IV epinephrine restricted to cardiac arrest or experienced specialist infusion settings",
+        "antihistamine or corticosteroid adjunct only and does not delay epinephrine",
+        "refractory anaphylaxis escalation with epinephrine infusion, vasopressor, glucagon, or specialist support",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "anaphylaxis time-critical actions must include IM epinephrine" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_anaphylaxis_trigger_and_observation_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Anaphylaxis after peanut exposure"
