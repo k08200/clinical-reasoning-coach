@@ -12395,17 +12395,20 @@ const SALICYLATE_TOXICITY_CONTEXT_TERMS = [
   "아스피린",
 ];
 
-const SALICYLATE_LEVEL_ACID_BASE_ACTION_TERMS = [
-  "abg",
-  "anion gap",
-  "blood gas",
-  "electrolyte",
+const SALICYLATE_LEVEL_ACTION_TERMS = [
   "repeat level",
   "salicylate concentration",
   "salicylate level",
   "serial level",
-  "vbg",
   "살리실산 농도",
+];
+
+const SALICYLATE_ACID_BASE_ACTION_TERMS = [
+  "abg",
+  "anion gap",
+  "blood gas",
+  "electrolyte",
+  "vbg",
 ];
 
 const SALICYLATE_DECONTAMINATION_ACTION_TERMS = [
@@ -23078,7 +23081,10 @@ function requiresSalicylateToxicitySafetyCheck(detail: ClinicalCaseReviewDetail)
 
 function hasSalicylateToxicityTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasLevelAcidBaseAction = SALICYLATE_LEVEL_ACID_BASE_ACTION_TERMS.some((term) =>
+  const hasSalicylateLevelAction = SALICYLATE_LEVEL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAcidBaseAction = SALICYLATE_ACID_BASE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasDecontaminationAction = SALICYLATE_DECONTAMINATION_ACTION_TERMS.some((term) =>
@@ -23091,7 +23097,8 @@ function hasSalicylateToxicityTimeCriticalActions(actions: string[]): boolean {
     containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasLevelAcidBaseAction &&
+    hasSalicylateLevelAction &&
+    hasAcidBaseAction &&
     hasDecontaminationAction &&
     hasAlkalinizationAction &&
     hasDialysisEscalation

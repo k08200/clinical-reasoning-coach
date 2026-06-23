@@ -10786,6 +10786,68 @@
     }
   },
   {
+    "name": "salicylate_toxicity_requires_level_not_acid_base_labs_alone",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "salicylate toxicity time-critical actions must include serial salicylate levels"
+    ],
+    "overrides": {
+      "diagnosis": "Salicylate toxicity",
+      "patient_demographics": {
+        "age": 37,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Vomiting, tinnitus, and rapid breathing after aspirin ingestion",
+      "history_of_present_illness": "Patient presents after a large aspirin overdose with vomiting, tinnitus, tachypnea, fever, confusion, respiratory alkalosis, and anion gap metabolic acidosis.",
+      "key_teaching_points": [
+        "Salicylate toxicity can have delayed absorption and worsening acid-base status",
+        "Sodium bicarbonate with urine alkalinization increases salicylate elimination",
+        "Severe salicylate poisoning needs early poison center, nephrology, and hemodialysis planning"
+      ],
+      "clinical_red_flags": [
+        "Tinnitus, vomiting, tachypnea, fever, confusion, seizure, or pulmonary edema",
+        "Mixed respiratory alkalosis and metabolic acidosis after aspirin overdose"
+      ],
+      "time_critical_actions": [
+        "Trend anion gap, ABG or VBG blood gas, and electrolytes until clearly improving",
+        "Give activated charcoal or multidose charcoal when airway and bowel status allow",
+        "Start sodium bicarbonate infusion for serum and urine alkalinization with potassium repletion and urine pH monitoring",
+        "Call poison center, toxicologist, and nephrology for hemodialysis or dialysis escalation"
+      ],
+      "contraindication_checks": [
+        "Review hemodialysis indications including acidemia, severe acidosis, altered mental status, seizure, renal failure, pulmonary edema, or very high salicylate level",
+        "If intubation or mechanical ventilation is unavoidable, preserve hyperventilation and pH with bicarbonate bolus safeguards",
+        "Target serum pH and urinary alkalinization with urine pH 7.5 to 8 plus urine output monitoring",
+        "Monitor potassium, hypokalemia, glucose, hypoglycemia, temperature, pulmonary edema, and cerebral edema"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Aspirin and Other Salicylate Poisoning",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/injuries-poisoning/poisoning/aspirin-and-other-salicylate-poisoning",
+          "supports": [
+            "salicylate toxicity diagnosis and risk stratification",
+            "salicylate toxicity can have delayed absorption and worsening acid-base status",
+            "sodium bicarbonate with urine alkalinization increases salicylate elimination",
+            "severe salicylate poisoning needs early poison center, nephrology, and hemodialysis planning",
+            "tinnitus, vomiting, tachypnea, fever, confusion, seizure, or pulmonary edema as red flags",
+            "mixed respiratory alkalosis and metabolic acidosis after aspirin overdose as severity markers",
+            "anion gap, ABG or VBG blood gas, and electrolytes until clearly improving",
+            "activated charcoal or multidose charcoal when airway and bowel status allow",
+            "sodium bicarbonate infusion for serum and urine alkalinization with potassium repletion and urine pH monitoring",
+            "poison center, toxicologist, and nephrology for hemodialysis or dialysis escalation",
+            "hemodialysis indications including acidemia, severe acidosis, altered mental status, seizure, renal failure, pulmonary edema, or very high salicylate level",
+            "intubation or mechanical ventilation safeguards to preserve hyperventilation and pH with bicarbonate bolus",
+            "serum pH and urinary alkalinization target with urine pH 7.5 to 8 plus urine output monitoring",
+            "potassium, hypokalemia, glucose, hypoglycemia, temperature, pulmonary edema, and cerebral edema monitoring"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "carbon_monoxide_requires_oxygen_cohb_hbo_and_cardiac_neuro_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

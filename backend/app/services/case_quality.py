@@ -11303,17 +11303,19 @@ SALICYLATE_TOXICITY_CONTEXT_TERMS = (
     "살리실산",
     "아스피린",
 )
-SALICYLATE_LEVEL_ACID_BASE_ACTION_TERMS = (
-    "abg",
-    "anion gap",
-    "blood gas",
-    "electrolyte",
+SALICYLATE_LEVEL_ACTION_TERMS = (
     "repeat level",
     "salicylate concentration",
     "salicylate level",
     "serial level",
-    "vbg",
     "살리실산 농도",
+)
+SALICYLATE_ACID_BASE_ACTION_TERMS = (
+    "abg",
+    "anion gap",
+    "blood gas",
+    "electrolyte",
+    "vbg",
 )
 SALICYLATE_DECONTAMINATION_ACTION_TERMS = (
     "activated charcoal",
@@ -28021,9 +28023,13 @@ def _requires_salicylate_toxicity_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_salicylate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_level_acid_base_action = any(
+    has_salicylate_level_action = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SALICYLATE_LEVEL_ACID_BASE_ACTION_TERMS
+        for term in SALICYLATE_LEVEL_ACTION_TERMS
+    )
+    has_acid_base_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SALICYLATE_ACID_BASE_ACTION_TERMS
     )
     has_decontamination_action = any(
         _contains_safety_term(normalized_actions, term)
@@ -28038,7 +28044,8 @@ def _has_salicylate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         for term in SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS
     )
     return (
-        has_level_acid_base_action
+        has_salicylate_level_action
+        and has_acid_base_action
         and has_decontamination_action
         and has_alkalinization_action
         and has_dialysis_escalation
