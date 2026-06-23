@@ -11796,16 +11796,16 @@ const ACETAMINOPHEN_NAC_ACTION_TERMS = [
 const ACETAMINOPHEN_HEPATIC_TOX_ACTION_TERMS = [
   "alt",
   "ast",
-  "hepatic",
+  "bilirubin",
+  "hepatic function",
   "inr",
   "lft",
-  "liver",
-  "poison center",
-  "poison control",
-  "toxicologist",
-  "transplant",
-  "간",
-  "독성",
+  "liver function",
+  "prothrombin",
+  "pt",
+  "transaminase",
+  "간기능",
+  "간 효소",
 ];
 
 const ACETAMINOPHEN_TIMING_FORMULATION_SAFETY_TERMS = [
@@ -26923,7 +26923,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcetaminophenToxicityTimeCriticalActions,
       issue:
-        "acetaminophen toxicity time-critical actions must include a timed acetaminophen level with Rumack-Matthew nomogram planning, N-acetylcysteine treatment planning, and hepatic injury or toxicology monitoring",
+        "acetaminophen toxicity time-critical actions must include a timed acetaminophen level with Rumack-Matthew nomogram planning, N-acetylcysteine treatment planning, and explicit hepatic injury labs such as AST, ALT, INR, PT, bilirubin, or LFT monitoring",
     },
     {
       name: "acetaminophen_toxicity_treatment_safety",

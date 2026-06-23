@@ -4332,6 +4332,55 @@
     }
   },
   {
+    "name": "acetaminophen_toxicity_requires_explicit_hepatic_labs_not_toxicology_alone",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "explicit hepatic injury labs"
+    ],
+    "overrides": {
+      "diagnosis": "Acetaminophen toxicity",
+      "chief_complaint": "Intentional pill ingestion",
+      "history_of_present_illness": "Patient presents several hours after ingesting a large quantity of pain medication with nausea and right upper quadrant discomfort.",
+      "key_teaching_points": [
+        "Acetaminophen toxicity depends on timed serum concentration and ingestion timing",
+        "N-acetylcysteine should be started promptly when criteria are met or timing is uncertain",
+        "Hepatotoxicity and liver failure risk guide escalation"
+      ],
+      "clinical_red_flags": [
+        "Unknown ingestion time with repeated vomiting",
+        "Right upper quadrant pain after large acetaminophen ingestion"
+      ],
+      "time_critical_actions": [
+        "Obtain timed acetaminophen level at 4 hours and plot on Rumack-Matthew nomogram",
+        "Start N-acetylcysteine treatment promptly when level, timing, or risk criteria indicate",
+        "Call poison center and toxicologist for toxicology guidance and transplant center escalation if severe"
+      ],
+      "contraindication_checks": [
+        "Time of ingestion, extended-release formulation, co-ingestion, staggered ingestion, and repeated supratherapeutic use before nomogram interpretation",
+        "Weight-based N-acetylcysteine dose, infusion timing, and anaphylactoid reaction safeguards",
+        "INR, AST, ALT, acidosis, hypoglycemia, encephalopathy, liver failure, and transplant-risk monitoring"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Acetaminophen Poisoning",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/injuries-poisoning/poisoning/acetaminophen-poisoning",
+          "supports": [
+            "acetaminophen toxicity diagnosis and risk stratification depends on timed serum concentration and ingestion timing",
+            "unknown ingestion time with repeated vomiting as a red flag",
+            "right upper quadrant pain after large acetaminophen ingestion as a red flag",
+            "timed acetaminophen level at 4 hours and Rumack-Matthew nomogram planning",
+            "N-acetylcysteine treatment promptly when level, timing, or risk criteria indicate",
+            "poison center and toxicologist guidance with transplant center escalation if severe",
+            "time of ingestion, extended-release formulation, co-ingestion, staggered ingestion, and repeated supratherapeutic use before nomogram interpretation",
+            "weight-based N-acetylcysteine dose, infusion timing, and anaphylactoid reaction safeguards",
+            "INR, AST, ALT, acidosis, hypoglycemia, encephalopathy, liver failure, and transplant-risk monitoring"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "valproate_toxicity_requires_levels_labs_stabilization_decon_carnitine_and_dialysis_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

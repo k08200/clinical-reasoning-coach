@@ -15423,6 +15423,60 @@ def test_quality_gate_requires_acetaminophen_level_nac_and_hepatic_monitoring():
     )
 
 
+def test_quality_gate_requires_acetaminophen_explicit_hepatic_labs_not_toxicology_alone():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acetaminophen toxicity"
+    case["chief_complaint"] = "Intentional pill ingestion"
+    case["history_of_present_illness"] = (
+        "Patient presents several hours after ingesting a large quantity of pain "
+        "medication with nausea and right upper quadrant discomfort."
+    )
+    case["key_teaching_points"] = [
+        "Acetaminophen toxicity depends on timed serum concentration and ingestion timing",
+        "N-acetylcysteine should be started promptly when criteria are met or timing is uncertain",
+        "Hepatotoxicity and liver failure risk guide escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "Unknown ingestion time with repeated vomiting",
+        "Right upper quadrant pain after large acetaminophen ingestion",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain timed acetaminophen level at 4 hours and plot on Rumack-Matthew nomogram",
+        "Start N-acetylcysteine treatment promptly when level, timing, or risk criteria indicate",
+        "Call poison center and toxicologist for toxicology guidance and transplant center escalation if severe",
+    ]
+    case["contraindication_checks"] = [
+        "Time of ingestion, extended-release formulation, co-ingestion, staggered ingestion, and repeated supratherapeutic use before nomogram interpretation",
+        "Weight-based N-acetylcysteine dose, infusion timing, and anaphylactoid reaction safeguards",
+        "INR, AST, ALT, acidosis, hypoglycemia, encephalopathy, liver failure, and transplant-risk monitoring",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acetaminophen Poisoning",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/poisoning/acetaminophen-poisoning",
+            "supports": [
+                "acetaminophen toxicity diagnosis and risk stratification depends on timed serum concentration and ingestion timing",
+                "unknown ingestion time with repeated vomiting as a red flag",
+                "right upper quadrant pain after large acetaminophen ingestion as a red flag",
+                "timed acetaminophen level at 4 hours and Rumack-Matthew nomogram planning",
+                "N-acetylcysteine treatment promptly when level, timing, or risk criteria indicate",
+                "poison center and toxicologist guidance with transplant center escalation if severe",
+                "time of ingestion, extended-release formulation, co-ingestion, staggered ingestion, and repeated supratherapeutic use before nomogram interpretation",
+                "weight-based N-acetylcysteine dose, infusion timing, and anaphylactoid reaction safeguards",
+                "INR, AST, ALT, acidosis, hypoglycemia, encephalopathy, liver failure, and transplant-risk monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "explicit hepatic injury labs" in issue for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acetaminophen_timing_nac_and_liver_failure_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acetaminophen toxicity"

@@ -10759,16 +10759,16 @@ ACETAMINOPHEN_NAC_ACTION_TERMS = (
 ACETAMINOPHEN_HEPATIC_TOX_ACTION_TERMS = (
     "alt",
     "ast",
-    "hepatic",
+    "bilirubin",
+    "hepatic function",
     "inr",
     "lft",
-    "liver",
-    "poison center",
-    "poison control",
-    "toxicologist",
-    "transplant",
-    "간",
-    "독성",
+    "liver function",
+    "prothrombin",
+    "pt",
+    "transaminase",
+    "간기능",
+    "간 효소",
 )
 ACETAMINOPHEN_TIMING_FORMULATION_SAFETY_TERMS = (
     "co-ingestion",
@@ -17905,8 +17905,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "acetaminophen toxicity time-critical actions must include a "
                 "timed acetaminophen level with Rumack-Matthew nomogram planning, "
-                "N-acetylcysteine treatment planning, and hepatic injury or "
-                "toxicology monitoring"
+                "N-acetylcysteine treatment planning, and explicit hepatic injury "
+                "labs such as AST, ALT, INR, PT, bilirubin, or LFT monitoring"
             ),
         ),
         DomainSafetyGate(
