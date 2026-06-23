@@ -12339,15 +12339,21 @@ const LITHIUM_TOXICITY_VOLUME_STOP_ACTION_TERMS = [
   "volume depletion",
 ];
 
-const LITHIUM_TOXICITY_DECONTAMINATION_ACTION_TERMS = [
-  "activated charcoal not effective",
-  "charcoal",
-  "co-ingestant",
+const LITHIUM_TOXICITY_WBI_ACTION_TERMS = [
   "massive ingestion",
   "sustained release",
   "sustained-release",
   "whole bowel irrigation",
   "whole-bowel irrigation",
+];
+
+const LITHIUM_TOXICITY_CHARCOAL_LIMITATION_ACTION_TERMS = [
+  "activated charcoal not effective",
+  "charcoal ineffective",
+  "charcoal not effective",
+  "co-ingestant",
+  "coingestant",
+  "unknown co-ingestant",
 ];
 
 const LITHIUM_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = [
@@ -23073,7 +23079,10 @@ function hasLithiumToxicityTimeCriticalActions(actions: string[]): boolean {
   const hasVolumeStopManagement = LITHIUM_TOXICITY_VOLUME_STOP_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDecontaminationPlanning = LITHIUM_TOXICITY_DECONTAMINATION_ACTION_TERMS.some(
+  const hasWbiPlanning = LITHIUM_TOXICITY_WBI_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCharcoalLimitation = LITHIUM_TOXICITY_CHARCOAL_LIMITATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   const hasDialysisEscalation = LITHIUM_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS.some(
@@ -23083,7 +23092,8 @@ function hasLithiumToxicityTimeCriticalActions(actions: string[]): boolean {
     hasLevelMonitoring &&
     hasRenalCardiacMonitoring &&
     hasVolumeStopManagement &&
-    hasDecontaminationPlanning &&
+    hasWbiPlanning &&
+    hasCharcoalLimitation &&
     hasDialysisEscalation
   );
 }
@@ -27057,7 +27067,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasLithiumToxicityTimeCriticalActions,
       issue:
-        "lithium toxicity time-critical actions must include serial serum lithium level or concentration monitoring, renal function, creatinine, BUN, electrolyte, sodium, ECG, cardiac monitoring, or urine-output assessment, isotonic saline, normal saline, IV fluids, dehydration, volume-depletion, hold-lithium, or stop-lithium management, whole-bowel irrigation, sustained-release, massive-ingestion, charcoal-not-effective, or co-ingestant decontamination planning, and poison-center, toxicologist, nephrology, hemodialysis, dialysis, ECTR, or extracorporeal escalation",
+        "lithium toxicity time-critical actions must include serial serum lithium level or concentration monitoring, renal function, creatinine, BUN, electrolyte, sodium, ECG, cardiac monitoring, or urine-output assessment, isotonic saline, normal saline, IV fluids, dehydration, volume-depletion, hold-lithium, or stop-lithium management, whole-bowel irrigation planning for sustained-release or massive ingestion, activated-charcoal-not-effective or co-ingestant-only decontamination limitation review, and poison-center, toxicologist, nephrology, hemodialysis, dialysis, ECTR, or extracorporeal escalation",
     },
     {
       name: "lithium_toxicity_treatment_safety",

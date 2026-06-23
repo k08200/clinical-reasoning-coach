@@ -11249,15 +11249,20 @@ LITHIUM_TOXICITY_VOLUME_STOP_ACTION_TERMS = (
     "stop lithium",
     "volume depletion",
 )
-LITHIUM_TOXICITY_DECONTAMINATION_ACTION_TERMS = (
-    "activated charcoal not effective",
-    "charcoal",
-    "co-ingestant",
+LITHIUM_TOXICITY_WBI_ACTION_TERMS = (
     "massive ingestion",
     "sustained release",
     "sustained-release",
     "whole bowel irrigation",
     "whole-bowel irrigation",
+)
+LITHIUM_TOXICITY_CHARCOAL_LIMITATION_ACTION_TERMS = (
+    "activated charcoal not effective",
+    "charcoal ineffective",
+    "charcoal not effective",
+    "co-ingestant",
+    "coingestant",
+    "unknown co-ingestant",
 )
 LITHIUM_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = (
     "dialysis",
@@ -18071,11 +18076,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "creatinine, BUN, electrolyte, sodium, ECG, cardiac monitoring, "
                 "or urine-output assessment, isotonic saline, normal saline, IV "
                 "fluids, dehydration, volume-depletion, hold-lithium, or stop-"
-                "lithium management, whole-bowel irrigation, sustained-release, "
-                "massive-ingestion, charcoal-not-effective, or co-ingestant "
-                "decontamination planning, and poison-center, toxicologist, "
-                "nephrology, hemodialysis, dialysis, ECTR, or extracorporeal "
-                "escalation"
+                "lithium management, whole-bowel irrigation planning for "
+                "sustained-release or massive ingestion, activated-charcoal-not-"
+                "effective or co-ingestant-only decontamination limitation "
+                "review, and poison-center, toxicologist, nephrology, "
+                "hemodialysis, dialysis, ECTR, or extracorporeal escalation"
             ),
         ),
         DomainSafetyGate(
@@ -28006,9 +28011,13 @@ def _has_lithium_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in LITHIUM_TOXICITY_VOLUME_STOP_ACTION_TERMS
     )
-    has_decontamination_planning = any(
+    has_wbi_planning = any(
         _contains_safety_term(normalized_actions, term)
-        for term in LITHIUM_TOXICITY_DECONTAMINATION_ACTION_TERMS
+        for term in LITHIUM_TOXICITY_WBI_ACTION_TERMS
+    )
+    has_charcoal_limitation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in LITHIUM_TOXICITY_CHARCOAL_LIMITATION_ACTION_TERMS
     )
     has_dialysis_escalation = any(
         _contains_safety_term(normalized_actions, term)
@@ -28018,7 +28027,8 @@ def _has_lithium_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         has_level_monitoring
         and has_renal_cardiac_monitoring
         and has_volume_stop_management
-        and has_decontamination_planning
+        and has_wbi_planning
+        and has_charcoal_limitation
         and has_dialysis_escalation
     )
 
