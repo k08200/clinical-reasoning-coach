@@ -12668,8 +12668,6 @@ const CYANIDE_REMOVAL_OXYGEN_SUPPORT_ACTION_TERMS = [
 const CYANIDE_HYDROXOCOBALAMIN_ACTION_TERMS = [
   "cyanokit",
   "hydroxocobalamin",
-  "sodium thiosulfate",
-  "thiosulfate",
   "하이드록소코발라민",
 ];
 
@@ -27121,7 +27119,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasCyanidePoisoningTimeCriticalActions,
       issue:
-        "cyanide poisoning time-critical actions must include source removal or 100% oxygen with respiratory or circulatory support, hydroxocobalamin, Cyanokit, sodium thiosulfate, or thiosulfate antidote planning, lactate, blood gas, ABG, VBG, pH, anion gap, or metabolic acidosis assessment, and poison center, toxicologist, ICU, or burn center escalation",
+        "cyanide poisoning time-critical actions must include source removal or 100% oxygen with respiratory or circulatory support, hydroxocobalamin or Cyanokit antidote planning, lactate, blood gas, ABG, VBG, pH, anion gap, or metabolic acidosis assessment, and poison center, toxicologist, ICU, or burn center escalation",
     },
     {
       name: "cyanide_poisoning_treatment_safety",
