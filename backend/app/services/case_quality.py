@@ -10002,8 +10002,6 @@ HYPERCALCEMIA_SALINE_ACTION_TERMS = (
 )
 HYPERCALCEMIA_CALCITONIN_ACTION_TERMS = (
     "calcitonin",
-    "rapid onset",
-    "tachyphylaxis",
 )
 HYPERCALCEMIA_ANTIRESORPTIVE_ACTION_TERMS = (
     "bisphosphonate",
@@ -17681,8 +17679,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "corrected, repeat, albumin-adjusted, or ionized calcium "
                 "confirmation, ECG, short-QT, creatinine, BUN, kidney, or renal "
                 "assessment, isotonic saline, normal saline, 0.9% saline, fluid, "
-                "or hydration resuscitation, calcitonin for rapid onset or "
-                "tachyphylaxis-aware bridging, bisphosphonate, zoledronate, "
+                "or hydration resuscitation, explicit calcitonin for rapid onset "
+                "or tachyphylaxis-aware bridging, bisphosphonate, zoledronate, "
                 "pamidronate, or denosumab antiresorptive therapy, and cause or "
                 "dialysis planning for PTH, PTHrP, vitamin D, malignancy, "
                 "refractory disease, or renal failure"

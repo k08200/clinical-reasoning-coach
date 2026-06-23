@@ -10959,8 +10959,6 @@ const HYPERCALCEMIA_SALINE_ACTION_TERMS = [
 
 const HYPERCALCEMIA_CALCITONIN_ACTION_TERMS = [
   "calcitonin",
-  "rapid onset",
-  "tachyphylaxis",
 ];
 
 const HYPERCALCEMIA_ANTIRESORPTIVE_ACTION_TERMS = [
@@ -26776,7 +26774,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasHypercalcemiaTimeCriticalActions,
       issue:
-        "severe hypercalcemia time-critical actions must include serum, corrected, repeat, albumin-adjusted, or ionized calcium confirmation, ECG, short-QT, creatinine, BUN, kidney, or renal assessment, isotonic saline, normal saline, 0.9% saline, fluid, or hydration resuscitation, calcitonin for rapid onset or tachyphylaxis-aware bridging, bisphosphonate, zoledronate, pamidronate, or denosumab antiresorptive therapy, and cause or dialysis planning for PTH, PTHrP, vitamin D, malignancy, refractory disease, or renal failure",
+        "severe hypercalcemia time-critical actions must include serum, corrected, repeat, albumin-adjusted, or ionized calcium confirmation, ECG, short-QT, creatinine, BUN, kidney, or renal assessment, isotonic saline, normal saline, 0.9% saline, fluid, or hydration resuscitation, explicit calcitonin for rapid onset or tachyphylaxis-aware bridging, bisphosphonate, zoledronate, pamidronate, or denosumab antiresorptive therapy, and cause or dialysis planning for PTH, PTHrP, vitamin D, malignancy, refractory disease, or renal failure",
     },
     {
       name: "hypercalcemia_treatment_safety",
