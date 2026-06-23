@@ -15203,7 +15203,6 @@ const SYMPTOMATIC_BRADYCARDIA_INSTABILITY_ACTION_TERMS = [
 const SYMPTOMATIC_BRADYCARDIA_ATROPINE_ACTION_TERMS = ["atropine", "아트로핀"];
 
 const SYMPTOMATIC_BRADYCARDIA_PACING_ACTION_TERMS = [
-  "capture",
   "pacing",
   "transcutaneous pacing",
   "transvenous pacing",

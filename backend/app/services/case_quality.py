@@ -13848,7 +13848,6 @@ SYMPTOMATIC_BRADYCARDIA_ATROPINE_ACTION_TERMS = (
     "아트로핀",
 )
 SYMPTOMATIC_BRADYCARDIA_PACING_ACTION_TERMS = (
-    "capture",
     "pacing",
     "transcutaneous pacing",
     "transvenous pacing",
