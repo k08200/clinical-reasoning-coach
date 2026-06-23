@@ -10835,14 +10835,17 @@ VALPROATE_TOXICITY_RISK_CONTEXT_TERMS = (
     "seizure",
     "somnolence",
 )
-VALPROATE_TOXICITY_LEVEL_AMMONIA_ACTION_TERMS = (
+VALPROATE_TOXICITY_LEVEL_ACTION_TERMS = (
+    "repeat valproate",
+    "serial valproate",
+    "serum valproate",
+    "total valproate",
+    "valproate concentration",
+)
+VALPROATE_TOXICITY_AMMONIA_FREE_ACTION_TERMS = (
     "ammonia",
     "free valproate",
-    "repeat level",
-    "serial level",
     "unbound valproate",
-    "valproate concentration",
-    "valproate level",
 )
 VALPROATE_TOXICITY_ORGAN_LAB_ACTION_TERMS = (
     "acetaminophen",
@@ -17941,8 +17944,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_valproate_toxicity_time_critical_actions,
             issue=(
                 "valproate toxicity time-critical actions must include serial "
-                "valproate level, valproate concentration, free valproate, unbound "
-                "valproate, or ammonia monitoring, CMP, LFT, liver-function, CBC, "
+                "valproate level or valproate concentration monitoring, ammonia, "
+                "free-valproate, or unbound-valproate assessment, CMP, LFT, "
+                "liver-function, CBC, "
                 "glucose, electrolyte, acetaminophen, salicylate, co-ingestant, "
                 "or pregnancy testing, airway, breathing, circulation, intubation, "
                 "mechanical-ventilation, IV-fluid, vasopressor, or benzodiazepine "
@@ -27660,9 +27664,13 @@ def _requires_valproate_toxicity_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_valproate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_level_ammonia = any(
+    has_valproate_level = any(
         _contains_safety_term(normalized_actions, term)
-        for term in VALPROATE_TOXICITY_LEVEL_AMMONIA_ACTION_TERMS
+        for term in VALPROATE_TOXICITY_LEVEL_ACTION_TERMS
+    )
+    has_ammonia_or_free_level = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VALPROATE_TOXICITY_AMMONIA_FREE_ACTION_TERMS
     )
     has_organ_lab = any(
         _contains_safety_term(normalized_actions, term)
@@ -27685,7 +27693,8 @@ def _has_valproate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         for term in VALPROATE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS
     )
     return (
-        has_level_ammonia
+        has_valproate_level
+        and has_ammonia_or_free_level
         and has_organ_lab
         and has_stabilization
         and has_decontamination

@@ -11879,14 +11879,18 @@ const VALPROATE_TOXICITY_RISK_CONTEXT_TERMS = [
   "somnolence",
 ];
 
-const VALPROATE_TOXICITY_LEVEL_AMMONIA_ACTION_TERMS = [
+const VALPROATE_TOXICITY_LEVEL_ACTION_TERMS = [
+  "repeat valproate",
+  "serial valproate",
+  "serum valproate",
+  "total valproate",
+  "valproate concentration",
+];
+
+const VALPROATE_TOXICITY_AMMONIA_FREE_ACTION_TERMS = [
   "ammonia",
   "free valproate",
-  "repeat level",
-  "serial level",
   "unbound valproate",
-  "valproate concentration",
-  "valproate level",
 ];
 
 const VALPROATE_TOXICITY_ORGAN_LAB_ACTION_TERMS = [
@@ -22781,7 +22785,10 @@ function requiresValproateToxicitySafetyCheck(detail: ClinicalCaseReviewDetail):
 
 function hasValproateToxicityTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasLevelAmmonia = VALPROATE_TOXICITY_LEVEL_AMMONIA_ACTION_TERMS.some((term) =>
+  const hasValproateLevel = VALPROATE_TOXICITY_LEVEL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAmmoniaOrFreeLevel = VALPROATE_TOXICITY_AMMONIA_FREE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasOrganLab = VALPROATE_TOXICITY_ORGAN_LAB_ACTION_TERMS.some((term) =>
@@ -22800,7 +22807,8 @@ function hasValproateToxicityTimeCriticalActions(actions: string[]): boolean {
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasLevelAmmonia &&
+    hasValproateLevel &&
+    hasAmmoniaOrFreeLevel &&
     hasOrganLab &&
     hasStabilization &&
     hasDecontamination &&
@@ -26975,7 +26983,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasValproateToxicityTimeCriticalActions,
       issue:
-        "valproate toxicity time-critical actions must include serial valproate level, valproate concentration, free valproate, unbound valproate, or ammonia monitoring, CMP, LFT, liver-function, CBC, glucose, electrolyte, acetaminophen, salicylate, co-ingestant, or pregnancy testing, airway, breathing, circulation, intubation, mechanical-ventilation, IV-fluid, vasopressor, or benzodiazepine stabilization, activated-charcoal, enteric-coated, extended-release, gastric-lavage, or decontamination planning, L-carnitine, levocarnitine, or carnitine therapy, and poison-center, toxicologist, nephrology, hemodialysis, dialysis, or ECTR escalation",
+        "valproate toxicity time-critical actions must include serial valproate level or valproate concentration monitoring, ammonia, free-valproate, or unbound-valproate assessment, CMP, LFT, liver-function, CBC, glucose, electrolyte, acetaminophen, salicylate, co-ingestant, or pregnancy testing, airway, breathing, circulation, intubation, mechanical-ventilation, IV-fluid, vasopressor, or benzodiazepine stabilization, activated-charcoal, enteric-coated, extended-release, gastric-lavage, or decontamination planning, L-carnitine, levocarnitine, or carnitine therapy, and poison-center, toxicologist, nephrology, hemodialysis, dialysis, or ECTR escalation",
     },
     {
       name: "valproate_toxicity_treatment_safety",
