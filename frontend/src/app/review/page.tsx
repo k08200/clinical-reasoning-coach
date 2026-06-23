@@ -105,10 +105,16 @@ function formatAge(age: number | string): string {
   return typeof age === "number" ? `${age}yo` : age;
 }
 
-function formatGateFieldName(fieldName: "time_critical_actions" | "contraindication_checks"): string {
-  return fieldName === "time_critical_actions"
-    ? "Time-critical actions"
-    : "Contraindication checks";
+function formatGateFieldName(
+  fieldName: "time_critical_actions" | "contraindication_checks" | "clinical_red_flags",
+): string {
+  if (fieldName === "time_critical_actions") {
+    return "Time-critical actions";
+  }
+  if (fieldName === "clinical_red_flags") {
+    return "Clinical red flags";
+  }
+  return "Contraindication checks";
 }
 
 function uniqueSourceOrganizations(organizations: string[]): string[] {

@@ -102,7 +102,7 @@ function parseCaseQualityGateDetail(value: unknown): CaseQualityGateDetail | nul
   if (typeof value !== "string" || !value.toLowerCase().includes("case quality gate")) {
     return null;
   }
-  const [message, issueText] = value.split(/:\s(.+)/s);
+  const [message, issueText] = value.split(/:\s([\s\S]+)/);
   const issues = (issueText ?? "")
     .split(";")
     .map((issue) => issue.trim())

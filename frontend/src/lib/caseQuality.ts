@@ -178,7 +178,7 @@ type ReviewQualityGate = {
   name: string;
   label: string;
   applies: (detail: ClinicalCaseReviewDetail) => boolean;
-  fieldName: "time_critical_actions" | "contraindication_checks";
+  fieldName: "time_critical_actions" | "contraindication_checks" | "clinical_red_flags";
   validator: (values: string[]) => boolean;
   issue: string;
 };
@@ -10816,12 +10816,28 @@ const RHABDOMYOLYSIS_FLUID_ACTION_TERMS = [
   "normal saline",
 ];
 
-const RHABDOMYOLYSIS_URINE_OUTPUT_ACTION_TERMS = [
-  "200 to 300",
-  "200-300",
+const RHABDOMYOLYSIS_URINE_MONITORING_ACTION_TERMS = [
   "foley",
+  "hourly urine",
+  "monitor urine",
   "urine output",
   "urine-output",
+];
+
+const RHABDOMYOLYSIS_URINE_OUTPUT_TARGET_ACTION_TERMS = [
+  "1 to 3 ml/kg/hour",
+  "1-3 ml/kg/hour",
+  "200 ml/h",
+  "200 ml/hour",
+  "200 ml/hr",
+  "200 to 300",
+  "200-300",
+  "300 ml/h",
+  "300 ml/hour",
+  "300 ml/hr",
+  "target urine output",
+  "urine output goal",
+  "urine output target",
 ];
 
 const RHABDOMYOLYSIS_ELECTROLYTE_ECG_ACTION_TERMS = [
@@ -22127,8 +22143,11 @@ function hasRhabdomyolysisTimeCriticalActions(actions: string[]): boolean {
   const hasFluid = RHABDOMYOLYSIS_FLUID_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasUrineOutput = RHABDOMYOLYSIS_URINE_OUTPUT_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
+  const hasUrineMonitoring = RHABDOMYOLYSIS_URINE_MONITORING_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUrineOutputTarget = RHABDOMYOLYSIS_URINE_OUTPUT_TARGET_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
   );
   const hasElectrolyteEcg = RHABDOMYOLYSIS_ELECTROLYTE_ECG_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
@@ -22137,7 +22156,12 @@ function hasRhabdomyolysisTimeCriticalActions(actions: string[]): boolean {
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasCkMyoglobin && hasFluid && hasUrineOutput && hasElectrolyteEcg && hasCauseComplication
+    hasCkMyoglobin &&
+    hasFluid &&
+    hasUrineMonitoring &&
+    hasUrineOutputTarget &&
+    hasElectrolyteEcg &&
+    hasCauseComplication
   );
 }
 
@@ -26734,7 +26758,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasRhabdomyolysisTimeCriticalActions,
       issue:
-        "rhabdomyolysis time-critical actions must include CK, CPK, creatine-kinase, myoglobin, myoglobinuria, or urinalysis assessment, isotonic crystalloid, normal saline, lactated Ringer, hydration, fluid, or IV-fluid resuscitation, urine-output or Foley monitoring with 200-300 mL/hour target, electrolyte, potassium, hyperkalemia, calcium, phosphate, or ECG assessment, and cause or complication control including crush, trauma, offending-agent removal, stop-statin, compartment, or DIC review",
+        "rhabdomyolysis time-critical actions must include CK, CPK, creatine-kinase, myoglobin, myoglobinuria, or urinalysis assessment, isotonic crystalloid, normal saline, lactated Ringer, hydration, fluid, or IV-fluid resuscitation, urine-output or Foley monitoring plus a 200-300 mL/hour or goal-directed urine-output target, electrolyte, potassium, hyperkalemia, calcium, phosphate, or ECG assessment, and cause or complication control including crush, trauma, offending-agent removal, stop-statin, compartment, or DIC review",
     },
     {
       name: "rhabdomyolysis_treatment_safety",

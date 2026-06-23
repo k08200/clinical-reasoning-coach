@@ -9873,12 +9873,27 @@ RHABDOMYOLYSIS_FLUID_ACTION_TERMS = (
     "lactated ringer",
     "normal saline",
 )
-RHABDOMYOLYSIS_URINE_OUTPUT_ACTION_TERMS = (
-    "200 to 300",
-    "200-300",
+RHABDOMYOLYSIS_URINE_MONITORING_ACTION_TERMS = (
     "foley",
+    "hourly urine",
+    "monitor urine",
     "urine output",
     "urine-output",
+)
+RHABDOMYOLYSIS_URINE_OUTPUT_TARGET_ACTION_TERMS = (
+    "1 to 3 ml/kg/hour",
+    "1-3 ml/kg/hour",
+    "200 ml/h",
+    "200 ml/hour",
+    "200 ml/hr",
+    "200 to 300",
+    "200-300",
+    "300 ml/h",
+    "300 ml/hour",
+    "300 ml/hr",
+    "target urine output",
+    "urine output goal",
+    "urine output target",
 )
 RHABDOMYOLYSIS_ELECTROLYTE_ECG_ACTION_TERMS = (
     "calcium",
@@ -17632,7 +17647,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "creatine-kinase, myoglobin, myoglobinuria, or urinalysis "
                 "assessment, isotonic crystalloid, normal saline, lactated "
                 "Ringer, hydration, fluid, or IV-fluid resuscitation, urine-output "
-                "or Foley monitoring with 200-300 mL/hour target, electrolyte, "
+                "or Foley monitoring plus a 200-300 mL/hour or goal-directed "
+                "urine-output target, electrolyte, "
                 "potassium, hyperkalemia, calcium, phosphate, or ECG assessment, "
                 "and cause or complication control including crush, trauma, "
                 "offending-agent removal, stop-statin, compartment, or DIC review"
@@ -26848,9 +26864,13 @@ def _has_rhabdomyolysis_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in RHABDOMYOLYSIS_FLUID_ACTION_TERMS
     )
-    has_urine_output = any(
+    has_urine_monitoring = any(
         _contains_safety_term(normalized_actions, term)
-        for term in RHABDOMYOLYSIS_URINE_OUTPUT_ACTION_TERMS
+        for term in RHABDOMYOLYSIS_URINE_MONITORING_ACTION_TERMS
+    )
+    has_urine_output_target = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RHABDOMYOLYSIS_URINE_OUTPUT_TARGET_ACTION_TERMS
     )
     has_electrolyte_ecg = any(
         _contains_safety_term(normalized_actions, term)
@@ -26863,7 +26883,8 @@ def _has_rhabdomyolysis_time_critical_actions(actions: list[Any]) -> bool:
     return (
         has_ck_myoglobin
         and has_fluid
-        and has_urine_output
+        and has_urine_monitoring
+        and has_urine_output_target
         and has_electrolyte_ecg
         and has_cause_complication
     )

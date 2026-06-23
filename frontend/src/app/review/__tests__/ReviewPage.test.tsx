@@ -155,6 +155,10 @@ const makeReviewDetail = (
     "Drug allergy review",
     "Renal function and dosing review before broad-spectrum antibiotics",
     "Pregnancy status before antibiotic or imaging decisions",
+    "Serial lactate clearance, urine output, and perfusion reassessment after fluid resuscitation",
+    "Reassess fluid responsiveness, volume status, pulmonary edema, and fluid overload",
+    "Use norepinephrine with MAP 65 target if hypotension persists",
+    "Review source control such as drainage or device removal",
   ],
   clinical_sources: [
     {
@@ -169,6 +173,10 @@ const makeReviewDetail = (
         "fluid overload risk and drug allergy safety checks before treatment",
         "renal function and dosing review before broad-spectrum antibiotics",
         "pregnancy status before antibiotic or imaging decisions",
+        "serial lactate clearance, urine output, and perfusion reassessment after fluid resuscitation",
+        "fluid responsiveness, volume status, pulmonary edema, and fluid overload reassessment",
+        "norepinephrine with MAP 65 target if hypotension persists",
+        "source control such as drainage or device removal",
       ],
     },
     {
@@ -570,17 +578,24 @@ describe("ReviewPage", () => {
     render(<ReviewPage />);
 
     expect(screen.getByText("Safety Gate Checklist")).toBeTruthy();
-    expect(screen.getByText("3 domain-specific gates triggered for clinician review.")).toBeTruthy();
+    expect(screen.getByText("4 domain-specific gates triggered for clinician review.")).toBeTruthy();
     expect(screen.getByText("Infection cultures and treatment plan")).toBeTruthy();
     expect(screen.getByText("Infection antimicrobial safety")).toBeTruthy();
     expect(screen.getByText("Sepsis resuscitation actions")).toBeTruthy();
+    expect(screen.getByText("Sepsis resuscitation safety")).toBeTruthy();
     expect(screen.getByText("All clear")).toBeTruthy();
   });
 
   it("shows missing domain safety gate details before review approval", () => {
     mockReviewSwr({
       detail: makeReviewDetail({
-        contraindication_checks: ["Drug allergy review before antibiotics"],
+        contraindication_checks: [
+          "Drug allergy review before antibiotics",
+          "Serial lactate clearance, urine output, and perfusion reassessment after fluid resuscitation",
+          "Reassess fluid responsiveness, volume status, pulmonary edema, and fluid overload",
+          "Use norepinephrine with MAP 65 target if hypotension persists",
+          "Review source control such as drainage or device removal",
+        ],
       }),
     });
 
