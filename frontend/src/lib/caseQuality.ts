@@ -11398,12 +11398,12 @@ const STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS = [
 ];
 
 const STATUS_EPILEPTICUS_GLUCOSE_SAFETY_TERMS = [
+  "bedside glucose",
+  "blood glucose",
   "dextrose",
   "glucose",
   "hypoglycemia",
-  "thiamine",
   "저혈당",
-  "티아민",
   "혈당",
 ];
 
@@ -26865,7 +26865,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasStatusEpilepticusTreatmentSafetyCheck,
       issue:
-        "status epilepticus safety checks must include glucose or thiamine assessment, respiratory depression or aspiration safeguards, and second-line antiseizure dosing or contraindication review",
+        "status epilepticus safety checks must include bedside glucose, blood glucose, hypoglycemia, or dextrose assessment, respiratory depression or aspiration safeguards, and second-line antiseizure dosing or contraindication review",
     },
     {
       name: "severe_alcohol_withdrawal_time_critical_actions",

@@ -10394,12 +10394,12 @@ STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS = (
     "중환자",
 )
 STATUS_EPILEPTICUS_GLUCOSE_SAFETY_TERMS = (
+    "bedside glucose",
+    "blood glucose",
     "dextrose",
     "glucose",
     "hypoglycemia",
-    "thiamine",
     "저혈당",
-    "티아민",
     "혈당",
 )
 STATUS_EPILEPTICUS_RESPIRATORY_SAFETY_TERMS = (
@@ -17816,8 +17816,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="contraindication_checks",
             validator=_has_status_epilepticus_treatment_safety_check,
             issue=(
-                "status epilepticus safety checks must include glucose or thiamine "
-                "assessment, respiratory depression or aspiration safeguards, and "
+                "status epilepticus safety checks must include bedside glucose, "
+                "blood glucose, hypoglycemia, or dextrose assessment, respiratory "
+                "depression or aspiration safeguards, and "
                 "second-line antiseizure dosing or contraindication review"
             ),
         ),
