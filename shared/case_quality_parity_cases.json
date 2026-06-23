@@ -1142,6 +1142,7 @@
       ],
       "time_critical_actions": [
         "Risk stratify for massive versus submassive PE before choosing disposition",
+        "Start therapeutic heparin anticoagulation unless contraindicated",
         "Escalate urgently for worsening hypotension, syncope, or shock",
         "Select imaging or bedside echo pathway based on hemodynamic stability"
       ],
@@ -1161,6 +1162,7 @@
             "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
             "unilateral calf swelling and elevated D-dimer in suspected PE",
             "massive versus submassive PE risk stratification before disposition",
+            "therapeutic heparin anticoagulation unless contraindicated",
             "urgent escalation for worsening hypotension, syncope, or shock",
             "imaging, bedside echo, and hemodynamic stability pathways",
             "bleeding risk and recent surgery before thrombolysis or anticoagulation",
@@ -1192,7 +1194,8 @@
       "time_critical_actions": [
         "Risk stratify for massive versus submassive PE with Wells score and RV strain",
         "Assess blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
-        "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability"
+        "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+        "Start therapeutic unfractionated heparin anticoagulation unless contraindicated"
       ],
       "contraindication_checks": [
         "Bleeding risk and recent surgery before thrombolysis or anticoagulation",
@@ -1212,9 +1215,71 @@
             "massive versus submassive PE with Wells score and RV strain",
             "blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
             "CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+            "therapeutic unfractionated heparin anticoagulation unless contraindicated",
             "bleeding risk and recent surgery before thrombolysis or anticoagulation",
             "renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
             "pregnancy status or hCG when selecting imaging and anticoagulation"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "pe_requires_therapeutic_anticoagulation_or_reperfusion_action",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "PE time-critical actions must include risk stratification"
+    ],
+    "overrides": {
+      "diagnosis": "High-risk pulmonary embolism with right ventricular strain",
+      "key_teaching_points": [
+        "Wells criteria and clinical probability guide PE diagnostic strategy",
+        "RV strain and hemodynamic instability determine PE risk category",
+        "CTPA or bedside echo pathway depends on hemodynamic stability"
+      ],
+      "clinical_red_flags": [
+        "Sudden dyspnea with hypoxemia and pleuritic chest pain after surgery",
+        "Tachycardia with borderline blood pressure and signs of right heart strain",
+        "Unilateral calf swelling and markedly elevated D-dimer"
+      ],
+      "time_critical_actions": [
+        "Risk stratify for massive versus submassive PE with Wells score and RV strain",
+        "Assess blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+        "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability"
+      ],
+      "contraindication_checks": [
+        "Bleeding risk and recent surgery before thrombolysis or anticoagulation",
+        "Renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
+        "Pregnancy status or hCG when selecting imaging and anticoagulation",
+        "Start heparin or LMWH anticoagulation unless active bleeding or another major contraindication is present",
+        "Review systemic thrombolysis indication for high-risk PE with shock, persistent hypotension, cardiac arrest, or hemodynamic instability",
+        "Plan catheter-directed therapy or surgical embolectomy if thrombolysis is contraindicated or fails",
+        "If hemodynamically unstable, use bedside echo or ultrasound pathway and do not delay reperfusion solely for CTPA",
+        "Use V/Q scan, compression ultrasound, or pregnancy, renal, and contrast allergy alternative imaging when CTPA is unsafe",
+        "Escalate to PERT, ICU, critical care, transfer, or PE specialist team for RV strain, hypotension, syncope, shock, or deterioration"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Venous thromboembolic diseases: diagnosis, management and thrombophilia testing",
+          "organization": "National Institute for Health and Care Excellence",
+          "url": "https://www.nice.org.uk/guidance/ng158",
+          "supports": [
+            "risk stratification by hemodynamic instability and RV strain",
+            "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+            "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+            "unilateral calf swelling and elevated D-dimer in suspected PE",
+            "massive versus submassive PE with Wells score and RV strain",
+            "blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+            "CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+            "bleeding risk and recent surgery before thrombolysis or anticoagulation",
+            "renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
+            "pregnancy status or hCG when selecting imaging and anticoagulation",
+            "heparin or LMWH anticoagulation planning unless bleeding contraindications are present",
+            "systemic thrombolysis indication review for high-risk PE with shock, persistent hypotension, cardiac arrest, or hemodynamic instability",
+            "catheter-directed therapy or surgical embolectomy if thrombolysis is contraindicated or fails",
+            "bedside echo or ultrasound pathway without delaying reperfusion in hemodynamically unstable PE",
+            "V/Q scan, compression ultrasound, pregnancy, renal, or contrast allergy alternative imaging review",
+            "PERT, ICU, critical care, transfer, or specialist escalation for PE with RV strain or shock"
           ]
         }
       ]
@@ -1241,7 +1306,8 @@
       "time_critical_actions": [
         "Risk stratify for massive versus submassive PE with Wells score and RV strain",
         "Assess blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
-        "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability"
+        "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+        "Start therapeutic unfractionated heparin anticoagulation unless contraindicated"
       ],
       "contraindication_checks": [
         "Bleeding risk and recent surgery before thrombolysis or anticoagulation",
@@ -1266,6 +1332,7 @@
             "massive versus submassive PE with Wells score and RV strain",
             "blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
             "CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+            "therapeutic unfractionated heparin anticoagulation unless contraindicated",
             "bleeding risk and recent surgery before thrombolysis or anticoagulation",
             "renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
             "pregnancy status or hCG when selecting imaging and anticoagulation",

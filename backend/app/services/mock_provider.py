@@ -587,6 +587,7 @@ _CASE_PE = {
     ],
     "time_critical_actions": [
         "Risk stratify for massive versus submassive PE before choosing disposition",
+        "Start heparin or LMWH anticoagulation unless active bleeding or another major contraindication is present",
         "Escalate urgently for worsening hypotension, syncope, or shock",
         "Select imaging or bedside echo pathway based on hemodynamic stability",
     ],

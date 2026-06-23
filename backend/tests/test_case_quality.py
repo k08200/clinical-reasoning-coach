@@ -20762,6 +20762,7 @@ def test_quality_gate_requires_pe_anticoagulation_reperfusion_imaging_and_pert_s
         "Risk stratify for massive versus submassive PE with Wells score and RV strain",
         "Assess blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
         "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+        "Start therapeutic unfractionated heparin anticoagulation unless contraindicated",
     ]
     case["contraindication_checks"] = [
         "Bleeding risk and recent surgery before thrombolysis or anticoagulation",
@@ -20781,6 +20782,7 @@ def test_quality_gate_requires_pe_anticoagulation_reperfusion_imaging_and_pert_s
                 "massive versus submassive PE with Wells score and RV strain",
                 "blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
                 "CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+                "therapeutic unfractionated heparin anticoagulation unless contraindicated",
                 "bleeding risk and recent surgery before thrombolysis or anticoagulation",
                 "renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
                 "pregnancy status or hCG when selecting imaging and anticoagulation",
@@ -20794,6 +20796,48 @@ def test_quality_gate_requires_pe_anticoagulation_reperfusion_imaging_and_pert_s
     assert any(
         "PE reperfusion escalation safety checks must include anticoagulation initiation"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_pe_therapeutic_anticoagulation_or_reperfusion_action():
+    case = copy.deepcopy(CASE_POOL[2])
+    case["time_critical_actions"] = [
+        "Risk stratify for massive versus submassive PE with Wells score and RV strain",
+        "Assess blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+        "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Venous thromboembolic diseases: diagnosis, management and thrombophilia testing",
+            "organization": "National Institute for Health and Care Excellence",
+            "url": "https://www.nice.org.uk/guidance/ng158",
+            "supports": [
+                "risk stratification by hemodynamic instability and RV strain",
+                "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+                "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+                "unilateral calf swelling and elevated D-dimer in suspected PE",
+                "massive versus submassive PE with Wells score and RV strain",
+                "blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+                "CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+                "bleeding risk, recent surgery, renal function, contrast allergy, and pregnancy safety checks",
+                "pregnancy status when selecting imaging and anticoagulation",
+                "heparin or LMWH anticoagulation planning unless bleeding contraindications are present",
+                "systemic thrombolysis indication review for high-risk PE with shock, persistent hypotension, cardiac arrest, or hemodynamic instability",
+                "catheter-directed therapy or surgical embolectomy if thrombolysis is contraindicated or fails",
+                "bedside echo or ultrasound pathway without delaying reperfusion in hemodynamically unstable PE",
+                "V/Q scan, compression ultrasound, pregnancy, renal, or contrast allergy alternative imaging review",
+                "PERT, ICU, critical care, transfer, or specialist escalation for PE with RV strain or shock",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "PE time-critical actions must include risk stratification" in issue
+        and "therapeutic anticoagulation" in issue
         for issue in report.critical_issues
     )
 

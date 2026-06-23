@@ -15579,6 +15579,24 @@ const PE_IMAGING_PATHWAY_TERMS = [
   "심초음파",
 ];
 
+const PE_ANTICOAGULATION_OR_REPERFUSION_ACTION_TERMS = [
+  "anticoagulation",
+  "anticoagulant",
+  "heparin",
+  "interim therapeutic anticoagulation",
+  "lmwh",
+  "reperfusion",
+  "systemic thrombolysis",
+  "therapeutic anticoagulation",
+  "thrombolysis",
+  "unfractionated heparin",
+  "ufh",
+  "항응고",
+  "헤파린",
+  "혈전용해",
+  "재관류",
+];
+
 const PE_BLEEDING_SAFETY_TERMS = [
   "bleeding",
   "recent surgery",
@@ -25008,7 +25026,15 @@ function hasPeTimeCriticalActions(actions: string[]): boolean {
   const hasImagingPathway = PE_IMAGING_PATHWAY_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasRiskStratification && hasHemodynamicAssessment && hasImagingPathway;
+  const hasAnticoagulationOrReperfusion = PE_ANTICOAGULATION_OR_REPERFUSION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasRiskStratification &&
+    hasHemodynamicAssessment &&
+    hasImagingPathway &&
+    hasAnticoagulationOrReperfusion
+  );
 }
 
 function hasPeContraindicationSafetyCheck(checks: string[]): boolean {
@@ -27623,7 +27649,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasPeTimeCriticalActions,
       issue:
-        "PE time-critical actions must include risk stratification, hemodynamic or RV-strain assessment, and imaging or bedside-echo pathway",
+        "PE time-critical actions must include risk stratification, hemodynamic or RV-strain assessment, and imaging or bedside-echo pathway plus therapeutic anticoagulation, UFH/heparin, or reperfusion/thrombolysis planning",
     },
     {
       name: "pe_contraindication_safety",

@@ -14201,6 +14201,23 @@ PE_IMAGING_PATHWAY_TERMS = (
     "영상",
     "심초음파",
 )
+PE_ANTICOAGULATION_OR_REPERFUSION_ACTION_TERMS = (
+    "anticoagulation",
+    "anticoagulant",
+    "heparin",
+    "interim therapeutic anticoagulation",
+    "lmwh",
+    "reperfusion",
+    "systemic thrombolysis",
+    "therapeutic anticoagulation",
+    "thrombolysis",
+    "unfractionated heparin",
+    "ufh",
+    "항응고",
+    "헤파린",
+    "혈전용해",
+    "재관류",
+)
 PE_BLEEDING_SAFETY_TERMS = (
     "bleeding",
     "recent surgery",
@@ -18961,7 +18978,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "PE time-critical actions must include risk stratification, "
                 "hemodynamic or RV-strain assessment, and imaging or bedside-echo "
-                "pathway"
+                "pathway plus therapeutic anticoagulation, UFH/heparin, or "
+                "reperfusion/thrombolysis planning"
             ),
         ),
         DomainSafetyGate(
@@ -30430,7 +30448,16 @@ def _has_pe_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in PE_IMAGING_PATHWAY_TERMS
     )
-    return has_risk_stratification and has_hemodynamic_assessment and has_imaging_pathway
+    has_anticoagulation_or_reperfusion = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PE_ANTICOAGULATION_OR_REPERFUSION_ACTION_TERMS
+    )
+    return (
+        has_risk_stratification
+        and has_hemodynamic_assessment
+        and has_imaging_pathway
+        and has_anticoagulation_or_reperfusion
+    )
 
 
 def _has_pe_contraindication_safety_check(checks: list[Any]) -> bool:
