@@ -12150,21 +12150,35 @@ const TOXIC_ALCOHOL_CONTEXT_TERMS = [
   "메탄올",
 ];
 
-const TOXIC_ALCOHOL_GAP_LAB_ACTION_TERMS = [
-  "anion gap",
-  "ethylene glycol level",
-  "methanol level",
+const TOXIC_ALCOHOL_OSMOL_GAP_ACTION_TERMS = [
+  "measured serum osmolality",
   "osmol gap",
   "osmolal gap",
   "osmolar gap",
   "serum osmolality",
+];
+
+const TOXIC_ALCOHOL_LEVEL_ACTION_TERMS = [
+  "ethylene glycol concentration",
+  "ethylene glycol level",
+  "methanol concentration",
+  "methanol level",
+  "toxic alcohol concentration",
   "toxic alcohol level",
+];
+
+const TOXIC_ALCOHOL_ANION_GAP_ACTION_TERMS = [
+  "anion gap",
   "음이온차",
 ];
 
 const TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS = [
-  "alcohol dehydrogenase",
+  "adh blockade",
+  "adh inhibitor",
+  "alcohol dehydrogenase blockade",
+  "alcohol dehydrogenase inhibitor",
   "ethanol antidote",
+  "ethanol blockade",
   "fomepizole",
   "포메피졸",
 ];
@@ -22936,7 +22950,13 @@ function requiresToxicAlcoholSafetyCheck(detail: ClinicalCaseReviewDetail): bool
 
 function hasToxicAlcoholTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasGapLabAction = TOXIC_ALCOHOL_GAP_LAB_ACTION_TERMS.some((term) =>
+  const hasOsmolGapAction = TOXIC_ALCOHOL_OSMOL_GAP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasToxicAlcoholLevelAction = TOXIC_ALCOHOL_LEVEL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAnionGapAction = TOXIC_ALCOHOL_ANION_GAP_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasAntidoteAction = TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS.some((term) =>
@@ -22948,7 +22968,14 @@ function hasToxicAlcoholTimeCriticalActions(actions: string[]): boolean {
   const hasAcidosisSupport = TOXIC_ALCOHOL_ACIDOSIS_SUPPORT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasGapLabAction && hasAntidoteAction && hasDialysisEscalation && hasAcidosisSupport;
+  return (
+    hasOsmolGapAction &&
+    hasToxicAlcoholLevelAction &&
+    hasAnionGapAction &&
+    hasAntidoteAction &&
+    hasDialysisEscalation &&
+    hasAcidosisSupport
+  );
 }
 
 function hasToxicAlcoholTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26984,7 +27011,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasToxicAlcoholTimeCriticalActions,
       issue:
-        "toxic alcohol time-critical actions must include anion gap, osmolal gap, osmolar gap, serum osmolality, methanol, ethylene glycol, or toxic alcohol level assessment, fomepizole or ethanol alcohol-dehydrogenase blockade, poison center, toxicologist, nephrology, hemodialysis, dialysis, or extracorporeal escalation, and acidosis, blood gas, pH, or bicarbonate support planning",
+        "toxic alcohol time-critical actions must include anion gap, osmolal gap, osmolar gap, or measured serum osmolality assessment, methanol, ethylene glycol, or toxic alcohol level assessment, explicit fomepizole, ethanol antidote, or alcohol-dehydrogenase blockade, poison center, toxicologist, nephrology, hemodialysis, dialysis, or extracorporeal escalation, and acidosis, blood gas, pH, or bicarbonate support planning",
     },
     {
       name: "toxic_alcohol_treatment_safety",

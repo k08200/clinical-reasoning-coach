@@ -10640,6 +10640,134 @@
     }
   },
   {
+    "name": "toxic_alcohol_requires_specific_level_not_gap_labs_alone",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "toxic alcohol time-critical actions must include anion gap"
+    ],
+    "overrides": {
+      "diagnosis": "Methanol toxic alcohol ingestion",
+      "patient_demographics": {
+        "age": 44,
+        "sex": "male",
+        "weight_kg": 74,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Confusion and visual blurring after drinking washer fluid",
+      "history_of_present_illness": "Patient presents after suspected methanol windshield washer fluid ingestion with vomiting, confusion, visual blurring, high anion gap metabolic acidosis, and elevated osmolar gap.",
+      "key_teaching_points": [
+        "Methanol and ethylene glycol toxic alcohols can present with osmolar gap early and anion gap acidosis later",
+        "Fomepizole or ethanol blocks alcohol dehydrogenase and should not wait for confirmatory levels when suspicion is high",
+        "Severe acidosis, visual symptoms, renal failure, coma, seizure, or high levels require dialysis planning"
+      ],
+      "clinical_red_flags": [
+        "Visual symptoms, coma, seizure, severe acidosis, or high anion gap after methanol exposure",
+        "Renal injury, hypocalcemia, calcium oxalate crystals, or flank pain after ethylene glycol exposure"
+      ],
+      "time_critical_actions": [
+        "Calculate anion gap and osmolar gap with measured serum osmolality",
+        "Start fomepizole immediately or ethanol antidote if fomepizole is unavailable",
+        "Call poison center, toxicologist, and nephrology for hemodialysis or extracorporeal escalation",
+        "Treat severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support"
+      ],
+      "contraindication_checks": [
+        "Review hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+        "Monitor vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury",
+        "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+        "Do not wait for confirmatory levels when suspicion is high; give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+        "Plan cofactors with folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Ethylene Glycol Medical Management Guidelines",
+          "organization": "CDC ATSDR",
+          "url": "https://wwwn.cdc.gov/TSP/MMG/MMGDetails.aspx?mmgid=82&toxid=21",
+          "supports": [
+            "methanol toxic alcohol ingestion diagnosis and risk stratification",
+            "methanol and ethylene glycol toxic alcohols can present with osmolar gap early and anion gap acidosis later",
+            "fomepizole or ethanol blocks alcohol dehydrogenase and should not wait for confirmatory levels when suspicion is high",
+            "severe acidosis, visual symptoms, renal failure, coma, seizure, or high levels require dialysis planning",
+            "visual symptoms, coma, seizure, severe acidosis, or high anion gap after methanol exposure as red flags",
+            "renal injury, hypocalcemia, calcium oxalate crystals, or flank pain after ethylene glycol exposure as severity markers",
+            "anion gap and osmolar gap with measured serum osmolality",
+            "fomepizole immediately or ethanol antidote if fomepizole is unavailable",
+            "poison center, toxicologist, and nephrology for hemodialysis or extracorporeal escalation",
+            "severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
+            "hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+            "vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury monitoring",
+            "ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+            "do not wait for confirmatory levels when suspicion is high and give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+            "folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol cofactor planning"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "toxic_alcohol_requires_explicit_antidote_not_enzyme_mention_alone",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "toxic alcohol time-critical actions must include anion gap"
+    ],
+    "overrides": {
+      "diagnosis": "Ethylene glycol toxic alcohol ingestion",
+      "patient_demographics": {
+        "age": 44,
+        "sex": "male",
+        "weight_kg": 74,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Vomiting and confusion after antifreeze ingestion",
+      "history_of_present_illness": "Patient presents after suspected ethylene glycol antifreeze ingestion with vomiting, confusion, high anion gap metabolic acidosis, elevated osmolar gap, flank pain, and AKI.",
+      "key_teaching_points": [
+        "Methanol and ethylene glycol toxic alcohols can present with osmolar gap early and anion gap acidosis later",
+        "Alcohol dehydrogenase metabolism creates toxic metabolites and treatment should not wait for confirmatory levels",
+        "Severe acidosis, visual symptoms, renal failure, coma, seizure, or high levels require dialysis planning"
+      ],
+      "clinical_red_flags": [
+        "Visual symptoms, coma, seizure, severe acidosis, or high anion gap after methanol exposure",
+        "Renal injury, hypocalcemia, calcium oxalate crystals, or flank pain after ethylene glycol exposure"
+      ],
+      "time_critical_actions": [
+        "Calculate anion gap and osmolar gap with measured serum osmolality and send methanol, ethylene glycol, and toxic alcohol levels",
+        "Recognize alcohol dehydrogenase metabolism as the toxic pathway",
+        "Call poison center, toxicologist, and nephrology for hemodialysis or extracorporeal escalation",
+        "Treat severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support"
+      ],
+      "contraindication_checks": [
+        "Review hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+        "Monitor vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury",
+        "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+        "Do not wait for confirmatory levels when suspicion is high; give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+        "Plan cofactors with folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Ethylene Glycol Medical Management Guidelines",
+          "organization": "CDC ATSDR",
+          "url": "https://wwwn.cdc.gov/TSP/MMG/MMGDetails.aspx?mmgid=82&toxid=21",
+          "supports": [
+            "ethylene glycol toxic alcohol ingestion diagnosis and risk stratification",
+            "methanol and ethylene glycol toxic alcohols can present with osmolar gap early and anion gap acidosis later",
+            "alcohol dehydrogenase metabolism creates toxic metabolites and treatment should not wait for confirmatory levels",
+            "severe acidosis, visual symptoms, renal failure, coma, seizure, or high levels require dialysis planning",
+            "visual symptoms, coma, seizure, severe acidosis, or high anion gap after methanol exposure as red flags",
+            "renal injury, hypocalcemia, calcium oxalate crystals, or flank pain after ethylene glycol exposure as severity markers",
+            "anion gap and osmolar gap with measured serum osmolality and methanol, ethylene glycol, and toxic alcohol levels",
+            "alcohol dehydrogenase metabolism as the toxic pathway",
+            "poison center, toxicologist, and nephrology for hemodialysis or extracorporeal escalation",
+            "severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
+            "hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+            "vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury monitoring",
+            "ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+            "do not wait for confirmatory levels when suspicion is high and give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+            "folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol cofactor planning"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "lithium_toxicity_requires_serial_levels_renal_fluids_decontamination_and_dialysis_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

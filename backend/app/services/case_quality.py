@@ -11080,20 +11080,32 @@ TOXIC_ALCOHOL_CONTEXT_TERMS = (
     "부동액",
     "메탄올",
 )
-TOXIC_ALCOHOL_GAP_LAB_ACTION_TERMS = (
-    "anion gap",
-    "ethylene glycol level",
-    "methanol level",
+TOXIC_ALCOHOL_OSMOL_GAP_ACTION_TERMS = (
+    "measured serum osmolality",
     "osmol gap",
     "osmolal gap",
     "osmolar gap",
     "serum osmolality",
+)
+TOXIC_ALCOHOL_LEVEL_ACTION_TERMS = (
+    "ethylene glycol concentration",
+    "ethylene glycol level",
+    "methanol concentration",
+    "methanol level",
+    "toxic alcohol concentration",
     "toxic alcohol level",
+)
+TOXIC_ALCOHOL_ANION_GAP_ACTION_TERMS = (
+    "anion gap",
     "음이온차",
 )
 TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS = (
-    "alcohol dehydrogenase",
+    "adh blockade",
+    "adh inhibitor",
+    "alcohol dehydrogenase blockade",
+    "alcohol dehydrogenase inhibitor",
     "ethanol antidote",
+    "ethanol blockade",
     "fomepizole",
     "포메피졸",
 )
@@ -18005,9 +18017,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_toxic_alcohol_time_critical_actions,
             issue=(
                 "toxic alcohol time-critical actions must include anion gap, "
-                "osmolal gap, osmolar gap, serum osmolality, methanol, ethylene "
-                "glycol, or toxic alcohol level assessment, fomepizole or ethanol "
-                "alcohol-dehydrogenase blockade, poison center, toxicologist, "
+                "osmolal gap, osmolar gap, or measured serum osmolality assessment, "
+                "methanol, ethylene glycol, or toxic alcohol level assessment, "
+                "explicit fomepizole, ethanol antidote, or alcohol-dehydrogenase "
+                "blockade, poison center, toxicologist, "
                 "nephrology, hemodialysis, dialysis, or extracorporeal escalation, "
                 "and acidosis, blood gas, pH, or bicarbonate support planning"
             ),
@@ -27845,9 +27858,17 @@ def _requires_toxic_alcohol_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_toxic_alcohol_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_gap_lab_action = any(
+    has_osmol_gap_action = any(
         _contains_safety_term(normalized_actions, term)
-        for term in TOXIC_ALCOHOL_GAP_LAB_ACTION_TERMS
+        for term in TOXIC_ALCOHOL_OSMOL_GAP_ACTION_TERMS
+    )
+    has_toxic_alcohol_level_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TOXIC_ALCOHOL_LEVEL_ACTION_TERMS
+    )
+    has_anion_gap_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TOXIC_ALCOHOL_ANION_GAP_ACTION_TERMS
     )
     has_antidote_action = any(
         _contains_safety_term(normalized_actions, term)
@@ -27862,7 +27883,9 @@ def _has_toxic_alcohol_time_critical_actions(actions: list[Any]) -> bool:
         for term in TOXIC_ALCOHOL_ACIDOSIS_SUPPORT_ACTION_TERMS
     )
     return (
-        has_gap_lab_action
+        has_osmol_gap_action
+        and has_toxic_alcohol_level_action
+        and has_anion_gap_action
         and has_antidote_action
         and has_dialysis_escalation
         and has_acidosis_support
