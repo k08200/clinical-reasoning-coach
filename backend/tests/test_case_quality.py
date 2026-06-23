@@ -20147,6 +20147,73 @@ def test_quality_gate_requires_cardiac_tamponade_echo_drainage_specialist_and_he
     )
 
 
+def test_quality_gate_requires_cardiac_tamponade_cardiac_echo_not_generic_ultrasound():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Cardiac tamponade"
+    case["patient_demographics"] = {
+        "age": 62,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Hypotension and dyspnea after chest pain"
+    case["history_of_present_illness"] = (
+        "Patient has progressive dyspnea, chest discomfort, hypotension, tachycardia, "
+        "elevated JVP, muffled heart sounds, pulsus paradoxus, and suspected cardiac tamponade."
+    )
+    case["key_teaching_points"] = [
+        "Cardiac tamponade is an obstructive shock emergency",
+        "Bedside echocardiography or E-FAST helps confirm pericardial effusion and tamponade physiology",
+        "Unstable tamponade requires immediate pericardial drainage rather than delayed CT workup",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension, tachycardia, elevated JVP, muffled heart sounds, or pulsus paradoxus",
+        "Shock, syncope, dyspnea, chest pain, electrical alternans, or narrow pulse pressure",
+    ]
+    case["time_critical_actions"] = [
+        "Order renal ultrasound to assess renal failure history after stabilization",
+        "Prepare immediate pericardiocentesis with subxiphoid pericardial drainage or pericardial window if needed",
+        "Escalate cardiology, cardiothoracic surgery, thoracic surgery, trauma surgery, or emergency surgery immediately",
+        "Give cautious fluid bolus and vasopressor support for hypotension and shock while preparing definitive care",
+    ]
+    case["contraindication_checks"] = [
+        "Unstable suspected tamponade is a clinical diagnosis and do not delay immediate drainage for CT or prolonged workup",
+        "Review anticoagulation, thrombolysis, bleeding, coagulopathy, INR, platelet count, DOAC, warfarin, and reversal needs",
+        "Assess trauma, iatrogenic procedure, myocardial infarction rupture, aortic dissection, malignancy, uremia, and renal failure causes",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Cardiac Tamponade",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/thoracic-trauma/cardiac-tamponade",
+            "supports": [
+                "cardiac tamponade diagnosis and obstructive shock risk stratification",
+                "cardiac tamponade is an obstructive shock emergency",
+                "bedside echocardiography or E-FAST helps confirm pericardial effusion and tamponade physiology",
+                "unstable tamponade requires immediate pericardial drainage rather than delayed CT workup",
+                "hypotension, tachycardia, elevated JVP, muffled heart sounds, or pulsus paradoxus as red flags",
+                "shock, syncope, dyspnea, chest pain, electrical alternans, or narrow pulse pressure as severity markers",
+                "renal ultrasound to assess renal failure history after stabilization",
+                "immediate pericardiocentesis with subxiphoid pericardial drainage or pericardial window if needed",
+                "cardiology, cardiothoracic surgery, thoracic surgery, trauma surgery, or emergency surgery immediately",
+                "cautious fluid bolus and vasopressor support for hypotension and shock while preparing definitive care",
+                "unstable suspected tamponade is a clinical diagnosis and do not delay immediate drainage for CT or prolonged workup",
+                "anticoagulation, thrombolysis, bleeding, coagulopathy, INR, platelet count, DOAC, warfarin, and reversal needs",
+                "trauma, iatrogenic procedure, myocardial infarction rupture, aortic dissection, malignancy, uremia, and renal failure causes",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "cardiac tamponade time-critical actions must include bedside echo"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_cardiac_tamponade_no_delay_reversal_and_cause_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Cardiac tamponade"

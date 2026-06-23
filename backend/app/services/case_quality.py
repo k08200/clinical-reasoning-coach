@@ -13598,10 +13598,12 @@ CARDIAC_TAMPONADE_ECHO_ACTION_TERMS = (
     "cardiac pocus",
     "echocardiography",
     "echo",
-    "pocus",
-    "ultrasound",
+    "e-fast",
+    "efast",
+    "extended fast",
+    "focused cardiac ultrasound",
+    "pericardial ultrasound",
     "심초음파",
-    "초음파",
 )
 CARDIAC_TAMPONADE_DRAINAGE_ACTION_TERMS = (
     "pericardiocentesis",
