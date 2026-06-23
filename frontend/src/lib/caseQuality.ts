@@ -15097,7 +15097,6 @@ const UNSTABLE_TACHYARRHYTHMIA_ESCALATION_ACTION_TERMS = [
   "expert consultation",
   "icu",
   "pulseless",
-  "sedation",
   "전문가",
   "중환자",
 ];
