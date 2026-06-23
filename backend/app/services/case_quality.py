@@ -10969,17 +10969,27 @@ THEOPHYLLINE_TOXICITY_SERUM_LEVEL_ACTION_TERMS = (
     "theophylline level",
     "theophylline serum",
 )
-THEOPHYLLINE_TOXICITY_LEVEL_LAB_ACTION_TERMS = (
-    "acetaminophen",
-    "calcium",
-    "ck",
-    "cmp",
-    "creatine kinase",
+THEOPHYLLINE_TOXICITY_ECG_ACTION_TERMS = (
+    "cardiac monitoring",
     "ecg",
+    "ekg",
+)
+THEOPHYLLINE_TOXICITY_METABOLIC_LAB_ACTION_TERMS = (
+    "calcium",
+    "cmp",
+    "electrolyte",
     "glucose",
+    "hyperglycemia",
+    "hypokalemia",
+    "metabolic acidosis",
+    "potassium",
+)
+THEOPHYLLINE_TOXICITY_COIN_ORGAN_LAB_ACTION_TERMS = (
+    "acetaminophen",
+    "ck",
+    "creatine kinase",
     "iron",
     "lft",
-    "potassium",
     "salicylate",
 )
 THEOPHYLLINE_TOXICITY_ABC_HEMODYNAMIC_ACTION_TERMS = (
@@ -17981,9 +17991,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_theophylline_toxicity_time_critical_actions,
             issue=(
                 "theophylline toxicity time-critical actions must include serum "
-                "theophylline level plus ECG, glucose, CMP, potassium, calcium, "
-                "CK, LFT, acetaminophen, salicylate, iron, or co-ingestant lab "
-                "assessment, airway, breathing, circulation, hemodynamic monitoring, "
+                "theophylline level, ECG or cardiac monitoring, metabolic labs "
+                "such as glucose, CMP, potassium, calcium, electrolyte, "
+                "hyperglycemia, hypokalemia, or metabolic-acidosis assessment, "
+                "co-ingestant or organ-injury labs such as acetaminophen, "
+                "salicylate, iron, CK, creatine kinase, or LFT, airway, breathing, "
+                "circulation, hemodynamic monitoring, "
                 "intubation, IV-fluid, phenylephrine, norepinephrine, or vasopressor "
                 "support, activated charcoal, multiple-dose activated charcoal, "
                 "MDAC, multidose charcoal, or nasogastric decontamination planning, "
@@ -27777,9 +27790,17 @@ def _has_theophylline_toxicity_time_critical_actions(actions: list[Any]) -> bool
         _contains_safety_term(normalized_actions, term)
         for term in THEOPHYLLINE_TOXICITY_SERUM_LEVEL_ACTION_TERMS
     )
-    has_level_lab = any(
+    has_ecg = any(
         _contains_safety_term(normalized_actions, term)
-        for term in THEOPHYLLINE_TOXICITY_LEVEL_LAB_ACTION_TERMS
+        for term in THEOPHYLLINE_TOXICITY_ECG_ACTION_TERMS
+    )
+    has_metabolic_lab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THEOPHYLLINE_TOXICITY_METABOLIC_LAB_ACTION_TERMS
+    )
+    has_coin_or_organ_lab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THEOPHYLLINE_TOXICITY_COIN_ORGAN_LAB_ACTION_TERMS
     )
     has_abc_hemodynamic = any(
         _contains_safety_term(normalized_actions, term)
@@ -27799,7 +27820,9 @@ def _has_theophylline_toxicity_time_critical_actions(actions: list[Any]) -> bool
     )
     return (
         has_serum_level
-        and has_level_lab
+        and has_ecg
+        and has_metabolic_lab
+        and has_coin_or_organ_lab
         and has_abc_hemodynamic
         and has_decontamination
         and has_seizure

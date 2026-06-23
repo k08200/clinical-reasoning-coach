@@ -12029,17 +12029,29 @@ const THEOPHYLLINE_TOXICITY_SERUM_LEVEL_ACTION_TERMS = [
   "theophylline serum",
 ];
 
-const THEOPHYLLINE_TOXICITY_LEVEL_LAB_ACTION_TERMS = [
-  "acetaminophen",
-  "calcium",
-  "ck",
-  "cmp",
-  "creatine kinase",
+const THEOPHYLLINE_TOXICITY_ECG_ACTION_TERMS = [
+  "cardiac monitoring",
   "ecg",
+  "ekg",
+];
+
+const THEOPHYLLINE_TOXICITY_METABOLIC_LAB_ACTION_TERMS = [
+  "calcium",
+  "cmp",
+  "electrolyte",
   "glucose",
+  "hyperglycemia",
+  "hypokalemia",
+  "metabolic acidosis",
+  "potassium",
+];
+
+const THEOPHYLLINE_TOXICITY_COIN_ORGAN_LAB_ACTION_TERMS = [
+  "acetaminophen",
+  "ck",
+  "creatine kinase",
   "iron",
   "lft",
-  "potassium",
   "salicylate",
 ];
 
@@ -22881,7 +22893,13 @@ function hasTheophyllineToxicityTimeCriticalActions(actions: string[]): boolean 
   const hasSerumLevel = THEOPHYLLINE_TOXICITY_SERUM_LEVEL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasLevelLab = THEOPHYLLINE_TOXICITY_LEVEL_LAB_ACTION_TERMS.some((term) =>
+  const hasEcg = THEOPHYLLINE_TOXICITY_ECG_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMetabolicLab = THEOPHYLLINE_TOXICITY_METABOLIC_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCoinOrOrganLab = THEOPHYLLINE_TOXICITY_COIN_ORGAN_LAB_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasAbcHemodynamic = THEOPHYLLINE_TOXICITY_ABC_HEMODYNAMIC_ACTION_TERMS.some(
@@ -22899,7 +22917,9 @@ function hasTheophyllineToxicityTimeCriticalActions(actions: string[]): boolean 
   );
   return (
     hasSerumLevel &&
-    hasLevelLab &&
+    hasEcg &&
+    hasMetabolicLab &&
+    hasCoinOrOrganLab &&
     hasAbcHemodynamic &&
     hasDecontamination &&
     hasSeizure &&
@@ -27001,7 +27021,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasTheophyllineToxicityTimeCriticalActions,
       issue:
-        "theophylline toxicity time-critical actions must include serum theophylline level plus ECG, glucose, CMP, potassium, calcium, CK, LFT, acetaminophen, salicylate, iron, or co-ingestant lab assessment, airway, breathing, circulation, hemodynamic monitoring, intubation, IV-fluid, phenylephrine, norepinephrine, or vasopressor support, activated charcoal, multiple-dose activated charcoal, MDAC, multidose charcoal, or nasogastric decontamination planning, benzodiazepine, lorazepam, midazolam, diazepam, phenobarbital, propofol, or seizure treatment, and poison-center, toxicologist, nephrology, hemodialysis, dialysis, ECTR, or hemoperfusion escalation",
+        "theophylline toxicity time-critical actions must include serum theophylline level, ECG or cardiac monitoring, metabolic labs such as glucose, CMP, potassium, calcium, electrolyte, hyperglycemia, hypokalemia, or metabolic-acidosis assessment, co-ingestant or organ-injury labs such as acetaminophen, salicylate, iron, CK, creatine kinase, or LFT, airway, breathing, circulation, hemodynamic monitoring, intubation, IV-fluid, phenylephrine, norepinephrine, or vasopressor support, activated charcoal, multiple-dose activated charcoal, MDAC, multidose charcoal, or nasogastric decontamination planning, benzodiazepine, lorazepam, midazolam, diazepam, phenobarbital, propofol, or seizure treatment, and poison-center, toxicologist, nephrology, hemodialysis, dialysis, ECTR, or hemoperfusion escalation",
     },
     {
       name: "theophylline_toxicity_treatment_safety",
