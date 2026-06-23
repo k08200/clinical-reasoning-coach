@@ -19097,6 +19097,65 @@ def test_quality_gate_requires_severe_asthma_oxygen_bronchodilators_steroids_and
     )
 
 
+def test_quality_gate_requires_severe_asthma_poor_response_escalation_not_intubation_context_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe asthma exacerbation"
+    case["chief_complaint"] = "Shortness of breath and wheezing"
+    case["history_of_present_illness"] = (
+        "Patient presents with worsening dyspnea, chest tightness, accessory muscle "
+        "use, and minimal relief after home inhaler treatments."
+    )
+    case["key_teaching_points"] = [
+        "Severe asthma exacerbation can progress to respiratory failure",
+        "Repeated or continuous SABA plus ipratropium treats acute airflow obstruction",
+        "Systemic corticosteroids reduce relapse and should be started early",
+    ]
+    case["clinical_red_flags"] = [
+        "Silent chest with fatigue and drowsiness",
+        "Hypoxemia with persistent accessory muscle use",
+    ]
+    case["time_critical_actions"] = [
+        "Give oxygen and prepare airway, intubation, and ventilation support if respiratory failure develops",
+        "Start repeated albuterol SABA nebulizers with ipratropium for severe bronchospasm",
+        "Give systemic methylprednisolone corticosteroid early",
+    ]
+    case["contraindication_checks"] = [
+        "Serial peak flow or FEV1, pulse oximetry, work of breathing, and response reassessment",
+        "Review silent chest, fatigue, drowsiness, hypercapnia CO2, and intubation or ventilation risk",
+        "Monitor tachycardia, arrhythmia, potassium hypokalemia, lactic acidosis, and trigger reassessment",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Managing Exacerbations of Asthma",
+            "organization": "National Heart, Lung, and Blood Institute",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK7228/",
+            "supports": [
+                "severe asthma exacerbation diagnosis and respiratory failure risk stratification",
+                "severe asthma exacerbation can progress to respiratory failure",
+                "repeated or continuous SABA plus ipratropium treats acute airflow obstruction",
+                "systemic corticosteroids reduce relapse and should be started early",
+                "silent chest with fatigue and drowsiness as red flags",
+                "hypoxemia with persistent accessory muscle use as severity markers",
+                "oxygen and airway intubation and ventilation support if respiratory failure develops",
+                "repeated albuterol SABA nebulizers with ipratropium for severe bronchospasm",
+                "systemic methylprednisolone corticosteroid early",
+                "serial peak flow or FEV1, pulse oximetry, work of breathing, and response reassessment",
+                "silent chest, fatigue, drowsiness, hypercapnia CO2, and intubation or ventilation risk",
+                "tachycardia, arrhythmia, potassium hypokalemia, lactic acidosis, and trigger reassessment",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe asthma time-critical actions must include oxygen or ventilatory support"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_severe_asthma_response_failure_and_treatment_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Severe asthma exacerbation"

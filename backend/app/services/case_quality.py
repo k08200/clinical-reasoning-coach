@@ -12990,13 +12990,16 @@ SEVERE_ASTHMA_STEROID_ACTION_TERMS = (
 SEVERE_ASTHMA_ESCALATION_ACTION_TERMS = (
     "heliox",
     "icu",
-    "intubation",
+    "intubation escalation",
+    "intubation readiness",
+    "iv magnesium",
     "magnesium",
-    "mechanical ventilation",
+    "mechanical ventilation escalation",
     "noninvasive ventilation",
-    "respiratory failure",
+    "niv",
+    "picu",
     "마그네슘",
-    "삽관",
+    "삽관 준비",
     "중환자",
 )
 SEVERE_ASTHMA_RESPONSE_MONITORING_SAFETY_TERMS = (
