@@ -11203,11 +11203,17 @@ const TUMOR_LYSIS_RENAL_ESCALATION_ACTION_TERMS = [
   "renal replacement",
 ];
 
-const TUMOR_LYSIS_RASBURICASE_SAFETY_TERMS = [
+const TUMOR_LYSIS_RASBURICASE_G6PD_SAFETY_TERMS = [
   "g6pd",
+  "glucose-6-phosphate",
+  "glucose 6 phosphate",
+];
+
+const TUMOR_LYSIS_RASBURICASE_ADVERSE_SAFETY_TERMS = [
+  "hemolytic",
   "hemolysis",
   "methemoglobinemia",
-  "rasburicase",
+  "methemoglobin",
 ];
 
 const TUMOR_LYSIS_ALKALINIZATION_SAFETY_TERMS = [
@@ -22403,7 +22409,10 @@ function hasTumorLysisTimeCriticalActions(actions: string[]): boolean {
 
 function hasTumorLysisTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasRasburicaseSafety = TUMOR_LYSIS_RASBURICASE_SAFETY_TERMS.some((term) =>
+  const hasRasburicaseG6pdSafety = TUMOR_LYSIS_RASBURICASE_G6PD_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRasburicaseAdverseSafety = TUMOR_LYSIS_RASBURICASE_ADVERSE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasAlkalinizationSafety = TUMOR_LYSIS_ALKALINIZATION_SAFETY_TERMS.some((term) =>
@@ -22422,7 +22431,8 @@ function hasTumorLysisTreatmentSafetyCheck(checks: string[]): boolean {
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasRasburicaseSafety &&
+    hasRasburicaseG6pdSafety &&
+    hasRasburicaseAdverseSafety &&
     hasAlkalinizationSafety &&
     hasFluidSafety &&
     hasAllopurinolSafety &&
@@ -26819,7 +26829,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasTumorLysisTreatmentSafetyCheck,
       issue:
-        "tumor lysis syndrome safety checks must include rasburicase G6PD, hemolysis, or methemoglobinemia safety, urine-alkalinization, bicarbonate, or calcium-phosphate precipitation avoidance, fluid safety for cardiac disease, heart failure, renal disease, fluid overload, hypovolemia, or obstructive uropathy, allopurinol renal adjustment, xanthine nephropathy, HLA-B*58:01, or azathioprine interaction review, calcium-phosphate or hyperphosphatemia safety with calcium reserved for symptomatic hypocalcemia, and dialysis or CRRT indications for anuria, fluid overload, persistent hyperkalemia, or renal-replacement need",
+        "tumor lysis syndrome safety checks must include rasburicase G6PD screening plus hemolysis or methemoglobinemia safety, urine-alkalinization, bicarbonate, or calcium-phosphate precipitation avoidance, fluid safety for cardiac disease, heart failure, renal disease, fluid overload, hypovolemia, or obstructive uropathy, allopurinol renal adjustment, xanthine nephropathy, HLA-B*58:01, or azathioprine interaction review, calcium-phosphate or hyperphosphatemia safety with calcium reserved for symptomatic hypocalcemia, and dialysis or CRRT indications for anuria, fluid overload, persistent hyperkalemia, or renal-replacement need",
     },
     {
       name: "hyperkalemia_time_critical_actions",

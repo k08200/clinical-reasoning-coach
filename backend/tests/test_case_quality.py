@@ -14540,6 +14540,84 @@ def test_quality_gate_requires_tumor_lysis_rasburicase_alkalinization_fluid_allo
     )
 
 
+def test_quality_gate_requires_tumor_lysis_g6pd_screen_before_rasburicase():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "High-risk tumor lysis syndrome from Burkitt lymphoma"
+    case["chief_complaint"] = "Weakness and decreased urine output after chemotherapy"
+    case["history_of_present_illness"] = (
+        "Patient with Burkitt lymphoma and bulky disease develops tumor lysis "
+        "syndrome after chemotherapy with hyperuricemia, hyperkalemia, "
+        "hyperphosphatemia, hypocalcemia, oliguria, AKI, and seizure risk."
+    )
+    case["initial_labs"] = {
+        "potassium": "6.8 mmol/L",
+        "phosphate": "8.4 mg/dL",
+        "calcium": "6.5 mg/dL",
+        "uric_acid": "14 mg/dL",
+        "creatinine": "3.1 mg/dL",
+        "ldh": "3100 U/L",
+    }
+    case["key_teaching_points"] = [
+        "TLS can rapidly cause fatal hyperkalemia, hypocalcemia, arrhythmia, seizure, and AKI",
+        "Rasburicase lowers uric acid rapidly, while allopurinol prevents new uric acid formation",
+        "Rasburicase can cause hemolysis and methemoglobinemia in susceptible patients",
+    ]
+    case["clinical_red_flags"] = [
+        "Burkitt lymphoma, bulky disease, high LDH, hyperuricemia, hyperkalemia, hyperphosphatemia, hypocalcemia, AKI, or oliguria",
+        "Seizure, arrhythmia, sudden death, anuria, fluid overload, or persistent hyperkalemia",
+    ]
+    case["time_critical_actions"] = [
+        "Monitor q4 electrolytes including potassium, phosphate, calcium, creatinine, uric acid, and urine output",
+        "Start aggressive IV fluids and crystalloid hydration targeting urine output",
+        "Give rasburicase for uric acid lowering and consider allopurinol or febuxostat hypouricemic planning when appropriate",
+        "Place on ECG telemetry; treat hyperkalemia with insulin and dextrose and manage hyperphosphatemia with phosphate binder",
+        "Consult nephrology early for hemodialysis, dialysis, CRRT, or renal replacement escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor rasburicase-related hemolysis, hemolytic anemia, and methemoglobinemia",
+        "Avoid urine alkalinization and sodium bicarbonate unless special indication because calcium phosphate precipitation can worsen AKI",
+        "Adjust fluids for cardiac disease, heart failure, renal impairment, fluid overload, hypovolemia, or obstructive uropathy",
+        "Renal-adjust allopurinol and review xanthine nephropathy, HLA-B*58:01 risk, azathioprine, or mercaptopurine interactions",
+        "Avoid routine calcium for hypocalcemia unless symptomatic; review hyperphosphatemia and calcium-phosphate product",
+        "Escalate dialysis or CRRT for anuria, fluid overload, persistent hyperkalemia, severe hyperphosphatemia, or renal replacement need",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tumor Lysis Syndrome",
+            "organization": "StatPearls / NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK518985/",
+            "supports": [
+                "high-risk tumor lysis syndrome from Burkitt lymphoma diagnosis and risk stratification",
+                "Burkitt lymphoma and bulky disease with tumor lysis syndrome after chemotherapy, hyperuricemia, hyperkalemia, hyperphosphatemia, hypocalcemia, oliguria, AKI, and seizure risk",
+                "TLS can rapidly cause fatal hyperkalemia, hypocalcemia, arrhythmia, seizure, and AKI",
+                "rasburicase lowers uric acid rapidly, while allopurinol prevents new uric acid formation",
+                "rasburicase can cause hemolysis and methemoglobinemia in susceptible patients",
+                "Burkitt lymphoma, bulky disease, high LDH, hyperuricemia, hyperkalemia, hyperphosphatemia, hypocalcemia, AKI, or oliguria as red flags",
+                "seizure, arrhythmia, sudden death, anuria, fluid overload, or persistent hyperkalemia as severity markers",
+                "q4 electrolytes including potassium, phosphate, calcium, creatinine, uric acid, and urine output monitoring",
+                "aggressive IV fluids and crystalloid hydration targeting urine output",
+                "rasburicase for uric acid lowering and allopurinol or febuxostat hypouricemic planning when appropriate",
+                "ECG telemetry; hyperkalemia treatment with insulin and dextrose and hyperphosphatemia management with phosphate binder",
+                "nephrology for hemodialysis, dialysis, CRRT, or renal replacement escalation",
+                "rasburicase-related hemolysis, hemolytic anemia, and methemoglobinemia monitoring",
+                "avoid urine alkalinization and sodium bicarbonate because calcium phosphate precipitation can worsen AKI",
+                "fluid adjustment for cardiac disease, heart failure, renal impairment, fluid overload, hypovolemia, or obstructive uropathy",
+                "renal-adjust allopurinol and review xanthine nephropathy, HLA-B*58:01 risk, azathioprine, or mercaptopurine interactions",
+                "avoid routine calcium for hypocalcemia unless symptomatic; hyperphosphatemia and calcium-phosphate product review",
+                "dialysis or CRRT for anuria, fluid overload, persistent hyperkalemia, severe hyperphosphatemia, or renal replacement need",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "tumor lysis syndrome safety checks must include rasburicase" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_hyperkalemia_calcium_shift_and_removal_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Severe hyperkalemia with ECG changes"

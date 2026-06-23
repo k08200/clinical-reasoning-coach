@@ -10219,11 +10219,16 @@ TUMOR_LYSIS_RENAL_ESCALATION_ACTION_TERMS = (
     "nephrology",
     "renal replacement",
 )
-TUMOR_LYSIS_RASBURICASE_SAFETY_TERMS = (
+TUMOR_LYSIS_RASBURICASE_G6PD_SAFETY_TERMS = (
     "g6pd",
+    "glucose-6-phosphate",
+    "glucose 6 phosphate",
+)
+TUMOR_LYSIS_RASBURICASE_ADVERSE_SAFETY_TERMS = (
+    "hemolytic",
     "hemolysis",
     "methemoglobinemia",
-    "rasburicase",
+    "methemoglobin",
 )
 TUMOR_LYSIS_ALKALINIZATION_SAFETY_TERMS = (
     "avoid alkalinization",
@@ -17760,7 +17765,7 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_tumor_lysis_treatment_safety_check,
             issue=(
                 "tumor lysis syndrome safety checks must include rasburicase "
-                "G6PD, hemolysis, or methemoglobinemia safety, urine-"
+                "G6PD screening plus hemolysis or methemoglobinemia safety, urine-"
                 "alkalinization, bicarbonate, or calcium-phosphate precipitation "
                 "avoidance, fluid safety for cardiac disease, heart failure, renal "
                 "disease, fluid overload, hypovolemia, or obstructive uropathy, "
@@ -27171,9 +27176,13 @@ def _has_tumor_lysis_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_tumor_lysis_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_rasburicase_safety = any(
+    has_rasburicase_g6pd_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in TUMOR_LYSIS_RASBURICASE_SAFETY_TERMS
+        for term in TUMOR_LYSIS_RASBURICASE_G6PD_SAFETY_TERMS
+    )
+    has_rasburicase_adverse_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TUMOR_LYSIS_RASBURICASE_ADVERSE_SAFETY_TERMS
     )
     has_alkalinization_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -27196,7 +27205,8 @@ def _has_tumor_lysis_treatment_safety_check(checks: list[Any]) -> bool:
         for term in TUMOR_LYSIS_DIALYSIS_SAFETY_TERMS
     )
     return (
-        has_rasburicase_safety
+        has_rasburicase_g6pd_safety
+        and has_rasburicase_adverse_safety
         and has_alkalinization_safety
         and has_fluid_safety
         and has_allopurinol_safety
