@@ -11484,13 +11484,8 @@ const SEVERE_ALCOHOL_WITHDRAWAL_BENZO_ACTION_TERMS = [
 ];
 
 const SEVERE_ALCOHOL_WITHDRAWAL_THIAMINE_ACTION_TERMS = [
-  "dextrose",
-  "glucose",
-  "multivitamin",
   "thiamine",
-  "wernicke",
   "티아민",
-  "혈당",
 ];
 
 const SEVERE_ALCOHOL_WITHDRAWAL_ELECTROLYTE_ACTION_TERMS = [
@@ -26874,7 +26869,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSevereAlcoholWithdrawalTimeCriticalActions,
       issue:
-        "severe alcohol withdrawal time-critical actions must include withdrawal severity assessment, benzodiazepine treatment, thiamine or glucose support, electrolyte repletion, and ICU or refractory withdrawal escalation",
+        "severe alcohol withdrawal time-critical actions must include withdrawal severity assessment, benzodiazepine treatment, explicit thiamine treatment or prophylaxis, electrolyte repletion, and ICU or refractory withdrawal escalation",
     },
     {
       name: "severe_alcohol_withdrawal_treatment_safety",

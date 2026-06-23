@@ -10473,13 +10473,8 @@ SEVERE_ALCOHOL_WITHDRAWAL_BENZO_ACTION_TERMS = (
     "로라제팜",
 )
 SEVERE_ALCOHOL_WITHDRAWAL_THIAMINE_ACTION_TERMS = (
-    "dextrose",
-    "glucose",
-    "multivitamin",
     "thiamine",
-    "wernicke",
     "티아민",
-    "혈당",
 )
 SEVERE_ALCOHOL_WITHDRAWAL_ELECTROLYTE_ACTION_TERMS = (
     "electrolyte",
@@ -17830,8 +17825,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "severe alcohol withdrawal time-critical actions must include "
                 "withdrawal severity assessment, benzodiazepine treatment, "
-                "thiamine or glucose support, electrolyte repletion, and ICU or "
-                "refractory withdrawal escalation"
+                "explicit thiamine treatment or prophylaxis, electrolyte "
+                "repletion, and ICU or refractory withdrawal escalation"
             ),
         ),
         DomainSafetyGate(
