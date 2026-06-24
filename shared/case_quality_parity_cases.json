@@ -9686,6 +9686,64 @@
     }
   },
   {
+    "name": "ovarian_torsion_requires_specific_detorsion_not_generic_surgery",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "ovarian or adnexal torsion time-critical actions must include pregnancy testing"
+    ],
+    "overrides": {
+      "diagnosis": "Adnexal torsion",
+      "patient_demographics": {
+        "age": 17,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Sudden severe right pelvic pain with vomiting",
+      "history_of_present_illness": "Adolescent has intermittent unilateral pelvic pain, nausea, vomiting, right adnexal tenderness, and suspected ovarian torsion.",
+      "key_teaching_points": [
+        "Adnexal torsion is a surgical emergency threatening ovarian function and fertility",
+        "Doppler flow alone cannot confirm or exclude torsion",
+        "Timely diagnostic laparoscopy and detorsion preserve ovarian function"
+      ],
+      "clinical_red_flags": [
+        "Sudden unilateral pelvic pain with nausea or vomiting",
+        "Adnexal mass, enlarged ovary, abnormal Doppler flow, or persistent high clinical suspicion"
+      ],
+      "time_critical_actions": [
+        "Obtain pregnancy test and quantitative hCG immediately",
+        "Order pelvic ultrasound or transvaginal ultrasound with Doppler assessment",
+        "Escalate urgently to OB/GYN for urgent surgery and surgical evaluation"
+      ],
+      "contraindication_checks": [
+        "Normal Doppler flow does not rule out torsion and imaging must not delay timely intervention",
+        "Plan ovarian preservation with detorsion, cystectomy when appropriate, fertility protection, and oophorectomy only if unavoidable",
+        "Review ectopic pregnancy, appendicitis, PID, ruptured ovarian cyst, hemorrhagic cyst, tubo-ovarian abscess, and other acute pelvic pain differentials"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Ovarian Torsion",
+          "organization": "National Institutes of Health",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK560675/",
+          "supports": [
+            "adnexal torsion diagnosis and risk stratification",
+            "adnexal torsion is a surgical emergency threatening ovarian function and fertility",
+            "Doppler flow alone cannot confirm or exclude torsion",
+            "timely diagnostic laparoscopy and detorsion preserve ovarian function",
+            "sudden unilateral pelvic pain with nausea or vomiting as red flags",
+            "adnexal mass, enlarged ovary, abnormal Doppler flow, or persistent high clinical suspicion as severity markers",
+            "pregnancy test and quantitative hCG immediately",
+            "pelvic ultrasound or transvaginal ultrasound with Doppler assessment",
+            "urgent OB/GYN urgent surgery and surgical evaluation",
+            "normal Doppler flow does not rule out torsion and imaging must not delay timely intervention",
+            "ovarian preservation with detorsion, cystectomy, fertility protection, and oophorectomy only if unavoidable",
+            "ectopic pregnancy, appendicitis, PID, ruptured ovarian cyst, hemorrhagic cyst, tubo-ovarian abscess, and acute pelvic pain differentials"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "spinal_epidural_abscess_requires_mri_cultures_antibiotics_and_surgical_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [

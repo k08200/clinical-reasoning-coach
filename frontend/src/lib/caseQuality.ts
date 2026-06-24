@@ -7202,17 +7202,34 @@ const OVARIAN_TORSION_ULTRASOUND_ACTION_TERMS = [
   "초음파",
 ];
 
-const OVARIAN_TORSION_SURGICAL_ACTION_TERMS = [
-  "diagnostic laparoscopy",
-  "detorsion",
+const OVARIAN_TORSION_SPECIALIST_ACTION_TERMS = [
+  "gyn consult",
+  "gynecologist",
   "gynecology",
-  "laparoscopy",
   "ob/gyn",
   "obgyn",
-  "surgical evaluation",
-  "urgent surgery",
+  "urgent gyn",
+  "urgent gynecology",
   "산부인과",
-  "수술",
+];
+
+const OVARIAN_TORSION_DEFINITIVE_SURGERY_ACTION_TERMS = [
+  "adnexal detorsion",
+  "cystectomy",
+  "diagnostic laparoscopy",
+  "direct visualization",
+  "detorsion",
+  "laparoscopic detorsion",
+  "laparoscopy",
+  "oophoropexy",
+  "ovarian detorsion",
+  "ovarian salvage",
+  "salpingo-oophorectomy",
+  "surgical detorsion",
+  "난소 보존",
+  "난소 풀기",
+  "난소염전 수술",
+  "복강경",
 ];
 
 const OVARIAN_TORSION_DOPPLER_DELAY_SAFETY_TERMS = [
@@ -20016,10 +20033,18 @@ function hasOvarianTorsionTimeCriticalActions(actions: string[]): boolean {
   const hasUltrasoundAssessment = OVARIAN_TORSION_ULTRASOUND_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSurgicalEscalation = OVARIAN_TORSION_SURGICAL_ACTION_TERMS.some((term) =>
+  const hasSpecialistEscalation = OVARIAN_TORSION_SPECIALIST_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasPregnancyAssessment && hasUltrasoundAssessment && hasSurgicalEscalation;
+  const hasDefinitiveSurgery = OVARIAN_TORSION_DEFINITIVE_SURGERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasPregnancyAssessment &&
+    hasUltrasoundAssessment &&
+    hasSpecialistEscalation &&
+    hasDefinitiveSurgery
+  );
 }
 
 function hasOvarianTorsionTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26376,7 +26401,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasOvarianTorsionTimeCriticalActions,
       issue:
-        "ovarian or adnexal torsion time-critical actions must include pregnancy testing or quantitative hCG, pelvic or transvaginal ultrasound with Doppler assessment, and urgent OB/GYN, diagnostic laparoscopy, detorsion, or surgical escalation",
+        "ovarian or adnexal torsion time-critical actions must include pregnancy testing or quantitative hCG, pelvic or transvaginal ultrasound with Doppler assessment, urgent OB/GYN or gynecology escalation, and specific diagnostic laparoscopy, detorsion, ovarian salvage, cystectomy, or salpingo-oophorectomy planning",
     },
     {
       name: "ovarian_torsion_treatment_safety",

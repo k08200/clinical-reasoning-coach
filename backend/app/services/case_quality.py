@@ -6581,17 +6581,33 @@ OVARIAN_TORSION_ULTRASOUND_ACTION_TERMS = (
     "ultrasound",
     "초음파",
 )
-OVARIAN_TORSION_SURGICAL_ACTION_TERMS = (
-    "diagnostic laparoscopy",
-    "detorsion",
+OVARIAN_TORSION_SPECIALIST_ACTION_TERMS = (
+    "gyn consult",
+    "gynecologist",
     "gynecology",
-    "laparoscopy",
     "ob/gyn",
     "obgyn",
-    "surgical evaluation",
-    "urgent surgery",
+    "urgent gyn",
+    "urgent gynecology",
     "산부인과",
-    "수술",
+)
+OVARIAN_TORSION_DEFINITIVE_SURGERY_ACTION_TERMS = (
+    "adnexal detorsion",
+    "cystectomy",
+    "diagnostic laparoscopy",
+    "direct visualization",
+    "detorsion",
+    "laparoscopic detorsion",
+    "laparoscopy",
+    "oophoropexy",
+    "ovarian detorsion",
+    "ovarian salvage",
+    "salpingo-oophorectomy",
+    "surgical detorsion",
+    "난소 보존",
+    "난소 풀기",
+    "난소염전 수술",
+    "복강경",
 )
 OVARIAN_TORSION_DOPPLER_DELAY_SAFETY_TERMS = (
     "do not delay",
@@ -16745,8 +16761,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "ovarian or adnexal torsion time-critical actions must include "
                 "pregnancy testing or quantitative hCG, pelvic or transvaginal "
-                "ultrasound with Doppler assessment, and urgent OB/GYN, diagnostic "
-                "laparoscopy, detorsion, or surgical escalation"
+                "ultrasound with Doppler assessment, urgent OB/GYN or "
+                "gynecology escalation, and specific diagnostic laparoscopy, "
+                "detorsion, ovarian salvage, cystectomy, or salpingo-oophorectomy "
+                "planning"
             ),
         ),
         DomainSafetyGate(
@@ -24120,11 +24138,20 @@ def _has_ovarian_torsion_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in OVARIAN_TORSION_ULTRASOUND_ACTION_TERMS
     )
-    has_surgical_escalation = any(
+    has_specialist_escalation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in OVARIAN_TORSION_SURGICAL_ACTION_TERMS
+        for term in OVARIAN_TORSION_SPECIALIST_ACTION_TERMS
     )
-    return has_pregnancy_assessment and has_ultrasound_assessment and has_surgical_escalation
+    has_definitive_surgery = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OVARIAN_TORSION_DEFINITIVE_SURGERY_ACTION_TERMS
+    )
+    return (
+        has_pregnancy_assessment
+        and has_ultrasound_assessment
+        and has_specialist_escalation
+        and has_definitive_surgery
+    )
 
 
 def _has_ovarian_torsion_treatment_safety_check(checks: list[Any]) -> bool:
