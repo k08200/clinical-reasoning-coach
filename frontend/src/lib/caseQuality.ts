@@ -15582,21 +15582,32 @@ const PE_IMAGING_PATHWAY_TERMS = [
 ];
 
 const PE_ANTICOAGULATION_OR_REPERFUSION_ACTION_TERMS = [
-  "anticoagulation",
-  "anticoagulant",
+  "apixaban",
+  "continuous ufh infusion",
+  "dabigatran",
+  "dalteparin",
+  "direct oral anticoagulant",
+  "direct-acting oral anticoagulant",
+  "doac",
+  "edoxaban",
+  "enoxaparin",
+  "fondaparinux",
   "heparin",
+  "heparin infusion",
   "interim therapeutic anticoagulation",
+  "low molecular weight heparin",
   "lmwh",
-  "reperfusion",
+  "rivaroxaban",
   "systemic thrombolysis",
   "therapeutic anticoagulation",
   "thrombolysis",
   "unfractionated heparin",
+  "ufh infusion",
   "ufh",
-  "항응고",
+  "치료적 항응고",
+  "항응고 치료",
   "헤파린",
   "혈전용해",
-  "재관류",
 ];
 
 const PE_BLEEDING_SAFETY_TERMS = [
@@ -27651,7 +27662,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasPeTimeCriticalActions,
       issue:
-        "PE time-critical actions must include risk stratification, hemodynamic or RV-strain assessment, and imaging or bedside-echo pathway plus therapeutic anticoagulation, UFH/heparin, or reperfusion/thrombolysis planning",
+        "PE time-critical actions must include risk stratification, hemodynamic or RV-strain assessment, and imaging or bedside-echo pathway plus therapeutic anticoagulation, a specific anticoagulant such as UFH/heparin/LMWH/DOAC, or thrombolysis/embolectomy action",
     },
     {
       name: "pe_contraindication_safety",

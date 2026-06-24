@@ -528,7 +528,7 @@ def test_quality_gate_allows_contrast_imaging_with_renal_safety_check():
     case = copy.deepcopy(CASE_POOL[0])
     case["time_critical_actions"] = [
         "Risk stratify for massive versus submassive PE before choosing disposition",
-        "Escalate anticoagulation pathway planning after dangerous alternatives are addressed and monitor for hypotension or RV strain",
+        "Start heparin or LMWH anticoagulation unless active bleeding or another major contraindication is present",
         "Select CT pulmonary angiography or bedside echo pathway based on hemodynamic stability",
     ]
     case["contraindication_checks"] = [
@@ -547,7 +547,7 @@ def test_quality_gate_allows_contrast_imaging_with_renal_safety_check():
         "pulmonary embolism diagnosis and risk stratification pathway",
         "life-threatening chest pain differential and severity markers",
         "massive versus submassive PE risk stratification before disposition",
-        "anticoagulation pathway escalation when dangerous alternatives are addressed and hypotension or RV strain is monitored",
+        "heparin or LMWH anticoagulation unless active bleeding or another major contraindication is present",
         "CT pulmonary angiography or bedside echo pathway based on hemodynamic stability",
         "crushing substernal chest pain radiating to the arm with diaphoresis",
         "bibasilar crackles suggesting early heart failure",
@@ -21318,6 +21318,51 @@ def test_quality_gate_requires_pe_therapeutic_anticoagulation_or_reperfusion_act
                 "bedside echo or ultrasound pathway without delaying reperfusion in hemodynamically unstable PE",
                 "V/Q scan, compression ultrasound, pregnancy, renal, or contrast allergy alternative imaging review",
                 "PERT, ICU, critical care, transfer, or specialist escalation for PE with RV strain or shock",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "PE time-critical actions must include risk stratification" in issue
+        and "therapeutic anticoagulation" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_rejects_generic_pe_anticoagulation_planning_action():
+    case = copy.deepcopy(CASE_POOL[2])
+    case["time_critical_actions"] = [
+        "Risk stratify for massive versus submassive PE with Wells score and RV strain",
+        "Assess blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+        "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+        "Document anticoagulation planning unless contraindications are found",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Venous thromboembolic diseases: diagnosis, management and thrombophilia testing",
+            "organization": "National Institute for Health and Care Excellence",
+            "url": "https://www.nice.org.uk/guidance/ng158",
+            "supports": [
+                "risk stratification by hemodynamic instability and RV strain",
+                "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+                "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+                "unilateral calf swelling and elevated D-dimer in suspected PE",
+                "massive versus submassive PE with Wells score and RV strain",
+                "blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+                "CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+                "document anticoagulation planning unless contraindications are found",
+                "bleeding risk and recent surgery before thrombolysis or anticoagulation",
+                "renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
+                "pregnancy status or hCG when selecting imaging and anticoagulation",
+                "Start heparin or LMWH anticoagulation unless active bleeding or another major contraindication is present",
+                "Review systemic thrombolysis indication for high-risk PE with shock, persistent hypotension, cardiac arrest, or hemodynamic instability",
+                "Plan catheter-directed therapy or surgical embolectomy if thrombolysis is contraindicated or fails",
+                "If hemodynamically unstable, use bedside echo or ultrasound pathway and do not delay reperfusion solely for CTPA",
+                "Use V/Q scan, compression ultrasound, or pregnancy, renal, and contrast allergy alternative imaging when CTPA is unsafe",
+                "Escalate to PERT, ICU, critical care, transfer, or PE specialist team for RV strain, hypotension, syncope, shock, or deterioration",
             ],
         }
     ]
