@@ -7084,15 +7084,21 @@ const TESTICULAR_TORSION_ASSESSMENT_ACTION_TERMS = [
 ];
 
 const TESTICULAR_TORSION_UROLOGY_SURGERY_ACTION_TERMS = [
+  "bilateral orchiopexy",
+  "contralateral fixation",
+  "emergent scrotal exploration",
+  "emergent surgical exploration",
   "orchiopexy",
+  "operative exploration",
   "scrotal exploration",
   "surgical exploration",
-  "urology",
-  "urgent exploration",
-  "urgent surgery",
-  "uro consult",
-  "비뇨",
-  "수술",
+  "testicular fixation",
+  "urgent scrotal exploration",
+  "urgent surgical exploration",
+  "고환 고정",
+  "고환고정술",
+  "수술적 탐색",
+  "음낭 탐색",
 ];
 
 const TESTICULAR_TORSION_DELAY_ACTION_TERMS = [
@@ -26326,7 +26332,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasTesticularTorsionTimeCriticalActions,
       issue:
-        "testicular torsion time-critical actions must include acute scrotal assessment with high-clinical-suspicion, cremasteric, high-riding, Doppler, or ultrasound pathway, immediate urology, scrotal exploration, orchiopexy, or urgent surgical escalation, and explicit imaging-not-to-delay or immediate time-critical management",
+        "testicular torsion time-critical actions must include acute scrotal assessment with high-clinical-suspicion, cremasteric, high-riding, Doppler, or ultrasound pathway, immediate scrotal or surgical exploration, orchiopexy, or testicular fixation, and explicit imaging-not-to-delay or immediate time-critical management",
     },
     {
       name: "testicular_torsion_treatment_safety",

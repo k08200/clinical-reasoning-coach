@@ -8650,6 +8650,73 @@ def test_quality_gate_requires_testicular_torsion_assessment_immediate_urology_a
     )
 
 
+def test_quality_gate_requires_testicular_torsion_specific_exploration_action():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Testicular torsion"
+    case["patient_demographics"] = {
+        "age": 16,
+        "sex": "male",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden severe right testicular pain"
+    case["history_of_present_illness"] = (
+        "Adolescent has acute scrotal pain with nausea, high-riding testis, "
+        "horizontal lie, absent cremasteric reflex, and concern for testicular torsion."
+    )
+    case["key_teaching_points"] = [
+        "Testicular torsion is a surgical emergency with time-sensitive ischemia",
+        "High clinical suspicion should trigger immediate surgical exploration",
+        "Scrotal ultrasound can help if equivocal but must not delay definitive management",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden severe unilateral testicular pain with nausea or vomiting",
+        "High-riding testis, horizontal lie, absent cremasteric reflex, or reduced Doppler flow",
+    ]
+    case["time_critical_actions"] = [
+        "Assess high clinical suspicion with cremasteric reflex, high-riding testis, horizontal lie, and Doppler or scrotal ultrasound only if equivocal",
+        "Call urology immediately for urgent surgery and definitive management",
+        "Keep patient NPO, give analgesia, and document that imaging must not delay immediate management",
+    ]
+    case["contraindication_checks"] = [
+        "Track time from onset because 4 hour to 8 hour ischemia window affects salvage, viability, orchiectomy risk, fertility, and testicular loss",
+        "Manual detorsion may be attempted if surgery is not immediately available but is not definitive and must not delay orchiopexy",
+        "Plan bilateral orchiopexy or contralateral fixation to prevent recurrence and preserve fertility",
+        "Review acute scrotum differentials including epididymitis, torsion of appendage, incarcerated hernia, orchitis, hydrocele, varicocele, and trauma",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Testicular Torsion: Diagnosis, Evaluation, and Management",
+            "organization": "American Family Physician",
+            "url": "https://www.aafp.org/pubs/afp/issues/2013/1215/p835.html",
+            "supports": [
+                "testicular torsion diagnosis and risk stratification",
+                "testicular torsion is a surgical emergency with time-sensitive ischemia",
+                "high clinical suspicion should trigger immediate surgical exploration",
+                "scrotal ultrasound can help if equivocal but must not delay definitive management",
+                "sudden severe unilateral testicular pain with nausea or vomiting as red flags",
+                "high-riding testis, horizontal lie, absent cremasteric reflex, or reduced Doppler flow as severity markers",
+                "high clinical suspicion with cremasteric reflex, high-riding testis, horizontal lie, and Doppler or scrotal ultrasound only if equivocal",
+                "urology immediately for urgent surgery and definitive management",
+                "NPO, analgesia, and imaging must not delay immediate management",
+                "time from onset because 4 hour to 8 hour ischemia window affects salvage, viability, orchiectomy risk, fertility, and testicular loss",
+                "manual detorsion may be attempted if surgery is not immediately available but is not definitive and must not delay orchiopexy",
+                "bilateral orchiopexy or contralateral fixation to prevent recurrence and preserve fertility",
+                "epididymitis, torsion of appendage, incarcerated hernia, orchitis, hydrocele, varicocele, and trauma acute scrotum differentials",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "testicular torsion time-critical actions must include acute scrotal assessment"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_testicular_torsion_salvage_detorsion_fixation_and_differential_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Testicular torsion"
