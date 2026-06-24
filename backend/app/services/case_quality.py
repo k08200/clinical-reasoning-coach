@@ -4188,16 +4188,18 @@ OPEN_GLOBE_SHIELD_ACTION_TERMS = (
     "안대",
     "보호대",
 )
-OPEN_GLOBE_ANTIBIOTIC_TETANUS_ACTION_TERMS = (
+OPEN_GLOBE_ANTIBIOTIC_ACTION_TERMS = (
     "antibiotic",
+    "broad-spectrum antibiotic",
     "ceftazidime",
+    "cefazolin",
+    "cephalosporin",
     "fluoroquinolone",
     "iv antibiotics",
+    "levofloxacin",
     "moxifloxacin",
     "systemic antibiotic",
-    "tetanus",
     "vancomycin",
-    "파상풍",
     "항생제",
 )
 OPEN_GLOBE_TETANUS_ACTION_TERMS = (
@@ -4217,15 +4219,28 @@ OPEN_GLOBE_IMAGING_ACTION_TERMS = (
     "x-ray",
     "영상",
 )
-OPEN_GLOBE_OPHTHALMOLOGY_SURGERY_ACTION_TERMS = (
-    "globe exploration",
+OPEN_GLOBE_OPHTHALMOLOGY_ACTION_TERMS = (
     "ophthalmology",
-    "operative repair",
-    "surgical repair",
-    "surgery",
+    "ophthalmologist",
     "urgent ophthalmology",
     "안과",
-    "수술",
+)
+OPEN_GLOBE_SURGICAL_REPAIR_ACTION_TERMS = (
+    "corneal closure",
+    "globe closure",
+    "globe exploration",
+    "globe repair",
+    "layered closure",
+    "operative repair",
+    "primary repair",
+    "scleral closure",
+    "surgical exploration",
+    "surgical repair",
+    "wound closure",
+    "수술적 봉합",
+    "수술적 탐색",
+    "안구 봉합",
+    "안구 수술",
 )
 OPEN_GLOBE_NO_PRESSURE_SAFETY_TERMS = (
     "avoid pressure",
@@ -16068,8 +16083,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "systemic or IV antibiotics such as vancomycin, ceftazidime, "
                 "moxifloxacin, fluoroquinolone, plus tetanus planning, CT orbit, "
                 "orbital CT, x-ray, foreign-body, or intraocular-foreign-body "
-                "imaging, and urgent ophthalmology, globe exploration, surgical "
-                "repair, operative repair, or surgery planning"
+                "imaging, urgent ophthalmology or ophthalmologist escalation, "
+                "and specific globe exploration, surgical repair, operative "
+                "repair, closure, or globe repair planning"
             ),
         ),
         DomainSafetyGate(
@@ -22187,9 +22203,9 @@ def _has_open_globe_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in OPEN_GLOBE_SHIELD_ACTION_TERMS
     )
-    has_antibiotic_tetanus = any(
+    has_antibiotic = any(
         _contains_safety_term(normalized_actions, term)
-        for term in OPEN_GLOBE_ANTIBIOTIC_TETANUS_ACTION_TERMS
+        for term in OPEN_GLOBE_ANTIBIOTIC_ACTION_TERMS
     )
     has_tetanus = any(
         _contains_safety_term(normalized_actions, term)
@@ -22199,16 +22215,21 @@ def _has_open_globe_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in OPEN_GLOBE_IMAGING_ACTION_TERMS
     )
-    has_ophthalmology_surgery = any(
+    has_ophthalmology = any(
         _contains_safety_term(normalized_actions, term)
-        for term in OPEN_GLOBE_OPHTHALMOLOGY_SURGERY_ACTION_TERMS
+        for term in OPEN_GLOBE_OPHTHALMOLOGY_ACTION_TERMS
+    )
+    has_surgical_repair = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_GLOBE_SURGICAL_REPAIR_ACTION_TERMS
     )
     return (
         has_shield
-        and has_antibiotic_tetanus
+        and has_antibiotic
         and has_tetanus
         and has_imaging
-        and has_ophthalmology_surgery
+        and has_ophthalmology
+        and has_surgical_repair
     )
 
 

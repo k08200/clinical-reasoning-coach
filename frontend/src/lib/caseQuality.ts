@@ -4570,16 +4570,18 @@ const OPEN_GLOBE_SHIELD_ACTION_TERMS = [
   "보호대",
 ];
 
-const OPEN_GLOBE_ANTIBIOTIC_TETANUS_ACTION_TERMS = [
+const OPEN_GLOBE_ANTIBIOTIC_ACTION_TERMS = [
   "antibiotic",
+  "broad-spectrum antibiotic",
   "ceftazidime",
+  "cefazolin",
+  "cephalosporin",
   "fluoroquinolone",
   "iv antibiotics",
+  "levofloxacin",
   "moxifloxacin",
   "systemic antibiotic",
-  "tetanus",
   "vancomycin",
-  "파상풍",
   "항생제",
 ];
 
@@ -4602,15 +4604,29 @@ const OPEN_GLOBE_IMAGING_ACTION_TERMS = [
   "영상",
 ];
 
-const OPEN_GLOBE_OPHTHALMOLOGY_SURGERY_ACTION_TERMS = [
-  "globe exploration",
+const OPEN_GLOBE_OPHTHALMOLOGY_ACTION_TERMS = [
   "ophthalmology",
-  "operative repair",
-  "surgical repair",
-  "surgery",
+  "ophthalmologist",
   "urgent ophthalmology",
   "안과",
-  "수술",
+];
+
+const OPEN_GLOBE_SURGICAL_REPAIR_ACTION_TERMS = [
+  "corneal closure",
+  "globe closure",
+  "globe exploration",
+  "globe repair",
+  "layered closure",
+  "operative repair",
+  "primary repair",
+  "scleral closure",
+  "surgical exploration",
+  "surgical repair",
+  "wound closure",
+  "수술적 봉합",
+  "수술적 탐색",
+  "안구 봉합",
+  "안구 수술",
 ];
 
 const OPEN_GLOBE_NO_PRESSURE_SAFETY_TERMS = [
@@ -18539,7 +18555,7 @@ function hasOpenGlobeTimeCriticalActions(actions: string[]): boolean {
   const hasShield = OPEN_GLOBE_SHIELD_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntibioticTetanus = OPEN_GLOBE_ANTIBIOTIC_TETANUS_ACTION_TERMS.some((term) =>
+  const hasAntibiotic = OPEN_GLOBE_ANTIBIOTIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasTetanus = OPEN_GLOBE_TETANUS_ACTION_TERMS.some((term) =>
@@ -18548,10 +18564,20 @@ function hasOpenGlobeTimeCriticalActions(actions: string[]): boolean {
   const hasImaging = OPEN_GLOBE_IMAGING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasOphthalmologySurgery = OPEN_GLOBE_OPHTHALMOLOGY_SURGERY_ACTION_TERMS.some((term) =>
+  const hasOphthalmology = OPEN_GLOBE_OPHTHALMOLOGY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasShield && hasAntibioticTetanus && hasTetanus && hasImaging && hasOphthalmologySurgery;
+  const hasSurgicalRepair = OPEN_GLOBE_SURGICAL_REPAIR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasShield &&
+    hasAntibiotic &&
+    hasTetanus &&
+    hasImaging &&
+    hasOphthalmology &&
+    hasSurgicalRepair
+  );
 }
 
 function hasOpenGlobeTreatmentSafetyCheck(checks: string[]): boolean {
@@ -25954,7 +25980,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasOpenGlobeTimeCriticalActions,
       issue:
-        "open globe time-critical actions must include rigid eye shield, protective shield, or eye-shield placement without pressure, systemic or IV antibiotics such as vancomycin, ceftazidime, moxifloxacin, fluoroquinolone, plus tetanus planning, CT orbit, orbital CT, x-ray, foreign-body, or intraocular-foreign-body imaging, and urgent ophthalmology, globe exploration, surgical repair, operative repair, or surgery planning",
+        "open globe time-critical actions must include rigid eye shield, protective shield, or eye-shield placement without pressure, systemic or IV antibiotics such as vancomycin, ceftazidime, moxifloxacin, fluoroquinolone, plus tetanus planning, CT orbit, orbital CT, x-ray, foreign-body, or intraocular-foreign-body imaging, urgent ophthalmology or ophthalmologist escalation, and specific globe exploration, surgical repair, operative repair, closure, or globe repair planning",
     },
     {
       name: "open_globe_treatment_safety",
