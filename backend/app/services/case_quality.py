@@ -4778,17 +4778,23 @@ OBSTRUCTIVE_PYELONEPHRITIS_IMAGING_OBSTRUCTION_ACTION_TERMS = (
     "요로결석",
 )
 OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_ACTION_TERMS = (
-    "decompression",
-    "drainage",
+    "double-j stent",
+    "double j stent",
+    "jj stent",
     "nephrostomy",
+    "nephrostomy catheter",
+    "nephrostomy tube",
     "pcn",
+    "percutaneous drainage",
     "percutaneous nephrostomy",
-    "stent",
+    "retrograde stent",
+    "retrograde ureteral stent",
     "ureteral stent",
-    "urology",
-    "urgent decompression",
-    "배액",
-    "스텐트",
+    "ureteral stenting",
+    "경피 신루",
+    "경피적 신루",
+    "신루관",
+    "요관 스텐트",
 )
 OBSTRUCTIVE_PYELONEPHRITIS_SEPSIS_SUPPORT_ACTION_TERMS = (
     "fluid",
@@ -16199,8 +16205,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "obstructive pyelonephritis time-critical actions must include "
                 "immediate antibiotics and urine or blood cultures, CT, ultrasound, "
                 "hydronephrosis, obstruction, stone, or ureteral-stone imaging, "
-                "urgent urology decompression with ureteral stent, percutaneous "
-                "nephrostomy, PCN, nephrostomy, drainage, or decompression, and "
+                "urgent decompression using ureteral stent, ureteral stenting, "
+                "percutaneous drainage, percutaneous nephrostomy, PCN, or "
+                "nephrostomy catheter, and "
                 "sepsis support with fluids, lactate, shock, vasopressor, ICU, "
                 "or septic-shock monitoring"
             ),
