@@ -13346,6 +13346,42 @@ def test_quality_gate_requires_dka_explicit_potassium_before_insulin_not_monitor
     )
 
 
+def test_quality_gate_requires_dka_iv_insulin_infusion_not_generic_insulin_planning():
+    case = copy.deepcopy(CASE_POOL[3])
+    case["time_critical_actions"] = [
+        "Assess severity and initiate monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
+        "Check potassium before insulin and replace if potassium is below safe threshold",
+        "Identify precipitating cause",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "DKA diagnostic pattern",
+        "acidosis, dehydration, and mental status severity markers",
+        "severe metabolic acidosis with Kussmaul respirations",
+        "tachycardia, dehydration signs, AKI, and confusion in DKA severity assessment",
+        "hyperkalemia despite total body potassium depletion",
+        "time-critical monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
+        "potassium before insulin with replacement if potassium is below safe threshold",
+        "identify precipitating cause",
+        "potassium below safe threshold before insulin infusion",
+        "cerebral edema risk from overly rapid osmolar shifts",
+        "persistent abdominal pain after metabolic correction requiring surgical reassessment",
+        "avoid routine bicarbonate unless severe acidosis with pH below 7.0",
+        "phosphate replacement only for severe hypophosphatemia with cardiac or respiratory compromise",
+        "dextrose addition when glucose approaches 200-250 mg/dL",
+        "continued insulin until ketone resolution, anion-gap closure, or DKA resolution",
+        "basal or subcutaneous insulin overlap before stopping IV insulin after DKA resolution and oral intake",
+        "precipitant review for SGLT2 inhibitor exposure, medication contributors, or missed insulin",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "DKA time-critical actions must include potassium-before-insulin" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_dka_potassium_and_osmolar_safety_checks():
     case = copy.deepcopy(CASE_POOL[3])
     case["contraindication_checks"] = [
@@ -13358,8 +13394,8 @@ def test_quality_gate_requires_dka_potassium_and_osmolar_safety_checks():
         "severe metabolic acidosis with Kussmaul respirations",
         "tachycardia, dehydration signs, AKI, and confusion in DKA severity assessment",
         "hyperkalemia despite total body potassium depletion",
-        "potassium assessment before insulin therapy",
-        "time-critical monitored DKA protocol with fluids, insulin planning, and anion-gap closure",
+        "potassium assessment before IV insulin infusion",
+        "time-critical monitored DKA protocol with fluids, IV insulin infusion planning, and anion-gap closure",
         "need to exclude surgical abdomen if pain persists after metabolic correction",
         "assess infection trigger before DKA protocol",
     ]
@@ -21695,12 +21731,12 @@ def test_quality_gate_allows_diagnosis_terms_in_hidden_teaching_metadata():
     ]
     case["time_critical_actions"] = [
         *case["time_critical_actions"],
-        "Plan monitored DKA fluids and insulin protocol after potassium assessment",
+        "Plan monitored DKA fluids and IV insulin infusion protocol after potassium assessment",
         "Close the anion gap before transition off insulin infusion",
     ]
     case["contraindication_checks"] = [
         *case["contraindication_checks"],
-        "Potassium threshold and cerebral edema risk from osmolar shifts before insulin therapy",
+        "Potassium threshold and cerebral edema risk from osmolar shifts before IV insulin infusion",
         "Avoid routine bicarbonate unless severe acidosis with pH below 7.0",
         "Review phosphate replacement only for severe hypophosphatemia with cardiac or respiratory compromise",
         "Add dextrose when glucose reaches 200-250 mg/dL and continue insulin until ketone resolution",
@@ -21716,9 +21752,9 @@ def test_quality_gate_allows_diagnosis_terms_in_hidden_teaching_metadata():
             "supports": [
                 "DKA criteria include acidosis and ketones",
                 "potassium must be assessed before insulin",
-                "plan monitored DKA fluids and insulin protocol after potassium assessment",
+                "plan monitored DKA fluids and IV insulin infusion protocol after potassium assessment",
                 "close the anion gap before transition off insulin infusion",
-                "potassium threshold and cerebral edema risk from osmolar shifts before insulin therapy",
+                "potassium threshold and cerebral edema risk from osmolar shifts before IV insulin infusion",
                 "avoid routine bicarbonate unless severe acidosis with pH below 7.0",
                 "phosphate replacement only for severe hypophosphatemia with cardiac or respiratory compromise",
                 "dextrose addition with continued insulin until ketone resolution",

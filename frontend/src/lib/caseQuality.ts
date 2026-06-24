@@ -10325,11 +10325,13 @@ const DKA_FLUID_ACTION_TERMS = [
 ];
 
 const DKA_INSULIN_ACTION_TERMS = [
-  "insulin",
+  "continuous insulin infusion",
+  "fixed rate insulin",
+  "fixed-rate insulin",
   "insulin infusion",
-  "insulin therapy",
+  "intravenous insulin",
   "iv insulin",
-  "인슐린",
+  "regular insulin infusion",
 ];
 
 const DKA_CLOSURE_MONITORING_TERMS = [
@@ -26832,7 +26834,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasDkaTimeCriticalActions,
       issue:
-        "DKA time-critical actions must include potassium-before-insulin, fluids/insulin planning, and anion-gap or ketone closure monitoring",
+        "DKA time-critical actions must include potassium-before-insulin, fluids/IV insulin infusion planning, and anion-gap or ketone closure monitoring",
     },
     {
       name: "dka_contraindication_safety",
