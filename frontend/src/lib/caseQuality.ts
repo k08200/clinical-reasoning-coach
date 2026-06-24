@@ -12843,11 +12843,23 @@ const SNAKEBITE_SERIAL_EXAM_LAB_ACTION_TERMS = [
 ];
 
 const SNAKEBITE_ANTIVENOM_ACTION_TERMS = [
+  "administer antivenin",
+  "administer antivenom",
   "anavip",
-  "antivenin",
-  "antivenom",
+  "antivenom infusion",
   "crofab",
-  "early antivenom",
+  "crotalidae immune f(ab')2",
+  "crotalidae polyvalent immune fab",
+  "fab antivenom",
+  "fab2 antivenom",
+  "give antivenin",
+  "give antivenom",
+  "infuse antivenin",
+  "infuse antivenom",
+  "initiate antivenin",
+  "initiate antivenom",
+  "start antivenin",
+  "start antivenom",
 ];
 
 const SNAKEBITE_POISON_ESCALATION_ACTION_TERMS = [
@@ -27230,7 +27242,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSnakebiteEnvenomationTimeCriticalActions,
       issue:
-        "snakebite envenomation time-critical actions must include rapid transport with loose immobilization at heart level and removal of constricting rings or watches, serial exam or labs for swelling, CBC, platelets, PT/INR, fibrinogen, or coagulopathy, early antivenom planning when envenomation progresses, poison center or toxicology consultation, and respiratory or neurologic support for airway, oxygen, ventilation, or neurotoxicity",
+        "snakebite envenomation time-critical actions must include rapid transport with loose immobilization at heart level and removal of constricting rings or watches, serial exam or labs for swelling, CBC, platelets, PT/INR, fibrinogen, or coagulopathy, antivenom treatment action when envenomation progresses, poison center or toxicology consultation, and respiratory or neurologic support for airway, oxygen, ventilation, or neurotoxicity",
     },
     {
       name: "snakebite_envenomation_treatment_safety",

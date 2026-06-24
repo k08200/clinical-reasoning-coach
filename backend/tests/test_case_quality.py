@@ -17629,6 +17629,76 @@ def test_quality_gate_requires_snakebite_transport_labs_antivenom_poison_and_res
     )
 
 
+def test_quality_gate_rejects_snakebite_antivenom_planning_without_treatment_action():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Rattlesnake snakebite envenomation"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 63,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Progressive leg swelling after rattlesnake bite"
+    case["history_of_present_illness"] = (
+        "Hiker bitten by rattlesnake two hours ago has progressive swelling, "
+        "ecchymosis, paresthesias, nausea, thrombocytopenia, and mild dyspnea "
+        "concerning for pit viper envenomation."
+    )
+    case["key_teaching_points"] = [
+        "Snakebite envenomation can progress with swelling, coagulopathy, thrombocytopenia, and respiratory or neurologic toxicity",
+        "Antivenom treatment is central when progressive envenomation is present",
+        "Poison center or toxicology consultation should guide antivenom and escalation decisions",
+    ]
+    case["clinical_red_flags"] = [
+        "Progressive swelling, ecchymosis, coagulopathy, thrombocytopenia, or bleeding",
+        "Hypotension, dyspnea, respiratory paralysis, paresthesias, necrosis, or systemic symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Arrange rapid transport; remove rings, watches, and constricting items, wrap loosely, and immobilize the limb at heart level",
+        "Mark swelling, repeat exam, circumference checks, CBC, platelet count, PT INR, fibrinogen, and coagulation labs serially",
+        "Plan antivenom when progressive envenomation is present",
+        "Consult poison center and toxicologist and arrange transfer or ICU if severe",
+        "Support airway, oxygen, ventilation, respiratory status, and neurologic neurotoxicity monitoring",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid harmful first aid including tourniquet, incision, suction, ice, and electric shock",
+        "Observe at least 8 hours with serial monitoring and longer disposition if envenomation findings are present",
+        "Monitor coagulopathy with platelet count, PT INR, fibrinogen, bleeding, and defibrination trends",
+        "Monitor antivenom hypersensitivity reaction, serum sickness, and premedication needs",
+        "Use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Snakebites",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/bites-and-stings/snakebites",
+            "supports": [
+                "snakebite envenomation diagnosis and risk stratification",
+                "pit viper envenomation can progress with swelling, ecchymosis, paresthesias, thrombocytopenia, dyspnea, coagulopathy, bleeding, hypotension, respiratory paralysis, necrosis, or systemic symptoms",
+                "rapid transport, remove rings, watches, and constricting items, wrap loosely, and immobilize the limb at heart level",
+                "mark swelling, repeat exam, circumference checks, CBC, platelet count, PT INR, fibrinogen, and coagulation labs serially",
+                "plan antivenom when progressive envenomation is present",
+                "poison center or toxicology consultation for antivenom and escalation decisions",
+                "airway, oxygen, ventilation, respiratory status, and neurologic neurotoxicity monitoring",
+                "avoid harmful first aid including tourniquet, incision, suction, ice, and electric shock",
+                "observe at least 8 hours with serial monitoring and longer disposition when envenomation findings are present",
+                "monitor coagulopathy with platelet count, PT INR, fibrinogen, bleeding, and defibrination trends",
+                "monitor antivenom hypersensitivity reaction, serum sickness, and premedication needs",
+                "use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "snakebite envenomation time-critical actions must include rapid transport"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_snakebite_harmful_first_aid_observation_coagulopathy_reaction_and_fasciotomy_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Rattlesnake snakebite envenomation"
