@@ -11422,7 +11422,6 @@ const STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS = [
   "anesthetic infusion",
   "continuous eeg",
   "icu",
-  "intubation",
   "neurology",
   "propofol",
   "refractory",
