@@ -7299,15 +7299,20 @@ const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_ACTION_TERMS = [
 ];
 
 const SPINAL_EPIDURAL_ABSCESS_SURGERY_ACTION_TERMS = [
-  "decompression",
-  "drainage",
-  "neurosurgery",
-  "source control",
-  "spine surgery",
-  "surgical consultation",
+  "abscess drainage",
+  "decompressive laminectomy",
+  "drain epidural abscess",
+  "drain the abscess",
+  "epidural abscess drainage",
+  "evacuate epidural abscess",
+  "laminectomy",
+  "operative decompression",
+  "operative drainage",
+  "surgical drainage",
   "surgical decompression",
-  "감압",
-  "신경외과",
+  "surgical evacuation",
+  "수술 배농",
+  "수술적 감압",
 ];
 
 const SPINAL_EPIDURAL_ABSCESS_NEURO_SEPSIS_SAFETY_TERMS = [
@@ -26357,7 +26362,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSpinalEpiduralAbscessTimeCriticalActions,
       issue:
-        "spinal epidural abscess time-critical actions must include urgent MRI spine or whole-spine imaging, blood cultures, ESR, CRP, source cultures, or microbiology workup, empiric IV antibiotics, and neurosurgery, spine surgery, decompression, drainage, or source-control escalation",
+        "spinal epidural abscess time-critical actions must include urgent MRI spine or whole-spine imaging, blood cultures, ESR, CRP, source cultures, or microbiology workup, empiric IV antibiotics, and surgical drainage, surgical decompression, laminectomy, operative drainage, or epidural-abscess evacuation",
     },
     {
       name: "spinal_epidural_abscess_red_flags",

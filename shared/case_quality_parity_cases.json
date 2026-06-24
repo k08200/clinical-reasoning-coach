@@ -9576,7 +9576,7 @@
         "Order emergency contrast MRI spine or whole spine MRI immediately",
         "Obtain blood cultures, ESR, CRP, and source cultures before antibiotics when feasible",
         "Start empiric IV vancomycin plus cefepime or ceftriaxone antibiotics after cultures if neurologic compromise or sepsis is present",
-        "Escalate immediately to neurosurgery or spine surgery for decompression, drainage, and source control planning"
+        "Escalate immediately for operative decompression and epidural abscess drainage"
       ],
       "contraindication_checks": [
         "Perform serial neurologic exams for weakness, paralysis, sensory deficit, bowel or bladder dysfunction, and sepsis monitoring",
@@ -9600,9 +9600,75 @@
             "emergency contrast MRI spine or whole spine MRI immediately",
             "blood cultures, ESR, CRP, and source cultures before antibiotics when feasible",
             "empiric IV vancomycin plus cefepime or ceftriaxone antibiotics after cultures if neurologic compromise or sepsis is present",
-            "immediate neurosurgery or spine surgery for decompression, drainage, and source control planning",
+            "immediate operative decompression and epidural abscess drainage",
             "serial neurologic exams for weakness, paralysis, sensory deficit, bowel or bladder dysfunction, and sepsis monitoring",
             "avoid lumbar puncture or LP because it is contraindicated when SEA obstructs CSF flow and may trigger cord herniation",
+            "empiric antibiotic coverage for staphylococcus or MRSA plus anaerobe or gram-negative organisms with vancomycin, ceftriaxone, cefepime, ceftazidime, or meropenem"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "spinal_epidural_abscess_requires_specific_drainage_action",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "spinal epidural abscess time-critical actions must include urgent MRI"
+    ],
+    "overrides": {
+      "diagnosis": "Spinal epidural abscess",
+      "patient_demographics": {
+        "age": 54,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Severe back pain with fever and new leg weakness",
+      "history_of_present_illness": "Patient with diabetes and recent bacteremia has worsening atraumatic back pain, fever, focal spine tenderness, urinary retention, and new bilateral leg weakness concerning for spinal epidural abscess.",
+      "key_teaching_points": [
+        "Spinal epidural abscess is an infectious spinal cord compression emergency",
+        "MRI spine is the preferred urgent diagnostic test",
+        "Neurologic compromise requires immediate surgical drainage of the abscess"
+      ],
+      "clinical_red_flags": [
+        "Back pain with fever, bacteremia, diabetes, IVDU, recent spinal procedure, or immunosuppression",
+        "New weakness, sensory change, bowel or bladder dysfunction, sepsis, or progressive neurologic deficit"
+      ],
+      "time_critical_actions": [
+        "Order emergency contrast MRI spine or whole spine MRI immediately",
+        "Obtain blood cultures, ESR, CRP, and source cultures before antibiotics when feasible",
+        "Start empiric IV vancomycin plus cefepime or ceftriaxone antibiotics after cultures if neurologic compromise or sepsis is present",
+        "Escalate immediately to neurosurgery or spine surgery for source control planning"
+      ],
+      "contraindication_checks": [
+        "Perform serial neurologic exams for weakness, paralysis, sensory deficit, bowel or bladder dysfunction, and sepsis monitoring",
+        "Review bacteremia, endocarditis, diabetes, IVDU, immunosuppression, recent spinal procedure, staphylococcus risk, and infection source",
+        "Obtain blood culture before antibiotics when feasible, plan biopsy if stable, and do not delay empiric antibiotics for unstable patient or neurologic compromise",
+        "Avoid lumbar puncture/LP because it is contraindicated when SEA obstructs CSF flow and may trigger cord herniation",
+        "Plan immediate neurosurgery, surgical drainage, or decompression for neurologic compromise, weakness, paresis, or bowel/bladder dysfunction",
+        "Ensure empiric antibiotic coverage for staphylococcus/MRSA plus anaerobe or gram-negative organisms with vancomycin, ceftriaxone, cefepime, ceftazidime, or meropenem as indicated"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Spinal Epidural Abscess",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/neurologic-disorders/spinal-cord-disorders/spinal-epidural-abscess",
+          "supports": [
+            "spinal epidural abscess diagnosis and risk stratification",
+            "spinal epidural abscess is an infectious spinal cord compression emergency",
+            "MRI spine is the preferred urgent diagnostic test",
+            "neurologic compromise requires immediate surgical drainage of the abscess",
+            "back pain with fever, bacteremia, diabetes, IVDU, recent spinal procedure, or immunosuppression as red flags",
+            "new weakness, sensory change, bowel or bladder dysfunction, sepsis, or progressive neurologic deficit as severity markers",
+            "emergency contrast MRI spine or whole spine MRI immediately",
+            "blood cultures, ESR, CRP, and source cultures before antibiotics when feasible",
+            "empiric IV vancomycin plus cefepime or ceftriaxone antibiotics after cultures if neurologic compromise or sepsis is present",
+            "immediate neurosurgery or spine surgery for source control planning",
+            "serial neurologic exams for weakness, paralysis, sensory deficit, bowel or bladder dysfunction, and sepsis monitoring",
+            "bacteremia, endocarditis, diabetes, IVDU, immunosuppression, recent spinal procedure, staphylococcus risk, and infection source",
+            "blood culture before antibiotics when feasible, biopsy if stable, and do not delay empiric antibiotics for unstable patient or neurologic compromise",
+            "avoid lumbar puncture or LP because it is contraindicated when SEA obstructs CSF flow and may trigger cord herniation",
+            "immediate neurosurgery, surgical drainage, or decompression for neurologic compromise, weakness, paresis, or bowel/bladder dysfunction",
             "empiric antibiotic coverage for staphylococcus or MRSA plus anaerobe or gram-negative organisms with vancomycin, ceftriaxone, cefepime, ceftazidime, or meropenem"
           ]
         }
@@ -9638,7 +9704,7 @@
         "Order emergency contrast MRI spine or whole spine MRI immediately",
         "Obtain blood cultures, ESR, CRP, and source cultures before antibiotics when feasible",
         "Start empiric IV vancomycin plus cefepime or ceftriaxone antibiotics after cultures if neurologic compromise or sepsis is present",
-        "Escalate immediately to neurosurgery or spine surgery for decompression, drainage, and source control planning"
+        "Escalate immediately for operative decompression and epidural abscess drainage"
       ],
       "contraindication_checks": [
         "Perform serial neurologic exams for weakness, paralysis, sensory deficit, bowel or bladder dysfunction, and sepsis monitoring",
@@ -9659,7 +9725,7 @@
             "emergency contrast MRI spine or whole spine MRI immediately",
             "blood cultures, ESR, CRP, and source cultures before antibiotics when feasible",
             "empiric IV vancomycin plus cefepime or ceftriaxone antibiotics after cultures if neurologic compromise or sepsis is present",
-            "immediate neurosurgery or spine surgery for decompression, drainage, and source control planning",
+            "immediate operative decompression and epidural abscess drainage",
             "serial neurologic exams for weakness, paralysis, sensory deficit, bowel or bladder dysfunction, and sepsis monitoring",
             "blood culture before antibiotics when feasible, biopsy if stable, and do not delay empiric antibiotics for unstable patient or neurologic compromise"
           ]
