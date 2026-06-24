@@ -7006,11 +7006,7 @@ const ACUTE_LIMB_ISCHEMIA_REVASCULARIZATION_ACTION_TERMS = [
   "endovascular",
   "revascularization",
   "revascularisation",
-  "surgical",
   "thrombectomy",
-  "vascular surgery",
-  "vascular surgeon",
-  "혈관외과",
   "재관류",
 ];
 

@@ -8387,6 +8387,70 @@ def test_quality_gate_requires_acute_limb_ischemia_viability_heparin_and_revascu
     )
 
 
+def test_quality_gate_requires_acute_limb_ischemia_revascularization_not_consult_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute limb ischemia"
+    case["patient_demographics"] = {
+        "age": 72,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden severe left leg pain and cold foot"
+    case["history_of_present_illness"] = (
+        "Patient with atrial fibrillation develops abrupt severe leg pain, pallor, "
+        "pulseless cold limb, paresthesia, and motor weakness concerning for threatened limb."
+    )
+    case["key_teaching_points"] = [
+        "Acute limb ischemia is a vascular emergency with amputation risk",
+        "Rutherford limb viability assessment guides urgency of revascularization",
+        "Immediate anticoagulation and urgent vascular surgery escalation are time-critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden pain, pallor, pulselessness, paresthesia, paralysis, or poikilothermia",
+        "Motor deficit, sensory deficit, absent Doppler pulse, or threatened limb viability",
+    ]
+    case["time_critical_actions"] = [
+        "Assess 6 Ps, pulses, capillary refill, Doppler signals, motor deficit, sensory deficit, and Rutherford limb viability",
+        "Start immediate IV unfractionated heparin infusion and anticoagulation planning if no contraindication",
+        "Call vascular surgery urgently for threatened acute limb ischemia",
+    ]
+    case["contraindication_checks"] = [
+        "Review active bleeding, intracranial hemorrhage, platelet count, recent surgery, heparin contraindication, and thrombolysis bleeding risk",
+        "Monitor irreversible Rutherford III limb, paralysis, muscle necrosis, compartment syndrome, reperfusion injury, and fasciotomy need",
+        "Review atrial fibrillation cardiac embolic source, thrombosis, popliteal aneurysm, trauma, and vascular access causes",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute Limb Ischemia: An Update on Diagnosis and Management",
+            "organization": "National Institutes of Health",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6723825/",
+            "supports": [
+                "acute limb ischemia diagnosis and risk stratification",
+                "acute limb ischemia is a vascular emergency with amputation risk",
+                "Rutherford limb viability assessment guides urgency of revascularization",
+                "immediate anticoagulation and urgent vascular surgery escalation are time-critical",
+                "sudden pain, pallor, pulselessness, paresthesia, paralysis, or poikilothermia as red flags",
+                "motor deficit, sensory deficit, absent Doppler pulse, or threatened limb viability as severity markers",
+                "6 Ps, pulses, capillary refill, Doppler signals, motor deficit, sensory deficit, and Rutherford limb viability assessment",
+                "immediate IV unfractionated heparin infusion and anticoagulation planning if no contraindication",
+                "vascular surgery urgently for threatened acute limb ischemia",
+                "active bleeding, intracranial hemorrhage, platelet count, recent surgery, heparin contraindication, and thrombolysis bleeding risk",
+                "irreversible Rutherford III limb, paralysis, muscle necrosis, compartment syndrome, reperfusion injury, and fasciotomy need",
+                "atrial fibrillation cardiac embolic source, thrombosis, popliteal aneurysm, trauma, and vascular access causes",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute limb ischemia time-critical actions must include pulse" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acute_limb_ischemia_bleeding_compartment_and_cause_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute limb ischemia"
