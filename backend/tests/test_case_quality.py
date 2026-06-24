@@ -21024,6 +21024,40 @@ def test_quality_gate_requires_stroke_last_known_normal_and_imaging_actions():
     )
 
 
+def test_quality_gate_requires_stroke_specific_thrombolysis_or_thrombectomy_action():
+    case = copy.deepcopy(CASE_POOL[4])
+    case["time_critical_actions"] = [
+        "Establish last known normal and activate stroke pathway immediately",
+        "Obtain noncontrast head CT to exclude hemorrhage without delaying treatment decision",
+        "Review reperfusion eligibility in parallel",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "acute stroke diagnosis and severity assessment",
+        "sudden focal neurologic deficit and NIHSS severity assessment",
+        "potentially treatable stroke within reperfusion window from last known normal",
+        "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+        "establish last known normal and activate stroke pathway immediately",
+        "noncontrast head CT to exclude hemorrhage before treatment decision",
+        "reperfusion eligibility review in parallel",
+        "intracranial hemorrhage or early extensive ischemic change on imaging",
+        "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "large vessel occlusion criteria and transfer needs for thrombectomy",
+        "CTA vascular imaging and CT perfusion or MRA MR perfusion when needed for thrombectomy selection",
+        "NIHSS, modified Rankin mRS, ASPECTS, large vessel occlusion LVO, 6 hours, 24 hours, salvageable tissue, and thrombectomy eligibility",
+        "stroke service or stroke unit with stroke physician oversight, thrombolysis protocol, post-thrombolysis complication monitoring, and follow-up imaging or re-imaging",
+        "aspirin, antiplatelet, and anticoagulation timing with dysphagia-safe enteral or rectal swallow route",
+        "oxygen saturation SpO2, blood glucose, temperature, and dysphagia swallow screen",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "stroke time-critical actions must include last-known-normal timing" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_stroke_reperfusion_contraindication_checks():
     case = copy.deepcopy(CASE_POOL[4])
     case["contraindication_checks"] = [

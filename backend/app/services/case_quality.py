@@ -14062,14 +14062,16 @@ STROKE_BRAIN_IMAGING_TERMS = (
 )
 STROKE_REPERFUSION_ACTION_TERMS = (
     "alteplase",
-    "eligibility",
-    "reperfusion",
+    "fibrinolysis",
+    "mechanical thrombectomy",
+    "tenecteplase",
     "thrombectomy",
     "thrombolysis",
+    "thrombolytic",
+    "tnk",
     "tpa",
     "혈전용해",
     "혈전제거",
-    "재관류",
 )
 STROKE_HEMORRHAGE_EXCLUSION_TERMS = (
     "bleeding",
@@ -18943,7 +18945,7 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_stroke_time_critical_actions,
             issue=(
                 "stroke time-critical actions must include last-known-normal "
-                "timing, brain imaging, and reperfusion eligibility planning"
+                "timing, brain imaging, and thrombolysis or thrombectomy planning"
             ),
         ),
         DomainSafetyGate(

@@ -15438,14 +15438,16 @@ const STROKE_BRAIN_IMAGING_TERMS = [
 
 const STROKE_REPERFUSION_ACTION_TERMS = [
   "alteplase",
-  "eligibility",
-  "reperfusion",
+  "fibrinolysis",
+  "mechanical thrombectomy",
+  "tenecteplase",
   "thrombectomy",
   "thrombolysis",
+  "thrombolytic",
+  "tnk",
   "tpa",
   "혈전용해",
   "혈전제거",
-  "재관류",
 ];
 
 const STROKE_HEMORRHAGE_EXCLUSION_TERMS = [
@@ -27626,7 +27628,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasStrokeTimeCriticalActions,
       issue:
-        "stroke time-critical actions must include last-known-normal timing, brain imaging, and reperfusion eligibility planning",
+        "stroke time-critical actions must include last-known-normal timing, brain imaging, and thrombolysis or thrombectomy planning",
     },
     {
       name: "stroke_reperfusion_safety",
