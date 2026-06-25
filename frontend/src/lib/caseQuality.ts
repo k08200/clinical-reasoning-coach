@@ -15997,19 +15997,38 @@ const AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS = [
   "혈압",
 ];
 
-const AORTIC_DISSECTION_SURGICAL_ACTION_TERMS = [
+const AORTIC_DISSECTION_SURGICAL_TEAM_ACTION_TERMS = [
   "aortic team",
+  "cardiac surgery",
   "cardiothoracic",
-  "surgery",
-  "surgical",
+  "cardiothoracic surgery",
   "transfer",
-  "type a",
   "vascular surgery",
   "대동맥팀",
   "심장외과",
-  "수술",
   "전원",
   "혈관외과",
+];
+
+const AORTIC_DISSECTION_REPAIR_PATHWAY_ACTION_TERMS = [
+  "aortic replacement",
+  "aortic repair",
+  "ascending aortic repair",
+  "bentall",
+  "complicated type b tevar",
+  "endovascular repair",
+  "endovascular stent",
+  "emergent open repair",
+  "intimal tear excision",
+  "open aortic repair",
+  "open repair",
+  "operative repair",
+  "surgical repair",
+  "tevar",
+  "thoracic endovascular aortic repair",
+  "urgent surgical repair",
+  "대동맥 수복",
+  "응급 수술",
 ];
 
 const AORTIC_DISSECTION_ANTITHROMBOTIC_SAFETY_TERMS = [
@@ -25398,10 +25417,13 @@ function hasAorticDissectionTimeCriticalActions(actions: string[]): boolean {
   const hasAntiImpulse = AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSurgicalEscalation = AORTIC_DISSECTION_SURGICAL_ACTION_TERMS.some((term) =>
+  const hasSurgicalTeam = AORTIC_DISSECTION_SURGICAL_TEAM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasAorticImaging && hasAntiImpulse && hasSurgicalEscalation;
+  const hasRepairPathway = AORTIC_DISSECTION_REPAIR_PATHWAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAorticImaging && hasAntiImpulse && hasSurgicalTeam && hasRepairPathway;
 }
 
 function hasAorticDissectionTreatmentSafetyCheck(checks: string[]): boolean {
@@ -27930,7 +27952,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAorticDissectionTimeCriticalActions,
       issue:
-        "aortic dissection time-critical actions must include definitive aortic imaging, anti-impulse blood pressure or heart-rate control, and cardiothoracic, vascular, or aortic-team surgical escalation",
+        "aortic dissection time-critical actions must include definitive aortic imaging, anti-impulse blood pressure or heart-rate control, cardiothoracic, cardiac surgery, vascular surgery, transfer, or aortic-team escalation, and specific type A open aortic repair, ascending aortic repair, aortic replacement, intimal tear excision, Bentall, operative repair, surgical repair, or complicated type B TEVAR/endovascular repair pathway",
     },
     {
       name: "aortic_dissection_treatment_safety",

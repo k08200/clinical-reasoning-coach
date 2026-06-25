@@ -14592,19 +14592,37 @@ AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS = (
     "진통",
     "혈압",
 )
-AORTIC_DISSECTION_SURGICAL_ACTION_TERMS = (
+AORTIC_DISSECTION_SURGICAL_TEAM_ACTION_TERMS = (
     "aortic team",
+    "cardiac surgery",
     "cardiothoracic",
-    "surgery",
-    "surgical",
+    "cardiothoracic surgery",
     "transfer",
-    "type a",
     "vascular surgery",
     "대동맥팀",
     "심장외과",
-    "수술",
     "전원",
     "혈관외과",
+)
+AORTIC_DISSECTION_REPAIR_PATHWAY_ACTION_TERMS = (
+    "aortic replacement",
+    "aortic repair",
+    "ascending aortic repair",
+    "bentall",
+    "complicated type b tevar",
+    "endovascular repair",
+    "endovascular stent",
+    "emergent open repair",
+    "intimal tear excision",
+    "open aortic repair",
+    "open repair",
+    "operative repair",
+    "surgical repair",
+    "tevar",
+    "thoracic endovascular aortic repair",
+    "urgent surgical repair",
+    "대동맥 수복",
+    "응급 수술",
 )
 AORTIC_DISSECTION_ANTITHROMBOTIC_SAFETY_TERMS = (
     "anticoagulation",
@@ -19219,7 +19237,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "aortic dissection time-critical actions must include definitive "
                 "aortic imaging, anti-impulse blood pressure or heart-rate control, "
-                "and cardiothoracic, vascular, or aortic-team surgical escalation"
+                "cardiothoracic, cardiac surgery, vascular surgery, transfer, "
+                "or aortic-team escalation, and specific type A open aortic "
+                "repair, ascending aortic repair, aortic replacement, intimal "
+                "tear excision, Bentall, operative repair, surgical repair, or "
+                "complicated type B TEVAR/endovascular repair pathway"
             ),
         ),
         DomainSafetyGate(
@@ -30857,11 +30879,15 @@ def _has_aortic_dissection_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS
     )
-    has_surgical_escalation = any(
+    has_surgical_team = any(
         _contains_safety_term(normalized_actions, term)
-        for term in AORTIC_DISSECTION_SURGICAL_ACTION_TERMS
+        for term in AORTIC_DISSECTION_SURGICAL_TEAM_ACTION_TERMS
     )
-    return has_aortic_imaging and has_anti_impulse and has_surgical_escalation
+    has_repair_pathway = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in AORTIC_DISSECTION_REPAIR_PATHWAY_ACTION_TERMS
+    )
+    return has_aortic_imaging and has_anti_impulse and has_surgical_team and has_repair_pathway
 
 
 def _has_aortic_dissection_treatment_safety_check(checks: list[Any]) -> bool:
