@@ -6310,15 +6310,25 @@ ACUTE_COMPARTMENT_SYNDROME_PRESSURE_ACTION_TERMS = (
     "pressure monitoring",
     "압력",
 )
-ACUTE_COMPARTMENT_SYNDROME_DECOMPRESSION_ACTION_TERMS = (
-    "fasciotomy",
+ACUTE_COMPARTMENT_SYNDROME_SURGICAL_TEAM_ACTION_TERMS = (
     "orthopedic",
     "orthopaedic",
-    "surgical decompression",
-    "surgical emergency",
+    "orthopedics",
+    "orthopaedics",
+    "surgeon",
     "surgery",
-    "urgent decompression",
+    "surgery consult",
+    "surgical consult",
+    "trauma surgery",
     "정형외과",
+)
+ACUTE_COMPARTMENT_SYNDROME_DECOMPRESSION_ACTION_TERMS = (
+    "compartment release",
+    "complete decompression",
+    "fasciotomy",
+    "operative decompression",
+    "surgical decompression",
+    "urgent decompression",
     "근막절개",
 )
 ACUTE_COMPARTMENT_SYNDROME_TEMPORIZE_ACTION_TERMS = (
@@ -16802,12 +16812,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "pulse, capillary-refill, neurovascular, or serial limb exam, "
                 "intracompartmental pressure, compartment pressure, delta "
                 "pressure, diastolic pressure, pressure measurement, or pressure "
-                "monitoring when diagnosis is uncertain, urgent orthopedic or "
-                "orthopaedic surgery consultation, fasciotomy, surgical "
-                "decompression, or urgent decompression, and temporizing removal "
-                "or release of cast, splint, dressing, or circumferential "
-                "compression with heart-level limb positioning and blood-pressure "
-                "support"
+                "monitoring when diagnosis is uncertain, urgent orthopedic, "
+                "orthopaedic, surgery, surgeon, or trauma-surgery consultation, "
+                "specific fasciotomy, compartment release, complete "
+                "decompression, surgical decompression, operative decompression, "
+                "or urgent decompression planning, and temporizing removal or "
+                "release of cast, splint, dressing, or circumferential compression "
+                "with heart-level limb positioning and blood-pressure support"
             ),
         ),
         DomainSafetyGate(
@@ -24074,6 +24085,10 @@ def _has_acute_compartment_syndrome_time_critical_actions(
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_COMPARTMENT_SYNDROME_PRESSURE_ACTION_TERMS
     )
+    has_surgical_team = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_COMPARTMENT_SYNDROME_SURGICAL_TEAM_ACTION_TERMS
+    )
     has_decompression = any(
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_COMPARTMENT_SYNDROME_DECOMPRESSION_ACTION_TERMS
@@ -24085,6 +24100,7 @@ def _has_acute_compartment_syndrome_time_critical_actions(
     return (
         has_limb_exam
         and has_pressure_pathway
+        and has_surgical_team
         and has_decompression
         and has_temporizing_release
     )

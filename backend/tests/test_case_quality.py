@@ -8396,6 +8396,78 @@ def test_quality_gate_requires_acute_compartment_syndrome_limb_exam_pressure_dec
     )
 
 
+def test_quality_gate_requires_acute_compartment_syndrome_specific_fasciotomy_not_ortho_consult_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute compartment syndrome after tibial fracture"
+    case["patient_demographics"] = {
+        "age": 29,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe leg pain after tibial fracture and tight splint"
+    case["history_of_present_illness"] = (
+        "Patient with high-energy tibial fracture and tight splint has worsening "
+        "severe limb pain, pain out of proportion, pain on passive stretch, "
+        "paresthesias, and a tense compartment concerning for acute compartment syndrome."
+    )
+    case["key_teaching_points"] = [
+        "Acute compartment syndrome is a surgical emergency",
+        "Pain out of proportion and pain on passive stretch are key early findings",
+        "Compartment pressure or delta pressure measurement helps when diagnosis is uncertain",
+        "Definitive treatment is urgent fasciotomy with complete surgical decompression",
+    ]
+    case["clinical_red_flags"] = [
+        "Pain out of proportion, pain on passive stretch, tense compartment, paresthesia, or worsening pain despite analgesia",
+        "Fracture, crush injury, burn, tight dressing, cast, vascular injury, or reperfusion risk",
+    ]
+    case["time_critical_actions"] = [
+        "Perform serial neurovascular limb exam for pain out of proportion, pain on passive stretch, tense compartment, pulse, and capillary refill",
+        "Measure intracompartmental pressure, compartment pressure, delta pressure, and diastolic pressure or use pressure monitoring when diagnosis is uncertain",
+        "Call orthopedic surgery urgently for operative evaluation and compartment syndrome management",
+        "Remove dressing, remove cast or splint, bivalve circumferential compression, keep limb at heart level, and maintain blood pressure while avoiding hypotension",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay urgent surgery and plan emergent fasciotomy within 1 hour when the decision to operate is made",
+        "Assess regional anesthesia, sedation, analgesia dose, consciousness, unable-to-assess status, and serial reassessment because symptoms can be masked",
+        "Monitor ischemia, muscle necrosis, nerve injury, limb loss, rhabdomyolysis, hyperkalemia, AKI, and renal failure",
+        "Review fracture, crush injury, burn, cast, tight dressing, vascular injury, and reperfusion causes",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute Compartment Syndrome",
+            "organization": "StatPearls, NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK448124/",
+            "supports": [
+                "acute compartment syndrome after tibial fracture diagnosis and risk stratification",
+                "acute compartment syndrome is a surgical emergency",
+                "pain out of proportion and pain on passive stretch are key early findings",
+                "compartment pressure or delta pressure measurement helps when diagnosis is uncertain",
+                "definitive treatment is urgent fasciotomy with complete surgical decompression",
+                "pain out of proportion, pain on passive stretch, tense compartment, paresthesia, or worsening pain despite analgesia as red flags",
+                "fracture, crush injury, burn, tight dressing, cast, vascular injury, or reperfusion risk as causes",
+                "serial neurovascular limb exam for pain out of proportion, pain on passive stretch, tense compartment, pulse, and capillary refill",
+                "intracompartmental pressure, compartment pressure, delta pressure, diastolic pressure, and pressure monitoring when diagnosis is uncertain",
+                "orthopedic surgery urgent operative evaluation and compartment syndrome management",
+                "dressing release, cast removal, splint removal, bivalve circumferential compression, heart-level limb positioning, and blood pressure support",
+                "urgent surgery without delay and emergent fasciotomy within 1 hour when the decision to operate is made",
+                "regional anesthesia, sedation, analgesia dose, consciousness, unable-to-assess status, and serial reassessment because symptoms can be masked",
+                "ischemia, muscle necrosis, nerve injury, limb loss, rhabdomyolysis, hyperkalemia, AKI, and renal failure monitoring",
+                "fracture, crush injury, burn, cast, tight dressing, vascular injury, and reperfusion cause review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute compartment syndrome time-critical actions must include pain-out-of-proportion"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acute_compartment_syndrome_delay_masking_complication_and_cause_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute compartment syndrome after tibial fracture"

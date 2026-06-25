@@ -6907,15 +6907,26 @@ const ACUTE_COMPARTMENT_SYNDROME_PRESSURE_ACTION_TERMS = [
   "압력",
 ];
 
-const ACUTE_COMPARTMENT_SYNDROME_DECOMPRESSION_ACTION_TERMS = [
-  "fasciotomy",
+const ACUTE_COMPARTMENT_SYNDROME_SURGICAL_TEAM_ACTION_TERMS = [
   "orthopedic",
   "orthopaedic",
-  "surgical decompression",
-  "surgical emergency",
+  "orthopedics",
+  "orthopaedics",
+  "surgeon",
   "surgery",
-  "urgent decompression",
+  "surgery consult",
+  "surgical consult",
+  "trauma surgery",
   "정형외과",
+];
+
+const ACUTE_COMPARTMENT_SYNDROME_DECOMPRESSION_ACTION_TERMS = [
+  "compartment release",
+  "complete decompression",
+  "fasciotomy",
+  "operative decompression",
+  "surgical decompression",
+  "urgent decompression",
   "근막절개",
 ];
 
@@ -20013,13 +20024,22 @@ function hasAcuteCompartmentSyndromeTimeCriticalActions(actions: string[]): bool
   const hasPressurePathway = ACUTE_COMPARTMENT_SYNDROME_PRESSURE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasSurgicalTeam = ACUTE_COMPARTMENT_SYNDROME_SURGICAL_TEAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasDecompression = ACUTE_COMPARTMENT_SYNDROME_DECOMPRESSION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasTemporizingRelease = ACUTE_COMPARTMENT_SYNDROME_TEMPORIZE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasLimbExam && hasPressurePathway && hasDecompression && hasTemporizingRelease;
+  return (
+    hasLimbExam &&
+    hasPressurePathway &&
+    hasSurgicalTeam &&
+    hasDecompression &&
+    hasTemporizingRelease
+  );
 }
 
 function hasAcuteCompartmentSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26548,7 +26568,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcuteCompartmentSyndromeTimeCriticalActions,
       issue:
-        "acute compartment syndrome time-critical actions must include pain-out-of-proportion, passive-stretch, tense-compartment, pulse, capillary-refill, neurovascular, or serial limb exam, intracompartmental pressure, compartment pressure, delta pressure, diastolic pressure, pressure measurement, or pressure monitoring when diagnosis is uncertain, urgent orthopedic or orthopaedic surgery consultation, fasciotomy, surgical decompression, or urgent decompression, and temporizing removal or release of cast, splint, dressing, or circumferential compression with heart-level limb positioning and blood-pressure support",
+        "acute compartment syndrome time-critical actions must include pain-out-of-proportion, passive-stretch, tense-compartment, pulse, capillary-refill, neurovascular, or serial limb exam, intracompartmental pressure, compartment pressure, delta pressure, diastolic pressure, pressure measurement, or pressure monitoring when diagnosis is uncertain, urgent orthopedic, orthopaedic, surgery, surgeon, or trauma-surgery consultation, specific fasciotomy, compartment release, complete decompression, surgical decompression, operative decompression, or urgent decompression planning, and temporizing removal or release of cast, splint, dressing, or circumferential compression with heart-level limb positioning and blood-pressure support",
     },
     {
       name: "acute_compartment_syndrome_treatment_safety",
