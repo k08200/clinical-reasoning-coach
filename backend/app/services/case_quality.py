@@ -8072,15 +8072,27 @@ RUPTURED_AAA_CONTEXT_TERMS = (
     "대동맥류 파열",
     "복부 대동맥류",
 )
-RUPTURED_AAA_VASCULAR_ACTION_TERMS = (
-    "aneurysm repair",
-    "evar",
-    "open repair",
-    "operative repair",
+RUPTURED_AAA_VASCULAR_TEAM_ACTION_TERMS = (
+    "regional vascular service",
+    "urgent vascular",
     "vascular surgery",
     "vascular surgeon",
+    "vascular team",
     "혈관외과",
-    "수술",
+)
+RUPTURED_AAA_REPAIR_ACTION_TERMS = (
+    "aneurysm repair",
+    "endovascular aneurysm repair",
+    "endovascular repair",
+    "evar",
+    "open repair",
+    "open surgical repair",
+    "operative aneurysm repair",
+    "operative repair",
+    "standard evar",
+    "stent graft",
+    "대동맥류 수복",
+    "동맥류 수복",
 )
 RUPTURED_AAA_HEMODYNAMIC_ACTION_TERMS = (
     "controlled resuscitation",
@@ -17321,11 +17333,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_ruptured_aaa_time_critical_actions,
             issue=(
                 "ruptured or symptomatic abdominal aortic aneurysm time-critical "
-                "actions must include immediate vascular surgery, EVAR, open "
-                "repair, or operative repair escalation, permissive hypotension "
-                "or controlled restrictive resuscitation planning, blood product, "
-                "crossmatch, large-bore access, or massive transfusion preparation, "
-                "and bedside ultrasound, CTA, or imaging-not-to-delay strategy"
+                "actions must include immediate vascular surgery, vascular "
+                "team, vascular surgeon, or regional vascular service "
+                "escalation, specific EVAR, endovascular aneurysm repair, "
+                "open surgical repair, operative aneurysm repair, or stent-graft "
+                "repair planning, permissive hypotension or controlled "
+                "restrictive resuscitation planning, blood product, crossmatch, "
+                "large-bore access, or massive transfusion preparation, and "
+                "bedside ultrasound, CTA, or imaging-not-to-delay strategy"
             ),
         ),
         DomainSafetyGate(
@@ -25391,9 +25406,13 @@ def _requires_ruptured_aaa_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_ruptured_aaa_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_vascular_action = any(
+    has_vascular_team = any(
         _contains_safety_term(normalized_actions, term)
-        for term in RUPTURED_AAA_VASCULAR_ACTION_TERMS
+        for term in RUPTURED_AAA_VASCULAR_TEAM_ACTION_TERMS
+    )
+    has_repair_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RUPTURED_AAA_REPAIR_ACTION_TERMS
     )
     has_hemodynamic_action = any(
         _contains_safety_term(normalized_actions, term)
@@ -25408,7 +25427,8 @@ def _has_ruptured_aaa_time_critical_actions(actions: list[Any]) -> bool:
         for term in RUPTURED_AAA_IMAGING_ACTION_TERMS
     )
     return (
-        has_vascular_action
+        has_vascular_team
+        and has_repair_action
         and has_hemodynamic_action
         and has_blood_action
         and has_imaging_action

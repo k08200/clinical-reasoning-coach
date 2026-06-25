@@ -8836,15 +8836,28 @@ const RUPTURED_AAA_CONTEXT_TERMS = [
   "복부 대동맥류",
 ];
 
-const RUPTURED_AAA_VASCULAR_ACTION_TERMS = [
-  "aneurysm repair",
-  "evar",
-  "open repair",
-  "operative repair",
+const RUPTURED_AAA_VASCULAR_TEAM_ACTION_TERMS = [
+  "regional vascular service",
+  "urgent vascular",
   "vascular surgery",
   "vascular surgeon",
+  "vascular team",
   "혈관외과",
-  "수술",
+];
+
+const RUPTURED_AAA_REPAIR_ACTION_TERMS = [
+  "aneurysm repair",
+  "endovascular aneurysm repair",
+  "endovascular repair",
+  "evar",
+  "open repair",
+  "open surgical repair",
+  "operative aneurysm repair",
+  "operative repair",
+  "standard evar",
+  "stent graft",
+  "대동맥류 수복",
+  "동맥류 수복",
 ];
 
 const RUPTURED_AAA_HEMODYNAMIC_ACTION_TERMS = [
@@ -21048,7 +21061,10 @@ function requiresRupturedAaaSafetyCheck(detail: ClinicalCaseReviewDetail): boole
 
 function hasRupturedAaaTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasVascularAction = RUPTURED_AAA_VASCULAR_ACTION_TERMS.some((term) =>
+  const hasVascularTeam = RUPTURED_AAA_VASCULAR_TEAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRepairAction = RUPTURED_AAA_REPAIR_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasHemodynamicAction = RUPTURED_AAA_HEMODYNAMIC_ACTION_TERMS.some((term) =>
@@ -21060,7 +21076,13 @@ function hasRupturedAaaTimeCriticalActions(actions: string[]): boolean {
   const hasImagingAction = RUPTURED_AAA_IMAGING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasVascularAction && hasHemodynamicAction && hasBloodAction && hasImagingAction;
+  return (
+    hasVascularTeam &&
+    hasRepairAction &&
+    hasHemodynamicAction &&
+    hasBloodAction &&
+    hasImagingAction
+  );
 }
 
 function hasRupturedAaaTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26792,7 +26814,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasRupturedAaaTimeCriticalActions,
       issue:
-        "ruptured or symptomatic abdominal aortic aneurysm time-critical actions must include immediate vascular surgery, EVAR, open repair, or operative repair escalation, permissive hypotension or controlled restrictive resuscitation planning, blood product, crossmatch, large-bore access, or massive transfusion preparation, and bedside ultrasound, CTA, or imaging-not-to-delay strategy",
+        "ruptured or symptomatic abdominal aortic aneurysm time-critical actions must include immediate vascular surgery, vascular team, vascular surgeon, or regional vascular service escalation, specific EVAR, endovascular aneurysm repair, open surgical repair, operative aneurysm repair, or stent-graft repair planning, permissive hypotension or controlled restrictive resuscitation planning, blood product, crossmatch, large-bore access, or massive transfusion preparation, and bedside ultrasound, CTA, or imaging-not-to-delay strategy",
     },
     {
       name: "ruptured_aaa_treatment_safety",
