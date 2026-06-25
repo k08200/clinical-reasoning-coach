@@ -8403,17 +8403,26 @@ const ACUTE_APPENDICITIS_RISK_IMAGING_ACTION_TERMS = [
   "초음파",
 ];
 
-const ACUTE_APPENDICITIS_SURGERY_ACTION_TERMS = [
-  "appendectomy",
-  "appendicectomy",
-  "laparoscopic",
-  "laparoscopy",
-  "operation",
+const ACUTE_APPENDICITIS_SURGERY_TEAM_ACTION_TERMS = [
+  "acute care surgery",
+  "general surgery",
   "surgeon",
   "surgery",
   "surgical consult",
-  "수술",
   "외과",
+];
+
+const ACUTE_APPENDICITIS_APPENDICECTOMY_ACTION_TERMS = [
+  "appendectomy",
+  "appendiceal source control",
+  "appendicectomy",
+  "laparoscopic appendectomy",
+  "laparoscopic appendicectomy",
+  "laparoscopic surgery",
+  "laparoscopy",
+  "operative appendectomy",
+  "충수절제",
+  "충수절제술",
 ];
 
 const ACUTE_APPENDICITIS_ANTIBIOTIC_ACTION_TERMS = [
@@ -20739,7 +20748,10 @@ function hasAcuteAppendicitisTimeCriticalActions(actions: string[]): boolean {
   const hasRiskImaging = ACUTE_APPENDICITIS_RISK_IMAGING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSurgery = ACUTE_APPENDICITIS_SURGERY_ACTION_TERMS.some((term) =>
+  const hasSurgeryTeam = ACUTE_APPENDICITIS_SURGERY_TEAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAppendectomyPathway = ACUTE_APPENDICITIS_APPENDICECTOMY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasAntibiotic = ACUTE_APPENDICITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
@@ -20748,7 +20760,13 @@ function hasAcuteAppendicitisTimeCriticalActions(actions: string[]): boolean {
   const hasComplicationAssessment = ACUTE_APPENDICITIS_COMPLICATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasRiskImaging && hasSurgery && hasAntibiotic && hasComplicationAssessment;
+  return (
+    hasRiskImaging &&
+    hasSurgeryTeam &&
+    hasAppendectomyPathway &&
+    hasAntibiotic &&
+    hasComplicationAssessment
+  );
 }
 
 function hasAcuteAppendicitisTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26660,7 +26678,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcuteAppendicitisTimeCriticalActions,
       issue:
-        "acute appendicitis time-critical actions must include clinical risk score, Alvarado, AIR score, Adult Appendicitis Score, ultrasound, CT, MRI, or imaging assessment, urgent surgery, surgeon, surgical consult, appendectomy, appendicectomy, laparoscopy, or operative pathway, perioperative, preoperative, broad-spectrum, ceftriaxone, metronidazole, cefoxitin, piperacillin, or antibiotic planning, and complicated appendicitis assessment for perforation, peritonitis, abscess, phlegmon, drainage, sepsis, or source control",
+        "acute appendicitis time-critical actions must include clinical risk score, Alvarado, AIR score, Adult Appendicitis Score, ultrasound, CT, MRI, or imaging assessment, urgent surgery, surgeon, acute-care surgery, or surgical consultation escalation, specific appendectomy, appendicectomy, laparoscopic appendectomy, laparoscopy, or appendiceal source-control pathway, perioperative, preoperative, broad-spectrum, ceftriaxone, metronidazole, cefoxitin, piperacillin, or antibiotic planning, and complicated appendicitis assessment for perforation, peritonitis, abscess, phlegmon, drainage, sepsis, or source control",
     },
     {
       name: "acute_appendicitis_treatment_safety",

@@ -7674,17 +7674,25 @@ ACUTE_APPENDICITIS_RISK_IMAGING_ACTION_TERMS = (
     "ultrasound",
     "초음파",
 )
-ACUTE_APPENDICITIS_SURGERY_ACTION_TERMS = (
-    "appendectomy",
-    "appendicectomy",
-    "laparoscopic",
-    "laparoscopy",
-    "operation",
+ACUTE_APPENDICITIS_SURGERY_TEAM_ACTION_TERMS = (
+    "acute care surgery",
+    "general surgery",
     "surgeon",
     "surgery",
     "surgical consult",
-    "수술",
     "외과",
+)
+ACUTE_APPENDICITIS_APPENDICECTOMY_ACTION_TERMS = (
+    "appendectomy",
+    "appendiceal source control",
+    "appendicectomy",
+    "laparoscopic appendectomy",
+    "laparoscopic appendicectomy",
+    "laparoscopic surgery",
+    "laparoscopy",
+    "operative appendectomy",
+    "충수절제",
+    "충수절제술",
 )
 ACUTE_APPENDICITIS_ANTIBIOTIC_ACTION_TERMS = (
     "antibiotic",
@@ -17160,10 +17168,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "acute appendicitis time-critical actions must include clinical "
                 "risk score, Alvarado, AIR score, Adult Appendicitis Score, "
                 "ultrasound, CT, MRI, or imaging assessment, urgent surgery, "
-                "surgeon, surgical consult, appendectomy, appendicectomy, "
-                "laparoscopy, or operative pathway, perioperative, preoperative, "
-                "broad-spectrum, ceftriaxone, metronidazole, cefoxitin, "
-                "piperacillin, or antibiotic planning, and complicated "
+                "surgeon, acute-care surgery, or surgical consultation escalation, "
+                "specific appendectomy, appendicectomy, laparoscopic appendectomy, "
+                "laparoscopy, or appendiceal source-control pathway, perioperative, "
+                "preoperative, broad-spectrum, ceftriaxone, metronidazole, "
+                "cefoxitin, piperacillin, or antibiotic planning, and complicated "
                 "appendicitis assessment for perforation, peritonitis, abscess, "
                 "phlegmon, drainage, sepsis, or source control"
             ),
@@ -25031,9 +25040,13 @@ def _has_acute_appendicitis_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_APPENDICITIS_RISK_IMAGING_ACTION_TERMS
     )
-    has_surgery = any(
+    has_surgery_team = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_APPENDICITIS_SURGERY_ACTION_TERMS
+        for term in ACUTE_APPENDICITIS_SURGERY_TEAM_ACTION_TERMS
+    )
+    has_appendectomy_pathway = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_APPENDICITIS_APPENDICECTOMY_ACTION_TERMS
     )
     has_antibiotic = any(
         _contains_safety_term(normalized_actions, term)
@@ -25043,7 +25056,13 @@ def _has_acute_appendicitis_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_APPENDICITIS_COMPLICATION_ACTION_TERMS
     )
-    return has_risk_imaging and has_surgery and has_antibiotic and has_complication_assessment
+    return (
+        has_risk_imaging
+        and has_surgery_team
+        and has_appendectomy_pathway
+        and has_antibiotic
+        and has_complication_assessment
+    )
 
 
 def _has_acute_appendicitis_treatment_safety_check(checks: list[Any]) -> bool:
