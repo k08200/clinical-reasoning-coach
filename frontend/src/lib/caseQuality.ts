@@ -8538,17 +8538,46 @@ const ACUTE_MESENTERIC_ISCHEMIA_ANTIBIOTIC_ACTION_TERMS = [
   "항생제",
 ];
 
-const ACUTE_MESENTERIC_ISCHEMIA_SURGERY_REVASCULARIZATION_ACTION_TERMS = [
-  "embolectomy",
-  "endovascular",
-  "exploratory laparotomy",
-  "laparotomy",
-  "resection",
-  "revascularization",
-  "revascularisation",
-  "sma",
+const ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_ACTION_TERMS = [
+  "anticoagulation",
+  "full-dose anticoagulation",
+  "heparin",
+  "therapeutic anticoagulation",
+  "unfractionated heparin",
+  "항응고",
+];
+
+const ACUTE_MESENTERIC_ISCHEMIA_SURGERY_TEAM_ACTION_TERMS = [
+  "acute care surgery",
+  "general surgery",
+  "interventional radiology",
+  "surgeon",
+  "surgical consult",
   "vascular surgery",
+  "vascular surgeon",
   "혈관외과",
+];
+
+const ACUTE_MESENTERIC_ISCHEMIA_REVASCULARIZATION_SOURCE_CONTROL_ACTION_TERMS = [
+  "bowel resection",
+  "damage control laparotomy",
+  "embolectomy",
+  "endovascular intervention",
+  "endovascular revascularization",
+  "endovascular therapy",
+  "exploratory laparotomy",
+  "ischemic bowel resection",
+  "laparotomy",
+  "mesenteric revascularization",
+  "necrotic bowel resection",
+  "revascularisation",
+  "revascularization",
+  "sma bypass",
+  "sma stent",
+  "sma thrombectomy",
+  "thrombectomy",
+  "thrombolysis",
+  "장 절제",
   "재관류",
 ];
 
@@ -20825,11 +20854,24 @@ function hasAcuteMesentericIschemiaTimeCriticalActions(actions: string[]): boole
   const hasAntibiotic = ACUTE_MESENTERIC_ISCHEMIA_ANTIBIOTIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSurgeryRevascularization =
-    ACUTE_MESENTERIC_ISCHEMIA_SURGERY_REVASCULARIZATION_ACTION_TERMS.some((term) =>
+  const hasAnticoagulation = ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSurgeryTeam = ACUTE_MESENTERIC_ISCHEMIA_SURGERY_TEAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRevascularizationSourceControl =
+    ACUTE_MESENTERIC_ISCHEMIA_REVASCULARIZATION_SOURCE_CONTROL_ACTION_TERMS.some((term) =>
       containsSafetyTerm(normalizedActions, term),
     );
-  return hasCta && hasResuscitation && hasAntibiotic && hasSurgeryRevascularization;
+  return (
+    hasCta &&
+    hasResuscitation &&
+    hasAntibiotic &&
+    hasAnticoagulation &&
+    hasSurgeryTeam &&
+    hasRevascularizationSourceControl
+  );
 }
 
 function hasAcuteMesentericIschemiaTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26696,7 +26738,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcuteMesentericIschemiaTimeCriticalActions,
       issue:
-        "acute mesenteric ischemia time-critical actions must include CTA or CT angiography, resuscitation with lactate, acidosis, shock, or fluid monitoring, early broad-spectrum antibiotics, and urgent surgery, vascular surgery, endovascular therapy, laparotomy, embolectomy, revascularization, or bowel-resection escalation",
+        "acute mesenteric ischemia time-critical actions must include CTA or CT angiography, resuscitation with lactate, acidosis, shock, or fluid monitoring, early broad-spectrum antibiotics, therapeutic heparin or anticoagulation, urgent surgery, vascular surgery, interventional radiology, surgeon, or surgical consultation escalation, and specific revascularization, endovascular intervention, embolectomy, laparotomy, thrombectomy, thrombolysis, SMA bypass or stent, or bowel-resection source-control planning",
     },
     {
       name: "acute_mesenteric_ischemia_treatment_safety",

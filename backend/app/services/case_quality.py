@@ -7797,17 +7797,44 @@ ACUTE_MESENTERIC_ISCHEMIA_ANTIBIOTIC_ACTION_TERMS = (
     "tazobactam",
     "항생제",
 )
-ACUTE_MESENTERIC_ISCHEMIA_SURGERY_REVASCULARIZATION_ACTION_TERMS = (
-    "embolectomy",
-    "endovascular",
-    "exploratory laparotomy",
-    "laparotomy",
-    "resection",
-    "revascularization",
-    "revascularisation",
-    "sma",
+ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_ACTION_TERMS = (
+    "anticoagulation",
+    "full-dose anticoagulation",
+    "heparin",
+    "therapeutic anticoagulation",
+    "unfractionated heparin",
+    "항응고",
+)
+ACUTE_MESENTERIC_ISCHEMIA_SURGERY_TEAM_ACTION_TERMS = (
+    "acute care surgery",
+    "general surgery",
+    "interventional radiology",
+    "surgeon",
+    "surgical consult",
     "vascular surgery",
+    "vascular surgeon",
     "혈관외과",
+)
+ACUTE_MESENTERIC_ISCHEMIA_REVASCULARIZATION_SOURCE_CONTROL_ACTION_TERMS = (
+    "bowel resection",
+    "damage control laparotomy",
+    "embolectomy",
+    "endovascular intervention",
+    "endovascular revascularization",
+    "endovascular therapy",
+    "exploratory laparotomy",
+    "ischemic bowel resection",
+    "laparotomy",
+    "mesenteric revascularization",
+    "necrotic bowel resection",
+    "revascularisation",
+    "revascularization",
+    "sma bypass",
+    "sma stent",
+    "sma thrombectomy",
+    "thrombectomy",
+    "thrombolysis",
+    "장 절제",
     "재관류",
 )
 ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_SAFETY_TERMS = (
@@ -17205,9 +17232,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "acute mesenteric ischemia time-critical actions must include "
                 "CTA or CT angiography, resuscitation with lactate, acidosis, "
                 "shock, or fluid monitoring, early broad-spectrum antibiotics, "
-                "and urgent surgery, vascular surgery, endovascular therapy, "
-                "laparotomy, embolectomy, revascularization, or bowel-resection "
-                "escalation"
+                "therapeutic heparin or anticoagulation, urgent surgery, "
+                "vascular surgery, interventional radiology, surgeon, or "
+                "surgical consultation escalation, and specific "
+                "revascularization, endovascular intervention, embolectomy, "
+                "laparotomy, thrombectomy, thrombolysis, SMA bypass or stent, "
+                "or bowel-resection source-control planning"
             ),
         ),
         DomainSafetyGate(
@@ -25132,11 +25162,26 @@ def _has_acute_mesenteric_ischemia_time_critical_actions(actions: list[Any]) -> 
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_MESENTERIC_ISCHEMIA_ANTIBIOTIC_ACTION_TERMS
     )
-    has_surgery_revascularization = any(
+    has_anticoagulation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_MESENTERIC_ISCHEMIA_SURGERY_REVASCULARIZATION_ACTION_TERMS
+        for term in ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_ACTION_TERMS
     )
-    return has_cta and has_resuscitation and has_antibiotic and has_surgery_revascularization
+    has_surgery_team = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_SURGERY_TEAM_ACTION_TERMS
+    )
+    has_revascularization_source_control = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_REVASCULARIZATION_SOURCE_CONTROL_ACTION_TERMS
+    )
+    return (
+        has_cta
+        and has_resuscitation
+        and has_antibiotic
+        and has_anticoagulation
+        and has_surgery_team
+        and has_revascularization_source_control
+    )
 
 
 def _has_acute_mesenteric_ischemia_treatment_safety_check(checks: list[Any]) -> bool:
