@@ -8156,14 +8156,33 @@ const PEDIATRIC_MIDGUT_VOLVULUS_UGI_ACTION_TERMS = [
   "ugi",
 ];
 
-const PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_ACTION_TERMS = [
-  "emergent surgery",
-  "ladd",
-  "operative",
+const PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_SPECIALIST_ACTION_TERMS = [
   "pediatric surgery",
-  "surgery",
+  "pediatric surgeon",
+  "surgery consult",
   "surgical consult",
   "surgeon",
+  "소아외과",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_ACTION_TERMS = [
+  "bowel detorsion",
+  "bowel resection",
+  "counterclockwise detorsion",
+  "divide ladd",
+  "exploratory laparotomy",
+  "ladd",
+  "ladd procedure",
+  "ladd's",
+  "laparotomy",
+  "operative exploration",
+  "surgical exploration",
+  "volvulus detorsion",
+  "장염전 정복",
+  "장 회전 정복",
+  "래드 술식",
+  "복강경 탐색",
+  "수술적 탐색",
 ];
 
 const PEDIATRIC_MIDGUT_VOLVULUS_RESUSCITATION_ACTION_TERMS = [
@@ -20565,7 +20584,10 @@ function hasPediatricMidgutVolvulusTimeCriticalActions(actions: string[]): boole
   const hasUgi = PEDIATRIC_MIDGUT_VOLVULUS_UGI_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSurgery = PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_ACTION_TERMS.some((term) =>
+  const hasSurgerySpecialist = PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_SPECIALIST_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOperativeCorrection = PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasResuscitation = PEDIATRIC_MIDGUT_VOLVULUS_RESUSCITATION_ACTION_TERMS.some((term) =>
@@ -20574,7 +20596,13 @@ function hasPediatricMidgutVolvulusTimeCriticalActions(actions: string[]): boole
   const hasIschemiaMonitoring = PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  return hasUgi && hasSurgery && hasResuscitation && hasIschemiaMonitoring;
+  return (
+    hasUgi &&
+    hasSurgerySpecialist &&
+    hasOperativeCorrection &&
+    hasResuscitation &&
+    hasIschemiaMonitoring
+  );
 }
 
 function hasPediatricMidgutVolvulusTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26572,7 +26600,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasPediatricMidgutVolvulusTimeCriticalActions,
       issue:
-        "pediatric midgut volvulus time-critical actions must include urgent fluoroscopy upper GI, UGI, duodenal-jejunal junction, or ligament-of-Treitz imaging to evaluate malrotation, immediate pediatric surgery, surgeon, operative, Ladd, or surgical consultation escalation, NPO, IV fluids, resuscitation, NG tube, nasogastric, or orogastric decompression planning, and bowel ischemia, bowel necrosis, lactate, acidosis, peritonitis, shock, serial abdominal exam, or complication monitoring",
+        "pediatric midgut volvulus time-critical actions must include urgent fluoroscopy upper GI, UGI, duodenal-jejunal junction, or ligament-of-Treitz imaging to evaluate malrotation, immediate pediatric surgery or pediatric surgeon escalation, specific Ladd procedure, operative exploration, laparotomy, bowel or volvulus detorsion, or bowel-resection planning, NPO, IV fluids, resuscitation, NG tube, nasogastric, or orogastric decompression planning, and bowel ischemia, bowel necrosis, lactate, acidosis, peritonitis, shock, serial abdominal exam, or complication monitoring",
     },
     {
       name: "pediatric_midgut_volvulus_treatment_safety",

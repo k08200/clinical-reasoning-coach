@@ -7451,14 +7451,32 @@ PEDIATRIC_MIDGUT_VOLVULUS_UGI_ACTION_TERMS = (
     "upper gi",
     "ugi",
 )
-PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_ACTION_TERMS = (
-    "emergent surgery",
-    "ladd",
-    "operative",
+PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_SPECIALIST_ACTION_TERMS = (
     "pediatric surgery",
-    "surgery",
+    "pediatric surgeon",
+    "surgery consult",
     "surgical consult",
     "surgeon",
+    "소아외과",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_ACTION_TERMS = (
+    "bowel detorsion",
+    "bowel resection",
+    "counterclockwise detorsion",
+    "divide ladd",
+    "exploratory laparotomy",
+    "ladd",
+    "ladd procedure",
+    "ladd's",
+    "laparotomy",
+    "operative exploration",
+    "surgical exploration",
+    "volvulus detorsion",
+    "장염전 정복",
+    "장 회전 정복",
+    "래드 술식",
+    "복강경 탐색",
+    "수술적 탐색",
 )
 PEDIATRIC_MIDGUT_VOLVULUS_RESUSCITATION_ACTION_TERMS = (
     "decompression",
@@ -17061,8 +17079,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "pediatric midgut volvulus time-critical actions must include "
                 "urgent fluoroscopy upper GI, UGI, duodenal-jejunal junction, "
                 "or ligament-of-Treitz imaging to evaluate malrotation, "
-                "immediate pediatric surgery, surgeon, operative, Ladd, or "
-                "surgical consultation escalation, NPO, IV fluids, "
+                "immediate pediatric surgery or pediatric surgeon escalation, "
+                "specific Ladd procedure, operative exploration, laparotomy, "
+                "bowel or volvulus detorsion, or bowel-resection planning, "
+                "NPO, IV fluids, "
                 "resuscitation, NG tube, nasogastric, or orogastric "
                 "decompression planning, and bowel ischemia, bowel necrosis, "
                 "lactate, acidosis, peritonitis, shock, serial abdominal exam, "
@@ -24814,9 +24834,13 @@ def _has_pediatric_midgut_volvulus_time_critical_actions(
         _contains_safety_term(normalized_actions, term)
         for term in PEDIATRIC_MIDGUT_VOLVULUS_UGI_ACTION_TERMS
     )
-    has_surgery = any(
+    has_surgery_specialist = any(
         _contains_safety_term(normalized_actions, term)
-        for term in PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_ACTION_TERMS
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_SPECIALIST_ACTION_TERMS
+    )
+    has_operative_correction = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_ACTION_TERMS
     )
     has_resuscitation = any(
         _contains_safety_term(normalized_actions, term)
@@ -24826,7 +24850,13 @@ def _has_pediatric_midgut_volvulus_time_critical_actions(
         _contains_safety_term(normalized_actions, term)
         for term in PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ACTION_TERMS
     )
-    return has_ugi and has_surgery and has_resuscitation and has_ischemia_monitoring
+    return (
+        has_ugi
+        and has_surgery_specialist
+        and has_operative_correction
+        and has_resuscitation
+        and has_ischemia_monitoring
+    )
 
 
 def _has_pediatric_midgut_volvulus_treatment_safety_check(

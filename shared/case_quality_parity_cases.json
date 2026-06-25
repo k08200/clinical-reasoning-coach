@@ -14149,6 +14149,70 @@
     }
   },
   {
+    "name": "pediatric_midgut_volvulus_requires_specific_ladd_or_detorsion_action",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "pediatric midgut volvulus time-critical actions must include urgent fluoroscopy upper GI"
+    ],
+    "overrides": {
+      "diagnosis": "Intestinal malrotation with midgut volvulus",
+      "patient_demographics": {
+        "age": 1,
+        "sex": "male",
+        "weight_kg": 9,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Bilious vomiting in an infant",
+      "history_of_present_illness": "Young infant has sudden green bilious vomiting, abdominal distension, dehydration, lethargy, elevated lactate, metabolic acidosis, and concern for suspected malrotation with midgut volvulus and bowel obstruction.",
+      "key_teaching_points": [
+        "Bilious emesis in an infant requires evaluation for intestinal obstruction and malrotation with volvulus",
+        "Upper GI series evaluates the duodenal jejunal junction and ligament of Treitz when malrotation is suspected",
+        "Midgut volvulus can cause bowel ischemia, bowel necrosis, shock, and urgent operative need"
+      ],
+      "clinical_red_flags": [
+        "Green vomiting, bilious emesis, abdominal distension, dehydration, or lethargy in a young infant",
+        "Lactate elevation, acidosis, peritonitis, shock, bloody stool, bowel ischemia, or bowel necrosis"
+      ],
+      "time_critical_actions": [
+        "Order urgent fluoroscopy upper GI UGI to evaluate the duodenal jejunal junction and ligament of Treitz",
+        "Immediately call pediatric surgery and the pediatric surgeon for surgical consult escalation",
+        "Keep NPO, place NG tube for nasogastric decompression, give IV fluids, and continue resuscitation",
+        "Monitor lactate, acidosis, peritonitis, shock, serial abdominal exam, bowel ischemia, and bowel necrosis"
+      ],
+      "contraindication_checks": [
+        "Do not treat as reflux or gastroenteritis and do not reassure when infant bilious emesis is present",
+        "Recognize a normal abdominal radiograph or normal x-ray does not exclude malrotation",
+        "Review imaging limitations including false negative or equivocal UGI, SMV/SMA relationship, whirlpool sign, and contrast enema being less direct",
+        "Do not delay urgent surgery or emergent surgery when bowel ischemia or bowel necrosis is suspected",
+        "Safeguard aspiration, dehydration, electrolyte, glucose, and hypoglycemia risks with weight-based dosing safety check"
+      ],
+      "clinical_sources": [
+        {
+          "title": "ACR Appropriateness Criteria: Vomiting in Infants",
+          "organization": "American College of Radiology",
+          "url": "https://acsearch.acr.org/docs/69445/Narrative/",
+          "supports": [
+            "infant bilious vomiting diagnosis and malrotation risk stratification",
+            "bilious emesis in an infant requires evaluation for intestinal obstruction and malrotation with volvulus",
+            "upper GI series evaluates the duodenal jejunal junction and ligament of Treitz when malrotation is suspected",
+            "midgut volvulus can cause bowel ischemia, bowel necrosis, shock, and urgent operative need",
+            "green vomiting, bilious emesis, abdominal distension, dehydration, and lethargy in a young infant",
+            "lactate elevation, acidosis, peritonitis, shock, bloody stool, bowel ischemia, and bowel necrosis as severity markers",
+            "urgent fluoroscopy upper GI UGI to evaluate the duodenal jejunal junction and ligament of Treitz",
+            "pediatric surgery and pediatric surgeon surgical consult escalation",
+            "NPO, IV fluids, resuscitation, NG tube, nasogastric decompression",
+            "bowel ischemia, bowel necrosis, lactate, acidosis, peritonitis, shock, serial abdominal exam, and complication monitoring",
+            "do not treat as reflux or gastroenteritis and do not reassure when infant bilious emesis is present",
+            "normal abdominal radiograph or normal x-ray does not exclude malrotation",
+            "false negative or equivocal UGI, SMV/SMA relationship, whirlpool sign, and contrast enema being less direct",
+            "do not delay urgent surgery or emergent surgery when bowel ischemia or bowel necrosis is suspected",
+            "aspiration, dehydration, electrolyte, glucose, hypoglycemia, and weight-based dosing safety check"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "pediatric_midgut_volvulus_requires_reflux_xray_imaging_delay_and_metabolic_safety",
     "expected_passed": false,
     "expected_issue_substrings": [
