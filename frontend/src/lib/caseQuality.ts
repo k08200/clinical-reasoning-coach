@@ -7479,15 +7479,32 @@ const SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS = [
   "항생제",
 ];
 
-const SEPTIC_ARTHRITIS_DRAINAGE_ORTHO_ACTION_TERMS = [
-  "arthroscopy",
-  "drainage",
-  "irrigation",
+const SEPTIC_ARTHRITIS_ORTHO_TEAM_ACTION_TERMS = [
+  "orthopaedic",
+  "orthopaedics",
   "orthopedic",
   "orthopedics",
+  "ortho",
+  "정형외과",
+];
+
+const SEPTIC_ARTHRITIS_JOINT_DRAINAGE_ACTION_TERMS = [
+  "arthroscopic irrigation",
+  "arthroscopic lavage",
+  "arthroscopy",
+  "arthrotomy",
+  "irrigation and debridement",
+  "joint drainage",
+  "open revision",
+  "repeat aspiration",
+  "repeated aspiration",
+  "serial aspiration",
+  "surgical drainage",
   "surgical washout",
   "washout",
-  "정형외과",
+  "관절 세척",
+  "관절 배액",
+  "수술적 배액",
 ];
 
 const SEPTIC_ARTHRITIS_CRYSTAL_LIMITATION_SAFETY_TERMS = [
@@ -20297,7 +20314,10 @@ function hasSepticArthritisTimeCriticalActions(actions: string[]): boolean {
   const hasAntibiotic = SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDrainageOrtho = SEPTIC_ARTHRITIS_DRAINAGE_ORTHO_ACTION_TERMS.some((term) =>
+  const hasOrthoTeam = SEPTIC_ARTHRITIS_ORTHO_TEAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasJointDrainage = SEPTIC_ARTHRITIS_JOINT_DRAINAGE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
@@ -20305,7 +20325,8 @@ function hasSepticArthritisTimeCriticalActions(actions: string[]): boolean {
     hasSynovialStudies &&
     hasBloodCultureLab &&
     hasAntibiotic &&
-    hasDrainageOrtho
+    hasOrthoTeam &&
+    hasJointDrainage
   );
 }
 
@@ -26635,7 +26656,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSepticArthritisTimeCriticalActions,
       issue:
-        "septic arthritis time-critical actions must include urgent arthrocentesis, joint aspiration, tap, synovial fluid, or synovial aspiration, synovial WBC, leukocyte, cell count, Gram stain, culture, microscopy, or crystal studies, blood cultures, CRP, ESR, leukocytosis, or inflammatory marker assessment, empiric antibiotics such as vancomycin or ceftriaxone, and orthopedic, arthroscopy, irrigation, drainage, surgical washout, or washout escalation",
+        "septic arthritis time-critical actions must include urgent arthrocentesis, joint aspiration, tap, synovial fluid, or synovial aspiration, synovial WBC, leukocyte, cell count, Gram stain, culture, microscopy, or crystal studies, blood cultures, CRP, ESR, leukocytosis, or inflammatory marker assessment, empiric antibiotics such as vancomycin or ceftriaxone, orthopedic or orthopaedic surgery escalation, and specific arthroscopic lavage, arthroscopic irrigation, arthroscopy, arthrotomy, joint drainage, irrigation and debridement, surgical drainage, surgical washout, open revision, or repeated/serial aspiration source-control planning",
     },
     {
       name: "septic_arthritis_treatment_safety",

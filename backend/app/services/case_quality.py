@@ -6835,15 +6835,31 @@ SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS = (
     "vancomycin",
     "항생제",
 )
-SEPTIC_ARTHRITIS_DRAINAGE_ORTHO_ACTION_TERMS = (
-    "arthroscopy",
-    "drainage",
-    "irrigation",
+SEPTIC_ARTHRITIS_ORTHO_TEAM_ACTION_TERMS = (
+    "orthopaedic",
+    "orthopaedics",
     "orthopedic",
     "orthopedics",
+    "ortho",
+    "정형외과",
+)
+SEPTIC_ARTHRITIS_JOINT_DRAINAGE_ACTION_TERMS = (
+    "arthroscopic irrigation",
+    "arthroscopic lavage",
+    "arthroscopy",
+    "arthrotomy",
+    "irrigation and debridement",
+    "joint drainage",
+    "open revision",
+    "repeat aspiration",
+    "repeated aspiration",
+    "serial aspiration",
+    "surgical drainage",
     "surgical washout",
     "washout",
-    "정형외과",
+    "관절 세척",
+    "관절 배액",
+    "수술적 배액",
 )
 SEPTIC_ARTHRITIS_CRYSTAL_LIMITATION_SAFETY_TERMS = (
     "crystal",
@@ -16965,8 +16981,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "Gram stain, culture, microscopy, or crystal studies, blood "
                 "cultures, CRP, ESR, leukocytosis, or inflammatory marker "
                 "assessment, empiric antibiotics such as vancomycin or "
-                "ceftriaxone, and orthopedic, arthroscopy, irrigation, "
-                "drainage, surgical washout, or washout escalation"
+                "ceftriaxone, orthopedic or orthopaedic surgery escalation, "
+                "and specific arthroscopic lavage, arthroscopic irrigation, "
+                "arthroscopy, arthrotomy, joint drainage, irrigation and "
+                "debridement, surgical drainage, surgical washout, open "
+                "revision, or repeated/serial aspiration source-control planning"
             ),
         ),
         DomainSafetyGate(
@@ -24452,16 +24471,21 @@ def _has_septic_arthritis_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS
     )
-    has_drainage_ortho = any(
+    has_ortho_team = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEPTIC_ARTHRITIS_DRAINAGE_ORTHO_ACTION_TERMS
+        for term in SEPTIC_ARTHRITIS_ORTHO_TEAM_ACTION_TERMS
+    )
+    has_joint_drainage = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEPTIC_ARTHRITIS_JOINT_DRAINAGE_ACTION_TERMS
     )
     return (
         has_arthrocentesis
         and has_synovial_studies
         and has_blood_culture_lab
         and has_antibiotic
-        and has_drainage_ortho
+        and has_ortho_team
+        and has_joint_drainage
     )
 
 

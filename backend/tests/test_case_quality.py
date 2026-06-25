@@ -9470,6 +9470,78 @@ def test_quality_gate_requires_septic_arthritis_arthrocentesis_cultures_antibiot
     )
 
 
+def test_quality_gate_requires_septic_arthritis_specific_joint_drainage_not_ortho_consult_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Native joint septic arthritis"
+    case["patient_demographics"] = {
+        "age": 66,
+        "sex": "female",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Acute hot swollen right knee with fever"
+    case["history_of_present_illness"] = (
+        "Patient with diabetes has abrupt monoarthritis with a painful hot "
+        "swollen joint, inability to bear weight, fever, effusion, and concern "
+        "for native joint septic arthritis."
+    )
+    case["key_teaching_points"] = [
+        "Septic arthritis is an emergency because bacterial load and pressure can rapidly destroy a native joint",
+        "Synovial aspiration with Gram stain, culture, cell count, and crystal analysis is central to diagnosis",
+        "Treatment requires cultures, empiric antibiotics, orthopedic escalation, and joint drainage or lavage source-control planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Painful hot swollen joint, fever, synovial effusion, purulent drainage, inability to bear weight, or sepsis",
+        "Diabetes, immunocompromised state, IVDU, MRSA risk, gonococcal infection, bacteremia, endocarditis, or prosthetic joint concern",
+    ]
+    case["time_critical_actions"] = [
+        "Perform urgent arthrocentesis or joint aspiration tap for synovial fluid before antibiotics when feasible",
+        "Send synovial WBC leukocyte cell count, Gram stain, culture, microscopy, and crystal studies",
+        "Obtain blood cultures, CRP, ESR, leukocytosis, and inflammatory marker assessment",
+        "Start empiric antibiotics such as vancomycin plus ceftriaxone after aspiration and blood cultures unless unstable",
+        "Escalate urgently to orthopedics for suspected native joint septic arthritis source-control planning",
+    ]
+    case["contraindication_checks"] = [
+        "Do not let gout, pseudogout, or crystal findings exclude septic arthritis because infection is still possible",
+        "Give empiric antibiotics after aspiration and after blood cultures when feasible, but do not delay antibiotics for sepsis or an unstable patient",
+        "Review pathogen risk and coverage for MRSA, Staphylococcus, gonococcal infection, Gram-negative infection, IVDU, immunocompromised state, vancomycin, and ceftriaxone",
+        "Assess complications and source including bacteremia, endocarditis, osteomyelitis, prosthetic joint infection, sepsis, source control, and surgery need",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Guideline for management of septic arthritis in native joints (SANJO)",
+            "organization": "European Bone and Joint Infection Society",
+            "url": "https://jbji.copernicus.org/articles/8/29/2023/",
+            "supports": [
+                "native joint septic arthritis diagnosis and risk stratification",
+                "septic arthritis is an emergency because bacterial load and pressure can rapidly destroy a native joint",
+                "synovial aspiration with Gram stain, culture, cell count, and crystal analysis is central to diagnosis",
+                "treatment requires cultures, empiric antibiotics, orthopedic escalation, and joint drainage or lavage source-control planning",
+                "painful hot swollen joint, fever, synovial effusion, purulent drainage, inability to bear weight, or sepsis as red flags",
+                "diabetes, immunocompromised state, IVDU, MRSA risk, gonococcal infection, bacteremia, endocarditis, or prosthetic joint concern as severity markers",
+                "urgent arthrocentesis or joint aspiration tap for synovial fluid before antibiotics when feasible",
+                "synovial WBC leukocyte cell count, Gram stain, culture, microscopy, and crystal studies",
+                "blood cultures, CRP, ESR, leukocytosis, and inflammatory marker assessment",
+                "empiric antibiotics such as vancomycin plus ceftriaxone after aspiration and blood cultures unless unstable",
+                "urgent orthopedics for suspected native joint septic arthritis source-control planning",
+                "gout, pseudogout, or crystal findings do not exclude septic arthritis because infection is still possible",
+                "empiric antibiotics after aspiration and after blood cultures when feasible, but do not delay antibiotics for sepsis or an unstable patient",
+                "pathogen risk and coverage for MRSA, Staphylococcus, gonococcal infection, Gram-negative infection, IVDU, immunocompromised state, vancomycin, and ceftriaxone",
+                "bacteremia, endocarditis, osteomyelitis, prosthetic joint infection, sepsis, source control, and surgery need",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "septic arthritis time-critical actions must include urgent arthrocentesis"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_septic_arthritis_crystal_timing_pathogen_and_source_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Native joint septic arthritis"
