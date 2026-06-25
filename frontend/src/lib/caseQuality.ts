@@ -7840,15 +7840,35 @@ const ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS = [
   "초음파",
 ];
 
-const ACUTE_CHOLANGITIS_DRAINAGE_ACTION_TERMS = [
+const ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS = [
+  "advanced center",
+  "endoscopic",
+  "endoscopy",
+  "ercp",
+  "gastroenterology",
+  "gi",
+  "interventional radiology",
+  "ivr",
+  "percutaneous transhepatic",
+  "ptbd",
+  "transfer",
+  "전원",
+];
+
+const ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_ACTION_TERMS = [
+  "bile duct drainage",
+  "bile duct stent",
   "biliary decompression",
   "biliary drainage",
-  "drainage",
+  "biliary stent",
+  "common bile duct drainage",
+  "endoscopic biliary drainage",
+  "endoscopic nasobiliary drainage",
   "ercp",
   "nasobiliary",
-  "ptbd",
-  "stent",
+  "percutaneous transhepatic biliary drainage",
   "percutaneous transhepatic",
+  "ptbd",
   "담도 배액",
 ];
 
@@ -20475,7 +20495,10 @@ function hasAcuteCholangitisTimeCriticalActions(actions: string[]): boolean {
   const hasImagingObstruction = ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasDrainage = ACUTE_CHOLANGITIS_DRAINAGE_ACTION_TERMS.some((term) =>
+  const hasBiliaryAccess = ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDrainageRoute = ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasOrganSupport = ACUTE_CHOLANGITIS_ORGAN_SUPPORT_ACTION_TERMS.some((term) =>
@@ -20485,7 +20508,8 @@ function hasAcuteCholangitisTimeCriticalActions(actions: string[]): boolean {
     hasAntibioticSupport &&
     hasCultureLab &&
     hasImagingObstruction &&
-    hasDrainage &&
+    hasBiliaryAccess &&
+    hasDrainageRoute &&
     hasOrganSupport
   );
 }
@@ -26674,7 +26698,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcuteCholangitisTimeCriticalActions,
       issue:
-        "acute cholangitis time-critical actions must include immediate broad-spectrum antibiotics and supportive care, blood culture, bile culture, WBC, CRP, bilirubin, LFT, or liver function assessment, ultrasound, CT, MRCP, biliary dilation, common bile duct, stone, stricture, or obstruction imaging, ERCP, biliary drainage, biliary decompression, stent, PTBD, nasobiliary, or percutaneous transhepatic drainage planning, and sepsis, shock, fluid, vasopressor, respiratory, circulatory, organ-support, or ICU escalation",
+        "acute cholangitis time-critical actions must include immediate broad-spectrum antibiotics and supportive care, blood culture, bile culture, WBC, CRP, bilirubin, LFT, or liver function assessment, ultrasound, CT, MRCP, biliary dilation, common bile duct, stone, stricture, or obstruction imaging, gastroenterology, endoscopy, ERCP, interventional radiology, PTBD, percutaneous transhepatic, transfer, or advanced-center access planning, specific ERCP, endoscopic biliary drainage, endoscopic nasobiliary drainage, biliary decompression, biliary stent, PTBD, or percutaneous transhepatic biliary drainage route planning, and sepsis, shock, fluid, vasopressor, respiratory, circulatory, organ-support, or ICU escalation",
     },
     {
       name: "acute_cholangitis_treatment_safety",

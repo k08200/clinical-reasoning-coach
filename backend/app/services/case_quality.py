@@ -7164,15 +7164,34 @@ ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS = (
     "ultrasound",
     "초음파",
 )
-ACUTE_CHOLANGITIS_DRAINAGE_ACTION_TERMS = (
+ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS = (
+    "advanced center",
+    "endoscopic",
+    "endoscopy",
+    "ercp",
+    "gastroenterology",
+    "gi",
+    "interventional radiology",
+    "ivr",
+    "percutaneous transhepatic",
+    "ptbd",
+    "transfer",
+    "전원",
+)
+ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_ACTION_TERMS = (
+    "bile duct drainage",
+    "bile duct stent",
     "biliary decompression",
     "biliary drainage",
-    "drainage",
+    "biliary stent",
+    "common bile duct drainage",
+    "endoscopic biliary drainage",
+    "endoscopic nasobiliary drainage",
     "ercp",
     "nasobiliary",
-    "ptbd",
-    "stent",
+    "percutaneous transhepatic biliary drainage",
     "percutaneous transhepatic",
+    "ptbd",
     "담도 배액",
 )
 ACUTE_CHOLANGITIS_ORGAN_SUPPORT_ACTION_TERMS = (
@@ -17060,11 +17079,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "broad-spectrum antibiotics and supportive care, blood culture, "
                 "bile culture, WBC, CRP, bilirubin, LFT, or liver function "
                 "assessment, ultrasound, CT, MRCP, biliary dilation, common "
-                "bile duct, stone, stricture, or obstruction imaging, ERCP, "
-                "biliary drainage, biliary decompression, stent, PTBD, "
-                "nasobiliary, or percutaneous transhepatic drainage planning, "
-                "and sepsis, shock, fluid, vasopressor, respiratory, circulatory, "
-                "organ-support, or ICU escalation"
+                "bile duct, stone, stricture, or obstruction imaging, "
+                "gastroenterology, endoscopy, ERCP, interventional radiology, "
+                "PTBD, percutaneous transhepatic, transfer, or advanced-center "
+                "access planning, specific ERCP, endoscopic biliary drainage, "
+                "endoscopic nasobiliary drainage, biliary decompression, "
+                "biliary stent, PTBD, or percutaneous transhepatic biliary "
+                "drainage route planning, and sepsis, shock, fluid, vasopressor, "
+                "respiratory, circulatory, organ-support, or ICU escalation"
             ),
         ),
         DomainSafetyGate(
@@ -24686,9 +24708,13 @@ def _has_acute_cholangitis_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS
     )
-    has_drainage = any(
+    has_biliary_access = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_CHOLANGITIS_DRAINAGE_ACTION_TERMS
+        for term in ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS
+    )
+    has_drainage_route = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_ACTION_TERMS
     )
     has_organ_support = any(
         _contains_safety_term(normalized_actions, term)
@@ -24698,7 +24724,8 @@ def _has_acute_cholangitis_time_critical_actions(actions: list[Any]) -> bool:
         has_antibiotic_support
         and has_culture_lab
         and has_imaging_obstruction
-        and has_drainage
+        and has_biliary_access
+        and has_drainage_route
         and has_organ_support
     )
 
