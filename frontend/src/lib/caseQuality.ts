@@ -8616,16 +8616,30 @@ const NECROTIZING_SOFT_TISSUE_INFECTION_RED_FLAG_TERMS = [
   "systemic toxicity",
 ];
 
-const NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_ACTION_TERMS = [
-  "debridement",
-  "exploration",
-  "fasciotomy",
-  "operative",
+const NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_TEAM_ACTION_TERMS = [
+  "acute care surgery",
+  "general surgery",
+  "surgery",
   "surgical consult",
+  "surgeon",
+  "수술",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_DEBRIDEMENT_ACTION_TERMS = [
+  "debridement",
+  "excision of necrotic tissue",
+  "fascial exploration",
+  "fasciotomy",
+  "necrotic tissue excision",
+  "operative debridement",
+  "operative exploration",
+  "serial debridement",
   "surgical debridement",
   "surgical exploration",
-  "surgery",
-  "수술",
+  "wide excision",
+  "괴사조직 절제",
+  "수술적 변연절제",
+  "수술적 탐색",
 ];
 
 const NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS = [
@@ -20880,7 +20894,10 @@ function hasNecrotizingSoftTissueInfectionRedFlags(redFlags: string[]): boolean 
 
 function hasNecrotizingSoftTissueInfectionTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasSurgery = NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_ACTION_TERMS.some((term) =>
+  const hasSurgeryTeam = NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_TEAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDebridement = NECROTIZING_SOFT_TISSUE_INFECTION_DEBRIDEMENT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasAntibiotic = NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS.some((term) =>
@@ -20895,7 +20912,14 @@ function hasNecrotizingSoftTissueInfectionTimeCriticalActions(actions: string[])
   const hasDelayPrevention = NECROTIZING_SOFT_TISSUE_INFECTION_DELAY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasSurgery && hasAntibiotic && hasBroadCoverage && hasResuscitation && hasDelayPrevention;
+  return (
+    hasSurgeryTeam &&
+    hasDebridement &&
+    hasAntibiotic &&
+    hasBroadCoverage &&
+    hasResuscitation &&
+    hasDelayPrevention
+  );
 }
 
 function hasNecrotizingSoftTissueInfectionTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26672,7 +26696,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasNecrotizingSoftTissueInfectionTimeCriticalActions,
       issue:
-        "necrotizing soft tissue infection time-critical actions must include urgent surgical exploration, operative debridement, fasciotomy, or surgical consultation, broad-spectrum empiric antibiotics with MRSA, gram-negative, anaerobic, vancomycin, piperacillin-tazobactam, carbapenem, cefepime, or metronidazole coverage, sepsis, shock, lactate, ICU, vasopressor, or fluid resuscitation, and explicit do-not-delay source-control or immediate time-critical management",
+        "necrotizing soft tissue infection time-critical actions must include immediate surgery, surgeon, acute-care surgery, or surgical consultation escalation, specific surgical exploration, operative debridement, fascial exploration, fasciotomy, wide excision, or necrotic-tissue excision, broad-spectrum empiric antibiotics with MRSA, gram-negative, anaerobic, vancomycin, piperacillin-tazobactam, carbapenem, cefepime, or metronidazole coverage, sepsis, shock, lactate, ICU, vasopressor, or fluid resuscitation, and explicit do-not-delay source-control or immediate time-critical management",
     },
     {
       name: "necrotizing_soft_tissue_infection_red_flags",

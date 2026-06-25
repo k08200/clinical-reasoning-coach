@@ -7869,16 +7869,29 @@ NECROTIZING_SOFT_TISSUE_INFECTION_RED_FLAG_TERMS = (
     "skin necrosis",
     "systemic toxicity",
 )
-NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_ACTION_TERMS = (
-    "debridement",
-    "exploration",
-    "fasciotomy",
-    "operative",
+NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_TEAM_ACTION_TERMS = (
+    "acute care surgery",
+    "general surgery",
+    "surgery",
     "surgical consult",
+    "surgeon",
+    "수술",
+)
+NECROTIZING_SOFT_TISSUE_INFECTION_DEBRIDEMENT_ACTION_TERMS = (
+    "debridement",
+    "excision of necrotic tissue",
+    "fascial exploration",
+    "fasciotomy",
+    "necrotic tissue excision",
+    "operative debridement",
+    "operative exploration",
+    "serial debridement",
     "surgical debridement",
     "surgical exploration",
-    "surgery",
-    "수술",
+    "wide excision",
+    "괴사조직 절제",
+    "수술적 변연절제",
+    "수술적 탐색",
 )
 NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS = (
     "antibiotic",
@@ -17209,8 +17222,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_necrotizing_soft_tissue_infection_time_critical_actions,
             issue=(
                 "necrotizing soft tissue infection time-critical actions must "
-                "include urgent surgical exploration, operative debridement, "
-                "fasciotomy, or surgical consultation, broad-spectrum empiric "
+                "include immediate surgery, surgeon, acute-care surgery, or "
+                "surgical consultation escalation, specific surgical exploration, "
+                "operative debridement, fascial exploration, fasciotomy, wide "
+                "excision, or necrotic-tissue excision, broad-spectrum empiric "
                 "antibiotics with MRSA, gram-negative, anaerobic, vancomycin, "
                 "piperacillin-tazobactam, carbapenem, cefepime, or metronidazole "
                 "coverage, sepsis, shock, lactate, ICU, vasopressor, or fluid "
@@ -25197,9 +25212,13 @@ def _has_necrotizing_soft_tissue_infection_red_flags(red_flags: list[Any]) -> bo
 
 def _has_necrotizing_soft_tissue_infection_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_surgery = any(
+    has_surgery_team = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_ACTION_TERMS
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_SURGERY_TEAM_ACTION_TERMS
+    )
+    has_debridement = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_DEBRIDEMENT_ACTION_TERMS
     )
     has_antibiotic = any(
         _contains_safety_term(normalized_actions, term)
@@ -25218,7 +25237,8 @@ def _has_necrotizing_soft_tissue_infection_time_critical_actions(actions: list[A
         for term in NECROTIZING_SOFT_TISSUE_INFECTION_DELAY_ACTION_TERMS
     )
     return (
-        has_surgery
+        has_surgery_team
+        and has_debridement
         and has_antibiotic
         and has_broad_coverage
         and has_resuscitation
