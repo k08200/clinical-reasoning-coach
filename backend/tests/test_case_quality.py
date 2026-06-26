@@ -20501,6 +20501,89 @@ def test_quality_gate_requires_acute_chest_syndrome_imaging_oxygen_antibiotics_s
     )
 
 
+def test_quality_gate_requires_acute_chest_syndrome_specific_transfusion_action_not_hematology_or_hbs_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sickle cell acute chest syndrome"
+    case["chief_complaint"] = "Chest pain, fever, and hypoxemia"
+    case["history_of_present_illness"] = (
+        "Patient with sickle cell disease HbSS and vaso-occlusive pain crisis has "
+        "fever, cough, chest pain, tachypnea, SpO2 88%, and a new pulmonary "
+        "infiltrate on CXR with concern for multilobar acute chest syndrome."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "104/62", "hr": 124, "rr": 30, "temp_c": 38.8, "spo2": 88},
+        "general": "Ill appearing with severe pain",
+        "pulmonary": "Tachypnea, crackles, and splinting",
+        "cardiovascular": "Tachycardic",
+        "neuro": "Alert but anxious",
+    }
+    case["initial_labs"] = {
+        "hemoglobin": "7.1 g/dL from baseline 9 g/dL",
+        "reticulocytes": "12%",
+        "wbc": "19 K/uL",
+        "bilirubin": "3.4 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Acute chest syndrome is new infiltrate plus respiratory symptoms or fever in sickle cell disease",
+        "Acute chest syndrome can progress rapidly and is a leading cause of death in sickle cell disease",
+        "Management requires oxygen, antibiotics, incentive spirometry, and transfusion escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "New infiltrate, hypoxemia, multilobar disease, falling hemoglobin, respiratory failure, or severe pain",
+        "Fever, cough, chest pain, tachypnea, wheezing, dyspnea, or low SpO2",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain chest x-ray CXR and CBC, reticulocyte count, blood culture, and sputum culture",
+        "Give supplemental oxygen with pulse oximetry and co-oximetry, target SpO2 above 92 or near baseline",
+        "Start ceftriaxone and azithromycin empiric antibiotics for acute chest syndrome",
+        "Start incentive spirometry every 2 hours while awake and pain control with ketorolac/PCA while avoiding hypoventilation",
+        "Consult hematology and track HbS while planning escalation after imaging confirmation",
+        "Escalate to ICU for multilobar disease, severe hypoxemia, worsening oxygen need, or respiratory failure",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid overhydration and large-volume IV fluids; monitor hydration status, pulmonary edema, and fluid overload, and avoid opioid oversedation or hypoventilation",
+        "Plan transfusion or exchange transfusion with hematology; avoid hemoglobin 10, Hct 30, and hyperviscosity while targeting sickle hemoglobin HbS <30 when exchange is needed",
+        "Use bronchodilator only for asthma or bronchospasm and review steroid rebound vaso-occlusive crisis, readmission, and fat embolism risk",
+        "Review pulmonary embolism, pneumonia, pneumothorax, acute coronary myocardial infarction, ARDS, and empyema in the differential",
+        "Escalate to ICU and hematology for multilobar disease, severe hypoxemia, respiratory failure, worsening radiographic signs, or oxygen need above baseline oxygen",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute Chest Syndrome",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK441872/",
+            "supports": [
+                "sickle cell acute chest syndrome diagnosis and risk stratification",
+                "acute chest syndrome is new infiltrate plus respiratory symptoms or fever in sickle cell disease",
+                "acute chest syndrome can progress rapidly and is a leading cause of death in sickle cell disease",
+                "oxygen, antibiotics, incentive spirometry, and transfusion escalation management",
+                "new infiltrate, hypoxemia, multilobar disease, falling hemoglobin, respiratory failure, and severe pain as red flags",
+                "fever, cough, chest pain, tachypnea, wheezing, dyspnea, and low SpO2 as severity markers",
+                "chest x-ray CXR and CBC, reticulocyte count, blood culture, and sputum culture",
+                "supplemental oxygen with pulse oximetry and co-oximetry targeting SpO2 above 92 or near baseline",
+                "ceftriaxone and azithromycin empiric antibiotics for acute chest syndrome",
+                "incentive spirometry every 2 hours while awake and pain control with ketorolac/PCA while avoiding hypoventilation",
+                "hematology consultation and HbS tracking during escalation planning",
+                "ICU escalation for multilobar disease, severe hypoxemia, worsening oxygen need, or respiratory failure",
+                "avoid overhydration and large-volume IV fluids; monitor hydration status, pulmonary edema, and fluid overload, and avoid opioid oversedation or hypoventilation",
+                "transfusion or exchange transfusion with hematology; avoid hemoglobin 10, Hct 30, and hyperviscosity while targeting sickle hemoglobin HbS <30",
+                "bronchodilator only for asthma or bronchospasm and steroid rebound vaso-occlusive crisis, readmission, and fat embolism risk",
+                "pulmonary embolism, pneumonia, pneumothorax, acute coronary myocardial infarction, ARDS, and empyema differential",
+                "ICU and hematology for multilobar disease, severe hypoxemia, respiratory failure, worsening radiographic signs, or oxygen need above baseline oxygen",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute chest syndrome time-critical actions must include chest imaging"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acute_chest_syndrome_fluid_opioid_transfusion_bronchodilator_differential_and_disposition_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute chest syndrome in sickle cell disease"

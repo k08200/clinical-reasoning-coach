@@ -14356,13 +14356,14 @@ const ACUTE_CHEST_SYNDROME_SPIROMETRY_PAIN_ACTION_TERMS = [
 ];
 
 const ACUTE_CHEST_SYNDROME_TRANSFUSION_ACTION_TERMS = [
+  "blood transfusion",
   "exchange transfusion",
-  "haematology",
-  "hematology",
-  "hbs",
   "packed red blood",
+  "packed red blood cell",
   "prbc",
-  "transfusion",
+  "red blood cell transfusion",
+  "red cell transfusion",
+  "simple transfusion",
 ];
 
 const ACUTE_CHEST_SYNDROME_RESPIRATORY_ESCALATION_ACTION_TERMS = [
