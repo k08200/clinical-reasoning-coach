@@ -10569,15 +10569,29 @@ STATUS_EPILEPTICUS_BENZO_ACTION_TERMS = (
     "로라제팜",
     "미다졸람",
 )
-STATUS_EPILEPTICUS_SECOND_LINE_ACTION_TERMS = (
+STATUS_EPILEPTICUS_SECOND_LINE_PATHWAY_ACTION_TERMS = (
     "antiseizure loading",
+    "anti-seizure loading",
+    "antiepileptic loading",
+    "anti-epileptic loading",
+    "load antiseizure",
+    "load anti-seizure",
+    "load antiepileptic",
+    "load anti-epileptic",
+    "fosphenytoin",
+    "levetiracetam",
+    "loading dose",
+    "second-line",
+    "항경련제",
+)
+STATUS_EPILEPTICUS_SECOND_LINE_MEDICATION_ACTION_TERMS = (
     "fosphenytoin",
     "levetiracetam",
     "phenobarbital",
     "phenytoin",
-    "second-line",
+    "valproic acid",
+    "valproate sodium",
     "valproate",
-    "항경련제",
 )
 STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS = (
     "anesthetic infusion",
@@ -18133,7 +18147,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "status epilepticus time-critical actions must include airway or "
                 "oxygen support, benzodiazepine treatment, second-line antiseizure "
-                "loading, and refractory seizure escalation"
+                "loading pathway, specific second-line medication such as "
+                "levetiracetam, fosphenytoin, phenytoin, valproate, valproic "
+                "acid, or phenobarbital, and refractory seizure escalation"
             ),
         ),
         DomainSafetyGate(
@@ -27728,15 +27744,25 @@ def _has_status_epilepticus_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in STATUS_EPILEPTICUS_BENZO_ACTION_TERMS
     )
-    has_second_line = any(
+    has_second_line_pathway = any(
         _contains_safety_term(normalized_actions, term)
-        for term in STATUS_EPILEPTICUS_SECOND_LINE_ACTION_TERMS
+        for term in STATUS_EPILEPTICUS_SECOND_LINE_PATHWAY_ACTION_TERMS
+    )
+    has_second_line_medication = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in STATUS_EPILEPTICUS_SECOND_LINE_MEDICATION_ACTION_TERMS
     )
     has_refractory_escalation = any(
         _contains_safety_term(normalized_actions, term)
         for term in STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS
     )
-    return has_airway and has_benzo and has_second_line and has_refractory_escalation
+    return (
+        has_airway
+        and has_benzo
+        and has_second_line_pathway
+        and has_second_line_medication
+        and has_refractory_escalation
+    )
 
 
 def _has_status_epilepticus_treatment_safety_check(checks: list[Any]) -> bool:

@@ -4510,6 +4510,57 @@
     }
   },
   {
+    "name": "status_epilepticus_requires_specific_second_line_medication_not_generic_loading_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "status epilepticus time-critical actions must include airway"
+    ],
+    "overrides": {
+      "diagnosis": "Convulsive status epilepticus",
+      "chief_complaint": "Ongoing convulsions",
+      "history_of_present_illness": "Patient brought in with continuous generalized convulsions lasting more than 5 minutes and no return to baseline.",
+      "key_teaching_points": [
+        "Prolonged convulsions require immediate staged treatment",
+        "Benzodiazepines are first-line but should not delay second-line loading",
+        "Refractory seizures require ICU-level escalation and continuous EEG planning"
+      ],
+      "clinical_red_flags": [
+        "Continuous seizure activity longer than 5 minutes",
+        "Hypoxia and aspiration risk during ongoing convulsions"
+      ],
+      "time_critical_actions": [
+        "Support airway and breathing with oxygen, suction, and intubation preparation",
+        "Give IV lorazepam immediately for ongoing seizure activity",
+        "Begin second-line antiseizure loading if seizures continue after benzodiazepine",
+        "Escalate refractory status epilepticus to neurology, ICU, continuous EEG, and anesthetic infusion planning"
+      ],
+      "contraindication_checks": [
+        "Check bedside glucose and give dextrose with thiamine if hypoglycemia or malnutrition is possible",
+        "Prepare airway support, suction, oxygen saturation monitoring, and respiratory depression safeguards after benzodiazepines",
+        "Weight-based dosing plus renal, hepatic, pregnancy, ECG, and hypotension review before second-line antiseizure loading"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Status Epilepticus",
+          "organization": "StatPearls / NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK430686/",
+          "supports": [
+            "convulsive status epilepticus diagnosis and staged treatment",
+            "continuous seizure activity longer than 5 minutes as a red flag",
+            "hypoxia and aspiration risk during ongoing convulsions",
+            "airway and breathing support with oxygen, suction, and intubation preparation",
+            "IV lorazepam immediately for ongoing seizure activity",
+            "second-line antiseizure loading if seizures continue after benzodiazepine",
+            "refractory status epilepticus escalation to neurology, ICU, continuous EEG, and anesthetic infusion planning",
+            "bedside glucose and dextrose with thiamine if hypoglycemia or malnutrition is possible",
+            "airway support, suction, oxygen saturation monitoring, and respiratory depression safeguards after benzodiazepines",
+            "weight-based dosing plus renal, hepatic, pregnancy, ECG, and hypotension review before second-line antiseizure loading"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "status_epilepticus_requires_bedside_glucose_not_thiamine_alone",
     "expected_passed": false,
     "expected_issue_substrings": [

@@ -11587,15 +11587,30 @@ const STATUS_EPILEPTICUS_BENZO_ACTION_TERMS = [
   "미다졸람",
 ];
 
-const STATUS_EPILEPTICUS_SECOND_LINE_ACTION_TERMS = [
+const STATUS_EPILEPTICUS_SECOND_LINE_PATHWAY_ACTION_TERMS = [
   "antiseizure loading",
+  "anti-seizure loading",
+  "antiepileptic loading",
+  "anti-epileptic loading",
+  "load antiseizure",
+  "load anti-seizure",
+  "load antiepileptic",
+  "load anti-epileptic",
+  "fosphenytoin",
+  "levetiracetam",
+  "loading dose",
+  "second-line",
+  "항경련제",
+];
+
+const STATUS_EPILEPTICUS_SECOND_LINE_MEDICATION_ACTION_TERMS = [
   "fosphenytoin",
   "levetiracetam",
   "phenobarbital",
   "phenytoin",
-  "second-line",
+  "valproic acid",
+  "valproate sodium",
   "valproate",
-  "항경련제",
 ];
 
 const STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS = [
@@ -22925,13 +22940,22 @@ function hasStatusEpilepticusTimeCriticalActions(actions: string[]): boolean {
   const hasBenzo = STATUS_EPILEPTICUS_BENZO_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSecondLine = STATUS_EPILEPTICUS_SECOND_LINE_ACTION_TERMS.some((term) =>
+  const hasSecondLinePathway = STATUS_EPILEPTICUS_SECOND_LINE_PATHWAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSecondLineMedication = STATUS_EPILEPTICUS_SECOND_LINE_MEDICATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasRefractoryEscalation = STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasAirway && hasBenzo && hasSecondLine && hasRefractoryEscalation;
+  return (
+    hasAirway &&
+    hasBenzo &&
+    hasSecondLinePathway &&
+    hasSecondLineMedication &&
+    hasRefractoryEscalation
+  );
 }
 
 function hasStatusEpilepticusTreatmentSafetyCheck(checks: string[]): boolean {
@@ -27315,7 +27339,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasStatusEpilepticusTimeCriticalActions,
       issue:
-        "status epilepticus time-critical actions must include airway or oxygen support, benzodiazepine treatment, second-line antiseizure loading, and refractory seizure escalation",
+        "status epilepticus time-critical actions must include airway or oxygen support, benzodiazepine treatment, second-line antiseizure loading pathway, specific second-line medication such as levetiracetam, fosphenytoin, phenytoin, valproate, valproic acid, or phenobarbital, and refractory seizure escalation",
     },
     {
       name: "status_epilepticus_treatment_safety",
