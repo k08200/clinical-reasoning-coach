@@ -14209,9 +14209,13 @@ const SICKLE_STROKE_IMAGING_ACTION_TERMS = [
 const SICKLE_STROKE_TRANSFUSION_ACTION_TERMS = [
   "exchange transfusion",
   "erythrocytapheresis",
+  "packed red blood cell",
+  "packed rbcs",
+  "prbc",
+  "red blood cell transfusion",
   "red cell exchange",
+  "red cell transfusion",
   "simple transfusion",
-  "transfusion",
 ];
 
 const SICKLE_STROKE_EXPERT_ACTION_TERMS = [

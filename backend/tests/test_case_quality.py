@@ -20289,6 +20289,75 @@ def test_quality_gate_requires_sickle_stroke_neuroimaging_transfusion_and_expert
     )
 
 
+def test_quality_gate_requires_sickle_stroke_specific_transfusion_modality_not_generic_transfusion_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sickle cell acute stroke"
+    case["patient_demographics"] = {
+        "age": 12,
+        "sex": "female",
+        "weight_kg": 38,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden right-sided weakness and speech difficulty"
+    case["history_of_present_illness"] = (
+        "Child with sickle cell disease HbSS has acute stroke in sickle cell "
+        "with sudden hemiparesis, aphasia, severe headache, seizure, and altered "
+        "mental status after vaso-occlusive pain."
+    )
+    case["key_teaching_points"] = [
+        "Stroke in sickle cell disease can present with sudden weakness, aphasia, seizure, coma, or severe headache",
+        "Urgent neuroimaging and neurologic consultation are required for suspected acute stroke in sickle cell disease",
+        "Exchange transfusion should be coordinated with a sickle cell expert when acute stroke is confirmed by neuroimaging",
+    ]
+    case["clinical_red_flags"] = [
+        "Severe headache, altered level of consciousness, seizure, speech problems, paralysis, and focal neurologic deficit",
+        "Sickle cell stroke can recur without secondary prevention",
+    ]
+    case["time_critical_actions"] = [
+        "Call urgent neurology stroke consultation and assess airway, glucose, and neurologic deficits",
+        "Obtain urgent head CT followed by MRI and MRA neuroimaging when available",
+        "Arrange urgent transfusion planning with hematology and the sickle cell expert after imaging confirmation",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid transfusing above hemoglobin 10 g/dL to prevent hyperviscosity in sickle cell disease",
+        "Ask blood bank to review transfusion history, antigen matching for C antigen, E antigen, and K antigen, sickle-negative units, and alloimmunization risk",
+        "Plan secondary prevention with monthly simple or exchange transfusions to reduce stroke recurrence",
+        "Review hemorrhagic stroke, intracranial hemorrhage, TIA, seizure, and stroke mimic diagnoses",
+        "Weight-based dosing and fluid calculations before medication or bolus therapy",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Evidence-Based Management of Sickle Cell Disease: Expert Panel Report, 2014",
+            "organization": "National Heart, Lung, and Blood Institute",
+            "url": "https://www.nhlbi.nih.gov/health-topics/evidence-based-management-sickle-cell-disease",
+            "supports": [
+                "sickle cell acute stroke diagnosis and risk stratification",
+                "stroke in sickle cell disease can present with sudden weakness, aphasia, seizure, coma, or severe headache",
+                "urgent neuroimaging and neurologic consultation are required for suspected acute stroke in sickle cell disease",
+                "exchange transfusion should be coordinated with a sickle cell expert when acute stroke is confirmed by neuroimaging",
+                "severe headache, altered level of consciousness, seizure, speech problems, paralysis, and focal neurologic deficit as red flags",
+                "sickle cell stroke can recur without secondary prevention",
+                "urgent neurology consultation and assessment of airway, glucose, and neurologic deficits",
+                "urgent head CT followed by MRI and MRA neuroimaging if available",
+                "avoid transfusing above hemoglobin 10 g/dL to prevent hyperviscosity",
+                "blood bank review of transfusion history, antigen matching for C antigen, E antigen, and K antigen, sickle-negative units, and alloimmunization risk",
+                "secondary prevention with monthly simple or exchange transfusions to reduce stroke recurrence",
+                "hemorrhagic stroke, intracranial hemorrhage, TIA, seizure, and stroke mimic review",
+                "weight-based dosing and fluid calculations before medication or bolus therapy",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "sickle cell stroke time-critical actions must include urgent neurology"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_sickle_stroke_hyperviscosity_blood_bank_secondary_prevention_and_mimic_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Sickle cell disease with stroke"
