@@ -12184,14 +12184,18 @@ const VALPROATE_TOXICITY_CARNITINE_ACTION_TERMS = [
   "levocarnitine",
 ];
 
-const VALPROATE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = [
-  "dialysis",
-  "ectr",
-  "hemodialysis",
-  "nephrology",
+const VALPROATE_TOXICITY_TOXICOLOGY_ESCALATION_ACTION_TERMS = [
   "poison center",
   "poison control",
   "toxicologist",
+];
+
+const VALPROATE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = [
+  "ectr",
+  "extracorporeal removal",
+  "extracorporeal treatment",
+  "haemodialysis",
+  "hemodialysis",
 ];
 
 const VALPROATE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS = [
@@ -23244,6 +23248,9 @@ function hasValproateToxicityTimeCriticalActions(actions: string[]): boolean {
   const hasCarnitine = VALPROATE_TOXICITY_CARNITINE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasToxicologyEscalation = VALPROATE_TOXICITY_TOXICOLOGY_ESCALATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
   const hasDialysisEscalation = VALPROATE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
@@ -23254,6 +23261,7 @@ function hasValproateToxicityTimeCriticalActions(actions: string[]): boolean {
     hasStabilization &&
     hasDecontamination &&
     hasCarnitine &&
+    hasToxicologyEscalation &&
     hasDialysisEscalation
   );
 }
@@ -27447,7 +27455,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasValproateToxicityTimeCriticalActions,
       issue:
-        "valproate toxicity time-critical actions must include serial valproate level or valproate concentration monitoring, ammonia, free-valproate, or unbound-valproate assessment, CMP, LFT, liver-function, CBC, glucose, electrolyte, acetaminophen, salicylate, co-ingestant, or pregnancy testing, airway, breathing, circulation, intubation, mechanical-ventilation, IV-fluid, vasopressor, or benzodiazepine stabilization, activated-charcoal, enteric-coated, extended-release, gastric-lavage, or decontamination planning, L-carnitine, levocarnitine, or carnitine therapy, and poison-center, toxicologist, nephrology, hemodialysis, dialysis, or ECTR escalation",
+        "valproate toxicity time-critical actions must include serial valproate level or valproate concentration monitoring, ammonia, free-valproate, or unbound-valproate assessment, CMP, LFT, liver-function, CBC, glucose, electrolyte, acetaminophen, salicylate, co-ingestant, or pregnancy testing, airway, breathing, circulation, intubation, mechanical-ventilation, IV-fluid, vasopressor, or benzodiazepine stabilization, activated-charcoal, enteric-coated, extended-release, gastric-lavage, or decontamination planning, L-carnitine, levocarnitine, or carnitine therapy, poison-center or toxicologist consultation, and hemodialysis, ECTR, or extracorporeal-treatment escalation",
     },
     {
       name: "valproate_toxicity_treatment_safety",

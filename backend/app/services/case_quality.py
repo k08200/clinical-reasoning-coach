@@ -11116,14 +11116,17 @@ VALPROATE_TOXICITY_CARNITINE_ACTION_TERMS = (
     "l-carnitine",
     "levocarnitine",
 )
-VALPROATE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = (
-    "dialysis",
-    "ectr",
-    "hemodialysis",
-    "nephrology",
+VALPROATE_TOXICITY_TOXICOLOGY_ESCALATION_ACTION_TERMS = (
     "poison center",
     "poison control",
     "toxicologist",
+)
+VALPROATE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = (
+    "ectr",
+    "extracorporeal removal",
+    "extracorporeal treatment",
+    "haemodialysis",
+    "hemodialysis",
 )
 VALPROATE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS = (
     "1300",
@@ -18297,8 +18300,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "mechanical-ventilation, IV-fluid, vasopressor, or benzodiazepine "
                 "stabilization, activated-charcoal, enteric-coated, extended-"
                 "release, gastric-lavage, or decontamination planning, L-carnitine, "
-                "levocarnitine, or carnitine therapy, and poison-center, "
-                "toxicologist, nephrology, hemodialysis, dialysis, or ECTR escalation"
+                "levocarnitine, or carnitine therapy, poison-center or "
+                "toxicologist consultation, and hemodialysis, ECTR, or "
+                "extracorporeal-treatment escalation"
             ),
         ),
         DomainSafetyGate(
@@ -28138,6 +28142,10 @@ def _has_valproate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in VALPROATE_TOXICITY_CARNITINE_ACTION_TERMS
     )
+    has_toxicology_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VALPROATE_TOXICITY_TOXICOLOGY_ESCALATION_ACTION_TERMS
+    )
     has_dialysis_escalation = any(
         _contains_safety_term(normalized_actions, term)
         for term in VALPROATE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS
@@ -28149,6 +28157,7 @@ def _has_valproate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         and has_stabilization
         and has_decontamination
         and has_carnitine
+        and has_toxicology_escalation
         and has_dialysis_escalation
     )
 
