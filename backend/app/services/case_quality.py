@@ -11256,15 +11256,18 @@ THEOPHYLLINE_TOXICITY_SEIZURE_ACTION_TERMS = (
     "propofol",
     "seizure",
 )
-THEOPHYLLINE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = (
-    "dialysis",
-    "ectr",
-    "hemodialysis",
-    "hemoperfusion",
-    "nephrology",
+THEOPHYLLINE_TOXICITY_TOXICOLOGY_ESCALATION_ACTION_TERMS = (
     "poison center",
     "poison control",
     "toxicologist",
+)
+THEOPHYLLINE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = (
+    "ectr",
+    "extracorporeal removal",
+    "extracorporeal treatment",
+    "haemodialysis",
+    "hemodialysis",
+    "hemoperfusion",
 )
 THEOPHYLLINE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS = (
     "acute exposure",
@@ -18340,8 +18343,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "support, activated charcoal, multiple-dose activated charcoal, "
                 "MDAC, multidose charcoal, or nasogastric decontamination planning, "
                 "benzodiazepine, lorazepam, midazolam, diazepam, phenobarbital, "
-                "propofol, or seizure treatment, and poison-center, toxicologist, "
-                "nephrology, hemodialysis, dialysis, ECTR, or hemoperfusion escalation"
+                "propofol, or seizure treatment, poison-center or toxicologist "
+                "consultation, and hemodialysis, hemoperfusion, ECTR, or "
+                "extracorporeal-treatment escalation"
             ),
         ),
         DomainSafetyGate(
@@ -28260,6 +28264,10 @@ def _has_theophylline_toxicity_time_critical_actions(actions: list[Any]) -> bool
         _contains_safety_term(normalized_actions, term)
         for term in THEOPHYLLINE_TOXICITY_SEIZURE_ACTION_TERMS
     )
+    has_toxicology_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THEOPHYLLINE_TOXICITY_TOXICOLOGY_ESCALATION_ACTION_TERMS
+    )
     has_dialysis_escalation = any(
         _contains_safety_term(normalized_actions, term)
         for term in THEOPHYLLINE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS
@@ -28272,6 +28280,7 @@ def _has_theophylline_toxicity_time_critical_actions(actions: list[Any]) -> bool
         and has_abc_hemodynamic
         and has_decontamination
         and has_seizure
+        and has_toxicology_escalation
         and has_dialysis_escalation
     )
 
