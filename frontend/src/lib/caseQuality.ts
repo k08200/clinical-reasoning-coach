@@ -10186,10 +10186,11 @@ const BOTULISM_PUBLIC_HEALTH_ACTION_TERMS = [
 ];
 
 const BOTULISM_ANTITOXIN_ACTION_TERMS = [
-  "antitoxin",
   "babybig",
   "botulism immune globulin",
+  "botulinum antitoxin heptavalent",
   "heptavalent",
+  "heptavalent botulism antitoxin",
   "human botulism immune globulin",
 ];
 
@@ -27123,7 +27124,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasBotulismTimeCriticalActions,
       issue:
-        "botulism time-critical actions must include immediate state health department, public health, CDC Clinical Botulism Service, or Infant Botulism Treatment consultation, antitoxin planning with heptavalent antitoxin, BabyBIG, botulism immune globulin, or human botulism immune globulin, respiratory monitoring, respiratory function, ICU, intensive care, mechanical ventilation, ventilator, or ventilatory support, and serum, stool, food sample, wound, specimen, source, or toxin testing coordination",
+        "botulism time-critical actions must include immediate state health department, public health, CDC Clinical Botulism Service, or Infant Botulism Treatment consultation, specific antitoxin planning with heptavalent botulism antitoxin, botulinum antitoxin heptavalent, BabyBIG, botulism immune globulin, or human botulism immune globulin, respiratory monitoring, respiratory function, ICU, intensive care, mechanical ventilation, ventilator, or ventilatory support, and serum, stool, food sample, wound, specimen, source, or toxin testing coordination",
     },
     {
       name: "botulism_treatment_safety",

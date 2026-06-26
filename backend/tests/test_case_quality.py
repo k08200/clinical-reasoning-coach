@@ -13695,6 +13695,85 @@ def test_quality_gate_requires_botulism_public_health_antitoxin_respiratory_and_
     )
 
 
+def test_quality_gate_requires_botulism_specific_antitoxin_not_generic_antitoxin_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Foodborne botulism with descending flaccid paralysis"
+    case["patient_demographics"] = {
+        "age": 44,
+        "sex": "female",
+        "weight_kg": 67,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Diplopia, dysphagia, and weakness after home-canned food"
+    case["history_of_present_illness"] = (
+        "Patient ate home-canned vegetables and developed botulism symptoms with "
+        "blurred vision, diplopia, ptosis, slurred speech, dysphagia, cranial "
+        "nerve palsy, symmetric descending flaccid paralysis, weakness, respiratory "
+        "distress, and concern for respiratory failure."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "132/76", "hr": 96, "rr": 24, "spo2": 93},
+        "general": "Awake and fully conscious but weak",
+        "pulmonary": "Shallow respirations with weak cough",
+        "neuro": "Bilateral ptosis, ocular palsy, dysarthria, dysphagia, and descending weakness",
+    }
+    case["key_teaching_points"] = [
+        "Botulism causes symmetric descending flaccid paralysis beginning with cranial nerves and can progress to respiratory failure",
+        "Suspected botulism requires immediate public health consultation and antitoxin release without waiting for laboratory confirmation",
+        "ICU respiratory function monitoring and mechanical ventilation may be required for weeks to months",
+        "Serum, stool, food sample, wound specimen, source investigation, and toxin testing should be coordinated through public health",
+    ]
+    case["clinical_red_flags"] = [
+        "Diplopia, ptosis, blurred vision, ocular palsy, slurred speech, dysphagia, or cranial nerve palsy",
+        "Descending flaccid paralysis, weakness, respiratory distress, respiratory failure, or preserved consciousness",
+    ]
+    case["time_critical_actions"] = [
+        "Call state health department, public health, and CDC Clinical Botulism Service immediately",
+        "Request antitoxin release without waiting for laboratory confirmation",
+        "Admit ICU for respiratory monitoring, respiratory function checks, and mechanical ventilation or ventilatory support if needed",
+        "Coordinate serum, stool, food sample, wound specimen, source investigation, and toxin testing",
+    ]
+    case["contraindication_checks"] = [
+        "Do not wait for laboratory confirmation; treatment should not delay and suspected botulism should be treated empirically",
+        "For infant botulism, use infant-specific BabyBIG or human botulism immune globulin rather than default adult heptavalent antitoxin pathways",
+        "For wound botulism, arrange surgical debridement, source control, and antibiotic review",
+        "Prevent supportive complications with bladder and bowel care, urinary tract infection prevention, DVT prophylaxis, pressure ulcers prevention, dry eyes, dry mouth, secretions management, communication support, and rehabilitation",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Clinical Overview of Botulism",
+            "organization": "CDC",
+            "url": "https://www.cdc.gov/botulism/hcp/clinical-overview/index.html",
+            "supports": [
+                "foodborne botulism with descending flaccid paralysis diagnosis and risk stratification",
+                "botulism causes symmetric descending flaccid paralysis beginning with cranial nerves and can progress to respiratory failure",
+                "suspected botulism requires immediate public health consultation and antitoxin release without waiting for laboratory confirmation",
+                "ICU respiratory function monitoring and mechanical ventilation may be required for weeks to months",
+                "serum, stool, food sample, wound specimen, source investigation, and toxin testing coordination through public health",
+                "diplopia, ptosis, blurred vision, ocular palsy, slurred speech, dysphagia, or cranial nerve palsy as red flags",
+                "descending flaccid paralysis, weakness, respiratory distress, respiratory failure, or preserved consciousness as severity markers",
+                "state health department, public health, and CDC Clinical Botulism Service immediately",
+                "antitoxin release without waiting for laboratory confirmation",
+                "ICU respiratory monitoring, respiratory function checks, and mechanical ventilation or ventilatory support if needed",
+                "serum, stool, food sample, wound specimen, source investigation, and toxin testing",
+                "no waiting for laboratory confirmation and empiric treatment without delay",
+                "infant-specific BabyBIG or human botulism immune globulin versus adult heptavalent antitoxin pathways",
+                "wound botulism surgical debridement, source control, and antibiotic review",
+                "bladder and bowel care, urinary tract infection prevention, DVT prophylaxis, pressure ulcers prevention, dry eyes, dry mouth, secretions management, communication support, and rehabilitation",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "botulism time-critical actions must include immediate state health"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_botulism_no_wait_infant_wound_and_supportive_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Infant botulism with respiratory distress"
