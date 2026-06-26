@@ -8714,13 +8714,13 @@ DIGOXIN_TOXICITY_ELECTROLYTE_RENAL_ACTION_TERMS = (
     "칼륨",
 )
 DIGOXIN_TOXICITY_FAB_ACTION_TERMS = (
-    "antibody fragment",
-    "antidote",
+    "anti-digoxin fab",
     "digibind",
     "digifab",
     "digoxin immune fab",
     "digoxin-specific antibody",
-    "fab",
+    "digoxin-specific antibody fragment",
+    "digoxin-specific fab",
     "면역 fab",
 )
 DIGOXIN_TOXICITY_TOX_ARRHYTHMIA_ACTION_TERMS = (
@@ -17588,10 +17588,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "telemetry, rhythm, or cardiac monitoring, serum digoxin level "
                 "or post-distribution concentration timing, potassium, magnesium, "
                 "creatinine, renal, kidney, or electrolyte assessment, digoxin "
-                "immune Fab, digoxin-specific antibody, DigiFab, DigiBind, Fab, "
-                "antibody-fragment, or antidote planning, and toxicology, poison-"
-                "center, atropine, lidocaine, lignocaine, or magnesium arrhythmia "
-                "support"
+                "immune Fab, digoxin-specific Fab, digoxin-specific antibody, "
+                "digoxin-specific antibody fragment, anti-digoxin Fab, DigiFab, "
+                "or DigiBind planning, and toxicology, poison-center, atropine, "
+                "lidocaine, lignocaine, or magnesium arrhythmia support"
             ),
         ),
         DomainSafetyGate(

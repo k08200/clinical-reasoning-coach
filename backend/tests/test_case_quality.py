@@ -12768,6 +12768,96 @@ def test_quality_gate_requires_digoxin_toxicity_potassium_rebound_levels_cardiov
     )
 
 
+def test_quality_gate_requires_digoxin_specific_fab_not_generic_antidote_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Digitalis toxicity with AV block"
+    case["patient_demographics"] = {
+        "age": 77,
+        "sex": "female",
+        "weight_kg": 54,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Vomiting, visual halos, and bradycardia"
+    case["history_of_present_illness"] = (
+        "Patient taking digoxin for atrial fibrillation has vomiting, confusion, "
+        "visual halos, bradycardia, AV block, renal impairment, ventricular ectopy, "
+        "and potassium 5.4 mmol/L concerning for digitalis toxicity."
+    )
+    case["past_medical_history"] = "Atrial fibrillation, heart failure, chronic kidney disease, and digoxin therapy"
+    case["physical_exam"] = {
+        "vitals": {"bp": "92/54", "hr": 36, "rr": 18, "temp_c": 36.6, "spo2": 97},
+        "general": "Ill appearing with repeated vomiting",
+        "cardiovascular": "Marked bradycardia with AV block and ventricular ectopy",
+        "pulmonary": "Mild basilar crackles",
+        "abdomen": "Soft and non-peritoneal",
+        "neuro": "Confused, no focal deficit",
+        "other": "Visual halo symptoms",
+    }
+    case["initial_labs"] = {
+        "digoxin": "pending",
+        "k": "5.4",
+        "mg": "1.6",
+        "cr": "2.0",
+        "bun": "39",
+    }
+    case["key_teaching_points"] = [
+        "Digitalis toxicity can produce gastrointestinal symptoms, visual changes, bradyarrhythmia, and ventricular arrhythmia",
+        "Digoxin-specific antibody fragments are needed when life-threatening arrhythmia, cardiac arrest, or significant potassium elevation is present",
+        "Post-distribution serum digoxin concentration and renal function help guide treatment and dosing",
+    ]
+    case["clinical_red_flags"] = [
+        "Bradycardia, AV block, ventricular ectopy, bidirectional ventricular tachycardia, cardiac arrest, or hemodynamic instability",
+        "Vomiting, confusion, visual halos, renal impairment, hypomagnesemia, and potassium elevation",
+    ]
+    case["time_critical_actions"] = [
+        "Place on ECG telemetry with continuous cardiac monitoring and repeat electrocardiogram review",
+        "Send serum digoxin level at least six hours after last dose or use post-distribution concentration timing",
+        "Check potassium, magnesium, creatinine, renal function, and electrolytes urgently",
+        "Give antidote for life-threatening toxicity and calculate dose from concentration or amount ingested",
+        "Call poison center toxicology and use atropine for unstable bradyarrhythmia; consider lidocaine or magnesium for ventricular ectopy",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor serum potassium, hypokalemia risk, and magnesium during digoxin immune Fab treatment",
+        "Monitor renal impairment, renal failure, rebound toxicity, recurrent toxicity, and repeat monitoring needs after Fab",
+        "Treat post-Fab total serum digoxin levels as unreliable; use free or unbound digoxin only if available and follow clinical status",
+        "Avoid calcium for digoxin-related potassium elevation and avoid cardioversion, defibrillation, or pacing unless life-saving with low-energy caution",
+        "Review activated charcoal, decontamination, early ingestion, and within two hours presentation window",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Digoxin toxicity",
+            "organization": "Australian Prescriber",
+            "url": "https://australianprescriber.tg.org.au/articles/management-of-digoxin-toxicity.html",
+            "supports": [
+                "digitalis toxicity with AV block diagnosis and risk stratification",
+                "digitalis toxicity can produce gastrointestinal symptoms, visual changes, bradyarrhythmia, and ventricular arrhythmia",
+                "digoxin-specific antibody fragments are needed when life-threatening arrhythmia, cardiac arrest, or significant potassium elevation is present",
+                "post-distribution serum digoxin concentration and renal function help guide treatment and dosing",
+                "bradycardia, AV block, ventricular ectopy, bidirectional ventricular tachycardia, cardiac arrest, or hemodynamic instability as red flags",
+                "vomiting, confusion, visual halos, renal impairment, hypomagnesemia, and potassium elevation as severity markers",
+                "ECG telemetry with continuous cardiac monitoring and repeat electrocardiogram review",
+                "serum digoxin level at least six hours after last dose or post-distribution concentration timing",
+                "potassium, magnesium, creatinine, renal function, and electrolytes urgently",
+                "antidote for life-threatening toxicity and dose from concentration or amount ingested",
+                "poison center toxicology and atropine for unstable bradyarrhythmia; lidocaine or magnesium for ventricular ectopy",
+                "serum potassium, hypokalemia risk, and magnesium monitoring during digoxin immune Fab treatment",
+                "renal impairment, renal failure, rebound toxicity, recurrent toxicity, and repeat monitoring needs after Fab",
+                "post-Fab total serum digoxin levels are unreliable; free or unbound digoxin only if available with clinical status",
+                "avoid calcium for digoxin-related potassium elevation and avoid cardioversion, defibrillation, or pacing unless life-saving with low-energy caution",
+                "activated charcoal, decontamination, early ingestion, and within two hours presentation window",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "digoxin toxicity time-critical actions must include ECG" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_tca_toxicity_ecg_bicarb_airway_seizure_and_escalation_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Tricyclic antidepressant overdose with QRS prolongation"

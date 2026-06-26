@@ -9538,13 +9538,13 @@ const DIGOXIN_TOXICITY_ELECTROLYTE_RENAL_ACTION_TERMS = [
 ];
 
 const DIGOXIN_TOXICITY_FAB_ACTION_TERMS = [
-  "antibody fragment",
-  "antidote",
+  "anti-digoxin fab",
   "digibind",
   "digifab",
   "digoxin immune fab",
   "digoxin-specific antibody",
-  "fab",
+  "digoxin-specific antibody fragment",
+  "digoxin-specific fab",
   "면역 fab",
 ];
 
@@ -27024,7 +27024,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasDigoxinToxicityTimeCriticalActions,
       issue:
-        "digoxin toxicity time-critical actions must include ECG, EKG, telemetry, rhythm, or cardiac monitoring, serum digoxin level or post-distribution concentration timing, potassium, magnesium, creatinine, renal, kidney, or electrolyte assessment, digoxin immune Fab, digoxin-specific antibody, DigiFab, DigiBind, Fab, antibody-fragment, or antidote planning, and toxicology, poison-center, atropine, lidocaine, lignocaine, or magnesium arrhythmia support",
+        "digoxin toxicity time-critical actions must include ECG, EKG, telemetry, rhythm, or cardiac monitoring, serum digoxin level or post-distribution concentration timing, potassium, magnesium, creatinine, renal, kidney, or electrolyte assessment, digoxin immune Fab, digoxin-specific Fab, digoxin-specific antibody, digoxin-specific antibody fragment, anti-digoxin Fab, DigiFab, or DigiBind planning, and toxicology, poison-center, atropine, lidocaine, lignocaine, or magnesium arrhythmia support",
     },
     {
       name: "digoxin_toxicity_treatment_safety",
