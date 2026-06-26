@@ -8584,13 +8584,17 @@ BB_CCB_OVERDOSE_CALCIUM_GLUCAGON_ATROPINE_ACTION_TERMS = (
     "칼슘",
     "글루카곤",
 )
-BB_CCB_OVERDOSE_HIE_ACTION_TERMS = (
+BB_CCB_OVERDOSE_HIE_PATHWAY_ACTION_TERMS = (
     "euglycemia",
+    "euglycaemia",
     "hie",
     "hiet",
     "high-dose insulin",
+    "high dose insulin",
     "hyperinsulinemia",
     "hyperinsulinaemia",
+)
+BB_CCB_OVERDOSE_INSULIN_ACTION_TERMS = (
     "insulin",
     "인슐린",
 )
@@ -17555,11 +17559,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "beta-blocker or calcium-channel blocker overdose time-critical "
                 "actions must include ECG, EKG, telemetry, vital-sign, or cardiac "
                 "monitoring, calcium, glucagon, or atropine early therapy, "
-                "high-dose insulin, hyperinsulinemia, HIE, HIET, or euglycemia "
-                "therapy, vasopressor, inotrope, epinephrine, norepinephrine, "
-                "or shock support, and poison-center, toxicology, lipid-emulsion, "
-                "ECMO, mechanical-circulatory-support, intra-aortic balloon, or "
-                "pacing escalation"
+                "high-dose insulin, insulin euglycemia, hyperinsulinemia, "
+                "HIE, HIET, or euglycemia therapy with explicit insulin "
+                "administration, vasopressor, inotrope, epinephrine, "
+                "norepinephrine, or shock support, and poison-center, toxicology, "
+                "lipid-emulsion, ECMO, mechanical-circulatory-support, "
+                "intra-aortic balloon, or pacing escalation"
             ),
         ),
         DomainSafetyGate(
@@ -25855,9 +25860,13 @@ def _has_bb_ccb_overdose_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in BB_CCB_OVERDOSE_CALCIUM_GLUCAGON_ATROPINE_ACTION_TERMS
     )
-    has_hie = any(
+    has_hie_pathway = any(
         _contains_safety_term(normalized_actions, term)
-        for term in BB_CCB_OVERDOSE_HIE_ACTION_TERMS
+        for term in BB_CCB_OVERDOSE_HIE_PATHWAY_ACTION_TERMS
+    )
+    has_insulin = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BB_CCB_OVERDOSE_INSULIN_ACTION_TERMS
     )
     has_vasopressor = any(
         _contains_safety_term(normalized_actions, term)
@@ -25870,7 +25879,8 @@ def _has_bb_ccb_overdose_time_critical_actions(actions: list[Any]) -> bool:
     return (
         has_ecg_monitoring
         and has_calcium_glucagon_atropine
-        and has_hie
+        and has_hie_pathway
+        and has_insulin
         and has_vasopressor
         and has_escalation
     )

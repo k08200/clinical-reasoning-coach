@@ -12511,6 +12511,95 @@ def test_quality_gate_requires_bb_ccb_overdose_ecg_calcium_hie_vasopressor_and_e
     )
 
 
+def test_quality_gate_requires_bb_ccb_overdose_explicit_insulin_not_euglycemia_phrase_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Calcium channel blocker overdose with cardiogenic shock"
+    case["patient_demographics"] = {
+        "age": 52,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Intentional overdose with bradycardia and hypotension"
+    case["history_of_present_illness"] = (
+        "Patient ingested extended-release verapamil and metoprolol, then developed "
+        "bradycardia, hypotension, AV block, and cardiogenic shock concerning for "
+        "calcium channel blocker and beta blocker toxicity."
+    )
+    case["past_medical_history"] = "Hypertension treated with verapamil and metoprolol"
+    case["physical_exam"] = {
+        "vitals": {"bp": "78/42", "hr": 38, "rr": 20, "temp_c": 36.6, "spo2": 96},
+        "general": "Drowsy, pale, and diaphoretic",
+        "cardiovascular": "Severe bradycardia with poor peripheral perfusion",
+        "pulmonary": "Clear breath sounds with shallow respirations",
+        "abdomen": "Soft and non-tender",
+        "neuro": "Somnolent but arousable without focal deficit",
+        "other": "Cool extremities and delayed capillary refill",
+    }
+    case["initial_labs"] = {
+        "glucose": "232",
+        "k": "3.9",
+        "cr": "1.4",
+        "lactate": "4.8",
+        "vbg": "pH 7.28 with metabolic acidosis",
+    }
+    case["key_teaching_points"] = [
+        "Cardioactive drug overdose can cause bradycardia, AV block, hypotension, and cardiogenic shock",
+        "High-dose insulin euglycemia therapy is a core therapy for severe beta blocker or calcium channel blocker toxicity",
+        "Early poison center or toxicology escalation is needed for refractory shock, lipid emulsion, pacing, or ECMO decisions",
+    ]
+    case["clinical_red_flags"] = [
+        "Bradycardia, hypotension, AV block, wide QRS, seizure, altered mental status, or cardiogenic shock",
+        "Extended-release ingestion, rising lactate, hypoglycemia, hyperglycemia, or refractory vasopressor need",
+    ]
+    case["time_critical_actions"] = [
+        "Place on ECG telemetry and continuous cardiac monitoring with frequent vital signs",
+        "Give calcium gluconate plus glucagon and atropine early for symptomatic bradycardia",
+        "Start euglycemia therapy with dextrose support",
+        "Start norepinephrine or epinephrine vasopressor and inotrope support for shock",
+        "Call poison center and toxicologist for lipid emulsion, pacing, and ECMO escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor serum glucose, dextrose requirement, hypoglycemia, and potassium during high-dose insulin therapy",
+        "Assess airway, intubation need, seizure risk, benzodiazepine plan, wide QRS, and sodium bicarbonate indication",
+        "Review activated charcoal, whole bowel irrigation, and extended-release decontamination timing",
+        "Plan lipid emulsion, pancreatitis, fat overload, vasopressor, pacing, and ECMO escalation safety",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Calcium Channel Blocker Toxicity",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK537147/",
+            "supports": [
+                "calcium channel blocker overdose with cardiogenic shock diagnosis and risk stratification",
+                "cardioactive drug overdose can cause bradycardia, AV block, hypotension, and cardiogenic shock",
+                "high-dose insulin euglycemia therapy is a core therapy for severe beta blocker or calcium channel blocker toxicity",
+                "early poison center or toxicology escalation is needed for refractory shock, lipid emulsion, pacing, or ECMO decisions",
+                "bradycardia, hypotension, AV block, wide QRS, seizure, altered mental status, or cardiogenic shock as red flags",
+                "extended-release ingestion, rising lactate, hypoglycemia, hyperglycemia, or refractory vasopressor need as severity markers",
+                "ECG telemetry and continuous cardiac monitoring with frequent vital signs",
+                "calcium gluconate plus glucagon and atropine early for symptomatic bradycardia",
+                "euglycemia therapy with dextrose support",
+                "norepinephrine or epinephrine vasopressor and inotrope support for shock",
+                "poison center and toxicologist for lipid emulsion, pacing, and ECMO escalation",
+                "serum glucose, dextrose requirement, hypoglycemia, and potassium monitoring during high-dose insulin therapy",
+                "airway, intubation need, seizure risk, benzodiazepine plan, wide QRS, and sodium bicarbonate indication",
+                "activated charcoal, whole bowel irrigation, and extended-release decontamination timing",
+                "lipid emulsion, pancreatitis, fat overload, vasopressor, pacing, and ECMO escalation safety",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "beta-blocker or calcium-channel blocker overdose time-critical actions must include ECG"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_bb_ccb_overdose_hie_airway_decontamination_and_escalation_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Beta blocker and calcium channel blocker overdose"

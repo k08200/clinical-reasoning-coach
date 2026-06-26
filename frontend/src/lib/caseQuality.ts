@@ -9395,13 +9395,18 @@ const BB_CCB_OVERDOSE_CALCIUM_GLUCAGON_ATROPINE_ACTION_TERMS = [
   "글루카곤",
 ];
 
-const BB_CCB_OVERDOSE_HIE_ACTION_TERMS = [
+const BB_CCB_OVERDOSE_HIE_PATHWAY_ACTION_TERMS = [
   "euglycemia",
+  "euglycaemia",
   "hie",
   "hiet",
   "high-dose insulin",
+  "high dose insulin",
   "hyperinsulinemia",
   "hyperinsulinaemia",
+];
+
+const BB_CCB_OVERDOSE_INSULIN_ACTION_TERMS = [
   "insulin",
   "인슐린",
 ];
@@ -21422,7 +21427,10 @@ function hasBbCcbOverdoseTimeCriticalActions(actions: string[]): boolean {
     BB_CCB_OVERDOSE_CALCIUM_GLUCAGON_ATROPINE_ACTION_TERMS.some((term) =>
       containsSafetyTerm(normalizedActions, term),
     );
-  const hasHie = BB_CCB_OVERDOSE_HIE_ACTION_TERMS.some((term) =>
+  const hasHiePathway = BB_CCB_OVERDOSE_HIE_PATHWAY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasInsulin = BB_CCB_OVERDOSE_INSULIN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasVasopressor = BB_CCB_OVERDOSE_VASOPRESSOR_ACTION_TERMS.some((term) =>
@@ -21434,7 +21442,8 @@ function hasBbCcbOverdoseTimeCriticalActions(actions: string[]): boolean {
   return (
     hasEcgMonitoring &&
     hasCalciumGlucagonAtropine &&
-    hasHie &&
+    hasHiePathway &&
+    hasInsulin &&
     hasVasopressor &&
     hasEscalation
   );
@@ -27006,7 +27015,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasBbCcbOverdoseTimeCriticalActions,
       issue:
-        "beta-blocker or calcium-channel blocker overdose time-critical actions must include ECG, EKG, telemetry, vital-sign, or cardiac monitoring, calcium, glucagon, or atropine early therapy, high-dose insulin, hyperinsulinemia, HIE, HIET, or euglycemia therapy, vasopressor, inotrope, epinephrine, norepinephrine, or shock support, and poison-center, toxicology, lipid-emulsion, ECMO, mechanical-circulatory-support, intra-aortic balloon, or pacing escalation",
+        "beta-blocker or calcium-channel blocker overdose time-critical actions must include ECG, EKG, telemetry, vital-sign, or cardiac monitoring, calcium, glucagon, or atropine early therapy, high-dose insulin, insulin euglycemia, hyperinsulinemia, HIE, HIET, or euglycemia therapy with explicit insulin administration, vasopressor, inotrope, epinephrine, norepinephrine, or shock support, and poison-center, toxicology, lipid-emulsion, ECMO, mechanical-circulatory-support, intra-aortic balloon, or pacing escalation",
     },
     {
       name: "bb_ccb_overdose_treatment_safety",
