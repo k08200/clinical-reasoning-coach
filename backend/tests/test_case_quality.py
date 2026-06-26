@@ -20146,6 +20146,83 @@ def test_quality_gate_requires_sickle_splenic_sequestration_assessment_fluids_tr
     )
 
 
+def test_quality_gate_requires_sickle_splenic_sequestration_specific_transfusion_not_generic_transfusion_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sickle cell splenic sequestration crisis"
+    case["patient_demographics"] = {
+        "age": 3,
+        "sex": "female",
+        "weight_kg": 14,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Pallor, abdominal distension, and lethargy"
+    case["history_of_present_illness"] = (
+        "Child with sickle cell disease HbSS has sudden pallor, tachycardia, "
+        "left upper quadrant fullness, rapidly enlarging spleen, severe anemia, "
+        "and hypovolemic shock concerning for acute splenic sequestration."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "72/38", "hr": 176, "rr": 34, "temp_c": 37.1, "spo2": 98},
+        "abdomen": "Marked splenomegaly and left upper quadrant tenderness",
+        "skin": "Pale with delayed capillary refill",
+    }
+    case["initial_labs"] = {
+        "hemoglobin": "4.8 g/dL from baseline 8.5 g/dL",
+        "reticulocyte": "18%",
+        "platelets": "70 K/uL",
+    }
+    case["key_teaching_points"] = [
+        "Acute splenic sequestration in sickle cell disease can present with severe anemia and hypovolemic shock",
+        "Hemoglobin 2 g/dL or more below baseline should prompt evaluation for acute splenic sequestration and other causes of acute anemia",
+        "Transfusion should partially correct anemia while avoiding over-transfusion and hyperviscosity",
+    ]
+    case["clinical_red_flags"] = [
+        "Rapidly enlarging spleen, splenomegaly, pallor, tachycardia, hypotension, and shock",
+        "Falling hemoglobin more than 2 g/dL below baseline with reticulocytosis and thrombocytopenia",
+    ]
+    case["time_critical_actions"] = [
+        "Check spleen size by palpation and send CBC, reticulocyte count, baseline hemoglobin comparison, and type and crossmatch",
+        "Give immediate IV fluid bolus resuscitation for hypovolemia and shock",
+        "Arrange urgent transfusion with hematology and the sickle cell expert for severe anemia",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid over-transfusion or overtransfusion above hemoglobin 8 g/dL to prevent hyperviscosity when sequestered cells reenter circulation",
+        "Review differential diagnoses including aplastic crisis, delayed hemolytic transfusion reaction, acute chest syndrome, infection, and sepsis",
+        "Plan recurrence monitoring, parent education for spleen size checks, and splenectomy discussion after recurrent sequestration or life-threatening event",
+        "Recheck serial CBC, hemoglobin rebound, vital signs, spleen size, and shock response",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Evidence-Based Management of Sickle Cell Disease: Expert Panel Report, 2014",
+            "organization": "National Heart, Lung, and Blood Institute",
+            "url": "https://www.nhlbi.nih.gov/health-topics/evidence-based-management-sickle-cell-disease",
+            "supports": [
+                "sickle cell splenic sequestration crisis diagnosis and risk stratification",
+                "acute splenic sequestration in sickle cell disease can present with severe anemia and hypovolemic shock",
+                "hemoglobin 2 g/dL or more below baseline should prompt evaluation for acute splenic sequestration and other causes of acute anemia",
+                "transfusion should partially correct anemia while avoiding over-transfusion and hyperviscosity",
+                "rapidly enlarging spleen, splenomegaly, pallor, tachycardia, hypotension, and shock as red flags",
+                "falling hemoglobin more than 2 g/dL below baseline with reticulocytosis and thrombocytopenia as severity markers",
+                "spleen size by palpation and CBC, reticulocyte count, baseline hemoglobin comparison, and type and crossmatch",
+                "immediate IV fluid bolus resuscitation for hypovolemia and shock",
+                "avoid over-transfusion or overtransfusion above hemoglobin 8 g/dL to prevent hyperviscosity",
+                "aplastic crisis, delayed hemolytic transfusion reaction, acute chest syndrome, infection, and sepsis differential diagnoses",
+                "recurrence monitoring, parent education for spleen size checks, and splenectomy discussion",
+                "serial CBC, hemoglobin rebound, vital signs, spleen size, and shock response",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "sickle cell splenic sequestration time-critical actions must include spleen size"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_sickle_splenic_sequestration_overtransfusion_differential_recurrence_and_monitoring_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Sickle cell acute splenic sequestration"

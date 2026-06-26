@@ -12864,9 +12864,12 @@ SICKLE_SPLENIC_SEQUESTRATION_RESUSCITATION_ACTION_TERMS = (
 )
 SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_ACTION_TERMS = (
     "packed red blood",
+    "packed red blood cell",
+    "packed rbcs",
     "prbc",
+    "red blood cell transfusion",
+    "red cell transfusion",
     "simple transfusion",
-    "transfusion",
 )
 SICKLE_SPLENIC_SEQUESTRATION_EXPERT_ACTION_TERMS = (
     "hematology",
