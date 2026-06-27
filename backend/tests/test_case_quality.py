@@ -23215,6 +23215,43 @@ def test_quality_gate_requires_stroke_advanced_reperfusion_monitoring_and_suppor
     )
 
 
+def test_quality_gate_requires_stroke_explicit_thrombectomy_selection_criteria():
+    case = copy.deepcopy(CASE_POOL[4])
+    case["contraindication_checks"] = [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "Use CTA vascular imaging and CT perfusion when needed for reperfusion planning",
+        "Discuss thrombectomy with the stroke team if deficits persist",
+        "Treat in a stroke unit with stroke physician oversight and follow-up imaging",
+        "Delay antiplatelet after thrombolysis until repeat imaging confirms no bleeding and use a dysphagia-safe swallow route",
+        "Check oxygen saturation SpO2, blood glucose, temperature, and dysphagia swallow screen",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "last-known-normal based reperfusion eligibility",
+        "sudden focal neurologic deficit and NIHSS severity assessment",
+        "potentially treatable stroke within thrombolysis window from last known normal",
+        "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+        "noncontrast head CT to exclude hemorrhage before treatment decision",
+        "establish last known normal and activate stroke pathway immediately",
+        "assess thrombolysis and thrombectomy eligibility in parallel",
+        "intracranial hemorrhage or early extensive ischemic change on imaging",
+        "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "CTA vascular imaging and CT perfusion when needed for reperfusion planning",
+        "thrombectomy discussion with the stroke team if deficits persist",
+        "stroke unit with stroke physician oversight and follow-up imaging",
+        "delay antiplatelet after thrombolysis until repeat imaging confirms no bleeding and use a dysphagia-safe swallow route",
+        "oxygen saturation SpO2, blood glucose, temperature, and dysphagia swallow screen",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "stroke advanced reperfusion safety checks must include CTA" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_allows_stroke_reperfusion_with_required_safety_checks():
     case = copy.deepcopy(CASE_POOL[4])
 

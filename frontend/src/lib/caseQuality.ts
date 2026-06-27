@@ -15731,17 +15731,19 @@ const STROKE_VASCULAR_IMAGING_SAFETY_TERMS = [
   "vascular imaging",
 ];
 
-const STROKE_THROMBECTOMY_SELECTION_SAFETY_TERMS = [
+const STROKE_THROMBECTOMY_OCCLUSION_SAFETY_TERMS = [
+  "large vessel occlusion",
+  "lvo",
+];
+
+const STROKE_THROMBECTOMY_SELECTION_DETAIL_SAFETY_TERMS = [
   "24 hours",
   "6 hours",
   "aspects",
-  "large vessel occlusion",
-  "lvo",
   "modified rankin",
   "mrs",
   "nihss",
   "salvageable",
-  "thrombectomy",
 ];
 
 const STROKE_SERVICE_MONITORING_SAFETY_TERMS = [
@@ -25376,7 +25378,10 @@ function hasStrokeAdvancedReperfusionMonitoringSafetyCheck(checks: string[]): bo
   const hasVascularImaging = STROKE_VASCULAR_IMAGING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasThrombectomySelection = STROKE_THROMBECTOMY_SELECTION_SAFETY_TERMS.some(
+  const hasThrombectomyOcclusion = STROKE_THROMBECTOMY_OCCLUSION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasThrombectomySelectionDetail = STROKE_THROMBECTOMY_SELECTION_DETAIL_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasServiceMonitoring = STROKE_SERVICE_MONITORING_SAFETY_TERMS.some((term) =>
@@ -25390,7 +25395,8 @@ function hasStrokeAdvancedReperfusionMonitoringSafetyCheck(checks: string[]): bo
   );
   return (
     hasVascularImaging &&
-    hasThrombectomySelection &&
+    hasThrombectomyOcclusion &&
+    hasThrombectomySelectionDetail &&
     hasServiceMonitoring &&
     hasAntiplateletTiming &&
     hasHomeostasisSwallow

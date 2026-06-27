@@ -14343,17 +14343,18 @@ STROKE_VASCULAR_IMAGING_SAFETY_TERMS = (
     "perfusion",
     "vascular imaging",
 )
-STROKE_THROMBECTOMY_SELECTION_SAFETY_TERMS = (
+STROKE_THROMBECTOMY_OCCLUSION_SAFETY_TERMS = (
+    "large vessel occlusion",
+    "lvo",
+)
+STROKE_THROMBECTOMY_SELECTION_DETAIL_SAFETY_TERMS = (
     "24 hours",
     "6 hours",
     "aspects",
-    "large vessel occlusion",
-    "lvo",
     "modified rankin",
     "mrs",
     "nihss",
     "salvageable",
-    "thrombectomy",
 )
 STROKE_SERVICE_MONITORING_SAFETY_TERMS = (
     "complication",
@@ -30795,9 +30796,13 @@ def _has_stroke_advanced_reperfusion_monitoring_safety_check(
         _contains_safety_term(normalized_checks, term)
         for term in STROKE_VASCULAR_IMAGING_SAFETY_TERMS
     )
-    has_thrombectomy_selection = any(
+    has_thrombectomy_occlusion = any(
         _contains_safety_term(normalized_checks, term)
-        for term in STROKE_THROMBECTOMY_SELECTION_SAFETY_TERMS
+        for term in STROKE_THROMBECTOMY_OCCLUSION_SAFETY_TERMS
+    )
+    has_thrombectomy_selection_detail = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_THROMBECTOMY_SELECTION_DETAIL_SAFETY_TERMS
     )
     has_service_monitoring = any(
         _contains_safety_term(normalized_checks, term)
@@ -30813,7 +30818,8 @@ def _has_stroke_advanced_reperfusion_monitoring_safety_check(
     )
     return (
         has_vascular_imaging
-        and has_thrombectomy_selection
+        and has_thrombectomy_occlusion
+        and has_thrombectomy_selection_detail
         and has_service_monitoring
         and has_antiplatelet_timing
         and has_homeostasis_swallow
