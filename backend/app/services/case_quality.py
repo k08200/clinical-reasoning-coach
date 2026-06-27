@@ -11506,15 +11506,17 @@ LITHIUM_TOXICITY_CHARCOAL_LIMITATION_ACTION_TERMS = (
     "coingestant",
     "unknown co-ingestant",
 )
-LITHIUM_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = (
-    "dialysis",
-    "ectr",
-    "extracorporeal",
-    "hemodialysis",
-    "nephrology",
+LITHIUM_TOXICITY_TOXICOLOGY_ESCALATION_ACTION_TERMS = (
     "poison center",
     "poison control",
     "toxicologist",
+)
+LITHIUM_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = (
+    "ectr",
+    "extracorporeal removal",
+    "extracorporeal treatment",
+    "haemodialysis",
+    "hemodialysis",
 )
 LITHIUM_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS = (
     "36 hours",
@@ -18420,8 +18422,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "lithium management, whole-bowel irrigation planning for "
                 "sustained-release or massive ingestion, activated-charcoal-not-"
                 "effective or co-ingestant-only decontamination limitation "
-                "review, and poison-center, toxicologist, nephrology, "
-                "hemodialysis, dialysis, ECTR, or extracorporeal escalation"
+                "review, poison-center or toxicologist consultation, and "
+                "hemodialysis, ECTR, or extracorporeal-treatment escalation"
             ),
         ),
         DomainSafetyGate(
@@ -28477,6 +28479,10 @@ def _has_lithium_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in LITHIUM_TOXICITY_CHARCOAL_LIMITATION_ACTION_TERMS
     )
+    has_toxicology_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in LITHIUM_TOXICITY_TOXICOLOGY_ESCALATION_ACTION_TERMS
+    )
     has_dialysis_escalation = any(
         _contains_safety_term(normalized_actions, term)
         for term in LITHIUM_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS
@@ -28487,6 +28493,7 @@ def _has_lithium_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         and has_volume_stop_management
         and has_wbi_planning
         and has_charcoal_limitation
+        and has_toxicology_escalation
         and has_dialysis_escalation
     )
 
