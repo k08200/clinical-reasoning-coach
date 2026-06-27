@@ -14490,7 +14490,14 @@ PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS = (
     "unfractionated",
     "항응고",
 )
-PE_SYSTEMIC_THROMBOLYSIS_INDICATION_SAFETY_TERMS = (
+PE_SYSTEMIC_THROMBOLYSIS_REVIEW_SAFETY_TERMS = (
+    "alteplase",
+    "systemic thrombolysis",
+    "thrombolysis indication",
+    "thrombolytic",
+    "혈전용해",
+)
+PE_SYSTEMIC_THROMBOLYSIS_HIGH_RISK_SAFETY_TERMS = (
     "cardiac arrest",
     "hemodynamic instability",
     "high-risk pe",
@@ -14498,8 +14505,6 @@ PE_SYSTEMIC_THROMBOLYSIS_INDICATION_SAFETY_TERMS = (
     "obstructive shock",
     "persistent hypotension",
     "shock",
-    "systemic thrombolysis",
-    "thrombolysis indication",
 )
 PE_CATHETER_SURGICAL_BACKUP_SAFETY_TERMS = (
     "catheter directed",
@@ -30887,9 +30892,13 @@ def _has_pe_reperfusion_escalation_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS
     )
-    has_systemic_thrombolysis_indication = any(
+    has_systemic_thrombolysis_review = any(
         _contains_safety_term(normalized_checks, term)
-        for term in PE_SYSTEMIC_THROMBOLYSIS_INDICATION_SAFETY_TERMS
+        for term in PE_SYSTEMIC_THROMBOLYSIS_REVIEW_SAFETY_TERMS
+    )
+    has_systemic_thrombolysis_high_risk_trigger = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_SYSTEMIC_THROMBOLYSIS_HIGH_RISK_SAFETY_TERMS
     )
     has_catheter_surgical_backup = any(
         _contains_safety_term(normalized_checks, term)
@@ -30909,7 +30918,8 @@ def _has_pe_reperfusion_escalation_safety_check(checks: list[Any]) -> bool:
     )
     return (
         has_anticoagulation_plan
-        and has_systemic_thrombolysis_indication
+        and has_systemic_thrombolysis_review
+        and has_systemic_thrombolysis_high_risk_trigger
         and has_catheter_surgical_backup
         and has_unstable_imaging_logic
         and has_alternative_imaging_review

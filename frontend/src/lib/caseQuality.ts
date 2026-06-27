@@ -15886,7 +15886,15 @@ const PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS = [
   "항응고",
 ];
 
-const PE_SYSTEMIC_THROMBOLYSIS_INDICATION_SAFETY_TERMS = [
+const PE_SYSTEMIC_THROMBOLYSIS_REVIEW_SAFETY_TERMS = [
+  "alteplase",
+  "systemic thrombolysis",
+  "thrombolysis indication",
+  "thrombolytic",
+  "혈전용해",
+];
+
+const PE_SYSTEMIC_THROMBOLYSIS_HIGH_RISK_SAFETY_TERMS = [
   "cardiac arrest",
   "hemodynamic instability",
   "high-risk pe",
@@ -15894,8 +15902,6 @@ const PE_SYSTEMIC_THROMBOLYSIS_INDICATION_SAFETY_TERMS = [
   "obstructive shock",
   "persistent hypotension",
   "shock",
-  "systemic thrombolysis",
-  "thrombolysis indication",
 ];
 
 const PE_CATHETER_SURGICAL_BACKUP_SAFETY_TERMS = [
@@ -25450,8 +25456,11 @@ function hasPeReperfusionEscalationSafetyCheck(checks: string[]): boolean {
   const hasAnticoagulationPlan = PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasSystemicThrombolysisIndication =
-    PE_SYSTEMIC_THROMBOLYSIS_INDICATION_SAFETY_TERMS.some((term) =>
+  const hasSystemicThrombolysisReview = PE_SYSTEMIC_THROMBOLYSIS_REVIEW_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSystemicThrombolysisHighRiskTrigger =
+    PE_SYSTEMIC_THROMBOLYSIS_HIGH_RISK_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
   const hasCatheterSurgicalBackup = PE_CATHETER_SURGICAL_BACKUP_SAFETY_TERMS.some((term) =>
@@ -25468,7 +25477,8 @@ function hasPeReperfusionEscalationSafetyCheck(checks: string[]): boolean {
   );
   return (
     hasAnticoagulationPlan &&
-    hasSystemicThrombolysisIndication &&
+    hasSystemicThrombolysisReview &&
+    hasSystemicThrombolysisHighRiskTrigger &&
     hasCatheterSurgicalBackup &&
     hasUnstableImagingLogic &&
     hasAlternativeImagingReview &&

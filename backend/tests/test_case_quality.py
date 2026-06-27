@@ -23325,6 +23325,59 @@ def test_quality_gate_requires_pe_anticoagulation_reperfusion_imaging_and_pert_s
     )
 
 
+def test_quality_gate_requires_pe_explicit_systemic_thrombolysis_indication_review():
+    case = copy.deepcopy(CASE_POOL[2])
+    case["diagnosis"] = "High-risk pulmonary embolism with right ventricular strain"
+    case["time_critical_actions"] = [
+        "Risk stratify for massive versus submassive PE with Wells score and RV strain",
+        "Assess blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+        "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+        "Start therapeutic unfractionated heparin anticoagulation unless contraindicated",
+    ]
+    case["contraindication_checks"] = [
+        "Start heparin anticoagulation unless active bleeding or recent surgery creates a contraindication",
+        "Recognize high-risk PE with shock, persistent hypotension, cardiac arrest, or hemodynamic instability",
+        "Plan catheter embolectomy or surgical embolectomy if escalation is needed",
+        "If unstable, use bedside echo and do not delay treatment solely for CTPA",
+        "Use V/Q scan or compression ultrasound if renal dysfunction, contrast allergy, or pregnancy makes CTPA unsafe",
+        "Escalate to PERT, ICU, critical care, transfer, or PE specialist team",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Venous thromboembolic diseases: diagnosis, management and thrombophilia testing",
+            "organization": "National Institute for Health and Care Excellence",
+            "url": "https://www.nice.org.uk/guidance/ng158",
+            "supports": [
+                "risk stratification by hemodynamic instability and RV strain",
+                "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+                "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+                "unilateral calf swelling and elevated D-dimer in suspected PE",
+                "massive versus submassive PE with Wells score and RV strain",
+                "blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+                "CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+                "therapeutic unfractionated heparin anticoagulation unless contraindicated",
+                "bleeding risk and recent surgery before anticoagulation",
+                "renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
+                "pregnancy status or hCG when selecting imaging and anticoagulation",
+                "high-risk PE with shock, persistent hypotension, cardiac arrest, or hemodynamic instability",
+                "catheter embolectomy or surgical embolectomy if escalation is needed",
+                "unstable bedside echo pathway and no CTPA delay",
+                "V/Q scan, compression ultrasound, pregnancy, renal, or contrast allergy alternative imaging review",
+                "PERT, ICU, critical care, transfer, or specialist escalation",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "PE reperfusion escalation safety checks must include anticoagulation initiation"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_pe_therapeutic_anticoagulation_or_reperfusion_action():
     case = copy.deepcopy(CASE_POOL[2])
     case["time_critical_actions"] = [

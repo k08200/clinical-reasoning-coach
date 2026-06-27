@@ -1344,6 +1344,65 @@
     }
   },
   {
+    "name": "pe_requires_explicit_systemic_thrombolysis_indication_review",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "PE reperfusion escalation safety checks must include anticoagulation initiation"
+    ],
+    "overrides": {
+      "diagnosis": "High-risk pulmonary embolism with right ventricular strain",
+      "key_teaching_points": [
+        "Wells criteria and clinical probability guide PE diagnostic strategy",
+        "RV strain and hemodynamic instability determine PE risk category",
+        "CTPA or bedside echo pathway depends on hemodynamic stability"
+      ],
+      "clinical_red_flags": [
+        "Sudden dyspnea with hypoxemia and pleuritic chest pain after surgery",
+        "Tachycardia with borderline blood pressure and signs of right heart strain",
+        "Unilateral calf swelling and markedly elevated D-dimer"
+      ],
+      "time_critical_actions": [
+        "Risk stratify for massive versus submassive PE with Wells score and RV strain",
+        "Assess blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+        "Select CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+        "Start therapeutic unfractionated heparin anticoagulation unless contraindicated"
+      ],
+      "contraindication_checks": [
+        "Start heparin anticoagulation unless active bleeding or recent surgery creates a contraindication",
+        "Recognize high-risk PE with shock, persistent hypotension, cardiac arrest, or hemodynamic instability",
+        "Plan catheter embolectomy or surgical embolectomy if escalation is needed",
+        "If unstable, use bedside echo and do not delay treatment solely for CTPA",
+        "Use V/Q scan or compression ultrasound if renal dysfunction, contrast allergy, or pregnancy makes CTPA unsafe",
+        "Escalate to PERT, ICU, critical care, transfer, or PE specialist team"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Venous thromboembolic diseases: diagnosis, management and thrombophilia testing",
+          "organization": "National Institute for Health and Care Excellence",
+          "url": "https://www.nice.org.uk/guidance/ng158",
+          "supports": [
+            "risk stratification by hemodynamic instability and RV strain",
+            "sudden dyspnea, hypoxemia, pleuritic chest pain, and recent surgery in PE assessment",
+            "tachycardia, borderline blood pressure, and right heart strain as PE severity markers",
+            "unilateral calf swelling and elevated D-dimer in suspected PE",
+            "massive versus submassive PE with Wells score and RV strain",
+            "blood pressure, hypotension, shock, syncope, and bedside echo hemodynamic status",
+            "CT pulmonary angiography CTPA or bedside echo imaging pathway based on hemodynamic stability",
+            "therapeutic unfractionated heparin anticoagulation unless contraindicated",
+            "bleeding risk and recent surgery before anticoagulation",
+            "renal function, creatinine, eGFR, and contrast allergy before CT pulmonary angiography",
+            "pregnancy status or hCG when selecting imaging and anticoagulation",
+            "high-risk PE with shock, persistent hypotension, cardiac arrest, or hemodynamic instability",
+            "catheter embolectomy or surgical embolectomy if escalation is needed",
+            "unstable bedside echo pathway and no CTPA delay",
+            "V/Q scan, compression ultrasound, pregnancy, renal, or contrast allergy alternative imaging review",
+            "PERT, ICU, critical care, transfer, or specialist escalation"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "pe_requires_therapeutic_anticoagulation_or_reperfusion_action",
     "expected_passed": false,
     "expected_issue_substrings": [
