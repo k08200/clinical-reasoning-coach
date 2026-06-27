@@ -15459,8 +15459,6 @@ const SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ACTION_TERMS = [
   "dopamine",
   "epinephrine",
   "chronotropic",
-  "infusion",
-  "pressor",
   "드파민",
   "에피네프린",
 ];
