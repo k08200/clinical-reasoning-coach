@@ -15219,12 +15219,15 @@ const CARDIAC_TAMPONADE_HEMODYNAMIC_ACTION_TERMS = [
 ];
 
 const CARDIAC_TAMPONADE_NO_DELAY_SAFETY_TERMS = [
-  "clinical diagnosis",
   "do not delay",
+  "do not delay drainage",
+  "do not delay pericardiocentesis",
   "do not wait",
   "immediate drainage",
-  "unstable",
+  "no ct delay",
   "urgent drainage",
+  "urgent pericardiocentesis",
+  "without waiting",
   "지연",
 ];
 

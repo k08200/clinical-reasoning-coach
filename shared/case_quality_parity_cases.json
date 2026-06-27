@@ -13267,6 +13267,66 @@
     }
   },
   {
+    "name": "cardiac_tamponade_requires_no_delay_not_unstable_label_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "cardiac tamponade safety checks must include unstable-patient"
+    ],
+    "overrides": {
+      "diagnosis": "Cardiac tamponade",
+      "patient_demographics": {
+        "age": 62,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Hypotension and dyspnea after chest pain",
+      "history_of_present_illness": "Patient has progressive dyspnea, chest discomfort, hypotension, tachycardia, elevated JVP, muffled heart sounds, pulsus paradoxus, and suspected cardiac tamponade.",
+      "key_teaching_points": [
+        "Cardiac tamponade is an obstructive shock emergency",
+        "Bedside echo or cardiac POCUS helps confirm pericardial effusion and tamponade physiology",
+        "Unstable tamponade requires immediate pericardial drainage rather than delayed CT workup"
+      ],
+      "clinical_red_flags": [
+        "Hypotension, tachycardia, elevated JVP, muffled heart sounds, or pulsus paradoxus",
+        "Shock, syncope, dyspnea, chest pain, electrical alternans, or narrow pulse pressure"
+      ],
+      "time_critical_actions": [
+        "Perform bedside echo or cardiac POCUS ultrasound to assess pericardial effusion and tamponade physiology",
+        "Prepare immediate pericardiocentesis with subxiphoid pericardial drainage or pericardial window if needed",
+        "Escalate cardiology, cardiothoracic surgery, thoracic surgery, trauma surgery, or emergency surgery immediately",
+        "Give cautious fluid bolus and vasopressor support for hypotension and shock while preparing definitive care"
+      ],
+      "contraindication_checks": [
+        "Arrange CT chest imaging when the unstable patient appears stable enough for transport",
+        "Review anticoagulation, thrombolysis, bleeding, coagulopathy, INR, platelet count, DOAC, warfarin, and reversal needs",
+        "Assess trauma, iatrogenic procedure, myocardial infarction rupture, aortic dissection, malignancy, uremia, and renal failure causes"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Cardiac Tamponade",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/injuries-poisoning/thoracic-trauma/cardiac-tamponade",
+          "supports": [
+            "cardiac tamponade diagnosis and obstructive shock risk stratification",
+            "cardiac tamponade is an obstructive shock emergency",
+            "bedside echo or cardiac POCUS helps confirm pericardial effusion and tamponade physiology",
+            "unstable tamponade requires immediate pericardial drainage rather than delayed CT workup",
+            "hypotension, tachycardia, elevated JVP, muffled heart sounds, or pulsus paradoxus as red flags",
+            "shock, syncope, dyspnea, chest pain, electrical alternans, or narrow pulse pressure as severity markers",
+            "bedside echo or cardiac POCUS ultrasound to assess pericardial effusion and tamponade physiology",
+            "immediate pericardiocentesis with subxiphoid pericardial drainage or pericardial window if needed",
+            "cardiology, cardiothoracic surgery, thoracic surgery, trauma surgery, or emergency surgery immediately",
+            "cautious fluid bolus and vasopressor support for hypotension and shock while preparing definitive care",
+            "CT chest imaging when the unstable patient appears stable enough for transport",
+            "anticoagulation, thrombolysis, bleeding, coagulopathy, INR, platelet count, DOAC, warfarin, and reversal needs",
+            "trauma, iatrogenic procedure, myocardial infarction rupture, aortic dissection, malignancy, uremia, and renal failure causes"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "unstable_tachyarrhythmia_requires_monitor_pulse_cardioversion_causes_and_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [
