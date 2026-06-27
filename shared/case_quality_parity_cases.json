@@ -1679,6 +1679,40 @@
     }
   },
   {
+    "name": "acs_requires_explicit_reperfusion_not_stemi_label_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "ACS time-critical actions must include ECG within 10 minutes"
+    ],
+    "overrides": {
+      "time_critical_actions": [
+        "Obtain 12-lead ECG within 10 minutes and repeat ECG if symptoms evolve",
+        "Activate local ACS pathway when STEMI criteria are met",
+        "Give aspirin, antiplatelet therapy, and heparin anticoagulation after checking major contraindications"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2025 ACC/AHA Guideline for the Management of Acute Coronary Syndromes",
+          "organization": "American College of Cardiology / American Heart Association",
+          "url": "https://www.acc.org/Guidelines",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "12-lead ECG within 10 minutes and repeat ECG if symptoms evolve",
+            "local ACS pathway activation when STEMI criteria are met",
+            "aspirin, antiplatelet therapy, and heparin anticoagulation after checking major contraindications",
+            "crushing substernal chest pain radiating to the arm with diaphoresis",
+            "bibasilar crackles suggesting early heart failure",
+            "tachycardia with multiple coronary risk factors",
+            "aortic dissection features before anticoagulation or thrombolysis",
+            "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+            "hemodynamic instability or pulmonary edema requiring escalation"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "acs_requires_dissection_bleeding_and_hemodynamic_safety",
     "expected_passed": false,
     "expected_issue_substrings": [

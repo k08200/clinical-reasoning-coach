@@ -14570,11 +14570,15 @@ ACS_ECG_ACTION_TERMS = (
 )
 ACS_REPERFUSION_ACTION_TERMS = (
     "cath",
+    "cath lab",
+    "cardiac catheterization",
     "door-to-balloon",
     "door to balloon",
+    "fibrinolysis",
+    "primary pci",
     "pci",
     "reperfusion",
-    "stemi",
+    "thrombolysis",
     "재관류",
 )
 ACS_ANTITHROMBOTIC_ACTION_TERMS = (

@@ -23540,6 +23540,36 @@ def test_quality_gate_requires_acs_ecg_reperfusion_and_antithrombotic_actions():
     )
 
 
+def test_quality_gate_requires_acs_explicit_reperfusion_not_stemi_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["time_critical_actions"] = [
+        "Obtain 12-lead ECG within 10 minutes and repeat ECG if symptoms evolve",
+        "Activate local ACS pathway when STEMI criteria are met",
+        "Give aspirin, antiplatelet therapy, and heparin anticoagulation after checking major contraindications",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "ACS diagnosis and risk stratification for acute chest pain",
+        "life-threatening chest pain differential and severity markers",
+        "12-lead ECG within 10 minutes and repeat ECG if symptoms evolve",
+        "local ACS pathway activation when STEMI criteria are met",
+        "aspirin, antiplatelet therapy, and heparin anticoagulation after checking major contraindications",
+        "crushing substernal chest pain radiating to the arm with diaphoresis",
+        "bibasilar crackles suggesting early heart failure",
+        "tachycardia with multiple coronary risk factors",
+        "aortic dissection features before anticoagulation or thrombolysis",
+        "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
+        "hemodynamic instability or pulmonary edema requiring escalation",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ACS time-critical actions must include ECG within 10 minutes" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acs_dissection_bleeding_and_hemodynamic_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["contraindication_checks"] = [

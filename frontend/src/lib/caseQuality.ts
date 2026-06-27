@@ -15975,11 +15975,15 @@ const ACS_ECG_ACTION_TERMS = [
 
 const ACS_REPERFUSION_ACTION_TERMS = [
   "cath",
+  "cath lab",
+  "cardiac catheterization",
   "door-to-balloon",
   "door to balloon",
+  "fibrinolysis",
+  "primary pci",
   "pci",
   "reperfusion",
-  "stemi",
+  "thrombolysis",
   "재관류",
 ];
 
