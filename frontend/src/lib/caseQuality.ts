@@ -12732,14 +12732,19 @@ const SALICYLATE_ALKALINIZATION_ACTION_TERMS = [
   "중탄산",
 ];
 
-const SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS = [
-  "dialysis",
-  "hemodialysis",
-  "nephrology",
+const SALICYLATE_TOXICOLOGY_ESCALATION_ACTION_TERMS = [
   "poison center",
   "poison control",
   "toxicologist",
-  "투석",
+];
+
+const SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS = [
+  "ectr",
+  "extracorporeal removal",
+  "extracorporeal treatment",
+  "haemodialysis",
+  "hemodialysis",
+  "혈액투석",
 ];
 
 const SALICYLATE_DIALYSIS_INDICATION_SAFETY_TERMS = [
@@ -23613,6 +23618,9 @@ function hasSalicylateToxicityTimeCriticalActions(actions: string[]): boolean {
   const hasAlkalinizationAction = SALICYLATE_ALKALINIZATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasToxicologyEscalation = SALICYLATE_TOXICOLOGY_ESCALATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
   const hasDialysisEscalation = SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -23621,6 +23629,7 @@ function hasSalicylateToxicityTimeCriticalActions(actions: string[]): boolean {
     hasAcidBaseAction &&
     hasDecontaminationAction &&
     hasAlkalinizationAction &&
+    hasToxicologyEscalation &&
     hasDialysisEscalation
   );
 }
@@ -27551,7 +27560,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSalicylateToxicityTimeCriticalActions,
       issue:
-        "salicylate toxicity time-critical actions must include serial salicylate levels with anion gap, blood gas, ABG, VBG, or electrolyte monitoring, activated charcoal or multidose charcoal decontamination planning, sodium bicarbonate, urine alkalinization, alkaline diuresis, potassium, or urine pH planning, and poison center, toxicologist, nephrology, hemodialysis, or dialysis escalation",
+        "salicylate toxicity time-critical actions must include serial salicylate levels with anion gap, blood gas, ABG, VBG, or electrolyte monitoring, activated charcoal or multidose charcoal decontamination planning, sodium bicarbonate, urine alkalinization, alkaline diuresis, potassium, or urine pH planning, poison-center or toxicologist consultation, and hemodialysis, ECTR, or extracorporeal-treatment escalation",
     },
     {
       name: "salicylate_toxicity_treatment_safety",

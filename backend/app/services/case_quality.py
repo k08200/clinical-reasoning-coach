@@ -11608,14 +11608,18 @@ SALICYLATE_ALKALINIZATION_ACTION_TERMS = (
     "urinary alkalinization",
     "중탄산",
 )
-SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS = (
-    "dialysis",
-    "hemodialysis",
-    "nephrology",
+SALICYLATE_TOXICOLOGY_ESCALATION_ACTION_TERMS = (
     "poison center",
     "poison control",
     "toxicologist",
-    "투석",
+)
+SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS = (
+    "ectr",
+    "extracorporeal removal",
+    "extracorporeal treatment",
+    "haemodialysis",
+    "hemodialysis",
+    "혈액투석",
 )
 SALICYLATE_DIALYSIS_INDICATION_SAFETY_TERMS = (
     "acidemia",
@@ -18455,8 +18459,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "salicylate levels with anion gap, blood gas, ABG, VBG, or "
                 "electrolyte monitoring, activated charcoal or multidose charcoal "
                 "decontamination planning, sodium bicarbonate, urine alkalinization, "
-                "alkaline diuresis, potassium, or urine pH planning, and poison "
-                "center, toxicologist, nephrology, hemodialysis, or dialysis escalation"
+                "alkaline diuresis, potassium, or urine pH planning, poison-center "
+                "or toxicologist consultation, and hemodialysis, ECTR, or "
+                "extracorporeal-treatment escalation"
             ),
         ),
         DomainSafetyGate(
@@ -28569,6 +28574,10 @@ def _has_salicylate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SALICYLATE_ALKALINIZATION_ACTION_TERMS
     )
+    has_toxicology_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SALICYLATE_TOXICOLOGY_ESCALATION_ACTION_TERMS
+    )
     has_dialysis_escalation = any(
         _contains_safety_term(normalized_actions, term)
         for term in SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS
@@ -28578,6 +28587,7 @@ def _has_salicylate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         and has_acid_base_action
         and has_decontamination_action
         and has_alkalinization_action
+        and has_toxicology_escalation
         and has_dialysis_escalation
     )
 
