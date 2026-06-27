@@ -14193,9 +14193,9 @@ TENSION_PNEUMOTHORAX_NO_DELAY_SAFETY_TERMS = (
     "clinical diagnosis",
     "do not delay",
     "do not wait",
-    "imaging",
-    "unstable",
-    "x-ray",
+    "immediate decompression",
+    "no imaging delay",
+    "without waiting",
     "지연",
 )
 TENSION_PNEUMOTHORAX_SITE_TECHNIQUE_SAFETY_TERMS = (
