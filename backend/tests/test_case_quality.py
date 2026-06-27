@@ -4172,6 +4172,75 @@ def test_quality_gate_requires_uterine_rupture_labor_prostaglandin_no_delay_and_
     )
 
 
+def test_quality_gate_requires_uterine_rupture_no_delay_not_laparotomy_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suspected uterine rupture during VBAC attempt"
+    case["patient_demographics"] = {
+        "age": 33,
+        "sex": "female",
+        "weight_kg": 78,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe abdominal pain and fetal bradycardia during labor"
+    case["history_of_present_illness"] = (
+        "Pregnant patient attempting VBAC after prior cesarean develops sudden severe "
+        "constant abdominal pain during TOLAC with fetal bradycardia, variable "
+        "decelerations, loss of fetal station, vaginal bleeding, hypotension, "
+        "tachycardia, and concern for uterine rupture with maternal hemorrhage."
+    )
+    case["key_teaching_points"] = [
+        "Uterine rupture after prior cesarean can cause maternal hemorrhage and fetal compromise",
+        "Fetal bradycardia, loss of fetal station, hypovolemia, and severe abdominal pain are red flags",
+        "Treatment is immediate laparotomy with cesarean delivery and hysterectomy if necessary",
+    ]
+    case["clinical_red_flags"] = [
+        "Fetal bradycardia with variable decelerations during TOLAC",
+        "Loss of fetal station, severe constant abdominal pain, and hypovolemia",
+    ]
+    case["time_critical_actions"] = [
+        "Start continuous fetal monitoring and maternal resuscitation for shock",
+        "Activate obstetric, anesthesia, neonatal, surgical team, and blood bank support",
+        "Move for immediate laparotomy with emergency cesarean delivery",
+        "Prepare crossmatch, massive transfusion, and hemorrhage protocol",
+    ]
+    case["contraindication_checks"] = [
+        "Stop TOLAC and stop oxytocin; do not continue labor when uterine rupture is suspected",
+        "Avoid prostaglandin induction such as misoprostol because prostaglandins should not be used in prior-cesarean vaginal-birth attempts",
+        "Laparotomy confirms diagnosis after ultrasound or MRI evaluates suspected rupture",
+        "Prepare uterine repair or hysterectomy and assess bladder laceration and hemorrhage contingencies",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Uterine Rupture",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK559209/",
+            "supports": [
+                "suspected uterine rupture during VBAC attempt diagnosis and risk stratification",
+                "uterine rupture after prior cesarean can cause maternal hemorrhage and fetal compromise",
+                "fetal bradycardia, loss of fetal station, hypovolemia, and severe abdominal pain are red flags",
+                "treatment is immediate laparotomy with cesarean delivery and hysterectomy if necessary",
+                "continuous fetal monitoring and maternal resuscitation for shock",
+                "obstetric, anesthesia, neonatal, surgical team, and blood bank support",
+                "immediate laparotomy with emergency cesarean delivery",
+                "crossmatch, massive transfusion, and hemorrhage protocol",
+                "stop TOLAC and stop oxytocin; do not continue labor when uterine rupture is suspected",
+                "avoid prostaglandin induction such as misoprostol because prostaglandins should not be used in prior-cesarean vaginal-birth attempts",
+                "laparotomy confirms diagnosis after ultrasound or MRI evaluates suspected rupture",
+                "uterine repair or hysterectomy and bladder laceration and hemorrhage contingencies",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "uterine rupture safety checks must include stopping labor"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_amniotic_fluid_embolism_airway_hemodynamic_delivery_and_coagulation_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Amniotic fluid embolism"

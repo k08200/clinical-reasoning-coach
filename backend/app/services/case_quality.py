@@ -3364,10 +3364,13 @@ UTERINE_RUPTURE_PROSTAGLANDIN_SAFETY_TERMS = (
     "prostaglandins should not",
 )
 UTERINE_RUPTURE_DIAGNOSIS_NO_DELAY_SAFETY_TERMS = (
-    "diagnosis by laparotomy",
     "do not delay laparotomy",
-    "laparotomy confirms",
+    "do not wait",
+    "imaging must not delay",
+    "immediate laparotomy",
+    "not delay laparotomy",
     "no imaging delay",
+    "without waiting",
 )
 UTERINE_RUPTURE_REPAIR_HYSTERECTOMY_SAFETY_TERMS = (
     "bladder laceration",
