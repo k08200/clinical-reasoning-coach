@@ -12458,15 +12458,19 @@ const TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS = [
   "포메피졸",
 ];
 
-const TOXIC_ALCOHOL_DIALYSIS_ESCALATION_ACTION_TERMS = [
-  "dialysis",
-  "extracorporeal",
-  "hemodialysis",
-  "nephrology",
+const TOXIC_ALCOHOL_TOXICOLOGY_ESCALATION_ACTION_TERMS = [
   "poison center",
   "poison control",
   "toxicologist",
-  "투석",
+];
+
+const TOXIC_ALCOHOL_DIALYSIS_ESCALATION_ACTION_TERMS = [
+  "ectr",
+  "extracorporeal removal",
+  "extracorporeal treatment",
+  "haemodialysis",
+  "hemodialysis",
+  "혈액투석",
 ];
 
 const TOXIC_ALCOHOL_ACIDOSIS_SUPPORT_ACTION_TERMS = [
@@ -23436,6 +23440,9 @@ function hasToxicAlcoholTimeCriticalActions(actions: string[]): boolean {
   const hasAntidoteAction = TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasToxicologyEscalation = TOXIC_ALCOHOL_TOXICOLOGY_ESCALATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
   const hasDialysisEscalation = TOXIC_ALCOHOL_DIALYSIS_ESCALATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
@@ -23447,6 +23454,7 @@ function hasToxicAlcoholTimeCriticalActions(actions: string[]): boolean {
     hasToxicAlcoholLevelAction &&
     hasAnionGapAction &&
     hasAntidoteAction &&
+    hasToxicologyEscalation &&
     hasDialysisEscalation &&
     hasAcidosisSupport
   );
@@ -27500,7 +27508,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasToxicAlcoholTimeCriticalActions,
       issue:
-        "toxic alcohol time-critical actions must include anion gap, osmolal gap, osmolar gap, or measured serum osmolality assessment, methanol, ethylene glycol, or toxic alcohol level assessment, explicit fomepizole, ethanol antidote, or alcohol-dehydrogenase blockade, poison center, toxicologist, nephrology, hemodialysis, dialysis, or extracorporeal escalation, and acidosis, blood gas, pH, or bicarbonate support planning",
+        "toxic alcohol time-critical actions must include anion gap, osmolal gap, osmolar gap, or measured serum osmolality assessment, methanol, ethylene glycol, or toxic alcohol level assessment, explicit fomepizole, ethanol antidote, or alcohol-dehydrogenase blockade, poison-center or toxicologist consultation, hemodialysis, ECTR, or extracorporeal-treatment escalation, and acidosis, blood gas, pH, or bicarbonate support planning",
     },
     {
       name: "toxic_alcohol_treatment_safety",

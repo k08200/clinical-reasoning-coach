@@ -11361,15 +11361,18 @@ TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS = (
     "fomepizole",
     "포메피졸",
 )
-TOXIC_ALCOHOL_DIALYSIS_ESCALATION_ACTION_TERMS = (
-    "dialysis",
-    "extracorporeal",
-    "hemodialysis",
-    "nephrology",
+TOXIC_ALCOHOL_TOXICOLOGY_ESCALATION_ACTION_TERMS = (
     "poison center",
     "poison control",
     "toxicologist",
-    "투석",
+)
+TOXIC_ALCOHOL_DIALYSIS_ESCALATION_ACTION_TERMS = (
+    "ectr",
+    "extracorporeal removal",
+    "extracorporeal treatment",
+    "haemodialysis",
+    "hemodialysis",
+    "혈액투석",
 )
 TOXIC_ALCOHOL_ACIDOSIS_SUPPORT_ACTION_TERMS = (
     "acidosis",
@@ -18380,8 +18383,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "osmolal gap, osmolar gap, or measured serum osmolality assessment, "
                 "methanol, ethylene glycol, or toxic alcohol level assessment, "
                 "explicit fomepizole, ethanol antidote, or alcohol-dehydrogenase "
-                "blockade, poison center, toxicologist, "
-                "nephrology, hemodialysis, dialysis, or extracorporeal escalation, "
+                "blockade, poison-center or toxicologist consultation, "
+                "hemodialysis, ECTR, or extracorporeal-treatment escalation, "
                 "and acidosis, blood gas, pH, or bicarbonate support planning"
             ),
         ),
@@ -28361,6 +28364,10 @@ def _has_toxic_alcohol_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS
     )
+    has_toxicology_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TOXIC_ALCOHOL_TOXICOLOGY_ESCALATION_ACTION_TERMS
+    )
     has_dialysis_escalation = any(
         _contains_safety_term(normalized_actions, term)
         for term in TOXIC_ALCOHOL_DIALYSIS_ESCALATION_ACTION_TERMS
@@ -28374,6 +28381,7 @@ def _has_toxic_alcohol_time_critical_actions(actions: list[Any]) -> bool:
         and has_toxic_alcohol_level_action
         and has_anion_gap_action
         and has_antidote_action
+        and has_toxicology_escalation
         and has_dialysis_escalation
         and has_acidosis_support
     )
