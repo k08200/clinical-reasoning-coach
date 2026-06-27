@@ -14796,8 +14796,6 @@ AORTIC_DISSECTION_DEFINITIVE_PATHWAY_SAFETY_TERMS = (
     "open surgery",
     "surgical emergency",
     "tevar",
-    "type a",
-    "type b",
     "urgent surgical",
     "응급 수술",
 )

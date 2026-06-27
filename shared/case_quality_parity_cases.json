@@ -3856,6 +3856,64 @@
     }
   },
   {
+    "name": "aortic_dissection_requires_definitive_pathway_not_type_label_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "aortic dissection monitoring safety checks must include continuous BP"
+    ],
+    "overrides": {
+      "diagnosis": "Acute type A aortic dissection",
+      "chief_complaint": "Tearing chest and back pain",
+      "history_of_present_illness": "Patient with abrupt maximal chest pain radiating to the back, syncope, pulse deficit, neurologic deficit, hypotension, and pericardial effusion concerning for acute aortic syndrome.",
+      "physical_exam": {
+        "vitals": {
+          "bp": "212/104",
+          "hr": 118,
+          "rr": 24,
+          "spo2": 96
+        },
+        "general": "Diaphoretic and distressed",
+        "cardiovascular": "Pulse deficit and new diastolic murmur",
+        "neuro": "Transient focal neurologic deficit"
+      },
+      "time_critical_actions": [
+        "Obtain CT angiography CTA of the aorta or TEE if unstable",
+        "Start anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
+        "Consult cardiothoracic or vascular surgery and transfer to an aortic team",
+        "Plan emergent open aortic repair, ascending aortic repair, aortic replacement, or Bentall operative repair pathway"
+      ],
+      "contraindication_checks": [
+        "Avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+        "Give beta blocker before vasodilator to avoid reflex tachycardia",
+        "Screen for aortic regurgitation, malperfusion, pulse deficit, neurologic deficit, rupture, and tamponade",
+        "Place arterial line monitoring, telemetry, Foley, and track continuous BP and urine output",
+        "Provide opioid analgesia and pain control to reduce sympathetic tone",
+        "Target heart rate 60 and SBP 100-120 with anti-impulse therapy",
+        "Document Stanford type A dissection classification and aortic-team discussion"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2022 ACC/AHA Guideline for the Diagnosis and Management of Aortic Disease",
+          "organization": "American College of Cardiology / American Heart Association",
+          "url": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000001106",
+          "supports": [
+            "acute aortic syndrome diagnosis and aortic dissection risk stratification",
+            "definitive aortic imaging with CT angiography CTA or TEE when unstable",
+            "anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
+            "cardiothoracic or vascular surgery consultation and transfer to an aortic team",
+            "avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+            "beta blocker before vasodilator to avoid reflex tachycardia",
+            "aortic regurgitation, malperfusion, pulse deficit, neurologic deficit, rupture, and tamponade complication screening",
+            "arterial line monitoring, telemetry, Foley, continuous BP, and urine output",
+            "opioid analgesia and pain control to reduce sympathetic tone",
+            "heart rate 60 and SBP 100-120 anti-impulse targets",
+            "Stanford type A dissection classification and aortic-team discussion"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "severe_hyperkalemia_requires_calcium_shift_and_removal_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

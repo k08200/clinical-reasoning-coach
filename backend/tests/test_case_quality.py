@@ -23856,6 +23856,67 @@ def test_quality_gate_requires_aortic_dissection_monitoring_targets_and_definiti
     )
 
 
+def test_quality_gate_requires_aortic_dissection_definitive_pathway_not_type_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute type A aortic dissection"
+    case["chief_complaint"] = "Tearing chest and back pain"
+    case["history_of_present_illness"] = (
+        "Patient with abrupt maximal chest pain radiating to the back, syncope, "
+        "pulse deficit, neurologic deficit, hypotension, and pericardial effusion "
+        "concerning for acute aortic syndrome."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "212/104", "hr": 118, "rr": 24, "spo2": 96},
+        "general": "Diaphoretic and distressed",
+        "cardiovascular": "Pulse deficit and new diastolic murmur",
+        "neuro": "Transient focal neurologic deficit",
+    }
+    case["time_critical_actions"] = [
+        "Obtain CT angiography CTA of the aorta or TEE if unstable",
+        "Start anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
+        "Consult cardiothoracic or vascular surgery and transfer to an aortic team",
+        "Plan emergent open aortic repair, ascending aortic repair, aortic replacement, or Bentall operative repair pathway",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+        "Give beta blocker before vasodilator to avoid reflex tachycardia",
+        "Screen for aortic regurgitation, malperfusion, pulse deficit, neurologic deficit, rupture, and tamponade",
+        "Place arterial line monitoring, telemetry, Foley, and track continuous BP and urine output",
+        "Provide opioid analgesia and pain control to reduce sympathetic tone",
+        "Target heart rate 60 and SBP 100-120 with anti-impulse therapy",
+        "Document Stanford type A dissection classification and aortic-team discussion",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "2022 ACC/AHA Guideline for the Diagnosis and Management of Aortic Disease",
+            "organization": "American College of Cardiology / American Heart Association",
+            "url": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000001106",
+            "supports": [
+                "acute aortic syndrome diagnosis and aortic dissection risk stratification",
+                "definitive aortic imaging with CT angiography CTA or TEE when unstable",
+                "anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
+                "cardiothoracic or vascular surgery consultation and transfer to an aortic team",
+                "avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+                "beta blocker before vasodilator to avoid reflex tachycardia",
+                "aortic regurgitation, malperfusion, pulse deficit, neurologic deficit, rupture, and tamponade complication screening",
+                "arterial line monitoring, telemetry, Foley, continuous BP, and urine output",
+                "opioid analgesia and pain control to reduce sympathetic tone",
+                "heart rate 60 and SBP 100-120 anti-impulse targets",
+                "Stanford type A dissection classification and aortic-team discussion",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "aortic dissection monitoring safety checks must include continuous BP"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_allows_aortic_dissection_with_required_monitoring_targets_and_pathway():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute type A aortic dissection"
