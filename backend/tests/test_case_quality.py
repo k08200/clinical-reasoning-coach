@@ -13548,6 +13548,82 @@ def test_quality_gate_requires_myasthenic_crisis_respiratory_icu_immunotherapy_a
     )
 
 
+def test_quality_gate_requires_myasthenic_crisis_explicit_immunotherapy_not_pe_abbreviation_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Myasthenic crisis with respiratory failure"
+    case["patient_demographics"] = {
+        "age": 68,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Dyspnea, weak cough, and dysphagia"
+    case["history_of_present_illness"] = (
+        "Patient with myasthenia gravis and acetylcholine receptor antibody "
+        "positivity presents with ptosis, diplopia, dysarthria, dysphagia, "
+        "bulbar weakness, neck flexor weakness, weak cough, difficulty counting, "
+        "respiratory distress, and impending respiratory failure after pneumonia."
+    )
+    case["past_medical_history"] = "Myasthenia gravis on pyridostigmine"
+    case["physical_exam"] = {
+        "vitals": {"bp": "154/86", "hr": 112, "rr": 30, "spo2": 91},
+        "general": "Fatigued, hypophonic, and unable to count to 20 in one breath",
+        "pulmonary": "Weak cough, accessory muscle use, and shallow respirations",
+        "neuro": "Ptosis, diplopia, facial weakness, dysarthria, dysphagia, and neck flexor weakness",
+    }
+    case["initial_labs"] = {
+        "nif": "Pending negative inspiratory force",
+        "vc": "Pending vital capacity",
+        "abg": "Mild hypercapnia",
+    }
+    case["key_teaching_points"] = [
+        "Myasthenic crisis is worsening myasthenia gravis weakness causing respiratory failure that may require intubation and mechanical ventilation",
+        "Vital capacity, VC, FVC, NIF, negative inspiratory force, PEF, and peak expiratory flow help assess respiratory muscle weakness",
+        "IVIG intravenous immunoglobulin or plasma exchange/PE/plasmapheresis are disease-modifying treatments",
+        "Infection, pneumonia, aspiration, surgery, pregnancy, and medications can precipitate crisis and should be reviewed",
+    ]
+    case["clinical_red_flags"] = [
+        "Dyspnea, weak cough, difficulty counting, neck flexor weakness, accessory muscle use, respiratory distress, or respiratory failure",
+        "Bulbar weakness, dysphagia, dysarthria, hypophonia, facial weakness, ptosis, or diplopia",
+    ]
+    case["time_critical_actions"] = [
+        "Measure serial vital capacity, VC, FVC, NIF, negative inspiratory force, and PEF",
+        "Admit to ICU and prepare elective intubation or mechanical ventilation for respiratory weakness",
+        "Arrange PE with neurology for disease-modifying therapy",
+        "Review infection, pneumonia, aspiration, medication triggers, and recent medication discontinuation",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid or use caution with aminoglycoside, gentamicin, streptomycin, macrolide, erythromycin, fluoroquinolone, quinolone, ciprofloxacin, beta blocker, calcium channel blocker, magnesium, phenytoin, procainamide, and quinidine triggers",
+        "Hold pyridostigmine or lower/discontinue acetylcholinesterase inhibitor during respiratory distress, and review cholinergic crisis or excessive pulmonary secretions",
+        "Start steroid or prednisone only in a hospital setting with respiratory monitoring because worsening can occur, especially with bulbar symptoms",
+        "Use NIV or BiPAP cautiously and intubate for hypercapnia, rising PCO2, tachypnea, increased work of breathing, aspiration risk, or bulbar weakness",
+        "Use neuromuscular blocker or paralytic carefully; review succinylcholine, vecuronium, nondepolarizing sensitivity, and reduced-dose airway medication safety",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Myasthenic Crisis",
+            "organization": "Neurohospitalist / PMC",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3726100/",
+            "supports": [
+                "myasthenic crisis with respiratory failure diagnosis and risk stratification",
+                "myasthenic crisis is worsening myasthenia gravis weakness causing respiratory failure that may require intubation and mechanical ventilation",
+                "vital capacity, VC, FVC, NIF, negative inspiratory force, PEF, and peak expiratory flow help assess respiratory muscle weakness",
+                "IVIG intravenous immunoglobulin or plasma exchange PE plasmapheresis are disease-modifying treatments",
+                "infection, pneumonia, aspiration, and medications can precipitate crisis",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "myasthenic crisis time-critical actions must include respiratory function"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_myasthenic_crisis_medication_pyridostigmine_steroid_niv_and_paralytic_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Myasthenic exacerbation with bulbar weakness"

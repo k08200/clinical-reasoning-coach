@@ -10073,7 +10073,7 @@ const MYASTHENIC_CRISIS_AIRWAY_ICU_ACTION_TERMS = [
 const MYASTHENIC_CRISIS_IMMUNOTHERAPY_ACTION_TERMS = [
   "intravenous immunoglobulin",
   "ivig",
-  "pe",
+  "plex",
   "plasma exchange",
   "plasmapheresis",
 ];
@@ -27155,7 +27155,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasMyasthenicCrisisTimeCriticalActions,
       issue:
-        "myasthenic crisis time-critical actions must include respiratory function monitoring with vital capacity, VC, FVC, NIF, negative inspiratory force, PEF, peak expiratory flow, or serial vital capacity, ICU, intensive care, airway, elective intubation, intubation, mechanical ventilation, or ventilation support, IVIG, intravenous immunoglobulin, plasma exchange, plasmapheresis, or PE disease-modifying therapy, and precipitant review for infection, pneumonia, aspiration, surgery, pregnancy, medication, trigger, or medication discontinuation",
+        "myasthenic crisis time-critical actions must include respiratory function monitoring with vital capacity, VC, FVC, NIF, negative inspiratory force, PEF, peak expiratory flow, or serial vital capacity, ICU, intensive care, airway, elective intubation, intubation, mechanical ventilation, or ventilation support, IVIG, intravenous immunoglobulin, PLEX, plasma exchange, or plasmapheresis disease-modifying therapy, and precipitant review for infection, pneumonia, aspiration, surgery, pregnancy, medication, trigger, or medication discontinuation",
     },
     {
       name: "myasthenic_crisis_treatment_safety",

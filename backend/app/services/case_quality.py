@@ -9201,7 +9201,7 @@ MYASTHENIC_CRISIS_AIRWAY_ICU_ACTION_TERMS = (
 MYASTHENIC_CRISIS_IMMUNOTHERAPY_ACTION_TERMS = (
     "intravenous immunoglobulin",
     "ivig",
-    "pe",
+    "plex",
     "plasma exchange",
     "plasmapheresis",
 )
@@ -17754,8 +17754,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "inspiratory force, PEF, peak expiratory flow, or serial vital "
                 "capacity, ICU, intensive care, airway, elective intubation, "
                 "intubation, mechanical ventilation, or ventilation support, IVIG, "
-                "intravenous immunoglobulin, plasma exchange, plasmapheresis, or "
-                "PE disease-modifying therapy, and precipitant review for infection, "
+                "intravenous immunoglobulin, PLEX, plasma exchange, or "
+                "plasmapheresis disease-modifying therapy, and precipitant review for infection, "
                 "pneumonia, aspiration, surgery, pregnancy, medication, trigger, or "
                 "medication discontinuation"
             ),
