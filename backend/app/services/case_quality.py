@@ -4726,15 +4726,20 @@ NEUTROPENIC_FEVER_CULTURE_ACTION_TERMS = (
 NEUTROPENIC_FEVER_ANTIPSEUDOMONAL_ACTION_TERMS = (
     "anti-pseudomonal",
     "antipseudomonal",
-    "broad-spectrum antibiotic",
     "cefepime",
     "ceftazidime",
-    "empiric antibiotic",
     "meropenem",
     "piperacillin",
     "tazobactam",
+    "항녹농균",
+)
+NEUTROPENIC_FEVER_ANTIBIOTIC_TIMING_ACTION_TERMS = (
+    "immediate",
+    "immediately",
     "within 1 hour",
-    "항생제",
+    "1 hour",
+    "one hour",
+    "즉시",
 )
 NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS = (
     "admit",
@@ -16487,7 +16492,7 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "febrile neutropenia time-critical actions must include ANC or "
                 "CBC confirmation, blood cultures or source cultures, immediate "
-                "empiric antipseudomonal broad-spectrum antibiotics, and "
+                "empiric antipseudomonal antibiotics within 1 hour, and "
                 "oncology/hematology or sepsis-risk escalation"
             ),
         ),
@@ -22920,6 +22925,10 @@ def _has_neutropenic_fever_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in NEUTROPENIC_FEVER_ANTIPSEUDOMONAL_ACTION_TERMS
     )
+    has_antibiotic_timing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUTROPENIC_FEVER_ANTIBIOTIC_TIMING_ACTION_TERMS
+    )
     has_escalation = any(
         _contains_safety_term(normalized_actions, term)
         for term in NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS
@@ -22928,6 +22937,7 @@ def _has_neutropenic_fever_time_critical_actions(actions: list[Any]) -> bool:
         has_anc_check
         and has_cultures
         and has_antipseudomonal_antibiotics
+        and has_antibiotic_timing
         and has_escalation
     )
 

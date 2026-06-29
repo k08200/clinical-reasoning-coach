@@ -7127,6 +7127,74 @@ def test_quality_gate_requires_neutropenic_fever_anc_cultures_antipseudomonal_an
     )
 
 
+def test_quality_gate_requires_neutropenic_fever_antipseudomonal_not_broad_antibiotic_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Febrile neutropenia after chemotherapy"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "female",
+        "weight_kg": 63,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever after chemotherapy"
+    case["history_of_present_illness"] = (
+        "Patient on cytotoxic chemotherapy presents with fever 38.6 C, chills, "
+        "mucositis, central venous catheter, and suspected ANC below 500."
+    )
+    case["key_teaching_points"] = [
+        "Febrile neutropenia can progress rapidly with subtle localizing signs",
+        "CBC with differential and ANC confirm severity but treatment should not wait",
+        "Empiric antipseudomonal broad-spectrum antibiotics are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever with ANC below 500 after recent chemotherapy",
+        "Hypotension, rigors, mucositis, central line tenderness, or pneumonia symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm CBC with differential and absolute neutrophil count ANC immediately",
+        "Obtain blood cultures from peripheral and central line plus urine or source cultures without delaying therapy",
+        "Start empiric broad-spectrum antibiotics within 1 hour",
+        "Admit and escalate to oncology or hematology with MASCC or CISNE sepsis-risk stratification",
+    ]
+    case["contraindication_checks"] = [
+        "Review antibiotic allergy, creatinine, renal dosing, hepatic function, local antibiogram, and toxicity before cefepime or piperacillin-tazobactam",
+        "Assess central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
+        "Use MASCC or CISNE high risk or low risk score, comorbidity, social reliability, outpatient eligibility, discharge safety, and return precautions",
+        "Reassess persistent fever or deterioration at 72 hours for resistant infection, fungal infection, and antifungal therapy need",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Neutropenic sepsis: prevention and management in people with cancer",
+            "organization": "National Institute for Health and Care Excellence",
+            "url": "https://www.nice.org.uk/guidance/cg151/chapter/Recommendations",
+            "supports": [
+                "febrile neutropenia after chemotherapy diagnosis and risk stratification",
+                "febrile neutropenia can progress rapidly with subtle localizing signs",
+                "CBC with differential and ANC confirm severity but treatment should not wait",
+                "empiric antipseudomonal broad-spectrum antibiotics are time critical",
+                "fever with ANC below 500 after recent chemotherapy as red flags",
+                "hypotension, rigors, mucositis, central line tenderness, or pneumonia symptoms as severity markers",
+                "CBC with differential and absolute neutrophil count ANC immediately",
+                "blood cultures from peripheral and central line plus urine or source cultures without delaying therapy",
+                "empiric broad-spectrum antibiotics within 1 hour",
+                "oncology or hematology escalation with MASCC or CISNE sepsis-risk stratification",
+                "antibiotic allergy, creatinine, renal dosing, hepatic function, local antibiogram, and toxicity before cefepime or piperacillin-tazobactam",
+                "central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
+                "MASCC or CISNE high risk or low risk score, comorbidity, social reliability, outpatient eligibility, discharge safety, and return precautions",
+                "persistent fever or deterioration at 72 hours for resistant infection, fungal infection, and antifungal therapy need",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "immediate empiric antipseudomonal antibiotics within 1 hour" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_neutropenic_fever_antibiotic_central_line_risk_and_reassessment_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Febrile neutropenia after chemotherapy"

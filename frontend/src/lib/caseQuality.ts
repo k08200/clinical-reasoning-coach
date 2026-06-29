@@ -5160,15 +5160,21 @@ const NEUTROPENIC_FEVER_CULTURE_ACTION_TERMS = [
 const NEUTROPENIC_FEVER_ANTIPSEUDOMONAL_ACTION_TERMS = [
   "anti-pseudomonal",
   "antipseudomonal",
-  "broad-spectrum antibiotic",
   "cefepime",
   "ceftazidime",
-  "empiric antibiotic",
   "meropenem",
   "piperacillin",
   "tazobactam",
+  "항녹농균",
+];
+
+const NEUTROPENIC_FEVER_ANTIBIOTIC_TIMING_ACTION_TERMS = [
+  "immediate",
+  "immediately",
   "within 1 hour",
-  "항생제",
+  "1 hour",
+  "one hour",
+  "즉시",
 ];
 
 const NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS = [
@@ -19149,10 +19155,19 @@ function hasNeutropenicFeverTimeCriticalActions(actions: string[]): boolean {
   const hasAntipseudomonalAntibiotics = NEUTROPENIC_FEVER_ANTIPSEUDOMONAL_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
+  const hasAntibioticTiming = NEUTROPENIC_FEVER_ANTIBIOTIC_TIMING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasEscalation = NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasAncCheck && hasCultures && hasAntipseudomonalAntibiotics && hasEscalation;
+  return (
+    hasAncCheck &&
+    hasCultures &&
+    hasAntipseudomonalAntibiotics &&
+    hasAntibioticTiming &&
+    hasEscalation
+  );
 }
 
 function hasNeutropenicFeverTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26499,7 +26514,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasNeutropenicFeverTimeCriticalActions,
       issue:
-        "febrile neutropenia time-critical actions must include ANC or CBC confirmation, blood cultures or source cultures, immediate empiric antipseudomonal broad-spectrum antibiotics, and oncology/hematology or sepsis-risk escalation",
+        "febrile neutropenia time-critical actions must include ANC or CBC confirmation, blood cultures or source cultures, immediate empiric antipseudomonal antibiotics within 1 hour, and oncology/hematology or sepsis-risk escalation",
     },
     {
       name: "neutropenic_fever_treatment_safety",
