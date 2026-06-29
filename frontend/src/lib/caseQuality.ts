@@ -2900,14 +2900,35 @@ const SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS = [
 
 const SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS = [
   "antenatal corticosteroid",
+  "cesarean",
+  "c-section",
   "delivery",
-  "fetal",
-  "maternal-fetal",
-  "obstetric",
-  "placenta",
-  "stabilize",
+  "delivery planning",
+  "expectant management",
+  "expedite delivery",
+  "induction",
   "분만",
-  "태아",
+];
+
+const SEVERE_PREECLAMPSIA_DELIVERY_TIMING_TERMS = [
+  "34 0/7",
+  "34 weeks",
+  "34주",
+  "after maternal stabilization",
+  "after stabilization",
+  "betamethasone",
+  "corticosteroid",
+  "dexamethasone",
+  "expectant management",
+  "fetal status",
+  "gestational age",
+  "maternal stabilization",
+  "maternal status",
+  "maternal-fetal status",
+  "once stabilized",
+  "stabilize mother",
+  "분만 시기",
+  "재태연령",
 ];
 
 const SEVERE_PREECLAMPSIA_ESCALATION_ACTION_TERMS = [
@@ -18331,13 +18352,16 @@ function hasSeverePreeclampsiaTimeCriticalActions(actions: string[]): boolean {
   const hasAntihypertensive = SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDeliveryPlanning = SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS.some((term) =>
+  const hasDeliveryAction = SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDeliveryTiming = SEVERE_PREECLAMPSIA_DELIVERY_TIMING_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasEscalation = SEVERE_PREECLAMPSIA_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasMagnesium && hasAntihypertensive && hasDeliveryPlanning && hasEscalation;
+  return hasMagnesium && hasAntihypertensive && hasDeliveryAction && hasDeliveryTiming && hasEscalation;
 }
 
 function hasSeverePreeclampsiaTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26211,7 +26235,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSeverePreeclampsiaTimeCriticalActions,
       issue:
-        "severe preeclampsia or eclampsia time-critical actions must include magnesium sulfate seizure prophylaxis or treatment, acute severe-hypertension treatment, delivery or maternal-fetal planning, and OB/MFM or critical-care escalation",
+        "severe preeclampsia or eclampsia time-critical actions must include magnesium sulfate seizure prophylaxis or treatment, acute severe-hypertension treatment, explicit delivery timing or maternal-fetal stabilization planning, and OB/MFM or critical-care escalation",
     },
     {
       name: "severe_preeclampsia_treatment_safety",

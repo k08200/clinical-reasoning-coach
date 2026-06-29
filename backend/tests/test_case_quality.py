@@ -5029,6 +5029,75 @@ def test_quality_gate_requires_severe_preeclampsia_magnesium_bp_delivery_and_esc
     )
 
 
+def test_quality_gate_requires_severe_preeclampsia_delivery_timing_not_fetal_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe preeclampsia with severe features"
+    case["patient_demographics"] = {
+        "age": 32,
+        "sex": "female",
+        "weight_kg": 72,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Headache and high blood pressure in late pregnancy"
+    case["history_of_present_illness"] = (
+        "Pregnant patient at 34 weeks presents with severe headache, visual symptoms, "
+        "right upper quadrant pain, and repeated severe-range blood pressures."
+    )
+    case["key_teaching_points"] = [
+        "Severe preeclampsia can progress to eclampsia, stroke, HELLP, and pulmonary edema",
+        "Magnesium sulfate is used for seizure prophylaxis or treatment",
+        "Acute severe hypertension requires prompt antihypertensive treatment and delivery planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Severe-range blood pressure with headache and visual symptoms",
+        "Right upper quadrant pain with rising AST, low platelets, or pulmonary edema",
+    ]
+    case["time_critical_actions"] = [
+        "Start magnesium sulfate for seizure prophylaxis or treatment",
+        "Treat acute severe-range blood pressure with IV labetalol, hydralazine, or oral nifedipine",
+        "Continue fetal monitoring and obstetric assessment",
+        "Escalate to obstetric, maternal-fetal medicine, anesthesia, and critical care consultation for seizure or pulmonary edema risk",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor magnesium toxicity with respiratory rate, deep tendon reflexes, urine output, and calcium gluconate readiness",
+        "Review blood pressure, hypotension, asthma or bradycardia before labetalol, and nifedipine safety",
+        "Check platelets, AST, ALT, creatinine, renal function, proteinuria, and HELLP labs",
+        "Assess gestational age, fetal status, headache, visual symptoms, right upper quadrant pain, abruption, seizure, pulmonary edema, and delivery risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Emergent Therapy for Acute-Onset Severe Hypertension During Pregnancy and the Postpartum Period",
+            "organization": "American College of Obstetricians and Gynecologists",
+            "url": "https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2019/02/emergent-therapy-for-acute-onset-severe-hypertension-during-pregnancy-and-the-postpartum-period",
+            "supports": [
+                "severe preeclampsia with severe features diagnosis and risk stratification",
+                "severe preeclampsia can progress to eclampsia, stroke, HELLP, and pulmonary edema",
+                "magnesium sulfate for seizure prophylaxis or treatment",
+                "acute severe hypertension requires prompt antihypertensive treatment and delivery planning",
+                "severe-range blood pressure with headache and visual symptoms as red flags",
+                "right upper quadrant pain with rising AST, low platelets, or pulmonary edema as severity markers",
+                "start magnesium sulfate for seizure prophylaxis or treatment",
+                "acute severe-range blood pressure treatment with IV labetalol, hydralazine, or oral nifedipine",
+                "fetal monitoring and obstetric assessment",
+                "obstetric, maternal-fetal medicine, anesthesia, and critical care consultation for seizure or pulmonary edema risk",
+                "magnesium toxicity monitoring with respiratory rate, deep tendon reflexes, urine output, and calcium gluconate readiness",
+                "blood pressure, hypotension, asthma or bradycardia before labetalol, and nifedipine safety",
+                "platelets, AST, ALT, creatinine, renal function, proteinuria, and HELLP labs",
+                "gestational age, fetal status, headache, visual symptoms, right upper quadrant pain, abruption, seizure, pulmonary edema, and delivery risk",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "explicit delivery timing or maternal-fetal stabilization planning"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_severe_preeclampsia_magnesium_toxicity_bp_labs_and_maternal_fetal_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Severe preeclampsia with severe features"

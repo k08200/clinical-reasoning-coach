@@ -2677,14 +2677,34 @@ SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS = (
 )
 SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS = (
     "antenatal corticosteroid",
+    "cesarean",
+    "c-section",
     "delivery",
-    "fetal",
-    "maternal-fetal",
-    "obstetric",
-    "placenta",
-    "stabilize",
+    "delivery planning",
+    "expectant management",
+    "expedite delivery",
+    "induction",
     "분만",
-    "태아",
+)
+SEVERE_PREECLAMPSIA_DELIVERY_TIMING_TERMS = (
+    "34 0/7",
+    "34 weeks",
+    "34주",
+    "after maternal stabilization",
+    "after stabilization",
+    "betamethasone",
+    "corticosteroid",
+    "dexamethasone",
+    "expectant management",
+    "fetal status",
+    "gestational age",
+    "maternal stabilization",
+    "maternal status",
+    "maternal-fetal status",
+    "once stabilized",
+    "stabilize mother",
+    "분만 시기",
+    "재태연령",
 )
 SEVERE_PREECLAMPSIA_ESCALATION_ACTION_TERMS = (
     "consult",
@@ -16077,8 +16097,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "severe preeclampsia or eclampsia time-critical actions must "
                 "include magnesium sulfate seizure prophylaxis or treatment, "
-                "acute severe-hypertension treatment, delivery or maternal-fetal "
-                "planning, and OB/MFM or critical-care escalation"
+                "acute severe-hypertension treatment, explicit delivery timing "
+                "or maternal-fetal stabilization planning, and OB/MFM or "
+                "critical-care escalation"
             ),
         ),
         DomainSafetyGate(
@@ -21821,9 +21842,13 @@ def _has_severe_preeclampsia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS
     )
-    has_delivery_planning = any(
+    has_delivery_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS
+    )
+    has_delivery_timing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_PREECLAMPSIA_DELIVERY_TIMING_TERMS
     )
     has_escalation = any(
         _contains_safety_term(normalized_actions, term)
@@ -21832,7 +21857,8 @@ def _has_severe_preeclampsia_time_critical_actions(actions: list[Any]) -> bool:
     return (
         has_magnesium
         and has_antihypertensive
-        and has_delivery_planning
+        and has_delivery_action
+        and has_delivery_timing
         and has_escalation
     )
 
