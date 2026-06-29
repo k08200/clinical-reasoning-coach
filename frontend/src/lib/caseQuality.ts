@@ -5913,12 +5913,16 @@ const MYXEDEMA_COMA_STEROID_ACTION_TERMS = [
 ];
 
 const MYXEDEMA_COMA_THYROID_HORMONE_ACTION_TERMS = [
+  "intravenous levothyroxine",
+  "intravenous liothyronine",
+  "intravenous t3",
+  "intravenous t4",
   "iv levothyroxine",
-  "levothyroxine",
-  "liothyronine",
-  "thyroid hormone",
-  "갑상샘호르몬",
-  "갑상선호르몬",
+  "iv liothyronine",
+  "iv t3",
+  "iv t4",
+  "정맥 갑상샘호르몬",
+  "정맥 갑상선호르몬",
 ];
 
 const MYXEDEMA_COMA_PRECIPITANT_WORKUP_ACTION_TERMS = [
@@ -26663,7 +26667,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasMyxedemaComaTimeCriticalActions,
       issue:
-        "myxedema coma time-critical actions must include ICU, airway, oxygen, ventilation, vasopressor, or intensive-care support, stress-dose hydrocortisone, steroid, glucocorticoid, or cortisol coverage, IV levothyroxine, liothyronine, or thyroid-hormone therapy, and precipitant or endocrine workup including TSH, free T4, infection, culture, sepsis, antibiotic, or cortisol assessment",
+        "myxedema coma time-critical actions must include ICU, airway, oxygen, ventilation, vasopressor, or intensive-care support, stress-dose hydrocortisone, steroid, glucocorticoid, or cortisol coverage, IV levothyroxine, IV liothyronine, or IV thyroid-hormone therapy, and precipitant or endocrine workup including TSH, free T4, infection, culture, sepsis, antibiotic, or cortisol assessment",
     },
     {
       name: "myxedema_coma_treatment_safety",

@@ -5413,12 +5413,16 @@ MYXEDEMA_COMA_STEROID_ACTION_TERMS = (
     "스테로이드",
 )
 MYXEDEMA_COMA_THYROID_HORMONE_ACTION_TERMS = (
+    "intravenous levothyroxine",
+    "intravenous liothyronine",
+    "intravenous t3",
+    "intravenous t4",
     "iv levothyroxine",
-    "levothyroxine",
-    "liothyronine",
-    "thyroid hormone",
-    "갑상샘호르몬",
-    "갑상선호르몬",
+    "iv liothyronine",
+    "iv t3",
+    "iv t4",
+    "정맥 갑상샘호르몬",
+    "정맥 갑상선호르몬",
 )
 MYXEDEMA_COMA_PRECIPITANT_WORKUP_ACTION_TERMS = (
     "antibiotic",
@@ -16678,7 +16682,7 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "myxedema coma time-critical actions must include ICU, airway, "
                 "oxygen, ventilation, vasopressor, or intensive-care support, "
                 "stress-dose hydrocortisone, steroid, glucocorticoid, or cortisol "
-                "coverage, IV levothyroxine, liothyronine, or thyroid-hormone "
+                "coverage, IV levothyroxine, IV liothyronine, or IV thyroid-hormone "
                 "therapy, and precipitant or endocrine workup including TSH, free T4, "
                 "infection, culture, sepsis, antibiotic, or cortisol assessment"
             ),
