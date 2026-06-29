@@ -7541,6 +7541,70 @@
     }
   },
   {
+    "name": "placenta_previa_requires_stable_timing_not_cesarean_label_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "placenta previa safety checks must include avoiding digital cervical"
+    ],
+    "overrides": {
+      "diagnosis": "Placenta previa with third trimester bleeding",
+      "patient_demographics": {
+        "age": 36,
+        "sex": "female",
+        "weight_kg": 73,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Painless vaginal bleeding at 32 weeks",
+      "history_of_present_illness": "Pregnant patient at 32 weeks has known placenta previa with sudden painless vaginal bleeding, recurrent late pregnancy bleeding, tachycardia, hypotension, and concern for hemorrhagic shock and nonreassuring fetal status.",
+      "key_teaching_points": [
+        "Placenta previa typically causes painless vaginal bleeding after 20 weeks",
+        "Diagnosis is by ultrasonography, and transvaginal ultrasonography is accurate and safe",
+        "Severe bleeding or nonreassuring fetal status requires immediate cesarean delivery"
+      ],
+      "clinical_red_flags": [
+        "Painless vaginal bleeding after 20 weeks with known placenta previa",
+        "Heavy bleeding, hemorrhagic shock, hypotension, or nonreassuring fetal status"
+      ],
+      "time_critical_actions": [
+        "Confirm placenta previa by ultrasound and transvaginal ultrasonography",
+        "Start continuous fetal monitoring and fetal heart rate FHR assessment for nonreassuring fetal status",
+        "Stabilize hemorrhage with large-bore IV access, type and screen, crossmatch, transfusion, blood products, shock, and hemodynamic support",
+        "Escalate to immediate cesarean delivery and operative team if severe bleeding or fetal status worsens"
+      ],
+      "contraindication_checks": [
+        "Avoid digital cervical examination and do not perform pelvic examination until placenta previa is excluded by ultrasound",
+        "Use ultrasound before pelvic examination and transvaginal ultrasonography before pelvic exam for bleeding after 20 weeks",
+        "Plan stable placenta previa cesarean delivery; lung maturity is not necessary",
+        "Proceed to immediate cesarean for heavy bleeding, uncontrolled bleeding, maternal hemodynamic instability, or nonreassuring fetal status",
+        "For first bleeding before 36 weeks, use hospitalization, modified activity, avoidance of sexual activity, and corticosteroids when early delivery risk is present"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Placenta Previa",
+          "organization": "MSD Manual Professional Edition",
+          "url": "https://www.msdmanuals.com/professional/gynecology-and-obstetrics/antenatal-complications/placenta-previa",
+          "supports": [
+            "placenta previa with third trimester bleeding diagnosis and risk stratification",
+            "placenta previa typically causes painless vaginal bleeding after 20 weeks",
+            "diagnosis is by ultrasonography and transvaginal ultrasonography is accurate and safe",
+            "severe bleeding or nonreassuring fetal status requires immediate cesarean delivery",
+            "painless vaginal bleeding after 20 weeks with known placenta previa",
+            "heavy bleeding, hemorrhagic shock, hypotension, or nonreassuring fetal status",
+            "placenta previa by ultrasound and transvaginal ultrasonography",
+            "continuous fetal monitoring and fetal heart rate FHR assessment for nonreassuring fetal status",
+            "hemorrhage stabilization with large-bore IV access, type and screen, crossmatch, transfusion, blood products, shock, and hemodynamic support",
+            "immediate cesarean delivery and operative team if severe bleeding or fetal status worsens",
+            "avoid digital cervical examination and do not perform pelvic examination until placenta previa is excluded by ultrasound",
+            "ultrasound before pelvic examination and transvaginal ultrasonography before pelvic exam for bleeding after 20 weeks",
+            "stable placenta previa cesarean delivery and lung maturity is not necessary",
+            "immediate cesarean for heavy bleeding, uncontrolled bleeding, maternal hemodynamic instability, or nonreassuring fetal status",
+            "hospitalization, modified activity, avoidance of sexual activity, and corticosteroids when early delivery risk is present"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "placenta_accreta_requires_imaging_team_blood_and_planned_delivery_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

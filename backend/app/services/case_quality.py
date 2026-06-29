@@ -3021,9 +3021,10 @@ PLACENTA_PREVIA_STABLE_TIMING_SAFETY_TERMS = (
     "36-37",
     "36 to 37 6/7",
     "36-37 6/7",
-    "cesarean",
-    "caesarean",
-    "lung maturity is not necessary",
+    "36 0/7",
+    "37 6/7",
+    "cesarean delivery at 36",
+    "scheduled cesarean at 36",
 )
 PLACENTA_PREVIA_UNSTABLE_DELIVERY_SAFETY_TERMS = (
     "heavy bleeding",
