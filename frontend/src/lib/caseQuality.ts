@@ -5426,9 +5426,6 @@ const SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS = [
   "dextrose",
   "glucagon",
   "oral glucose",
-  "iv sugar",
-  "oral sugar",
-  "sugar",
   "포도당",
 ];
 
