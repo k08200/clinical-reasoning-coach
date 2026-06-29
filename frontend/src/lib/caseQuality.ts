@@ -2726,18 +2726,30 @@ const ECTOPIC_PREGNANCY_RH_SAFETY_TERMS = [
   "혈액형",
 ];
 
-const ECTOPIC_PREGNANCY_MTX_SAFETY_TERMS = [
-  "breastfeeding",
+const ECTOPIC_PREGNANCY_MTX_LAB_SAFETY_TERMS = [
+  "alt",
+  "ast",
   "cbc",
-  "liver",
-  "methotrexate",
-  "renal",
-  "rupture",
-  "unstable",
+  "complete blood count",
+  "creatinine",
+  "liver function",
+  "renal function",
   "간기능",
-  "메토트렉세이트",
   "신장",
-  "파열",
+];
+
+const ECTOPIC_PREGNANCY_MTX_CONTRAINDICATION_SAFETY_TERMS = [
+  "alcoholism",
+  "anemia",
+  "breastfeeding",
+  "hepatic disease",
+  "immunodeficiency",
+  "leukopenia",
+  "methotrexate contraindication",
+  "peptic ulcer",
+  "renal disease",
+  "thrombocytopenia",
+  "메토트렉세이트 금기",
 ];
 
 const ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS = [
@@ -17724,13 +17736,17 @@ function hasEctopicPregnancyTreatmentSafetyCheck(checks: string[]): boolean {
   const hasRhSafety = ECTOPIC_PREGNANCY_RH_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasMtxSafety = ECTOPIC_PREGNANCY_MTX_SAFETY_TERMS.some((term) =>
+  const hasMtxLabSafety = ECTOPIC_PREGNANCY_MTX_LAB_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasMtxContraindicationSafety =
+    ECTOPIC_PREGNANCY_MTX_CONTRAINDICATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasHemodynamicSafety = ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasRhSafety && hasMtxSafety && hasHemodynamicSafety;
+  return hasRhSafety && hasMtxLabSafety && hasMtxContraindicationSafety && hasHemodynamicSafety;
 }
 
 function requiresPostpartumHemorrhageSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -26085,7 +26101,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasEctopicPregnancyTreatmentSafetyCheck,
       issue:
-        "ectopic pregnancy safety checks must include Rh status or anti-D planning, methotrexate eligibility or contraindications, and hemodynamic or rupture risk",
+        "ectopic pregnancy safety checks must include Rh status or anti-D planning, methotrexate eligibility labs plus contraindication review, and hemodynamic or rupture risk",
     },
     {
       name: "postpartum_hemorrhage_time_critical_actions",

@@ -3126,6 +3126,67 @@ def test_quality_gate_requires_ectopic_pregnancy_rh_mtx_and_rupture_safety():
     )
 
 
+def test_quality_gate_requires_ectopic_pregnancy_mtx_labs_and_contraindications_not_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Ruptured ectopic pregnancy"
+    case["patient_demographics"] = {
+        "age": 29,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Pelvic pain and dizziness"
+    case["history_of_present_illness"] = (
+        "Reproductive-age patient with missed period, unilateral pelvic pain, "
+        "vaginal spotting, and near-syncope."
+    )
+    case["key_teaching_points"] = [
+        "Early pregnancy pain and bleeding requires pregnancy location assessment",
+        "Hemodynamic instability or peritoneal signs require urgent operative escalation",
+        "Treatment choice depends on ultrasound findings, hCG trend, and rupture risk",
+    ]
+    case["clinical_red_flags"] = [
+        "Near-syncope with pelvic pain and vaginal bleeding",
+        "Shoulder pain and guarding suggesting intraperitoneal bleeding",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain pregnancy test and quantitative hCG immediately",
+        "Perform pelvic ultrasound with transvaginal ultrasound to assess pregnancy location",
+        "Consult OB/GYN urgently and prepare operative escalation if unstable or rupture is suspected",
+    ]
+    case["contraindication_checks"] = [
+        "Rh status and anti-D planning if Rh negative",
+        "Methotrexate plan if clinically appropriate",
+        "Hemodynamic instability, syncope, peritoneal signs, and hemoperitoneum risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Ectopic Pregnancy Diagnosis and Management",
+            "organization": "American Family Physician",
+            "url": "https://www.aafp.org/pubs/afp/issues/2020/0515/p599.html",
+            "supports": [
+                "ectopic pregnancy diagnosis and risk stratification",
+                "near-syncope with pelvic pain and vaginal bleeding as red flags",
+                "shoulder pain and guarding suggesting intraperitoneal bleeding",
+                "pregnancy test and quantitative hCG immediately",
+                "pelvic ultrasound with transvaginal ultrasound to assess pregnancy location",
+                "urgent OB/GYN consultation and operative escalation if unstable or rupture is suspected",
+                "Rh status and anti-D planning if Rh negative",
+                "methotrexate plan if clinically appropriate",
+                "hemodynamic instability, syncope, peritoneal signs, and hemoperitoneum risk",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "methotrexate eligibility labs plus contraindication review" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_postpartum_hemorrhage_resuscitation_uterotonic_txa_source_and_escalation_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Postpartum hemorrhage from uterine atony"

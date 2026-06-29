@@ -2517,18 +2517,29 @@ ECTOPIC_PREGNANCY_RH_SAFETY_TERMS = (
     "rhesus",
     "혈액형",
 )
-ECTOPIC_PREGNANCY_MTX_SAFETY_TERMS = (
-    "breastfeeding",
+ECTOPIC_PREGNANCY_MTX_LAB_SAFETY_TERMS = (
+    "alt",
+    "ast",
     "cbc",
-    "liver",
-    "methotrexate",
-    "renal",
-    "rupture",
-    "unstable",
+    "complete blood count",
+    "creatinine",
+    "liver function",
+    "renal function",
     "간기능",
-    "메토트렉세이트",
     "신장",
-    "파열",
+)
+ECTOPIC_PREGNANCY_MTX_CONTRAINDICATION_SAFETY_TERMS = (
+    "alcoholism",
+    "anemia",
+    "breastfeeding",
+    "hepatic disease",
+    "immunodeficiency",
+    "leukopenia",
+    "methotrexate contraindication",
+    "peptic ulcer",
+    "renal disease",
+    "thrombocytopenia",
+    "메토트렉세이트 금기",
 )
 ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS = (
     "hemodynamic",
@@ -15820,8 +15831,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_ectopic_pregnancy_treatment_safety_check,
             issue=(
                 "ectopic pregnancy safety checks must include Rh status or anti-D "
-                "planning, methotrexate eligibility or contraindications, and "
-                "hemodynamic or rupture risk"
+                "planning, methotrexate eligibility labs plus contraindication "
+                "review, and hemodynamic or rupture risk"
             ),
         ),
         DomainSafetyGate(
@@ -21052,15 +21063,24 @@ def _has_ectopic_pregnancy_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in ECTOPIC_PREGNANCY_RH_SAFETY_TERMS
     )
-    has_mtx_safety = any(
+    has_mtx_lab_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ECTOPIC_PREGNANCY_MTX_SAFETY_TERMS
+        for term in ECTOPIC_PREGNANCY_MTX_LAB_SAFETY_TERMS
+    )
+    has_mtx_contraindication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ECTOPIC_PREGNANCY_MTX_CONTRAINDICATION_SAFETY_TERMS
     )
     has_hemodynamic_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in ECTOPIC_PREGNANCY_HEMODYNAMIC_SAFETY_TERMS
     )
-    return has_rh_safety and has_mtx_safety and has_hemodynamic_safety
+    return (
+        has_rh_safety
+        and has_mtx_lab_safety
+        and has_mtx_contraindication_safety
+        and has_hemodynamic_safety
+    )
 
 
 def _requires_postpartum_hemorrhage_safety_check(data: dict[str, Any]) -> bool:

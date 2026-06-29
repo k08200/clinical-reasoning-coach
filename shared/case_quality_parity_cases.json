@@ -3619,6 +3619,61 @@
     }
   },
   {
+    "name": "ectopic_pregnancy_requires_mtx_labs_and_contraindications_not_label_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "methotrexate eligibility labs plus contraindication review"
+    ],
+    "overrides": {
+      "diagnosis": "Ruptured ectopic pregnancy",
+      "patient_demographics": {
+        "age": 29,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Pelvic pain and dizziness",
+      "history_of_present_illness": "Reproductive-age patient with missed period, unilateral pelvic pain, vaginal spotting, and near-syncope.",
+      "key_teaching_points": [
+        "Early pregnancy pain and bleeding requires pregnancy location assessment",
+        "Hemodynamic instability or peritoneal signs require urgent operative escalation",
+        "Treatment choice depends on ultrasound findings, hCG trend, and rupture risk"
+      ],
+      "clinical_red_flags": [
+        "Near-syncope with pelvic pain and vaginal bleeding",
+        "Shoulder pain and guarding suggesting intraperitoneal bleeding"
+      ],
+      "time_critical_actions": [
+        "Obtain pregnancy test and quantitative hCG immediately",
+        "Perform pelvic ultrasound with transvaginal ultrasound to assess pregnancy location",
+        "Consult OB/GYN urgently and prepare operative escalation if unstable or rupture is suspected"
+      ],
+      "contraindication_checks": [
+        "Rh status and anti-D planning if Rh negative",
+        "Methotrexate plan if clinically appropriate",
+        "Hemodynamic instability, syncope, peritoneal signs, and hemoperitoneum risk"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Ectopic Pregnancy Diagnosis and Management",
+          "organization": "American Family Physician",
+          "url": "https://www.aafp.org/pubs/afp/issues/2020/0515/p599.html",
+          "supports": [
+            "ectopic pregnancy diagnosis and risk stratification",
+            "near-syncope with pelvic pain and vaginal bleeding as red flags",
+            "shoulder pain and guarding suggesting intraperitoneal bleeding",
+            "pregnancy test and quantitative hCG immediately",
+            "pelvic ultrasound with transvaginal ultrasound to assess pregnancy location",
+            "urgent OB/GYN consultation and operative escalation if unstable or rupture is suspected",
+            "Rh status and anti-D planning if Rh negative",
+            "methotrexate plan if clinically appropriate",
+            "hemodynamic instability, syncope, peritoneal signs, and hemoperitoneum risk"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "postpartum_hemorrhage_requires_resuscitation_uterotonic_txa_source_and_escalation_actions",
     "expected_passed": false,
     "expected_issue_substrings": [
