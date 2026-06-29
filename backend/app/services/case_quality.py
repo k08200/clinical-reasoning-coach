@@ -3279,9 +3279,11 @@ VASA_PREVIA_NEONATAL_BLOOD_ACTION_TERMS = (
     "transfusion",
 )
 VASA_PREVIA_NO_DELAY_SAFETY_TERMS = (
+    "active hemorrhage should not delay delivery",
     "do not delay delivery",
     "delivery should not be delayed",
-    "fetal lung maturity testing should not",
+    "fetal lung maturity testing should not delay delivery",
+    "fetal lung maturity testing should not be used when an indication for delivery is present",
     "not delay delivery",
 )
 VASA_PREVIA_DELIVERY_TIMING_SAFETY_TERMS = (
