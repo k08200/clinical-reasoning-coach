@@ -3385,7 +3385,6 @@ const PLACENTA_ACCRETA_TIMING_SAFETY_TERMS = [
   "35 6/7",
   "before labor",
   "before the onset of labor",
-  "corticosteroids",
 ];
 
 const PLACENTA_ACCRETA_HEMORRHAGE_SAFETY_TERMS = [
