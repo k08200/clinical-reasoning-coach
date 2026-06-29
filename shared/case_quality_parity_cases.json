@@ -7630,6 +7630,70 @@
     }
   },
   {
+    "name": "umbilical_cord_prolapse_requires_no_delay_not_terbutaline_label_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "umbilical cord prolapse safety checks must include minimal cord handling"
+    ],
+    "overrides": {
+      "diagnosis": "Umbilical cord prolapse with fetal distress",
+      "patient_demographics": {
+        "age": 30,
+        "sex": "female",
+        "weight_kg": 70,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Visible cord after membrane rupture",
+      "history_of_present_illness": "Laboring patient has ruptured membranes with high presenting part, visible prolapsed cord at the introitus, abnormal fetal heart tracing, prolonged bradycardia, variable decelerations, and concern for umbilical cord prolapse causing fetal distress.",
+      "key_teaching_points": [
+        "Umbilical cord prolapse can cause acute fetal hypoxia and birth asphyxia",
+        "Abnormal fetal heart rate after membrane rupture should prompt speculum or digital vaginal examination",
+        "Initial management relieves cord compression while preparing immediate birth"
+      ],
+      "clinical_red_flags": [
+        "Prolapsed cord with fetal bradycardia and variable deceleration",
+        "Ruptured membranes with high presenting part, breech, non-cephalic presentation, or polyhydramnios"
+      ],
+      "time_critical_actions": [
+        "Assess fetal heart rate FHR and perform speculum or digital vaginal examination for suspected cord prolapse",
+        "Call for help and immediate assistance from obstetric team, anaesthesia, emergency theatre, operating room, and immediate birth team",
+        "Relieve compression by manual elevation of the presenting part or bladder filling and bladder distension",
+        "Place patient in knee-chest, left lateral head down, Trendelenburg, or exaggerated Sims position",
+        "Plan urgent delivery with category 1 cesarean or caesarean within 30 minutes, or operative vaginal delivery if birth is imminent"
+      ],
+      "contraindication_checks": [
+        "Use minimal handling of the exposed cord to prevent vasospasm; manual replacement of the cord is not recommended and do not replace it to continue labor",
+        "Consider tocolysis with terbutaline for uterine relaxation before deciding delivery timing",
+        "Review delivery mode: cesarean or caesarean if vaginal birth is not imminent, category 1 if abnormal fetal heart rate, category 2 only with normal trace and continuous fetal assessment, or operative vaginal birth if imminent",
+        "Ensure neonatal resuscitation team attends and plan paired cord blood gas, cord pH, and base excess measurement"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Umbilical Cord Prolapse Green-top Guideline No. 50",
+          "organization": "Royal College of Obstetricians and Gynaecologists",
+          "url": "https://www.rcog.org.uk/media/3wykswng/gtg-50-umbilicalcordprolapse-2014.pdf",
+          "supports": [
+            "umbilical cord prolapse with fetal distress diagnosis and risk stratification",
+            "umbilical cord prolapse can cause acute fetal hypoxia and birth asphyxia",
+            "abnormal fetal heart rate after membrane rupture should prompt speculum or digital vaginal examination",
+            "initial management relieves cord compression while preparing immediate birth",
+            "prolapsed cord with fetal bradycardia and variable deceleration",
+            "ruptured membranes with high presenting part, breech, non-cephalic presentation, or polyhydramnios",
+            "fetal heart rate FHR assessment and speculum or digital vaginal examination for suspected cord prolapse",
+            "call for help and immediate assistance from obstetric team, anaesthesia, emergency theatre, operating room, and immediate birth team",
+            "relieve compression by manual elevation of the presenting part or bladder filling and bladder distension",
+            "knee-chest, left lateral head down, Trendelenburg, or exaggerated Sims position",
+            "urgent delivery with category 1 cesarean or caesarean within 30 minutes, or operative vaginal delivery if birth is imminent",
+            "minimal handling of exposed cord to prevent vasospasm; manual replacement of the cord is not recommended and do not replace it to continue labor",
+            "tocolysis with terbutaline for uterine relaxation before deciding delivery timing",
+            "delivery mode with cesarean or caesarean if vaginal birth is not imminent, category 1 if abnormal fetal heart rate, category 2 only with normal trace and continuous fetal assessment, or operative vaginal birth if imminent",
+            "neonatal resuscitation team attends and paired cord blood gas, cord pH, and base excess measurement"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "vasa_previa_requires_fetal_assessment_delivery_and_neonatal_blood_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

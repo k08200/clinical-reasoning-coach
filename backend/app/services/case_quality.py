@@ -3208,10 +3208,13 @@ UMBILICAL_CORD_PROLAPSE_CORD_HANDLING_SAFETY_TERMS = (
 )
 UMBILICAL_CORD_PROLAPSE_NO_DELAY_TOCOLYSIS_SAFETY_TERMS = (
     "do not delay",
+    "do not delay delivery",
     "must not delay",
     "no unnecessary delay",
-    "tocolysis",
-    "terbutaline",
+    "terbutaline must not delay",
+    "tocolysis must not delay",
+    "tocolysis while preparing birth",
+    "tocolysis while preparing delivery",
 )
 UMBILICAL_CORD_PROLAPSE_DELIVERY_MODE_SAFETY_TERMS = (
     "category 1",
