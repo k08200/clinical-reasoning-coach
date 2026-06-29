@@ -4500,8 +4500,12 @@ TTP_ORGAN_CONTEXT_TERMS = (
     "신경",
     "신장",
 )
-TTP_PEX_ACTION_TERMS = (
+TTP_HEMATOLOGY_ACTION_TERMS = (
     "hematology",
+    "haematology",
+    "혈액내과",
+)
+TTP_PEX_ACTION_TERMS = (
     "plasma exchange",
     "plasma-exchange",
     "plasmapheresis",
@@ -16410,7 +16414,7 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="time_critical_actions",
             validator=_has_ttp_time_critical_actions,
             issue=(
-                "TTP time-critical actions must include urgent hematology, "
+                "TTP time-critical actions must include urgent hematology plus "
                 "therapeutic plasma exchange, plasma exchange, plasmapheresis, "
                 "or TPE planning, ADAMTS13 sampling plus hemolysis labs, LDH, "
                 "peripheral smear, blood smear, schistocyte, or schistocytes "
@@ -22718,6 +22722,10 @@ def _requires_ttp_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_ttp_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_hematology = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TTP_HEMATOLOGY_ACTION_TERMS
+    )
     has_pex = any(
         _contains_safety_term(normalized_actions, term)
         for term in TTP_PEX_ACTION_TERMS
@@ -22734,7 +22742,13 @@ def _has_ttp_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in TTP_ANTIVWF_ACTION_TERMS
     )
-    return has_pex and has_adamts13_labs and has_steroid and has_antivwf
+    return (
+        has_hematology
+        and has_pex
+        and has_adamts13_labs
+        and has_steroid
+        and has_antivwf
+    )
 
 
 def _has_ttp_treatment_safety_check(checks: list[Any]) -> bool:

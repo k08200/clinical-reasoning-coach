@@ -4909,8 +4909,13 @@ const TTP_ORGAN_CONTEXT_TERMS = [
   "신장",
 ];
 
-const TTP_PEX_ACTION_TERMS = [
+const TTP_HEMATOLOGY_ACTION_TERMS = [
   "hematology",
+  "haematology",
+  "혈액내과",
+];
+
+const TTP_PEX_ACTION_TERMS = [
   "plasma exchange",
   "plasma-exchange",
   "plasmapheresis",
@@ -18992,6 +18997,9 @@ function requiresTtpSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
 
 function hasTtpTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
+  const hasHematology = TTP_HEMATOLOGY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasPex = TTP_PEX_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -19004,7 +19012,7 @@ function hasTtpTimeCriticalActions(actions: string[]): boolean {
   const hasAntivwf = TTP_ANTIVWF_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasPex && hasAdamts13Labs && hasSteroid && hasAntivwf;
+  return hasHematology && hasPex && hasAdamts13Labs && hasSteroid && hasAntivwf;
 }
 
 function hasTtpTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26434,7 +26442,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasTtpTimeCriticalActions,
       issue:
-        "TTP time-critical actions must include urgent hematology, therapeutic plasma exchange, plasma exchange, plasmapheresis, or TPE planning, ADAMTS13 sampling plus hemolysis labs, LDH, peripheral smear, blood smear, schistocyte, or schistocytes assessment, corticosteroid, glucocorticoid, methylprednisolone, prednisone, or steroid therapy, and caplacizumab, anti-VWF, rituximab, or immunosuppression consideration",
+        "TTP time-critical actions must include urgent hematology plus therapeutic plasma exchange, plasma exchange, plasmapheresis, or TPE planning, ADAMTS13 sampling plus hemolysis labs, LDH, peripheral smear, blood smear, schistocyte, or schistocytes assessment, corticosteroid, glucocorticoid, methylprednisolone, prednisone, or steroid therapy, and caplacizumab, anti-VWF, rituximab, or immunosuppression consideration",
     },
     {
       name: "ttp_treatment_safety",
