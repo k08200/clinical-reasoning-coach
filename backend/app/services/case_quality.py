@@ -2932,7 +2932,7 @@ PLACENTAL_ABRUPTION_COAG_RH_SAFETY_TERMS = (
 )
 PLACENTAL_ABRUPTION_STABILITY_DELIVERY_SAFETY_TERMS = (
     "bleeding continues",
-    "delivery",
+    "delivery criteria",
     "deteriorates",
     "fetal instability",
     "maternal instability",

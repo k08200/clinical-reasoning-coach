@@ -3510,6 +3510,76 @@ def test_quality_gate_requires_placental_abruption_previa_coag_delivery_and_shoc
     )
 
 
+def test_quality_gate_requires_placental_abruption_delivery_criteria_not_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Placental abruption with maternal instability"
+    case["patient_demographics"] = {
+        "age": 29,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Painful vaginal bleeding in late pregnancy"
+    case["history_of_present_illness"] = (
+        "Pregnant patient at 35 weeks has placental abruption with sudden "
+        "painful vaginal bleeding, uterine pain and tenderness, a rigid uterus, "
+        "tachycardia, hypotension, nonreassuring fetal heart tracing, and concern "
+        "for concealed hemorrhage, hemorrhagic shock, and DIC."
+    )
+    case["key_teaching_points"] = [
+        "Placental abruption is premature placental separation and can be an obstetric emergency",
+        "Uterine pain, tenderness, vaginal bleeding, fetal distress, hemorrhagic shock, or DIC are red flags",
+        "Normal ultrasound does not rule out placental abruption",
+    ]
+    case["clinical_red_flags"] = [
+        "Painful vaginal bleeding with uterine tenderness and fetal distress",
+        "Hemorrhagic shock, concealed hemorrhage, DIC, and maternal instability",
+    ]
+    case["time_critical_actions"] = [
+        "Start maternal stabilization and hemorrhage resuscitation with two large-bore IV access, type-and-cross, crossmatch, blood products, transfusion, and hemodynamic shock support",
+        "Begin continuous fetal monitoring and fetal heart rate FHR assessment for nonreassuring fetal status",
+        "Send type-and-screen, Rh, fibrinogen, fibrin split products, platelet count, and coagulation labs",
+        "Escalate to OB, maternal-fetal medicine, operative team, prompt delivery, cesarean, or emergency delivery for maternal or fetal instability",
+    ]
+    case["contraindication_checks"] = [
+        "Rule out placenta previa with ultrasound before pelvic examination and recognize that normal ultrasound does not rule out abruption",
+        "Check coagulation studies, fibrinogen, fibrin split products, platelet count, blood type, Rh status, Rh immune globulin, and Kleihauer-Betke testing",
+        "Review delivery plan after maternal observation and repeat ultrasound",
+        "Treat hemorrhagic shock, DIC, coagulopathy, low fibrinogen, and ongoing bleeding with transfusion, blood products, and massive transfusion safeguards",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Placental Abruption (Abruptio Placentae)",
+            "organization": "MSD Manual Professional Edition",
+            "url": "https://www.msdmanuals.com/professional/gynecology-and-obstetrics/antenatal-complications/placental-abruption-abruptio-placentae",
+            "supports": [
+                "placental abruption with maternal instability diagnosis and risk stratification",
+                "placental abruption is premature placental separation and can be an obstetric emergency",
+                "uterine pain, tenderness, vaginal bleeding, fetal distress, hemorrhagic shock, or DIC are red flags",
+                "painful vaginal bleeding with uterine tenderness and fetal distress",
+                "hemorrhagic shock, concealed hemorrhage, DIC, and maternal instability",
+                "maternal stabilization and hemorrhage resuscitation with two large-bore IV access, type-and-cross, crossmatch, blood products, transfusion, and hemodynamic shock support",
+                "continuous fetal monitoring and fetal heart rate FHR assessment for nonreassuring fetal status",
+                "type-and-screen, Rh, fibrinogen, fibrin split products, platelet count, and coagulation labs",
+                "OB, maternal-fetal medicine, operative team, prompt delivery, cesarean, or emergency delivery for maternal or fetal instability",
+                "placenta previa exclusion with ultrasound before pelvic examination and normal ultrasound does not rule out abruption",
+                "coagulation studies, fibrinogen, fibrin split products, platelet count, blood type, Rh status, Rh immune globulin, and Kleihauer-Betke testing",
+                "delivery plan after maternal observation and repeat ultrasound",
+                "hemorrhagic shock, DIC, coagulopathy, low fibrinogen, ongoing bleeding, transfusion, blood products, and massive transfusion safeguards",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "placental abruption safety checks must include placenta previa exclusion"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_placenta_previa_ultrasound_fetal_hemorrhage_and_cesarean_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Placenta previa with heavy bleeding"
