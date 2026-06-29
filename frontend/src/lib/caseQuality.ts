@@ -5779,8 +5779,6 @@ const THYROID_STORM_BETA_BLOCKER_ACTION_TERMS = [
   "beta-blocker",
   "esmolol",
   "propranolol",
-  "rate control",
-  "tachycardia",
   "베타차단",
 ];
 
