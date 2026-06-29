@@ -6014,8 +6014,6 @@ const SEVERE_HYPOTHERMIA_CORE_TEMP_ACTION_TERMS = [
   "esophageal",
   "low-reading",
   "rectal",
-  "temperature",
-  "thermometer",
 ];
 
 const SEVERE_HYPOTHERMIA_GENTLE_ABC_ACTION_TERMS = [
@@ -26685,7 +26683,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSevereHypothermiaTimeCriticalActions,
       issue:
-        "severe hypothermia time-critical actions must include core temperature measurement with rectal, esophageal, low-reading thermometer, or temperature confirmation, gentle handling, wet-clothing removal, insulation, airway, oxygen, or ventilation support, active external or active core rewarming such as forced air, heated humidified oxygen, warm IV fluid, heated lavage, ECMO, ECLS, or extracorporeal rewarming, ECG plus glucose, electrolyte, potassium, Osborn-wave, trauma, or toxin assessment, and cardiac-arrest escalation with CPR, defibrillation, ECMO, ECLS, VA-ECMO, or extracorporeal support",
+        "severe hypothermia time-critical actions must include core temperature measurement with rectal, esophageal, or low-reading thermometer/probe, gentle handling, wet-clothing removal, insulation, airway, oxygen, or ventilation support, active external or active core rewarming such as forced air, heated humidified oxygen, warm IV fluid, heated lavage, ECMO, ECLS, or extracorporeal rewarming, ECG plus glucose, electrolyte, potassium, Osborn-wave, trauma, or toxin assessment, and cardiac-arrest escalation with CPR, defibrillation, ECMO, ECLS, VA-ECMO, or extracorporeal support",
     },
     {
       name: "severe_hypothermia_treatment_safety",

@@ -5506,8 +5506,6 @@ SEVERE_HYPOTHERMIA_CORE_TEMP_ACTION_TERMS = (
     "esophageal",
     "low-reading",
     "rectal",
-    "temperature",
-    "thermometer",
 )
 SEVERE_HYPOTHERMIA_GENTLE_ABC_ACTION_TERMS = (
     "airway",
@@ -16708,8 +16706,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_severe_hypothermia_time_critical_actions,
             issue=(
                 "severe hypothermia time-critical actions must include core "
-                "temperature measurement with rectal, esophageal, low-reading "
-                "thermometer, or temperature confirmation, gentle handling, wet-"
+                "temperature measurement with rectal, esophageal, or low-reading "
+                "thermometer/probe, gentle handling, wet-"
                 "clothing removal, insulation, airway, oxygen, or ventilation "
                 "support, active external or active core rewarming such as forced "
                 "air, heated humidified oxygen, warm IV fluid, heated lavage, ECMO, "
