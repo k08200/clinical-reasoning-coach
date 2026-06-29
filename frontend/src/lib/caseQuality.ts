@@ -6160,12 +6160,22 @@ const DROWNING_OBSERVATION_ESCALATION_ACTION_TERMS = [
   "transfer",
 ];
 
-const DROWNING_ANTIBIOTIC_STEROID_SAFETY_TERMS = [
-  "antibiotics",
-  "corticosteroids",
+const DROWNING_ANTIBIOTIC_STEROID_AVOIDANCE_SAFETY_TERMS = [
+  "avoid",
+  "avoid routine",
+  "no prophylactic",
+  "no routine",
   "not prophylactic",
-  "prophylactic antibiotics",
-  "sepsis",
+  "not routine",
+  "without prophylactic",
+];
+
+const DROWNING_ANTIBIOTIC_STEROID_TARGET_SAFETY_TERMS = [
+  "antibiotic",
+  "antibiotics",
+  "corticosteroid",
+  "corticosteroids",
+  "steroid",
   "steroids",
 ];
 
@@ -19772,7 +19782,11 @@ function hasDrowningTimeCriticalActions(actions: string[]): boolean {
 
 function hasDrowningTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasAntibioticSteroidSafety = DROWNING_ANTIBIOTIC_STEROID_SAFETY_TERMS.some(
+  const hasAntibioticSteroidAvoidance =
+    DROWNING_ANTIBIOTIC_STEROID_AVOIDANCE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAntibioticSteroidTarget = DROWNING_ANTIBIOTIC_STEROID_TARGET_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasDischargeObservationSafety = DROWNING_DISCHARGE_OBSERVATION_SAFETY_TERMS.some(
@@ -19788,7 +19802,8 @@ function hasDrowningTreatmentSafetyCheck(checks: string[]): boolean {
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasAntibioticSteroidSafety &&
+    hasAntibioticSteroidAvoidance &&
+    hasAntibioticSteroidTarget &&
     hasDischargeObservationSafety &&
     hasDelayedRespiratorySafety &&
     hasUnderlyingCauseSafety &&

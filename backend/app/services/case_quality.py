@@ -5635,12 +5635,21 @@ DROWNING_OBSERVATION_ESCALATION_ACTION_TERMS = (
     "ongoing hypoxia",
     "transfer",
 )
-DROWNING_ANTIBIOTIC_STEROID_SAFETY_TERMS = (
-    "antibiotics",
-    "corticosteroids",
+DROWNING_ANTIBIOTIC_STEROID_AVOIDANCE_SAFETY_TERMS = (
+    "avoid",
+    "avoid routine",
+    "no prophylactic",
+    "no routine",
     "not prophylactic",
-    "prophylactic antibiotics",
-    "sepsis",
+    "not routine",
+    "without prophylactic",
+)
+DROWNING_ANTIBIOTIC_STEROID_TARGET_SAFETY_TERMS = (
+    "antibiotic",
+    "antibiotics",
+    "corticosteroid",
+    "corticosteroids",
+    "steroid",
     "steroids",
 )
 DROWNING_DISCHARGE_OBSERVATION_SAFETY_TERMS = (
@@ -23691,9 +23700,13 @@ def _has_drowning_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_drowning_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_antibiotic_steroid_safety = any(
+    has_antibiotic_steroid_avoidance = any(
         _contains_safety_term(normalized_checks, term)
-        for term in DROWNING_ANTIBIOTIC_STEROID_SAFETY_TERMS
+        for term in DROWNING_ANTIBIOTIC_STEROID_AVOIDANCE_SAFETY_TERMS
+    )
+    has_antibiotic_steroid_target = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DROWNING_ANTIBIOTIC_STEROID_TARGET_SAFETY_TERMS
     )
     has_discharge_observation_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -23712,7 +23725,8 @@ def _has_drowning_treatment_safety_check(checks: list[Any]) -> bool:
         for term in DROWNING_ASPIRATION_SAFETY_TERMS
     )
     return (
-        has_antibiotic_steroid_safety
+        has_antibiotic_steroid_avoidance
+        and has_antibiotic_steroid_target
         and has_discharge_observation_safety
         and has_delayed_respiratory_safety
         and has_underlying_cause_safety
