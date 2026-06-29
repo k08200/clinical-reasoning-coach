@@ -3045,11 +3045,29 @@ const HELLP_BP_ACTION_TERMS = [
 ];
 
 const HELLP_DELIVERY_ACTION_TERMS = [
+  "cesarean",
+  "c-section",
   "delivery",
+  "delivery planning",
+  "expedite delivery",
+  "induction",
+];
+
+const HELLP_DELIVERY_TIMING_TERMS = [
+  "34 weeks",
+  "34주",
+  "after maternal stabilization",
+  "after stabilization",
+  "based on maternal and fetal status",
+  "corticosteroid",
+  "fetal status",
+  "gestational age",
   "maternal stabilization",
-  "obstetric",
-  "perinatology",
-  "tertiary",
+  "maternal status",
+  "maternal-fetal status",
+  "once stabilized",
+  "분만 시기",
+  "재태연령",
 ];
 
 const HELLP_COMPLICATION_ACTION_TERMS = [
@@ -18417,13 +18435,16 @@ function hasHellpTimeCriticalActions(actions: string[]): boolean {
   const hasBp = HELLP_BP_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDelivery = HELLP_DELIVERY_ACTION_TERMS.some((term) =>
+  const hasDeliveryAction = HELLP_DELIVERY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDeliveryTiming = HELLP_DELIVERY_TIMING_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasComplications = HELLP_COMPLICATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasLabs && hasMagnesium && hasBp && hasDelivery && hasComplications;
+  return hasLabs && hasMagnesium && hasBp && hasDeliveryAction && hasDeliveryTiming && hasComplications;
 }
 
 function hasHellpTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26253,7 +26274,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasHellpTimeCriticalActions,
       issue:
-        "HELLP syndrome time-critical actions must include CBC/platelet, hemolysis, AST/ALT, LDH, bilirubin, or smear labs, magnesium sulfate seizure prophylaxis, severe hypertension blood-pressure treatment, maternal stabilization, obstetric/perinatology delivery planning, and DIC, fibrinogen, PT/PTT, hepatic imaging, subcapsular hematoma, or liver-rupture complication assessment",
+        "HELLP syndrome time-critical actions must include CBC/platelet, hemolysis, AST/ALT, LDH, bilirubin, or smear labs, magnesium sulfate seizure prophylaxis, severe hypertension blood-pressure treatment, explicit delivery planning with maternal-fetal status or stabilization timing, and DIC, fibrinogen, PT/PTT, hepatic imaging, subcapsular hematoma, or liver-rupture complication assessment",
     },
     {
       name: "hellp_treatment_safety",

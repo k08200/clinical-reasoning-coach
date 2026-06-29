@@ -2810,11 +2810,28 @@ HELLP_BP_ACTION_TERMS = (
     "severe-range",
 )
 HELLP_DELIVERY_ACTION_TERMS = (
+    "cesarean",
+    "c-section",
     "delivery",
+    "delivery planning",
+    "expedite delivery",
+    "induction",
+)
+HELLP_DELIVERY_TIMING_TERMS = (
+    "34 weeks",
+    "34주",
+    "after maternal stabilization",
+    "after stabilization",
+    "based on maternal and fetal status",
+    "corticosteroid",
+    "fetal status",
+    "gestational age",
     "maternal stabilization",
-    "obstetric",
-    "perinatology",
-    "tertiary",
+    "maternal status",
+    "maternal-fetal status",
+    "once stabilized",
+    "분만 시기",
+    "재태연령",
 )
 HELLP_COMPLICATION_ACTION_TERMS = (
     "dic",
@@ -16123,9 +16140,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "HELLP syndrome time-critical actions must include CBC/platelet, "
                 "hemolysis, AST/ALT, LDH, bilirubin, or smear labs, magnesium "
                 "sulfate seizure prophylaxis, severe hypertension blood-pressure "
-                "treatment, maternal stabilization, obstetric/perinatology delivery "
-                "planning, and DIC, fibrinogen, PT/PTT, hepatic imaging, "
-                "subcapsular hematoma, or liver-rupture complication assessment"
+                "treatment, explicit delivery planning with maternal-fetal status "
+                "or stabilization timing, and DIC, fibrinogen, PT/PTT, hepatic "
+                "imaging, subcapsular hematoma, or liver-rupture complication "
+                "assessment"
             ),
         ),
         DomainSafetyGate(
@@ -21934,15 +21952,26 @@ def _has_hellp_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in HELLP_BP_ACTION_TERMS
     )
-    has_delivery = any(
+    has_delivery_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in HELLP_DELIVERY_ACTION_TERMS
+    )
+    has_delivery_timing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HELLP_DELIVERY_TIMING_TERMS
     )
     has_complications = any(
         _contains_safety_term(normalized_actions, term)
         for term in HELLP_COMPLICATION_ACTION_TERMS
     )
-    return has_labs and has_magnesium and has_bp and has_delivery and has_complications
+    return (
+        has_labs
+        and has_magnesium
+        and has_bp
+        and has_delivery_action
+        and has_delivery_timing
+        and has_complications
+    )
 
 
 def _has_hellp_treatment_safety_check(checks: list[Any]) -> bool:
