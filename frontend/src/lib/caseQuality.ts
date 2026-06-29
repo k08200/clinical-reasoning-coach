@@ -2831,10 +2831,10 @@ const POSTPARTUM_HEMORRHAGE_UTEROTONIC_SAFETY_TERMS = [
 
 const POSTPARTUM_HEMORRHAGE_TXA_SAFETY_TERMS = [
   "3 hours",
-  "contraindication",
   "thromboembolism",
-  "tranexamic acid",
-  "txa",
+  "tranexamic acid contraindication",
+  "txa contraindication",
+  "within 3 hours",
 ];
 
 const POSTPARTUM_HEMORRHAGE_COAG_TRANSFUSION_SAFETY_TERMS = [

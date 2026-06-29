@@ -3291,6 +3291,93 @@ def test_quality_gate_requires_postpartum_hemorrhage_uterotonic_txa_coag_retaine
     )
 
 
+def test_quality_gate_requires_postpartum_hemorrhage_txa_safety_not_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Postpartum hemorrhage with retained placenta"
+    case["patient_demographics"] = {
+        "age": 35,
+        "sex": "female",
+        "weight_kg": 80,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Massive bleeding after delivery"
+    case["history_of_present_illness"] = (
+        "Patient has postpartum hemorrhage after delivery with retained placenta, "
+        "continued vaginal bleeding, tachycardia, hypotension, shock, and concern "
+        "for massive obstetric hemorrhage."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "76/42", "hr": 144, "rr": 26, "temp_c": 36.4, "spo2": 95},
+        "general": "Pale and lethargic",
+        "abdomen": "Uterus remains enlarged with ongoing bleeding",
+        "pelvic": "Placenta incomplete with heavy vaginal bleeding",
+        "other": "Estimated blood loss 2200 mL",
+    }
+    case["initial_labs"] = {
+        "hemoglobin": "7.4 g/dL",
+        "platelets": "98000/uL",
+        "fibrinogen": "140 mg/dL",
+        "inr": "1.7",
+    }
+    case["key_teaching_points"] = [
+        "Massive postpartum hemorrhage requires simultaneous resuscitation and source control",
+        "Retained placenta and genital tract trauma must be actively assessed",
+        "TXA is time-sensitive and should be considered early with standard care",
+    ]
+    case["clinical_red_flags"] = [
+        "Massive bleeding, shock, hypotension, tachycardia, coagulopathy, or low fibrinogen",
+        "Retained placenta, uterine inversion, rupture, laceration, DIC, or failed uterotonic response",
+    ]
+    case["time_critical_actions"] = [
+        "Activate hemorrhage protocol with large-bore access, type and screen, crossmatch, blood product transfusion, and massive transfusion readiness",
+        "Perform uterine massage and give oxytocin plus additional uterotonic therapy",
+        "Give tranexamic acid TXA immediately",
+        "Assess 4 Ts including tone atony, trauma laceration, tissue retained placenta, and thrombin coagulopathy",
+        "Escalate to obstetric operating room, Bakri balloon tamponade, B-Lynch surgery, uterine tamponade, or hysterectomy planning",
+    ]
+    case["contraindication_checks"] = [
+        "Review methylergonovine hypertension and preeclampsia risk, carboprost asthma risk, and misoprostol adverse effects before additional uterotonics",
+        "Give TXA tranexamic acid promptly per postpartum hemorrhage protocol",
+        "Monitor shock index, coagulopathy, fibrinogen, platelet count, INR, and viscoelastic transfusion targets",
+        "Evaluate retained placenta, retained tissue, manual removal need, genital tract laceration, uterine inversion, and rupture",
+        "Escalate to balloon tamponade, packing, surgical laparotomy, or interventional radiology if bleeding persists",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Updated WHO recommendation on tranexamic acid for the treatment of postpartum haemorrhage",
+            "organization": "World Health Organization",
+            "url": "https://www.who.int/publications/i/item/9789241550154",
+            "supports": [
+                "postpartum hemorrhage with retained placenta diagnosis and risk stratification",
+                "postpartum hemorrhage after delivery with retained placenta, continued vaginal bleeding, tachycardia, hypotension, shock, and concern for massive obstetric hemorrhage",
+                "massive postpartum hemorrhage requires simultaneous resuscitation and source control",
+                "retained placenta and genital tract trauma must be actively assessed",
+                "TXA is time-sensitive and should be considered early with standard care",
+                "massive bleeding, shock, hypotension, tachycardia, coagulopathy, or low fibrinogen as red flags",
+                "retained placenta, uterine inversion, rupture, laceration, DIC, or failed uterotonic response as severity markers",
+                "hemorrhage protocol with large-bore access, type and screen, crossmatch, blood product transfusion, and massive transfusion readiness",
+                "uterine massage and oxytocin plus additional uterotonic therapy",
+                "tranexamic acid TXA immediately",
+                "4 Ts including tone atony, trauma laceration, tissue retained placenta, and thrombin coagulopathy",
+                "obstetric operating room, Bakri balloon tamponade, B-Lynch surgery, uterine tamponade, or hysterectomy planning",
+                "methylergonovine hypertension and preeclampsia risk, carboprost asthma risk, and misoprostol adverse effects before additional uterotonics",
+                "TXA tranexamic acid promptly per postpartum hemorrhage protocol",
+                "shock index, coagulopathy, fibrinogen, platelet count, INR, and viscoelastic transfusion targets",
+                "retained placenta, retained tissue, manual removal need, genital tract laceration, uterine inversion, and rupture",
+                "balloon tamponade, packing, surgical laparotomy, or interventional radiology if bleeding persists",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "postpartum hemorrhage safety checks must include uterotonic" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_placental_abruption_resuscitation_fetal_labs_and_delivery_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Placental abruption with fetal distress"
