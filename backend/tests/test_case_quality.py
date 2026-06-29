@@ -4894,6 +4894,74 @@ def test_quality_gate_requires_shoulder_dystocia_traction_episiotomy_injury_and_
     )
 
 
+def test_quality_gate_requires_shoulder_dystocia_episiotomy_not_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Shoulder dystocia"
+    case["patient_demographics"] = {
+        "age": 31,
+        "sex": "female",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fetal head delivered but shoulders stuck"
+    case["history_of_present_illness"] = (
+        "During vaginal birth, fetal head has delivered and gentle traction failed. "
+        "The shoulders remain impacted at the symphysis with turtle sign, prolonged "
+        "head-to-body interval, maternal diabetes, suspected macrosomia, and concern "
+        "for shoulder dystocia."
+    )
+    case["key_teaching_points"] = [
+        "Shoulder dystocia requires immediate systematic maneuvers after the head delivers and gentle traction fails",
+        "McRoberts maneuver and suprapubic pressure are first-line",
+        "Avoid fundal pressure and excessive downward or lateral traction",
+    ]
+    case["clinical_red_flags"] = [
+        "Turtle sign with head delivered and shoulders impacted",
+        "Prolonged head-to-body interval with neonatal hypoxia or brachial plexus injury risk",
+    ]
+    case["time_critical_actions"] = [
+        "Declare shoulder dystocia and call for help including experienced obstetrician, anaesthetist, and neonatal resuscitation team",
+        "Perform McRoberts manoeuvre first",
+        "Apply suprapubic pressure with routine axial traction",
+        "If unresolved, proceed to second-line manoeuvres such as delivery of posterior arm, internal rotation, Rubin, Woods screw, all-fours, or Gaskin",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid fundal pressure and avoid excessive downward traction or lateral traction; use routine axial traction only",
+        "Perform routine episiotomy during shoulder dystocia management",
+        "Assess maternal postpartum hemorrhage, third degree or fourth degree perineal tear, and have neonatal clinician examine for brachial plexus injury or fracture",
+        "Document head-to-body interval, timing, and maneuvers/manoeuvres used during shoulder dystocia",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Shoulder Dystocia Green-top Guideline No. 42",
+            "organization": "Royal College of Obstetricians and Gynaecologists",
+            "url": "https://www.rcog.org.uk/media/ewgpnmio/gtg_42.pdf",
+            "supports": [
+                "shoulder dystocia diagnosis and risk stratification after fetal head delivers and gentle traction fails",
+                "turtle sign with head delivered and shoulders impacted",
+                "prolonged head-to-body interval with neonatal hypoxia or brachial plexus injury risk",
+                "declare shoulder dystocia and call for help including experienced obstetrician, anaesthetist, and neonatal resuscitation team",
+                "perform McRoberts manoeuvre first",
+                "apply suprapubic pressure with routine axial traction",
+                "second-line manoeuvres such as delivery of posterior arm, internal rotation, Rubin, Woods screw, all-fours, or Gaskin",
+                "avoid fundal pressure and excessive downward or lateral traction",
+                "routine episiotomy during shoulder dystocia management",
+                "maternal postpartum hemorrhage, third degree or fourth degree perineal tear, neonatal brachial plexus injury, and fracture assessment",
+                "document head-to-body interval, timing, and maneuvers/manoeuvres",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "shoulder dystocia safety checks must include avoiding fundal pressure"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_severe_preeclampsia_magnesium_bp_delivery_and_escalation():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Severe preeclampsia with severe features"

@@ -3521,9 +3521,10 @@ SHOULDER_DYSTOCIA_TRACTION_FUNDAL_SAFETY_TERMS = (
     "routine axial traction only",
 )
 SHOULDER_DYSTOCIA_EPISIOTOMY_ACCESS_SAFETY_TERMS = (
-    "episiotomy",
-    "internal access",
+    "episiotomy not routinely",
+    "if needed for internal access",
     "not always necessary",
+    "only for internal access",
 )
 SHOULDER_DYSTOCIA_MATERNAL_NEONATAL_INJURY_SAFETY_TERMS = (
     "brachial plexus",

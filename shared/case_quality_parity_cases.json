@@ -8569,6 +8569,65 @@
     }
   },
   {
+    "name": "shoulder_dystocia_requires_episiotomy_not_label_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "shoulder dystocia safety checks must include avoiding fundal pressure"
+    ],
+    "overrides": {
+      "diagnosis": "Shoulder dystocia",
+      "patient_demographics": {
+        "age": 31,
+        "sex": "female",
+        "weight_kg": 82,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Fetal head delivered but shoulders stuck",
+      "history_of_present_illness": "During vaginal birth, fetal head has delivered and gentle traction failed. The shoulders remain impacted at the symphysis with turtle sign, prolonged head-to-body interval, maternal diabetes, suspected macrosomia, and concern for shoulder dystocia.",
+      "key_teaching_points": [
+        "Shoulder dystocia requires immediate systematic maneuvers after the head delivers and gentle traction fails",
+        "McRoberts maneuver and suprapubic pressure are first-line",
+        "Avoid fundal pressure and excessive downward or lateral traction"
+      ],
+      "clinical_red_flags": [
+        "Turtle sign with head delivered and shoulders impacted",
+        "Prolonged head-to-body interval with neonatal hypoxia or brachial plexus injury risk"
+      ],
+      "time_critical_actions": [
+        "Declare shoulder dystocia and call for help including experienced obstetrician, anaesthetist, and neonatal resuscitation team",
+        "Perform McRoberts manoeuvre first",
+        "Apply suprapubic pressure with routine axial traction",
+        "If unresolved, proceed to second-line manoeuvres such as delivery of posterior arm, internal rotation, Rubin, Woods screw, all-fours, or Gaskin"
+      ],
+      "contraindication_checks": [
+        "Avoid fundal pressure and avoid excessive downward traction or lateral traction; use routine axial traction only",
+        "Perform routine episiotomy during shoulder dystocia management",
+        "Assess maternal postpartum hemorrhage, third degree or fourth degree perineal tear, and have neonatal clinician examine for brachial plexus injury or fracture",
+        "Document head-to-body interval, timing, and maneuvers/manoeuvres used during shoulder dystocia"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Shoulder Dystocia Green-top Guideline No. 42",
+          "organization": "Royal College of Obstetricians and Gynaecologists",
+          "url": "https://www.rcog.org.uk/media/ewgpnmio/gtg_42.pdf",
+          "supports": [
+            "shoulder dystocia diagnosis and risk stratification after fetal head delivers and gentle traction fails",
+            "turtle sign with head delivered and shoulders impacted",
+            "prolonged head-to-body interval with neonatal hypoxia or brachial plexus injury risk",
+            "declare shoulder dystocia and call for help including experienced obstetrician, anaesthetist, and neonatal resuscitation team",
+            "perform McRoberts manoeuvre first",
+            "apply suprapubic pressure with routine axial traction",
+            "second-line manoeuvres such as delivery of posterior arm, internal rotation, Rubin, Woods screw, all-fours, or Gaskin",
+            "avoid fundal pressure and excessive downward or lateral traction",
+            "routine episiotomy during shoulder dystocia management",
+            "maternal postpartum hemorrhage, third degree or fourth degree perineal tear, neonatal brachial plexus injury, and fracture assessment",
+            "document head-to-body interval, timing, and maneuvers/manoeuvres"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "severe_preeclampsia_requires_magnesium_bp_delivery_and_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [
