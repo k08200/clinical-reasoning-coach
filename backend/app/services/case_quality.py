@@ -5074,6 +5074,14 @@ INSULIN_SULFONYLUREA_TOXICITY_DRUG_CONTEXT_TERMS = (
     "insulin",
     "sulfonylurea",
 )
+SULFONYLUREA_TOXICITY_CONTEXT_TERMS = (
+    "glibenclamide",
+    "gliclazide",
+    "glimepiride",
+    "glipizide",
+    "glyburide",
+    "sulfonylurea",
+)
 INSULIN_SULFONYLUREA_TOXICITY_RISK_CONTEXT_TERMS = (
     "blood glucose 28",
     "blood glucose 32",
@@ -5122,6 +5130,9 @@ INSULIN_SULFONYLUREA_TOXICITY_OCTREOTIDE_ESCALATION_ACTION_TERMS = (
     "poison center",
     "poison control",
     "toxicologist",
+)
+SULFONYLUREA_TOXICITY_OCTREOTIDE_ACTION_TERMS = (
+    "octreotide",
 )
 INSULIN_SULFONYLUREA_TOXICITY_ELECTROLYTE_ACTION_TERMS = (
     "electrolyte",
@@ -16582,6 +16593,18 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             ),
         ),
         DomainSafetyGate(
+            name="sulfonylurea_toxicity_octreotide_time_critical_action",
+            applies=_requires_sulfonylurea_toxicity_octreotide_action,
+            field_name="time_critical_actions",
+            validator=_has_sulfonylurea_toxicity_octreotide_action,
+            issue=(
+                "sulfonylurea toxicity time-critical actions must include "
+                "octreotide for recurrent or persistent hypoglycemia; admission, "
+                "ICU/HDU care, poison-center, or toxicologist escalation alone is "
+                "not an octreotide plan"
+            ),
+        ),
+        DomainSafetyGate(
             name="insulin_sulfonylurea_toxicity_treatment_safety",
             applies=_requires_insulin_sulfonylurea_toxicity_safety_check,
             field_name="contraindication_checks",
@@ -23152,7 +23175,7 @@ def _has_severe_hypoglycemia_treatment_safety_check(checks: list[Any]) -> bool:
     )
 
 
-def _requires_insulin_sulfonylurea_toxicity_safety_check(data: dict[str, Any]) -> bool:
+def _insulin_sulfonylurea_toxicity_context_text(data: dict[str, Any]) -> str:
     risk_text_fields = [
         "chief_complaint",
         "history_of_present_illness",
@@ -23173,6 +23196,11 @@ def _requires_insulin_sulfonylurea_toxicity_safety_check(data: dict[str, Any]) -
         "initial_labs",
     ):
         risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return risk_text
+
+
+def _requires_insulin_sulfonylurea_toxicity_safety_check(data: dict[str, Any]) -> bool:
+    risk_text = _insulin_sulfonylurea_toxicity_context_text(data)
 
     has_direct_context = any(
         _contains_safety_term(risk_text, term)
@@ -23187,6 +23215,19 @@ def _requires_insulin_sulfonylurea_toxicity_safety_check(data: dict[str, Any]) -
         for term in INSULIN_SULFONYLUREA_TOXICITY_RISK_CONTEXT_TERMS
     )
     return has_direct_context or (has_drug_context and has_risk_context)
+
+
+def _requires_sulfonylurea_toxicity_octreotide_action(data: dict[str, Any]) -> bool:
+    risk_text = _insulin_sulfonylurea_toxicity_context_text(data)
+    has_sulfonylurea_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in SULFONYLUREA_TOXICITY_CONTEXT_TERMS
+    )
+    has_risk_context = any(
+        _contains_safety_term(risk_text, term)
+        for term in INSULIN_SULFONYLUREA_TOXICITY_RISK_CONTEXT_TERMS
+    )
+    return has_sulfonylurea_context and has_risk_context
 
 
 def _has_insulin_sulfonylurea_toxicity_time_critical_actions(
@@ -23219,6 +23260,14 @@ def _has_insulin_sulfonylurea_toxicity_time_critical_actions(
         and has_nutrition
         and has_octreotide_escalation
         and has_electrolyte
+    )
+
+
+def _has_sulfonylurea_toxicity_octreotide_action(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    return any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SULFONYLUREA_TOXICITY_OCTREOTIDE_ACTION_TERMS
     )
 
 

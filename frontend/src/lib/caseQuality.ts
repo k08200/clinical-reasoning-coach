@@ -5540,6 +5540,15 @@ const INSULIN_SULFONYLUREA_TOXICITY_DRUG_CONTEXT_TERMS = [
   "sulfonylurea",
 ];
 
+const SULFONYLUREA_TOXICITY_CONTEXT_TERMS = [
+  "glibenclamide",
+  "gliclazide",
+  "glimepiride",
+  "glipizide",
+  "glyburide",
+  "sulfonylurea",
+];
+
 const INSULIN_SULFONYLUREA_TOXICITY_RISK_CONTEXT_TERMS = [
   "blood glucose 28",
   "blood glucose 32",
@@ -5593,6 +5602,8 @@ const INSULIN_SULFONYLUREA_TOXICITY_OCTREOTIDE_ESCALATION_ACTION_TERMS = [
   "poison control",
   "toxicologist",
 ];
+
+const SULFONYLUREA_TOXICITY_OCTREOTIDE_ACTION_TERMS = ["octreotide"];
 
 const INSULIN_SULFONYLUREA_TOXICITY_ELECTROLYTE_ACTION_TERMS = [
   "electrolyte",
@@ -19343,10 +19354,10 @@ function hasSevereHypoglycemiaTreatmentSafetyCheck(checks: string[]): boolean {
   );
 }
 
-function requiresInsulinSulfonylureaToxicitySafetyCheck(
+function insulinSulfonylureaToxicityContextText(
   detail: ClinicalCaseReviewDetail,
-): boolean {
-  const riskText = [
+): string {
+  return [
     detail.chief_complaint,
     detail.history_of_present_illness,
     detail.past_medical_history,
@@ -19361,6 +19372,12 @@ function requiresInsulinSulfonylureaToxicitySafetyCheck(
   ]
     .join(" ")
     .toLowerCase();
+}
+
+function requiresInsulinSulfonylureaToxicitySafetyCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = insulinSulfonylureaToxicityContextText(detail);
 
   const hasDirectContext = INSULIN_SULFONYLUREA_TOXICITY_DIRECT_CONTEXT_TERMS.some(
     (term) => containsSafetyTerm(riskText, term),
@@ -19372,6 +19389,19 @@ function requiresInsulinSulfonylureaToxicitySafetyCheck(
     containsSafetyTerm(riskText, term),
   );
   return hasDirectContext || (hasDrugContext && hasRiskContext);
+}
+
+function requiresSulfonylureaToxicityOctreotideAction(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  const riskText = insulinSulfonylureaToxicityContextText(detail);
+  const hasSulfonylureaContext = SULFONYLUREA_TOXICITY_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasRiskContext = INSULIN_SULFONYLUREA_TOXICITY_RISK_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasSulfonylureaContext && hasRiskContext;
 }
 
 function hasInsulinSulfonylureaToxicityTimeCriticalActions(actions: string[]): boolean {
@@ -19399,6 +19429,13 @@ function hasInsulinSulfonylureaToxicityTimeCriticalActions(actions: string[]): b
     hasNutrition &&
     hasOctreotideEscalation &&
     hasElectrolyte
+  );
+}
+
+function hasSulfonylureaToxicityOctreotideAction(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  return SULFONYLUREA_TOXICITY_OCTREOTIDE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
   );
 }
 
@@ -26566,6 +26603,15 @@ function domainSafetyGates(): ReviewQualityGate[] {
       validator: hasInsulinSulfonylureaToxicityTimeCriticalActions,
       issue:
         "insulin or sulfonylurea toxicity time-critical actions must include serial or frequent glucose monitoring, IV dextrose bolus or continuous dextrose/glucose infusion, complex carbohydrate, meal, feeding, or nutrition once safe, octreotide, poison-center, toxicologist, ICU, HDU, or admission escalation, and potassium, magnesium, phosphate, EUC, or electrolyte monitoring",
+    },
+    {
+      name: "sulfonylurea_toxicity_octreotide_time_critical_action",
+      label: "Sulfonylurea toxicity octreotide plan",
+      applies: requiresSulfonylureaToxicityOctreotideAction,
+      fieldName: "time_critical_actions",
+      validator: hasSulfonylureaToxicityOctreotideAction,
+      issue:
+        "sulfonylurea toxicity time-critical actions must include octreotide for recurrent or persistent hypoglycemia; admission, ICU/HDU care, poison-center, or toxicologist escalation alone is not an octreotide plan",
     },
     {
       name: "insulin_sulfonylurea_toxicity_treatment_safety",
