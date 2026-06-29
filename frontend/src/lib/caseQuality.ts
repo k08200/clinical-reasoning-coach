@@ -5085,14 +5085,24 @@ const ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_SAFETY_TERMS = [
   "뇌부종",
 ];
 
-const ACUTE_LIVER_FAILURE_COAGULOPATHY_SAFETY_TERMS = [
+const ACUTE_LIVER_FAILURE_COAGULOPATHY_AVOID_SAFETY_TERMS = [
   "avoid ffp",
+  "avoid fresh frozen plasma",
+  "avoid routine correction",
+  "do not correct inr",
+  "no routine ffp",
+  "no routine plasma",
+  "응고 보정 회피",
+];
+
+const ACUTE_LIVER_FAILURE_COAGULOPATHY_EXCEPTION_SAFETY_TERMS = [
   "bleeding",
-  "coagulopathy",
-  "ffp",
-  "fresh frozen plasma",
+  "hemorrhage",
+  "invasive procedure",
   "procedure",
-  "응고",
+  "procedural bleeding",
+  "시술",
+  "출혈",
 ];
 
 const ACUTE_LIVER_FAILURE_HYPOGLYCEMIA_SAFETY_TERMS = [
@@ -19086,16 +19096,27 @@ function hasAcuteLiverFailureTreatmentSafetyCheck(checks: string[]): boolean {
   const hasCerebralEdema = ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasCoagulopathySafety = ACUTE_LIVER_FAILURE_COAGULOPATHY_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
-  );
+  const hasCoagulopathyAvoidSafety =
+    ACUTE_LIVER_FAILURE_COAGULOPATHY_AVOID_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCoagulopathyExceptionSafety =
+    ACUTE_LIVER_FAILURE_COAGULOPATHY_EXCEPTION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasHypoglycemiaSafety = ACUTE_LIVER_FAILURE_HYPOGLYCEMIA_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasPrognosisTransfer = ACUTE_LIVER_FAILURE_PROGNOSIS_TRANSFER_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasCerebralEdema && hasCoagulopathySafety && hasHypoglycemiaSafety && hasPrognosisTransfer;
+  return (
+    hasCerebralEdema &&
+    hasCoagulopathyAvoidSafety &&
+    hasCoagulopathyExceptionSafety &&
+    hasHypoglycemiaSafety &&
+    hasPrognosisTransfer
+  );
 }
 
 function requiresNeutropenicFeverSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -26469,7 +26490,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAcuteLiverFailureTreatmentSafetyCheck,
       issue:
-        "acute liver failure safety checks must include cerebral-edema or intracranial-pressure planning with head elevation, seizure monitoring, mannitol, or hypertonic saline, coagulopathy safety including avoiding FFP or fresh frozen plasma unless bleeding or procedure need, hypoglycemia monitoring or dextrose support, and prognosis or transfer review using King's College, transplant criteria, Status 1A listing, transplant-free survival, or early transplant-center transfer",
+        "acute liver failure safety checks must include cerebral-edema or intracranial-pressure planning with head elevation, seizure monitoring, mannitol, or hypertonic saline, coagulopathy safety including avoiding routine FFP or correction unless bleeding or procedure need is present, hypoglycemia monitoring or dextrose support, and prognosis or transfer review using King's College, transplant criteria, Status 1A listing, transplant-free survival, or early transplant-center transfer",
     },
     {
       name: "neutropenic_fever_time_critical_actions",

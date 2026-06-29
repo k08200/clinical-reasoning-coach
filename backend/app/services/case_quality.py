@@ -4658,14 +4658,23 @@ ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_SAFETY_TERMS = (
     "seizure",
     "뇌부종",
 )
-ACUTE_LIVER_FAILURE_COAGULOPATHY_SAFETY_TERMS = (
+ACUTE_LIVER_FAILURE_COAGULOPATHY_AVOID_SAFETY_TERMS = (
     "avoid ffp",
+    "avoid fresh frozen plasma",
+    "avoid routine correction",
+    "do not correct inr",
+    "no routine ffp",
+    "no routine plasma",
+    "응고 보정 회피",
+)
+ACUTE_LIVER_FAILURE_COAGULOPATHY_EXCEPTION_SAFETY_TERMS = (
     "bleeding",
-    "coagulopathy",
-    "ffp",
-    "fresh frozen plasma",
+    "hemorrhage",
+    "invasive procedure",
     "procedure",
-    "응고",
+    "procedural bleeding",
+    "시술",
+    "출혈",
 )
 ACUTE_LIVER_FAILURE_HYPOGLYCEMIA_SAFETY_TERMS = (
     "dextrose",
@@ -16463,11 +16472,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "acute liver failure safety checks must include cerebral-edema "
                 "or intracranial-pressure planning with head elevation, seizure "
                 "monitoring, mannitol, or hypertonic saline, coagulopathy safety "
-                "including avoiding FFP or fresh frozen plasma unless bleeding or "
-                "procedure need, hypoglycemia monitoring or dextrose support, and "
-                "prognosis or transfer review using King's College, transplant "
-                "criteria, Status 1A listing, transplant-free survival, or early "
-                "transplant-center transfer"
+                "including avoiding routine FFP or correction unless bleeding or "
+                "procedure need is present, hypoglycemia monitoring or dextrose "
+                "support, and prognosis or transfer review using King's College, "
+                "transplant criteria, Status 1A listing, transplant-free survival, "
+                "or early transplant-center transfer"
             ),
         ),
         DomainSafetyGate(
@@ -22845,9 +22854,13 @@ def _has_acute_liver_failure_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_SAFETY_TERMS
     )
-    has_coagulopathy_safety = any(
+    has_coagulopathy_avoid_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_LIVER_FAILURE_COAGULOPATHY_SAFETY_TERMS
+        for term in ACUTE_LIVER_FAILURE_COAGULOPATHY_AVOID_SAFETY_TERMS
+    )
+    has_coagulopathy_exception_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIVER_FAILURE_COAGULOPATHY_EXCEPTION_SAFETY_TERMS
     )
     has_hypoglycemia_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -22859,7 +22872,8 @@ def _has_acute_liver_failure_treatment_safety_check(checks: list[Any]) -> bool:
     )
     return (
         has_cerebral_edema
-        and has_coagulopathy_safety
+        and has_coagulopathy_avoid_safety
+        and has_coagulopathy_exception_safety
         and has_hypoglycemia_safety
         and has_prognosis_transfer
     )
