@@ -7975,39 +7975,60 @@ const ACUTE_CHOLECYSTITIS_SEVERITY_ACTION_TERMS = [
   "중증도",
 ];
 
-const ACUTE_CHOLECYSTITIS_ANTIBIOTIC_CULTURE_ACTION_TERMS = [
+const ACUTE_CHOLECYSTITIS_ANTIBIOTIC_ACTION_TERMS = [
   "antibiotic",
-  "bile culture",
-  "blood culture",
   "broad-spectrum",
   "ceftriaxone",
-  "culture",
   "piperacillin",
   "항생제",
 ];
 
-const ACUTE_CHOLECYSTITIS_IMAGING_ACTION_TERMS = [
+const ACUTE_CHOLECYSTITIS_CULTURE_ACTION_TERMS = [
+  "bile culture",
+  "blood culture",
+  "culture",
+  "배양",
+];
+
+const ACUTE_CHOLECYSTITIS_IMAGING_MODALITY_TERMS = [
   "ct",
-  "gallbladder wall",
   "hidascan",
-  "murphy",
-  "pericholecystic",
   "ruq ultrasound",
-  "sonographic",
   "ultrasound",
   "초음파",
 ];
 
-const ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_ACTION_TERMS = [
+const ACUTE_CHOLECYSTITIS_IMAGING_GALLBLADDER_TERMS = [
+  "gallbladder",
+  "gallbladder wall",
+  "gallstone",
+  "murphy",
+  "pericholecystic",
+  "right upper quadrant",
+  "ruq",
+  "sonographic",
+];
+
+const ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_SPECIFIC_TERMS = [
   "cholecystectomy",
   "cholecystostomy",
-  "drainage",
   "gallbladder drainage",
-  "laparoscopic",
   "lap-c",
-  "percutaneous",
   "ptgbd",
   "담낭절제",
+];
+
+const ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_GENERIC_TERMS = [
+  "drainage",
+  "laparoscopic",
+  "percutaneous",
+];
+
+const ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_TARGET_TERMS = [
+  "cholecystitis",
+  "gallbladder",
+  "source control",
+  "surgery",
 ];
 
 const ACUTE_CHOLECYSTITIS_HIGH_RISK_DRAINAGE_SAFETY_TERMS = [
@@ -20995,16 +21016,50 @@ function hasAcuteCholecystitisTimeCriticalActions(actions: string[]): boolean {
   const hasSeverity = ACUTE_CHOLECYSTITIS_SEVERITY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntibioticCulture = ACUTE_CHOLECYSTITIS_ANTIBIOTIC_CULTURE_ACTION_TERMS.some(
-    (term) => containsSafetyTerm(normalizedActions, term),
-  );
-  const hasImaging = ACUTE_CHOLECYSTITIS_IMAGING_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
-  const hasSourceControl = ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasAntibioticCulture = hasAcuteCholecystitisAntibioticCultureAction(actions);
+  const hasImaging = hasAcuteCholecystitisImagingAction(actions);
+  const hasSourceControl = hasAcuteCholecystitisSourceControlAction(actions);
   return hasSeverity && hasAntibioticCulture && hasImaging && hasSourceControl;
+}
+
+function hasAcuteCholecystitisAntibioticCultureAction(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasAntibiotic = ACUTE_CHOLECYSTITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCulture = ACUTE_CHOLECYSTITIS_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasAntibiotic && hasCulture;
+}
+
+function hasAcuteCholecystitisImagingAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasModality = ACUTE_CHOLECYSTITIS_IMAGING_MODALITY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasGallbladderContext = ACUTE_CHOLECYSTITIS_IMAGING_GALLBLADDER_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasModality && hasGallbladderContext;
+  });
+}
+
+function hasAcuteCholecystitisSourceControlAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasSpecificSourceControl = ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_SPECIFIC_TERMS.some(
+      (term) => containsSafetyTerm(normalizedAction, term),
+    );
+    const hasGenericSourceControl = ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_GENERIC_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasTarget = ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_TARGET_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasSpecificSourceControl || (hasGenericSourceControl && hasTarget);
+  });
 }
 
 function hasAcuteCholecystitisTreatmentSafetyCheck(checks: string[]): boolean {

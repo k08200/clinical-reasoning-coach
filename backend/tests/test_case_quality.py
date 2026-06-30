@@ -12167,6 +12167,75 @@ def test_quality_gate_requires_acute_cholecystitis_severity_antibiotics_imaging_
     )
 
 
+def test_quality_gate_rejects_acute_cholecystitis_generic_culture_ct_and_drainage_plan():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute calculous cholecystitis"
+    case["patient_demographics"] = {
+        "age": 71,
+        "sex": "male",
+        "weight_kg": 79,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Right upper quadrant pain and fever after fatty meal"
+    case["history_of_present_illness"] = (
+        "Older patient presents with persistent right upper quadrant pain, fever, "
+        "positive Murphy sign, leukocytosis, gallstones, gallbladder wall thickening, "
+        "and suspected acute cholecystitis."
+    )
+    case["key_teaching_points"] = [
+        "Acute cholecystitis requires severity grading and early source-control planning",
+        "Early laparoscopic cholecystectomy is recommended for suitable low-risk Grade I or II patients",
+        "High-risk, severe, or surgery-ineligible patients may need early or urgent gallbladder drainage",
+    ]
+    case["clinical_red_flags"] = [
+        "Sepsis, shock, organ dysfunction, gangrenous, emphysematous, perforation, or peritonitis",
+        "High CCI or ASA-PS, jaundice, neurologic dysfunction, respiratory dysfunction, or advanced-center need",
+    ]
+    case["time_critical_actions"] = [
+        "Apply Tokyo severity grade with organ dysfunction review and Charlson CCI plus ASA-PS risk assessment",
+        "Send culture if intervention occurs",
+        "Order CT when available",
+        "Plan drainage if symptoms worsen",
+    ]
+    case["contraindication_checks"] = [
+        "Assess high-risk surgery status using ASA-PS, Charlson, high risk, and need for percutaneous gallbladder drainage, PTGBD, or cholecystostomy",
+        "Review complications including emphysematous cholecystitis, gangrenous gallbladder, perforation, peritonitis, sepsis, and shock",
+        "Prevent bile duct injury with critical view of safety CVS, bail-out, subtotal cholecystectomy, conversion, bile leak, and common bile duct review",
+        "Review differentials including cholangitis, choledocholithiasis, gallstone pancreatitis, pancreatitis, hepatitis, peptic ulcer disease, and myocardial infarction",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tokyo Guidelines 2018: Flowchart for the management of acute cholecystitis",
+            "organization": "Tokyo Guidelines 2018",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/29045062/",
+            "supports": [
+                "acute cholecystitis diagnosis and risk stratification",
+                "acute cholecystitis requires severity grading and early source-control planning",
+                "early laparoscopic cholecystectomy is recommended for suitable low-risk Grade I or II patients",
+                "high-risk, severe, or surgery-ineligible patients may need early or urgent gallbladder drainage",
+                "sepsis, shock, organ dysfunction, gangrenous, emphysematous, perforation, or peritonitis as red flags",
+                "high CCI or ASA-PS, jaundice, neurologic dysfunction, respiratory dysfunction, or advanced-center need as severity markers",
+                "Tokyo severity grade with organ dysfunction review and Charlson CCI plus ASA-PS risk assessment",
+                "culture if intervention occurs",
+                "CT when available",
+                "drainage if symptoms worsen",
+                "high-risk surgery status using ASA-PS, Charlson, high risk, and need for percutaneous gallbladder drainage, PTGBD, or cholecystostomy",
+                "emphysematous cholecystitis, gangrenous gallbladder, perforation, peritonitis, sepsis, and shock complication review",
+                "bile duct injury prevention with critical view of safety CVS, bail-out, subtotal cholecystectomy, conversion, bile leak, and common bile duct review",
+                "cholangitis, choledocholithiasis, gallstone pancreatitis, pancreatitis, hepatitis, peptic ulcer disease, and myocardial infarction differential review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute cholecystitis time-critical actions must include Tokyo" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acute_cholecystitis_high_risk_complication_bile_duct_and_differential_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute calculous cholecystitis"

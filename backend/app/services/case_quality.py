@@ -7278,37 +7278,54 @@ ACUTE_CHOLECYSTITIS_SEVERITY_ACTION_TERMS = (
     "tokyo",
     "중증도",
 )
-ACUTE_CHOLECYSTITIS_ANTIBIOTIC_CULTURE_ACTION_TERMS = (
+ACUTE_CHOLECYSTITIS_ANTIBIOTIC_ACTION_TERMS = (
     "antibiotic",
-    "bile culture",
-    "blood culture",
     "broad-spectrum",
     "ceftriaxone",
-    "culture",
     "piperacillin",
     "항생제",
 )
-ACUTE_CHOLECYSTITIS_IMAGING_ACTION_TERMS = (
+ACUTE_CHOLECYSTITIS_CULTURE_ACTION_TERMS = (
+    "bile culture",
+    "blood culture",
+    "culture",
+    "배양",
+)
+ACUTE_CHOLECYSTITIS_IMAGING_MODALITY_TERMS = (
     "ct",
-    "gallbladder wall",
     "hidascan",
-    "murphy",
-    "pericholecystic",
     "ruq ultrasound",
-    "sonographic",
     "ultrasound",
     "초음파",
 )
-ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_ACTION_TERMS = (
+ACUTE_CHOLECYSTITIS_IMAGING_GALLBLADDER_TERMS = (
+    "gallbladder",
+    "gallbladder wall",
+    "gallstone",
+    "murphy",
+    "pericholecystic",
+    "right upper quadrant",
+    "ruq",
+    "sonographic",
+)
+ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_SPECIFIC_TERMS = (
     "cholecystectomy",
     "cholecystostomy",
-    "drainage",
     "gallbladder drainage",
-    "laparoscopic",
     "lap-c",
-    "percutaneous",
     "ptgbd",
     "담낭절제",
+)
+ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_GENERIC_TERMS = (
+    "drainage",
+    "laparoscopic",
+    "percutaneous",
+)
+ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_TARGET_TERMS = (
+    "cholecystitis",
+    "gallbladder",
+    "source control",
+    "surgery",
 )
 ACUTE_CHOLECYSTITIS_HIGH_RISK_DRAINAGE_SAFETY_TERMS = (
     "asa-ps",
@@ -25212,19 +25229,59 @@ def _has_acute_cholecystitis_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_CHOLECYSTITIS_SEVERITY_ACTION_TERMS
     )
-    has_antibiotic_culture = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_CHOLECYSTITIS_ANTIBIOTIC_CULTURE_ACTION_TERMS
-    )
-    has_imaging = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_CHOLECYSTITIS_IMAGING_ACTION_TERMS
-    )
-    has_source_control = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_ACTION_TERMS
-    )
+    has_antibiotic_culture = _has_acute_cholecystitis_antibiotic_culture_action(actions)
+    has_imaging = _has_acute_cholecystitis_imaging_action(actions)
+    has_source_control = _has_acute_cholecystitis_source_control_action(actions)
     return has_severity and has_antibiotic_culture and has_imaging and has_source_control
+
+
+def _has_acute_cholecystitis_antibiotic_culture_action(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLECYSTITIS_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLECYSTITIS_CULTURE_ACTION_TERMS
+    )
+    return has_antibiotic and has_culture
+
+
+def _has_acute_cholecystitis_imaging_action(actions: list[Any]) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_modality = any(
+            _contains_safety_term(normalized_action, term)
+            for term in ACUTE_CHOLECYSTITIS_IMAGING_MODALITY_TERMS
+        )
+        has_gallbladder_context = any(
+            _contains_safety_term(normalized_action, term)
+            for term in ACUTE_CHOLECYSTITIS_IMAGING_GALLBLADDER_TERMS
+        )
+        if has_modality and has_gallbladder_context:
+            return True
+    return False
+
+
+def _has_acute_cholecystitis_source_control_action(actions: list[Any]) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_specific_source_control = any(
+            _contains_safety_term(normalized_action, term)
+            for term in ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_SPECIFIC_TERMS
+        )
+        has_generic_source_control = any(
+            _contains_safety_term(normalized_action, term)
+            for term in ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_GENERIC_TERMS
+        )
+        has_target = any(
+            _contains_safety_term(normalized_action, term)
+            for term in ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_TARGET_TERMS
+        )
+        if has_specific_source_control or (has_generic_source_control and has_target):
+            return True
+    return False
 
 
 def _has_acute_cholecystitis_treatment_safety_check(checks: list[Any]) -> bool:
