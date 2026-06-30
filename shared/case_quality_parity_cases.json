@@ -18220,6 +18220,70 @@
     }
   },
   {
+    "name": "septic_arthritis_rejects_nonurgent_tap_and_generic_antibiotics",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "septic arthritis time-critical actions must include urgent arthrocentesis"
+    ],
+    "overrides": {
+      "diagnosis": "Native joint septic arthritis",
+      "patient_demographics": {
+        "age": 66,
+        "sex": "female",
+        "weight_kg": 70,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Acute hot swollen right knee with fever",
+      "history_of_present_illness": "Patient with diabetes has abrupt monoarthritis with a painful hot swollen joint, inability to bear weight, fever, effusion, and concern for native joint septic arthritis.",
+      "key_teaching_points": [
+        "Septic arthritis is an emergency because bacterial load and pressure can rapidly destroy a native joint",
+        "Synovial aspiration with Gram stain, culture, cell count, and crystal analysis is central to diagnosis",
+        "Treatment requires cultures, empiric antibiotics, and drainage or orthopedic source-control planning"
+      ],
+      "clinical_red_flags": [
+        "Painful hot swollen joint, fever, synovial effusion, purulent drainage, inability to bear weight, or sepsis",
+        "Diabetes, immunocompromised state, IVDU, MRSA risk, gonococcal infection, bacteremia, endocarditis, or prosthetic joint concern"
+      ],
+      "time_critical_actions": [
+        "Plan joint tap when available",
+        "Send synovial WBC leukocyte cell count, Gram stain, culture, microscopy, and crystal studies",
+        "Obtain blood cultures, CRP, ESR, leukocytosis, and inflammatory marker assessment",
+        "Start antibiotics after aspiration and blood cultures",
+        "Escalate to orthopedics for arthroscopy, irrigation, drainage, surgical washout, or washout source control"
+      ],
+      "contraindication_checks": [
+        "Do not let gout, pseudogout, or crystal findings exclude septic arthritis because infection is still possible",
+        "Give empiric antibiotics after aspiration and after blood cultures when feasible, but do not delay antibiotics for sepsis or an unstable patient",
+        "Review pathogen risk and coverage for MRSA, Staphylococcus, gonococcal infection, Gram-negative infection, IVDU, immunocompromised state, vancomycin, and ceftriaxone",
+        "Assess complications and source including bacteremia, endocarditis, osteomyelitis, prosthetic joint infection, sepsis, source control, and surgery need"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Guideline for management of septic arthritis in native joints (SANJO)",
+          "organization": "European Bone and Joint Infection Society",
+          "url": "https://jbji.copernicus.org/articles/8/29/2023/",
+          "supports": [
+            "native joint septic arthritis diagnosis and risk stratification",
+            "septic arthritis is an emergency because bacterial load and pressure can rapidly destroy a native joint",
+            "synovial aspiration with Gram stain, culture, cell count, and crystal analysis is central to diagnosis",
+            "treatment requires cultures, empiric antibiotics, and drainage or orthopedic source-control planning",
+            "painful hot swollen joint, fever, synovial effusion, purulent drainage, inability to bear weight, or sepsis as red flags",
+            "diabetes, immunocompromised state, IVDU, MRSA risk, gonococcal infection, bacteremia, endocarditis, or prosthetic joint concern as severity markers",
+            "joint tap when available",
+            "synovial WBC leukocyte cell count, Gram stain, culture, microscopy, and crystal studies",
+            "blood cultures, CRP, ESR, leukocytosis, and inflammatory marker assessment",
+            "antibiotics after aspiration and blood cultures",
+            "orthopedics for arthroscopy, irrigation, drainage, surgical washout, or washout source control",
+            "gout, pseudogout, or crystal findings do not exclude septic arthritis because infection is still possible",
+            "empiric antibiotics after aspiration and after blood cultures when feasible, but do not delay antibiotics for sepsis or an unstable patient",
+            "pathogen risk and coverage for MRSA, Staphylococcus, gonococcal infection, Gram-negative infection, IVDU, immunocompromised state, vancomycin, and ceftriaxone",
+            "bacteremia, endocarditis, osteomyelitis, prosthetic joint infection, sepsis, source control, and surgery need"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "septic_arthritis_requires_specific_joint_drainage_not_ortho_consult_only",
     "expected_passed": false,
     "expected_issue_substrings": [

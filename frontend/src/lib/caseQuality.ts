@@ -7632,14 +7632,32 @@ const SEPTIC_ARTHRITIS_CONTEXT_TERMS = [
   "화농성 관절염",
 ];
 
-const SEPTIC_ARTHRITIS_ARTHROCENTESIS_ACTION_TERMS = [
+const SEPTIC_ARTHRITIS_ARTHROCENTESIS_PROCEDURE_TERMS = [
   "arthrocentesis",
-  "aspiration",
   "joint aspiration",
   "synovial aspiration",
-  "synovial fluid",
-  "tap",
   "관절천자",
+];
+
+const SEPTIC_ARTHRITIS_ARTHROCENTESIS_GENERIC_PROCEDURE_TERMS = [
+  "aspiration",
+  "tap",
+];
+
+const SEPTIC_ARTHRITIS_ARTHROCENTESIS_TARGET_TERMS = [
+  "joint",
+  "synovial",
+  "관절",
+];
+
+const SEPTIC_ARTHRITIS_ARTHROCENTESIS_URGENCY_TERMS = [
+  "immediate",
+  "immediately",
+  "rapid",
+  "urgent",
+  "urgently",
+  "즉시",
+  "긴급",
 ];
 
 const SEPTIC_ARTHRITIS_SYNOVIAL_STUDY_ACTION_TERMS = [
@@ -7665,13 +7683,30 @@ const SEPTIC_ARTHRITIS_BLOOD_CULTURE_LAB_ACTION_TERMS = [
   "혈액배양",
 ];
 
-const SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS = [
+const SEPTIC_ARTHRITIS_ANTIBIOTIC_BASE_TERMS = [
   "antibiotic",
   "antibiotics",
-  "ceftriaxone",
-  "empiric",
-  "vancomycin",
   "항생제",
+];
+
+const SEPTIC_ARTHRITIS_ANTIBIOTIC_SPECIFIC_TERMS = [
+  "cefazolin",
+  "ceftriaxone",
+  "ceftazidime",
+  "cefepime",
+  "clindamycin",
+  "nafcillin",
+  "vancomycin",
+];
+
+const SEPTIC_ARTHRITIS_ANTIBIOTIC_URGENCY_TERMS = [
+  "empiric",
+  "empirical",
+  "immediate",
+  "immediately",
+  "iv",
+  "urgent",
+  "urgently",
 ];
 
 const SEPTIC_ARTHRITIS_ORTHO_TEAM_ACTION_TERMS = [
@@ -20714,18 +20749,14 @@ function requiresSepticArthritisSafetyCheck(detail: ClinicalCaseReviewDetail): b
 
 function hasSepticArthritisTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasArthrocentesis = SEPTIC_ARTHRITIS_ARTHROCENTESIS_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasArthrocentesis = hasSepticArthritisUrgentArthrocentesisAction(actions);
   const hasSynovialStudies = SEPTIC_ARTHRITIS_SYNOVIAL_STUDY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasBloodCultureLab = SEPTIC_ARTHRITIS_BLOOD_CULTURE_LAB_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntibiotic = SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasAntibiotic = hasSepticArthritisEmpiricAntibioticAction(actions);
   const hasOrthoTeam = SEPTIC_ARTHRITIS_ORTHO_TEAM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -20740,6 +20771,42 @@ function hasSepticArthritisTimeCriticalActions(actions: string[]): boolean {
     hasOrthoTeam &&
     hasJointDrainage
   );
+}
+
+function hasSepticArthritisUrgentArthrocentesisAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasSpecificProcedure = SEPTIC_ARTHRITIS_ARTHROCENTESIS_PROCEDURE_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasGenericProcedure =
+      SEPTIC_ARTHRITIS_ARTHROCENTESIS_GENERIC_PROCEDURE_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      );
+    const hasTarget = SEPTIC_ARTHRITIS_ARTHROCENTESIS_TARGET_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasUrgency = SEPTIC_ARTHRITIS_ARTHROCENTESIS_URGENCY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasUrgency && (hasSpecificProcedure || (hasGenericProcedure && hasTarget));
+  });
+}
+
+function hasSepticArthritisEmpiricAntibioticAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasBaseAntibiotic = SEPTIC_ARTHRITIS_ANTIBIOTIC_BASE_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasSpecificAntibiotic = SEPTIC_ARTHRITIS_ANTIBIOTIC_SPECIFIC_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasUrgency = SEPTIC_ARTHRITIS_ANTIBIOTIC_URGENCY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasSpecificAntibiotic || (hasBaseAntibiotic && hasUrgency);
+  });
 }
 
 function hasSepticArthritisTreatmentSafetyCheck(checks: string[]): boolean {

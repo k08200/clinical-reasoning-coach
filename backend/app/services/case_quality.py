@@ -6971,14 +6971,29 @@ SEPTIC_ARTHRITIS_CONTEXT_TERMS = (
     "septic monoarthritis",
     "화농성 관절염",
 )
-SEPTIC_ARTHRITIS_ARTHROCENTESIS_ACTION_TERMS = (
+SEPTIC_ARTHRITIS_ARTHROCENTESIS_PROCEDURE_TERMS = (
     "arthrocentesis",
-    "aspiration",
     "joint aspiration",
     "synovial aspiration",
-    "synovial fluid",
-    "tap",
     "관절천자",
+)
+SEPTIC_ARTHRITIS_ARTHROCENTESIS_GENERIC_PROCEDURE_TERMS = (
+    "aspiration",
+    "tap",
+)
+SEPTIC_ARTHRITIS_ARTHROCENTESIS_TARGET_TERMS = (
+    "joint",
+    "synovial",
+    "관절",
+)
+SEPTIC_ARTHRITIS_ARTHROCENTESIS_URGENCY_TERMS = (
+    "immediate",
+    "immediately",
+    "rapid",
+    "urgent",
+    "urgently",
+    "즉시",
+    "긴급",
 )
 SEPTIC_ARTHRITIS_SYNOVIAL_STUDY_ACTION_TERMS = (
     "cell count",
@@ -7001,13 +7016,28 @@ SEPTIC_ARTHRITIS_BLOOD_CULTURE_LAB_ACTION_TERMS = (
     "배양",
     "혈액배양",
 )
-SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS = (
+SEPTIC_ARTHRITIS_ANTIBIOTIC_BASE_TERMS = (
     "antibiotic",
     "antibiotics",
-    "ceftriaxone",
-    "empiric",
-    "vancomycin",
     "항생제",
+)
+SEPTIC_ARTHRITIS_ANTIBIOTIC_SPECIFIC_TERMS = (
+    "cefazolin",
+    "ceftriaxone",
+    "ceftazidime",
+    "cefepime",
+    "clindamycin",
+    "nafcillin",
+    "vancomycin",
+)
+SEPTIC_ARTHRITIS_ANTIBIOTIC_URGENCY_TERMS = (
+    "empiric",
+    "empirical",
+    "immediate",
+    "immediately",
+    "iv",
+    "urgent",
+    "urgently",
 )
 SEPTIC_ARTHRITIS_ORTHO_TEAM_ACTION_TERMS = (
     "orthopaedic",
@@ -24888,10 +24918,7 @@ def _requires_septic_arthritis_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_septic_arthritis_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_arthrocentesis = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in SEPTIC_ARTHRITIS_ARTHROCENTESIS_ACTION_TERMS
-    )
+    has_arthrocentesis = _has_septic_arthritis_urgent_arthrocentesis_action(actions)
     has_synovial_studies = any(
         _contains_safety_term(normalized_actions, term)
         for term in SEPTIC_ARTHRITIS_SYNOVIAL_STUDY_ACTION_TERMS
@@ -24900,10 +24927,7 @@ def _has_septic_arthritis_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SEPTIC_ARTHRITIS_BLOOD_CULTURE_LAB_ACTION_TERMS
     )
-    has_antibiotic = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in SEPTIC_ARTHRITIS_ANTIBIOTIC_ACTION_TERMS
-    )
+    has_antibiotic = _has_septic_arthritis_empiric_antibiotic_action(actions)
     has_ortho_team = any(
         _contains_safety_term(normalized_actions, term)
         for term in SEPTIC_ARTHRITIS_ORTHO_TEAM_ACTION_TERMS
@@ -24920,6 +24944,50 @@ def _has_septic_arthritis_time_critical_actions(actions: list[Any]) -> bool:
         and has_ortho_team
         and has_joint_drainage
     )
+
+
+def _has_septic_arthritis_urgent_arthrocentesis_action(actions: list[Any]) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_specific_procedure = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SEPTIC_ARTHRITIS_ARTHROCENTESIS_PROCEDURE_TERMS
+        )
+        has_generic_procedure = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SEPTIC_ARTHRITIS_ARTHROCENTESIS_GENERIC_PROCEDURE_TERMS
+        )
+        has_target = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SEPTIC_ARTHRITIS_ARTHROCENTESIS_TARGET_TERMS
+        )
+        has_urgency = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SEPTIC_ARTHRITIS_ARTHROCENTESIS_URGENCY_TERMS
+        )
+        if has_urgency and (has_specific_procedure or (has_generic_procedure and has_target)):
+            return True
+    return False
+
+
+def _has_septic_arthritis_empiric_antibiotic_action(actions: list[Any]) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_base_antibiotic = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SEPTIC_ARTHRITIS_ANTIBIOTIC_BASE_TERMS
+        )
+        has_specific_antibiotic = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SEPTIC_ARTHRITIS_ANTIBIOTIC_SPECIFIC_TERMS
+        )
+        has_urgency = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SEPTIC_ARTHRITIS_ANTIBIOTIC_URGENCY_TERMS
+        )
+        if has_specific_antibiotic or (has_base_antibiotic and has_urgency):
+            return True
+    return False
 
 
 def _has_septic_arthritis_treatment_safety_check(checks: list[Any]) -> bool:
