@@ -7119,8 +7119,7 @@ UPPER_GI_BLEED_CONTEXT_TERMS = (
     "토혈",
     "흑색변",
 )
-UPPER_GI_BLEED_RESUSCITATION_ACTION_TERMS = (
-    "blood pressure",
+UPPER_GI_BLEED_RESUSCITATION_INTERVENTION_TERMS = (
     "hemodynamic",
     "iv access",
     "large-bore",
@@ -7131,11 +7130,13 @@ UPPER_GI_BLEED_RESUSCITATION_ACTION_TERMS = (
     "수액",
     "쇼크",
 )
-UPPER_GI_BLEED_TRANSFUSION_LAB_ACTION_TERMS = (
+UPPER_GI_BLEED_LAB_ACTION_TERMS = (
     "cbc",
-    "crossmatch",
     "hemoglobin",
     "inr",
+)
+UPPER_GI_BLEED_BLOOD_PRODUCT_ACTION_TERMS = (
+    "crossmatch",
     "packed red blood",
     "prbc",
     "restrictive transfusion",
@@ -7143,25 +7144,35 @@ UPPER_GI_BLEED_TRANSFUSION_LAB_ACTION_TERMS = (
     "type and screen",
     "수혈",
 )
-UPPER_GI_BLEED_ENDOSCOPY_ACTION_TERMS = (
-    "early endoscopy",
-    "endoscopic hemostasis",
+UPPER_GI_BLEED_ENDOSCOPY_PROCEDURE_TERMS = (
     "endoscopy",
     "egd",
-    "gastroenterology",
-    "gi consult",
-    "within 24 hours",
     "내시경",
 )
-UPPER_GI_BLEED_PPI_VARICEAL_ACTION_TERMS = (
-    "antibiotic",
-    "ceftriaxone",
-    "octreotide",
+UPPER_GI_BLEED_ENDOSCOPY_URGENCY_TERMS = (
+    "early",
+    "urgent",
+    "within 24 hours",
+    "24 hours",
+)
+UPPER_GI_BLEED_ENDOSCOPY_SOURCE_CONTROL_TERMS = (
+    "endoscopic hemostasis",
+    "gastroenterology",
+    "gi consult",
+)
+UPPER_GI_BLEED_ACID_SUPPRESSION_ACTION_TERMS = (
     "ppi",
     "proton pump",
+)
+UPPER_GI_BLEED_VARICEAL_VASOACTIVE_ACTION_TERMS = (
+    "octreotide",
     "somatostatin",
     "terlipressin",
     "vasoactive",
+)
+UPPER_GI_BLEED_VARICEAL_ANTIBIOTIC_ACTION_TERMS = (
+    "antibiotic",
+    "ceftriaxone",
     "항생제",
 )
 UPPER_GI_BLEED_AIRWAY_ASPIRATION_SAFETY_TERMS = (
@@ -25044,29 +25055,79 @@ def _requires_upper_gi_bleed_safety_check(data: dict[str, Any]) -> bool:
 
 
 def _has_upper_gi_bleed_time_critical_actions(actions: list[Any]) -> bool:
-    normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_resuscitation = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in UPPER_GI_BLEED_RESUSCITATION_ACTION_TERMS
-    )
-    has_transfusion_lab = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in UPPER_GI_BLEED_TRANSFUSION_LAB_ACTION_TERMS
-    )
-    has_endoscopy = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in UPPER_GI_BLEED_ENDOSCOPY_ACTION_TERMS
-    )
-    has_ppi_variceal_action = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in UPPER_GI_BLEED_PPI_VARICEAL_ACTION_TERMS
-    )
+    has_resuscitation = _has_upper_gi_bleed_resuscitation_action(actions)
+    has_transfusion_lab = _has_upper_gi_bleed_transfusion_lab_action(actions)
+    has_endoscopy = _has_upper_gi_bleed_endoscopy_action(actions)
+    has_ppi_variceal_action = _has_upper_gi_bleed_medication_action(actions)
     return (
         has_resuscitation
         and has_transfusion_lab
         and has_endoscopy
         and has_ppi_variceal_action
     )
+
+
+def _has_upper_gi_bleed_resuscitation_action(actions: list[Any]) -> bool:
+    return any(
+        any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in UPPER_GI_BLEED_RESUSCITATION_INTERVENTION_TERMS
+        )
+        for action in actions
+    )
+
+
+def _has_upper_gi_bleed_transfusion_lab_action(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_lab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UPPER_GI_BLEED_LAB_ACTION_TERMS
+    )
+    has_blood_product = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UPPER_GI_BLEED_BLOOD_PRODUCT_ACTION_TERMS
+    )
+    return has_lab and has_blood_product
+
+
+def _has_upper_gi_bleed_endoscopy_action(actions: list[Any]) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_procedure = any(
+            _contains_safety_term(normalized_action, term)
+            for term in UPPER_GI_BLEED_ENDOSCOPY_PROCEDURE_TERMS
+        )
+        has_urgency = any(
+            _contains_safety_term(normalized_action, term)
+            for term in UPPER_GI_BLEED_ENDOSCOPY_URGENCY_TERMS
+        )
+        has_source_control = any(
+            _contains_safety_term(normalized_action, term)
+            for term in UPPER_GI_BLEED_ENDOSCOPY_SOURCE_CONTROL_TERMS
+        )
+        if has_procedure and (has_urgency or has_source_control):
+            return True
+    return False
+
+
+def _has_upper_gi_bleed_medication_action(actions: list[Any]) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_acid_suppression = any(
+            _contains_safety_term(normalized_action, term)
+            for term in UPPER_GI_BLEED_ACID_SUPPRESSION_ACTION_TERMS
+        )
+        has_variceal_vasoactive = any(
+            _contains_safety_term(normalized_action, term)
+            for term in UPPER_GI_BLEED_VARICEAL_VASOACTIVE_ACTION_TERMS
+        )
+        has_variceal_antibiotic = any(
+            _contains_safety_term(normalized_action, term)
+            for term in UPPER_GI_BLEED_VARICEAL_ANTIBIOTIC_ACTION_TERMS
+        )
+        if has_acid_suppression or (has_variceal_vasoactive and has_variceal_antibiotic):
+            return True
+    return False
 
 
 def _has_upper_gi_bleed_treatment_safety_check(checks: list[Any]) -> bool:

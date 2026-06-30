@@ -11812,6 +11812,76 @@ def test_quality_gate_requires_upper_gi_bleed_resuscitation_labs_endoscopy_and_m
     )
 
 
+def test_quality_gate_rejects_upper_gi_bleed_generic_consult_and_antibiotic_plan():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Upper GI bleeding with possible variceal hemorrhage"
+    case["patient_demographics"] = {
+        "age": 63,
+        "sex": "male",
+        "weight_kg": 74,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Large-volume hematemesis and melena"
+    case["history_of_present_illness"] = (
+        "Patient with cirrhosis and warfarin use presents with coffee ground emesis, "
+        "large-volume hematemesis, melena, tachycardia, hypotension, and suspected "
+        "upper GI bleed from peptic ulcer or variceal bleeding."
+    )
+    case["key_teaching_points"] = [
+        "Upper GI bleeding requires hemodynamic resuscitation before endoscopy",
+        "Early endoscopy within 24 hours is recommended after resuscitation for admitted upper GI bleeding",
+        "Suspected variceal bleeding needs vasoactive therapy such as octreotide plus antibiotic prophylaxis",
+    ]
+    case["clinical_red_flags"] = [
+        "Hematemesis, melena, syncope, shock, hypotension, tachycardia, or ongoing transfusion requirement",
+        "Cirrhosis, portal hypertension, anticoagulant use, coagulopathy, or active vomiting blood",
+    ]
+    case["time_critical_actions"] = [
+        "Monitor blood pressure closely",
+        "Send CBC and INR",
+        "Call gastroenterology for GI consult",
+        "Start antibiotic if variceal bleeding is possible",
+    ]
+    case["contraindication_checks"] = [
+        "Assess airway aspiration risk from active hematemesis, vomiting blood, altered mental status, and intubation need before endoscopy",
+        "Review anticoagulant, warfarin, DOAC, antiplatelet, INR, platelet, coagulopathy, and reversal needs",
+        "For cirrhosis and portal hypertension, plan variceal rescue options including TIPS, balloon tamponade, stent, or rescue therapy",
+        "Monitor for rebleeding, unstable shock, repeat endoscopy need, ICU disposition, and risk stratification",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "NICE CG141: Acute upper gastrointestinal bleeding in over 16s",
+            "organization": "NICE",
+            "url": "https://www.nice.org.uk/guidance/cg141/chapter/Recommendations",
+            "supports": [
+                "upper GI bleeding diagnosis and risk stratification",
+                "upper GI bleeding requires hemodynamic resuscitation before endoscopy",
+                "early endoscopy within 24 hours is recommended after resuscitation for admitted upper GI bleeding",
+                "suspected variceal bleeding needs vasoactive therapy such as octreotide plus antibiotic prophylaxis",
+                "hematemesis, melena, syncope, shock, hypotension, tachycardia, or ongoing transfusion requirement as red flags",
+                "cirrhosis, portal hypertension, anticoagulant use, coagulopathy, or active vomiting blood as severity markers",
+                "blood pressure monitoring",
+                "CBC and INR",
+                "gastroenterology GI consult",
+                "antibiotic if variceal bleeding is possible",
+                "airway aspiration risk from active hematemesis, vomiting blood, altered mental status, and intubation need before endoscopy",
+                "anticoagulant, warfarin, DOAC, antiplatelet, INR, platelet, coagulopathy, and reversal needs",
+                "cirrhosis and portal hypertension variceal rescue options including TIPS, balloon tamponade, stent, or rescue therapy",
+                "rebleeding, unstable shock, repeat endoscopy need, ICU disposition, and risk stratification monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "upper GI bleeding time-critical actions must include hemodynamic resuscitation"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_upper_gi_bleed_airway_reversal_variceal_and_rebleed_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Upper GI bleeding with possible variceal hemorrhage"

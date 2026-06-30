@@ -7796,8 +7796,7 @@ const UPPER_GI_BLEED_CONTEXT_TERMS = [
   "흑색변",
 ];
 
-const UPPER_GI_BLEED_RESUSCITATION_ACTION_TERMS = [
-  "blood pressure",
+const UPPER_GI_BLEED_RESUSCITATION_INTERVENTION_TERMS = [
   "hemodynamic",
   "iv access",
   "large-bore",
@@ -7809,11 +7808,14 @@ const UPPER_GI_BLEED_RESUSCITATION_ACTION_TERMS = [
   "쇼크",
 ];
 
-const UPPER_GI_BLEED_TRANSFUSION_LAB_ACTION_TERMS = [
+const UPPER_GI_BLEED_LAB_ACTION_TERMS = [
   "cbc",
-  "crossmatch",
   "hemoglobin",
   "inr",
+];
+
+const UPPER_GI_BLEED_BLOOD_PRODUCT_ACTION_TERMS = [
+  "crossmatch",
   "packed red blood",
   "prbc",
   "restrictive transfusion",
@@ -7822,26 +7824,40 @@ const UPPER_GI_BLEED_TRANSFUSION_LAB_ACTION_TERMS = [
   "수혈",
 ];
 
-const UPPER_GI_BLEED_ENDOSCOPY_ACTION_TERMS = [
-  "early endoscopy",
-  "endoscopic hemostasis",
+const UPPER_GI_BLEED_ENDOSCOPY_PROCEDURE_TERMS = [
   "endoscopy",
   "egd",
-  "gastroenterology",
-  "gi consult",
-  "within 24 hours",
   "내시경",
 ];
 
-const UPPER_GI_BLEED_PPI_VARICEAL_ACTION_TERMS = [
-  "antibiotic",
-  "ceftriaxone",
-  "octreotide",
+const UPPER_GI_BLEED_ENDOSCOPY_URGENCY_TERMS = [
+  "early",
+  "urgent",
+  "within 24 hours",
+  "24 hours",
+];
+
+const UPPER_GI_BLEED_ENDOSCOPY_SOURCE_CONTROL_TERMS = [
+  "endoscopic hemostasis",
+  "gastroenterology",
+  "gi consult",
+];
+
+const UPPER_GI_BLEED_ACID_SUPPRESSION_ACTION_TERMS = [
   "ppi",
   "proton pump",
+];
+
+const UPPER_GI_BLEED_VARICEAL_VASOACTIVE_ACTION_TERMS = [
+  "octreotide",
   "somatostatin",
   "terlipressin",
   "vasoactive",
+];
+
+const UPPER_GI_BLEED_VARICEAL_ANTIBIOTIC_ACTION_TERMS = [
+  "antibiotic",
+  "ceftriaxone",
   "항생제",
 ];
 
@@ -20851,20 +20867,63 @@ function requiresUpperGiBleedSafetyCheck(detail: ClinicalCaseReviewDetail): bool
 }
 
 function hasUpperGiBleedTimeCriticalActions(actions: string[]): boolean {
-  const normalizedActions = actions.join(" ").toLowerCase();
-  const hasResuscitation = UPPER_GI_BLEED_RESUSCITATION_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
-  const hasTransfusionLab = UPPER_GI_BLEED_TRANSFUSION_LAB_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
-  const hasEndoscopy = UPPER_GI_BLEED_ENDOSCOPY_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
-  const hasPpiVaricealAction = UPPER_GI_BLEED_PPI_VARICEAL_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasResuscitation = hasUpperGiBleedResuscitationAction(actions);
+  const hasTransfusionLab = hasUpperGiBleedTransfusionLabAction(actions);
+  const hasEndoscopy = hasUpperGiBleedEndoscopyAction(actions);
+  const hasPpiVaricealAction = hasUpperGiBleedMedicationAction(actions);
   return hasResuscitation && hasTransfusionLab && hasEndoscopy && hasPpiVaricealAction;
+}
+
+function hasUpperGiBleedResuscitationAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    return UPPER_GI_BLEED_RESUSCITATION_INTERVENTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+  });
+}
+
+function hasUpperGiBleedTransfusionLabAction(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasLab = UPPER_GI_BLEED_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodProduct = UPPER_GI_BLEED_BLOOD_PRODUCT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasLab && hasBloodProduct;
+}
+
+function hasUpperGiBleedEndoscopyAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasProcedure = UPPER_GI_BLEED_ENDOSCOPY_PROCEDURE_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasUrgency = UPPER_GI_BLEED_ENDOSCOPY_URGENCY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasSourceControl = UPPER_GI_BLEED_ENDOSCOPY_SOURCE_CONTROL_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasProcedure && (hasUrgency || hasSourceControl);
+  });
+}
+
+function hasUpperGiBleedMedicationAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasAcidSuppression = UPPER_GI_BLEED_ACID_SUPPRESSION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasVaricealVasoactive = UPPER_GI_BLEED_VARICEAL_VASOACTIVE_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasVaricealAntibiotic = UPPER_GI_BLEED_VARICEAL_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasAcidSuppression || (hasVaricealVasoactive && hasVaricealAntibiotic);
+  });
 }
 
 function hasUpperGiBleedTreatmentSafetyCheck(checks: string[]): boolean {
