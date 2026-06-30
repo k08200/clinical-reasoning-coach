@@ -9522,6 +9522,78 @@ def test_quality_gate_requires_neuroleptic_malignant_syndrome_stop_support_cooli
     )
 
 
+def test_quality_gate_requires_neuroleptic_malignant_syndrome_specific_medication_not_lorazepam_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Neuroleptic malignant syndrome"
+    case["patient_demographics"] = {
+        "age": 45,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, rigidity, and confusion after antipsychotic dose increase"
+    case["history_of_present_illness"] = (
+        "Patient recently started high-potency haloperidol antipsychotic and presents with "
+        "hyperthermia, altered mental status, severe lead-pipe muscle rigidity, diaphoresis, "
+        "tachycardia, labile blood pressure, elevated CK, and AKI concerning for NMS."
+    )
+    case["key_teaching_points"] = [
+        "Neuroleptic malignant syndrome is a life-threatening dopamine-antagonist reaction",
+        "Exposure to antipsychotic or dopamine withdrawal with rigidity, hyperthermia, mental status change, and autonomic instability supports the diagnosis",
+        "Treatment requires stopping the offending drug, ICU supportive care, cooling, complication monitoring, and medication therapy consideration for severe disease",
+    ]
+    case["clinical_red_flags"] = [
+        "Hyperthermia, lead-pipe rigidity, altered mental status, diaphoresis, tachycardia, or labile blood pressure",
+        "Elevated CK, rhabdomyolysis, AKI, renal failure, electrolyte abnormalities, respiratory failure, or shock",
+    ]
+    case["time_critical_actions"] = [
+        "Stop antipsychotic neuroleptic dopamine antagonist haloperidol and remove offending medication",
+        "Admit to ICU for supportive care, IV fluids, vital signs, and cardiac monitoring",
+        "Start active cooling and aggressive cooling for hyperthermia with temperature monitoring",
+        "Give benzodiazepine lorazepam for agitation and rigidity",
+        "Trend CK creatine kinase, rhabdomyolysis, AKI, renal function, and electrolyte complications",
+    ]
+    case["contraindication_checks"] = [
+        "Review differential diagnosis including serotonin syndrome, malignant hyperthermia, heat stroke, CNS infection, meningitis, and sympathomimetic toxicity",
+        "Confirm dopamine antagonist exposure or antipsychotic exposure after dose increase and distinguish slower onset over days, lead-pipe rigidity, and decreased reflexes rather than clonus or hyperreflexia",
+        "Avoid antipsychotic rechallenge or restart until recovery, wait an appropriate interval, and use lower potency if reintroduced",
+        "Review bromocriptine, amantadine, dantrolene, benzodiazepine, ECT electroconvulsive therapy, liver risk, and psychosis worsening safety",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Neuroleptic Malignant Syndrome",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK482282/",
+            "supports": [
+                "neuroleptic malignant syndrome diagnosis and risk stratification",
+                "neuroleptic malignant syndrome is a life-threatening dopamine-antagonist reaction",
+                "exposure to antipsychotic or dopamine withdrawal with rigidity, hyperthermia, mental status change, and autonomic instability supports the diagnosis",
+                "treatment requires stopping the offending drug, ICU supportive care, cooling, complication monitoring, and medication therapy consideration for severe disease",
+                "hyperthermia, lead-pipe rigidity, altered mental status, diaphoresis, tachycardia, or labile blood pressure as red flags",
+                "elevated CK, rhabdomyolysis, AKI, renal failure, electrolyte abnormalities, respiratory failure, or shock as severity markers",
+                "stop antipsychotic neuroleptic dopamine antagonist haloperidol and remove offending medication",
+                "ICU supportive care, IV fluids, vital signs, and cardiac monitoring",
+                "active cooling and aggressive cooling for hyperthermia with temperature monitoring",
+                "benzodiazepine lorazepam for agitation and rigidity",
+                "CK creatine kinase, rhabdomyolysis, AKI, renal function, and electrolyte complication monitoring",
+                "serotonin syndrome, malignant hyperthermia, heat stroke, CNS infection, meningitis, and sympathomimetic toxicity differential diagnosis",
+                "dopamine antagonist exposure or antipsychotic exposure after dose increase and slower onset over days, lead-pipe rigidity, and decreased reflexes rather than clonus or hyperreflexia distinction",
+                "avoid antipsychotic rechallenge or restart until recovery, wait an appropriate interval, and use lower potency if reintroduced",
+                "bromocriptine, amantadine, dantrolene, benzodiazepine, ECT electroconvulsive therapy, liver risk, and psychosis worsening safety",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "bromocriptine, amantadine, dantrolene, or dopamine-agonist therapy"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_neuroleptic_malignant_syndrome_differential_restart_and_medication_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Neuroleptic malignant syndrome"

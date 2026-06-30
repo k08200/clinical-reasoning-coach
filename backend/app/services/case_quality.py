@@ -5990,11 +5990,9 @@ NEUROLEPTIC_MALIGNANT_SYNDROME_COOLING_ACTION_TERMS = (
 )
 NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_ACTION_TERMS = (
     "amantadine",
-    "benzodiazepine",
     "bromocriptine",
     "dantrolene",
     "dopamine agonist",
-    "lorazepam",
     "단트롤렌",
 )
 NEUROLEPTIC_MALIGNANT_SYNDROME_COMPLICATION_ACTION_TERMS = (
@@ -16853,7 +16851,7 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "stopping dopamine-antagonist, neuroleptic, or antipsychotic agents, "
                 "ICU, supportive care, IV fluids, vital-sign, or cardiac monitoring, "
                 "active cooling or hyperthermia control, bromocriptine, amantadine, "
-                "dantrolene, benzodiazepine, lorazepam, or dopamine-agonist therapy "
+                "dantrolene, or dopamine-agonist therapy "
                 "consideration, and CK, rhabdomyolysis, renal, AKI, or electrolyte "
                 "complication monitoring"
             ),
