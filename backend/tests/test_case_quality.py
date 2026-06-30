@@ -9939,6 +9939,84 @@ def test_quality_gate_requires_mscc_coordinator_mri_steroid_immobilization_and_d
     )
 
 
+def test_quality_gate_rejects_mscc_generic_mri_and_nonspecific_steroid_plan():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Metastatic spinal cord compression"
+    case["patient_demographics"] = {
+        "age": 64,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Cancer, progressive back pain, and leg weakness"
+    case["history_of_present_illness"] = (
+        "Patient with metastatic breast cancer and known spinal metastases has "
+        "metastatic spinal cord compression with severe progressive back pain, "
+        "night pain, gait disturbance, limb weakness, numbness, radicular pain, "
+        "and new bladder dysfunction."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "128/76", "hr": 96, "rr": 18, "temp_c": 36.9, "spo2": 97},
+        "neuro": "Bilateral leg weakness, sensory loss, and difficulty walking",
+        "back": "Localised thoracic tenderness and mechanical pain with movement",
+    }
+    case["key_teaching_points"] = [
+        "Metastatic spinal cord compression is an oncological emergency in people with cancer and neurologic signs",
+        "Suspected MSCC requires immediate MSCC coordinator or acute oncology contact and urgent MRI spine within 24 hours",
+        "Neurological symptoms or signs of MSCC require dexamethasone 16 mg as soon as possible",
+    ]
+    case["clinical_red_flags"] = [
+        "Past or current cancer with bladder dysfunction, gait disturbance, limb weakness, sensory loss, numbness, or radicular pain",
+        "Severe unremitting back pain, progressive back pain, night-time pain, localized tenderness, and mechanical pain",
+    ]
+    case["time_critical_actions"] = [
+        "Immediately contact the MSCC coordinator and acute oncology because this is an oncologic emergency",
+        "Order MRI within 24 hours after oncology review",
+        "Start steroid therapy for neurologic symptoms",
+        "Start immobilization, bracing, and spinal instability precautions while awaiting imaging",
+        "Plan urgent radiotherapy, spinal surgery, surgical decompression, or surgical stabilization based on MSCC review",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor serial neurologic status, worsening weakness, bladder function, and bowel function",
+        "Monitor blood glucose, give PPI proton pump inhibitor protection, plan dexamethasone taper, and discontinue dexamethasone if MSCC is ruled out",
+        "Use CT if MRI contraindicated and do not use plain x-ray to rule out MSCC",
+        "Review spinal stability using SINS spinal instability neoplastic score, prognosis using Tokuhashi, surgical suitability, and radiotherapy within 24 hours if not surgical",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Spinal metastases and metastatic spinal cord compression",
+            "organization": "NICE",
+            "url": "https://www.nice.org.uk/guidance/ng234/chapter/Recommendations",
+            "supports": [
+                "metastatic spinal cord compression diagnosis and risk stratification",
+                "metastatic spinal cord compression is an oncological emergency in people with cancer and neurologic signs",
+                "suspected MSCC requires immediate MSCC coordinator or acute oncology contact and urgent MRI spine within 24 hours",
+                "neurological symptoms or signs of MSCC require dexamethasone 16 mg as soon as possible",
+                "past or current cancer with bladder dysfunction, gait disturbance, limb weakness, sensory loss, numbness, or radicular pain as red flags",
+                "severe unremitting back pain, progressive back pain, night-time pain, localized tenderness, and mechanical pain as severity markers",
+                "immediate MSCC coordinator and acute oncology contact because this is an oncologic emergency",
+                "mri within 24 hours after oncology review",
+                "steroid therapy for neurologic symptoms",
+                "immobilization, bracing, and spinal instability precautions while awaiting imaging",
+                "urgent radiotherapy, spinal surgery, surgical decompression, or surgical stabilization based on MSCC review",
+                "serial neurologic status, worsening weakness, bladder function, and bowel function monitoring",
+                "blood glucose monitoring, PPI proton pump inhibitor protection, dexamethasone taper, and dexamethasone discontinuation if MSCC is ruled out",
+                "CT if MRI contraindicated and do not use plain x-ray to rule out MSCC",
+                "spinal stability using SINS spinal instability neoplastic score, prognosis using Tokuhashi, surgical suitability, and radiotherapy within 24 hours if not surgical",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "metastatic spinal cord compression time-critical actions must include immediate MSCC coordinator"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_mscc_neuro_steroid_imaging_and_stability_treatment_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Spinal metastases with cord compression"

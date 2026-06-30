@@ -6211,16 +6211,34 @@ METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ACTION_TERMS = (
     "spinal surgeon",
     "spine surgeon",
 )
-METASTATIC_SPINAL_CORD_COMPRESSION_MRI_ACTION_TERMS = (
-    "24 hours",
+METASTATIC_SPINAL_CORD_COMPRESSION_MRI_MODALITY_TERMS = (
+    "magnetic resonance",
+    "magnetic resonance imaging",
     "mri",
-    "mri spine",
-    "urgent mri",
-    "whole spine",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_MRI_URGENCY_TERMS = (
+    "24 hours",
+    "as soon as possible",
+    "immediate",
+    "immediately",
+    "urgent",
+    "urgently",
     "within 24",
 )
-METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_ACTION_TERMS = (
+METASTATIC_SPINAL_CORD_COMPRESSION_MRI_REGION_TERMS = (
+    "spinal",
+    "spine",
+    "whole spine",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_SPECIFIC_TERMS = (
+    "dexamethasone",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_DOSE_TERMS = (
     "16 mg",
+    "16mg",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_CLASS_TERMS = (
+    "corticosteroid",
     "dexamethasone",
     "glucocorticoid",
     "steroid",
@@ -24194,14 +24212,8 @@ def _has_metastatic_spinal_cord_compression_time_critical_actions(
         _contains_safety_term(normalized_actions, term)
         for term in METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ACTION_TERMS
     )
-    has_mri = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in METASTATIC_SPINAL_CORD_COMPRESSION_MRI_ACTION_TERMS
-    )
-    has_steroid = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_ACTION_TERMS
-    )
+    has_mri = _has_metastatic_spinal_cord_compression_urgent_mri_action(actions)
+    has_steroid = _has_metastatic_spinal_cord_compression_steroid_action(actions)
     has_immobilization = any(
         _contains_safety_term(normalized_actions, term)
         for term in METASTATIC_SPINAL_CORD_COMPRESSION_IMMOBILIZATION_ACTION_TERMS
@@ -24217,6 +24229,50 @@ def _has_metastatic_spinal_cord_compression_time_critical_actions(
         and has_immobilization
         and has_definitive_plan
     )
+
+
+def _has_metastatic_spinal_cord_compression_urgent_mri_action(
+    actions: list[Any],
+) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_modality = any(
+            _contains_safety_term(normalized_action, term)
+            for term in METASTATIC_SPINAL_CORD_COMPRESSION_MRI_MODALITY_TERMS
+        )
+        has_urgency = any(
+            _contains_safety_term(normalized_action, term)
+            for term in METASTATIC_SPINAL_CORD_COMPRESSION_MRI_URGENCY_TERMS
+        )
+        has_region = any(
+            _contains_safety_term(normalized_action, term)
+            for term in METASTATIC_SPINAL_CORD_COMPRESSION_MRI_REGION_TERMS
+        )
+        if has_modality and has_urgency and has_region:
+            return True
+    return False
+
+
+def _has_metastatic_spinal_cord_compression_steroid_action(
+    actions: list[Any],
+) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_specific_steroid = any(
+            _contains_safety_term(normalized_action, term)
+            for term in METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_SPECIFIC_TERMS
+        )
+        has_dose = any(
+            _contains_safety_term(normalized_action, term)
+            for term in METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_DOSE_TERMS
+        )
+        has_steroid_class = any(
+            _contains_safety_term(normalized_action, term)
+            for term in METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_CLASS_TERMS
+        )
+        if has_dose and (has_specific_steroid or has_steroid_class):
+            return True
+    return False
 
 
 def _has_metastatic_spinal_cord_compression_treatment_safety_check(

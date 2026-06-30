@@ -6796,17 +6796,39 @@ const METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ACTION_TERMS = [
   "spine surgeon",
 ];
 
-const METASTATIC_SPINAL_CORD_COMPRESSION_MRI_ACTION_TERMS = [
-  "24 hours",
+const METASTATIC_SPINAL_CORD_COMPRESSION_MRI_MODALITY_TERMS = [
+  "magnetic resonance",
+  "magnetic resonance imaging",
   "mri",
-  "mri spine",
-  "urgent mri",
-  "whole spine",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_MRI_URGENCY_TERMS = [
+  "24 hours",
+  "as soon as possible",
+  "immediate",
+  "immediately",
+  "urgent",
+  "urgently",
   "within 24",
 ];
 
-const METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_ACTION_TERMS = [
+const METASTATIC_SPINAL_CORD_COMPRESSION_MRI_REGION_TERMS = [
+  "spinal",
+  "spine",
+  "whole spine",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_SPECIFIC_TERMS = [
+  "dexamethasone",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_DOSE_TERMS = [
   "16 mg",
+  "16mg",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_CLASS_TERMS = [
+  "corticosteroid",
   "dexamethasone",
   "glucocorticoid",
   "steroid",
@@ -20169,12 +20191,8 @@ function hasMetastaticSpinalCordCompressionTimeCriticalActions(actions: string[]
   const hasCoordinator = METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasMri = METASTATIC_SPINAL_CORD_COMPRESSION_MRI_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
-  const hasSteroid = METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasMri = hasMetastaticSpinalCordCompressionUrgentMriAction(actions);
+  const hasSteroid = hasMetastaticSpinalCordCompressionSteroidAction(actions);
   const hasImmobilization = METASTATIC_SPINAL_CORD_COMPRESSION_IMMOBILIZATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
@@ -20182,6 +20200,38 @@ function hasMetastaticSpinalCordCompressionTimeCriticalActions(actions: string[]
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   return hasCoordinator && hasMri && hasSteroid && hasImmobilization && hasDefinitivePlan;
+}
+
+function hasMetastaticSpinalCordCompressionUrgentMriAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasModality = METASTATIC_SPINAL_CORD_COMPRESSION_MRI_MODALITY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasUrgency = METASTATIC_SPINAL_CORD_COMPRESSION_MRI_URGENCY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasRegion = METASTATIC_SPINAL_CORD_COMPRESSION_MRI_REGION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasModality && hasUrgency && hasRegion;
+  });
+}
+
+function hasMetastaticSpinalCordCompressionSteroidAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasSpecificSteroid = METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_SPECIFIC_TERMS.some(
+      (term) => containsSafetyTerm(normalizedAction, term),
+    );
+    const hasDose = METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_DOSE_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasSteroidClass = METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_CLASS_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasDose && (hasSpecificSteroid || hasSteroidClass);
+  });
 }
 
 function hasMetastaticSpinalCordCompressionTreatmentSafetyCheck(checks: string[]): boolean {
