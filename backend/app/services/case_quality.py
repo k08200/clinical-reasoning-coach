@@ -5692,8 +5692,6 @@ HEAT_STROKE_CONTEXT_TERMS = (
 HEAT_STROKE_CORE_TEMP_ACTION_TERMS = (
     "core temperature",
     "rectal temperature",
-    "temperature",
-    "thermometer",
     "심부체온",
     "직장체온",
 )
