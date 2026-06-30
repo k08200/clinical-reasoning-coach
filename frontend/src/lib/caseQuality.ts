@@ -6441,10 +6441,16 @@ const SEROTONIN_SYNDROME_EXPOSURE_TIMING_SAFETY_TERMS = [
   "within 24",
 ];
 
-const SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS = [
+const SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_AVOIDANCE_SAFETY_TERMS = [
+  "avoid",
+  "no physical restraint",
+  "not use",
+  "without restraint",
+];
+
+const SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_TARGET_SAFETY_TERMS = [
   "acetaminophen",
   "antipyretic",
-  "avoid physical restraint",
   "physical restraint",
   "restraint",
   "해열제",
@@ -19942,9 +19948,14 @@ function hasSerotoninSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
   const hasExposureTimingSafety = SEROTONIN_SYNDROME_EXPOSURE_TIMING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasRestraintAntipyreticSafety = SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
-  );
+  const hasRestraintAntipyreticAvoidance =
+    SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_AVOIDANCE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasRestraintAntipyreticTarget =
+    SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_TARGET_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasSevereHyperthermiaSafety = SEROTONIN_SYNDROME_SEVERE_HYPERTHERMIA_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
@@ -19955,7 +19966,8 @@ function hasSerotoninSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
     hasDifferentialSafety &&
     hasHunterDiagnosticSafety &&
     hasExposureTimingSafety &&
-    hasRestraintAntipyreticSafety &&
+    hasRestraintAntipyreticAvoidance &&
+    hasRestraintAntipyreticTarget &&
     hasSevereHyperthermiaSafety &&
     hasComplicationMonitoring
   );

@@ -5888,10 +5888,15 @@ SEROTONIN_SYNDROME_EXPOSURE_TIMING_SAFETY_TERMS = (
     "serotonergic medication history",
     "within 24",
 )
-SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS = (
+SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_AVOIDANCE_SAFETY_TERMS = (
+    "avoid",
+    "no physical restraint",
+    "not use",
+    "without restraint",
+)
+SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_TARGET_SAFETY_TERMS = (
     "acetaminophen",
     "antipyretic",
-    "avoid physical restraint",
     "physical restraint",
     "restraint",
     "해열제",
@@ -23907,9 +23912,13 @@ def _has_serotonin_syndrome_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in SEROTONIN_SYNDROME_EXPOSURE_TIMING_SAFETY_TERMS
     )
-    has_restraint_antipyretic_safety = any(
+    has_restraint_antipyretic_avoidance = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_SAFETY_TERMS
+        for term in SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_AVOIDANCE_SAFETY_TERMS
+    )
+    has_restraint_antipyretic_target = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEROTONIN_SYNDROME_RESTRAINT_ANTIPYRETIC_TARGET_SAFETY_TERMS
     )
     has_severe_hyperthermia_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -23923,7 +23932,8 @@ def _has_serotonin_syndrome_treatment_safety_check(checks: list[Any]) -> bool:
         has_differential_safety
         and has_hunter_diagnostic_safety
         and has_exposure_timing_safety
-        and has_restraint_antipyretic_safety
+        and has_restraint_antipyretic_avoidance
+        and has_restraint_antipyretic_target
         and has_severe_hyperthermia_safety
         and has_complication_monitoring
     )

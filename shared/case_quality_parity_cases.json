@@ -11349,6 +11349,72 @@
     }
   },
   {
+    "name": "serotonin_syndrome_requires_restraint_antipyretic_avoidance_not_use_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "serotonin syndrome safety checks must include differential review"
+    ],
+    "overrides": {
+      "diagnosis": "Serotonin syndrome",
+      "patient_demographics": {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Agitation, fever, tremor, and clonus after medication change",
+      "history_of_present_illness": "Patient taking SSRI and tramadol after linezolid exposure presents with agitation, diaphoresis, diarrhea, tachycardia, hypertension, hyperthermia, tremor, hyperreflexia, and inducible ocular clonus concerning for serotonin toxicity.",
+      "key_teaching_points": [
+        "Serotonin syndrome is a potentially life-threatening serotonergic toxicity",
+        "Clonus, hyperreflexia, tremor, agitation, autonomic instability, and hyperthermia support the diagnosis",
+        "Treatment centers on stopping serotonergic agents, supportive care, sedation, cooling, and escalation for severe disease"
+      ],
+      "clinical_red_flags": [
+        "Spontaneous, inducible, or ocular clonus with agitation, tremor, hyperreflexia, or rigidity",
+        "Hyperthermia, diaphoresis, diarrhea, tachycardia, hypertension, seizure, or altered mental status"
+      ],
+      "time_critical_actions": [
+        "Stop serotonergic offending agents including SSRI, tramadol, linezolid, MAOI, triptan, and dextromethorphan",
+        "Provide supportive care with oxygen, IV fluids, vital signs, and cardiac monitoring",
+        "Give benzodiazepine chemical sedation with diazepam, lorazepam, or midazolam for agitation and muscle activity",
+        "Start active cooling and external cooling for hyperthermia with temperature monitoring",
+        "Consult poison center and toxicologist; give cyproheptadine and escalate to ICU, intubation, and nondepolarizing paralysis for severe disease"
+      ],
+      "contraindication_checks": [
+        "Review differential diagnosis including NMS, neuroleptic malignant syndrome, malignant hyperthermia, anticholinergic toxicity, sympathomimetic toxicity, and sepsis",
+        "Confirm Hunter criteria pattern with recent serotonergic exposure or medication change within 24 hours plus spontaneous, inducible, or ocular clonus, tremor and hyperreflexia, hypertonia, or neuromuscular excitation",
+        "Use physical restraint and acetaminophen for serotonin hyperthermia",
+        "Plan intubation, mechanical ventilation, neuromuscular blockade, and nondepolarizing paralysis if severe hyperthermia or temperature above 41 C develops",
+        "Monitor CK creatine kinase, rhabdomyolysis, AKI, renal injury, electrolytes, and seizure complications"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Serotonin Syndrome",
+          "organization": "NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK482377/",
+          "supports": [
+            "serotonin syndrome diagnosis and risk stratification",
+            "serotonin syndrome is a potentially life-threatening serotonergic toxicity",
+            "clonus, hyperreflexia, tremor, agitation, autonomic instability, and hyperthermia support the diagnosis",
+            "treatment centers on stopping serotonergic agents, supportive care, sedation, cooling, and escalation for severe disease",
+            "spontaneous, inducible, or ocular clonus with agitation, tremor, hyperreflexia, or rigidity as red flags",
+            "hyperthermia, diaphoresis, diarrhea, tachycardia, hypertension, seizure, or altered mental status as severity markers",
+            "stop serotonergic offending agents including SSRI, tramadol, linezolid, MAOI, triptan, and dextromethorphan",
+            "supportive care with oxygen, IV fluids, vital signs, and cardiac monitoring",
+            "benzodiazepine chemical sedation with diazepam, lorazepam, or midazolam for agitation and muscle activity",
+            "active cooling and external cooling for hyperthermia with temperature monitoring",
+            "poison center and toxicologist consultation, cyproheptadine, ICU, intubation, and nondepolarizing paralysis for severe disease",
+            "NMS, neuroleptic malignant syndrome, malignant hyperthermia, anticholinergic toxicity, sympathomimetic toxicity, and sepsis differential diagnosis",
+            "Hunter criteria pattern with recent serotonergic exposure or medication change within 24 hours plus spontaneous, inducible, or ocular clonus, tremor and hyperreflexia, hypertonia, or neuromuscular excitation",
+            "physical restraint and acetaminophen for serotonin hyperthermia",
+            "intubation, mechanical ventilation, neuromuscular blockade, and nondepolarizing paralysis if severe hyperthermia or temperature above 41 C develops",
+            "CK creatine kinase, rhabdomyolysis, AKI, renal injury, electrolytes, and seizure complications monitoring"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "neuroleptic_malignant_syndrome_requires_stop_support_cooling_medication_and_complication_monitoring",
     "expected_passed": false,
     "expected_issue_substrings": [
