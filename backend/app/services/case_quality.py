@@ -13663,36 +13663,62 @@ SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS = (
     "virus",
     "흡인",
 )
-SEVERE_CAP_PROCALCITONIN_ANTIBIOTIC_SAFETY_TERMS = (
+SEVERE_CAP_PROCALCITONIN_TERMS = (
+    "procalcitonin",
+)
+SEVERE_CAP_ANTIBIOTIC_NONWITHHOLD_TERMS = (
     "do not withhold",
+    "not withhold",
+    "should not withhold",
+)
+SEVERE_CAP_INITIAL_ANTIBIOTIC_TERMS = (
     "empiric antibiotic",
     "initial antibacterial",
-    "not withhold",
-    "procalcitonin",
-    "항생제 보류",
+    "initial empiric antibiotics",
+    "initial empiric antibiotic",
 )
-SEVERE_CAP_CORTICOSTEROID_SAFETY_TERMS = (
+SEVERE_CAP_CORTICOSTEROID_CLASS_TERMS = (
     "corticosteroid",
-    "not routine",
-    "refractory septic shock",
     "steroid",
     "스테로이드",
 )
-SEVERE_CAP_INFLUENZA_ANTIVIRAL_SAFETY_TERMS = (
-    "antiviral",
+SEVERE_CAP_CORTICOSTEROID_AVOIDANCE_TERMS = (
+    "avoid routine",
+    "avoid routinely",
+    "no routine",
+    "not routinely",
+    "not routine",
+)
+SEVERE_CAP_CORTICOSTEROID_EXCEPTION_TERMS = (
+    "refractory septic shock",
+    "septic shock",
+    "separate indication",
+)
+SEVERE_CAP_INFLUENZA_TERMS = (
     "influenza",
+)
+SEVERE_CAP_ANTIVIRAL_TERMS = (
+    "antiviral",
     "oseltamivir",
     "tamiflu",
     "항바이러스",
 )
-SEVERE_CAP_DURATION_STABILITY_SAFETY_TERMS = (
+SEVERE_CAP_DURATION_MINIMUM_TERMS = (
     "5 days",
+    "at least 5 days",
+    "minimum 5",
+)
+SEVERE_CAP_STABILITY_TERMS = (
     "clinical stability",
-    "duration",
     "normal mentation",
     "oxygen saturation",
     "respiratory rate",
     "vital sign",
+)
+SEVERE_CAP_DURATION_TERMS = (
+    "antibiotic duration",
+    "duration",
+    "treatment duration",
     "치료 기간",
 )
 COPD_EXACERBATION_CONTEXT_TERMS = (
@@ -30767,27 +30793,62 @@ def _has_severe_cap_treatment_safety_check(checks: list[Any]) -> bool:
 
 def _has_severe_cap_antibiotic_stewardship_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_procalcitonin_antibiotic_safety = any(
+    has_procalcitonin_marker = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_CAP_PROCALCITONIN_ANTIBIOTIC_SAFETY_TERMS
+        for term in SEVERE_CAP_PROCALCITONIN_TERMS
     )
-    has_corticosteroid_safety = any(
+    has_antibiotic_nonwithhold = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_CAP_CORTICOSTEROID_SAFETY_TERMS
+        for term in SEVERE_CAP_ANTIBIOTIC_NONWITHHOLD_TERMS
     )
-    has_influenza_antiviral_safety = any(
+    has_initial_antibiotic = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_CAP_INFLUENZA_ANTIVIRAL_SAFETY_TERMS
+        for term in SEVERE_CAP_INITIAL_ANTIBIOTIC_TERMS
     )
-    has_duration_stability_safety = any(
+    has_corticosteroid_class = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_CAP_DURATION_STABILITY_SAFETY_TERMS
+        for term in SEVERE_CAP_CORTICOSTEROID_CLASS_TERMS
+    )
+    has_corticosteroid_avoidance = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_CORTICOSTEROID_AVOIDANCE_TERMS
+    )
+    has_corticosteroid_exception = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_CORTICOSTEROID_EXCEPTION_TERMS
+    )
+    has_influenza = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_INFLUENZA_TERMS
+    )
+    has_antiviral = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_ANTIVIRAL_TERMS
+    )
+    has_duration = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_DURATION_TERMS
+    )
+    has_duration_minimum = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_DURATION_MINIMUM_TERMS
+    )
+    has_clinical_stability = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_STABILITY_TERMS
     )
     return (
-        has_procalcitonin_antibiotic_safety
-        and has_corticosteroid_safety
-        and has_influenza_antiviral_safety
-        and has_duration_stability_safety
+        has_procalcitonin_marker
+        and has_antibiotic_nonwithhold
+        and has_initial_antibiotic
+        and has_corticosteroid_class
+        and has_corticosteroid_avoidance
+        and has_corticosteroid_exception
+        and has_influenza
+        and has_antiviral
+        and has_duration
+        and has_duration_minimum
+        and has_clinical_stability
     )
 
 

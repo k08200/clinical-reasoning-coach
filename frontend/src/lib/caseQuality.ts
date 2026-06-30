@@ -15022,39 +15022,72 @@ const SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS = [
   "흡인",
 ];
 
-const SEVERE_CAP_PROCALCITONIN_ANTIBIOTIC_SAFETY_TERMS = [
-  "do not withhold",
-  "empiric antibiotic",
-  "initial antibacterial",
-  "not withhold",
+const SEVERE_CAP_PROCALCITONIN_TERMS = [
   "procalcitonin",
-  "항생제 보류",
 ];
 
-const SEVERE_CAP_CORTICOSTEROID_SAFETY_TERMS = [
+const SEVERE_CAP_ANTIBIOTIC_NONWITHHOLD_TERMS = [
+  "do not withhold",
+  "not withhold",
+  "should not withhold",
+];
+
+const SEVERE_CAP_INITIAL_ANTIBIOTIC_TERMS = [
+  "empiric antibiotic",
+  "initial antibacterial",
+  "initial empiric antibiotics",
+  "initial empiric antibiotic",
+];
+
+const SEVERE_CAP_CORTICOSTEROID_CLASS_TERMS = [
   "corticosteroid",
-  "not routine",
-  "refractory septic shock",
   "steroid",
   "스테로이드",
 ];
 
-const SEVERE_CAP_INFLUENZA_ANTIVIRAL_SAFETY_TERMS = [
-  "antiviral",
+const SEVERE_CAP_CORTICOSTEROID_AVOIDANCE_TERMS = [
+  "avoid routine",
+  "avoid routinely",
+  "no routine",
+  "not routinely",
+  "not routine",
+];
+
+const SEVERE_CAP_CORTICOSTEROID_EXCEPTION_TERMS = [
+  "refractory septic shock",
+  "septic shock",
+  "separate indication",
+];
+
+const SEVERE_CAP_INFLUENZA_TERMS = [
   "influenza",
+];
+
+const SEVERE_CAP_ANTIVIRAL_TERMS = [
+  "antiviral",
   "oseltamivir",
   "tamiflu",
   "항바이러스",
 ];
 
-const SEVERE_CAP_DURATION_STABILITY_SAFETY_TERMS = [
+const SEVERE_CAP_DURATION_MINIMUM_TERMS = [
   "5 days",
+  "at least 5 days",
+  "minimum 5",
+];
+
+const SEVERE_CAP_STABILITY_TERMS = [
   "clinical stability",
-  "duration",
   "normal mentation",
   "oxygen saturation",
   "respiratory rate",
   "vital sign",
+];
+
+const SEVERE_CAP_DURATION_TERMS = [
+  "antibiotic duration",
+  "duration",
+  "treatment duration",
   "치료 기간",
 ];
 
@@ -25459,24 +25492,51 @@ function hasSevereCapTreatmentSafetyCheck(checks: string[]): boolean {
 
 function hasSevereCapAntibioticStewardshipSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasProcalcitoninAntibioticSafety =
-    SEVERE_CAP_PROCALCITONIN_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
-  const hasCorticosteroidSafety = SEVERE_CAP_CORTICOSTEROID_SAFETY_TERMS.some((term) =>
+  const hasProcalcitoninMarker = SEVERE_CAP_PROCALCITONIN_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasInfluenzaAntiviralSafety = SEVERE_CAP_INFLUENZA_ANTIVIRAL_SAFETY_TERMS.some((term) =>
+  const hasAntibioticNonwithhold = SEVERE_CAP_ANTIBIOTIC_NONWITHHOLD_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDurationStabilitySafety = SEVERE_CAP_DURATION_STABILITY_SAFETY_TERMS.some((term) =>
+  const hasInitialAntibiotic = SEVERE_CAP_INITIAL_ANTIBIOTIC_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCorticosteroidClass = SEVERE_CAP_CORTICOSTEROID_CLASS_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCorticosteroidAvoidance = SEVERE_CAP_CORTICOSTEROID_AVOIDANCE_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCorticosteroidException = SEVERE_CAP_CORTICOSTEROID_EXCEPTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInfluenza = SEVERE_CAP_INFLUENZA_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntiviral = SEVERE_CAP_ANTIVIRAL_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDuration = SEVERE_CAP_DURATION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDurationMinimum = SEVERE_CAP_DURATION_MINIMUM_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasClinicalStability = SEVERE_CAP_STABILITY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasProcalcitoninAntibioticSafety &&
-    hasCorticosteroidSafety &&
-    hasInfluenzaAntiviralSafety &&
-    hasDurationStabilitySafety
+    hasProcalcitoninMarker &&
+    hasAntibioticNonwithhold &&
+    hasInitialAntibiotic &&
+    hasCorticosteroidClass &&
+    hasCorticosteroidAvoidance &&
+    hasCorticosteroidException &&
+    hasInfluenza &&
+    hasAntiviral &&
+    hasDuration &&
+    hasDurationMinimum &&
+    hasClinicalStability
   );
 }
 
