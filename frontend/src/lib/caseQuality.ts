@@ -7464,15 +7464,35 @@ const SPINAL_EPIDURAL_ABSCESS_NEURO_RISK_RED_FLAG_TERMS = [
   "weakness",
 ];
 
-const SPINAL_EPIDURAL_ABSCESS_MRI_ACTION_TERMS = [
-  "contrast mri",
-  "emergency mri",
-  "immediate mri",
+const SPINAL_EPIDURAL_ABSCESS_MRI_MODALITY_TERMS = [
+  "magnetic resonance",
+  "magnetic resonance imaging",
   "mri",
-  "mri spine",
-  "spine mri",
+  "자기공명",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_MRI_URGENCY_TERMS = [
+  "emergency",
+  "immediate",
+  "immediately",
+  "stat",
+  "urgent",
+  "urgently",
+  "응급",
+  "즉시",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_MRI_REGION_TERMS = [
+  "epidural abscess",
+  "spinal",
+  "spine",
   "whole spine",
-  "응급 mri",
+  "척추",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_MRI_CONTRAST_TERMS = [
+  "contrast mri",
+  "gadolinium",
 ];
 
 const SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS = [
@@ -7487,15 +7507,29 @@ const SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS = [
   "혈액배양",
 ];
 
-const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_ACTION_TERMS = [
+const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_BASE_TERMS = [
   "antibiotic",
   "antibiotics",
+  "항생제",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_SPECIFIC_TERMS = [
   "cefepime",
   "ceftriaxone",
-  "empiric",
+  "ceftazidime",
   "meropenem",
+  "piperacillin-tazobactam",
   "vancomycin",
-  "항생제",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_URGENCY_TERMS = [
+  "empiric",
+  "empirical",
+  "immediate",
+  "immediately",
+  "iv",
+  "urgent",
+  "urgently",
 ];
 
 const SPINAL_EPIDURAL_ABSCESS_SURGERY_ACTION_TERMS = [
@@ -20582,19 +20616,50 @@ function hasSpinalEpiduralAbscessRedFlags(redFlags: string[]): boolean {
 
 function hasSpinalEpiduralAbscessTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasMri = SPINAL_EPIDURAL_ABSCESS_MRI_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasMri = hasSpinalEpiduralAbscessUrgentMriAction(actions);
   const hasCultureLab = SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntibiotic = SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasAntibiotic = hasSpinalEpiduralAbscessEmpiricAntibioticAction(actions);
   const hasSurgery = SPINAL_EPIDURAL_ABSCESS_SURGERY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return hasMri && hasCultureLab && hasAntibiotic && hasSurgery;
+}
+
+function hasSpinalEpiduralAbscessUrgentMriAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasModality = SPINAL_EPIDURAL_ABSCESS_MRI_MODALITY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasUrgency = SPINAL_EPIDURAL_ABSCESS_MRI_URGENCY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasRegion = SPINAL_EPIDURAL_ABSCESS_MRI_REGION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasContrast = SPINAL_EPIDURAL_ABSCESS_MRI_CONTRAST_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasModality && hasUrgency && (hasRegion || hasContrast);
+  });
+}
+
+function hasSpinalEpiduralAbscessEmpiricAntibioticAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasBaseAntibiotic = SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_BASE_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasSpecificAntibiotic = SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_SPECIFIC_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasUrgency = SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_URGENCY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasSpecificAntibiotic || (hasBaseAntibiotic && hasUrgency);
+  });
 }
 
 function hasSpinalEpiduralAbscessTreatmentSafetyCheck(checks: string[]): boolean {

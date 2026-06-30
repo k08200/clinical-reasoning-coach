@@ -6819,15 +6819,32 @@ SPINAL_EPIDURAL_ABSCESS_NEURO_RISK_RED_FLAG_TERMS = (
     "sensory",
     "weakness",
 )
-SPINAL_EPIDURAL_ABSCESS_MRI_ACTION_TERMS = (
-    "contrast mri",
-    "emergency mri",
-    "immediate mri",
+SPINAL_EPIDURAL_ABSCESS_MRI_MODALITY_TERMS = (
+    "magnetic resonance",
+    "magnetic resonance imaging",
     "mri",
-    "mri spine",
-    "spine mri",
+    "자기공명",
+)
+SPINAL_EPIDURAL_ABSCESS_MRI_URGENCY_TERMS = (
+    "emergency",
+    "immediate",
+    "immediately",
+    "stat",
+    "urgent",
+    "urgently",
+    "응급",
+    "즉시",
+)
+SPINAL_EPIDURAL_ABSCESS_MRI_REGION_TERMS = (
+    "epidural abscess",
+    "spinal",
+    "spine",
     "whole spine",
-    "응급 mri",
+    "척추",
+)
+SPINAL_EPIDURAL_ABSCESS_MRI_CONTRAST_TERMS = (
+    "contrast mri",
+    "gadolinium",
 )
 SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS = (
     "blood culture",
@@ -6840,15 +6857,27 @@ SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS = (
     "배양",
     "혈액배양",
 )
-SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_ACTION_TERMS = (
+SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_BASE_TERMS = (
     "antibiotic",
     "antibiotics",
+    "항생제",
+)
+SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_SPECIFIC_TERMS = (
     "cefepime",
     "ceftriaxone",
-    "empiric",
+    "ceftazidime",
     "meropenem",
+    "piperacillin-tazobactam",
     "vancomycin",
-    "항생제",
+)
+SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_URGENCY_TERMS = (
+    "empiric",
+    "empirical",
+    "immediate",
+    "immediately",
+    "iv",
+    "urgent",
+    "urgently",
 )
 SPINAL_EPIDURAL_ABSCESS_SURGERY_ACTION_TERMS = (
     "abscess drainage",
@@ -24729,23 +24758,63 @@ def _has_spinal_epidural_abscess_red_flags(red_flags: list[Any]) -> bool:
 
 def _has_spinal_epidural_abscess_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_mri = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in SPINAL_EPIDURAL_ABSCESS_MRI_ACTION_TERMS
-    )
+    has_mri = _has_spinal_epidural_abscess_urgent_mri_action(actions)
     has_culture_lab = any(
         _contains_safety_term(normalized_actions, term)
         for term in SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS
     )
-    has_antibiotic = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_ACTION_TERMS
-    )
+    has_antibiotic = _has_spinal_epidural_abscess_empiric_antibiotic_action(actions)
     has_surgery = any(
         _contains_safety_term(normalized_actions, term)
         for term in SPINAL_EPIDURAL_ABSCESS_SURGERY_ACTION_TERMS
     )
     return has_mri and has_culture_lab and has_antibiotic and has_surgery
+
+
+def _has_spinal_epidural_abscess_urgent_mri_action(actions: list[Any]) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_modality = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SPINAL_EPIDURAL_ABSCESS_MRI_MODALITY_TERMS
+        )
+        has_urgency = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SPINAL_EPIDURAL_ABSCESS_MRI_URGENCY_TERMS
+        )
+        has_region = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SPINAL_EPIDURAL_ABSCESS_MRI_REGION_TERMS
+        )
+        has_contrast = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SPINAL_EPIDURAL_ABSCESS_MRI_CONTRAST_TERMS
+        )
+        if has_modality and has_urgency and (has_region or has_contrast):
+            return True
+    return False
+
+
+def _has_spinal_epidural_abscess_empiric_antibiotic_action(
+    actions: list[Any],
+) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_base_antibiotic = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_BASE_TERMS
+        )
+        has_specific_antibiotic = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_SPECIFIC_TERMS
+        )
+        has_urgency = any(
+            _contains_safety_term(normalized_action, term)
+            for term in SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_URGENCY_TERMS
+        )
+        if has_specific_antibiotic or (has_base_antibiotic and has_urgency):
+            return True
+    return False
 
 
 def _has_spinal_epidural_abscess_treatment_safety_check(checks: list[Any]) -> bool:
