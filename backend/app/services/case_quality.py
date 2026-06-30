@@ -6068,14 +6068,32 @@ CAUDA_EQUINA_CONTEXT_TERMS = (
     "마미증후군",
     "마미 증후군",
 )
-CAUDA_EQUINA_MRI_ACTION_TERMS = (
-    "emergency mri",
-    "immediate mri",
-    "lumbar mri",
+CAUDA_EQUINA_MRI_MODALITY_TERMS = (
+    "magnetic resonance",
+    "magnetic resonance imaging",
     "mri",
-    "urgent mri",
-    "응급 mri",
     "자기공명",
+)
+CAUDA_EQUINA_MRI_URGENCY_TERMS = (
+    "emergency",
+    "immediate",
+    "immediately",
+    "stat",
+    "urgent",
+    "urgently",
+    "긴급",
+    "응급",
+    "즉시",
+)
+CAUDA_EQUINA_MRI_REGION_TERMS = (
+    "cauda equina",
+    "lumbar",
+    "lumbosacral",
+    "spinal",
+    "spine",
+    "마미",
+    "요추",
+    "척추",
 )
 CAUDA_EQUINA_BLADDER_ACTION_TERMS = (
     "bladder scan",
@@ -24077,10 +24095,7 @@ def _requires_cauda_equina_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_cauda_equina_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_mri = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in CAUDA_EQUINA_MRI_ACTION_TERMS
-    )
+    has_mri = _has_cauda_equina_emergency_mri_action(actions)
     has_bladder_assessment = any(
         _contains_safety_term(normalized_actions, term)
         for term in CAUDA_EQUINA_BLADDER_ACTION_TERMS
@@ -24094,6 +24109,26 @@ def _has_cauda_equina_time_critical_actions(actions: list[Any]) -> bool:
         for term in CAUDA_EQUINA_SPINE_ESCALATION_ACTION_TERMS
     )
     return has_mri and has_bladder_assessment and has_neuro_exam and has_spine_escalation
+
+
+def _has_cauda_equina_emergency_mri_action(actions: list[Any]) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_modality = any(
+            _contains_safety_term(normalized_action, term)
+            for term in CAUDA_EQUINA_MRI_MODALITY_TERMS
+        )
+        has_urgency = any(
+            _contains_safety_term(normalized_action, term)
+            for term in CAUDA_EQUINA_MRI_URGENCY_TERMS
+        )
+        has_region = any(
+            _contains_safety_term(normalized_action, term)
+            for term in CAUDA_EQUINA_MRI_REGION_TERMS
+        )
+        if has_modality and has_urgency and has_region:
+            return True
+    return False
 
 
 def _has_cauda_equina_delay_safety_check(checks: list[Any]) -> bool:

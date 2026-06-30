@@ -6640,14 +6640,34 @@ const CAUDA_EQUINA_CONTEXT_TERMS = [
   "마미 증후군",
 ];
 
-const CAUDA_EQUINA_MRI_ACTION_TERMS = [
-  "emergency mri",
-  "immediate mri",
-  "lumbar mri",
+const CAUDA_EQUINA_MRI_MODALITY_TERMS = [
+  "magnetic resonance",
+  "magnetic resonance imaging",
   "mri",
-  "urgent mri",
-  "응급 mri",
   "자기공명",
+];
+
+const CAUDA_EQUINA_MRI_URGENCY_TERMS = [
+  "emergency",
+  "immediate",
+  "immediately",
+  "stat",
+  "urgent",
+  "urgently",
+  "긴급",
+  "응급",
+  "즉시",
+];
+
+const CAUDA_EQUINA_MRI_REGION_TERMS = [
+  "cauda equina",
+  "lumbar",
+  "lumbosacral",
+  "spinal",
+  "spine",
+  "마미",
+  "요추",
+  "척추",
 ];
 
 const CAUDA_EQUINA_BLADDER_ACTION_TERMS = [
@@ -20071,9 +20091,7 @@ function requiresCaudaEquinaSafetyCheck(detail: ClinicalCaseReviewDetail): boole
 
 function hasCaudaEquinaTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasMri = CAUDA_EQUINA_MRI_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasMri = hasCaudaEquinaEmergencyMriAction(actions);
   const hasBladderAssessment = CAUDA_EQUINA_BLADDER_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -20084,6 +20102,22 @@ function hasCaudaEquinaTimeCriticalActions(actions: string[]): boolean {
     containsSafetyTerm(normalizedActions, term),
   );
   return hasMri && hasBladderAssessment && hasNeuroExam && hasSpineEscalation;
+}
+
+function hasCaudaEquinaEmergencyMriAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasModality = CAUDA_EQUINA_MRI_MODALITY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasUrgency = CAUDA_EQUINA_MRI_URGENCY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasRegion = CAUDA_EQUINA_MRI_REGION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasModality && hasUrgency && hasRegion;
+  });
 }
 
 function hasCaudaEquinaDelaySafetyCheck(checks: string[]): boolean {
