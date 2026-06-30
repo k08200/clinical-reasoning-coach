@@ -8085,43 +8085,48 @@ const ACUTE_CHOLANGITIS_CONTEXT_TERMS = [
   "담관염",
 ];
 
-const ACUTE_CHOLANGITIS_ANTIBIOTIC_SUPPORT_ACTION_TERMS = [
+const ACUTE_CHOLANGITIS_ANTIBIOTIC_ACTION_TERMS = [
   "antibiotic",
   "antibiotics",
   "broad-spectrum",
   "cefepime",
   "ceftriaxone",
   "piperacillin",
-  "supportive care",
   "tazobactam",
   "항생제",
 ];
 
-const ACUTE_CHOLANGITIS_CULTURE_LAB_ACTION_TERMS = [
-  "bilirubin",
+const ACUTE_CHOLANGITIS_CULTURE_ACTION_TERMS = [
   "blood culture",
   "blood cultures",
   "bile culture",
+  "배양",
+];
+
+const ACUTE_CHOLANGITIS_LAB_ACTION_TERMS = [
+  "bilirubin",
   "crp",
   "inflammatory",
   "lft",
   "liver function",
   "wbc",
-  "배양",
   "빌리루빈",
 ];
 
-const ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS = [
+const ACUTE_CHOLANGITIS_IMAGING_MODALITY_TERMS = [
+  "ct",
+  "mrcp",
+  "ultrasound",
+  "초음파",
+];
+
+const ACUTE_CHOLANGITIS_OBSTRUCTION_TARGET_TERMS = [
   "biliary dilatation",
   "biliary dilation",
   "common bile duct",
-  "ct",
-  "mrcp",
   "obstruction",
   "stone",
   "stricture",
-  "ultrasound",
-  "초음파",
 ];
 
 const ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS = [
@@ -8139,7 +8144,7 @@ const ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS = [
   "전원",
 ];
 
-const ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_ACTION_TERMS = [
+const ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_SPECIFIC_TERMS = [
   "bile duct drainage",
   "bile duct stent",
   "biliary decompression",
@@ -8148,12 +8153,22 @@ const ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_ACTION_TERMS = [
   "common bile duct drainage",
   "endoscopic biliary drainage",
   "endoscopic nasobiliary drainage",
-  "ercp",
   "nasobiliary",
   "percutaneous transhepatic biliary drainage",
   "percutaneous transhepatic",
   "ptbd",
   "담도 배액",
+];
+
+const ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_GENERIC_TERMS = [
+  "ercp",
+];
+
+const ACUTE_CHOLANGITIS_DRAINAGE_TARGET_TERMS = [
+  "biliary",
+  "decompression",
+  "drainage",
+  "stent",
 ];
 
 const ACUTE_CHOLANGITIS_ORGAN_SUPPORT_ACTION_TERMS = [
@@ -21100,21 +21115,13 @@ function requiresAcuteCholangitisSafetyCheck(detail: ClinicalCaseReviewDetail): 
 
 function hasAcuteCholangitisTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasAntibioticSupport = ACUTE_CHOLANGITIS_ANTIBIOTIC_SUPPORT_ACTION_TERMS.some(
-    (term) => containsSafetyTerm(normalizedActions, term),
-  );
-  const hasCultureLab = ACUTE_CHOLANGITIS_CULTURE_LAB_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
-  const hasImagingObstruction = ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS.some(
-    (term) => containsSafetyTerm(normalizedActions, term),
-  );
+  const hasAntibioticSupport = hasAcuteCholangitisAntibioticAction(actions);
+  const hasCultureLab = hasAcuteCholangitisCultureLabAction(actions);
+  const hasImagingObstruction = hasAcuteCholangitisImagingObstructionAction(actions);
   const hasBiliaryAccess = ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDrainageRoute = ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasDrainageRoute = hasAcuteCholangitisDrainageRouteAction(actions);
   const hasOrganSupport = ACUTE_CHOLANGITIS_ORGAN_SUPPORT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -21126,6 +21133,53 @@ function hasAcuteCholangitisTimeCriticalActions(actions: string[]): boolean {
     hasDrainageRoute &&
     hasOrganSupport
   );
+}
+
+function hasAcuteCholangitisAntibioticAction(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  return ACUTE_CHOLANGITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+}
+
+function hasAcuteCholangitisCultureLabAction(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCulture = ACUTE_CHOLANGITIS_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLab = ACUTE_CHOLANGITIS_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasCulture && hasLab;
+}
+
+function hasAcuteCholangitisImagingObstructionAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasModality = ACUTE_CHOLANGITIS_IMAGING_MODALITY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasObstructionTarget = ACUTE_CHOLANGITIS_OBSTRUCTION_TARGET_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasModality && hasObstructionTarget;
+  });
+}
+
+function hasAcuteCholangitisDrainageRouteAction(actions: string[]): boolean {
+  return actions.some((action) => {
+    const normalizedAction = String(action).toLowerCase();
+    const hasSpecificRoute = ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_SPECIFIC_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasGenericRoute = ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_GENERIC_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    const hasTarget = ACUTE_CHOLANGITIS_DRAINAGE_TARGET_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasSpecificRoute || (hasGenericRoute && hasTarget);
+  });
 }
 
 function hasAcuteCholangitisTreatmentSafetyCheck(checks: string[]): boolean {

@@ -7376,41 +7376,44 @@ ACUTE_CHOLANGITIS_CONTEXT_TERMS = (
     "suppurative cholangitis",
     "담관염",
 )
-ACUTE_CHOLANGITIS_ANTIBIOTIC_SUPPORT_ACTION_TERMS = (
+ACUTE_CHOLANGITIS_ANTIBIOTIC_ACTION_TERMS = (
     "antibiotic",
     "antibiotics",
     "broad-spectrum",
     "cefepime",
     "ceftriaxone",
     "piperacillin",
-    "supportive care",
     "tazobactam",
     "항생제",
 )
-ACUTE_CHOLANGITIS_CULTURE_LAB_ACTION_TERMS = (
-    "bilirubin",
+ACUTE_CHOLANGITIS_CULTURE_ACTION_TERMS = (
+    "bile culture",
     "blood culture",
     "blood cultures",
-    "bile culture",
+    "배양",
+)
+ACUTE_CHOLANGITIS_LAB_ACTION_TERMS = (
+    "bilirubin",
     "crp",
     "inflammatory",
     "lft",
     "liver function",
     "wbc",
-    "배양",
     "빌리루빈",
 )
-ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS = (
+ACUTE_CHOLANGITIS_IMAGING_MODALITY_TERMS = (
+    "ct",
+    "mrcp",
+    "ultrasound",
+    "초음파",
+)
+ACUTE_CHOLANGITIS_OBSTRUCTION_TARGET_TERMS = (
     "biliary dilatation",
     "biliary dilation",
     "common bile duct",
-    "ct",
-    "mrcp",
     "obstruction",
     "stone",
     "stricture",
-    "ultrasound",
-    "초음파",
 )
 ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS = (
     "advanced center",
@@ -7426,7 +7429,7 @@ ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS = (
     "transfer",
     "전원",
 )
-ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_ACTION_TERMS = (
+ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_SPECIFIC_TERMS = (
     "bile duct drainage",
     "bile duct stent",
     "biliary decompression",
@@ -7435,12 +7438,20 @@ ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_ACTION_TERMS = (
     "common bile duct drainage",
     "endoscopic biliary drainage",
     "endoscopic nasobiliary drainage",
-    "ercp",
     "nasobiliary",
     "percutaneous transhepatic biliary drainage",
     "percutaneous transhepatic",
     "ptbd",
     "담도 배액",
+)
+ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_GENERIC_TERMS = (
+    "ercp",
+)
+ACUTE_CHOLANGITIS_DRAINAGE_TARGET_TERMS = (
+    "biliary",
+    "decompression",
+    "drainage",
+    "stent",
 )
 ACUTE_CHOLANGITIS_ORGAN_SUPPORT_ACTION_TERMS = (
     "circulatory",
@@ -25339,26 +25350,14 @@ def _requires_acute_cholangitis_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_acute_cholangitis_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_antibiotic_support = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_CHOLANGITIS_ANTIBIOTIC_SUPPORT_ACTION_TERMS
-    )
-    has_culture_lab = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_CHOLANGITIS_CULTURE_LAB_ACTION_TERMS
-    )
-    has_imaging_obstruction = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_CHOLANGITIS_IMAGING_OBSTRUCTION_ACTION_TERMS
-    )
+    has_antibiotic_support = _has_acute_cholangitis_antibiotic_action(actions)
+    has_culture_lab = _has_acute_cholangitis_culture_lab_action(actions)
+    has_imaging_obstruction = _has_acute_cholangitis_imaging_obstruction_action(actions)
     has_biliary_access = any(
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS
     )
-    has_drainage_route = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_ACTION_TERMS
-    )
+    has_drainage_route = _has_acute_cholangitis_drainage_route_action(actions)
     has_organ_support = any(
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_CHOLANGITIS_ORGAN_SUPPORT_ACTION_TERMS
@@ -25371,6 +25370,63 @@ def _has_acute_cholangitis_time_critical_actions(actions: list[Any]) -> bool:
         and has_drainage_route
         and has_organ_support
     )
+
+
+def _has_acute_cholangitis_antibiotic_action(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    return any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLANGITIS_ANTIBIOTIC_ACTION_TERMS
+    )
+
+
+def _has_acute_cholangitis_culture_lab_action(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLANGITIS_CULTURE_ACTION_TERMS
+    )
+    has_lab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLANGITIS_LAB_ACTION_TERMS
+    )
+    return has_culture and has_lab
+
+
+def _has_acute_cholangitis_imaging_obstruction_action(actions: list[Any]) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_modality = any(
+            _contains_safety_term(normalized_action, term)
+            for term in ACUTE_CHOLANGITIS_IMAGING_MODALITY_TERMS
+        )
+        has_obstruction_target = any(
+            _contains_safety_term(normalized_action, term)
+            for term in ACUTE_CHOLANGITIS_OBSTRUCTION_TARGET_TERMS
+        )
+        if has_modality and has_obstruction_target:
+            return True
+    return False
+
+
+def _has_acute_cholangitis_drainage_route_action(actions: list[Any]) -> bool:
+    for action in actions:
+        normalized_action = str(action).lower()
+        has_specific_route = any(
+            _contains_safety_term(normalized_action, term)
+            for term in ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_SPECIFIC_TERMS
+        )
+        has_generic_route = any(
+            _contains_safety_term(normalized_action, term)
+            for term in ACUTE_CHOLANGITIS_DRAINAGE_ROUTE_GENERIC_TERMS
+        )
+        has_target = any(
+            _contains_safety_term(normalized_action, term)
+            for term in ACUTE_CHOLANGITIS_DRAINAGE_TARGET_TERMS
+        )
+        if has_specific_route or (has_generic_route and has_target):
+            return True
+    return False
 
 
 def _has_acute_cholangitis_treatment_safety_check(checks: list[Any]) -> bool:

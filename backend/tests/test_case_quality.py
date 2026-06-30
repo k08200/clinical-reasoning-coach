@@ -12372,6 +12372,78 @@ def test_quality_gate_requires_acute_cholangitis_antibiotics_labs_imaging_draina
     )
 
 
+def test_quality_gate_rejects_acute_cholangitis_generic_support_stone_and_ercp_plan():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute cholangitis from infected biliary obstruction"
+    case["patient_demographics"] = {
+        "age": 76,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, jaundice, and right upper quadrant pain"
+    case["history_of_present_illness"] = (
+        "Patient with known choledocholithiasis presents with fever, rigors, jaundice, "
+        "right upper quadrant pain, hypotension, confusion, elevated bilirubin, and "
+        "suspected acute cholangitis with biliary sepsis."
+    )
+    case["key_teaching_points"] = [
+        "Acute cholangitis requires immediate antibiotics and supportive care",
+        "Tokyo criteria combine systemic inflammation, cholestasis, and biliary imaging evidence",
+        "Moderate or severe cholangitis needs early ERCP or biliary drainage for source control",
+    ]
+    case["clinical_red_flags"] = [
+        "Shock, hypotension, disturbance of consciousness, acute dyspnea, renal dysfunction, hepatic dysfunction, or DIC",
+        "Biliary dilatation, common bile duct stone, obstruction, jaundice, fever, or sepsis",
+    ]
+    case["time_critical_actions"] = [
+        "Provide supportive care",
+        "Check WBC and bilirubin",
+        "Document stone history",
+        "Call GI for ERCP",
+        "Give fluids for sepsis and shock",
+    ]
+    case["contraindication_checks"] = [
+        "Apply Tokyo severity grading and organ dysfunction review for shock, disturbance of consciousness, acute dyspnea, renal dysfunction, DIC, or severe cholangitis",
+        "Do not delay early drainage; arrange emergency biliary drainage within 24 to 48 hours, transfer to an advanced center if ERCP or drainage is unavailable",
+        "Review ERCP procedure risks including anticoagulant use, coagulopathy, sphincterotomy bleeding, pancreatitis, failed ERCP, altered anatomy, PTBD, or percutaneous drainage alternatives",
+        "Review source control and differentials including acute cholecystitis, gallstone pancreatitis, malignant obstruction, stone disease, pancreatitis, and bile culture results",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tokyo Guidelines 2018: Initial Management of Acute Biliary Infection",
+            "organization": "Tokyo Guidelines 2018",
+            "url": "https://sites.duke.edu/gifellowship/files/2019/08/Tokyo-guidelines-2018-acute-cholangitis.pdf",
+            "supports": [
+                "acute cholangitis diagnosis and risk stratification",
+                "acute cholangitis requires immediate antibiotics and supportive care",
+                "Tokyo criteria combine systemic inflammation, cholestasis, and biliary imaging evidence",
+                "moderate or severe cholangitis needs early ERCP or biliary drainage for source control",
+                "shock, hypotension, disturbance of consciousness, acute dyspnea, renal dysfunction, hepatic dysfunction, or DIC as severity markers",
+                "biliary dilatation, common bile duct stone, obstruction, jaundice, fever, or sepsis as red flags",
+                "supportive care",
+                "WBC and bilirubin",
+                "stone history",
+                "GI for ERCP",
+                "fluids for sepsis and shock",
+                "Tokyo severity grading and organ dysfunction review for shock, disturbance of consciousness, acute dyspnea, renal dysfunction, DIC, or severe cholangitis",
+                "do not delay early drainage and arrange emergency biliary drainage within 24 to 48 hours or transfer to an advanced center",
+                "ERCP procedure risks including anticoagulant use, coagulopathy, sphincterotomy bleeding, pancreatitis, failed ERCP, altered anatomy, PTBD, or percutaneous drainage alternatives",
+                "source control and differentials including acute cholecystitis, gallstone pancreatitis, malignant obstruction, stone disease, pancreatitis, and bile culture results",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute cholangitis time-critical actions must include immediate broad-spectrum antibiotics"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acute_cholangitis_specific_biliary_drainage_route_not_consult_only():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute cholangitis from infected biliary obstruction"
