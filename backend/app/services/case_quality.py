@@ -5748,13 +5748,19 @@ HEAT_STROKE_ORGAN_INJURY_SAFETY_TERMS = (
     "횡문근",
     "신장",
 )
-HEAT_STROKE_ANTIPYRETIC_SAFETY_TERMS = (
+HEAT_STROKE_ANTIPYRETIC_AVOIDANCE_SAFETY_TERMS = (
+    "avoid",
+    "not recommended",
+    "not use",
+    "not useful",
+    "no role",
+    "without antipyretic",
+)
+HEAT_STROKE_ANTIPYRETIC_TARGET_SAFETY_TERMS = (
     "acetaminophen",
     "antipyretic",
     "dantrolene",
-    "not recommended",
     "nsaid",
-    "avoid",
     "해열제",
 )
 HEAT_STROKE_DIFFERENTIAL_SAFETY_TERMS = (
@@ -23790,9 +23796,13 @@ def _has_heat_stroke_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in HEAT_STROKE_ORGAN_INJURY_SAFETY_TERMS
     )
-    has_antipyretic_safety = any(
+    has_antipyretic_avoidance_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HEAT_STROKE_ANTIPYRETIC_SAFETY_TERMS
+        for term in HEAT_STROKE_ANTIPYRETIC_AVOIDANCE_SAFETY_TERMS
+    )
+    has_antipyretic_target_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HEAT_STROKE_ANTIPYRETIC_TARGET_SAFETY_TERMS
     )
     has_differential_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -23801,7 +23811,8 @@ def _has_heat_stroke_treatment_safety_check(checks: list[Any]) -> bool:
     return (
         has_overcooling_safety
         and has_organ_injury_safety
-        and has_antipyretic_safety
+        and has_antipyretic_avoidance_safety
+        and has_antipyretic_target_safety
         and has_differential_safety
     )
 

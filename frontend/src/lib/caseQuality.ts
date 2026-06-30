@@ -6286,13 +6286,20 @@ const HEAT_STROKE_ORGAN_INJURY_SAFETY_TERMS = [
   "신장",
 ];
 
-const HEAT_STROKE_ANTIPYRETIC_SAFETY_TERMS = [
+const HEAT_STROKE_ANTIPYRETIC_AVOIDANCE_SAFETY_TERMS = [
+  "avoid",
+  "not recommended",
+  "not use",
+  "not useful",
+  "no role",
+  "without antipyretic",
+];
+
+const HEAT_STROKE_ANTIPYRETIC_TARGET_SAFETY_TERMS = [
   "acetaminophen",
   "antipyretic",
   "dantrolene",
-  "not recommended",
   "nsaid",
-  "avoid",
   "해열제",
 ];
 
@@ -19853,8 +19860,12 @@ function hasHeatStrokeTreatmentSafetyCheck(checks: string[]): boolean {
   const hasOrganInjurySafety = HEAT_STROKE_ORGAN_INJURY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasAntipyreticSafety = HEAT_STROKE_ANTIPYRETIC_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
+  const hasAntipyreticAvoidanceSafety =
+    HEAT_STROKE_ANTIPYRETIC_AVOIDANCE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAntipyreticTargetSafety = HEAT_STROKE_ANTIPYRETIC_TARGET_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasDifferentialSafety = HEAT_STROKE_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
@@ -19862,7 +19873,8 @@ function hasHeatStrokeTreatmentSafetyCheck(checks: string[]): boolean {
   return (
     hasOvercoolingSafety &&
     hasOrganInjurySafety &&
-    hasAntipyreticSafety &&
+    hasAntipyreticAvoidanceSafety &&
+    hasAntipyreticTargetSafety &&
     hasDifferentialSafety
   );
 }
