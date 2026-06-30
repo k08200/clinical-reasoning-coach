@@ -12717,6 +12717,75 @@ def test_quality_gate_requires_acute_pancreatitis_ercp_antibiotic_nutrition_and_
     )
 
 
+def test_quality_gate_rejects_acute_pancreatitis_generic_ercp_antibiotic_tpn_and_drainage_plan():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute gallstone pancreatitis"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "female",
+        "weight_kg": 69,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe epigastric pain radiating to the back"
+    case["history_of_present_illness"] = (
+        "Patient presents with acute epigastric pain radiating to the back, vomiting, "
+        "elevated lipase, gallstones on prior ultrasound, jaundice, rising BUN, and "
+        "concern for acute pancreatitis with possible biliary pancreatitis."
+    )
+    case["key_teaching_points"] = [
+        "Acute pancreatitis needs early goal-directed fluid resuscitation and reassessment",
+        "Gallstone pancreatitis requires biliary evaluation and ERCP only when cholangitis or obstruction is present",
+        "Severe pancreatitis can cause pancreatic necrosis, shock, renal failure, respiratory failure, and organ failure",
+    ]
+    case["clinical_red_flags"] = [
+        "Persistent SIRS, hypotension, hypoxemia, renal dysfunction, rising BUN, high hematocrit, shock, or organ failure",
+        "Jaundice, cholangitis, biliary obstruction, infected necrosis, sepsis, or worsening pain",
+    ]
+    case["time_critical_actions"] = [
+        "Start early goal-directed crystalloid fluid resuscitation with lactated Ringer LR and reassess volume status",
+        "Provide analgesia with opioid pain control plus antiemetic support for nausea and vomiting",
+        "Check lipase, ALT, LFTs, calcium, triglycerides, and RUQ ultrasound for gallstone etiology",
+        "Trend BUN, hematocrit, oxygen needs, renal function, shock, severity, organ failure, and ICU need",
+    ]
+    case["contraindication_checks"] = [
+        "Call GI for ERCP",
+        "Give prophylactic antibiotics for sterile necrosis",
+        "Start parenteral TPN nutrition",
+        "Arrange drainage for pancreatic necrosis now",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "ACG Guidelines: Management of Acute Pancreatitis",
+            "organization": "American College of Gastroenterology",
+            "url": "https://journals.lww.com/ajg/fulltext/2024/03000/american_college_of_gastroenterology_guidelines_.14.aspx",
+            "supports": [
+                "acute pancreatitis diagnosis and risk stratification",
+                "acute pancreatitis needs early goal-directed fluid resuscitation and reassessment",
+                "gallstone pancreatitis requires biliary evaluation and ERCP only when cholangitis or obstruction is present",
+                "severe pancreatitis can cause pancreatic necrosis, shock, renal failure, respiratory failure, and organ failure",
+                "persistent SIRS, hypotension, hypoxemia, renal dysfunction, rising BUN, high hematocrit, shock, or organ failure as red flags",
+                "jaundice, cholangitis, biliary obstruction, infected necrosis, sepsis, or worsening pain as severity markers",
+                "early goal-directed crystalloid fluid resuscitation with lactated Ringer LR and volume reassessment",
+                "analgesia with opioid pain control plus antiemetic support for nausea and vomiting",
+                "lipase, ALT, LFTs, calcium, triglycerides, and RUQ ultrasound for gallstone etiology",
+                "BUN, hematocrit, oxygen needs, renal function, shock, severity, organ failure, and ICU need monitoring",
+                "ERCP should not be routine without cholangitis or persistent biliary obstruction",
+                "avoid prophylactic antibiotics for sterile necrosis and reserve antibiotics for infected necrosis or extrapancreatic infection",
+                "early oral feeding as tolerated or enteral NG tube feeding and avoid parenteral TPN unless enteral nutrition is not possible",
+                "infected necrosis delayed drainage until walled-off necrosis after about 4 weeks and step-up approach",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute pancreatitis safety checks must include ERCP" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_small_bowel_obstruction_npo_fluids_ct_and_surgical_escalation():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Closed-loop small bowel obstruction"

@@ -8286,43 +8286,77 @@ const ACUTE_PANCREATITIS_SEVERITY_ORGAN_ACTION_TERMS = [
   "장기부전",
 ];
 
-const ACUTE_PANCREATITIS_ERCP_CHOLANGITIS_SAFETY_TERMS = [
+const ACUTE_PANCREATITIS_ERCP_ACTION_TERMS = [
+  "biliary drainage",
+  "biliary decompression",
+  "endoscopic retrograde",
+  "ercp",
+];
+
+const ACUTE_PANCREATITIS_ERCP_INDICATION_TERMS = [
   "biliary obstruction",
   "cholangitis",
-  "ercp",
+  "common bile duct obstruction",
   "jaundice",
-  "no cholangitis",
-  "without cholangitis",
   "담관염",
 ];
 
-const ACUTE_PANCREATITIS_ANTIBIOTIC_SAFETY_TERMS = [
-  "antibiotic",
+const ACUTE_PANCREATITIS_ERCP_NONROUTINE_TERMS = [
+  "avoid routine",
+  "no routine",
+  "not indicated",
+  "not routine",
+  "only when",
+  "without cholangitis",
+];
+
+const ACUTE_PANCREATITIS_ANTIBIOTIC_AVOIDANCE_TERMS = [
+  "avoid prophylactic antibiotics",
+  "no prophylactic antibiotics",
+  "not use prophylactic antibiotics",
+  "prophylactic antibiotics are not",
+];
+
+const ACUTE_PANCREATITIS_ANTIBIOTIC_INFECTION_TERMS = [
   "extrapancreatic infection",
   "infected necrosis",
-  "prophylactic antibiotics",
-  "sterile necrosis",
-  "항생제",
+  "infected pancreatic necrosis",
+  "reserve antibiotics",
 ];
 
-const ACUTE_PANCREATITIS_NUTRITION_SAFETY_TERMS = [
+const ACUTE_PANCREATITIS_ENTERAL_NUTRITION_TERMS = [
   "enteral",
-  "feeding",
+  "feeding as tolerated",
   "ng tube",
+  "nasoenteric",
   "oral feeding",
-  "parenteral",
-  "tpn",
-  "영양",
 ];
 
-const ACUTE_PANCREATITIS_NECROSIS_PROCEDURE_SAFETY_TERMS = [
-  "4 weeks",
-  "drainage",
+const ACUTE_PANCREATITIS_PARENTERAL_LIMIT_TERMS = [
+  "avoid parenteral",
+  "avoid tpn",
+  "enteral nutrition is not possible",
+  "unless enteral",
+];
+
+const ACUTE_PANCREATITIS_NECROSIS_TARGET_TERMS = [
   "infected necrosis",
-  "necrosis",
-  "step-up",
+  "infected pancreatic necrosis",
+  "walled-off necrosis",
+];
+
+const ACUTE_PANCREATITIS_NECROSIS_TIMING_TERMS = [
+  "4 weeks",
+  "delayed",
+  "postpone",
   "walled-off",
-  "췌장괴사",
+];
+
+const ACUTE_PANCREATITIS_NECROSIS_STEP_UP_TERMS = [
+  "drainage",
+  "percutaneous",
+  "step-up",
+  "step up",
 ];
 
 const SMALL_BOWEL_OBSTRUCTION_CONTEXT_TERMS = [
@@ -21242,24 +21276,47 @@ function hasAcutePancreatitisTimeCriticalActions(actions: string[]): boolean {
 
 function hasAcutePancreatitisTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasErcpCholangitisSafety = ACUTE_PANCREATITIS_ERCP_CHOLANGITIS_SAFETY_TERMS.some(
+  const hasErcpAction = ACUTE_PANCREATITIS_ERCP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasErcpIndication = ACUTE_PANCREATITIS_ERCP_INDICATION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasErcpNonroutineLimit = ACUTE_PANCREATITIS_ERCP_NONROUTINE_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntibioticAvoidance = ACUTE_PANCREATITIS_ANTIBIOTIC_AVOIDANCE_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntibioticInfectionLimit = ACUTE_PANCREATITIS_ANTIBIOTIC_INFECTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasAntibioticSafety = ACUTE_PANCREATITIS_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
+  const hasEnteralNutrition = ACUTE_PANCREATITIS_ENTERAL_NUTRITION_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasNutritionSafety = ACUTE_PANCREATITIS_NUTRITION_SAFETY_TERMS.some((term) =>
+  const hasParenteralLimit = ACUTE_PANCREATITIS_PARENTERAL_LIMIT_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasNecrosisProcedureSafety =
-    ACUTE_PANCREATITIS_NECROSIS_PROCEDURE_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
+  const hasNecrosisTarget = ACUTE_PANCREATITIS_NECROSIS_TARGET_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNecrosisTiming = ACUTE_PANCREATITIS_NECROSIS_TIMING_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNecrosisStepUp = ACUTE_PANCREATITIS_NECROSIS_STEP_UP_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
-    hasErcpCholangitisSafety &&
-    hasAntibioticSafety &&
-    hasNutritionSafety &&
-    hasNecrosisProcedureSafety
+    hasErcpAction &&
+    hasErcpIndication &&
+    hasErcpNonroutineLimit &&
+    hasAntibioticAvoidance &&
+    hasAntibioticInfectionLimit &&
+    hasEnteralNutrition &&
+    hasParenteralLimit &&
+    hasNecrosisTarget &&
+    hasNecrosisTiming &&
+    hasNecrosisStepUp
   );
 }
 

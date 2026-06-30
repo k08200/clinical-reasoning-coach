@@ -7558,40 +7558,68 @@ ACUTE_PANCREATITIS_SEVERITY_ORGAN_ACTION_TERMS = (
     "shock",
     "장기부전",
 )
-ACUTE_PANCREATITIS_ERCP_CHOLANGITIS_SAFETY_TERMS = (
+ACUTE_PANCREATITIS_ERCP_ACTION_TERMS = (
+    "biliary drainage",
+    "biliary decompression",
+    "endoscopic retrograde",
+    "ercp",
+)
+ACUTE_PANCREATITIS_ERCP_INDICATION_TERMS = (
     "biliary obstruction",
     "cholangitis",
-    "ercp",
+    "common bile duct obstruction",
     "jaundice",
-    "no cholangitis",
-    "without cholangitis",
     "담관염",
 )
-ACUTE_PANCREATITIS_ANTIBIOTIC_SAFETY_TERMS = (
-    "antibiotic",
+ACUTE_PANCREATITIS_ERCP_NONROUTINE_TERMS = (
+    "avoid routine",
+    "no routine",
+    "not indicated",
+    "not routine",
+    "only when",
+    "without cholangitis",
+)
+ACUTE_PANCREATITIS_ANTIBIOTIC_AVOIDANCE_TERMS = (
+    "avoid prophylactic antibiotics",
+    "no prophylactic antibiotics",
+    "not use prophylactic antibiotics",
+    "prophylactic antibiotics are not",
+)
+ACUTE_PANCREATITIS_ANTIBIOTIC_INFECTION_TERMS = (
     "extrapancreatic infection",
     "infected necrosis",
-    "prophylactic antibiotics",
-    "sterile necrosis",
-    "항생제",
+    "infected pancreatic necrosis",
+    "reserve antibiotics",
 )
-ACUTE_PANCREATITIS_NUTRITION_SAFETY_TERMS = (
+ACUTE_PANCREATITIS_ENTERAL_NUTRITION_TERMS = (
     "enteral",
-    "feeding",
+    "feeding as tolerated",
     "ng tube",
+    "nasoenteric",
     "oral feeding",
-    "parenteral",
-    "tpn",
-    "영양",
 )
-ACUTE_PANCREATITIS_NECROSIS_PROCEDURE_SAFETY_TERMS = (
-    "4 weeks",
-    "drainage",
+ACUTE_PANCREATITIS_PARENTERAL_LIMIT_TERMS = (
+    "avoid parenteral",
+    "avoid tpn",
+    "enteral nutrition is not possible",
+    "unless enteral",
+)
+ACUTE_PANCREATITIS_NECROSIS_TARGET_TERMS = (
     "infected necrosis",
-    "necrosis",
-    "step-up",
+    "infected pancreatic necrosis",
+    "walled-off necrosis",
+)
+ACUTE_PANCREATITIS_NECROSIS_TIMING_TERMS = (
+    "4 weeks",
+    "delayed",
+    "postpone",
     "walled-off",
-    "췌장괴사",
+)
+ACUTE_PANCREATITIS_NECROSIS_STEP_UP_TERMS = (
+    "drainage",
+    "percutaneous",
+    "step-up",
+    "step up",
 )
 SMALL_BOWEL_OBSTRUCTION_CONTEXT_TERMS = (
     "adhesive small bowel obstruction",
@@ -25505,27 +25533,57 @@ def _has_acute_pancreatitis_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_acute_pancreatitis_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_ercp_cholangitis_safety = any(
+    has_ercp_action = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_PANCREATITIS_ERCP_CHOLANGITIS_SAFETY_TERMS
+        for term in ACUTE_PANCREATITIS_ERCP_ACTION_TERMS
     )
-    has_antibiotic_safety = any(
+    has_ercp_indication = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_PANCREATITIS_ANTIBIOTIC_SAFETY_TERMS
+        for term in ACUTE_PANCREATITIS_ERCP_INDICATION_TERMS
     )
-    has_nutrition_safety = any(
+    has_ercp_nonroutine_limit = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_PANCREATITIS_NUTRITION_SAFETY_TERMS
+        for term in ACUTE_PANCREATITIS_ERCP_NONROUTINE_TERMS
     )
-    has_necrosis_procedure_safety = any(
+    has_antibiotic_avoidance = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_PANCREATITIS_NECROSIS_PROCEDURE_SAFETY_TERMS
+        for term in ACUTE_PANCREATITIS_ANTIBIOTIC_AVOIDANCE_TERMS
+    )
+    has_antibiotic_infection_limit = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_PANCREATITIS_ANTIBIOTIC_INFECTION_TERMS
+    )
+    has_enteral_nutrition = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_PANCREATITIS_ENTERAL_NUTRITION_TERMS
+    )
+    has_parenteral_limit = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_PANCREATITIS_PARENTERAL_LIMIT_TERMS
+    )
+    has_necrosis_target = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_PANCREATITIS_NECROSIS_TARGET_TERMS
+    )
+    has_necrosis_timing = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_PANCREATITIS_NECROSIS_TIMING_TERMS
+    )
+    has_necrosis_step_up = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_PANCREATITIS_NECROSIS_STEP_UP_TERMS
     )
     return (
-        has_ercp_cholangitis_safety
-        and has_antibiotic_safety
-        and has_nutrition_safety
-        and has_necrosis_procedure_safety
+        has_ercp_action
+        and has_ercp_indication
+        and has_ercp_nonroutine_limit
+        and has_antibiotic_avoidance
+        and has_antibiotic_infection_limit
+        and has_enteral_nutrition
+        and has_parenteral_limit
+        and has_necrosis_target
+        and has_necrosis_timing
+        and has_necrosis_step_up
     )
 
 
