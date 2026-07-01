@@ -3408,24 +3408,33 @@ VASA_PREVIA_FETAL_ASSESSMENT_ACTION_TERMS = (
     "fetal monitoring",
     "fetal status",
 )
-VASA_PREVIA_TEAM_BLOOD_ACTION_TERMS = (
+VASA_PREVIA_OB_MFM_ACTION_TERMS = (
+    "mfm",
+    "obstetric",
+)
+VASA_PREVIA_ANESTHESIA_BLOOD_ACTION_TERMS = (
     "anaesthesia",
     "anesthesia",
     "blood bank",
-    "mfm",
+)
+VASA_PREVIA_NEONATAL_TEAM_ACTION_TERMS = (
     "neonatal",
-    "obstetric",
 )
 VASA_PREVIA_DELIVERY_ACTION_TERMS = (
     "cesarean",
     "caesarean",
-    "delivery",
-    "immediate birth",
-    "urgent birth",
 )
-VASA_PREVIA_NEONATAL_BLOOD_ACTION_TERMS = (
+VASA_PREVIA_URGENT_BIRTH_ACTION_TERMS = (
+    "immediate birth",
+    "immediate delivery",
+    "urgent birth",
+    "urgent delivery",
+)
+VASA_PREVIA_NEONATAL_RESUSCITATION_ACTION_TERMS = (
     "neonatal resuscitation",
     "newborn resuscitation",
+)
+VASA_PREVIA_NEONATAL_TRANSFUSION_ACTION_TERMS = (
     "packed red",
     "transfusion",
 )
@@ -3440,26 +3449,44 @@ VASA_PREVIA_NO_DELAY_SAFETY_TERMS = (
 VASA_PREVIA_DELIVERY_TIMING_SAFETY_TERMS = (
     "34 and 37",
     "34-37",
+)
+VASA_PREVIA_BEFORE_LABOR_RUPTURE_SAFETY_TERMS = (
     "before labor",
     "before labour",
     "before rupture",
+    "before rupture of membranes",
+)
+VASA_PREVIA_CESAREAN_SAFETY_TERMS = (
     "cesarean",
     "caesarean",
 )
-VASA_PREVIA_STEROID_EXPECTANT_SAFETY_TERMS = (
-    "34 0/7",
-    "36 6/7",
+VASA_PREVIA_STEROID_SAFETY_TERMS = (
     "antenatal corticosteroids",
     "betamethasone",
+)
+VASA_PREVIA_STEROID_WINDOW_SAFETY_TERMS = (
+    "34 0/7",
+    "36 6/7",
     "within 7 days",
 )
-VASA_PREVIA_PROCEDURE_AVOIDANCE_SAFETY_TERMS = (
+VASA_PREVIA_AMNIOTOMY_AVOIDANCE_SAFETY_TERMS = (
     "avoid amniotomy",
+    "no amniotomy",
+)
+VASA_PREVIA_FETAL_SCALP_AVOIDANCE_SAFETY_TERMS = (
     "avoid fetal scalp",
+    "fetal scalp electrode",
+)
+VASA_PREVIA_MEMBRANE_LABOR_AVOIDANCE_SAFETY_TERMS = (
+    "avoid labor",
+    "avoid labour",
     "avoid vaginal delivery",
     "do not rupture membranes",
-    "fetal scalp electrode",
-    "no amniotomy",
+    "membrane rupture",
+)
+VASA_PREVIA_VAGINAL_DELIVERY_AVOIDANCE_SAFETY_TERMS = (
+    "avoid vaginal delivery",
+    "vaginal delivery",
 )
 UTERINE_RUPTURE_CONTEXT_TERMS = (
     "ruptured uterus",
@@ -16517,10 +16544,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_vasa_previa_time_critical_actions,
             issue=(
                 "vasa previa time-critical actions must include fetal heart or "
-                "continuous fetal-status assessment, obstetric/MFM, anaesthesia/"
-                "anesthesia, neonatal, or blood-bank escalation, urgent cesarean/"
-                "caesarean delivery or immediate birth planning, and neonatal "
-                "resuscitation or transfusion preparation for fetal hemorrhage"
+                "continuous fetal-status assessment, obstetric/MFM escalation, "
+                "anaesthesia/anesthesia or blood-bank escalation, neonatal-team "
+                "activation, urgent cesarean/caesarean delivery with immediate "
+                "birth planning, neonatal resuscitation, and transfusion "
+                "preparation for fetal hemorrhage"
             ),
         ),
         DomainSafetyGate(
@@ -16532,11 +16560,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "vasa previa safety checks must include not delaying delivery "
                 "for antenatal corticosteroids or fetal lung maturity testing "
                 "when active hemorrhage or delivery indication is present, stable "
-                "vasa previa delivery planning at 34-37 weeks or before labor/"
-                "rupture, antenatal corticosteroid criteria for expectant late "
-                "preterm management if delivery is likely within 7 days, and "
-                "avoidance of amniotomy, fetal scalp electrode, membrane rupture, "
-                "labor, or vaginal delivery when unprotected fetal vessels are at risk"
+                "vasa previa cesarean/caesarean delivery planning at 34-37 weeks "
+                "and before labor/rupture, antenatal corticosteroid criteria for "
+                "expectant late preterm management if delivery is likely within "
+                "7 days, and avoidance of amniotomy, fetal scalp electrode, "
+                "membrane rupture/labor, and vaginal delivery when unprotected "
+                "fetal vessels are at risk"
             ),
         ),
         DomainSafetyGate(
@@ -22233,23 +22262,43 @@ def _has_vasa_previa_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in VASA_PREVIA_FETAL_ASSESSMENT_ACTION_TERMS
     )
-    has_team_blood = any(
+    has_ob_mfm = any(
         _contains_safety_term(normalized_actions, term)
-        for term in VASA_PREVIA_TEAM_BLOOD_ACTION_TERMS
+        for term in VASA_PREVIA_OB_MFM_ACTION_TERMS
+    )
+    has_anesthesia_blood = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VASA_PREVIA_ANESTHESIA_BLOOD_ACTION_TERMS
+    )
+    has_neonatal_team = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VASA_PREVIA_NEONATAL_TEAM_ACTION_TERMS
     )
     has_delivery = any(
         _contains_safety_term(normalized_actions, term)
         for term in VASA_PREVIA_DELIVERY_ACTION_TERMS
     )
-    has_neonatal_blood = any(
+    has_urgent_birth = any(
         _contains_safety_term(normalized_actions, term)
-        for term in VASA_PREVIA_NEONATAL_BLOOD_ACTION_TERMS
+        for term in VASA_PREVIA_URGENT_BIRTH_ACTION_TERMS
+    )
+    has_neonatal_resuscitation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VASA_PREVIA_NEONATAL_RESUSCITATION_ACTION_TERMS
+    )
+    has_neonatal_transfusion = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VASA_PREVIA_NEONATAL_TRANSFUSION_ACTION_TERMS
     )
     return (
         has_fetal_assessment
-        and has_team_blood
+        and has_ob_mfm
+        and has_anesthesia_blood
+        and has_neonatal_team
         and has_delivery
-        and has_neonatal_blood
+        and has_urgent_birth
+        and has_neonatal_resuscitation
+        and has_neonatal_transfusion
     )
 
 
@@ -22263,19 +22312,49 @@ def _has_vasa_previa_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in VASA_PREVIA_DELIVERY_TIMING_SAFETY_TERMS
     )
-    has_steroid_expectant_safety = any(
+    has_before_labor_rupture_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in VASA_PREVIA_STEROID_EXPECTANT_SAFETY_TERMS
+        for term in VASA_PREVIA_BEFORE_LABOR_RUPTURE_SAFETY_TERMS
     )
-    has_procedure_avoidance_safety = any(
+    has_cesarean_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in VASA_PREVIA_PROCEDURE_AVOIDANCE_SAFETY_TERMS
+        for term in VASA_PREVIA_CESAREAN_SAFETY_TERMS
+    )
+    has_steroid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VASA_PREVIA_STEROID_SAFETY_TERMS
+    )
+    has_steroid_window_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VASA_PREVIA_STEROID_WINDOW_SAFETY_TERMS
+    )
+    has_amniotomy_avoidance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VASA_PREVIA_AMNIOTOMY_AVOIDANCE_SAFETY_TERMS
+    )
+    has_fetal_scalp_avoidance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VASA_PREVIA_FETAL_SCALP_AVOIDANCE_SAFETY_TERMS
+    )
+    has_membrane_labor_avoidance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VASA_PREVIA_MEMBRANE_LABOR_AVOIDANCE_SAFETY_TERMS
+    )
+    has_vaginal_delivery_avoidance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VASA_PREVIA_VAGINAL_DELIVERY_AVOIDANCE_SAFETY_TERMS
     )
     return (
         has_no_delay_safety
         and has_delivery_timing_safety
-        and has_steroid_expectant_safety
-        and has_procedure_avoidance_safety
+        and has_before_labor_rupture_safety
+        and has_cesarean_safety
+        and has_steroid_safety
+        and has_steroid_window_safety
+        and has_amniotomy_avoidance_safety
+        and has_fetal_scalp_avoidance_safety
+        and has_membrane_labor_avoidance_safety
+        and has_vaginal_delivery_avoidance_safety
     )
 
 

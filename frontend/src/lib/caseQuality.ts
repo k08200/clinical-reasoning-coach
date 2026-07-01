@@ -3728,26 +3728,39 @@ const VASA_PREVIA_FETAL_ASSESSMENT_ACTION_TERMS = [
   "fetal status",
 ];
 
-const VASA_PREVIA_TEAM_BLOOD_ACTION_TERMS = [
+const VASA_PREVIA_OB_MFM_ACTION_TERMS = [
+  "mfm",
+  "obstetric",
+];
+
+const VASA_PREVIA_ANESTHESIA_BLOOD_ACTION_TERMS = [
   "anaesthesia",
   "anesthesia",
   "blood bank",
-  "mfm",
+];
+
+const VASA_PREVIA_NEONATAL_TEAM_ACTION_TERMS = [
   "neonatal",
-  "obstetric",
 ];
 
 const VASA_PREVIA_DELIVERY_ACTION_TERMS = [
   "cesarean",
   "caesarean",
-  "delivery",
-  "immediate birth",
-  "urgent birth",
 ];
 
-const VASA_PREVIA_NEONATAL_BLOOD_ACTION_TERMS = [
+const VASA_PREVIA_URGENT_BIRTH_ACTION_TERMS = [
+  "immediate birth",
+  "immediate delivery",
+  "urgent birth",
+  "urgent delivery",
+];
+
+const VASA_PREVIA_NEONATAL_RESUSCITATION_ACTION_TERMS = [
   "neonatal resuscitation",
   "newborn resuscitation",
+];
+
+const VASA_PREVIA_NEONATAL_TRANSFUSION_ACTION_TERMS = [
   "packed red",
   "transfusion",
 ];
@@ -3764,28 +3777,52 @@ const VASA_PREVIA_NO_DELAY_SAFETY_TERMS = [
 const VASA_PREVIA_DELIVERY_TIMING_SAFETY_TERMS = [
   "34 and 37",
   "34-37",
+];
+
+const VASA_PREVIA_BEFORE_LABOR_RUPTURE_SAFETY_TERMS = [
   "before labor",
   "before labour",
   "before rupture",
+  "before rupture of membranes",
+];
+
+const VASA_PREVIA_CESAREAN_SAFETY_TERMS = [
   "cesarean",
   "caesarean",
 ];
 
-const VASA_PREVIA_STEROID_EXPECTANT_SAFETY_TERMS = [
-  "34 0/7",
-  "36 6/7",
+const VASA_PREVIA_STEROID_SAFETY_TERMS = [
   "antenatal corticosteroids",
   "betamethasone",
+];
+
+const VASA_PREVIA_STEROID_WINDOW_SAFETY_TERMS = [
+  "34 0/7",
+  "36 6/7",
   "within 7 days",
 ];
 
-const VASA_PREVIA_PROCEDURE_AVOIDANCE_SAFETY_TERMS = [
+const VASA_PREVIA_AMNIOTOMY_AVOIDANCE_SAFETY_TERMS = [
   "avoid amniotomy",
+  "no amniotomy",
+];
+
+const VASA_PREVIA_FETAL_SCALP_AVOIDANCE_SAFETY_TERMS = [
   "avoid fetal scalp",
+  "fetal scalp electrode",
+];
+
+const VASA_PREVIA_MEMBRANE_LABOR_AVOIDANCE_SAFETY_TERMS = [
+  "avoid labor",
+  "avoid labour",
   "avoid vaginal delivery",
   "do not rupture membranes",
-  "fetal scalp electrode",
-  "no amniotomy",
+  "membrane rupture",
+];
+
+const VASA_PREVIA_VAGINAL_DELIVERY_AVOIDANCE_SAFETY_TERMS = [
+  "avoid vaginal delivery",
+  "vaginal delivery",
 ];
 
 const UTERINE_RUPTURE_CONTEXT_TERMS = [
@@ -18873,16 +18910,37 @@ function hasVasaPreviaTimeCriticalActions(actions: string[]): boolean {
   const hasFetalAssessment = VASA_PREVIA_FETAL_ASSESSMENT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasTeamBlood = VASA_PREVIA_TEAM_BLOOD_ACTION_TERMS.some((term) =>
+  const hasObMfm = VASA_PREVIA_OB_MFM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAnesthesiaBlood = VASA_PREVIA_ANESTHESIA_BLOOD_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeonatalTeam = VASA_PREVIA_NEONATAL_TEAM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasDelivery = VASA_PREVIA_DELIVERY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasNeonatalBlood = VASA_PREVIA_NEONATAL_BLOOD_ACTION_TERMS.some((term) =>
+  const hasUrgentBirth = VASA_PREVIA_URGENT_BIRTH_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasFetalAssessment && hasTeamBlood && hasDelivery && hasNeonatalBlood;
+  const hasNeonatalResuscitation = VASA_PREVIA_NEONATAL_RESUSCITATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeonatalTransfusion = VASA_PREVIA_NEONATAL_TRANSFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasFetalAssessment &&
+    hasObMfm &&
+    hasAnesthesiaBlood &&
+    hasNeonatalTeam &&
+    hasDelivery &&
+    hasUrgentBirth &&
+    hasNeonatalResuscitation &&
+    hasNeonatalTransfusion
+  );
 }
 
 function hasVasaPreviaTreatmentSafetyCheck(checks: string[]): boolean {
@@ -18893,17 +18951,42 @@ function hasVasaPreviaTreatmentSafetyCheck(checks: string[]): boolean {
   const hasDeliveryTimingSafety = VASA_PREVIA_DELIVERY_TIMING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasSteroidExpectantSafety = VASA_PREVIA_STEROID_EXPECTANT_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
-  );
-  const hasProcedureAvoidanceSafety = VASA_PREVIA_PROCEDURE_AVOIDANCE_SAFETY_TERMS.some(
+  const hasBeforeLaborRuptureSafety = VASA_PREVIA_BEFORE_LABOR_RUPTURE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasCesareanSafety = VASA_PREVIA_CESAREAN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidSafety = VASA_PREVIA_STEROID_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidWindowSafety = VASA_PREVIA_STEROID_WINDOW_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAmniotomyAvoidanceSafety = VASA_PREVIA_AMNIOTOMY_AVOIDANCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFetalScalpAvoidanceSafety = VASA_PREVIA_FETAL_SCALP_AVOIDANCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMembraneLaborAvoidanceSafety = VASA_PREVIA_MEMBRANE_LABOR_AVOIDANCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVaginalDeliveryAvoidanceSafety =
+    VASA_PREVIA_VAGINAL_DELIVERY_AVOIDANCE_SAFETY_TERMS.some(
+      (term) => containsSafetyTerm(normalizedChecks, term),
+    );
   return (
     hasNoDelaySafety &&
     hasDeliveryTimingSafety &&
-    hasSteroidExpectantSafety &&
-    hasProcedureAvoidanceSafety
+    hasBeforeLaborRuptureSafety &&
+    hasCesareanSafety &&
+    hasSteroidSafety &&
+    hasSteroidWindowSafety &&
+    hasAmniotomyAvoidanceSafety &&
+    hasFetalScalpAvoidanceSafety &&
+    hasMembraneLaborAvoidanceSafety &&
+    hasVaginalDeliveryAvoidanceSafety
   );
 }
 
