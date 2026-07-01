@@ -4371,59 +4371,91 @@ const HYPERTENSIVE_EMERGENCY_ORGAN_CONTEXT_TERMS = [
   "장기 손상",
 ];
 
-const HYPERTENSIVE_EMERGENCY_BP_CONFIRM_MONITOR_ACTION_TERMS = [
-  "arterial line",
+const HYPERTENSIVE_EMERGENCY_BP_CONFIRM_ACTION_TERMS = [
   "blood pressure confirmation",
-  "continuous bp",
-  "icu",
-  "monitored setting",
+  "confirm repeat bp",
+  "confirm repeat blood pressure",
   "repeat bp",
   "repeat blood pressure",
-  "telemetry",
   "반복 혈압",
+];
+
+const HYPERTENSIVE_EMERGENCY_MONITOR_ACTION_TERMS = [
+  "arterial line",
+  "continuous bp",
+  "continuous blood pressure",
+  "icu",
+  "monitored setting",
+  "telemetry",
   "중환자",
 ];
 
-const HYPERTENSIVE_EMERGENCY_ORGAN_ASSESSMENT_ACTION_TERMS = [
-  "aki",
-  "aortic dissection",
-  "chest x-ray",
-  "creatinine",
+const HYPERTENSIVE_EMERGENCY_NEURO_OR_EYE_ASSESSMENT_ACTION_TERMS = [
   "ct head",
-  "ecg",
   "encephalopathy",
   "fundoscopic",
   "neurologic",
-  "pulmonary edema",
+  "papilledema",
+  "retinal hemorrhage",
+  "seizure",
+];
+
+const HYPERTENSIVE_EMERGENCY_RENAL_ASSESSMENT_ACTION_TERMS = [
+  "aki",
+  "creatinine",
   "renal",
-  "troponin",
   "urinalysis",
+];
+
+const HYPERTENSIVE_EMERGENCY_CARDIOPULMONARY_AORTIC_ASSESSMENT_ACTION_TERMS = [
+  "aortic dissection",
+  "chest x-ray",
+  "ecg",
+  "myocardial ischemia",
+  "pulmonary edema",
+  "troponin",
+];
+
+const HYPERTENSIVE_EMERGENCY_ORGAN_DAMAGE_LABEL_ACTION_TERMS = [
+  "acute target-organ damage",
+  "end-organ damage",
+  "target-organ damage",
   "장기 손상",
 ];
 
-const HYPERTENSIVE_EMERGENCY_IV_TREATMENT_ACTION_TERMS = [
+const HYPERTENSIVE_EMERGENCY_TITRATABLE_IV_CONTEXT_ACTION_TERMS = [
+  "short-acting",
+  "titrated infusion",
+  "titratable",
+  "iv antihypertensive",
+  "intravenous antihypertensive",
+];
+
+const HYPERTENSIVE_EMERGENCY_IV_MED_ACTION_TERMS = [
   "clevidipine",
   "esmolol",
   "fenoldopam",
-  "iv antihypertensive",
+  "hydralazine",
   "iv labetalol",
-  "labetalol",
   "nicardipine",
   "nitroglycerin",
   "nitroprusside",
-  "titrated infusion",
   "정맥",
 ];
 
-const HYPERTENSIVE_EMERGENCY_BP_TARGET_ACTION_TERMS = [
+const HYPERTENSIVE_EMERGENCY_MAP_TARGET_ACTION_TERMS = [
   "20 to 25%",
   "20-25%",
   "25%",
-  "first hour",
   "gradual",
   "map",
   "mean arterial pressure",
-  "not abruptly",
+];
+
+const HYPERTENSIVE_EMERGENCY_TIME_TARGET_ACTION_TERMS = [
+  "1 to 2 hours",
+  "first hour",
+  "hour or two",
   "첫 1시간",
 ];
 
@@ -4436,41 +4468,64 @@ const HYPERTENSIVE_EMERGENCY_URGENCY_DIFFERENTIATION_SAFETY_TERMS = [
   "무증상",
 ];
 
-const HYPERTENSIVE_EMERGENCY_OVERLOWERING_SAFETY_TERMS = [
+const HYPERTENSIVE_EMERGENCY_RAPID_LOWERING_SAFETY_TERMS = [
   "avoid rapid",
-  "cerebral hypoperfusion",
-  "gradual",
-  "hypoperfusion",
-  "hypotension",
-  "no more than 25%",
   "not abruptly",
   "overcorrection",
   "과교정",
 ];
 
-const HYPERTENSIVE_EMERGENCY_CONDITION_MED_SAFETY_TERMS = [
+const HYPERTENSIVE_EMERGENCY_HYPOPERFUSION_SAFETY_TERMS = [
+  "cerebral hypoperfusion",
+  "hypoperfusion",
+  "hypotension",
+];
+
+const HYPERTENSIVE_EMERGENCY_REDUCTION_LIMIT_SAFETY_TERMS = [
+  "20 to 25%",
+  "20-25%",
+  "25%",
+  "no more than 25%",
+];
+
+const HYPERTENSIVE_EMERGENCY_CONDITION_CONTEXT_SAFETY_TERMS = [
   "aortic dissection",
-  "asthma",
-  "beta blocker",
-  "bradycardia",
   "heart failure",
   "ischemic stroke",
   "pregnancy",
   "pulmonary edema",
   "renal failure",
   "stroke",
+];
+
+const HYPERTENSIVE_EMERGENCY_MED_CONTRAINDICATION_SAFETY_TERMS = [
+  "asthma",
+  "azotemia",
+  "beta blocker",
+  "bradycardia",
+  "heart block",
+  "high intracranial pressure",
+  "myocardial ischemia",
+  "nitroprusside toxicity",
   "금기",
 ];
 
-const HYPERTENSIVE_EMERGENCY_DISPOSITION_SAFETY_TERMS = [
-  "arterial line",
-  "continuous",
+const HYPERTENSIVE_EMERGENCY_ICU_DISPOSITION_SAFETY_TERMS = [
   "icu",
   "monitored",
-  "reassessment",
-  "telemetry",
-  "titration",
   "중환자",
+];
+
+const HYPERTENSIVE_EMERGENCY_CONTINUOUS_MONITOR_SAFETY_TERMS = [
+  "arterial line",
+  "continuous",
+  "telemetry",
+];
+
+const HYPERTENSIVE_EMERGENCY_TITRATION_REASSESSMENT_SAFETY_TERMS = [
+  "reassessment",
+  "titration",
+  "titrate",
 ];
 
 const GIANT_CELL_ARTERITIS_DIRECT_CONTEXT_TERMS = [
@@ -19829,20 +19884,50 @@ function requiresHypertensiveEmergencySafetyCheck(detail: ClinicalCaseReviewDeta
 
 function hasHypertensiveEmergencyTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasBpConfirmationMonitoring =
-    HYPERTENSIVE_EMERGENCY_BP_CONFIRM_MONITOR_ACTION_TERMS.some((term) =>
+  const hasBpConfirmation = HYPERTENSIVE_EMERGENCY_BP_CONFIRM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMonitoring = HYPERTENSIVE_EMERGENCY_MONITOR_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeuroOrEyeAssessment = HYPERTENSIVE_EMERGENCY_NEURO_OR_EYE_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRenalAssessment = HYPERTENSIVE_EMERGENCY_RENAL_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCardiopulmonaryAorticAssessment =
+    HYPERTENSIVE_EMERGENCY_CARDIOPULMONARY_AORTIC_ASSESSMENT_ACTION_TERMS.some((term) =>
       containsSafetyTerm(normalizedActions, term),
     );
-  const hasOrganAssessment = HYPERTENSIVE_EMERGENCY_ORGAN_ASSESSMENT_ACTION_TERMS.some((term) =>
+  const hasOrganDamageLabel = HYPERTENSIVE_EMERGENCY_ORGAN_DAMAGE_LABEL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasIvTreatment = HYPERTENSIVE_EMERGENCY_IV_TREATMENT_ACTION_TERMS.some((term) =>
+  const hasTitratableIvContext =
+    HYPERTENSIVE_EMERGENCY_TITRATABLE_IV_CONTEXT_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasIvMed = HYPERTENSIVE_EMERGENCY_IV_MED_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasBpTarget = HYPERTENSIVE_EMERGENCY_BP_TARGET_ACTION_TERMS.some((term) =>
+  const hasMapTarget = HYPERTENSIVE_EMERGENCY_MAP_TARGET_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasBpConfirmationMonitoring && hasOrganAssessment && hasIvTreatment && hasBpTarget;
+  const hasTimeTarget = HYPERTENSIVE_EMERGENCY_TIME_TARGET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasBpConfirmation &&
+    hasMonitoring &&
+    hasOrganDamageLabel &&
+    hasNeuroOrEyeAssessment &&
+    hasRenalAssessment &&
+    hasCardiopulmonaryAorticAssessment &&
+    hasTitratableIvContext &&
+    hasIvMed &&
+    hasMapTarget &&
+    hasTimeTarget
+  );
 }
 
 function hasHypertensiveEmergencyTreatmentSafetyCheck(checks: string[]): boolean {
@@ -19851,20 +19936,42 @@ function hasHypertensiveEmergencyTreatmentSafetyCheck(checks: string[]): boolean
     HYPERTENSIVE_EMERGENCY_URGENCY_DIFFERENTIATION_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasOverloweringSafety = HYPERTENSIVE_EMERGENCY_OVERLOWERING_SAFETY_TERMS.some((term) =>
+  const hasRapidLoweringSafety = HYPERTENSIVE_EMERGENCY_RAPID_LOWERING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasConditionMedSafety = HYPERTENSIVE_EMERGENCY_CONDITION_MED_SAFETY_TERMS.some((term) =>
+  const hasHypoperfusionSafety = HYPERTENSIVE_EMERGENCY_HYPOPERFUSION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDispositionSafety = HYPERTENSIVE_EMERGENCY_DISPOSITION_SAFETY_TERMS.some((term) =>
+  const hasReductionLimitSafety = HYPERTENSIVE_EMERGENCY_REDUCTION_LIMIT_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasConditionContextSafety = HYPERTENSIVE_EMERGENCY_CONDITION_CONTEXT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMedContraindicationSafety =
+    HYPERTENSIVE_EMERGENCY_MED_CONTRAINDICATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasIcuDispositionSafety = HYPERTENSIVE_EMERGENCY_ICU_DISPOSITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasContinuousMonitorSafety = HYPERTENSIVE_EMERGENCY_CONTINUOUS_MONITOR_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTitrationReassessmentSafety =
+    HYPERTENSIVE_EMERGENCY_TITRATION_REASSESSMENT_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   return (
     hasUrgencyDifferentiation &&
-    hasOverloweringSafety &&
-    hasConditionMedSafety &&
-    hasDispositionSafety
+    hasRapidLoweringSafety &&
+    hasHypoperfusionSafety &&
+    hasReductionLimitSafety &&
+    hasConditionContextSafety &&
+    hasMedContraindicationSafety &&
+    hasIcuDispositionSafety &&
+    hasContinuousMonitorSafety &&
+    hasTitrationReassessmentSafety
   );
 }
 
@@ -28136,7 +28243,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasHypertensiveEmergencyTimeCriticalActions,
       issue:
-        "hypertensive emergency time-critical actions must include repeat BP confirmation or monitored-setting/ICU/telemetry/arterial-line monitoring, acute target-organ damage assessment for neurologic, renal, cardiac, pulmonary-edema, aortic-dissection, fundoscopic, ECG, troponin, creatinine, urinalysis, CT-head, or chest-x-ray findings, titratable IV antihypertensive therapy such as nicardipine, labetalol, clevidipine, esmolol, fenoldopam, nitroglycerin, or nitroprusside, and a controlled BP-lowering target such as MAP or mean arterial pressure reduction by about 20-25% in the first hour without abrupt overcorrection",
+        "hypertensive emergency time-critical actions must include repeat BP confirmation and monitored-setting/ICU/telemetry/arterial-line monitoring, acute target-organ damage assessment covering neurologic or fundoscopic findings, renal testing, and cardiac/pulmonary-edema/aortic-dissection testing, short-acting titratable IV antihypertensive therapy with a specific agent such as nicardipine, IV labetalol, clevidipine, esmolol, fenoldopam, nitroglycerin, or nitroprusside, and a controlled BP-lowering target such as MAP or mean arterial pressure reduction by about 20-25% over the first 1-2 hours",
     },
     {
       name: "hypertensive_emergency_treatment_safety",
@@ -28145,7 +28252,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasHypertensiveEmergencyTreatmentSafetyCheck,
       issue:
-        "hypertensive emergency safety checks must distinguish true emergency with acute target-organ damage from asymptomatic markedly elevated BP or hypertensive urgency, avoid overly rapid BP lowering, hypotension, cerebral hypoperfusion, or more-than-25% early reduction, review condition-specific medication choice or contraindications for aortic dissection, pulmonary edema, stroke, pregnancy, renal failure, heart failure, asthma, bradycardia, or beta-blocker use, and include ICU, monitored, continuous BP, arterial-line, telemetry, titration, or reassessment disposition",
+        "hypertensive emergency safety checks must distinguish true emergency with acute target-organ damage from asymptomatic markedly elevated BP or hypertensive urgency, avoid overly rapid BP lowering with hypotension/hypoperfusion and more-than-25% early reduction safeguards, review condition-specific medication choice and drug contraindications for contexts such as aortic dissection, pulmonary edema, stroke, pregnancy, renal failure, heart failure, asthma, bradycardia, beta-blocker use, high intracranial pressure, or azotemia, and include ICU/monitored disposition with continuous BP/arterial-line/telemetry monitoring plus titration or reassessment",
     },
     {
       name: "giant_cell_arteritis_time_critical_actions",

@@ -3967,56 +3967,82 @@ HYPERTENSIVE_EMERGENCY_ORGAN_CONTEXT_TERMS = (
     "뇌병증",
     "장기 손상",
 )
-HYPERTENSIVE_EMERGENCY_BP_CONFIRM_MONITOR_ACTION_TERMS = (
-    "arterial line",
+HYPERTENSIVE_EMERGENCY_BP_CONFIRM_ACTION_TERMS = (
     "blood pressure confirmation",
-    "continuous bp",
-    "icu",
-    "monitored setting",
+    "confirm repeat bp",
+    "confirm repeat blood pressure",
     "repeat bp",
     "repeat blood pressure",
-    "telemetry",
     "반복 혈압",
+)
+HYPERTENSIVE_EMERGENCY_MONITOR_ACTION_TERMS = (
+    "arterial line",
+    "continuous bp",
+    "continuous blood pressure",
+    "icu",
+    "monitored setting",
+    "telemetry",
     "중환자",
 )
-HYPERTENSIVE_EMERGENCY_ORGAN_ASSESSMENT_ACTION_TERMS = (
-    "aki",
-    "aortic dissection",
-    "chest x-ray",
-    "creatinine",
+HYPERTENSIVE_EMERGENCY_NEURO_OR_EYE_ASSESSMENT_ACTION_TERMS = (
     "ct head",
-    "ecg",
     "encephalopathy",
     "fundoscopic",
     "neurologic",
-    "pulmonary edema",
+    "papilledema",
+    "retinal hemorrhage",
+    "seizure",
+)
+HYPERTENSIVE_EMERGENCY_RENAL_ASSESSMENT_ACTION_TERMS = (
+    "aki",
+    "creatinine",
     "renal",
-    "troponin",
     "urinalysis",
+)
+HYPERTENSIVE_EMERGENCY_CARDIOPULMONARY_AORTIC_ASSESSMENT_ACTION_TERMS = (
+    "aortic dissection",
+    "chest x-ray",
+    "ecg",
+    "myocardial ischemia",
+    "pulmonary edema",
+    "troponin",
+)
+HYPERTENSIVE_EMERGENCY_ORGAN_DAMAGE_LABEL_ACTION_TERMS = (
+    "acute target-organ damage",
+    "end-organ damage",
+    "target-organ damage",
     "장기 손상",
 )
-HYPERTENSIVE_EMERGENCY_IV_TREATMENT_ACTION_TERMS = (
+HYPERTENSIVE_EMERGENCY_TITRATABLE_IV_CONTEXT_ACTION_TERMS = (
+    "short-acting",
+    "titrated infusion",
+    "titratable",
+    "iv antihypertensive",
+    "intravenous antihypertensive",
+)
+HYPERTENSIVE_EMERGENCY_IV_MED_ACTION_TERMS = (
     "clevidipine",
     "esmolol",
     "fenoldopam",
-    "iv antihypertensive",
+    "hydralazine",
     "iv labetalol",
-    "labetalol",
     "nicardipine",
     "nitroglycerin",
     "nitroprusside",
-    "titrated infusion",
     "정맥",
 )
-HYPERTENSIVE_EMERGENCY_BP_TARGET_ACTION_TERMS = (
+HYPERTENSIVE_EMERGENCY_MAP_TARGET_ACTION_TERMS = (
     "20 to 25%",
     "20-25%",
     "25%",
-    "first hour",
     "gradual",
     "map",
     "mean arterial pressure",
-    "not abruptly",
+)
+HYPERTENSIVE_EMERGENCY_TIME_TARGET_ACTION_TERMS = (
+    "1 to 2 hours",
+    "first hour",
+    "hour or two",
     "첫 1시간",
 )
 HYPERTENSIVE_EMERGENCY_URGENCY_DIFFERENTIATION_SAFETY_TERMS = (
@@ -4027,39 +4053,57 @@ HYPERTENSIVE_EMERGENCY_URGENCY_DIFFERENTIATION_SAFETY_TERMS = (
     "urgency",
     "무증상",
 )
-HYPERTENSIVE_EMERGENCY_OVERLOWERING_SAFETY_TERMS = (
+HYPERTENSIVE_EMERGENCY_RAPID_LOWERING_SAFETY_TERMS = (
     "avoid rapid",
-    "cerebral hypoperfusion",
-    "gradual",
-    "hypoperfusion",
-    "hypotension",
-    "no more than 25%",
     "not abruptly",
     "overcorrection",
     "과교정",
 )
-HYPERTENSIVE_EMERGENCY_CONDITION_MED_SAFETY_TERMS = (
+HYPERTENSIVE_EMERGENCY_HYPOPERFUSION_SAFETY_TERMS = (
+    "cerebral hypoperfusion",
+    "hypoperfusion",
+    "hypotension",
+)
+HYPERTENSIVE_EMERGENCY_REDUCTION_LIMIT_SAFETY_TERMS = (
+    "20 to 25%",
+    "20-25%",
+    "25%",
+    "no more than 25%",
+)
+HYPERTENSIVE_EMERGENCY_CONDITION_CONTEXT_SAFETY_TERMS = (
     "aortic dissection",
-    "asthma",
-    "beta blocker",
-    "bradycardia",
     "heart failure",
     "ischemic stroke",
     "pregnancy",
     "pulmonary edema",
     "renal failure",
     "stroke",
+)
+HYPERTENSIVE_EMERGENCY_MED_CONTRAINDICATION_SAFETY_TERMS = (
+    "asthma",
+    "azotemia",
+    "beta blocker",
+    "bradycardia",
+    "heart block",
+    "high intracranial pressure",
+    "myocardial ischemia",
+    "nitroprusside toxicity",
     "금기",
 )
-HYPERTENSIVE_EMERGENCY_DISPOSITION_SAFETY_TERMS = (
-    "arterial line",
-    "continuous",
+HYPERTENSIVE_EMERGENCY_ICU_DISPOSITION_SAFETY_TERMS = (
     "icu",
     "monitored",
-    "reassessment",
-    "telemetry",
-    "titration",
     "중환자",
+)
+HYPERTENSIVE_EMERGENCY_CONTINUOUS_MONITOR_SAFETY_TERMS = (
+    "arterial line",
+    "continuous",
+    "telemetry",
+)
+HYPERTENSIVE_EMERGENCY_TITRATION_REASSESSMENT_SAFETY_TERMS = (
+    "reassessment",
+    "titration",
+    "titrate",
 )
 GIANT_CELL_ARTERITIS_DIRECT_CONTEXT_TERMS = (
     "cranial arteritis",
@@ -16933,15 +16977,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_hypertensive_emergency_time_critical_actions,
             issue=(
                 "hypertensive emergency time-critical actions must include repeat "
-                "BP confirmation or monitored-setting/ICU/telemetry/arterial-line "
-                "monitoring, acute target-organ damage assessment for neurologic, "
-                "renal, cardiac, pulmonary-edema, aortic-dissection, fundoscopic, "
-                "ECG, troponin, creatinine, urinalysis, CT-head, or chest-x-ray "
-                "findings, titratable IV antihypertensive therapy such as "
-                "nicardipine, labetalol, clevidipine, esmolol, fenoldopam, "
+                "BP confirmation and monitored-setting/ICU/telemetry/arterial-line "
+                "monitoring, acute target-organ damage assessment covering "
+                "neurologic or fundoscopic findings, renal testing, and cardiac/"
+                "pulmonary-edema/aortic-dissection testing, short-acting titratable "
+                "IV antihypertensive therapy with a specific agent such as "
+                "nicardipine, IV labetalol, clevidipine, esmolol, fenoldopam, "
                 "nitroglycerin, or nitroprusside, and a controlled BP-lowering "
                 "target such as MAP or mean arterial pressure reduction by about "
-                "20-25% in the first hour without abrupt overcorrection"
+                "20-25% over the first 1-2 hours"
             ),
         ),
         DomainSafetyGate(
@@ -16953,12 +16997,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "hypertensive emergency safety checks must distinguish true "
                 "emergency with acute target-organ damage from asymptomatic "
                 "markedly elevated BP or hypertensive urgency, avoid overly rapid "
-                "BP lowering, hypotension, cerebral hypoperfusion, or more-than-25% "
-                "early reduction, review condition-specific medication choice or "
-                "contraindications for aortic dissection, pulmonary edema, stroke, "
-                "pregnancy, renal failure, heart failure, asthma, bradycardia, or "
-                "beta-blocker use, and include ICU, monitored, continuous BP, "
-                "arterial-line, telemetry, titration, or reassessment disposition"
+                "BP lowering with hypotension/hypoperfusion and more-than-25% "
+                "early reduction safeguards, review condition-specific medication "
+                "choice and drug contraindications for contexts such as aortic "
+                "dissection, pulmonary edema, stroke, pregnancy, renal failure, "
+                "heart failure, asthma, bradycardia, beta-blocker use, high "
+                "intracranial pressure, or azotemia, and include ICU/monitored "
+                "disposition with continuous BP/arterial-line/telemetry monitoring "
+                "plus titration or reassessment"
             ),
         ),
         DomainSafetyGate(
@@ -23314,27 +23360,57 @@ def _has_hypertensive_emergency_time_critical_actions(
     actions: list[Any],
 ) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_bp_confirmation_monitoring = any(
+    has_bp_confirmation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HYPERTENSIVE_EMERGENCY_BP_CONFIRM_MONITOR_ACTION_TERMS
+        for term in HYPERTENSIVE_EMERGENCY_BP_CONFIRM_ACTION_TERMS
     )
-    has_organ_assessment = any(
+    has_monitoring = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HYPERTENSIVE_EMERGENCY_ORGAN_ASSESSMENT_ACTION_TERMS
+        for term in HYPERTENSIVE_EMERGENCY_MONITOR_ACTION_TERMS
     )
-    has_iv_treatment = any(
+    has_neuro_or_eye_assessment = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HYPERTENSIVE_EMERGENCY_IV_TREATMENT_ACTION_TERMS
+        for term in HYPERTENSIVE_EMERGENCY_NEURO_OR_EYE_ASSESSMENT_ACTION_TERMS
     )
-    has_bp_target = any(
+    has_renal_assessment = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HYPERTENSIVE_EMERGENCY_BP_TARGET_ACTION_TERMS
+        for term in HYPERTENSIVE_EMERGENCY_RENAL_ASSESSMENT_ACTION_TERMS
+    )
+    has_cardiopulmonary_aortic_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERTENSIVE_EMERGENCY_CARDIOPULMONARY_AORTIC_ASSESSMENT_ACTION_TERMS
+    )
+    has_organ_damage_label = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERTENSIVE_EMERGENCY_ORGAN_DAMAGE_LABEL_ACTION_TERMS
+    )
+    has_titratable_iv_context = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERTENSIVE_EMERGENCY_TITRATABLE_IV_CONTEXT_ACTION_TERMS
+    )
+    has_iv_med = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERTENSIVE_EMERGENCY_IV_MED_ACTION_TERMS
+    )
+    has_map_target = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERTENSIVE_EMERGENCY_MAP_TARGET_ACTION_TERMS
+    )
+    has_time_target = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERTENSIVE_EMERGENCY_TIME_TARGET_ACTION_TERMS
     )
     return (
-        has_bp_confirmation_monitoring
-        and has_organ_assessment
-        and has_iv_treatment
-        and has_bp_target
+        has_bp_confirmation
+        and has_monitoring
+        and has_organ_damage_label
+        and has_neuro_or_eye_assessment
+        and has_renal_assessment
+        and has_cardiopulmonary_aortic_assessment
+        and has_titratable_iv_context
+        and has_iv_med
+        and has_map_target
+        and has_time_target
     )
 
 
@@ -23346,23 +23422,48 @@ def _has_hypertensive_emergency_treatment_safety_check(
         _contains_safety_term(normalized_checks, term)
         for term in HYPERTENSIVE_EMERGENCY_URGENCY_DIFFERENTIATION_SAFETY_TERMS
     )
-    has_overlowering_safety = any(
+    has_rapid_lowering_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HYPERTENSIVE_EMERGENCY_OVERLOWERING_SAFETY_TERMS
+        for term in HYPERTENSIVE_EMERGENCY_RAPID_LOWERING_SAFETY_TERMS
     )
-    has_condition_med_safety = any(
+    has_hypoperfusion_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HYPERTENSIVE_EMERGENCY_CONDITION_MED_SAFETY_TERMS
+        for term in HYPERTENSIVE_EMERGENCY_HYPOPERFUSION_SAFETY_TERMS
     )
-    has_disposition_safety = any(
+    has_reduction_limit_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HYPERTENSIVE_EMERGENCY_DISPOSITION_SAFETY_TERMS
+        for term in HYPERTENSIVE_EMERGENCY_REDUCTION_LIMIT_SAFETY_TERMS
+    )
+    has_condition_context_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERTENSIVE_EMERGENCY_CONDITION_CONTEXT_SAFETY_TERMS
+    )
+    has_med_contraindication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERTENSIVE_EMERGENCY_MED_CONTRAINDICATION_SAFETY_TERMS
+    )
+    has_icu_disposition_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERTENSIVE_EMERGENCY_ICU_DISPOSITION_SAFETY_TERMS
+    )
+    has_continuous_monitor_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERTENSIVE_EMERGENCY_CONTINUOUS_MONITOR_SAFETY_TERMS
+    )
+    has_titration_reassessment_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERTENSIVE_EMERGENCY_TITRATION_REASSESSMENT_SAFETY_TERMS
     )
     return (
         has_urgency_differentiation
-        and has_overlowering_safety
-        and has_condition_med_safety
-        and has_disposition_safety
+        and has_rapid_lowering_safety
+        and has_hypoperfusion_safety
+        and has_reduction_limit_safety
+        and has_condition_context_safety
+        and has_med_contraindication_safety
+        and has_icu_disposition_safety
+        and has_continuous_monitor_safety
+        and has_titration_reassessment_safety
     )
 
 
