@@ -15263,25 +15263,34 @@ const ACUTE_HEART_FAILURE_CONTEXT_TERMS = [
   "폐부종",
 ];
 
-const ACUTE_HF_OXYGEN_NIV_ACTION_TERMS = [
+const ACUTE_HF_OXYGEN_ACTION_TERMS = [
+  "hypoxemia",
+  "oxygen",
+  "산소",
+];
+
+const ACUTE_HF_NIV_ACTION_TERMS = [
   "bipap",
   "cpap",
-  "hypoxemia",
-  "intubation",
   "niv",
   "noninvasive ventilation",
   "non-invasive ventilation",
-  "oxygen",
   "positive pressure",
-  "ventilation",
-  "산소",
   "양압",
+];
+
+const ACUTE_HF_RESPIRATORY_FAILURE_ACTION_TERMS = [
+  "intubation",
+  "pulmonary edema",
+  "pulmonary oedema",
+  "respiratory failure",
+  "severe dyspnea",
+  "ventilation",
   "환기",
 ];
 
 const ACUTE_HF_DIURETIC_ACTION_TERMS = [
   "bumetanide",
-  "decongestion",
   "diuretic",
   "furosemide",
   "loop diuretic",
@@ -15289,84 +15298,129 @@ const ACUTE_HF_DIURETIC_ACTION_TERMS = [
   "이뇨",
 ];
 
-const ACUTE_HF_VASODILATOR_BP_ACTION_TERMS = [
+const ACUTE_HF_DECONGESTION_ACTION_TERMS = [
+  "congestion",
+  "decongestion",
+  "pulmonary edema",
+  "pulmonary oedema",
+];
+
+const ACUTE_HF_VASODILATOR_ACTION_TERMS = [
   "afterload",
-  "blood pressure",
-  "hypertensive",
   "nitroglycerin",
   "nitrate",
-  "nitroprusside",
   "vasodilator",
-  "혈압",
   "혈관확장",
 ];
 
-const ACUTE_HF_ESCALATION_ACTION_TERMS = [
+const ACUTE_HF_BP_CONTEXT_ACTION_TERMS = [
+  "blood pressure",
+  "hypertensive",
+  "pressure allows",
+  "혈압",
+];
+
+const ACUTE_HF_SHOCK_ACTION_TERMS = [
   "cardiogenic shock",
+  "shock",
+  "쇼크",
+];
+
+const ACUTE_HF_ESCALATION_ACTION_TERMS = [
   "icu",
   "inotrope",
   "intubation",
   "mechanical ventilation",
   "pressor",
   "respiratory failure",
-  "shock",
   "vasopressor",
   "기계환기",
   "삽관",
-  "쇼크",
   "중환자",
 ];
 
-const ACUTE_HF_BP_VASODILATOR_SAFETY_TERMS = [
-  "aortic stenosis",
+const ACUTE_HF_BP_MONITORING_SAFETY_TERMS = [
   "blood pressure",
-  "hypotension",
-  "nitrate",
-  "right ventricular infarct",
-  "sildenafil",
-  "vasodilator",
-  "저혈압",
+  "blood pressure monitoring",
+  "close blood pressure",
   "혈압",
 ];
 
-const ACUTE_HF_RENAL_ELECTROLYTE_SAFETY_TERMS = [
+const ACUTE_HF_HYPOTENSION_SAFETY_TERMS = [
+  "hypotension",
+  "저혈압",
+];
+
+const ACUTE_HF_VASODILATOR_SAFETY_TERMS = [
+  "nitrate",
+  "nitroglycerin",
+  "vasodilator",
+];
+
+const ACUTE_HF_VASODILATOR_CONTRAINDICATION_SAFETY_TERMS = [
+  "aortic stenosis",
+  "pde5",
+  "right ventricular infarct",
+  "sildenafil",
+];
+
+const ACUTE_HF_RENAL_MONITORING_SAFETY_TERMS = [
   "creatinine",
+  "kidney",
+  "renal",
+  "신장",
+];
+
+const ACUTE_HF_DIURESIS_OUTPUT_SAFETY_TERMS = [
+  "diuresis",
+  "urine output",
+];
+
+const ACUTE_HF_ELECTROLYTE_SAFETY_TERMS = [
   "electrolyte",
   "hypokalemia",
-  "kidney",
   "magnesium",
   "potassium",
-  "renal",
-  "urine output",
-  "신장",
   "전해질",
 ];
 
-const ACUTE_HF_TRIGGER_DIFFERENTIAL_SAFETY_TERMS = [
+const ACUTE_HF_TRIGGER_REVIEW_SAFETY_TERMS = [
+  "trigger",
+  "triggers",
+  "감별",
+];
+
+const ACUTE_HF_TRIGGER_CONDITION_SAFETY_TERMS = [
   "acute coronary syndrome",
   "arrhythmia",
   "infection",
   "ischemia",
+  "medication nonadherence",
   "myocardial infarction",
   "pulmonary embolism",
-  "trigger",
   "valvular",
   "감염",
   "부정맥",
   "심근경색",
 ];
 
-const ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS = [
+const ACUTE_HF_SHOCK_PERFUSION_SAFETY_TERMS = [
   "altered mental status",
-  "cardiogenic shock",
   "hypoperfusion",
-  "hypotension",
-  "intubation",
   "lactate",
-  "respiratory failure",
-  "shock",
   "저관류",
+];
+
+const ACUTE_HF_SHOCK_STATE_SAFETY_TERMS = [
+  "cardiogenic shock",
+  "hypotension",
+  "shock",
   "쇼크",
+];
+
+const ACUTE_HF_RESPIRATORY_ESCALATION_SAFETY_TERMS = [
+  "intubation",
+  "respiratory failure",
   "호흡부전",
 ];
 
@@ -25682,40 +25736,98 @@ function requiresAcuteHeartFailureSafetyCheck(detail: ClinicalCaseReviewDetail):
 
 function hasAcuteHeartFailureTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasOxygenNiv = ACUTE_HF_OXYGEN_NIV_ACTION_TERMS.some((term) =>
+  const hasOxygen = ACUTE_HF_OXYGEN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNiv = ACUTE_HF_NIV_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRespiratoryFailure = ACUTE_HF_RESPIRATORY_FAILURE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasDiuretic = ACUTE_HF_DIURETIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasVasodilatorOrBpPlan = ACUTE_HF_VASODILATOR_BP_ACTION_TERMS.some((term) =>
+  const hasDecongestion = ACUTE_HF_DECONGESTION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVasodilator = ACUTE_HF_VASODILATOR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBpContext = ACUTE_HF_BP_CONTEXT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasShock = ACUTE_HF_SHOCK_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasEscalation = ACUTE_HF_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasOxygenNiv && hasDiuretic && hasVasodilatorOrBpPlan && hasEscalation;
+  return (
+    hasOxygen &&
+    hasNiv &&
+    hasRespiratoryFailure &&
+    hasDiuretic &&
+    hasDecongestion &&
+    hasVasodilator &&
+    hasBpContext &&
+    hasShock &&
+    hasEscalation
+  );
 }
 
 function hasAcuteHeartFailureTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasBpVasodilatorSafety = ACUTE_HF_BP_VASODILATOR_SAFETY_TERMS.some((term) =>
+  const hasBpMonitoring = ACUTE_HF_BP_MONITORING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasRenalElectrolyteSafety = ACUTE_HF_RENAL_ELECTROLYTE_SAFETY_TERMS.some((term) =>
+  const hasHypotensionSafety = ACUTE_HF_HYPOTENSION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasTriggerDifferentialReview = ACUTE_HF_TRIGGER_DIFFERENTIAL_SAFETY_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
+  const hasVasodilatorSafety = ACUTE_HF_VASODILATOR_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
   );
-  const hasShockRespiratoryFailureSafety = ACUTE_HF_SHOCK_RESPIRATORY_FAILURE_SAFETY_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
+  const hasVasodilatorContraindication =
+    ACUTE_HF_VASODILATOR_CONTRAINDICATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasRenalMonitoring = ACUTE_HF_RENAL_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDiuresisOutput = ACUTE_HF_DIURESIS_OUTPUT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasElectrolyteSafety = ACUTE_HF_ELECTROLYTE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTriggerReview = ACUTE_HF_TRIGGER_REVIEW_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTriggerCondition = ACUTE_HF_TRIGGER_CONDITION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasShockPerfusion = ACUTE_HF_SHOCK_PERFUSION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasShockState = ACUTE_HF_SHOCK_STATE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRespiratoryEscalation = ACUTE_HF_RESPIRATORY_ESCALATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasBpVasodilatorSafety &&
-    hasRenalElectrolyteSafety &&
-    hasTriggerDifferentialReview &&
-    hasShockRespiratoryFailureSafety
+    hasBpMonitoring &&
+    hasHypotensionSafety &&
+    hasVasodilatorSafety &&
+    hasVasodilatorContraindication &&
+    hasRenalMonitoring &&
+    hasDiuresisOutput &&
+    hasElectrolyteSafety &&
+    hasTriggerReview &&
+    hasTriggerCondition &&
+    hasShockPerfusion &&
+    hasShockState &&
+    hasRespiratoryEscalation
   );
 }
 
