@@ -25430,6 +25430,176 @@ def test_quality_gate_requires_unstable_tachyarrhythmia_escalation_not_sedation_
     )
 
 
+def test_quality_gate_requires_unstable_tachyarrhythmia_immediate_synchronized_cardioversion():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Unstable wide-complex tachycardia with pulse"
+    case["patient_demographics"] = {
+        "age": 64,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Palpitations, syncope, and hypotension"
+    case["history_of_present_illness"] = (
+        "Patient with ischemic cardiomyopathy develops sudden palpitations, syncope, "
+        "chest pain, weak pulse, hypotension, and monomorphic ventricular tachycardia "
+        "wide-complex tachycardia at 190/min with a pulse."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "74/42", "hr": 190, "rr": 24, "temp_c": 36.7, "spo2": 94},
+        "general": "Diaphoretic and confused",
+        "cardiovascular": "Regular wide-complex tachycardia with weak pulses",
+        "pulmonary": "Mild pulmonary edema",
+        "neuro": "Altered mental status after syncope",
+    }
+    case["initial_labs"] = {
+        "potassium": "3.1 mmol/L",
+        "magnesium": "1.4 mg/dL",
+        "troponin": "pending",
+        "ecg": "Wide-complex tachycardia",
+    }
+    case["key_teaching_points"] = [
+        "Unstable tachycardia with a pulse requires immediate synchronized cardioversion",
+        "Pulseless ventricular tachycardia requires defibrillation and cardiac arrest ACLS instead",
+        "Electrolytes, ischemia, hypoxia, and torsades causes should be assessed during stabilization",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension, shock, altered mental status, syncope, chest pain, ischemia, heart failure, or pulmonary edema",
+        "Wide-complex tachycardia, ventricular tachycardia, weak pulse, or deterioration to pulseless rhythm",
+    ]
+    case["time_critical_actions"] = [
+        "Place on cardiac monitor, obtain 12-lead ECG/EKG, establish IV access, and apply defibrillator pads",
+        "Assess pulse check, instability, hypotension, shock, chest pain, ischemia, altered mental status, and pulmonary edema",
+        "Consider cardioversion after medication trials if the rhythm persists",
+        "Check potassium, magnesium, calcium, QTc, hypoxia, ischemia, and torsades triggers while preparing treatment",
+        "Activate ACLS and cardiology expert consultation, with ICU care and defibrillation plan if the patient becomes pulseless",
+    ]
+    case["contraindication_checks"] = [
+        "Give sedation if feasible but do not delay synchronized cardioversion; use synchronized shock for unstable pulse and unsynchronized defibrillation if pulseless or polymorphic",
+        "Avoid AV nodal blocker therapy such as diltiazem, verapamil, beta blocker, digoxin, or adenosine in pre-excitation WPW, preexcited atrial fibrillation, or irregular wide-complex rhythm",
+        "Review antiarrhythmic cautions for amiodarone, procainamide, or sotalol with prolonged QT, torsades, magnesium need, and hypotension",
+        "Review reversible causes and disposition including acute coronary syndrome, ischemia, hypoxia, potassium, magnesium, electrolyte, thyroid, toxin, and cardiology or ICU care",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Adult Advanced Life Support",
+            "organization": "American Heart Association",
+            "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+            "supports": [
+                "unstable wide-complex tachycardia with pulse diagnosis and risk stratification",
+                "unstable tachycardia with a pulse requires immediate synchronized cardioversion",
+                "pulseless ventricular tachycardia requires defibrillation and cardiac arrest ACLS instead",
+                "electrolytes, ischemia, hypoxia, and torsades causes should be assessed during stabilization",
+                "hypotension, shock, altered mental status, syncope, chest pain, ischemia, heart failure, or pulmonary edema as red flags",
+                "wide-complex tachycardia, ventricular tachycardia, weak pulse, or deterioration to pulseless rhythm as severity markers",
+                "cardiac monitor, 12-lead ECG/EKG, IV access, and defibrillator pads",
+                "pulse check, instability, hypotension, shock, chest pain, ischemia, altered mental status, and pulmonary edema assessment",
+                "cardioversion after medication trials if the rhythm persists",
+                "potassium, magnesium, calcium, QTc, hypoxia, ischemia, and torsades trigger assessment",
+                "ACLS and cardiology expert consultation, ICU care, and defibrillation plan if pulseless",
+                "sedation if feasible but do not delay synchronized cardioversion; synchronized shock for unstable pulse and unsynchronized defibrillation if pulseless or polymorphic",
+                "avoid AV nodal blocker therapy such as diltiazem, verapamil, beta blocker, digoxin, or adenosine in pre-excitation WPW, preexcited atrial fibrillation, or irregular wide-complex rhythm",
+                "antiarrhythmic cautions for amiodarone, procainamide, or sotalol with prolonged QT, torsades, magnesium need, and hypotension",
+                "reversible causes and disposition including acute coronary syndrome, ischemia, hypoxia, potassium, magnesium, electrolyte, thyroid, toxin, and cardiology or ICU care",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "unstable tachyarrhythmia time-critical actions must include ECG"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_unstable_tachyarrhythmia_no_delay_and_sync_unsync_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Unstable wide-complex tachycardia with pulse"
+    case["patient_demographics"] = {
+        "age": 64,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Palpitations, syncope, and hypotension"
+    case["history_of_present_illness"] = (
+        "Patient with ischemic cardiomyopathy develops sudden palpitations, syncope, "
+        "chest pain, weak pulse, hypotension, and monomorphic ventricular tachycardia "
+        "wide-complex tachycardia at 190/min with a pulse."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "74/42", "hr": 190, "rr": 24, "temp_c": 36.7, "spo2": 94},
+        "general": "Diaphoretic and confused",
+        "cardiovascular": "Regular wide-complex tachycardia with weak pulses",
+        "pulmonary": "Mild pulmonary edema",
+        "neuro": "Altered mental status after syncope",
+    }
+    case["initial_labs"] = {
+        "potassium": "3.1 mmol/L",
+        "magnesium": "1.4 mg/dL",
+        "troponin": "pending",
+        "ecg": "Wide-complex tachycardia",
+    }
+    case["key_teaching_points"] = [
+        "Unstable tachycardia with a pulse requires immediate synchronized cardioversion",
+        "Pulseless ventricular tachycardia requires defibrillation and cardiac arrest ACLS instead",
+        "Electrolytes, ischemia, hypoxia, and torsades causes should be assessed during stabilization",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension, shock, altered mental status, syncope, chest pain, ischemia, heart failure, or pulmonary edema",
+        "Wide-complex tachycardia, ventricular tachycardia, weak pulse, or deterioration to pulseless rhythm",
+    ]
+    case["time_critical_actions"] = [
+        "Place on cardiac monitor, obtain 12-lead ECG/EKG, establish IV access, and apply defibrillator pads",
+        "Assess pulse check, instability, hypotension, shock, chest pain, ischemia, altered mental status, and pulmonary edema",
+        "Perform immediate synchronized cardioversion in sync mode for unstable tachycardia with a pulse",
+        "Check potassium, magnesium, calcium, QTc, hypoxia, ischemia, and torsades triggers while preparing treatment",
+        "Activate ACLS, cardiology expert consultation, ICU care, and prepare defibrillation if pulseless",
+    ]
+    case["contraindication_checks"] = [
+        "Patient is unstable and sedation may be needed before electrical therapy",
+        "Avoid AV nodal blocker therapy such as diltiazem, verapamil, beta blocker, digoxin, or adenosine in pre-excitation WPW, preexcited atrial fibrillation, or irregular wide-complex rhythm",
+        "Review antiarrhythmic cautions for amiodarone, procainamide, or sotalol with prolonged QT, torsades, magnesium need, and hypotension",
+        "Review reversible causes and disposition including acute coronary syndrome, ischemia, hypoxia, potassium, magnesium, electrolyte, thyroid, toxin, and cardiology or ICU care",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Adult Advanced Life Support",
+            "organization": "American Heart Association",
+            "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-advanced-life-support",
+            "supports": [
+                "unstable wide-complex tachycardia with pulse diagnosis and risk stratification",
+                "unstable tachycardia with a pulse requires immediate synchronized cardioversion",
+                "pulseless ventricular tachycardia requires defibrillation and cardiac arrest ACLS instead",
+                "electrolytes, ischemia, hypoxia, and torsades causes should be assessed during stabilization",
+                "hypotension, shock, altered mental status, syncope, chest pain, ischemia, heart failure, or pulmonary edema as red flags",
+                "wide-complex tachycardia, ventricular tachycardia, weak pulse, or deterioration to pulseless rhythm as severity markers",
+                "cardiac monitor, 12-lead ECG/EKG, IV access, and defibrillator pads",
+                "pulse check, instability, hypotension, shock, chest pain, ischemia, altered mental status, and pulmonary edema assessment",
+                "immediate synchronized cardioversion in sync mode for unstable tachycardia with a pulse",
+                "potassium, magnesium, calcium, QTc, hypoxia, ischemia, and torsades trigger assessment",
+                "ACLS, cardiology expert consultation, ICU care, and defibrillation if pulseless",
+                "unstable patient and sedation before electrical therapy",
+                "avoid AV nodal blocker therapy such as diltiazem, verapamil, beta blocker, digoxin, or adenosine in pre-excitation WPW, preexcited atrial fibrillation, or irregular wide-complex rhythm",
+                "antiarrhythmic cautions for amiodarone, procainamide, or sotalol with prolonged QT, torsades, magnesium need, and hypotension",
+                "reversible causes and disposition including acute coronary syndrome, ischemia, hypoxia, potassium, magnesium, electrolyte, thyroid, toxin, and cardiology or ICU care",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "unstable tachyarrhythmia safety checks must include sedation without delaying shock"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_unstable_tachyarrhythmia_shock_av_nodal_qt_and_cause_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "SVT with instability"

@@ -14354,11 +14354,16 @@ UNSTABLE_TACHYARRHYTHMIA_PULSE_INSTABILITY_ACTION_TERMS = (
     "불안정",
 )
 UNSTABLE_TACHYARRHYTHMIA_CARDIOVERSION_ACTION_TERMS = (
-    "cardioversion",
+    "immediate cardioversion",
+    "immediate synchronized cardioversion",
+    "immediate synchronized shock",
+    "prompt cardioversion",
+    "prompt synchronized cardioversion",
     "synchronized cardioversion",
     "synchronized shock",
     "synchronised cardioversion",
     "sync mode",
+    "urgent synchronized cardioversion",
     "동기화",
     "전기적 심율동전환",
 )
@@ -14384,14 +14389,30 @@ UNSTABLE_TACHYARRHYTHMIA_ESCALATION_ACTION_TERMS = (
     "전문가",
     "중환자",
 )
-UNSTABLE_TACHYARRHYTHMIA_SHOCK_SEDATION_SAFETY_TERMS = (
+UNSTABLE_TACHYARRHYTHMIA_SEDATION_NO_DELAY_SAFETY_TERMS = (
     "do not delay",
-    "sedation",
-    "synchronized",
-    "unstable",
-    "unsynchronized",
-    "지연",
-    "진정",
+    "do not delay cardioversion",
+    "do not delay shock",
+    "if feasible without delay",
+    "sedation if feasible",
+    "sedation if it does not delay",
+    "sedation without delaying",
+    "without delaying cardioversion",
+    "without delaying shock",
+    "지연 없이",
+)
+UNSTABLE_TACHYARRHYTHMIA_SYNC_UNSYNC_SAFETY_TERMS = (
+    "defibrillation if pulseless",
+    "synchronized cardioversion",
+    "synchronized shock",
+    "synchronized versus unsynchronized",
+    "synchronized vs unsynchronized",
+    "unsynchronized defibrillation if pulseless",
+    "unsynchronized if pulseless",
+    "unsynchronized shock if pulseless",
+    "unsynchronized shock for polymorphic",
+    "sync mode",
+    "동기화",
 )
 UNSTABLE_TACHYARRHYTHMIA_WIDE_IRREGULAR_SAFETY_TERMS = (
     "av nodal blocker",
@@ -31534,9 +31555,13 @@ def _has_unstable_tachyarrhythmia_time_critical_actions(actions: list[Any]) -> b
 
 def _has_unstable_tachyarrhythmia_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_shock_sedation_safety = any(
+    has_sedation_no_delay_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in UNSTABLE_TACHYARRHYTHMIA_SHOCK_SEDATION_SAFETY_TERMS
+        for term in UNSTABLE_TACHYARRHYTHMIA_SEDATION_NO_DELAY_SAFETY_TERMS
+    )
+    has_sync_unsync_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UNSTABLE_TACHYARRHYTHMIA_SYNC_UNSYNC_SAFETY_TERMS
     )
     has_wide_irregular_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -31551,7 +31576,8 @@ def _has_unstable_tachyarrhythmia_treatment_safety_check(checks: list[Any]) -> b
         for term in UNSTABLE_TACHYARRHYTHMIA_CAUSE_DISPOSITION_SAFETY_TERMS
     )
     return (
-        has_shock_sedation_safety
+        has_sedation_no_delay_safety
+        and has_sync_unsync_safety
         and has_wide_irregular_safety
         and has_antiarrhythmic_safety
         and has_cause_disposition_safety

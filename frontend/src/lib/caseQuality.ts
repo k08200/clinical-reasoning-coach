@@ -15802,11 +15802,16 @@ const UNSTABLE_TACHYARRHYTHMIA_PULSE_INSTABILITY_ACTION_TERMS = [
 ];
 
 const UNSTABLE_TACHYARRHYTHMIA_CARDIOVERSION_ACTION_TERMS = [
-  "cardioversion",
+  "immediate cardioversion",
+  "immediate synchronized cardioversion",
+  "immediate synchronized shock",
+  "prompt cardioversion",
+  "prompt synchronized cardioversion",
   "synchronized cardioversion",
   "synchronized shock",
   "synchronised cardioversion",
   "sync mode",
+  "urgent synchronized cardioversion",
   "동기화",
   "전기적 심율동전환",
 ];
@@ -15835,14 +15840,31 @@ const UNSTABLE_TACHYARRHYTHMIA_ESCALATION_ACTION_TERMS = [
   "중환자",
 ];
 
-const UNSTABLE_TACHYARRHYTHMIA_SHOCK_SEDATION_SAFETY_TERMS = [
+const UNSTABLE_TACHYARRHYTHMIA_SEDATION_NO_DELAY_SAFETY_TERMS = [
   "do not delay",
-  "sedation",
-  "synchronized",
-  "unstable",
-  "unsynchronized",
-  "지연",
-  "진정",
+  "do not delay cardioversion",
+  "do not delay shock",
+  "if feasible without delay",
+  "sedation if feasible",
+  "sedation if it does not delay",
+  "sedation without delaying",
+  "without delaying cardioversion",
+  "without delaying shock",
+  "지연 없이",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_SYNC_UNSYNC_SAFETY_TERMS = [
+  "defibrillation if pulseless",
+  "synchronized cardioversion",
+  "synchronized shock",
+  "synchronized versus unsynchronized",
+  "synchronized vs unsynchronized",
+  "unsynchronized defibrillation if pulseless",
+  "unsynchronized if pulseless",
+  "unsynchronized shock if pulseless",
+  "unsynchronized shock for polymorphic",
+  "sync mode",
+  "동기화",
 ];
 
 const UNSTABLE_TACHYARRHYTHMIA_WIDE_IRREGULAR_SAFETY_TERMS = [
@@ -26140,7 +26162,11 @@ function hasUnstableTachyarrhythmiaTimeCriticalActions(actions: string[]): boole
 
 function hasUnstableTachyarrhythmiaTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasShockSedationSafety = UNSTABLE_TACHYARRHYTHMIA_SHOCK_SEDATION_SAFETY_TERMS.some(
+  const hasSedationNoDelaySafety =
+    UNSTABLE_TACHYARRHYTHMIA_SEDATION_NO_DELAY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasSyncUnsyncSafety = UNSTABLE_TACHYARRHYTHMIA_SYNC_UNSYNC_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasWideIrregularSafety =
@@ -26156,7 +26182,8 @@ function hasUnstableTachyarrhythmiaTreatmentSafetyCheck(checks: string[]): boole
       containsSafetyTerm(normalizedChecks, term),
     );
   return (
-    hasShockSedationSafety &&
+    hasSedationNoDelaySafety &&
+    hasSyncUnsyncSafety &&
     hasWideIrregularSafety &&
     hasAntiarrhythmicSafety &&
     hasCauseDispositionSafety
