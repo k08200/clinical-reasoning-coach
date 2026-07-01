@@ -24809,6 +24809,72 @@ def test_quality_gate_requires_ductal_dependent_chd_oxygen_pge_differential_and_
     )
 
 
+def test_quality_gate_rejects_ductal_dependent_chd_generic_pge_oxygen_sepsis_and_transfer_terms():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Ductal-dependent congenital heart disease with neonatal cyanosis"
+    case["patient_demographics"] = {
+        "age": 0,
+        "sex": "female",
+        "weight_kg": 3.0,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Newborn cyanosis and hypoxemia"
+    case["history_of_present_illness"] = (
+        "Two-day-old newborn has persistent cyanosis, hypoxemia, murmur, "
+        "postductal saturation lower than preductal saturation, and shock "
+        "concerning for transposition of the great arteries or pulmonary atresia."
+    )
+    case["key_teaching_points"] = [
+        "Critical congenital heart disease can present with severe cyanosis or circulatory collapse",
+        "Prostaglandin E1 maintains ductal patency in ductal-dependent pulmonary or systemic blood flow",
+        "Early pediatric cardiology and NICU transfer planning are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Cyanosis, shock, failed pulse oximetry screen, and preductal postductal differential saturation",
+        "Poor feeding, metabolic acidosis, weak pulses, and persistent hypoxemia",
+    ]
+    case["time_critical_actions"] = [
+        "Start prostaglandin E1 PGE1 alprostadil infusion immediately to maintain ductal patency",
+        "Measure preductal and postductal pulse oximetry, four extremity blood pressure, blood gas, lactate, ECG, chest x-ray, and urgent echocardiogram",
+        "Escalate to neonatologist, NICU, pediatric cardiology, cardiac intensive care, transfer team, and UVC umbilical venous catheter access",
+        "Support airway, vascular access, glucose, thermoregulation, metabolic acidosis, intubation, and mechanical ventilation readiness",
+    ]
+    case["contraindication_checks"] = [
+        "Review oxygen use",
+        "Monitor prostaglandin effects",
+        "Consider sepsis and ductal-dependent congenital heart disease",
+        "Arrange transfer",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Overview of Congenital Cardiovascular Anomalies",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/pediatrics/congenital-cardiovascular-anomalies/overview-of-congenital-cardiovascular-anomalies",
+            "supports": [
+                "ductal-dependent congenital heart disease with neonatal cyanosis diagnosis and risk stratification",
+                "critical congenital heart disease can present with severe cyanosis or circulatory collapse",
+                "prostaglandin E1 maintains ductal patency in ductal-dependent pulmonary or systemic blood flow",
+                "early pediatric cardiology and NICU transfer planning are time critical",
+                "cyanosis, shock, failed pulse oximetry screen, and preductal postductal differential saturation as red flags",
+                "poor feeding, metabolic acidosis, weak pulses, and persistent hypoxemia as severity markers",
+                "prostaglandin E1 PGE1 alprostadil infusion immediately to maintain ductal patency",
+                "preductal and postductal pulse oximetry, four extremity blood pressure, blood gas, lactate, ECG, chest x-ray, and urgent echocardiogram",
+                "neonatologist, NICU, pediatric cardiology, cardiac intensive care, transfer team, and UVC umbilical venous catheter access",
+                "airway, vascular access, glucose, thermoregulation, metabolic acidosis, intubation, and mechanical ventilation readiness",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "ductal-dependent congenital heart disease safety checks must include judicious oxygen"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_tension_pneumothorax_decompression_chest_tube_and_reassessment():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Tension pneumothorax"

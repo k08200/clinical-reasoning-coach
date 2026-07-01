@@ -14088,70 +14088,103 @@ DUCTAL_DEPENDENT_CHD_RISK_TERMS = (
     "shock",
     "weak femoral pulses",
 )
-DUCTAL_DEPENDENT_CHD_PGE_ACTION_TERMS = (
+DUCTAL_DEPENDENT_CHD_PGE_DRUG_ACTION_TERMS = (
     "alprostadil",
     "pge1",
     "prostaglandin",
     "prostaglandin e1",
 )
-DUCTAL_DEPENDENT_CHD_DIAGNOSTIC_ACTION_TERMS = (
-    "blood gas",
-    "chest x-ray",
-    "echocardiogram",
-    "echo",
-    "ecg",
-    "four extremity blood pressure",
-    "lactate",
+DUCTAL_DEPENDENT_CHD_PGE_URGENCY_ACTION_TERMS = (
+    "ductal patency",
+    "immediately",
+    "infusion",
+    "maintain ductal",
+    "start",
+)
+DUCTAL_DEPENDENT_CHD_PULSE_OX_ACTION_TERMS = (
     "preductal",
     "postductal",
     "pulse oximetry",
 )
-DUCTAL_DEPENDENT_CHD_ESCALATION_ACTION_TERMS = (
+DUCTAL_DEPENDENT_CHD_HEMODYNAMIC_ACTION_TERMS = (
+    "blood gas",
+    "four extremity blood pressure",
+    "lactate",
+)
+DUCTAL_DEPENDENT_CHD_CARDIAC_DIAGNOSTIC_ACTION_TERMS = (
+    "chest x-ray",
+    "echocardiogram",
+    "echo",
+    "ecg",
+)
+DUCTAL_DEPENDENT_CHD_CARDIAC_ESCALATION_ACTION_TERMS = (
     "cardiac intensive care",
     "cardiology",
+    "pediatric cardiology",
+)
+DUCTAL_DEPENDENT_CHD_NEONATAL_ESCALATION_ACTION_TERMS = (
     "neonatologist",
     "nicu",
-    "pediatric cardiology",
+)
+DUCTAL_DEPENDENT_CHD_ACCESS_TRANSFER_ACTION_TERMS = (
     "transfer",
     "umbilical venous catheter",
     "uvc",
 )
-DUCTAL_DEPENDENT_CHD_SUPPORT_ACTION_TERMS = (
+DUCTAL_DEPENDENT_CHD_AIRWAY_SUPPORT_ACTION_TERMS = (
     "airway",
-    "glucose",
-    "hypoglycemia",
     "intubation",
     "mechanical ventilation",
+)
+DUCTAL_DEPENDENT_CHD_METABOLIC_SUPPORT_ACTION_TERMS = (
+    "glucose",
+    "hypoglycemia",
     "metabolic acidosis",
     "thermoregulation",
     "vascular access",
 )
-DUCTAL_DEPENDENT_CHD_OXYGEN_SAFETY_TERMS = (
-    "ductal steal",
+DUCTAL_DEPENDENT_CHD_OXYGEN_JUDICIOUS_SAFETY_TERMS = (
+    "avoid excess supplemental oxygen",
     "judicious oxygen",
-    "oxygen",
-    "pulmonary vascular resistance",
-    "supplemental oxygen",
+    "supplemental oxygen should be used judiciously",
     "withhold oxygen",
 )
-DUCTAL_DEPENDENT_CHD_PGE_ADVERSE_SAFETY_TERMS = (
-    "apnea",
-    "fever",
-    "hypotension",
-    "intubation",
+DUCTAL_DEPENDENT_CHD_OXYGEN_PHYSIOLOGY_SAFETY_TERMS = (
+    "ductal steal",
+    "lower pulmonary vascular resistance",
+    "judicious oxygen",
+    "pulmonary vascular resistance",
+    "supplemental oxygen",
+)
+DUCTAL_DEPENDENT_CHD_PGE_DRUG_SAFETY_TERMS = (
+    "alprostadil",
+    "pge1",
     "prostaglandin",
+    "prostaglandin e1",
+)
+DUCTAL_DEPENDENT_CHD_PGE_APNEA_SAFETY_TERMS = (
+    "apnea",
+    "intubation",
     "respiratory depression",
 )
-DUCTAL_DEPENDENT_CHD_DIFFERENTIAL_SAFETY_TERMS = (
-    "congenital heart disease",
+DUCTAL_DEPENDENT_CHD_PGE_HEMODYNAMIC_SAFETY_TERMS = (
+    "fever",
+    "hypotension",
+)
+DUCTAL_DEPENDENT_CHD_SEPSIS_DIFFERENTIAL_SAFETY_TERMS = (
+    "sepsis",
+)
+DUCTAL_DEPENDENT_CHD_LESION_DIFFERENTIAL_SAFETY_TERMS = (
     "ductal-dependent",
     "hypoplastic left heart",
     "pulmonary atresia",
-    "sepsis",
     "transposition",
 )
-DUCTAL_DEPENDENT_CHD_TRANSPORT_SAFETY_TERMS = (
+DUCTAL_DEPENDENT_CHD_TRANSFER_NO_DELAY_SAFETY_TERMS = (
     "do not delay",
+    "not delay",
+)
+DUCTAL_DEPENDENT_CHD_CARDIAC_TRANSFER_SAFETY_TERMS = (
     "neonatology",
     "pediatric cardiac",
     "pediatric cardiology",
@@ -31237,48 +31270,108 @@ def _requires_ductal_dependent_chd_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_ductal_dependent_chd_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_pge = any(
+    has_pge_drug = any(
         _contains_safety_term(normalized_actions, term)
-        for term in DUCTAL_DEPENDENT_CHD_PGE_ACTION_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_PGE_DRUG_ACTION_TERMS
     )
-    has_diagnostic_assessment = any(
+    has_pge_urgency = any(
         _contains_safety_term(normalized_actions, term)
-        for term in DUCTAL_DEPENDENT_CHD_DIAGNOSTIC_ACTION_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_PGE_URGENCY_ACTION_TERMS
     )
-    has_escalation = any(
+    has_pulse_ox = any(
         _contains_safety_term(normalized_actions, term)
-        for term in DUCTAL_DEPENDENT_CHD_ESCALATION_ACTION_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_PULSE_OX_ACTION_TERMS
     )
-    has_support = any(
+    has_hemodynamic_assessment = any(
         _contains_safety_term(normalized_actions, term)
-        for term in DUCTAL_DEPENDENT_CHD_SUPPORT_ACTION_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_HEMODYNAMIC_ACTION_TERMS
     )
-    return has_pge and has_diagnostic_assessment and has_escalation and has_support
+    has_cardiac_diagnostic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DUCTAL_DEPENDENT_CHD_CARDIAC_DIAGNOSTIC_ACTION_TERMS
+    )
+    has_cardiac_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DUCTAL_DEPENDENT_CHD_CARDIAC_ESCALATION_ACTION_TERMS
+    )
+    has_neonatal_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DUCTAL_DEPENDENT_CHD_NEONATAL_ESCALATION_ACTION_TERMS
+    )
+    has_access_transfer = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DUCTAL_DEPENDENT_CHD_ACCESS_TRANSFER_ACTION_TERMS
+    )
+    has_airway_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DUCTAL_DEPENDENT_CHD_AIRWAY_SUPPORT_ACTION_TERMS
+    )
+    has_metabolic_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DUCTAL_DEPENDENT_CHD_METABOLIC_SUPPORT_ACTION_TERMS
+    )
+    return (
+        has_pge_drug
+        and has_pge_urgency
+        and has_pulse_ox
+        and has_hemodynamic_assessment
+        and has_cardiac_diagnostic
+        and has_cardiac_escalation
+        and has_neonatal_escalation
+        and has_access_transfer
+        and has_airway_support
+        and has_metabolic_support
+    )
 
 
 def _has_ductal_dependent_chd_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_oxygen_safety = any(
+    has_oxygen_judicious_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in DUCTAL_DEPENDENT_CHD_OXYGEN_SAFETY_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_OXYGEN_JUDICIOUS_SAFETY_TERMS
     )
-    has_pge_adverse_safety = any(
+    has_oxygen_physiology_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in DUCTAL_DEPENDENT_CHD_PGE_ADVERSE_SAFETY_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_OXYGEN_PHYSIOLOGY_SAFETY_TERMS
     )
-    has_differential_safety = any(
+    has_pge_drug_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in DUCTAL_DEPENDENT_CHD_DIFFERENTIAL_SAFETY_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_PGE_DRUG_SAFETY_TERMS
     )
-    has_transport_safety = any(
+    has_pge_apnea_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in DUCTAL_DEPENDENT_CHD_TRANSPORT_SAFETY_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_PGE_APNEA_SAFETY_TERMS
+    )
+    has_pge_hemodynamic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_PGE_HEMODYNAMIC_SAFETY_TERMS
+    )
+    has_sepsis_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_SEPSIS_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_lesion_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_LESION_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_transfer_no_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_TRANSFER_NO_DELAY_SAFETY_TERMS
+    )
+    has_cardiac_transfer_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_CARDIAC_TRANSFER_SAFETY_TERMS
     )
     return (
-        has_oxygen_safety
-        and has_pge_adverse_safety
-        and has_differential_safety
-        and has_transport_safety
+        has_oxygen_judicious_safety
+        and has_oxygen_physiology_safety
+        and has_pge_drug_safety
+        and has_pge_apnea_safety
+        and has_pge_hemodynamic_safety
+        and has_sepsis_differential_safety
+        and has_lesion_differential_safety
+        and has_transfer_no_delay_safety
+        and has_cardiac_transfer_safety
     )
 
 
