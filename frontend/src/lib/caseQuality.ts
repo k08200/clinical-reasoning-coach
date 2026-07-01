@@ -15988,38 +15988,64 @@ const SYMPTOMATIC_BRADYCARDIA_REVERSIBLE_CAUSE_ACTION_TERMS = [
 ];
 
 const SYMPTOMATIC_BRADYCARDIA_NO_DELAY_PACING_SAFETY_TERMS = [
-  "do not delay",
-  "high-grade",
-  "mobitz ii",
-  "pacing",
-  "transcutaneous",
-  "unstable",
-  "지연",
+  "do not delay pacing",
+  "do not delay transcutaneous pacing",
+  "immediate pacing",
+  "immediate transcutaneous pacing",
+  "pacing while atropine",
+  "prepare pacing while atropine",
+  "urgent pacing",
+  "urgent transcutaneous pacing",
+  "지연 없이 박동조율",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_ATROPINE_REFERENCE_SAFETY_TERMS = [
+  "atropine",
+  "아트로핀",
 ];
 
 const SYMPTOMATIC_BRADYCARDIA_ATROPINE_LIMIT_SAFETY_TERMS = [
-  "atropine",
   "heart transplant",
   "high-grade av block",
   "ineffective",
+  "may be ineffective",
   "mobitz ii",
   "third-degree",
   "transplanted",
 ];
 
-const SYMPTOMATIC_BRADYCARDIA_PACING_SEDATION_SAFETY_TERMS = [
-  "analgesia",
+const SYMPTOMATIC_BRADYCARDIA_PACING_CAPTURE_SAFETY_TERMS = [
   "capture",
+  "confirm capture",
+  "electrical and mechanical capture",
+  "electrical capture",
   "mechanical capture",
-  "sedation",
-  "transcutaneous pacing",
-  "transvenous pacing",
 ];
 
-const SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_SAFETY_TERMS = [
-  "arrhythmia",
+const SYMPTOMATIC_BRADYCARDIA_PACING_COMFORT_SAFETY_TERMS = [
+  "analgesia",
+  "analgesia when feasible",
+  "sedation",
+  "sedation or analgesia",
+  "sedation when feasible",
+  "진정",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_PACING_ROUTE_SAFETY_TERMS = [
+  "transcutaneous pacing",
+  "transvenous pacing",
+  "temporary pacemaker",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_AGENT_SAFETY_TERMS = [
   "dopamine",
   "epinephrine",
+  "드파민",
+  "에피네프린",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ADVERSE_SAFETY_TERMS = [
+  "arrhythmia",
   "extravasation",
   "ischemia",
   "tachyarrhythmia",
@@ -26250,25 +26276,43 @@ function hasSymptomaticBradycardiaTreatmentSafetyCheck(checks: string[]): boolea
   const hasNoDelayPacingSafety = SYMPTOMATIC_BRADYCARDIA_NO_DELAY_PACING_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasAtropineReferenceSafety =
+    SYMPTOMATIC_BRADYCARDIA_ATROPINE_REFERENCE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasAtropineLimitSafety = SYMPTOMATIC_BRADYCARDIA_ATROPINE_LIMIT_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasPacingSedationSafety =
-    SYMPTOMATIC_BRADYCARDIA_PACING_SEDATION_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
-  const hasChronotropeSafety = SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_SAFETY_TERMS.some(
+  const hasPacingCaptureSafety = SYMPTOMATIC_BRADYCARDIA_PACING_CAPTURE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasPacingComfortSafety = SYMPTOMATIC_BRADYCARDIA_PACING_COMFORT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPacingRouteSafety = SYMPTOMATIC_BRADYCARDIA_PACING_ROUTE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasChronotropeAgentSafety =
+    SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_AGENT_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasChronotropeAdverseSafety =
+    SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ADVERSE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasCauseDispositionSafety =
     SYMPTOMATIC_BRADYCARDIA_CAUSE_DISPOSITION_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
   return (
     hasNoDelayPacingSafety &&
+    hasAtropineReferenceSafety &&
     hasAtropineLimitSafety &&
-    hasPacingSedationSafety &&
-    hasChronotropeSafety &&
+    hasPacingCaptureSafety &&
+    hasPacingComfortSafety &&
+    hasPacingRouteSafety &&
+    hasChronotropeAgentSafety &&
+    hasChronotropeAdverseSafety &&
     hasCauseDispositionSafety
   );
 }
@@ -29030,7 +29074,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSymptomaticBradycardiaTreatmentSafetyCheck,
       issue:
-        "symptomatic bradycardia safety checks must include not delaying pacing for unstable high-grade block, atropine limitation review, pacing capture plus sedation or analgesia safeguards, dopamine or epinephrine adverse-effect monitoring, and reversible-cause or cardiology/pacemaker disposition review",
+        "symptomatic bradycardia safety checks must include not delaying pacing for unstable high-grade block, atropine limitation review, pacing route, capture confirmation, sedation or analgesia safeguards, dopamine or epinephrine adverse-effect monitoring, and reversible-cause or cardiology/pacemaker disposition review",
     },
     {
       name: "tension_pneumothorax_time_critical_actions",

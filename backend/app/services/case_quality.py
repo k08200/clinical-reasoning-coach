@@ -14527,35 +14527,57 @@ SYMPTOMATIC_BRADYCARDIA_REVERSIBLE_CAUSE_ACTION_TERMS = (
     "toxin",
 )
 SYMPTOMATIC_BRADYCARDIA_NO_DELAY_PACING_SAFETY_TERMS = (
-    "do not delay",
-    "high-grade",
-    "mobitz ii",
-    "pacing",
-    "transcutaneous",
-    "unstable",
-    "지연",
+    "do not delay pacing",
+    "do not delay transcutaneous pacing",
+    "immediate pacing",
+    "immediate transcutaneous pacing",
+    "pacing while atropine",
+    "prepare pacing while atropine",
+    "urgent pacing",
+    "urgent transcutaneous pacing",
+    "지연 없이 박동조율",
+)
+SYMPTOMATIC_BRADYCARDIA_ATROPINE_REFERENCE_SAFETY_TERMS = (
+    "atropine",
+    "아트로핀",
 )
 SYMPTOMATIC_BRADYCARDIA_ATROPINE_LIMIT_SAFETY_TERMS = (
-    "atropine",
     "heart transplant",
     "high-grade av block",
     "ineffective",
+    "may be ineffective",
     "mobitz ii",
     "third-degree",
     "transplanted",
 )
-SYMPTOMATIC_BRADYCARDIA_PACING_SEDATION_SAFETY_TERMS = (
-    "analgesia",
+SYMPTOMATIC_BRADYCARDIA_PACING_CAPTURE_SAFETY_TERMS = (
     "capture",
+    "confirm capture",
+    "electrical and mechanical capture",
+    "electrical capture",
     "mechanical capture",
+)
+SYMPTOMATIC_BRADYCARDIA_PACING_COMFORT_SAFETY_TERMS = (
+    "analgesia",
+    "analgesia when feasible",
     "sedation",
+    "sedation or analgesia",
+    "sedation when feasible",
+    "진정",
+)
+SYMPTOMATIC_BRADYCARDIA_PACING_ROUTE_SAFETY_TERMS = (
     "transcutaneous pacing",
     "transvenous pacing",
+    "temporary pacemaker",
 )
-SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_SAFETY_TERMS = (
-    "arrhythmia",
+SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_AGENT_SAFETY_TERMS = (
     "dopamine",
     "epinephrine",
+    "드파민",
+    "에피네프린",
+)
+SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ADVERSE_SAFETY_TERMS = (
+    "arrhythmia",
     "extravasation",
     "ischemia",
     "tachyarrhythmia",
@@ -19635,9 +19657,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "symptomatic bradycardia safety checks must include not delaying "
                 "pacing for unstable high-grade block, atropine limitation review, "
-                "pacing capture plus sedation or analgesia safeguards, dopamine or "
-                "epinephrine adverse-effect monitoring, and reversible-cause or "
-                "cardiology/pacemaker disposition review"
+                "pacing route, capture confirmation, sedation or analgesia safeguards, "
+                "dopamine or epinephrine adverse-effect monitoring, and reversible-"
+                "cause or cardiology/pacemaker disposition review"
             ),
         ),
         DomainSafetyGate(
@@ -31657,17 +31679,33 @@ def _has_symptomatic_bradycardia_treatment_safety_check(checks: list[Any]) -> bo
         _contains_safety_term(normalized_checks, term)
         for term in SYMPTOMATIC_BRADYCARDIA_NO_DELAY_PACING_SAFETY_TERMS
     )
+    has_atropine_reference_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SYMPTOMATIC_BRADYCARDIA_ATROPINE_REFERENCE_SAFETY_TERMS
+    )
     has_atropine_limit_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in SYMPTOMATIC_BRADYCARDIA_ATROPINE_LIMIT_SAFETY_TERMS
     )
-    has_pacing_sedation_safety = any(
+    has_pacing_capture_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SYMPTOMATIC_BRADYCARDIA_PACING_SEDATION_SAFETY_TERMS
+        for term in SYMPTOMATIC_BRADYCARDIA_PACING_CAPTURE_SAFETY_TERMS
     )
-    has_chronotrope_safety = any(
+    has_pacing_comfort_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_SAFETY_TERMS
+        for term in SYMPTOMATIC_BRADYCARDIA_PACING_COMFORT_SAFETY_TERMS
+    )
+    has_pacing_route_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SYMPTOMATIC_BRADYCARDIA_PACING_ROUTE_SAFETY_TERMS
+    )
+    has_chronotrope_agent_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_AGENT_SAFETY_TERMS
+    )
+    has_chronotrope_adverse_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ADVERSE_SAFETY_TERMS
     )
     has_cause_disposition_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -31675,9 +31713,13 @@ def _has_symptomatic_bradycardia_treatment_safety_check(checks: list[Any]) -> bo
     )
     return (
         has_no_delay_pacing_safety
+        and has_atropine_reference_safety
         and has_atropine_limit_safety
-        and has_pacing_sedation_safety
-        and has_chronotrope_safety
+        and has_pacing_capture_safety
+        and has_pacing_comfort_safety
+        and has_pacing_route_safety
+        and has_chronotrope_agent_safety
+        and has_chronotrope_adverse_safety
         and has_cause_disposition_safety
     )
 
