@@ -16073,9 +16073,14 @@ const TENSION_PNEUMOTHORAX_CONTEXT_TERMS = [
 const TENSION_PNEUMOTHORAX_DECOMPRESSION_ACTION_TERMS = [
   "chest decompression",
   "finger thoracostomy",
+  "immediate chest decompression",
+  "immediate finger thoracostomy",
+  "immediate needle decompression",
+  "immediate needle thoracostomy",
   "needle decompression",
   "needle thoracostomy",
-  "thoracostomy",
+  "urgent finger thoracostomy",
+  "urgent needle decompression",
   "감압",
   "흉강천자",
 ];
@@ -16113,26 +16118,38 @@ const TENSION_PNEUMOTHORAX_REASSESSMENT_ACTION_TERMS = [
 ];
 
 const TENSION_PNEUMOTHORAX_NO_DELAY_SAFETY_TERMS = [
-  "clinical diagnosis",
-  "do not delay",
-  "do not wait",
+  "do not delay decompression",
+  "do not delay needle decompression",
+  "do not delay thoracostomy",
   "immediate decompression",
+  "immediate needle decompression",
   "no imaging delay",
-  "without waiting",
-  "지연",
+  "without waiting for imaging",
+  "x-ray should not delay",
+  "ct should not delay",
+  "영상 지연 없이",
 ];
 
-const TENSION_PNEUMOTHORAX_SITE_TECHNIQUE_SAFETY_TERMS = [
+const TENSION_PNEUMOTHORAX_SITE_SAFETY_TERMS = [
   "4th intercostal",
   "5th intercostal",
+  "anterior axillary",
   "axillary",
-  "large-bore",
+  "intercostal site",
   "midaxillary",
   "midclavicular",
-  "site",
+  "second intercostal",
+  "위치",
+];
+
+const TENSION_PNEUMOTHORAX_TECHNIQUE_SAFETY_TERMS = [
+  "above the rib",
+  "angiocatheter",
+  "large-bore",
+  "long angiocatheter",
   "sterile",
   "technique",
-  "위치",
+  "카테터",
 ];
 
 const TENSION_PNEUMOTHORAX_RECURRENCE_FAILURE_SAFETY_TERMS = [
@@ -16153,10 +16170,8 @@ const TENSION_PNEUMOTHORAX_DIFFERENTIAL_SAFETY_TERMS = [
   "massive hemothorax",
   "obstructive shock",
   "pulmonary embolism",
-  "shock",
-  "trauma",
+  "sudden cardiovascular collapse",
   "감별",
-  "쇼크",
 ];
 
 const STROKE_CONTEXT_TERMS = [
@@ -26356,8 +26371,11 @@ function hasTensionPneumothoraxTreatmentSafetyCheck(checks: string[]): boolean {
   const hasNoDelaySafety = TENSION_PNEUMOTHORAX_NO_DELAY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasSiteTechniqueSafety = TENSION_PNEUMOTHORAX_SITE_TECHNIQUE_SAFETY_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
+  const hasSiteSafety = TENSION_PNEUMOTHORAX_SITE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTechniqueSafety = TENSION_PNEUMOTHORAX_TECHNIQUE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
   );
   const hasRecurrenceFailureSafety =
     TENSION_PNEUMOTHORAX_RECURRENCE_FAILURE_SAFETY_TERMS.some((term) =>
@@ -26366,7 +26384,13 @@ function hasTensionPneumothoraxTreatmentSafetyCheck(checks: string[]): boolean {
   const hasDifferentialReview = TENSION_PNEUMOTHORAX_DIFFERENTIAL_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  return hasNoDelaySafety && hasSiteTechniqueSafety && hasRecurrenceFailureSafety && hasDifferentialReview;
+  return (
+    hasNoDelaySafety &&
+    hasSiteSafety &&
+    hasTechniqueSafety &&
+    hasRecurrenceFailureSafety &&
+    hasDifferentialReview
+  );
 }
 
 function requiresStrokeReperfusionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -29092,7 +29116,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasTensionPneumothoraxTreatmentSafetyCheck,
       issue:
-        "tension pneumothorax safety checks must include not delaying decompression for imaging, decompression site or technique safety, recurrence or chest-tube failure monitoring, and obstructive-shock differential review",
+        "tension pneumothorax safety checks must include not delaying decompression for imaging, decompression site and technique safety, recurrence or chest-tube failure monitoring, and obstructive-shock differential review",
     },
     {
       name: "stroke_time_critical_actions",

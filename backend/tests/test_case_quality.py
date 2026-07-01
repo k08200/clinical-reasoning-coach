@@ -24933,6 +24933,64 @@ def test_quality_gate_requires_tension_pneumothorax_decompression_chest_tube_and
     )
 
 
+def test_quality_gate_requires_tension_pneumothorax_needle_or_finger_decompression_not_chest_tube_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Tension pneumothorax"
+    case["chief_complaint"] = "Severe chest pain and respiratory distress"
+    case["history_of_present_illness"] = (
+        "Patient develops sudden pleuritic chest pain, severe dyspnea, hypotension, "
+        "and unilateral absent breath sounds after chest trauma."
+    )
+    case["key_teaching_points"] = [
+        "Tension pneumothorax is a clinical diagnosis in an unstable patient",
+        "Immediate needle or finger decompression should not wait for imaging",
+        "Definitive tube thoracostomy and reassessment are required after decompression",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension with unilateral absent breath sounds",
+        "Distended neck veins, tracheal deviation, and worsening hypoxemia",
+    ]
+    case["time_critical_actions"] = [
+        "Support airway and oxygen ventilation while preparing pleural intervention",
+        "Place definitive chest tube with tube thoracostomy for the pneumothorax",
+        "Reassess breath sounds, vital signs, hemodynamic response, lung sliding, and repeat exam after intervention",
+    ]
+    case["contraindication_checks"] = [
+        "Clinical diagnosis in an unstable patient: do not delay decompression for x-ray, CT, or imaging",
+        "Use large-bore sterile technique at the correct midaxillary or midclavicular intercostal site",
+        "Monitor chest tube patency, tube position, recurrent pneumothorax, persistent air leak, and need for repeat decompression",
+        "Review trauma, massive hemothorax, cardiac tamponade, pulmonary embolism, and other obstructive shock differentials",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tension Pneumothorax",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK559090/",
+            "supports": [
+                "tension pneumothorax diagnosis and obstructive shock risk stratification",
+                "hypotension with unilateral absent breath sounds as red flags",
+                "distended neck veins, tracheal deviation, and worsening hypoxemia as severity markers",
+                "airway and oxygen ventilation support while preparing pleural intervention",
+                "definitive chest tube with tube thoracostomy for the pneumothorax",
+                "breath sounds, vital signs, hemodynamic response, lung sliding, and repeat exam after intervention",
+                "clinical diagnosis in an unstable patient and do not delay decompression for x-ray, CT, or imaging",
+                "large-bore sterile technique at the correct midaxillary or midclavicular intercostal site",
+                "chest tube patency, tube position, recurrent pneumothorax, persistent air leak, and repeat decompression",
+                "trauma, massive hemothorax, cardiac tamponade, pulmonary embolism, and obstructive shock differentials",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "tension pneumothorax time-critical actions must include immediate needle or finger decompression"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_cardiac_tamponade_echo_drainage_specialist_and_hemodynamic_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Cardiac tamponade"
@@ -26300,6 +26358,66 @@ def test_quality_gate_requires_tension_pneumothorax_no_delay_not_imaging_label_o
                 "breath sounds, vital signs, hemodynamic response, lung sliding, and repeat exam after decompression",
                 "x-ray or CT imaging if the unstable patient can tolerate it",
                 "large-bore sterile technique at the correct midaxillary or midclavicular intercostal site",
+                "chest tube patency, tube position, recurrent pneumothorax, persistent air leak, and repeat decompression",
+                "trauma, massive hemothorax, cardiac tamponade, pulmonary embolism, and obstructive shock differentials",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "tension pneumothorax safety checks must include not delaying decompression"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_tension_pneumothorax_anatomic_site_not_generic_site_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Tension pneumothorax"
+    case["chief_complaint"] = "Severe chest pain and respiratory distress"
+    case["history_of_present_illness"] = (
+        "Patient develops sudden pleuritic chest pain, severe dyspnea, hypotension, "
+        "and unilateral absent breath sounds after chest trauma."
+    )
+    case["key_teaching_points"] = [
+        "Tension pneumothorax is a clinical diagnosis in an unstable patient",
+        "Immediate needle or finger decompression should not wait for imaging",
+        "Definitive tube thoracostomy and reassessment are required after decompression",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension with unilateral absent breath sounds",
+        "Distended neck veins, tracheal deviation, and worsening hypoxemia",
+    ]
+    case["time_critical_actions"] = [
+        "Support airway and oxygen ventilation while preparing decompression",
+        "Perform immediate needle decompression or finger thoracostomy for tension physiology",
+        "Place definitive chest tube with tube thoracostomy after initial decompression",
+        "Reassess breath sounds, vital signs, hemodynamic response, lung sliding, and repeat exam after decompression",
+    ]
+    case["contraindication_checks"] = [
+        "Clinical diagnosis in an unstable patient: do not delay decompression for x-ray, CT, or imaging",
+        "Use large-bore sterile technique at the correct procedural site",
+        "Monitor chest tube patency, tube position, recurrent pneumothorax, persistent air leak, and need for repeat decompression",
+        "Review trauma, massive hemothorax, cardiac tamponade, pulmonary embolism, and other obstructive shock differentials",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Tension Pneumothorax",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK559090/",
+            "supports": [
+                "tension pneumothorax diagnosis and obstructive shock risk stratification",
+                "hypotension with unilateral absent breath sounds as red flags",
+                "distended neck veins, tracheal deviation, and worsening hypoxemia as severity markers",
+                "airway and oxygen ventilation support while preparing decompression",
+                "immediate needle decompression or finger thoracostomy for tension physiology",
+                "definitive chest tube with tube thoracostomy after initial decompression",
+                "breath sounds, vital signs, hemodynamic response, lung sliding, and repeat exam after decompression",
+                "clinical diagnosis in an unstable patient and do not delay decompression for x-ray, CT, or imaging",
+                "large-bore sterile technique at the correct procedural site",
                 "chest tube patency, tube position, recurrent pneumothorax, persistent air leak, and repeat decompression",
                 "trauma, massive hemothorax, cardiac tamponade, pulmonary embolism, and obstructive shock differentials",
             ],

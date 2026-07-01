@@ -14602,9 +14602,14 @@ TENSION_PNEUMOTHORAX_CONTEXT_TERMS = (
 TENSION_PNEUMOTHORAX_DECOMPRESSION_ACTION_TERMS = (
     "chest decompression",
     "finger thoracostomy",
+    "immediate chest decompression",
+    "immediate finger thoracostomy",
+    "immediate needle decompression",
+    "immediate needle thoracostomy",
     "needle decompression",
     "needle thoracostomy",
-    "thoracostomy",
+    "urgent finger thoracostomy",
+    "urgent needle decompression",
     "감압",
     "흉강천자",
 )
@@ -14638,25 +14643,36 @@ TENSION_PNEUMOTHORAX_REASSESSMENT_ACTION_TERMS = (
     "재평가",
 )
 TENSION_PNEUMOTHORAX_NO_DELAY_SAFETY_TERMS = (
-    "clinical diagnosis",
-    "do not delay",
-    "do not wait",
+    "do not delay decompression",
+    "do not delay needle decompression",
+    "do not delay thoracostomy",
     "immediate decompression",
+    "immediate needle decompression",
     "no imaging delay",
-    "without waiting",
-    "지연",
+    "without waiting for imaging",
+    "x-ray should not delay",
+    "ct should not delay",
+    "영상 지연 없이",
 )
-TENSION_PNEUMOTHORAX_SITE_TECHNIQUE_SAFETY_TERMS = (
+TENSION_PNEUMOTHORAX_SITE_SAFETY_TERMS = (
     "4th intercostal",
     "5th intercostal",
+    "anterior axillary",
     "axillary",
-    "large-bore",
+    "intercostal site",
     "midaxillary",
     "midclavicular",
-    "site",
+    "second intercostal",
+    "위치",
+)
+TENSION_PNEUMOTHORAX_TECHNIQUE_SAFETY_TERMS = (
+    "above the rib",
+    "angiocatheter",
+    "large-bore",
+    "long angiocatheter",
     "sterile",
     "technique",
-    "위치",
+    "카테터",
 )
 TENSION_PNEUMOTHORAX_RECURRENCE_FAILURE_SAFETY_TERMS = (
     "catheter failure",
@@ -14675,10 +14691,8 @@ TENSION_PNEUMOTHORAX_DIFFERENTIAL_SAFETY_TERMS = (
     "massive hemothorax",
     "obstructive shock",
     "pulmonary embolism",
-    "shock",
-    "trauma",
+    "sudden cardiovascular collapse",
     "감별",
-    "쇼크",
 )
 STROKE_CONTEXT_TERMS = (
     "acute ischemic stroke",
@@ -19681,7 +19695,7 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_tension_pneumothorax_treatment_safety_check,
             issue=(
                 "tension pneumothorax safety checks must include not delaying "
-                "decompression for imaging, decompression site or technique safety, "
+                "decompression for imaging, decompression site and technique safety, "
                 "recurrence or chest-tube failure monitoring, and obstructive-shock "
                 "differential review"
             ),
@@ -31774,9 +31788,13 @@ def _has_tension_pneumothorax_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in TENSION_PNEUMOTHORAX_NO_DELAY_SAFETY_TERMS
     )
-    has_site_technique_safety = any(
+    has_site_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in TENSION_PNEUMOTHORAX_SITE_TECHNIQUE_SAFETY_TERMS
+        for term in TENSION_PNEUMOTHORAX_SITE_SAFETY_TERMS
+    )
+    has_technique_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TENSION_PNEUMOTHORAX_TECHNIQUE_SAFETY_TERMS
     )
     has_recurrence_failure_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -31788,7 +31806,8 @@ def _has_tension_pneumothorax_treatment_safety_check(checks: list[Any]) -> bool:
     )
     return (
         has_no_delay_safety
-        and has_site_technique_safety
+        and has_site_safety
+        and has_technique_safety
         and has_recurrence_failure_safety
         and has_differential_review
     )
