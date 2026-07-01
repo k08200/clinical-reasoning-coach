@@ -15104,14 +15104,23 @@ const COPD_EXACERBATION_CONTEXT_TERMS = [
 ];
 
 const COPD_CONTROLLED_OXYGEN_ACTION_TERMS = [
-  "88",
-  "92",
   "controlled oxygen",
   "oxygen target",
-  "spo2",
   "target saturation",
   "venturi",
   "산소",
+];
+
+const COPD_OXYGEN_TARGET_ACTION_TERMS = [
+  "88",
+  "92",
+  "spo2",
+];
+
+const COPD_ABG_ACTION_TERMS = [
+  "abg",
+  "arterial blood gas",
+  "blood gas",
 ];
 
 const COPD_BRONCHODILATOR_ACTION_TERMS = [
@@ -15136,57 +15145,80 @@ const COPD_STEROID_ACTION_TERMS = [
   "스테로이드",
 ];
 
-const COPD_ANTIBIOTIC_CRITERIA_ACTION_TERMS = [
+const COPD_ANTIBIOTIC_ACTION_TERMS = [
   "antibiotic",
-  "infection",
-  "pneumonia",
-  "purulent sputum",
-  "sputum purulence",
-  "감염",
   "항생제",
 ];
 
-const COPD_VENTILATORY_SUPPORT_ACTION_TERMS = [
+const COPD_ANTIBIOTIC_CRITERIA_ACTION_TERMS = [
+  "infection",
+  "pneumonia",
+  "purulent sputum",
+  "sputum color",
+  "sputum colour",
+  "sputum volume",
+  "sputum purulence",
+  "감염",
+];
+
+const COPD_NIV_ACTION_TERMS = [
   "bipap",
-  "hypercapnia",
-  "intubation",
   "niv",
   "noninvasive ventilation",
   "non-invasive ventilation",
+  "비침습",
+];
+
+const COPD_VENTILATORY_FAILURE_ACTION_TERMS = [
+  "hypercapnia",
+  "intubation",
   "respiratory acidosis",
   "respiratory failure",
   "기계환기",
-  "비침습",
   "삽관",
 ];
 
-const COPD_OXYGEN_CO2_SAFETY_TERMS = [
+const COPD_OXYGEN_TARGET_SAFETY_TERMS = [
   "88",
   "92",
-  "abg",
-  "arterial blood gas",
-  "co2",
   "controlled oxygen",
+  "oxygen target",
+  "target saturation",
+  "venturi",
+];
+
+const COPD_CO2_RETENTION_SAFETY_TERMS = [
+  "co2",
   "hypercapnia",
   "oxygen-induced",
   "paco2",
-  "ph",
-  "venturi",
-  "동맥혈",
   "이산화탄소",
 ];
 
-const COPD_NIV_INTUBATION_SAFETY_TERMS = [
+const COPD_ABG_SAFETY_TERMS = [
   "abg",
-  "altered mental status",
+  "arterial blood gas",
+  "ph",
+  "동맥혈",
+];
+
+const COPD_NIV_SAFETY_TERMS = [
   "bipap",
-  "fatigue",
-  "hypercapnic acidosis",
-  "intubation",
   "niv",
   "noninvasive ventilation",
+  "비침습",
+];
+
+const COPD_NIV_ACIDOSIS_SAFETY_TERMS = [
+  "hypercapnic acidosis",
   "ph",
   "respiratory acidosis",
+];
+
+const COPD_NIV_FAILURE_INTUBATION_SAFETY_TERMS = [
+  "altered mental status",
+  "fatigue",
+  "intubation",
   "respiratory failure",
   "의식",
   "삽관",
@@ -25560,33 +25592,59 @@ function hasCopdExacerbationTimeCriticalActions(actions: string[]): boolean {
   const hasControlledOxygen = COPD_CONTROLLED_OXYGEN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasOxygenTarget = COPD_OXYGEN_TARGET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAbg = COPD_ABG_ACTION_TERMS.some((term) => containsSafetyTerm(normalizedActions, term));
   const hasBronchodilator = COPD_BRONCHODILATOR_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasSystemicSteroid = COPD_STEROID_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasAntibiotic = COPD_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasAntibioticCriteria = COPD_ANTIBIOTIC_CRITERIA_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasVentilatorySupport = COPD_VENTILATORY_SUPPORT_ACTION_TERMS.some((term) =>
+  const hasNiv = COPD_NIV_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVentilatoryFailure = COPD_VENTILATORY_FAILURE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
     hasControlledOxygen &&
+    hasOxygenTarget &&
+    hasAbg &&
     hasBronchodilator &&
     hasSystemicSteroid &&
+    hasAntibiotic &&
     hasAntibioticCriteria &&
-    hasVentilatorySupport
+    hasNiv &&
+    hasVentilatoryFailure
   );
 }
 
 function hasCopdExacerbationTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasOxygenCo2Safety = COPD_OXYGEN_CO2_SAFETY_TERMS.some((term) =>
+  const hasOxygenTargetSafety = COPD_OXYGEN_TARGET_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasNivIntubationSafety = COPD_NIV_INTUBATION_SAFETY_TERMS.some((term) =>
+  const hasCo2RetentionSafety = COPD_CO2_RETENTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAbgSafety = COPD_ABG_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNivSafety = COPD_NIV_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNivAcidosisSafety = COPD_NIV_ACIDOSIS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNivFailureIntubationSafety = COPD_NIV_FAILURE_INTUBATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasDifferentialReview = COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
@@ -25596,8 +25654,12 @@ function hasCopdExacerbationTreatmentSafetyCheck(checks: string[]): boolean {
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasOxygenCo2Safety &&
-    hasNivIntubationSafety &&
+    hasOxygenTargetSafety &&
+    hasCo2RetentionSafety &&
+    hasAbgSafety &&
+    hasNivSafety &&
+    hasNivAcidosisSafety &&
+    hasNivFailureIntubationSafety &&
     hasDifferentialReview &&
     hasTreatmentAdverseSafety
   );

@@ -24306,6 +24306,64 @@ def test_quality_gate_requires_copd_hypercapnia_niv_differential_and_adverse_saf
     )
 
 
+def test_quality_gate_rejects_copd_generic_abg_niv_differential_and_adverse_terms():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "COPD exacerbation with acute hypercapnic respiratory failure"
+    case["chief_complaint"] = "Worsening shortness of breath and sputum"
+    case["history_of_present_illness"] = (
+        "Patient with chronic obstructive pulmonary disease presents with worsening "
+        "dyspnea, wheeze, increased purulent sputum, and somnolence."
+    )
+    case["key_teaching_points"] = [
+        "COPD exacerbation requires controlled oxygen rather than uncontrolled high-flow oxygen",
+        "Short-acting bronchodilators and systemic corticosteroids treat airflow obstruction",
+        "Hypercapnic respiratory acidosis should prompt NIV or ventilatory escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "Somnolence with rising PaCO2 and respiratory acidosis",
+        "Purulent sputum with fever and increased work of breathing",
+    ]
+    case["time_critical_actions"] = [
+        "Start controlled oxygen by Venturi mask targeting SpO2 88-92% and obtain ABG",
+        "Give albuterol SABA and ipratropium SAMA short-acting bronchodilators",
+        "Give systemic prednisone corticosteroid for COPD exacerbation",
+        "Start antibiotics when purulent sputum or pneumonia infection criteria are present",
+        "Start NIV BiPAP for hypercapnic respiratory acidosis and prepare intubation if respiratory failure worsens",
+    ]
+    case["contraindication_checks"] = [
+        "Check ABG before disposition",
+        "Consider NIV if needed",
+        "Review pneumonia trigger",
+        "Monitor steroid adverse effects",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "GOLD Report 2025",
+            "organization": "Global Initiative for Chronic Obstructive Lung Disease",
+            "url": "https://goldcopd.org/2025-gold-report/",
+            "supports": [
+                "COPD exacerbation diagnosis and acute hypercapnic respiratory failure risk stratification",
+                "somnolence with rising PaCO2 and respiratory acidosis as red flags",
+                "purulent sputum with fever and increased work of breathing as severity markers",
+                "controlled oxygen by Venturi mask targeting SpO2 88-92% and ABG",
+                "albuterol SABA and ipratropium SAMA short-acting bronchodilators",
+                "systemic prednisone corticosteroid for COPD exacerbation",
+                "antibiotics when purulent sputum or pneumonia infection criteria are present",
+                "NIV BiPAP for hypercapnic respiratory acidosis and intubation if respiratory failure worsens",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "COPD exacerbation safety checks must include oxygen-induced hypercapnia"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acute_hf_oxygen_diuresis_vasodilator_and_escalation():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute heart failure with pulmonary edema"

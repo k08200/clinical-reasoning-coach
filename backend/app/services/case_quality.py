@@ -13733,14 +13733,21 @@ COPD_EXACERBATION_CONTEXT_TERMS = (
     "만성폐쇄성폐질환",
 )
 COPD_CONTROLLED_OXYGEN_ACTION_TERMS = (
-    "88",
-    "92",
     "controlled oxygen",
     "oxygen target",
-    "spo2",
     "target saturation",
     "venturi",
     "산소",
+)
+COPD_OXYGEN_TARGET_ACTION_TERMS = (
+    "88",
+    "92",
+    "spo2",
+)
+COPD_ABG_ACTION_TERMS = (
+    "abg",
+    "arterial blood gas",
+    "blood gas",
 )
 COPD_BRONCHODILATOR_ACTION_TERMS = (
     "albuterol",
@@ -13762,54 +13769,71 @@ COPD_STEROID_ACTION_TERMS = (
     "steroid",
     "스테로이드",
 )
-COPD_ANTIBIOTIC_CRITERIA_ACTION_TERMS = (
+COPD_ANTIBIOTIC_ACTION_TERMS = (
     "antibiotic",
+    "항생제",
+)
+COPD_ANTIBIOTIC_CRITERIA_ACTION_TERMS = (
     "infection",
     "pneumonia",
     "purulent sputum",
+    "sputum color",
+    "sputum colour",
+    "sputum volume",
     "sputum purulence",
     "감염",
-    "항생제",
 )
-COPD_VENTILATORY_SUPPORT_ACTION_TERMS = (
+COPD_NIV_ACTION_TERMS = (
     "bipap",
-    "hypercapnia",
-    "intubation",
     "niv",
     "noninvasive ventilation",
     "non-invasive ventilation",
+    "비침습",
+)
+COPD_VENTILATORY_FAILURE_ACTION_TERMS = (
+    "hypercapnia",
+    "intubation",
     "respiratory acidosis",
     "respiratory failure",
     "기계환기",
-    "비침습",
     "삽관",
 )
-COPD_OXYGEN_CO2_SAFETY_TERMS = (
+COPD_OXYGEN_TARGET_SAFETY_TERMS = (
     "88",
     "92",
-    "abg",
-    "arterial blood gas",
-    "co2",
     "controlled oxygen",
+    "oxygen target",
+    "target saturation",
+    "venturi",
+)
+COPD_CO2_RETENTION_SAFETY_TERMS = (
+    "co2",
     "hypercapnia",
     "oxygen-induced",
     "paco2",
-    "ph",
-    "venturi",
-    "동맥혈",
     "이산화탄소",
 )
-COPD_NIV_INTUBATION_SAFETY_TERMS = (
+COPD_ABG_SAFETY_TERMS = (
     "abg",
-    "altered mental status",
+    "arterial blood gas",
+    "ph",
+    "동맥혈",
+)
+COPD_NIV_SAFETY_TERMS = (
     "bipap",
-    "fatigue",
-    "hypercapnic acidosis",
-    "intubation",
     "niv",
     "noninvasive ventilation",
+    "비침습",
+)
+COPD_NIV_ACIDOSIS_SAFETY_TERMS = (
+    "hypercapnic acidosis",
     "ph",
     "respiratory acidosis",
+)
+COPD_NIV_FAILURE_INTUBATION_SAFETY_TERMS = (
+    "altered mental status",
+    "fatigue",
+    "intubation",
     "respiratory failure",
     "의식",
     "삽관",
@@ -30881,6 +30905,14 @@ def _has_copd_exacerbation_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in COPD_CONTROLLED_OXYGEN_ACTION_TERMS
     )
+    has_oxygen_target = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in COPD_OXYGEN_TARGET_ACTION_TERMS
+    )
+    has_abg = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in COPD_ABG_ACTION_TERMS
+    )
     has_bronchodilator = any(
         _contains_safety_term(normalized_actions, term)
         for term in COPD_BRONCHODILATOR_ACTION_TERMS
@@ -30889,32 +30921,60 @@ def _has_copd_exacerbation_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in COPD_STEROID_ACTION_TERMS
     )
+    has_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in COPD_ANTIBIOTIC_ACTION_TERMS
+    )
     has_antibiotic_criteria = any(
         _contains_safety_term(normalized_actions, term)
         for term in COPD_ANTIBIOTIC_CRITERIA_ACTION_TERMS
     )
-    has_ventilatory_support = any(
+    has_niv = any(
         _contains_safety_term(normalized_actions, term)
-        for term in COPD_VENTILATORY_SUPPORT_ACTION_TERMS
+        for term in COPD_NIV_ACTION_TERMS
+    )
+    has_ventilatory_failure = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in COPD_VENTILATORY_FAILURE_ACTION_TERMS
     )
     return (
         has_controlled_oxygen
+        and has_oxygen_target
+        and has_abg
         and has_bronchodilator
         and has_systemic_steroid
+        and has_antibiotic
         and has_antibiotic_criteria
-        and has_ventilatory_support
+        and has_niv
+        and has_ventilatory_failure
     )
 
 
 def _has_copd_exacerbation_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_oxygen_co2_safety = any(
+    has_oxygen_target_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in COPD_OXYGEN_CO2_SAFETY_TERMS
+        for term in COPD_OXYGEN_TARGET_SAFETY_TERMS
     )
-    has_niv_intubation_safety = any(
+    has_co2_retention_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in COPD_NIV_INTUBATION_SAFETY_TERMS
+        for term in COPD_CO2_RETENTION_SAFETY_TERMS
+    )
+    has_abg_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_ABG_SAFETY_TERMS
+    )
+    has_niv_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_NIV_SAFETY_TERMS
+    )
+    has_niv_acidosis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_NIV_ACIDOSIS_SAFETY_TERMS
+    )
+    has_niv_failure_intubation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_NIV_FAILURE_INTUBATION_SAFETY_TERMS
     )
     has_differential_review = any(
         _contains_safety_term(normalized_checks, term)
@@ -30925,8 +30985,12 @@ def _has_copd_exacerbation_treatment_safety_check(checks: list[Any]) -> bool:
         for term in COPD_TREATMENT_ADVERSE_SAFETY_TERMS
     )
     return (
-        has_oxygen_co2_safety
-        and has_niv_intubation_safety
+        has_oxygen_target_safety
+        and has_co2_retention_safety
+        and has_abg_safety
+        and has_niv_safety
+        and has_niv_acidosis_safety
+        and has_niv_failure_intubation_safety
         and has_differential_review
         and has_treatment_adverse_safety
     )
