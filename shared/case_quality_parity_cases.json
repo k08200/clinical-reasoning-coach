@@ -10680,6 +10680,196 @@
     }
   },
   {
+    "name": "severe_preeclampsia_requires_specific_bp_treatment_not_bp_label_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "acute severe-hypertension treatment within 30-60 minutes"
+    ],
+    "overrides": {
+      "diagnosis": "Severe preeclampsia with severe features",
+      "patient_demographics": {
+        "age": 32,
+        "sex": "female",
+        "weight_kg": 72,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Headache and high blood pressure in late pregnancy",
+      "history_of_present_illness": "Pregnant patient at 34 weeks presents with severe headache, visual symptoms, right upper quadrant pain, pulmonary edema risk, and repeated severe-range blood pressures concerning for severe preeclampsia.",
+      "key_teaching_points": [
+        "Severe preeclampsia can progress to eclampsia, stroke, HELLP, and pulmonary edema",
+        "Magnesium sulfate is used for seizure prophylaxis or treatment",
+        "Acute severe hypertension requires prompt antihypertensive treatment and delivery planning"
+      ],
+      "clinical_red_flags": [
+        "Severe-range blood pressure with headache and visual symptoms",
+        "Right upper quadrant pain with rising AST, low platelets, or pulmonary edema"
+      ],
+      "time_critical_actions": [
+        "Start magnesium sulfate for seizure prophylaxis",
+        "Monitor severe-range blood pressure and reassess within 60 minutes",
+        "After maternal stabilization, plan delivery at 34 weeks or sooner for maternal-fetal deterioration",
+        "Escalate to obstetric, maternal-fetal medicine, anesthesia, and critical care consultation"
+      ],
+      "contraindication_checks": [
+        "Monitor magnesium toxicity with respiratory status, respiratory rate, deep tendon reflexes, urine output, and calcium gluconate readiness",
+        "Review asthma, bradycardia, cardiomyopathy, or heart failure before labetalol and hypotension or tachycardia before nifedipine",
+        "Check platelets, AST, ALT, transaminase/liver injury, creatinine, renal function, urine output, and proteinuria",
+        "Assess maternal severe features including headache, visual symptoms, right upper quadrant pain, HELLP, seizure, pulmonary edema, and abruption plus fetal status, gestational age, and delivery risk",
+        "Do not delay delivery to complete corticosteroids when maternal or fetal deterioration requires delivery",
+        "Continue magnesium sulfate for 24 hours postpartum with postpartum monitoring and follow-up within 7 to 10 days"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hypertensive Disorders of Pregnancy",
+          "organization": "American Family Physician",
+          "url": "https://www.aafp.org/afp/2024/0300/hypertensive-disorders-of-pregnancy",
+          "supports": [
+            "severe preeclampsia with severe features diagnosis and risk stratification",
+            "severe preeclampsia can progress to eclampsia, stroke, HELLP, and pulmonary edema",
+            "magnesium sulfate for seizure prophylaxis or treatment",
+            "acute severe hypertension requires prompt antihypertensive treatment and delivery planning",
+            "severe-range blood pressure with headache and visual symptoms as red flags",
+            "right upper quadrant pain with rising AST, low platelets, or pulmonary edema as severity markers",
+            "magnesium sulfate for seizure prophylaxis",
+            "severe-range blood pressure reassessment within 60 minutes",
+            "maternal stabilization and delivery at 34 weeks or sooner for maternal-fetal deterioration",
+            "obstetric, maternal-fetal medicine, anesthesia, and critical care consultation",
+            "magnesium toxicity monitoring with respiratory status, respiratory rate, deep tendon reflexes, urine output, and calcium gluconate readiness",
+            "asthma, bradycardia, cardiomyopathy, or heart failure before labetalol and hypotension or tachycardia before nifedipine",
+            "platelets, AST, ALT, transaminase/liver injury, creatinine, renal function, urine output, and proteinuria",
+            "maternal severe features including headache, visual symptoms, right upper quadrant pain, HELLP, seizure, pulmonary edema, and abruption plus fetal status, gestational age, and delivery risk",
+            "do not delay delivery to complete corticosteroids when maternal or fetal deterioration requires delivery",
+            "magnesium sulfate for 24 hours postpartum with postpartum monitoring and follow-up within 7 to 10 days"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "severe_preeclampsia_requires_delivery_plan_not_corticosteroid_label_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "explicit delivery timing or maternal-fetal stabilization planning"
+    ],
+    "overrides": {
+      "diagnosis": "Severe preeclampsia with severe features",
+      "patient_demographics": {
+        "age": 32,
+        "sex": "female",
+        "weight_kg": 72,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Headache and high blood pressure in late pregnancy",
+      "history_of_present_illness": "Pregnant patient at 33 weeks presents with severe headache, visual symptoms, right upper quadrant pain, pulmonary edema risk, and repeated severe-range blood pressures concerning for severe preeclampsia.",
+      "key_teaching_points": [
+        "Severe preeclampsia can progress to eclampsia, stroke, HELLP, and pulmonary edema",
+        "Magnesium sulfate is used for seizure prophylaxis or treatment",
+        "Acute severe hypertension requires prompt antihypertensive treatment and delivery planning"
+      ],
+      "clinical_red_flags": [
+        "Severe-range blood pressure with headache and visual symptoms",
+        "Right upper quadrant pain with rising AST, low platelets, or pulmonary edema"
+      ],
+      "time_critical_actions": [
+        "Start magnesium sulfate for seizure prophylaxis",
+        "Treat acute severe-range blood pressure within 60 minutes with IV labetalol, IV hydralazine, or immediate-release oral nifedipine",
+        "Give antenatal corticosteroids and continue fetal status monitoring",
+        "Escalate to obstetric, maternal-fetal medicine, anesthesia, and critical care consultation"
+      ],
+      "contraindication_checks": [
+        "Monitor magnesium toxicity with respiratory status, respiratory rate, deep tendon reflexes, urine output, and calcium gluconate readiness",
+        "Review asthma, bradycardia, cardiomyopathy, or heart failure before labetalol and hypotension or tachycardia before nifedipine",
+        "Check platelets, AST, ALT, transaminase/liver injury, creatinine, renal function, urine output, and proteinuria",
+        "Assess maternal severe features including headache, visual symptoms, right upper quadrant pain, HELLP, seizure, pulmonary edema, and abruption plus fetal status, gestational age, and delivery risk",
+        "Do not delay delivery to complete corticosteroids when maternal or fetal deterioration requires delivery",
+        "Continue magnesium sulfate for 24 hours postpartum with postpartum monitoring and follow-up within 7 to 10 days"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hypertensive Disorders of Pregnancy",
+          "organization": "American Family Physician",
+          "url": "https://www.aafp.org/afp/2024/0300/hypertensive-disorders-of-pregnancy",
+          "supports": [
+            "severe preeclampsia with severe features diagnosis and risk stratification",
+            "severe preeclampsia can progress to eclampsia, stroke, HELLP, and pulmonary edema",
+            "magnesium sulfate for seizure prophylaxis or treatment",
+            "acute severe hypertension requires prompt antihypertensive treatment and delivery planning",
+            "severe-range blood pressure with headache and visual symptoms as red flags",
+            "right upper quadrant pain with rising AST, low platelets, or pulmonary edema as severity markers",
+            "magnesium sulfate for seizure prophylaxis",
+            "acute severe-range blood pressure within 60 minutes with IV labetalol, IV hydralazine, or immediate-release oral nifedipine",
+            "antenatal corticosteroids and fetal status monitoring",
+            "obstetric, maternal-fetal medicine, anesthesia, and critical care consultation",
+            "magnesium toxicity monitoring with respiratory status, respiratory rate, deep tendon reflexes, urine output, and calcium gluconate readiness",
+            "asthma, bradycardia, cardiomyopathy, or heart failure before labetalol and hypotension or tachycardia before nifedipine",
+            "platelets, AST, ALT, transaminase/liver injury, creatinine, renal function, urine output, and proteinuria",
+            "maternal severe features including headache, visual symptoms, right upper quadrant pain, HELLP, seizure, pulmonary edema, and abruption plus fetal status, gestational age, and delivery risk",
+            "do not delay delivery to complete corticosteroids when maternal or fetal deterioration requires delivery",
+            "magnesium sulfate for 24 hours postpartum with postpartum monitoring and follow-up within 7 to 10 days"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "severe_preeclampsia_requires_full_safety_not_calcium_platelet_fetal_labels_only",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "severe preeclampsia or eclampsia safety checks must include magnesium toxicity monitoring"
+    ],
+    "overrides": {
+      "diagnosis": "Severe preeclampsia with severe features",
+      "patient_demographics": {
+        "age": 32,
+        "sex": "female",
+        "weight_kg": 72,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Headache and high blood pressure in late pregnancy",
+      "history_of_present_illness": "Pregnant patient at 34 weeks presents with severe headache, visual symptoms, right upper quadrant pain, pulmonary edema risk, and repeated severe-range blood pressures concerning for severe preeclampsia.",
+      "key_teaching_points": [
+        "Severe preeclampsia can progress to eclampsia, stroke, HELLP, and pulmonary edema",
+        "Magnesium sulfate is used for seizure prophylaxis or treatment",
+        "Acute severe hypertension requires prompt antihypertensive treatment and delivery planning"
+      ],
+      "clinical_red_flags": [
+        "Severe-range blood pressure with headache and visual symptoms",
+        "Right upper quadrant pain with rising AST, low platelets, or pulmonary edema"
+      ],
+      "time_critical_actions": [
+        "Start magnesium sulfate for seizure prophylaxis",
+        "Treat acute severe-range blood pressure within 60 minutes with IV labetalol, IV hydralazine, or immediate-release oral nifedipine",
+        "After maternal stabilization, plan delivery at 34 weeks or sooner for maternal-fetal deterioration",
+        "Escalate to obstetric, maternal-fetal medicine, anesthesia, and critical care consultation"
+      ],
+      "contraindication_checks": [
+        "Keep calcium gluconate ready during magnesium treatment",
+        "Check platelet count and fetal status"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hypertensive Disorders of Pregnancy",
+          "organization": "American Family Physician",
+          "url": "https://www.aafp.org/afp/2024/0300/hypertensive-disorders-of-pregnancy",
+          "supports": [
+            "severe preeclampsia with severe features diagnosis and risk stratification",
+            "severe preeclampsia can progress to eclampsia, stroke, HELLP, and pulmonary edema",
+            "magnesium sulfate for seizure prophylaxis or treatment",
+            "acute severe hypertension requires prompt antihypertensive treatment and delivery planning",
+            "severe-range blood pressure with headache and visual symptoms as red flags",
+            "right upper quadrant pain with rising AST, low platelets, or pulmonary edema as severity markers",
+            "magnesium sulfate for seizure prophylaxis",
+            "acute severe-range blood pressure within 60 minutes with IV labetalol, IV hydralazine, or immediate-release oral nifedipine",
+            "maternal stabilization and delivery at 34 weeks or sooner for maternal-fetal deterioration",
+            "obstetric, maternal-fetal medicine, anesthesia, and critical care consultation",
+            "calcium gluconate during magnesium treatment",
+            "platelet count and fetal status"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "hellp_requires_labs_magnesium_bp_delivery_and_complication_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

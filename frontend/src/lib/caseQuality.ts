@@ -2891,27 +2891,44 @@ const SEVERE_PREECLAMPSIA_CONTEXT_TERMS = [
 ];
 
 const SEVERE_PREECLAMPSIA_MAGNESIUM_ACTION_TERMS = [
-  "magnesium",
   "magnesium sulfate",
   "mgso4",
-  "seizure prophylaxis",
-  "seizure treatment",
   "황산마그네슘",
 ];
 
-const SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS = [
+const SEVERE_PREECLAMPSIA_SEIZURE_ACTION_TERMS = [
+  "seizure prophylaxis",
+  "seizure treatment",
+  "seizure prevention",
+  "eclampsia",
+  "자간증",
+];
+
+const SEVERE_PREECLAMPSIA_SEVERE_BP_ACTION_TERMS = [
   "acute severe hypertension",
-  "antihypertensive",
-  "blood pressure",
+  "acute severe-range",
+  "30 to 60 minutes",
+  "within 60 minutes",
+  "persistent for 15 minutes",
+  "persistent severe hypertension",
+  "severe-range",
+  "160/110",
+  "160 mm hg",
+  "110 mm hg",
+];
+
+const SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_MED_ACTION_TERMS = [
   "hydralazine",
   "labetalol",
   "nifedipine",
-  "severe-range",
-  "혈압",
+  "immediate-release nifedipine",
+  "intravenous labetalol",
+  "intravenous hydralazine",
+  "iv labetalol",
+  "iv hydralazine",
 ];
 
 const SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS = [
-  "antenatal corticosteroid",
   "cesarean",
   "c-section",
   "delivery",
@@ -2928,14 +2945,9 @@ const SEVERE_PREECLAMPSIA_DELIVERY_TIMING_TERMS = [
   "34주",
   "after maternal stabilization",
   "after stabilization",
-  "betamethasone",
-  "corticosteroid",
-  "dexamethasone",
   "expectant management",
-  "fetal status",
   "gestational age",
   "maternal stabilization",
-  "maternal status",
   "maternal-fetal status",
   "once stabilized",
   "stabilize mother",
@@ -2955,52 +2967,99 @@ const SEVERE_PREECLAMPSIA_ESCALATION_ACTION_TERMS = [
   "중환자",
 ];
 
-const SEVERE_PREECLAMPSIA_MAGNESIUM_TOX_SAFETY_TERMS = [
-  "calcium gluconate",
-  "deep tendon reflex",
-  "magnesium toxicity",
+const SEVERE_PREECLAMPSIA_MAGNESIUM_RESPIRATORY_SAFETY_TERMS = [
   "respiratory depression",
   "respiratory rate",
-  "urine output",
+  "respiratory status",
+  "apnea",
+];
+
+const SEVERE_PREECLAMPSIA_MAGNESIUM_REFLEX_SAFETY_TERMS = [
+  "deep tendon reflex",
+  "magnesium toxicity",
+  "reflex",
   "반사",
+];
+
+const SEVERE_PREECLAMPSIA_MAGNESIUM_URINE_SAFETY_TERMS = [
+  "urine output",
+  "urine output < 30",
+  "urine output less than 30",
   "소변",
 ];
 
-const SEVERE_PREECLAMPSIA_BP_MED_SAFETY_TERMS = [
+const SEVERE_PREECLAMPSIA_MAGNESIUM_ANTIDOTE_SAFETY_TERMS = [
+  "calcium gluconate",
+  "magnesium antidote",
+];
+
+const SEVERE_PREECLAMPSIA_LABETALOL_SAFETY_TERMS = [
   "asthma",
   "bradycardia",
+  "cardiomyopathy",
   "heart failure",
-  "hypotension",
-  "labetalol",
-  "nifedipine",
-  "혈압",
 ];
 
-const SEVERE_PREECLAMPSIA_LAB_ORGAN_SAFETY_TERMS = [
+const SEVERE_PREECLAMPSIA_NIFEDIPINE_SAFETY_TERMS = [
+  "hypotension",
+  "tachycardia",
+];
+
+const SEVERE_PREECLAMPSIA_PLATELET_LAB_SAFETY_TERMS = ["platelet", "혈소판"];
+
+const SEVERE_PREECLAMPSIA_LIVER_LAB_SAFETY_TERMS = [
   "alt",
   "ast",
-  "creatinine",
-  "hellp",
   "liver",
-  "platelet",
-  "proteinuria",
-  "renal",
+  "right upper quadrant",
+  "transaminase",
   "간",
-  "신장",
-  "혈소판",
 ];
 
-const SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS = [
+const SEVERE_PREECLAMPSIA_RENAL_LAB_SAFETY_TERMS = [
+  "creatinine",
+  "proteinuria",
+  "renal",
+  "urine output",
+  "소변",
+];
+
+const SEVERE_PREECLAMPSIA_MATERNAL_SEVERE_FEATURE_SAFETY_TERMS = [
   "abruption",
-  "fetal",
-  "gestational age",
   "headache",
+  "hellp",
   "pulmonary edema",
   "right upper quadrant",
   "seizure",
   "visual",
-  "태아",
   "폐부종",
+];
+
+const SEVERE_PREECLAMPSIA_FETAL_DELIVERY_RISK_SAFETY_TERMS = [
+  "delivery risk",
+  "fetal",
+  "gestational age",
+  "maternal-fetal",
+  "태아",
+];
+
+const SEVERE_PREECLAMPSIA_STEROID_NO_DELAY_SAFETY_TERMS = [
+  "do not delay delivery",
+  "not delay delivery",
+  "without delaying delivery",
+  "do not wait for corticosteroid",
+  "not wait for corticosteroid",
+  "do not wait 48 hours",
+];
+
+const SEVERE_PREECLAMPSIA_POSTPARTUM_SAFETY_TERMS = [
+  "24 hours postpartum",
+  "postpartum magnesium",
+  "postpartum monitoring",
+  "postpartum warning",
+  "follow-up within 7",
+  "followup within 7",
+  "follow up within 7",
 ];
 
 const HELLP_CONTEXT_TERMS = [
@@ -19471,7 +19530,13 @@ function hasSeverePreeclampsiaTimeCriticalActions(actions: string[]): boolean {
   const hasMagnesium = SEVERE_PREECLAMPSIA_MAGNESIUM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntihypertensive = SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS.some((term) =>
+  const hasSeizureContext = SEVERE_PREECLAMPSIA_SEIZURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSevereBpContext = SEVERE_PREECLAMPSIA_SEVERE_BP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntihypertensiveMed = SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_MED_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasDeliveryAction = SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS.some((term) =>
@@ -19483,28 +19548,72 @@ function hasSeverePreeclampsiaTimeCriticalActions(actions: string[]): boolean {
   const hasEscalation = SEVERE_PREECLAMPSIA_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasMagnesium && hasAntihypertensive && hasDeliveryAction && hasDeliveryTiming && hasEscalation;
+  return (
+    hasMagnesium &&
+    hasSeizureContext &&
+    hasSevereBpContext &&
+    hasAntihypertensiveMed &&
+    hasDeliveryAction &&
+    hasDeliveryTiming &&
+    hasEscalation
+  );
 }
 
 function hasSeverePreeclampsiaTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasMagnesiumToxicitySafety = SEVERE_PREECLAMPSIA_MAGNESIUM_TOX_SAFETY_TERMS.some(
+  const hasMagnesiumRespiratorySafety = SEVERE_PREECLAMPSIA_MAGNESIUM_RESPIRATORY_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasBpMedSafety = SEVERE_PREECLAMPSIA_BP_MED_SAFETY_TERMS.some((term) =>
+  const hasMagnesiumReflexSafety = SEVERE_PREECLAMPSIA_MAGNESIUM_REFLEX_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasLabOrganSafety = SEVERE_PREECLAMPSIA_LAB_ORGAN_SAFETY_TERMS.some((term) =>
+  const hasMagnesiumUrineSafety = SEVERE_PREECLAMPSIA_MAGNESIUM_URINE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasMaternalFetalSafety = SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS.some(
+  const hasMagnesiumAntidoteSafety = SEVERE_PREECLAMPSIA_MAGNESIUM_ANTIDOTE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLabetalolSafety = SEVERE_PREECLAMPSIA_LABETALOL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNifedipineSafety = SEVERE_PREECLAMPSIA_NIFEDIPINE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPlateletLabSafety = SEVERE_PREECLAMPSIA_PLATELET_LAB_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLiverLabSafety = SEVERE_PREECLAMPSIA_LIVER_LAB_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRenalLabSafety = SEVERE_PREECLAMPSIA_RENAL_LAB_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMaternalSevereFeatureSafety = SEVERE_PREECLAMPSIA_MATERNAL_SEVERE_FEATURE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFetalDeliveryRiskSafety = SEVERE_PREECLAMPSIA_FETAL_DELIVERY_RISK_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidNoDelaySafety = SEVERE_PREECLAMPSIA_STEROID_NO_DELAY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPostpartumSafety = SEVERE_PREECLAMPSIA_POSTPARTUM_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasMagnesiumToxicitySafety &&
-    hasBpMedSafety &&
-    hasLabOrganSafety &&
-    hasMaternalFetalSafety
+    hasMagnesiumRespiratorySafety &&
+    hasMagnesiumReflexSafety &&
+    hasMagnesiumUrineSafety &&
+    hasMagnesiumAntidoteSafety &&
+    hasLabetalolSafety &&
+    hasNifedipineSafety &&
+    hasPlateletLabSafety &&
+    hasLiverLabSafety &&
+    hasRenalLabSafety &&
+    hasMaternalSevereFeatureSafety &&
+    hasFetalDeliveryRiskSafety &&
+    hasSteroidNoDelaySafety &&
+    hasPostpartumSafety
   );
 }
 
@@ -27879,7 +27988,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSeverePreeclampsiaTimeCriticalActions,
       issue:
-        "severe preeclampsia or eclampsia time-critical actions must include magnesium sulfate seizure prophylaxis or treatment, acute severe-hypertension treatment, explicit delivery timing or maternal-fetal stabilization planning, and OB/MFM or critical-care escalation",
+        "severe preeclampsia or eclampsia time-critical actions must include magnesium sulfate seizure prophylaxis or treatment, acute severe-hypertension treatment within 30-60 minutes or after persistent severe-range BP using IV labetalol, IV hydralazine, or immediate-release/oral nifedipine, explicit delivery timing or maternal-fetal stabilization planning, and OB/MFM or critical-care escalation",
     },
     {
       name: "severe_preeclampsia_treatment_safety",
@@ -27888,7 +27997,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSeverePreeclampsiaTreatmentSafetyCheck,
       issue:
-        "severe preeclampsia or eclampsia safety checks must include magnesium toxicity monitoring, antihypertensive contraindication review, HELLP or renal-organ labs, and maternal-fetal severe-feature or delivery-risk monitoring",
+        "severe preeclampsia or eclampsia safety checks must include magnesium toxicity monitoring for respiratory status, reflexes, urine output, and calcium gluconate readiness, antihypertensive contraindication review for labetalol and nifedipine, platelet, liver/transaminase, and renal/proteinuria labs, maternal severe features and fetal/delivery-risk monitoring, not delaying delivery to complete corticosteroids when deterioration requires delivery, and postpartum magnesium/monitoring or follow-up safety",
     },
     {
       name: "hellp_time_critical_actions",

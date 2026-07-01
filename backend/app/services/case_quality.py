@@ -2669,25 +2669,40 @@ SEVERE_PREECLAMPSIA_CONTEXT_TERMS = (
     "자간증",
 )
 SEVERE_PREECLAMPSIA_MAGNESIUM_ACTION_TERMS = (
-    "magnesium",
     "magnesium sulfate",
     "mgso4",
-    "seizure prophylaxis",
-    "seizure treatment",
     "황산마그네슘",
 )
-SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS = (
+SEVERE_PREECLAMPSIA_SEIZURE_ACTION_TERMS = (
+    "seizure prophylaxis",
+    "seizure treatment",
+    "seizure prevention",
+    "eclampsia",
+    "자간증",
+)
+SEVERE_PREECLAMPSIA_SEVERE_BP_ACTION_TERMS = (
     "acute severe hypertension",
-    "antihypertensive",
-    "blood pressure",
+    "acute severe-range",
+    "30 to 60 minutes",
+    "within 60 minutes",
+    "persistent for 15 minutes",
+    "persistent severe hypertension",
+    "severe-range",
+    "160/110",
+    "160 mm hg",
+    "110 mm hg",
+)
+SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_MED_ACTION_TERMS = (
     "hydralazine",
     "labetalol",
     "nifedipine",
-    "severe-range",
-    "혈압",
+    "immediate-release nifedipine",
+    "intravenous labetalol",
+    "intravenous hydralazine",
+    "iv labetalol",
+    "iv hydralazine",
 )
 SEVERE_PREECLAMPSIA_DELIVERY_ACTION_TERMS = (
-    "antenatal corticosteroid",
     "cesarean",
     "c-section",
     "delivery",
@@ -2703,14 +2718,9 @@ SEVERE_PREECLAMPSIA_DELIVERY_TIMING_TERMS = (
     "34주",
     "after maternal stabilization",
     "after stabilization",
-    "betamethasone",
-    "corticosteroid",
-    "dexamethasone",
     "expectant management",
-    "fetal status",
     "gestational age",
     "maternal stabilization",
-    "maternal status",
     "maternal-fetal status",
     "once stabilized",
     "stabilize mother",
@@ -2728,49 +2738,90 @@ SEVERE_PREECLAMPSIA_ESCALATION_ACTION_TERMS = (
     "seizure",
     "중환자",
 )
-SEVERE_PREECLAMPSIA_MAGNESIUM_TOX_SAFETY_TERMS = (
-    "calcium gluconate",
-    "deep tendon reflex",
-    "magnesium toxicity",
+SEVERE_PREECLAMPSIA_MAGNESIUM_RESPIRATORY_SAFETY_TERMS = (
     "respiratory depression",
     "respiratory rate",
-    "urine output",
+    "respiratory status",
+    "apnea",
+)
+SEVERE_PREECLAMPSIA_MAGNESIUM_REFLEX_SAFETY_TERMS = (
+    "deep tendon reflex",
+    "magnesium toxicity",
+    "reflex",
     "반사",
+)
+SEVERE_PREECLAMPSIA_MAGNESIUM_URINE_SAFETY_TERMS = (
+    "urine output",
+    "urine output < 30",
+    "urine output less than 30",
     "소변",
 )
-SEVERE_PREECLAMPSIA_BP_MED_SAFETY_TERMS = (
+SEVERE_PREECLAMPSIA_MAGNESIUM_ANTIDOTE_SAFETY_TERMS = (
+    "calcium gluconate",
+    "magnesium antidote",
+)
+SEVERE_PREECLAMPSIA_LABETALOL_SAFETY_TERMS = (
     "asthma",
     "bradycardia",
+    "cardiomyopathy",
     "heart failure",
-    "hypotension",
-    "labetalol",
-    "nifedipine",
-    "혈압",
 )
-SEVERE_PREECLAMPSIA_LAB_ORGAN_SAFETY_TERMS = (
-    "alt",
-    "ast",
-    "creatinine",
-    "hellp",
-    "liver",
+SEVERE_PREECLAMPSIA_NIFEDIPINE_SAFETY_TERMS = (
+    "hypotension",
+    "tachycardia",
+)
+SEVERE_PREECLAMPSIA_PLATELET_LAB_SAFETY_TERMS = (
     "platelet",
-    "proteinuria",
-    "renal",
-    "간",
-    "신장",
     "혈소판",
 )
-SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS = (
+SEVERE_PREECLAMPSIA_LIVER_LAB_SAFETY_TERMS = (
+    "alt",
+    "ast",
+    "liver",
+    "right upper quadrant",
+    "transaminase",
+    "간",
+)
+SEVERE_PREECLAMPSIA_RENAL_LAB_SAFETY_TERMS = (
+    "creatinine",
+    "proteinuria",
+    "renal",
+    "urine output",
+    "소변",
+)
+SEVERE_PREECLAMPSIA_MATERNAL_SEVERE_FEATURE_SAFETY_TERMS = (
     "abruption",
-    "fetal",
-    "gestational age",
     "headache",
+    "hellp",
     "pulmonary edema",
     "right upper quadrant",
     "seizure",
     "visual",
-    "태아",
     "폐부종",
+)
+SEVERE_PREECLAMPSIA_FETAL_DELIVERY_RISK_SAFETY_TERMS = (
+    "delivery risk",
+    "fetal",
+    "gestational age",
+    "maternal-fetal",
+    "태아",
+)
+SEVERE_PREECLAMPSIA_STEROID_NO_DELAY_SAFETY_TERMS = (
+    "do not delay delivery",
+    "not delay delivery",
+    "without delaying delivery",
+    "do not wait for corticosteroid",
+    "not wait for corticosteroid",
+    "do not wait 48 hours",
+)
+SEVERE_PREECLAMPSIA_POSTPARTUM_SAFETY_TERMS = (
+    "24 hours postpartum",
+    "postpartum magnesium",
+    "postpartum monitoring",
+    "postpartum warning",
+    "follow-up within 7",
+    "followup within 7",
+    "follow up within 7",
 )
 HELLP_CONTEXT_TERMS = (
     "hellp syndrome",
@@ -16762,9 +16813,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "severe preeclampsia or eclampsia time-critical actions must "
                 "include magnesium sulfate seizure prophylaxis or treatment, "
-                "acute severe-hypertension treatment, explicit delivery timing "
-                "or maternal-fetal stabilization planning, and OB/MFM or "
-                "critical-care escalation"
+                "acute severe-hypertension treatment within 30-60 minutes or "
+                "after persistent severe-range BP using IV labetalol, IV "
+                "hydralazine, or immediate-release/oral nifedipine, explicit "
+                "delivery timing or maternal-fetal stabilization planning, and "
+                "OB/MFM or critical-care escalation"
             ),
         ),
         DomainSafetyGate(
@@ -16774,9 +16827,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_severe_preeclampsia_treatment_safety_check,
             issue=(
                 "severe preeclampsia or eclampsia safety checks must include "
-                "magnesium toxicity monitoring, antihypertensive contraindication "
-                "review, HELLP or renal-organ labs, and maternal-fetal severe-feature "
-                "or delivery-risk monitoring"
+                "magnesium toxicity monitoring for respiratory status, reflexes, "
+                "urine output, and calcium gluconate readiness, antihypertensive "
+                "contraindication review for labetalol and nifedipine, platelet, "
+                "liver/transaminase, and renal/proteinuria labs, maternal severe "
+                "features and fetal/delivery-risk monitoring, not delaying "
+                "delivery to complete corticosteroids when deterioration requires "
+                "delivery, and postpartum magnesium/monitoring or follow-up safety"
             ),
         ),
         DomainSafetyGate(
@@ -22892,9 +22949,17 @@ def _has_severe_preeclampsia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SEVERE_PREECLAMPSIA_MAGNESIUM_ACTION_TERMS
     )
-    has_antihypertensive = any(
+    has_seizure_context = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_ACTION_TERMS
+        for term in SEVERE_PREECLAMPSIA_SEIZURE_ACTION_TERMS
+    )
+    has_severe_bp_context = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_PREECLAMPSIA_SEVERE_BP_ACTION_TERMS
+    )
+    has_antihypertensive_med = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_PREECLAMPSIA_ANTIHYPERTENSIVE_MED_ACTION_TERMS
     )
     has_delivery_action = any(
         _contains_safety_term(normalized_actions, term)
@@ -22910,7 +22975,9 @@ def _has_severe_preeclampsia_time_critical_actions(actions: list[Any]) -> bool:
     )
     return (
         has_magnesium
-        and has_antihypertensive
+        and has_seizure_context
+        and has_severe_bp_context
+        and has_antihypertensive_med
         and has_delivery_action
         and has_delivery_timing
         and has_escalation
@@ -22919,27 +22986,72 @@ def _has_severe_preeclampsia_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_severe_preeclampsia_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_magnesium_toxicity_safety = any(
+    has_magnesium_respiratory_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_PREECLAMPSIA_MAGNESIUM_TOX_SAFETY_TERMS
+        for term in SEVERE_PREECLAMPSIA_MAGNESIUM_RESPIRATORY_SAFETY_TERMS
     )
-    has_bp_med_safety = any(
+    has_magnesium_reflex_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_PREECLAMPSIA_BP_MED_SAFETY_TERMS
+        for term in SEVERE_PREECLAMPSIA_MAGNESIUM_REFLEX_SAFETY_TERMS
     )
-    has_lab_organ_safety = any(
+    has_magnesium_urine_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_PREECLAMPSIA_LAB_ORGAN_SAFETY_TERMS
+        for term in SEVERE_PREECLAMPSIA_MAGNESIUM_URINE_SAFETY_TERMS
     )
-    has_maternal_fetal_safety = any(
+    has_magnesium_antidote_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_PREECLAMPSIA_MATERNAL_FETAL_SAFETY_TERMS
+        for term in SEVERE_PREECLAMPSIA_MAGNESIUM_ANTIDOTE_SAFETY_TERMS
+    )
+    has_labetalol_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_LABETALOL_SAFETY_TERMS
+    )
+    has_nifedipine_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_NIFEDIPINE_SAFETY_TERMS
+    )
+    has_platelet_lab_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_PLATELET_LAB_SAFETY_TERMS
+    )
+    has_liver_lab_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_LIVER_LAB_SAFETY_TERMS
+    )
+    has_renal_lab_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_RENAL_LAB_SAFETY_TERMS
+    )
+    has_maternal_severe_feature_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_MATERNAL_SEVERE_FEATURE_SAFETY_TERMS
+    )
+    has_fetal_delivery_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_FETAL_DELIVERY_RISK_SAFETY_TERMS
+    )
+    has_steroid_no_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_STEROID_NO_DELAY_SAFETY_TERMS
+    )
+    has_postpartum_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_PREECLAMPSIA_POSTPARTUM_SAFETY_TERMS
     )
     return (
-        has_magnesium_toxicity_safety
-        and has_bp_med_safety
-        and has_lab_organ_safety
-        and has_maternal_fetal_safety
+        has_magnesium_respiratory_safety
+        and has_magnesium_reflex_safety
+        and has_magnesium_urine_safety
+        and has_magnesium_antidote_safety
+        and has_labetalol_safety
+        and has_nifedipine_safety
+        and has_platelet_lab_safety
+        and has_liver_lab_safety
+        and has_renal_lab_safety
+        and has_maternal_severe_feature_safety
+        and has_fetal_delivery_risk_safety
+        and has_steroid_no_delay_safety
+        and has_postpartum_safety
     )
 
 
