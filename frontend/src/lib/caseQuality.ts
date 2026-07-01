@@ -3982,29 +3982,42 @@ const AMNIOTIC_FLUID_EMBOLISM_AIRWAY_ACTION_TERMS = [
   "ventilation",
 ];
 
-const AMNIOTIC_FLUID_EMBOLISM_CIRCULATION_ACTION_TERMS = [
+const AMNIOTIC_FLUID_EMBOLISM_CPR_ACTION_TERMS = [
   "cpr",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_HEMODYNAMIC_ACTION_TERMS = [
   "hemodynamic",
-  "lateral tilt",
-  "manual uterine displacement",
   "vasopressor",
 ];
 
-const AMNIOTIC_FLUID_EMBOLISM_TEAM_ACTION_TERMS = [
+const AMNIOTIC_FLUID_EMBOLISM_LEFT_DISPLACEMENT_ACTION_TERMS = [
+  "lateral tilt",
+  "manual uterine displacement",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_OB_ANESTHESIA_TEAM_ACTION_TERMS = [
   "anaesthesia",
   "anesthesia",
-  "blood bank",
-  "critical care",
-  "icu",
-  "intensive care",
-  "multidisciplinary",
-  "neonatal",
   "obstetric",
 ];
 
-const AMNIOTIC_FLUID_EMBOLISM_DELIVERY_ACTION_TERMS = [
-  "4 minutes",
-  "5 minutes",
+const AMNIOTIC_FLUID_EMBOLISM_CRITICAL_CARE_TEAM_ACTION_TERMS = [
+  "critical care",
+  "icu",
+  "intensive care",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_NEONATAL_TEAM_ACTION_TERMS = [
+  "neonatal",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_BLOOD_BANK_TEAM_ACTION_TERMS = [
+  "blood bank",
+  "multidisciplinary",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_DELIVERY_PROCEDURE_ACTION_TERMS = [
   "caesarean",
   "cesarean",
   "operative delivery",
@@ -4012,28 +4025,45 @@ const AMNIOTIC_FLUID_EMBOLISM_DELIVERY_ACTION_TERMS = [
   "resuscitative hysterotomy",
 ];
 
-const AMNIOTIC_FLUID_EMBOLISM_COAG_ACTION_TERMS = [
+const AMNIOTIC_FLUID_EMBOLISM_DELIVERY_TIMING_ACTION_TERMS = [
+  "4 minutes",
+  "5 minutes",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_DIC_COAG_ACTION_TERMS = [
   "coagulopathy",
-  "cryoprecipitate",
   "dic",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_FIBRINOGEN_REPLACEMENT_ACTION_TERMS = [
+  "cryoprecipitate",
   "fibrinogen",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_TRANSFUSION_ACTION_TERMS = [
   "massive transfusion",
   "red blood cell",
   "transfusion",
 ];
 
-const AMNIOTIC_FLUID_EMBOLISM_NO_FLUID_OVERLOAD_SAFETY_TERMS = [
+const AMNIOTIC_FLUID_EMBOLISM_FLUID_OVERLOAD_SAFETY_TERMS = [
   "avoid fluid overload",
   "fluid overload should be avoided",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_VASOPRESSOR_SAFETY_TERMS = [
   "vasopressor",
 ];
 
-const AMNIOTIC_FLUID_EMBOLISM_CLOT_FACTOR_SAFETY_TERMS = [
+const AMNIOTIC_FLUID_EMBOLISM_CLOT_FACTOR_REPLACEMENT_SAFETY_TERMS = [
   "clotting factor",
-  "coagulopathy",
   "cryoprecipitate",
-  "dic",
   "fibrinogen",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_DIC_SAFETY_TERMS = [
+  "coagulopathy",
+  "dic",
 ];
 
 const AMNIOTIC_FLUID_EMBOLISM_RFVIITA_SAFETY_TERMS = [
@@ -4042,11 +4072,14 @@ const AMNIOTIC_FLUID_EMBOLISM_RFVIITA_SAFETY_TERMS = [
   "recombinant factor viia should not",
 ];
 
-const AMNIOTIC_FLUID_EMBOLISM_UTEROTONIC_TXA_SAFETY_TERMS = [
+const AMNIOTIC_FLUID_EMBOLISM_UTEROTONIC_SAFETY_TERMS = [
   "oxytocin",
+  "uterotonic",
+];
+
+const AMNIOTIC_FLUID_EMBOLISM_TXA_SAFETY_TERMS = [
   "tranexamic acid",
   "txa",
-  "uterotonic",
 ];
 
 const SHOULDER_DYSTOCIA_CONTEXT_TERMS = [
@@ -19186,42 +19219,94 @@ function hasAmnioticFluidEmbolismTimeCriticalActions(actions: string[]): boolean
   const hasAirway = AMNIOTIC_FLUID_EMBOLISM_AIRWAY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasCirculation = AMNIOTIC_FLUID_EMBOLISM_CIRCULATION_ACTION_TERMS.some((term) =>
+  const hasCpr = AMNIOTIC_FLUID_EMBOLISM_CPR_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasTeam = AMNIOTIC_FLUID_EMBOLISM_TEAM_ACTION_TERMS.some((term) =>
+  const hasHemodynamic = AMNIOTIC_FLUID_EMBOLISM_HEMODYNAMIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDelivery = AMNIOTIC_FLUID_EMBOLISM_DELIVERY_ACTION_TERMS.some((term) =>
+  const hasLeftDisplacement = AMNIOTIC_FLUID_EMBOLISM_LEFT_DISPLACEMENT_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasObAnesthesiaTeam = AMNIOTIC_FLUID_EMBOLISM_OB_ANESTHESIA_TEAM_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCriticalCareTeam =
+    AMNIOTIC_FLUID_EMBOLISM_CRITICAL_CARE_TEAM_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasNeonatalTeam = AMNIOTIC_FLUID_EMBOLISM_NEONATAL_TEAM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasCoagulation = AMNIOTIC_FLUID_EMBOLISM_COAG_ACTION_TERMS.some((term) =>
+  const hasBloodBankTeam = AMNIOTIC_FLUID_EMBOLISM_BLOOD_BANK_TEAM_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDeliveryProcedure =
+    AMNIOTIC_FLUID_EMBOLISM_DELIVERY_PROCEDURE_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasDeliveryTiming = AMNIOTIC_FLUID_EMBOLISM_DELIVERY_TIMING_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDicCoag = AMNIOTIC_FLUID_EMBOLISM_DIC_COAG_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasAirway && hasCirculation && hasTeam && hasDelivery && hasCoagulation;
+  const hasFibrinogenReplacement =
+    AMNIOTIC_FLUID_EMBOLISM_FIBRINOGEN_REPLACEMENT_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasTransfusion = AMNIOTIC_FLUID_EMBOLISM_TRANSFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasAirway &&
+    hasCpr &&
+    hasHemodynamic &&
+    hasLeftDisplacement &&
+    hasObAnesthesiaTeam &&
+    hasCriticalCareTeam &&
+    hasNeonatalTeam &&
+    hasBloodBankTeam &&
+    hasDeliveryProcedure &&
+    hasDeliveryTiming &&
+    hasDicCoag &&
+    hasFibrinogenReplacement &&
+    hasTransfusion
+  );
 }
 
 function hasAmnioticFluidEmbolismTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasNoFluidOverloadSafety =
-    AMNIOTIC_FLUID_EMBOLISM_NO_FLUID_OVERLOAD_SAFETY_TERMS.some((term) =>
+  const hasFluidOverloadSafety = AMNIOTIC_FLUID_EMBOLISM_FLUID_OVERLOAD_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVasopressorSafety = AMNIOTIC_FLUID_EMBOLISM_VASOPRESSOR_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasClotFactorReplacementSafety =
+    AMNIOTIC_FLUID_EMBOLISM_CLOT_FACTOR_REPLACEMENT_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasClotFactorSafety = AMNIOTIC_FLUID_EMBOLISM_CLOT_FACTOR_SAFETY_TERMS.some(
+  const hasDicSafety = AMNIOTIC_FLUID_EMBOLISM_DIC_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasRfviiaSafety = AMNIOTIC_FLUID_EMBOLISM_RFVIITA_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasUterotonicTxaSafety =
-    AMNIOTIC_FLUID_EMBOLISM_UTEROTONIC_TXA_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
+  const hasUterotonicSafety = AMNIOTIC_FLUID_EMBOLISM_UTEROTONIC_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTxaSafety = AMNIOTIC_FLUID_EMBOLISM_TXA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
-    hasNoFluidOverloadSafety &&
-    hasClotFactorSafety &&
+    hasFluidOverloadSafety &&
+    hasVasopressorSafety &&
+    hasClotFactorReplacementSafety &&
+    hasDicSafety &&
     hasRfviiaSafety &&
-    hasUterotonicTxaSafety
+    hasUterotonicSafety &&
+    hasTxaSafety
   );
 }
 
