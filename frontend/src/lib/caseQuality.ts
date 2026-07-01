@@ -3844,68 +3844,114 @@ const UTERINE_RUPTURE_RISK_TERMS = [
   "variable decelerations",
 ];
 
-const UTERINE_RUPTURE_FETAL_MATERNAL_ACTION_TERMS = [
+const UTERINE_RUPTURE_FETAL_ACTION_TERMS = [
   "continuous fetal",
   "fetal bradycardia",
   "fetal heart",
   "fetal monitoring",
+];
+
+const UTERINE_RUPTURE_MATERNAL_ACTION_TERMS = [
+  "hemodynamic",
   "maternal resuscitation",
   "shock",
 ];
 
-const UTERINE_RUPTURE_TEAM_ACTION_TERMS = [
-  "anaesthesia",
-  "anesthesia",
-  "blood bank",
-  "neonatal",
+const UTERINE_RUPTURE_OB_SURGICAL_TEAM_ACTION_TERMS = [
   "obstetric",
   "surgical team",
 ];
 
-const UTERINE_RUPTURE_LAPAROTOMY_DELIVERY_ACTION_TERMS = [
-  "cesarean",
-  "caesarean",
-  "emergency delivery",
+const UTERINE_RUPTURE_ANESTHESIA_ACTION_TERMS = [
+  "anaesthesia",
+  "anesthesia",
+];
+
+const UTERINE_RUPTURE_NEONATAL_ACTION_TERMS = [
+  "neonatal",
+];
+
+const UTERINE_RUPTURE_BLOOD_BANK_ACTION_TERMS = [
+  "blood bank",
+];
+
+const UTERINE_RUPTURE_LAPAROTOMY_ACTION_TERMS = [
   "immediate laparotomy",
   "laparotomy",
 ];
 
-const UTERINE_RUPTURE_HEMORRHAGE_ACTION_TERMS = [
+const UTERINE_RUPTURE_CESAREAN_DELIVERY_ACTION_TERMS = [
+  "caesarean",
+  "cesarean",
+  "emergency delivery",
+];
+
+const UTERINE_RUPTURE_HEMORRHAGE_PREP_ACTION_TERMS = [
   "crossmatch",
   "hemorrhage",
+  "hemorrhage protocol",
+];
+
+const UTERINE_RUPTURE_TRANSFUSION_ACTION_TERMS = [
   "massive transfusion",
   "transfusion",
 ];
 
-const UTERINE_RUPTURE_NO_LABOR_SAFETY_TERMS = [
+const UTERINE_RUPTURE_STOP_LABOR_SAFETY_TERMS = [
   "do not continue labor",
   "stop labor",
-  "stop oxytocin",
   "stop tolac",
   "stop trial of labor",
 ];
 
-const UTERINE_RUPTURE_PROSTAGLANDIN_SAFETY_TERMS = [
+const UTERINE_RUPTURE_STOP_OXYTOCIN_SAFETY_TERMS = [
+  "stop oxytocin",
+];
+
+const UTERINE_RUPTURE_AVOID_PROSTAGLANDIN_SAFETY_TERMS = [
   "avoid prostaglandin",
-  "misoprostol",
   "prostaglandins should not",
 ];
 
-const UTERINE_RUPTURE_DIAGNOSIS_NO_DELAY_SAFETY_TERMS = [
+const UTERINE_RUPTURE_MISOPROSTOL_SAFETY_TERMS = [
+  "misoprostol",
+];
+
+const UTERINE_RUPTURE_NO_DELAY_SAFETY_TERMS = [
   "do not delay laparotomy",
   "do not wait",
   "imaging must not delay",
-  "immediate laparotomy",
   "not delay laparotomy",
   "no imaging delay",
   "without waiting",
 ];
 
-const UTERINE_RUPTURE_REPAIR_HYSTERECTOMY_SAFETY_TERMS = [
-  "bladder laceration",
-  "hysterectomy",
+const UTERINE_RUPTURE_LAPAROTOMY_DIAGNOSIS_SAFETY_TERMS = [
+  "diagnosis by laparotomy",
+  "immediate laparotomy",
+  "laparotomy",
+];
+
+const UTERINE_RUPTURE_REPAIR_SAFETY_TERMS = [
   "repair",
   "uterine repair",
+];
+
+const UTERINE_RUPTURE_HYSTERECTOMY_SAFETY_TERMS = [
+  "hysterectomy",
+];
+
+const UTERINE_RUPTURE_BLADDER_INJURY_SAFETY_TERMS = [
+  "bladder laceration",
+  "bladder",
+  "urology",
+];
+
+const UTERINE_RUPTURE_HEMORRHAGE_CONTINGENCY_SAFETY_TERMS = [
+  "hemorrhage contingencies",
+  "hemorrhage contingency",
+  "hemorrhage protocol",
+  "transfusion",
 ];
 
 const AMNIOTIC_FLUID_EMBOLISM_CONTEXT_TERMS = [
@@ -19017,41 +19063,94 @@ function requiresUterineRuptureSafetyCheck(detail: ClinicalCaseReviewDetail): bo
 
 function hasUterineRuptureTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasFetalMaternalAssessment = UTERINE_RUPTURE_FETAL_MATERNAL_ACTION_TERMS.some(
-    (term) => containsSafetyTerm(normalizedActions, term),
-  );
-  const hasTeam = UTERINE_RUPTURE_TEAM_ACTION_TERMS.some((term) =>
+  const hasFetalAssessment = UTERINE_RUPTURE_FETAL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasLaparotomyDelivery = UTERINE_RUPTURE_LAPAROTOMY_DELIVERY_ACTION_TERMS.some(
-    (term) => containsSafetyTerm(normalizedActions, term),
-  );
-  const hasHemorrhage = UTERINE_RUPTURE_HEMORRHAGE_ACTION_TERMS.some((term) =>
+  const hasMaternalAssessment = UTERINE_RUPTURE_MATERNAL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasFetalMaternalAssessment && hasTeam && hasLaparotomyDelivery && hasHemorrhage;
+  const hasObSurgicalTeam = UTERINE_RUPTURE_OB_SURGICAL_TEAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAnesthesia = UTERINE_RUPTURE_ANESTHESIA_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNeonatal = UTERINE_RUPTURE_NEONATAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodBank = UTERINE_RUPTURE_BLOOD_BANK_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLaparotomy = UTERINE_RUPTURE_LAPAROTOMY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCesareanDelivery = UTERINE_RUPTURE_CESAREAN_DELIVERY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHemorrhagePrep = UTERINE_RUPTURE_HEMORRHAGE_PREP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTransfusion = UTERINE_RUPTURE_TRANSFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasFetalAssessment &&
+    hasMaternalAssessment &&
+    hasObSurgicalTeam &&
+    hasAnesthesia &&
+    hasNeonatal &&
+    hasBloodBank &&
+    hasLaparotomy &&
+    hasCesareanDelivery &&
+    hasHemorrhagePrep &&
+    hasTransfusion
+  );
 }
 
 function hasUterineRuptureTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasNoLaborSafety = UTERINE_RUPTURE_NO_LABOR_SAFETY_TERMS.some((term) =>
+  const hasStopLaborSafety = UTERINE_RUPTURE_STOP_LABOR_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasProstaglandinSafety = UTERINE_RUPTURE_PROSTAGLANDIN_SAFETY_TERMS.some((term) =>
+  const hasStopOxytocinSafety = UTERINE_RUPTURE_STOP_OXYTOCIN_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDiagnosisNoDelaySafety = UTERINE_RUPTURE_DIAGNOSIS_NO_DELAY_SAFETY_TERMS.some(
+  const hasAvoidProstaglandinSafety = UTERINE_RUPTURE_AVOID_PROSTAGLANDIN_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasRepairHysterectomySafety =
-    UTERINE_RUPTURE_REPAIR_HYSTERECTOMY_SAFETY_TERMS.some((term) =>
+  const hasMisoprostolSafety = UTERINE_RUPTURE_MISOPROSTOL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNoDelaySafety = UTERINE_RUPTURE_NO_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLaparotomyDiagnosisSafety = UTERINE_RUPTURE_LAPAROTOMY_DIAGNOSIS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRepairSafety = UTERINE_RUPTURE_REPAIR_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHysterectomySafety = UTERINE_RUPTURE_HYSTERECTOMY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBladderInjurySafety = UTERINE_RUPTURE_BLADDER_INJURY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHemorrhageContingencySafety =
+    UTERINE_RUPTURE_HEMORRHAGE_CONTINGENCY_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
   return (
-    hasNoLaborSafety &&
-    hasProstaglandinSafety &&
-    hasDiagnosisNoDelaySafety &&
-    hasRepairHysterectomySafety
+    hasStopLaborSafety &&
+    hasStopOxytocinSafety &&
+    hasAvoidProstaglandinSafety &&
+    hasMisoprostolSafety &&
+    hasNoDelaySafety &&
+    hasLaparotomyDiagnosisSafety &&
+    hasRepairSafety &&
+    hasHysterectomySafety &&
+    hasBladderInjurySafety &&
+    hasHemorrhageContingencySafety
   );
 }
 
