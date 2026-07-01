@@ -15727,6 +15727,24 @@ const CARDIAC_TAMPONADE_CAUSE_COMPLICATION_SAFETY_TERMS = [
   "외상",
 ];
 
+const CARDIAC_TAMPONADE_VENTILATION_PRELOAD_SAFETY_TERMS = [
+  "avoid diuresis",
+  "avoid diuretics",
+  "avoid intubation",
+  "avoid mechanical ventilation",
+  "avoid positive pressure",
+  "avoid positive-pressure",
+  "do not intubate",
+  "intubation only if necessary",
+  "minimize positive pressure",
+  "positive pressure ventilation should be avoided",
+  "positive-pressure mechanical ventilation should be avoided",
+  "preload optimization",
+  "preserve preload",
+  "양압환기 피",
+  "삽관 피",
+];
+
 const UNSTABLE_TACHYARRHYTHMIA_CONTEXT_TERMS = [
   "af with rvr",
   "atrial fibrillation with rapid ventricular response",
@@ -26056,7 +26074,16 @@ function hasCardiacTamponadeTreatmentSafetyCheck(checks: string[]): boolean {
   const hasCauseComplicationSafety = CARDIAC_TAMPONADE_CAUSE_COMPLICATION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  return hasNoDelaySafety && hasAnticoagReversalSafety && hasCauseComplicationSafety;
+  const hasVentilationPreloadSafety =
+    CARDIAC_TAMPONADE_VENTILATION_PRELOAD_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasNoDelaySafety &&
+    hasAnticoagReversalSafety &&
+    hasCauseComplicationSafety &&
+    hasVentilationPreloadSafety
+  );
 }
 
 function requiresUnstableTachyarrhythmiaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -28940,7 +28967,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasCardiacTamponadeTreatmentSafetyCheck,
       issue:
-        "cardiac tamponade safety checks must include unstable-patient do-not-delay or immediate-drainage planning, anticoagulant, thrombolysis, bleeding, coagulopathy, INR, platelet, or reversal review, and trauma, iatrogenic injury, myocardial infarction or rupture, aortic dissection, malignancy, uremia, or renal failure cause assessment",
+        "cardiac tamponade safety checks must include unstable-patient do-not-delay or immediate-drainage planning, anticoagulant, thrombolysis, bleeding, coagulopathy, INR, platelet, or reversal review, and trauma, iatrogenic injury, myocardial infarction or rupture, aortic dissection, malignancy, uremia, or renal failure cause assessment, plus avoidance of positive-pressure ventilation, intubation, diuresis, or other preload-reducing steps when feasible",
     },
     {
       name: "unstable_tachyarrhythmia_time_critical_actions",

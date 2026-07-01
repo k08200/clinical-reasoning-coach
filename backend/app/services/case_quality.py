@@ -14284,6 +14284,23 @@ CARDIAC_TAMPONADE_CAUSE_COMPLICATION_SAFETY_TERMS = (
     "감별",
     "외상",
 )
+CARDIAC_TAMPONADE_VENTILATION_PRELOAD_SAFETY_TERMS = (
+    "avoid diuresis",
+    "avoid diuretics",
+    "avoid intubation",
+    "avoid mechanical ventilation",
+    "avoid positive pressure",
+    "avoid positive-pressure",
+    "do not intubate",
+    "intubation only if necessary",
+    "minimize positive pressure",
+    "positive pressure ventilation should be avoided",
+    "positive-pressure mechanical ventilation should be avoided",
+    "preload optimization",
+    "preserve preload",
+    "양압환기 피",
+    "삽관 피",
+)
 UNSTABLE_TACHYARRHYTHMIA_CONTEXT_TERMS = (
     "af with rvr",
     "atrial fibrillation with rapid ventricular response",
@@ -19546,7 +19563,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "thrombolysis, bleeding, coagulopathy, INR, platelet, or reversal "
                 "review, and trauma, iatrogenic injury, myocardial infarction or "
                 "rupture, aortic dissection, malignancy, uremia, or renal failure "
-                "cause assessment"
+                "cause assessment, plus avoidance of positive-pressure ventilation, "
+                "intubation, diuresis, or other preload-reducing steps when feasible"
             ),
         ),
         DomainSafetyGate(
@@ -31440,10 +31458,15 @@ def _has_cardiac_tamponade_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in CARDIAC_TAMPONADE_CAUSE_COMPLICATION_SAFETY_TERMS
     )
+    has_ventilation_preload_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARDIAC_TAMPONADE_VENTILATION_PRELOAD_SAFETY_TERMS
+    )
     return (
         has_no_delay_safety
         and has_anticoag_reversal_safety
         and has_cause_complication_safety
+        and has_ventilation_preload_safety
     )
 
 
