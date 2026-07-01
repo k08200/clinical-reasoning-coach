@@ -2843,33 +2843,50 @@ HELLP_RISK_TERMS = (
     "transaminase",
     "vomiting",
 )
-HELLP_LAB_ACTION_TERMS = (
+HELLP_CBC_PLATELET_ACTION_TERMS = (
+    "cbc",
+    "platelet",
+)
+HELLP_LIVER_ENZYME_ACTION_TERMS = (
     "alt",
     "ast",
+    "transaminase",
+)
+HELLP_HEMOLYSIS_ACTION_TERMS = (
     "bilirubin",
-    "cbc",
-    "haptoglobin",
     "hemolysis",
     "lactate dehydrogenase",
     "ldh",
-    "platelet",
     "schistocyte",
     "smear",
 )
 HELLP_MAGNESIUM_ACTION_TERMS = (
-    "magnesium",
     "magnesium sulfate",
     "mgso4",
-    "seizure prophylaxis",
 )
-HELLP_BP_ACTION_TERMS = (
-    "antihypertensive",
-    "blood pressure",
+HELLP_SEIZURE_ACTION_TERMS = (
+    "seizure prophylaxis",
+    "seizure prevention",
+    "eclampsia",
+)
+HELLP_SEVERE_BP_ACTION_TERMS = (
+    "acute severe hypertension",
+    "acute severe-range",
+    "severe hypertension",
+    "severe-range",
+    "160/110",
+    "160 mm hg",
+    "110 mm hg",
+)
+HELLP_BP_MED_ACTION_TERMS = (
     "hydralazine",
     "labetalol",
     "nifedipine",
-    "severe hypertension",
-    "severe-range",
+    "immediate-release nifedipine",
+    "intravenous hydralazine",
+    "intravenous labetalol",
+    "iv hydralazine",
+    "iv labetalol",
 )
 HELLP_DELIVERY_ACTION_TERMS = (
     "cesarean",
@@ -2885,8 +2902,6 @@ HELLP_DELIVERY_TIMING_TERMS = (
     "after maternal stabilization",
     "after stabilization",
     "based on maternal and fetal status",
-    "corticosteroid",
-    "fetal status",
     "gestational age",
     "maternal stabilization",
     "maternal status",
@@ -2895,50 +2910,93 @@ HELLP_DELIVERY_TIMING_TERMS = (
     "분만 시기",
     "재태연령",
 )
-HELLP_COMPLICATION_ACTION_TERMS = (
+HELLP_DIC_COAG_ACTION_TERMS = (
     "dic",
     "fibrinogen",
-    "hepatic imaging",
-    "liver rupture",
     "pt",
     "ptt",
-    "subcapsular hematoma",
+    "coagulation",
+    "coagulopathy",
 )
-HELLP_DIC_SAFETY_TERMS = (
+HELLP_HEPATIC_COMPLICATION_ACTION_TERMS = (
+    "hepatic imaging",
+    "liver rupture",
+    "subcapsular hematoma",
+    "subcapsular haematoma",
+)
+HELLP_DIC_TRIGGER_SAFETY_TERMS = (
     "abnormal bleeding",
+    "platelet count less than 50",
+    "platelet count under 50",
+    "platelet < 50",
+    "platelets < 50",
+)
+HELLP_DIC_COAG_SAFETY_TERMS = (
     "dic",
     "fibrinogen",
-    "platelet count less than 50",
     "prothrombin time",
     "pt",
     "ptt",
+    "partial thromboplastin time",
 )
-HELLP_PLATELET_TRANSFUSION_SAFETY_TERMS = (
-    "20",
-    "50",
+HELLP_PLATELET_VAGINAL_SAFETY_TERMS = (
+    "less than 20",
+    "platelet count less than 20",
+    "platelet < 20",
+    "platelets < 20",
+    "20k before vaginal",
+)
+HELLP_PLATELET_CESAREAN_SAFETY_TERMS = (
+    "less than 50",
+    "platelet count less than 50",
+    "platelet < 50",
+    "platelets < 50",
+    "50k before cesarean",
+    "50k before caesarean",
+)
+HELLP_PLATELET_BLEEDING_TRANSFUSION_SAFETY_TERMS = (
     "abnormal bleeding",
     "platelet transfusion",
     "transfusion",
 )
-HELLP_ANESTHESIA_SAFETY_TERMS = (
-    "avoid regional",
-    "epidural",
+HELLP_REGIONAL_SAFE_PLATELET_SAFETY_TERMS = (
     "platelet count greater than 100",
-    "platelet count less than 50",
-    "regional anesthesia",
+    "platelet count over 100",
+    "platelet > 100",
+    "platelets > 100",
 )
-HELLP_STEROID_SAFETY_TERMS = (
+HELLP_REGIONAL_AVOID_LOW_PLATELET_SAFETY_TERMS = (
+    "avoid regional",
+    "avoid neuraxial",
+    "avoid epidural",
+    "epidural",
+    "platelet count less than 50",
+    "platelet < 50",
+    "regional anesthesia",
+    "regional anaesthesia",
+)
+HELLP_STEROID_GESTATIONAL_SAFETY_TERMS = (
     "34 weeks",
+    "before 34 weeks",
+    "less than 34 weeks",
+)
+HELLP_STEROID_FETAL_LUNG_SAFETY_TERMS = (
     "betamethasone",
     "corticosteroids",
     "dexamethasone",
     "fetal lung",
 )
-HELLP_POSTPARTUM_MONITORING_SAFETY_TERMS = (
+HELLP_POSTPARTUM_TIME_SAFETY_TERMS = (
     "24 to 48 hours postpartum",
+    "24-48 hours postpartum",
     "48 hours postpartum",
-    "ldh",
+)
+HELLP_POSTPARTUM_MAGNESIUM_SAFETY_TERMS = (
     "magnesium sulfate",
+    "postpartum magnesium",
+)
+HELLP_POSTPARTUM_LAB_RECOVERY_SAFETY_TERMS = (
+    "ldh",
     "platelet recovery",
     "postpartum",
 )
@@ -16843,12 +16901,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_hellp_time_critical_actions,
             issue=(
                 "HELLP syndrome time-critical actions must include CBC/platelet, "
-                "hemolysis, AST/ALT, LDH, bilirubin, or smear labs, magnesium "
-                "sulfate seizure prophylaxis, severe hypertension blood-pressure "
-                "treatment, explicit delivery planning with maternal-fetal status "
-                "or stabilization timing, and DIC, fibrinogen, PT/PTT, hepatic "
-                "imaging, subcapsular hematoma, or liver-rupture complication "
-                "assessment"
+                "AST/ALT or transaminase, and hemolysis labs such as LDH, "
+                "bilirubin, or smear, magnesium sulfate seizure prophylaxis, "
+                "specific severe hypertension treatment with labetalol, "
+                "hydralazine, or nifedipine, explicit delivery planning with "
+                "maternal-fetal status or stabilization timing, and both DIC/"
+                "coagulation assessment and hepatic complication assessment for "
+                "subcapsular hematoma or liver rupture"
             ),
         ),
         DomainSafetyGate(
@@ -16858,11 +16917,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_hellp_treatment_safety_check,
             issue=(
                 "HELLP syndrome safety checks must include DIC workup with "
-                "fibrinogen, PT/PTT, abnormal bleeding, or platelet count less "
-                "than 50k, platelet transfusion thresholds around <20k for vaginal "
-                "delivery, <50k before cesarean delivery, or abnormal bleeding, "
-                "regional/epidural anesthesia platelet safety, corticosteroid/fetal "
-                "lung maturity planning before 34 weeks, and postpartum magnesium "
+                "fibrinogen and PT/PTT when abnormal bleeding or platelet count "
+                "less than 50k is present, platelet transfusion thresholds around "
+                "<20k for vaginal delivery, <50k before cesarean delivery, or "
+                "abnormal bleeding, regional/epidural anesthesia platelet safety "
+                "with safe and avoid thresholds, corticosteroid/fetal lung "
+                "maturity planning before 34 weeks, and postpartum magnesium "
                 "sulfate plus LDH/platelet recovery monitoring for 24 to 48 hours"
             ),
         ),
@@ -23088,17 +23148,33 @@ def _requires_hellp_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_hellp_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_labs = any(
+    has_cbc_platelet = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HELLP_LAB_ACTION_TERMS
+        for term in HELLP_CBC_PLATELET_ACTION_TERMS
+    )
+    has_liver_enzyme = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HELLP_LIVER_ENZYME_ACTION_TERMS
+    )
+    has_hemolysis = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HELLP_HEMOLYSIS_ACTION_TERMS
     )
     has_magnesium = any(
         _contains_safety_term(normalized_actions, term)
         for term in HELLP_MAGNESIUM_ACTION_TERMS
     )
-    has_bp = any(
+    has_seizure_context = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HELLP_BP_ACTION_TERMS
+        for term in HELLP_SEIZURE_ACTION_TERMS
+    )
+    has_severe_bp = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HELLP_SEVERE_BP_ACTION_TERMS
+    )
+    has_bp_med = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HELLP_BP_MED_ACTION_TERMS
     )
     has_delivery_action = any(
         _contains_safety_term(normalized_actions, term)
@@ -23108,48 +23184,92 @@ def _has_hellp_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in HELLP_DELIVERY_TIMING_TERMS
     )
-    has_complications = any(
+    has_dic_coag = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HELLP_COMPLICATION_ACTION_TERMS
+        for term in HELLP_DIC_COAG_ACTION_TERMS
+    )
+    has_hepatic_complication = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HELLP_HEPATIC_COMPLICATION_ACTION_TERMS
     )
     return (
-        has_labs
+        has_cbc_platelet
+        and has_liver_enzyme
+        and has_hemolysis
         and has_magnesium
-        and has_bp
+        and has_seizure_context
+        and has_severe_bp
+        and has_bp_med
         and has_delivery_action
         and has_delivery_timing
-        and has_complications
+        and has_dic_coag
+        and has_hepatic_complication
     )
 
 
 def _has_hellp_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_dic_safety = any(
+    has_dic_trigger_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HELLP_DIC_SAFETY_TERMS
+        for term in HELLP_DIC_TRIGGER_SAFETY_TERMS
     )
-    has_platelet_transfusion_safety = any(
+    has_dic_coag_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HELLP_PLATELET_TRANSFUSION_SAFETY_TERMS
+        for term in HELLP_DIC_COAG_SAFETY_TERMS
     )
-    has_anesthesia_safety = any(
+    has_platelet_vaginal_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HELLP_ANESTHESIA_SAFETY_TERMS
+        for term in HELLP_PLATELET_VAGINAL_SAFETY_TERMS
     )
-    has_steroid_safety = any(
+    has_platelet_cesarean_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HELLP_STEROID_SAFETY_TERMS
+        for term in HELLP_PLATELET_CESAREAN_SAFETY_TERMS
     )
-    has_postpartum_monitoring_safety = any(
+    has_platelet_bleeding_transfusion_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HELLP_POSTPARTUM_MONITORING_SAFETY_TERMS
+        for term in HELLP_PLATELET_BLEEDING_TRANSFUSION_SAFETY_TERMS
+    )
+    has_regional_safe_platelet_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HELLP_REGIONAL_SAFE_PLATELET_SAFETY_TERMS
+    )
+    has_regional_avoid_low_platelet_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HELLP_REGIONAL_AVOID_LOW_PLATELET_SAFETY_TERMS
+    )
+    has_steroid_gestational_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HELLP_STEROID_GESTATIONAL_SAFETY_TERMS
+    )
+    has_steroid_fetal_lung_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HELLP_STEROID_FETAL_LUNG_SAFETY_TERMS
+    )
+    has_postpartum_time_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HELLP_POSTPARTUM_TIME_SAFETY_TERMS
+    )
+    has_postpartum_magnesium_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HELLP_POSTPARTUM_MAGNESIUM_SAFETY_TERMS
+    )
+    has_postpartum_lab_recovery_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HELLP_POSTPARTUM_LAB_RECOVERY_SAFETY_TERMS
     )
     return (
-        has_dic_safety
-        and has_platelet_transfusion_safety
-        and has_anesthesia_safety
-        and has_steroid_safety
-        and has_postpartum_monitoring_safety
+        has_dic_trigger_safety
+        and has_dic_coag_safety
+        and has_platelet_vaginal_safety
+        and has_platelet_cesarean_safety
+        and has_platelet_bleeding_transfusion_safety
+        and has_regional_safe_platelet_safety
+        and has_regional_avoid_low_platelet_safety
+        and has_steroid_gestational_safety
+        and has_steroid_fetal_lung_safety
+        and has_postpartum_time_safety
+        and has_postpartum_magnesium_safety
+        and has_postpartum_lab_recovery_safety
     )
 
 

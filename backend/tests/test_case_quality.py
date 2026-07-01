@@ -7392,6 +7392,182 @@ def test_quality_gate_requires_hellp_dic_platelet_anesthesia_steroid_and_postpar
     )
 
 
+def test_quality_gate_requires_hellp_liver_and_hemolysis_labs_not_cbc_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "HELLP syndrome at 32 weeks"
+    case["patient_demographics"] = {
+        "age": 32,
+        "sex": "female",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Right upper quadrant pain, nausea, and low platelets"
+    case["history_of_present_illness"] = (
+        "Pregnant patient at 32 weeks has HELLP syndrome with right upper quadrant "
+        "pain, nausea, vomiting, severe-range blood pressure, platelet count 72000, "
+        "AST/ALT transaminase elevation, LDH elevation, bilirubin elevation, "
+        "schistocytes, hemolysis, and concern for DIC and hepatic subcapsular hematoma."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "166/112", "hr": 104, "rr": 20},
+        "abdomen": "Right upper quadrant tenderness without peritonitis",
+    }
+    case["initial_labs"] = {
+        "platelets": "72000/mcL",
+        "ast_alt": "AST 210 U/L, ALT 190 U/L",
+        "ldh": "820 U/L",
+        "bilirubin": "1.7 mg/dL",
+        "smear": "Schistocytes present",
+    }
+    case["key_teaching_points"] = [
+        "HELLP syndrome is hemolysis, elevated liver enzymes, and low platelet count",
+        "HELLP syndrome can be normotensive and may present without proteinuria",
+        "HELLP syndrome requires magnesium sulfate, blood pressure control, and delivery planning based on maternal and fetal status",
+    ]
+    case["clinical_red_flags"] = [
+        "Right upper quadrant pain, epigastric pain, nausea, vomiting, or headache in late pregnancy",
+        "Platelet count less than 100000, hemolysis, elevated LDH, schistocytes, bilirubin elevation, or AST/ALT twice normal",
+    ]
+    case["time_critical_actions"] = [
+        "Order CBC and platelet count now",
+        "Start magnesium sulfate MgSO4 for seizure prophylaxis",
+        "Treat severe-range blood pressure with IV labetalol, IV hydralazine, or immediate-release nifedipine",
+        "After maternal stabilization, plan delivery based on gestational age and maternal-fetal status",
+        "Assess DIC with fibrinogen, PT, PTT and obtain hepatic imaging for subcapsular hematoma or liver rupture if severe RUQ pain persists",
+    ]
+    case["contraindication_checks"] = [
+        "Order DIC workup with fibrinogen, prothrombin time PT, partial thromboplastin time PTT, and abnormal bleeding review when platelet count less than 50k",
+        "Use platelet transfusion thresholds: transfuse if platelet count less than 20k before vaginal delivery, less than 50k before cesarean delivery, or abnormal bleeding",
+        "Review regional anesthesia and epidural safety: safe when platelet count greater than 100k and avoid regional anesthesia when platelet count less than 50k",
+        "Use corticosteroids such as betamethasone or dexamethasone for fetal lung maturity before 34 weeks when delivery risk is present",
+        "Continue magnesium sulfate and monitor LDH plus platelet recovery for 24 to 48 hours postpartum",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hypertensive Disorders of Pregnancy",
+            "organization": "American Academy of Family Physicians",
+            "url": "https://www.aafp.org/pubs/afp/issues/2016/0115/p121.html",
+            "supports": [
+                "HELLP syndrome at 32 weeks diagnosis and risk stratification",
+                "right upper quadrant pain, nausea, and low platelets in HELLP syndrome",
+                "HELLP syndrome with right upper quadrant pain, nausea, vomiting, severe-range blood pressure, platelet count 72000, AST/ALT transaminase elevation, LDH elevation, bilirubin elevation, schistocytes, hemolysis, DIC concern, and hepatic subcapsular hematoma concern",
+                "HELLP syndrome is hemolysis, elevated liver enzymes, and low platelet count",
+                "HELLP syndrome can be normotensive and may present without proteinuria",
+                "HELLP syndrome requires magnesium sulfate, blood pressure control, and delivery planning based on maternal and fetal status",
+                "right upper quadrant pain, epigastric pain, nausea, vomiting, or headache in late pregnancy",
+                "platelet count less than 100000, hemolysis, elevated LDH, schistocytes, bilirubin elevation, or AST/ALT twice normal",
+                "CBC and platelet count",
+                "magnesium sulfate MgSO4 for seizure prophylaxis",
+                "severe-range blood pressure treatment with IV labetalol, IV hydralazine, or immediate-release nifedipine",
+                "maternal stabilization, delivery, gestational age, and maternal-fetal status",
+                "DIC with fibrinogen, PT, PTT and hepatic imaging for subcapsular hematoma or liver rupture when severe RUQ pain persists",
+                "DIC workup with fibrinogen, prothrombin time PT, partial thromboplastin time PTT, and abnormal bleeding review when platelet count less than 50k",
+                "platelet transfusion thresholds less than 20k before vaginal delivery, less than 50k before cesarean delivery, or abnormal bleeding",
+                "regional anesthesia and epidural safety when platelet count greater than 100k and avoidance when platelet count less than 50k",
+                "corticosteroids such as betamethasone or dexamethasone for fetal lung maturity before 34 weeks when delivery risk is present",
+                "magnesium sulfate and LDH plus platelet recovery monitoring for 24 to 48 hours postpartum",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "HELLP syndrome time-critical actions must include CBC/platelet"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_hellp_specific_thresholds_and_postpartum_recovery_not_numeric_labels_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "HELLP syndrome at 32 weeks"
+    case["patient_demographics"] = {
+        "age": 32,
+        "sex": "female",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Right upper quadrant pain, nausea, and low platelets"
+    case["history_of_present_illness"] = (
+        "Pregnant patient at 32 weeks has HELLP syndrome with right upper quadrant "
+        "pain, nausea, vomiting, severe-range blood pressure, platelet count 72000, "
+        "AST/ALT transaminase elevation, LDH elevation, bilirubin elevation, "
+        "schistocytes, hemolysis, and concern for DIC and hepatic subcapsular hematoma."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "166/112", "hr": 104, "rr": 20},
+        "abdomen": "Right upper quadrant tenderness without peritonitis",
+    }
+    case["initial_labs"] = {
+        "platelets": "72000/mcL",
+        "ast_alt": "AST 210 U/L, ALT 190 U/L",
+        "ldh": "820 U/L",
+        "bilirubin": "1.7 mg/dL",
+        "smear": "Schistocytes present",
+    }
+    case["key_teaching_points"] = [
+        "HELLP syndrome is hemolysis, elevated liver enzymes, and low platelet count",
+        "HELLP syndrome can be normotensive and may present without proteinuria",
+        "HELLP syndrome requires magnesium sulfate, blood pressure control, and delivery planning based on maternal and fetal status",
+    ]
+    case["clinical_red_flags"] = [
+        "Right upper quadrant pain, epigastric pain, nausea, vomiting, or headache in late pregnancy",
+        "Platelet count less than 100000, hemolysis, elevated LDH, schistocytes, bilirubin elevation, or AST/ALT twice normal",
+    ]
+    case["time_critical_actions"] = [
+        "Order CBC, platelet count, AST, ALT, lactate dehydrogenase LDH, bilirubin, haptoglobin, peripheral smear for schistocytes, and hemolysis labs",
+        "Start magnesium sulfate MgSO4 for seizure prophylaxis",
+        "Treat severe-range blood pressure with IV labetalol, IV hydralazine, or immediate-release nifedipine",
+        "After maternal stabilization, plan delivery based on gestational age and maternal-fetal status",
+        "Assess DIC with fibrinogen, PT, PTT and obtain hepatic imaging for subcapsular hematoma or liver rupture if severe RUQ pain persists",
+    ]
+    case["contraindication_checks"] = [
+        "Review DIC, fibrinogen, PT, PTT, and platelet count during bleeding risk assessment",
+        "Discuss platelet transfusion using 20 and 50 as reference numbers",
+        "Review epidural and regional anesthesia safety by platelet count",
+        "Use corticosteroids for fetal lung maturity planning",
+        "Plan postpartum monitoring",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hypertensive Disorders of Pregnancy",
+            "organization": "American Academy of Family Physicians",
+            "url": "https://www.aafp.org/pubs/afp/issues/2016/0115/p121.html",
+            "supports": [
+                "HELLP syndrome at 32 weeks diagnosis and risk stratification",
+                "right upper quadrant pain, nausea, and low platelets in HELLP syndrome",
+                "HELLP syndrome with right upper quadrant pain, nausea, vomiting, severe-range blood pressure, platelet count 72000, AST/ALT transaminase elevation, LDH elevation, bilirubin elevation, schistocytes, hemolysis, DIC concern, and hepatic subcapsular hematoma concern",
+                "HELLP syndrome is hemolysis, elevated liver enzymes, and low platelet count",
+                "HELLP syndrome can be normotensive and may present without proteinuria",
+                "HELLP syndrome requires magnesium sulfate, blood pressure control, and delivery planning based on maternal and fetal status",
+                "right upper quadrant pain, epigastric pain, nausea, vomiting, or headache in late pregnancy",
+                "platelet count less than 100000, hemolysis, elevated LDH, schistocytes, bilirubin elevation, or AST/ALT twice normal",
+                "CBC, platelet count, AST, ALT, lactate dehydrogenase LDH, bilirubin, haptoglobin, peripheral smear for schistocytes, and hemolysis labs",
+                "magnesium sulfate MgSO4 for seizure prophylaxis",
+                "severe-range blood pressure treatment with IV labetalol, IV hydralazine, or immediate-release nifedipine",
+                "maternal stabilization, delivery, gestational age, and maternal-fetal status",
+                "DIC with fibrinogen, PT, PTT and hepatic imaging for subcapsular hematoma or liver rupture when severe RUQ pain persists",
+                "DIC, fibrinogen, PT, PTT, and platelet count during bleeding risk assessment",
+                "platelet transfusion using 20 and 50 as reference numbers",
+                "epidural and regional anesthesia safety by platelet count",
+                "corticosteroids for fetal lung maturity planning",
+                "postpartum monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "HELLP syndrome safety checks must include DIC workup"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_hypertensive_emergency_monitoring_organ_assessment_iv_treatment_and_bp_target():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Hypertensive emergency with encephalopathy and acute kidney injury"

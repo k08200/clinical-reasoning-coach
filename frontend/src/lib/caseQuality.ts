@@ -3084,35 +3084,42 @@ const HELLP_RISK_TERMS = [
   "vomiting",
 ];
 
-const HELLP_LAB_ACTION_TERMS = [
-  "alt",
-  "ast",
+const HELLP_CBC_PLATELET_ACTION_TERMS = ["cbc", "platelet"];
+
+const HELLP_LIVER_ENZYME_ACTION_TERMS = ["alt", "ast", "transaminase"];
+
+const HELLP_HEMOLYSIS_ACTION_TERMS = [
   "bilirubin",
-  "cbc",
-  "haptoglobin",
   "hemolysis",
   "lactate dehydrogenase",
   "ldh",
-  "platelet",
   "schistocyte",
   "smear",
 ];
 
-const HELLP_MAGNESIUM_ACTION_TERMS = [
-  "magnesium",
-  "magnesium sulfate",
-  "mgso4",
-  "seizure prophylaxis",
+const HELLP_MAGNESIUM_ACTION_TERMS = ["magnesium sulfate", "mgso4"];
+
+const HELLP_SEIZURE_ACTION_TERMS = ["seizure prophylaxis", "seizure prevention", "eclampsia"];
+
+const HELLP_SEVERE_BP_ACTION_TERMS = [
+  "acute severe hypertension",
+  "acute severe-range",
+  "severe hypertension",
+  "severe-range",
+  "160/110",
+  "160 mm hg",
+  "110 mm hg",
 ];
 
-const HELLP_BP_ACTION_TERMS = [
-  "antihypertensive",
-  "blood pressure",
+const HELLP_BP_MED_ACTION_TERMS = [
   "hydralazine",
   "labetalol",
   "nifedipine",
-  "severe hypertension",
-  "severe-range",
+  "immediate-release nifedipine",
+  "intravenous hydralazine",
+  "intravenous labetalol",
+  "iv hydralazine",
+  "iv labetalol",
 ];
 
 const HELLP_DELIVERY_ACTION_TERMS = [
@@ -3130,8 +3137,6 @@ const HELLP_DELIVERY_TIMING_TERMS = [
   "after maternal stabilization",
   "after stabilization",
   "based on maternal and fetal status",
-  "corticosteroid",
-  "fetal status",
   "gestational age",
   "maternal stabilization",
   "maternal status",
@@ -3141,55 +3146,106 @@ const HELLP_DELIVERY_TIMING_TERMS = [
   "재태연령",
 ];
 
-const HELLP_COMPLICATION_ACTION_TERMS = [
+const HELLP_DIC_COAG_ACTION_TERMS = [
   "dic",
   "fibrinogen",
-  "hepatic imaging",
-  "liver rupture",
   "pt",
   "ptt",
-  "subcapsular hematoma",
+  "coagulation",
+  "coagulopathy",
 ];
 
-const HELLP_DIC_SAFETY_TERMS = [
+const HELLP_HEPATIC_COMPLICATION_ACTION_TERMS = [
+  "hepatic imaging",
+  "liver rupture",
+  "subcapsular hematoma",
+  "subcapsular haematoma",
+];
+
+const HELLP_DIC_TRIGGER_SAFETY_TERMS = [
   "abnormal bleeding",
+  "platelet count less than 50",
+  "platelet count under 50",
+  "platelet < 50",
+  "platelets < 50",
+];
+
+const HELLP_DIC_COAG_SAFETY_TERMS = [
   "dic",
   "fibrinogen",
-  "platelet count less than 50",
   "prothrombin time",
   "pt",
   "ptt",
+  "partial thromboplastin time",
 ];
 
-const HELLP_PLATELET_TRANSFUSION_SAFETY_TERMS = [
-  "20",
-  "50",
+const HELLP_PLATELET_VAGINAL_SAFETY_TERMS = [
+  "less than 20",
+  "platelet count less than 20",
+  "platelet < 20",
+  "platelets < 20",
+  "20k before vaginal",
+];
+
+const HELLP_PLATELET_CESAREAN_SAFETY_TERMS = [
+  "less than 50",
+  "platelet count less than 50",
+  "platelet < 50",
+  "platelets < 50",
+  "50k before cesarean",
+  "50k before caesarean",
+];
+
+const HELLP_PLATELET_BLEEDING_TRANSFUSION_SAFETY_TERMS = [
   "abnormal bleeding",
   "platelet transfusion",
   "transfusion",
 ];
 
-const HELLP_ANESTHESIA_SAFETY_TERMS = [
-  "avoid regional",
-  "epidural",
+const HELLP_REGIONAL_SAFE_PLATELET_SAFETY_TERMS = [
   "platelet count greater than 100",
-  "platelet count less than 50",
-  "regional anesthesia",
+  "platelet count over 100",
+  "platelet > 100",
+  "platelets > 100",
 ];
 
-const HELLP_STEROID_SAFETY_TERMS = [
+const HELLP_REGIONAL_AVOID_LOW_PLATELET_SAFETY_TERMS = [
+  "avoid regional",
+  "avoid neuraxial",
+  "avoid epidural",
+  "epidural",
+  "platelet count less than 50",
+  "platelet < 50",
+  "regional anesthesia",
+  "regional anaesthesia",
+];
+
+const HELLP_STEROID_GESTATIONAL_SAFETY_TERMS = [
   "34 weeks",
+  "before 34 weeks",
+  "less than 34 weeks",
+];
+
+const HELLP_STEROID_FETAL_LUNG_SAFETY_TERMS = [
   "betamethasone",
   "corticosteroids",
   "dexamethasone",
   "fetal lung",
 ];
 
-const HELLP_POSTPARTUM_MONITORING_SAFETY_TERMS = [
+const HELLP_POSTPARTUM_TIME_SAFETY_TERMS = [
   "24 to 48 hours postpartum",
+  "24-48 hours postpartum",
   "48 hours postpartum",
-  "ldh",
+];
+
+const HELLP_POSTPARTUM_MAGNESIUM_SAFETY_TERMS = [
   "magnesium sulfate",
+  "postpartum magnesium",
+];
+
+const HELLP_POSTPARTUM_LAB_RECOVERY_SAFETY_TERMS = [
+  "ldh",
   "platelet recovery",
   "postpartum",
 ];
@@ -19639,13 +19695,25 @@ function requiresHellpSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
 
 function hasHellpTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasLabs = HELLP_LAB_ACTION_TERMS.some((term) =>
+  const hasCbcPlatelet = HELLP_CBC_PLATELET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLiverEnzyme = HELLP_LIVER_ENZYME_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHemolysis = HELLP_HEMOLYSIS_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasMagnesium = HELLP_MAGNESIUM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasBp = HELLP_BP_ACTION_TERMS.some((term) =>
+  const hasSeizureContext = HELLP_SEIZURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSevereBp = HELLP_SEVERE_BP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBpMed = HELLP_BP_MED_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasDeliveryAction = HELLP_DELIVERY_ACTION_TERMS.some((term) =>
@@ -19654,35 +19722,79 @@ function hasHellpTimeCriticalActions(actions: string[]): boolean {
   const hasDeliveryTiming = HELLP_DELIVERY_TIMING_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasComplications = HELLP_COMPLICATION_ACTION_TERMS.some((term) =>
+  const hasDicCoag = HELLP_DIC_COAG_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasLabs && hasMagnesium && hasBp && hasDeliveryAction && hasDeliveryTiming && hasComplications;
+  const hasHepaticComplication = HELLP_HEPATIC_COMPLICATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasCbcPlatelet &&
+    hasLiverEnzyme &&
+    hasHemolysis &&
+    hasMagnesium &&
+    hasSeizureContext &&
+    hasSevereBp &&
+    hasBpMed &&
+    hasDeliveryAction &&
+    hasDeliveryTiming &&
+    hasDicCoag &&
+    hasHepaticComplication
+  );
 }
 
 function hasHellpTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasDicSafety = HELLP_DIC_SAFETY_TERMS.some((term) =>
+  const hasDicTriggerSafety = HELLP_DIC_TRIGGER_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasPlateletTransfusionSafety = HELLP_PLATELET_TRANSFUSION_SAFETY_TERMS.some((term) =>
+  const hasDicCoagSafety = HELLP_DIC_COAG_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasAnesthesiaSafety = HELLP_ANESTHESIA_SAFETY_TERMS.some((term) =>
+  const hasPlateletVaginalSafety = HELLP_PLATELET_VAGINAL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasSteroidSafety = HELLP_STEROID_SAFETY_TERMS.some((term) =>
+  const hasPlateletCesareanSafety = HELLP_PLATELET_CESAREAN_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasPostpartumMonitoringSafety = HELLP_POSTPARTUM_MONITORING_SAFETY_TERMS.some((term) =>
+  const hasPlateletBleedingTransfusionSafety =
+    HELLP_PLATELET_BLEEDING_TRANSFUSION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasRegionalSafePlateletSafety = HELLP_REGIONAL_SAFE_PLATELET_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRegionalAvoidLowPlateletSafety = HELLP_REGIONAL_AVOID_LOW_PLATELET_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidGestationalSafety = HELLP_STEROID_GESTATIONAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidFetalLungSafety = HELLP_STEROID_FETAL_LUNG_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPostpartumTimeSafety = HELLP_POSTPARTUM_TIME_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPostpartumMagnesiumSafety = HELLP_POSTPARTUM_MAGNESIUM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPostpartumLabRecoverySafety = HELLP_POSTPARTUM_LAB_RECOVERY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasDicSafety &&
-    hasPlateletTransfusionSafety &&
-    hasAnesthesiaSafety &&
-    hasSteroidSafety &&
-    hasPostpartumMonitoringSafety
+    hasDicTriggerSafety &&
+    hasDicCoagSafety &&
+    hasPlateletVaginalSafety &&
+    hasPlateletCesareanSafety &&
+    hasPlateletBleedingTransfusionSafety &&
+    hasRegionalSafePlateletSafety &&
+    hasRegionalAvoidLowPlateletSafety &&
+    hasSteroidGestationalSafety &&
+    hasSteroidFetalLungSafety &&
+    hasPostpartumTimeSafety &&
+    hasPostpartumMagnesiumSafety &&
+    hasPostpartumLabRecoverySafety
   );
 }
 
@@ -28006,7 +28118,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasHellpTimeCriticalActions,
       issue:
-        "HELLP syndrome time-critical actions must include CBC/platelet, hemolysis, AST/ALT, LDH, bilirubin, or smear labs, magnesium sulfate seizure prophylaxis, severe hypertension blood-pressure treatment, explicit delivery planning with maternal-fetal status or stabilization timing, and DIC, fibrinogen, PT/PTT, hepatic imaging, subcapsular hematoma, or liver-rupture complication assessment",
+        "HELLP syndrome time-critical actions must include CBC/platelet, AST/ALT or transaminase, and hemolysis labs such as LDH, bilirubin, or smear, magnesium sulfate seizure prophylaxis, specific severe hypertension treatment with labetalol, hydralazine, or nifedipine, explicit delivery planning with maternal-fetal status or stabilization timing, and both DIC/coagulation assessment and hepatic complication assessment for subcapsular hematoma or liver rupture",
     },
     {
       name: "hellp_treatment_safety",
@@ -28015,7 +28127,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasHellpTreatmentSafetyCheck,
       issue:
-        "HELLP syndrome safety checks must include DIC workup with fibrinogen, PT/PTT, abnormal bleeding, or platelet count less than 50k, platelet transfusion thresholds around <20k for vaginal delivery, <50k before cesarean delivery, or abnormal bleeding, regional/epidural anesthesia platelet safety, corticosteroid/fetal lung maturity planning before 34 weeks, and postpartum magnesium sulfate plus LDH/platelet recovery monitoring for 24 to 48 hours",
+        "HELLP syndrome safety checks must include DIC workup with fibrinogen and PT/PTT when abnormal bleeding or platelet count less than 50k is present, platelet transfusion thresholds around <20k for vaginal delivery, <50k before cesarean delivery, or abnormal bleeding, regional/epidural anesthesia platelet safety with safe and avoid thresholds, corticosteroid/fetal lung maturity planning before 34 weeks, and postpartum magnesium sulfate plus LDH/platelet recovery monitoring for 24 to 48 hours",
     },
     {
       name: "hypertensive_emergency_time_critical_actions",
