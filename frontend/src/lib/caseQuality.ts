@@ -4100,14 +4100,22 @@ const SHOULDER_DYSTOCIA_RISK_TERMS = [
   "turtle sign",
 ];
 
-const SHOULDER_DYSTOCIA_HELP_ACTION_TERMS = [
+const SHOULDER_DYSTOCIA_DECLARATION_ACTION_TERMS = [
+  "announce shoulder dystocia",
+  "declare shoulder dystocia",
+  "shoulder dystocia",
+];
+
+const SHOULDER_DYSTOCIA_TEAM_ACTION_TERMS = [
+  "additional assistance",
   "anaesthetist",
   "anesthetist",
   "call for help",
-  "declare shoulder dystocia",
   "experienced obstetrician",
   "neonatal resuscitation",
-  "shoulder dystocia",
+  "neonatologist",
+  "obstetrician",
+  "pediatrician",
 ];
 
 const SHOULDER_DYSTOCIA_FIRST_LINE_ACTION_TERMS = [
@@ -4130,14 +4138,28 @@ const SHOULDER_DYSTOCIA_SECOND_LINE_ACTION_TERMS = [
   "woods screw",
 ];
 
-const SHOULDER_DYSTOCIA_TRACTION_FUNDAL_SAFETY_TERMS = [
-  "avoid downward traction",
-  "avoid excessive traction",
+const SHOULDER_DYSTOCIA_FUNDAL_PRESSURE_SAFETY_TERMS = [
   "avoid fundal pressure",
   "fundal pressure should not",
   "no fundal pressure",
   "not use fundal pressure",
-  "routine axial traction only",
+];
+
+const SHOULDER_DYSTOCIA_EXCESSIVE_TRACTION_SAFETY_TERMS = [
+  "avoid downward traction",
+  "avoid excessive traction",
+  "avoid lateral traction",
+  "avoid traction on the fetal head",
+  "avoid traction on the head",
+  "avoid traction on the neck",
+  "avoid aggressive traction",
+  "not use downward traction",
+];
+
+const SHOULDER_DYSTOCIA_AXIAL_TRACTION_SAFETY_TERMS = [
+  "gentle axial traction",
+  "routine axial traction",
+  "standard axial traction",
 ];
 
 const SHOULDER_DYSTOCIA_EPISIOTOMY_ACCESS_SAFETY_TERMS = [
@@ -4147,22 +4169,47 @@ const SHOULDER_DYSTOCIA_EPISIOTOMY_ACCESS_SAFETY_TERMS = [
   "only for internal access",
 ];
 
-const SHOULDER_DYSTOCIA_MATERNAL_NEONATAL_INJURY_SAFETY_TERMS = [
-  "brachial plexus",
-  "fracture",
-  "neonatal clinician",
-  "postpartum hemorrhage",
-  "perineal tear",
-  "third degree",
+const SHOULDER_DYSTOCIA_MATERNAL_INJURY_SAFETY_TERMS = [
+  "anal sphincter",
   "fourth degree",
+  "laceration",
+  "maternal injury",
+  "perineal tear",
+  "postpartum hemorrhage",
+  "postpartum haemorrhage",
+  "rectal injury",
+  "third degree",
+  "uterine rupture",
 ];
 
-const SHOULDER_DYSTOCIA_DOCUMENTATION_SAFETY_TERMS = [
-  "documentation",
-  "document",
+const SHOULDER_DYSTOCIA_NEONATAL_INJURY_SAFETY_TERMS = [
+  "brachial plexus",
+  "clavicle fracture",
+  "fracture",
+  "humerus fracture",
+  "neonatal clinician",
+  "neonatal injury",
+  "neonatal resuscitation",
+];
+
+const SHOULDER_DYSTOCIA_DOCUMENT_INTERVAL_SAFETY_TERMS = [
   "head-to-body",
+  "head to body",
+];
+
+const SHOULDER_DYSTOCIA_DOCUMENT_TIMING_SAFETY_TERMS = [
+  "time from delivery",
+  "timing",
+  "timer",
+];
+
+const SHOULDER_DYSTOCIA_DOCUMENT_MANEUVERS_SAFETY_TERMS = [
   "manoeuvre",
   "maneuver",
+  "mcroberts",
+  "posterior arm",
+  "rubin",
+  "woods",
 ];
 
 const HYPERTENSIVE_EMERGENCY_DIRECT_CONTEXT_TERMS = [
@@ -19337,7 +19384,10 @@ function requiresShoulderDystociaSafetyCheck(detail: ClinicalCaseReviewDetail): 
 
 function hasShoulderDystociaTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasHelp = SHOULDER_DYSTOCIA_HELP_ACTION_TERMS.some((term) =>
+  const hasDeclaration = SHOULDER_DYSTOCIA_DECLARATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTeamSupport = SHOULDER_DYSTOCIA_TEAM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasFirstLine = SHOULDER_DYSTOCIA_FIRST_LINE_ACTION_TERMS.some((term) =>
@@ -19349,29 +19399,49 @@ function hasShoulderDystociaTimeCriticalActions(actions: string[]): boolean {
   const hasSecondLine = SHOULDER_DYSTOCIA_SECOND_LINE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasHelp && hasFirstLine && hasSuprapubic && hasSecondLine;
+  return hasDeclaration && hasTeamSupport && hasFirstLine && hasSuprapubic && hasSecondLine;
 }
 
 function hasShoulderDystociaTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasTractionFundalSafety = SHOULDER_DYSTOCIA_TRACTION_FUNDAL_SAFETY_TERMS.some(
+  const hasFundalPressureSafety = SHOULDER_DYSTOCIA_FUNDAL_PRESSURE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasExcessiveTractionSafety = SHOULDER_DYSTOCIA_EXCESSIVE_TRACTION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAxialTractionSafety = SHOULDER_DYSTOCIA_AXIAL_TRACTION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasEpisiotomyAccessSafety = SHOULDER_DYSTOCIA_EPISIOTOMY_ACCESS_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasMaternalNeonatalInjurySafety =
-    SHOULDER_DYSTOCIA_MATERNAL_NEONATAL_INJURY_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
-  const hasDocumentationSafety = SHOULDER_DYSTOCIA_DOCUMENTATION_SAFETY_TERMS.some((term) =>
+  const hasMaternalInjurySafety = SHOULDER_DYSTOCIA_MATERNAL_INJURY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasNeonatalInjurySafety = SHOULDER_DYSTOCIA_NEONATAL_INJURY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDocumentIntervalSafety = SHOULDER_DYSTOCIA_DOCUMENT_INTERVAL_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDocumentTimingSafety = SHOULDER_DYSTOCIA_DOCUMENT_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDocumentManeuversSafety = SHOULDER_DYSTOCIA_DOCUMENT_MANEUVERS_SAFETY_TERMS.some(
+    (term) =>
+      containsSafetyTerm(normalizedChecks, term),
+  );
   return (
-    hasTractionFundalSafety &&
+    hasFundalPressureSafety &&
+    hasExcessiveTractionSafety &&
+    hasAxialTractionSafety &&
     hasEpisiotomyAccessSafety &&
-    hasMaternalNeonatalInjurySafety &&
-    hasDocumentationSafety
+    hasMaternalInjurySafety &&
+    hasNeonatalInjurySafety &&
+    hasDocumentIntervalSafety &&
+    hasDocumentTimingSafety &&
+    hasDocumentManeuversSafety
   );
 }
 
@@ -27791,7 +27861,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasShoulderDystociaTimeCriticalActions,
       issue:
-        "shoulder dystocia time-critical actions must include immediate help call or clear shoulder-dystocia declaration with obstetric, anaesthesia/anesthetist, or neonatal resuscitation support, McRoberts manoeuvre/maneuver first, suprapubic pressure, and second-line manoeuvres/maneuvers such as posterior-arm delivery, internal rotation, Rubin, Woods screw, all-fours, or Gaskin if initial measures fail",
+        "shoulder dystocia time-critical actions must include immediate clear shoulder-dystocia declaration and help call with obstetric, anaesthesia/anesthetist, or neonatal resuscitation support, McRoberts manoeuvre/maneuver first, suprapubic pressure, and second-line manoeuvres/maneuvers such as posterior-arm delivery, internal rotation, Rubin, Woods screw, all-fours, or Gaskin if initial measures fail",
     },
     {
       name: "shoulder_dystocia_treatment_safety",
@@ -27800,7 +27870,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasShoulderDystociaTreatmentSafetyCheck,
       issue:
-        "shoulder dystocia safety checks must include avoiding fundal pressure and excessive lateral/downward traction with routine axial traction only, episiotomy not routinely required except for internal access, maternal and neonatal injury assessment for postpartum hemorrhage, severe perineal tear, brachial plexus injury, fracture, or neonatal clinician review, and documentation of head-to-body interval, timing, and manoeuvres/maneuvers",
+        "shoulder dystocia safety checks must include avoiding fundal pressure and excessive lateral/downward traction with routine axial traction only, episiotomy not routinely required except for internal access, separate maternal and neonatal injury assessment for postpartum hemorrhage, severe perineal tear, brachial plexus injury, fracture, or neonatal clinician review, and documentation of head-to-body interval, timing, and manoeuvres/maneuvers",
     },
     {
       name: "severe_preeclampsia_time_critical_actions",
