@@ -3631,20 +3631,27 @@ const UMBILICAL_CORD_PROLAPSE_DELIVERY_ACTION_TERMS = [
   "category 1",
   "cesarean",
   "caesarean",
-  "delivery",
   "emergency birth",
   "operative vaginal",
+  "urgent delivery",
   "within 30 minutes",
 ];
 
-const UMBILICAL_CORD_PROLAPSE_CORD_HANDLING_SAFETY_TERMS = [
+const UMBILICAL_CORD_PROLAPSE_MINIMAL_HANDLING_SAFETY_TERMS = [
   "avoid handling",
   "minimal handling",
-  "not recommended",
+];
+
+const UMBILICAL_CORD_PROLAPSE_VASOSPASM_SAFETY_TERMS = [
   "prevent vasospasm",
   "vasospasm",
+];
+
+const UMBILICAL_CORD_PROLAPSE_REPLACEMENT_SAFETY_TERMS = [
   "do not replace",
   "manual replacement",
+  "not recommended",
+  "not rely on manual cord replacement",
 ];
 
 const UMBILICAL_CORD_PROLAPSE_NO_DELAY_TOCOLYSIS_SAFETY_TERMS = [
@@ -3658,23 +3665,40 @@ const UMBILICAL_CORD_PROLAPSE_NO_DELAY_TOCOLYSIS_SAFETY_TERMS = [
   "tocolysis while preparing delivery",
 ];
 
-const UMBILICAL_CORD_PROLAPSE_DELIVERY_MODE_SAFETY_TERMS = [
-  "category 1",
-  "category 2",
+const UMBILICAL_CORD_PROLAPSE_CESAREAN_MODE_SAFETY_TERMS = [
   "caesarean",
   "cesarean",
-  "continuous assessment",
-  "continuous fetal",
+];
+
+const UMBILICAL_CORD_PROLAPSE_IMMINENT_VAGINAL_SAFETY_TERMS = [
   "operative vaginal",
   "vaginal birth imminent",
 ];
 
-const UMBILICAL_CORD_PROLAPSE_NEONATAL_SAFETY_TERMS = [
+const UMBILICAL_CORD_PROLAPSE_CATEGORY1_SAFETY_TERMS = [
+  "category 1",
+  "category-1",
+];
+
+const UMBILICAL_CORD_PROLAPSE_CATEGORY2_SAFETY_TERMS = [
+  "category 2",
+  "category-2",
+];
+
+const UMBILICAL_CORD_PROLAPSE_CONTINUOUS_ASSESSMENT_SAFETY_TERMS = [
+  "continuous assessment",
+  "continuous fetal",
+];
+
+const UMBILICAL_CORD_PROLAPSE_NEONATAL_RESUSCITATION_SAFETY_TERMS = [
+  "neonatal resuscitation",
+  "newborn resuscitation",
+];
+
+const UMBILICAL_CORD_PROLAPSE_CORD_GAS_SAFETY_TERMS = [
   "base excess",
   "cord gas",
   "cord ph",
-  "neonatal resuscitation",
-  "newborn resuscitation",
   "paired cord blood",
 ];
 
@@ -18767,24 +18791,55 @@ function hasUmbilicalCordProlapseTimeCriticalActions(actions: string[]): boolean
 
 function hasUmbilicalCordProlapseTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasCordHandlingSafety = UMBILICAL_CORD_PROLAPSE_CORD_HANDLING_SAFETY_TERMS.some(
+  const hasMinimalHandlingSafety = UMBILICAL_CORD_PROLAPSE_MINIMAL_HANDLING_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVasospasmSafety = UMBILICAL_CORD_PROLAPSE_VASOSPASM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasReplacementSafety = UMBILICAL_CORD_PROLAPSE_REPLACEMENT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
   );
   const hasNoDelayTocolysisSafety =
     UMBILICAL_CORD_PROLAPSE_NO_DELAY_TOCOLYSIS_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasDeliveryModeSafety = UMBILICAL_CORD_PROLAPSE_DELIVERY_MODE_SAFETY_TERMS.some(
+  const hasCesareanModeSafety = UMBILICAL_CORD_PROLAPSE_CESAREAN_MODE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasNeonatalSafety = UMBILICAL_CORD_PROLAPSE_NEONATAL_SAFETY_TERMS.some((term) =>
+  const hasImminentVaginalSafety =
+    UMBILICAL_CORD_PROLAPSE_IMMINENT_VAGINAL_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCategory1Safety = UMBILICAL_CORD_PROLAPSE_CATEGORY1_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCategory2Safety = UMBILICAL_CORD_PROLAPSE_CATEGORY2_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasContinuousAssessmentSafety =
+    UMBILICAL_CORD_PROLAPSE_CONTINUOUS_ASSESSMENT_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasNeonatalResuscitationSafety =
+    UMBILICAL_CORD_PROLAPSE_NEONATAL_RESUSCITATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCordGasSafety = UMBILICAL_CORD_PROLAPSE_CORD_GAS_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasCordHandlingSafety &&
+    hasMinimalHandlingSafety &&
+    hasVasospasmSafety &&
+    hasReplacementSafety &&
     hasNoDelayTocolysisSafety &&
-    hasDeliveryModeSafety &&
-    hasNeonatalSafety
+    hasCesareanModeSafety &&
+    hasImminentVaginalSafety &&
+    hasCategory1Safety &&
+    hasCategory2Safety &&
+    hasContinuousAssessmentSafety &&
+    hasNeonatalResuscitationSafety &&
+    hasCordGasSafety
   );
 }
 
