@@ -3449,34 +3449,53 @@ const PLACENTA_ACCRETA_IMAGING_ACTION_TERMS = [
   "ultrasonography",
 ];
 
-const PLACENTA_ACCRETA_TEAM_ACTION_TERMS = [
-  "anesthesia",
-  "anaesthesia",
-  "critical care",
-  "experienced surgeon",
-  "gynecologic oncology",
+const PLACENTA_ACCRETA_MFM_TEAM_ACTION_TERMS = [
   "maternal-fetal",
   "mfm",
   "multidisciplinary",
+];
+
+const PLACENTA_ACCRETA_ANESTHESIA_TEAM_ACTION_TERMS = [
+  "anaesthesia",
+  "anesthesia",
+];
+
+const PLACENTA_ACCRETA_SURGICAL_TEAM_ACTION_TERMS = [
+  "experienced surgeon",
+  "gynecologic oncology",
+  "hysterectomy team",
+  "pelvic surgeon",
+];
+
+const PLACENTA_ACCRETA_ADJUNCT_TEAM_ACTION_TERMS = [
+  "critical care",
   "neonatal",
+  "nicu",
   "urology",
 ];
 
-const PLACENTA_ACCRETA_BLOOD_ACTION_TERMS = [
+const PLACENTA_ACCRETA_BLOOD_BANK_ACTION_TERMS = [
   "blood bank",
-  "blood product",
   "hemorrhage protocol",
+];
+
+const PLACENTA_ACCRETA_TRANSFUSION_ACTION_TERMS = [
+  "blood product",
   "massive transfusion",
   "transfusion",
 ];
 
-const PLACENTA_ACCRETA_DELIVERY_ACTION_TERMS = [
-  "34 0/7",
-  "35 6/7",
+const PLACENTA_ACCRETA_CESAREAN_HYSTERECTOMY_ACTION_TERMS = [
   "caesarean hysterectomy",
   "cesarean hysterectomy",
   "scheduled caesarean",
   "scheduled cesarean",
+];
+
+const PLACENTA_ACCRETA_DELIVERY_TIMING_ACTION_TERMS = [
+  "34 0/7",
+  "34 weeks",
+  "35 6/7",
 ];
 
 const PLACENTA_ACCRETA_REFERRAL_SAFETY_TERMS = [
@@ -3487,10 +3506,14 @@ const PLACENTA_ACCRETA_REFERRAL_SAFETY_TERMS = [
   "tertiary",
 ];
 
-const PLACENTA_ACCRETA_NO_REMOVAL_SAFETY_TERMS = [
+const PLACENTA_ACCRETA_AVOID_REMOVAL_SAFETY_TERMS = [
   "avoid placental removal",
   "do not remove placenta",
   "forced placental removal",
+  "manual placental removal",
+];
+
+const PLACENTA_ACCRETA_IN_SITU_SAFETY_TERMS = [
   "leave placenta in situ",
   "placenta left in situ",
 ];
@@ -3501,27 +3524,48 @@ const PLACENTA_ACCRETA_TIMING_SAFETY_TERMS = [
   "35 6/7",
   "before labor",
   "before the onset of labor",
+  "before bleeding",
 ];
 
-const PLACENTA_ACCRETA_HEMORRHAGE_SAFETY_TERMS = [
+const PLACENTA_ACCRETA_CORTICOSTEROID_SAFETY_TERMS = [
+  "betamethasone",
+  "corticosteroid",
+];
+
+const PLACENTA_ACCRETA_BLOOD_BANK_SAFETY_TERMS = [
   "blood bank",
-  "fibrinogen",
   "hemorrhage checklist",
   "massive transfusion",
+];
+
+const PLACENTA_ACCRETA_COAG_SAFETY_TERMS = [
+  "coagulation",
+  "fibrinogen",
   "platelet",
   "pt",
   "ptt",
+];
+
+const PLACENTA_ACCRETA_TXA_SAFETY_TERMS = [
   "tranexamic acid",
   "txa",
 ];
 
-const PLACENTA_ACCRETA_ORGAN_INJURY_SAFETY_TERMS = [
+const PLACENTA_ACCRETA_UROLOGIC_INJURY_SAFETY_TERMS = [
   "bladder",
-  "critical care",
   "cystectomy",
-  "icu",
-  "pelvic organ",
   "urology",
+];
+
+const PLACENTA_ACCRETA_CRITICAL_CARE_SAFETY_TERMS = [
+  "critical care",
+  "icu",
+];
+
+const PLACENTA_ACCRETA_PELVIC_ORGAN_SAFETY_TERMS = [
+  "pelvic organ",
+  "ureter",
+  "vascular",
 ];
 
 const UMBILICAL_CORD_PROLAPSE_CONTEXT_TERMS = [
@@ -18589,16 +18633,41 @@ function hasPlacentaAccretaTimeCriticalActions(actions: string[]): boolean {
   const hasImaging = PLACENTA_ACCRETA_IMAGING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasTeam = PLACENTA_ACCRETA_TEAM_ACTION_TERMS.some((term) =>
+  const hasMfmTeam = PLACENTA_ACCRETA_MFM_TEAM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasBlood = PLACENTA_ACCRETA_BLOOD_ACTION_TERMS.some((term) =>
+  const hasAnesthesiaTeam = PLACENTA_ACCRETA_ANESTHESIA_TEAM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDelivery = PLACENTA_ACCRETA_DELIVERY_ACTION_TERMS.some((term) =>
+  const hasSurgicalTeam = PLACENTA_ACCRETA_SURGICAL_TEAM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasImaging && hasTeam && hasBlood && hasDelivery;
+  const hasAdjunctTeam = PLACENTA_ACCRETA_ADJUNCT_TEAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodBank = PLACENTA_ACCRETA_BLOOD_BANK_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTransfusion = PLACENTA_ACCRETA_TRANSFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCesareanHysterectomy = PLACENTA_ACCRETA_CESAREAN_HYSTERECTOMY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDeliveryTiming = PLACENTA_ACCRETA_DELIVERY_TIMING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasImaging &&
+    hasMfmTeam &&
+    hasAnesthesiaTeam &&
+    hasSurgicalTeam &&
+    hasAdjunctTeam &&
+    hasBloodBank &&
+    hasTransfusion &&
+    hasCesareanHysterectomy &&
+    hasDeliveryTiming
+  );
 }
 
 function hasPlacentaAccretaTreatmentSafetyCheck(checks: string[]): boolean {
@@ -18606,24 +18675,48 @@ function hasPlacentaAccretaTreatmentSafetyCheck(checks: string[]): boolean {
   const hasReferralSafety = PLACENTA_ACCRETA_REFERRAL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasNoRemovalSafety = PLACENTA_ACCRETA_NO_REMOVAL_SAFETY_TERMS.some((term) =>
+  const hasAvoidRemovalSafety = PLACENTA_ACCRETA_AVOID_REMOVAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInSituSafety = PLACENTA_ACCRETA_IN_SITU_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasTimingSafety = PLACENTA_ACCRETA_TIMING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasHemorrhageSafety = PLACENTA_ACCRETA_HEMORRHAGE_SAFETY_TERMS.some((term) =>
+  const hasCorticosteroidSafety = PLACENTA_ACCRETA_CORTICOSTEROID_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasOrganInjurySafety = PLACENTA_ACCRETA_ORGAN_INJURY_SAFETY_TERMS.some((term) =>
+  const hasBloodBankSafety = PLACENTA_ACCRETA_BLOOD_BANK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCoagSafety = PLACENTA_ACCRETA_COAG_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTxaSafety = PLACENTA_ACCRETA_TXA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasUrologicInjurySafety = PLACENTA_ACCRETA_UROLOGIC_INJURY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCriticalCareSafety = PLACENTA_ACCRETA_CRITICAL_CARE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPelvicOrganSafety = PLACENTA_ACCRETA_PELVIC_ORGAN_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
     hasReferralSafety &&
-    hasNoRemovalSafety &&
+    hasAvoidRemovalSafety &&
+    hasInSituSafety &&
     hasTimingSafety &&
-    hasHemorrhageSafety &&
-    hasOrganInjurySafety
+    hasCorticosteroidSafety &&
+    hasBloodBankSafety &&
+    hasCoagSafety &&
+    hasTxaSafety &&
+    hasUrologicInjurySafety &&
+    hasCriticalCareSafety &&
+    hasPelvicOrganSafety
   );
 }
 

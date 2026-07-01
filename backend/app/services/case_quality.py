@@ -3169,32 +3169,46 @@ PLACENTA_ACCRETA_IMAGING_ACTION_TERMS = (
     "ultrasound",
     "ultrasonography",
 )
-PLACENTA_ACCRETA_TEAM_ACTION_TERMS = (
-    "anesthesia",
-    "anaesthesia",
-    "critical care",
-    "experienced surgeon",
-    "gynecologic oncology",
+PLACENTA_ACCRETA_MFM_TEAM_ACTION_TERMS = (
     "maternal-fetal",
     "mfm",
     "multidisciplinary",
+)
+PLACENTA_ACCRETA_ANESTHESIA_TEAM_ACTION_TERMS = (
+    "anaesthesia",
+    "anesthesia",
+)
+PLACENTA_ACCRETA_SURGICAL_TEAM_ACTION_TERMS = (
+    "experienced surgeon",
+    "gynecologic oncology",
+    "hysterectomy team",
+    "pelvic surgeon",
+)
+PLACENTA_ACCRETA_ADJUNCT_TEAM_ACTION_TERMS = (
+    "critical care",
     "neonatal",
+    "nicu",
     "urology",
 )
-PLACENTA_ACCRETA_BLOOD_ACTION_TERMS = (
+PLACENTA_ACCRETA_BLOOD_BANK_ACTION_TERMS = (
     "blood bank",
-    "blood product",
     "hemorrhage protocol",
+)
+PLACENTA_ACCRETA_TRANSFUSION_ACTION_TERMS = (
+    "blood product",
     "massive transfusion",
     "transfusion",
 )
-PLACENTA_ACCRETA_DELIVERY_ACTION_TERMS = (
-    "34 0/7",
-    "35 6/7",
+PLACENTA_ACCRETA_CESAREAN_HYSTERECTOMY_ACTION_TERMS = (
     "caesarean hysterectomy",
     "cesarean hysterectomy",
     "scheduled caesarean",
     "scheduled cesarean",
+)
+PLACENTA_ACCRETA_DELIVERY_TIMING_ACTION_TERMS = (
+    "34 0/7",
+    "34 weeks",
+    "35 6/7",
 )
 PLACENTA_ACCRETA_REFERRAL_SAFETY_TERMS = (
     "level iii",
@@ -3203,10 +3217,13 @@ PLACENTA_ACCRETA_REFERRAL_SAFETY_TERMS = (
     "referral",
     "tertiary",
 )
-PLACENTA_ACCRETA_NO_REMOVAL_SAFETY_TERMS = (
+PLACENTA_ACCRETA_AVOID_REMOVAL_SAFETY_TERMS = (
     "avoid placental removal",
     "do not remove placenta",
     "forced placental removal",
+    "manual placental removal",
+)
+PLACENTA_ACCRETA_IN_SITU_SAFETY_TERMS = (
     "leave placenta in situ",
     "placenta left in situ",
 )
@@ -3216,25 +3233,41 @@ PLACENTA_ACCRETA_TIMING_SAFETY_TERMS = (
     "35 6/7",
     "before labor",
     "before the onset of labor",
+    "before bleeding",
 )
-PLACENTA_ACCRETA_HEMORRHAGE_SAFETY_TERMS = (
+PLACENTA_ACCRETA_CORTICOSTEROID_SAFETY_TERMS = (
+    "betamethasone",
+    "corticosteroid",
+)
+PLACENTA_ACCRETA_BLOOD_BANK_SAFETY_TERMS = (
     "blood bank",
-    "fibrinogen",
     "hemorrhage checklist",
     "massive transfusion",
+)
+PLACENTA_ACCRETA_COAG_SAFETY_TERMS = (
+    "coagulation",
+    "fibrinogen",
     "platelet",
     "pt",
     "ptt",
+)
+PLACENTA_ACCRETA_TXA_SAFETY_TERMS = (
     "tranexamic acid",
     "txa",
 )
-PLACENTA_ACCRETA_ORGAN_INJURY_SAFETY_TERMS = (
+PLACENTA_ACCRETA_UROLOGIC_INJURY_SAFETY_TERMS = (
     "bladder",
-    "critical care",
     "cystectomy",
-    "icu",
-    "pelvic organ",
     "urology",
+)
+PLACENTA_ACCRETA_CRITICAL_CARE_SAFETY_TERMS = (
+    "critical care",
+    "icu",
+)
+PLACENTA_ACCRETA_PELVIC_ORGAN_SAFETY_TERMS = (
+    "pelvic organ",
+    "ureter",
+    "vascular",
 )
 UMBILICAL_CORD_PROLAPSE_CONTEXT_TERMS = (
     "cord presentation",
@@ -16399,12 +16432,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "placenta accreta spectrum time-critical actions must include "
                 "antenatal ultrasound, ultrasonography, Doppler, MRI, or placental "
-                "lacunae assessment, multidisciplinary team activation with MFM, "
-                "maternal-fetal medicine, anesthesia, gynecologic oncology, "
-                "urology, critical care, neonatal, or experienced surgeons, blood "
-                "bank, hemorrhage protocol, blood-product, transfusion, or "
-                "massive-transfusion preparation, and scheduled cesarean/caesarean "
-                "hysterectomy or planned 34 0/7 to 35 6/7 week delivery"
+                "lacunae assessment, multidisciplinary team activation with MFM/"
+                "maternal-fetal medicine, anesthesia, experienced pelvic or "
+                "gynecologic oncology surgeons, and urology, critical-care, or "
+                "neonatal backup, blood-bank or hemorrhage-protocol plus "
+                "blood-product/transfusion/massive-transfusion preparation, and "
+                "scheduled cesarean/caesarean hysterectomy with planned 34 0/7 "
+                "to 35 6/7 week timing"
             ),
         ),
         DomainSafetyGate(
@@ -16417,10 +16451,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "to a tertiary, Level III, or Level IV maternal-care center, "
                 "avoiding forced placental removal by leaving placenta in situ, "
                 "planned delivery before labor or bleeding at 34 0/7 to 35 6/7 "
-                "weeks with corticosteroids when indicated, massive-transfusion, "
-                "blood-bank, hemorrhage-checklist, fibrinogen, platelet, PT/PTT, "
-                "TXA, or tranexamic-acid safeguards, and bladder, urology, pelvic "
-                "organ, cystectomy, ICU, or critical-care injury planning"
+                "weeks with corticosteroids when indicated, blood-bank or "
+                "hemorrhage-checklist/massive-transfusion planning, coagulation "
+                "safeguards including fibrinogen, platelet, and PT/PTT, TXA or "
+                "tranexamic-acid safeguards, and bladder/urology, ICU/critical "
+                "care, and pelvic-organ injury planning"
             ),
         ),
         DomainSafetyGate(
@@ -21912,19 +21947,49 @@ def _has_placenta_accreta_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in PLACENTA_ACCRETA_IMAGING_ACTION_TERMS
     )
-    has_team = any(
+    has_mfm_team = any(
         _contains_safety_term(normalized_actions, term)
-        for term in PLACENTA_ACCRETA_TEAM_ACTION_TERMS
+        for term in PLACENTA_ACCRETA_MFM_TEAM_ACTION_TERMS
     )
-    has_blood = any(
+    has_anesthesia_team = any(
         _contains_safety_term(normalized_actions, term)
-        for term in PLACENTA_ACCRETA_BLOOD_ACTION_TERMS
+        for term in PLACENTA_ACCRETA_ANESTHESIA_TEAM_ACTION_TERMS
     )
-    has_delivery = any(
+    has_surgical_team = any(
         _contains_safety_term(normalized_actions, term)
-        for term in PLACENTA_ACCRETA_DELIVERY_ACTION_TERMS
+        for term in PLACENTA_ACCRETA_SURGICAL_TEAM_ACTION_TERMS
     )
-    return has_imaging and has_team and has_blood and has_delivery
+    has_adjunct_team = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTA_ACCRETA_ADJUNCT_TEAM_ACTION_TERMS
+    )
+    has_blood_bank = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTA_ACCRETA_BLOOD_BANK_ACTION_TERMS
+    )
+    has_transfusion = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTA_ACCRETA_TRANSFUSION_ACTION_TERMS
+    )
+    has_cesarean_hysterectomy = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTA_ACCRETA_CESAREAN_HYSTERECTOMY_ACTION_TERMS
+    )
+    has_delivery_timing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTA_ACCRETA_DELIVERY_TIMING_ACTION_TERMS
+    )
+    return (
+        has_imaging
+        and has_mfm_team
+        and has_anesthesia_team
+        and has_surgical_team
+        and has_adjunct_team
+        and has_blood_bank
+        and has_transfusion
+        and has_cesarean_hysterectomy
+        and has_delivery_timing
+    )
 
 
 def _has_placenta_accreta_treatment_safety_check(checks: list[Any]) -> bool:
@@ -21933,28 +21998,58 @@ def _has_placenta_accreta_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in PLACENTA_ACCRETA_REFERRAL_SAFETY_TERMS
     )
-    has_no_removal_safety = any(
+    has_avoid_removal_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in PLACENTA_ACCRETA_NO_REMOVAL_SAFETY_TERMS
+        for term in PLACENTA_ACCRETA_AVOID_REMOVAL_SAFETY_TERMS
+    )
+    has_in_situ_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_ACCRETA_IN_SITU_SAFETY_TERMS
     )
     has_timing_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in PLACENTA_ACCRETA_TIMING_SAFETY_TERMS
     )
-    has_hemorrhage_safety = any(
+    has_corticosteroid_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in PLACENTA_ACCRETA_HEMORRHAGE_SAFETY_TERMS
+        for term in PLACENTA_ACCRETA_CORTICOSTEROID_SAFETY_TERMS
     )
-    has_organ_injury_safety = any(
+    has_blood_bank_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in PLACENTA_ACCRETA_ORGAN_INJURY_SAFETY_TERMS
+        for term in PLACENTA_ACCRETA_BLOOD_BANK_SAFETY_TERMS
+    )
+    has_coag_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_ACCRETA_COAG_SAFETY_TERMS
+    )
+    has_txa_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_ACCRETA_TXA_SAFETY_TERMS
+    )
+    has_urologic_injury_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_ACCRETA_UROLOGIC_INJURY_SAFETY_TERMS
+    )
+    has_critical_care_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_ACCRETA_CRITICAL_CARE_SAFETY_TERMS
+    )
+    has_pelvic_organ_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_ACCRETA_PELVIC_ORGAN_SAFETY_TERMS
     )
     return (
         has_referral_safety
-        and has_no_removal_safety
+        and has_avoid_removal_safety
+        and has_in_situ_safety
         and has_timing_safety
-        and has_hemorrhage_safety
-        and has_organ_injury_safety
+        and has_corticosteroid_safety
+        and has_blood_bank_safety
+        and has_coag_safety
+        and has_txa_safety
+        and has_urologic_injury_safety
+        and has_critical_care_safety
+        and has_pelvic_organ_safety
     )
 
 
