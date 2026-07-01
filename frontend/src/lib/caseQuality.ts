@@ -3196,36 +3196,53 @@ const PLACENTAL_ABRUPTION_LAB_ACTION_TERMS = [
 const PLACENTAL_ABRUPTION_DELIVERY_ESCALATION_ACTION_TERMS = [
   "cesarean",
   "c-section",
-  "delivery",
   "emergency delivery",
   "maternal-fetal medicine",
-  "ob",
-  "obstetric",
+  "mfm",
+  "ob consult",
+  "ob team",
   "operative",
+  "operative team",
+  "prompt cesarean",
   "prompt delivery",
 ];
 
-const PLACENTAL_ABRUPTION_PREVIA_ULTRASOUND_SAFETY_TERMS = [
-  "normal ultrasound",
-  "normal ultrasonography",
-  "pelvic examination",
+const PLACENTAL_ABRUPTION_PREVIA_EXCLUSION_SAFETY_TERMS = [
+  "exclude placenta previa",
   "placenta previa",
   "previa",
+  "rule out placenta previa",
   "rule out previa",
-  "transvaginal ultrasound",
+];
+
+const PLACENTAL_ABRUPTION_PELVIC_EXAM_SAFETY_TERMS = [
+  "before pelvic examination",
+  "before vaginal examination",
+  "pelvic examination",
+  "vaginal examination",
+];
+
+const PLACENTAL_ABRUPTION_ULTRASOUND_LIMIT_SAFETY_TERMS = [
+  "normal ultrasound does not rule out",
+  "normal ultrasonography does not rule out",
   "ultrasound does not rule out",
   "ultrasonography does not rule out",
 ];
 
-const PLACENTAL_ABRUPTION_COAG_RH_SAFETY_TERMS = [
-  "blood type",
+const PLACENTAL_ABRUPTION_COAG_LAB_SAFETY_TERMS = [
   "coagulation",
   "dic",
   "fibrin split",
   "fibrinogen",
+  "platelet",
+  "pt/ptt",
+];
+
+const PLACENTAL_ABRUPTION_BLOOD_RH_SAFETY_TERMS = [
+  "blood type",
   "kleihauer",
   "kleihauer-betke",
-  "platelet",
+  "rh",
   "rh immune globulin",
   "rho(d)",
 ];
@@ -3244,13 +3261,17 @@ const PLACENTAL_ABRUPTION_STABILITY_DELIVERY_SAFETY_TERMS = [
 ];
 
 const PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS = [
-  "blood product",
   "coagulopathy",
   "dic",
-  "fibrinogen",
   "hemorrhagic shock",
-  "massive transfusion",
+  "low fibrinogen",
   "shock",
+];
+
+const PLACENTAL_ABRUPTION_BLOOD_PRODUCT_SAFETY_TERMS = [
+  "blood product",
+  "cryoprecipitate",
+  "massive transfusion",
   "transfusion",
 ];
 
@@ -18356,11 +18377,20 @@ function hasPlacentalAbruptionTimeCriticalActions(actions: string[]): boolean {
 
 function hasPlacentalAbruptionTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasPreviaUltrasoundSafety =
-    PLACENTAL_ABRUPTION_PREVIA_ULTRASOUND_SAFETY_TERMS.some((term) =>
+  const hasPreviaExclusionSafety =
+    PLACENTAL_ABRUPTION_PREVIA_EXCLUSION_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasCoagRhSafety = PLACENTAL_ABRUPTION_COAG_RH_SAFETY_TERMS.some((term) =>
+  const hasPelvicExamSafety = PLACENTAL_ABRUPTION_PELVIC_EXAM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasUltrasoundLimitSafety = PLACENTAL_ABRUPTION_ULTRASOUND_LIMIT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCoagLabSafety = PLACENTAL_ABRUPTION_COAG_LAB_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBloodRhSafety = PLACENTAL_ABRUPTION_BLOOD_RH_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasStabilityDeliverySafety =
@@ -18370,11 +18400,18 @@ function hasPlacentalAbruptionTreatmentSafetyCheck(checks: string[]): boolean {
   const hasShockDicSafety = PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasBloodProductSafety = PLACENTAL_ABRUPTION_BLOOD_PRODUCT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
-    hasPreviaUltrasoundSafety &&
-    hasCoagRhSafety &&
+    hasPreviaExclusionSafety &&
+    hasPelvicExamSafety &&
+    hasUltrasoundLimitSafety &&
+    hasCoagLabSafety &&
+    hasBloodRhSafety &&
     hasStabilityDeliverySafety &&
-    hasShockDicSafety
+    hasShockDicSafety &&
+    hasBloodProductSafety
   );
 }
 

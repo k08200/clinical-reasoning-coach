@@ -2947,34 +2947,48 @@ PLACENTAL_ABRUPTION_LAB_ACTION_TERMS = (
 PLACENTAL_ABRUPTION_DELIVERY_ESCALATION_ACTION_TERMS = (
     "cesarean",
     "c-section",
-    "delivery",
     "emergency delivery",
     "maternal-fetal medicine",
-    "ob",
-    "obstetric",
+    "mfm",
+    "ob consult",
+    "ob team",
     "operative",
+    "operative team",
+    "prompt cesarean",
     "prompt delivery",
 )
-PLACENTAL_ABRUPTION_PREVIA_ULTRASOUND_SAFETY_TERMS = (
-    "normal ultrasound",
-    "normal ultrasonography",
-    "pelvic examination",
+PLACENTAL_ABRUPTION_PREVIA_EXCLUSION_SAFETY_TERMS = (
+    "exclude placenta previa",
     "placenta previa",
     "previa",
+    "rule out placenta previa",
     "rule out previa",
-    "transvaginal ultrasound",
+)
+PLACENTAL_ABRUPTION_PELVIC_EXAM_SAFETY_TERMS = (
+    "before pelvic examination",
+    "before vaginal examination",
+    "pelvic examination",
+    "vaginal examination",
+)
+PLACENTAL_ABRUPTION_ULTRASOUND_LIMIT_SAFETY_TERMS = (
+    "normal ultrasound does not rule out",
+    "normal ultrasonography does not rule out",
     "ultrasound does not rule out",
     "ultrasonography does not rule out",
 )
-PLACENTAL_ABRUPTION_COAG_RH_SAFETY_TERMS = (
-    "blood type",
+PLACENTAL_ABRUPTION_COAG_LAB_SAFETY_TERMS = (
     "coagulation",
     "dic",
     "fibrin split",
     "fibrinogen",
+    "platelet",
+    "pt/ptt",
+)
+PLACENTAL_ABRUPTION_BLOOD_RH_SAFETY_TERMS = (
+    "blood type",
     "kleihauer",
     "kleihauer-betke",
-    "platelet",
+    "rh",
     "rh immune globulin",
     "rho(d)",
 )
@@ -2991,13 +3005,16 @@ PLACENTAL_ABRUPTION_STABILITY_DELIVERY_SAFETY_TERMS = (
     "term pregnancy",
 )
 PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS = (
-    "blood product",
     "coagulopathy",
     "dic",
-    "fibrinogen",
     "hemorrhagic shock",
-    "massive transfusion",
+    "low fibrinogen",
     "shock",
+)
+PLACENTAL_ABRUPTION_BLOOD_PRODUCT_SAFETY_TERMS = (
+    "blood product",
+    "cryoprecipitate",
+    "massive transfusion",
     "transfusion",
 )
 PLACENTA_PREVIA_CONTEXT_TERMS = (
@@ -21649,13 +21666,25 @@ def _has_placental_abruption_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_placental_abruption_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_previa_ultrasound_safety = any(
+    has_previa_exclusion_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in PLACENTAL_ABRUPTION_PREVIA_ULTRASOUND_SAFETY_TERMS
+        for term in PLACENTAL_ABRUPTION_PREVIA_EXCLUSION_SAFETY_TERMS
     )
-    has_coag_rh_safety = any(
+    has_pelvic_exam_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in PLACENTAL_ABRUPTION_COAG_RH_SAFETY_TERMS
+        for term in PLACENTAL_ABRUPTION_PELVIC_EXAM_SAFETY_TERMS
+    )
+    has_ultrasound_limit_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTAL_ABRUPTION_ULTRASOUND_LIMIT_SAFETY_TERMS
+    )
+    has_coag_lab_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTAL_ABRUPTION_COAG_LAB_SAFETY_TERMS
+    )
+    has_blood_rh_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTAL_ABRUPTION_BLOOD_RH_SAFETY_TERMS
     )
     has_stability_delivery_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -21665,11 +21694,19 @@ def _has_placental_abruption_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in PLACENTAL_ABRUPTION_SHOCK_DIC_SAFETY_TERMS
     )
+    has_blood_product_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTAL_ABRUPTION_BLOOD_PRODUCT_SAFETY_TERMS
+    )
     return (
-        has_previa_ultrasound_safety
-        and has_coag_rh_safety
+        has_previa_exclusion_safety
+        and has_pelvic_exam_safety
+        and has_ultrasound_limit_safety
+        and has_coag_lab_safety
+        and has_blood_rh_safety
         and has_stability_delivery_safety
         and has_shock_dic_safety
+        and has_blood_product_safety
     )
 
 
