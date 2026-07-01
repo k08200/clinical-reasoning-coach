@@ -3061,9 +3061,17 @@ PLACENTA_PREVIA_HEMORRHAGE_ACTION_TERMS = (
 PLACENTA_PREVIA_CESAREAN_ACTION_TERMS = (
     "caesarean",
     "cesarean",
-    "delivery",
+    "c-section",
     "immediate cesarean",
-    "operative",
+)
+PLACENTA_PREVIA_CESAREAN_TRIGGER_ACTION_TERMS = (
+    "fetal status worsens",
+    "heavy bleeding",
+    "maternal hemodynamic instability",
+    "nonreassuring fetal",
+    "severe bleeding",
+    "uncontrolled bleeding",
+    "unstable",
 )
 PLACENTA_PREVIA_NO_DIGITAL_EXAM_SAFETY_TERMS = (
     "avoid digital",
@@ -3076,10 +3084,13 @@ PLACENTA_PREVIA_NO_DIGITAL_EXAM_SAFETY_TERMS = (
 PLACENTA_PREVIA_EXCLUDE_BY_ULTRASOUND_SAFETY_TERMS = (
     "exclude placenta previa",
     "rule out placenta previa",
-    "transvaginal ultrasound",
-    "transvaginal ultrasonography",
     "ultrasound before pelvic",
     "ultrasonography before pelvic",
+)
+PLACENTA_PREVIA_STABLE_CESAREAN_SAFETY_TERMS = (
+    "caesarean delivery",
+    "cesarean delivery",
+    "scheduled cesarean",
 )
 PLACENTA_PREVIA_STABLE_TIMING_SAFETY_TERMS = (
     "36 to 37",
@@ -3088,24 +3099,49 @@ PLACENTA_PREVIA_STABLE_TIMING_SAFETY_TERMS = (
     "36-37 6/7",
     "36 0/7",
     "37 6/7",
-    "cesarean delivery at 36",
-    "scheduled cesarean at 36",
+)
+PLACENTA_PREVIA_LUNG_MATURITY_SAFETY_TERMS = (
+    "lung maturity is not necessary",
+    "lung maturity not necessary",
+    "without lung maturity",
 )
 PLACENTA_PREVIA_UNSTABLE_DELIVERY_SAFETY_TERMS = (
-    "heavy bleeding",
+    "caesarean",
+    "cesarean",
+    "c-section",
     "immediate cesarean",
+)
+PLACENTA_PREVIA_UNSTABLE_TRIGGER_SAFETY_TERMS = (
+    "heavy bleeding",
     "maternal hemodynamic instability",
     "mother or fetus is unstable",
     "nonreassuring fetal",
     "severe bleeding",
     "uncontrolled bleeding",
 )
-PLACENTA_PREVIA_EXPECTANT_SAFETY_TERMS = (
+PLACENTA_PREVIA_HOSPITALIZATION_SAFETY_TERMS = (
+    "hospitalization",
+    "hospitalize",
+    "readmission",
+    "readmitted",
+)
+PLACENTA_PREVIA_ACTIVITY_SAFETY_TERMS = (
+    "modified activity",
+    "modified rest",
+)
+PLACENTA_PREVIA_SEXUAL_ACTIVITY_SAFETY_TERMS = (
     "abstinence",
     "avoidance of sexual activity",
+    "avoid sexual activity",
+)
+PLACENTA_PREVIA_CORTICOSTEROID_SAFETY_TERMS = (
     "corticosteroid",
-    "hospitalization",
-    "modified activity",
+    "betamethasone",
+)
+PLACENTA_PREVIA_RH_SAFETY_TERMS = (
+    "rh-negative",
+    "rh immune globulin",
+    "rho(d)",
 )
 PLACENTA_ACCRETA_CONTEXT_TERMS = (
     "morbidly adherent placenta",
@@ -16331,9 +16367,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "or transvaginal ultrasonography diagnosis, fetal heart rate or "
                 "continuous fetal monitoring, hemorrhage stabilization with "
                 "large-bore IV, type-and-screen, crossmatch, transfusion, blood "
-                "products, shock, or hemodynamic support, and cesarean/caesarean, "
-                "immediate cesarean, delivery, or operative escalation for severe "
-                "bleeding or nonreassuring fetal status"
+                "products, shock, or hemodynamic support, and cesarean/caesarean/"
+                "c-section escalation tied to severe bleeding, maternal or fetal "
+                "instability, or nonreassuring fetal status"
             ),
         ),
         DomainSafetyGate(
@@ -16350,8 +16386,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "maturity documentation, immediate cesarean delivery for severe, "
                 "uncontrolled, or heavy bleeding, maternal hemodynamic instability, "
                 "or nonreassuring fetal status, and expectant management safeguards "
-                "such as hospitalization, modified activity, avoidance of sexual "
-                "activity, or corticosteroids when early delivery risk is present"
+                "including hospitalization, modified activity, avoidance of sexual "
+                "activity, corticosteroids when early delivery risk is present, and "
+                "Rh-negative/Rho(D) immune globulin planning"
             ),
         ),
         DomainSafetyGate(
@@ -21759,7 +21796,17 @@ def _has_placenta_previa_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in PLACENTA_PREVIA_CESAREAN_ACTION_TERMS
     )
-    return has_ultrasound and has_fetal_monitoring and has_hemorrhage and has_cesarean
+    has_cesarean_trigger = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PLACENTA_PREVIA_CESAREAN_TRIGGER_ACTION_TERMS
+    )
+    return (
+        has_ultrasound
+        and has_fetal_monitoring
+        and has_hemorrhage
+        and has_cesarean
+        and has_cesarean_trigger
+    )
 
 
 def _has_placenta_previa_treatment_safety_check(checks: list[Any]) -> bool:
@@ -21772,24 +21819,59 @@ def _has_placenta_previa_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in PLACENTA_PREVIA_EXCLUDE_BY_ULTRASOUND_SAFETY_TERMS
     )
+    has_stable_cesarean_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_STABLE_CESAREAN_SAFETY_TERMS
+    )
     has_stable_timing_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in PLACENTA_PREVIA_STABLE_TIMING_SAFETY_TERMS
+    )
+    has_lung_maturity_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_LUNG_MATURITY_SAFETY_TERMS
     )
     has_unstable_delivery_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in PLACENTA_PREVIA_UNSTABLE_DELIVERY_SAFETY_TERMS
     )
-    has_expectant_safety = any(
+    has_unstable_trigger_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in PLACENTA_PREVIA_EXPECTANT_SAFETY_TERMS
+        for term in PLACENTA_PREVIA_UNSTABLE_TRIGGER_SAFETY_TERMS
+    )
+    has_hospitalization_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_HOSPITALIZATION_SAFETY_TERMS
+    )
+    has_activity_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_ACTIVITY_SAFETY_TERMS
+    )
+    has_sexual_activity_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_SEXUAL_ACTIVITY_SAFETY_TERMS
+    )
+    has_corticosteroid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_CORTICOSTEROID_SAFETY_TERMS
+    )
+    has_rh_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PLACENTA_PREVIA_RH_SAFETY_TERMS
     )
     return (
         has_no_digital_exam_safety
         and has_exclude_by_ultrasound_safety
+        and has_stable_cesarean_safety
         and has_stable_timing_safety
+        and has_lung_maturity_safety
         and has_unstable_delivery_safety
-        and has_expectant_safety
+        and has_unstable_trigger_safety
+        and has_hospitalization_safety
+        and has_activity_safety
+        and has_sexual_activity_safety
+        and has_corticosteroid_safety
+        and has_rh_safety
     )
 
 

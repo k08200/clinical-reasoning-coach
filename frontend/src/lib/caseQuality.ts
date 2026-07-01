@@ -3324,9 +3324,18 @@ const PLACENTA_PREVIA_HEMORRHAGE_ACTION_TERMS = [
 const PLACENTA_PREVIA_CESAREAN_ACTION_TERMS = [
   "caesarean",
   "cesarean",
-  "delivery",
+  "c-section",
   "immediate cesarean",
-  "operative",
+];
+
+const PLACENTA_PREVIA_CESAREAN_TRIGGER_ACTION_TERMS = [
+  "fetal status worsens",
+  "heavy bleeding",
+  "maternal hemodynamic instability",
+  "nonreassuring fetal",
+  "severe bleeding",
+  "uncontrolled bleeding",
+  "unstable",
 ];
 
 const PLACENTA_PREVIA_NO_DIGITAL_EXAM_SAFETY_TERMS = [
@@ -3341,10 +3350,14 @@ const PLACENTA_PREVIA_NO_DIGITAL_EXAM_SAFETY_TERMS = [
 const PLACENTA_PREVIA_EXCLUDE_BY_ULTRASOUND_SAFETY_TERMS = [
   "exclude placenta previa",
   "rule out placenta previa",
-  "transvaginal ultrasound",
-  "transvaginal ultrasonography",
   "ultrasound before pelvic",
   "ultrasonography before pelvic",
+];
+
+const PLACENTA_PREVIA_STABLE_CESAREAN_SAFETY_TERMS = [
+  "caesarean delivery",
+  "cesarean delivery",
+  "scheduled cesarean",
 ];
 
 const PLACENTA_PREVIA_STABLE_TIMING_SAFETY_TERMS = [
@@ -3354,13 +3367,23 @@ const PLACENTA_PREVIA_STABLE_TIMING_SAFETY_TERMS = [
   "36-37 6/7",
   "36 0/7",
   "37 6/7",
-  "cesarean delivery at 36",
-  "scheduled cesarean at 36",
+];
+
+const PLACENTA_PREVIA_LUNG_MATURITY_SAFETY_TERMS = [
+  "lung maturity is not necessary",
+  "lung maturity not necessary",
+  "without lung maturity",
 ];
 
 const PLACENTA_PREVIA_UNSTABLE_DELIVERY_SAFETY_TERMS = [
-  "heavy bleeding",
+  "caesarean",
+  "cesarean",
+  "c-section",
   "immediate cesarean",
+];
+
+const PLACENTA_PREVIA_UNSTABLE_TRIGGER_SAFETY_TERMS = [
+  "heavy bleeding",
   "maternal hemodynamic instability",
   "mother or fetus is unstable",
   "nonreassuring fetal",
@@ -3368,12 +3391,33 @@ const PLACENTA_PREVIA_UNSTABLE_DELIVERY_SAFETY_TERMS = [
   "uncontrolled bleeding",
 ];
 
-const PLACENTA_PREVIA_EXPECTANT_SAFETY_TERMS = [
+const PLACENTA_PREVIA_HOSPITALIZATION_SAFETY_TERMS = [
+  "hospitalization",
+  "hospitalize",
+  "readmission",
+  "readmitted",
+];
+
+const PLACENTA_PREVIA_ACTIVITY_SAFETY_TERMS = [
+  "modified activity",
+  "modified rest",
+];
+
+const PLACENTA_PREVIA_SEXUAL_ACTIVITY_SAFETY_TERMS = [
   "abstinence",
   "avoidance of sexual activity",
+  "avoid sexual activity",
+];
+
+const PLACENTA_PREVIA_CORTICOSTEROID_SAFETY_TERMS = [
   "corticosteroid",
-  "hospitalization",
-  "modified activity",
+  "betamethasone",
+];
+
+const PLACENTA_PREVIA_RH_SAFETY_TERMS = [
+  "rh-negative",
+  "rh immune globulin",
+  "rho(d)",
 ];
 
 const PLACENTA_ACCRETA_CONTEXT_TERMS = [
@@ -18453,7 +18497,12 @@ function hasPlacentaPreviaTimeCriticalActions(actions: string[]): boolean {
   const hasCesarean = PLACENTA_PREVIA_CESAREAN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasUltrasound && hasFetalMonitoring && hasHemorrhage && hasCesarean;
+  const hasCesareanTrigger = PLACENTA_PREVIA_CESAREAN_TRIGGER_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasUltrasound && hasFetalMonitoring && hasHemorrhage && hasCesarean && hasCesareanTrigger
+  );
 }
 
 function hasPlacentaPreviaTreatmentSafetyCheck(checks: string[]): boolean {
@@ -18465,21 +18514,49 @@ function hasPlacentaPreviaTreatmentSafetyCheck(checks: string[]): boolean {
     PLACENTA_PREVIA_EXCLUDE_BY_ULTRASOUND_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
+  const hasStableCesareanSafety = PLACENTA_PREVIA_STABLE_CESAREAN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasStableTimingSafety = PLACENTA_PREVIA_STABLE_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLungMaturitySafety = PLACENTA_PREVIA_LUNG_MATURITY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasUnstableDeliverySafety = PLACENTA_PREVIA_UNSTABLE_DELIVERY_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasExpectantSafety = PLACENTA_PREVIA_EXPECTANT_SAFETY_TERMS.some((term) =>
+  const hasUnstableTriggerSafety = PLACENTA_PREVIA_UNSTABLE_TRIGGER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHospitalizationSafety = PLACENTA_PREVIA_HOSPITALIZATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasActivitySafety = PLACENTA_PREVIA_ACTIVITY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSexualActivitySafety = PLACENTA_PREVIA_SEXUAL_ACTIVITY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCorticosteroidSafety = PLACENTA_PREVIA_CORTICOSTEROID_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRhSafety = PLACENTA_PREVIA_RH_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
     hasNoDigitalExamSafety &&
     hasExcludeByUltrasoundSafety &&
+    hasStableCesareanSafety &&
     hasStableTimingSafety &&
+    hasLungMaturitySafety &&
     hasUnstableDeliverySafety &&
-    hasExpectantSafety
+    hasUnstableTriggerSafety &&
+    hasHospitalizationSafety &&
+    hasActivitySafety &&
+    hasSexualActivitySafety &&
+    hasCorticosteroidSafety &&
+    hasRhSafety
   );
 }
 
