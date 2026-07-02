@@ -10697,6 +10697,7 @@ def test_quality_gate_requires_acute_liver_failure_icu_transplant_nac_workup_and
         "Avoid FFP fresh frozen plasma for coagulopathy correction unless bleeding or procedure need",
         "Monitor glucose frequently and give dextrose support for hypoglycemia",
         "Review prognosis and transfer using King's College criteria, transplant criteria, Status 1A listing, transplant-free survival, and early transplant-center transfer",
+        "Monitor infection, sepsis, cultures, and antibiotic need plus hemodynamic status, vasopressor need, fluid overload, and renal failure",
     ]
     case["clinical_sources"] = [
         {
@@ -10717,6 +10718,7 @@ def test_quality_gate_requires_acute_liver_failure_icu_transplant_nac_workup_and
                 "FFP fresh frozen plasma avoidance for coagulopathy correction unless bleeding or procedure need",
                 "glucose monitoring and dextrose support for hypoglycemia",
                 "prognosis and transfer using King's College criteria, transplant criteria, Status 1A listing, transplant-free survival, and early transplant-center transfer",
+                "infection, sepsis, cultures, antibiotic need, hemodynamic status, vasopressor need, fluid overload, and renal failure monitoring",
             ],
         },
         {
@@ -10888,6 +10890,146 @@ def test_quality_gate_requires_acute_liver_failure_ffp_avoidance_not_correction_
     assert any(
         "avoiding routine FFP or correction unless bleeding or procedure need is present"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_liver_failure_broad_etiology_workup_not_acetaminophen_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute liver failure"
+    case["patient_demographics"] = {
+        "age": 38,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion, jaundice, and severe hepatitis labs"
+    case["history_of_present_illness"] = (
+        "Patient has acute hepatitis with marked transaminitis, AST 1000, ALT 1000, "
+        "INR 2.6 coagulopathy, confusion, asterixis, somnolence, hypoglycemia, "
+        "lactate elevation, and acute kidney injury without known chronic liver disease."
+    )
+    case["key_teaching_points"] = [
+        "Acute liver failure is severe acute liver injury with coagulopathy and hepatic encephalopathy",
+        "Early transplant-center involvement is time critical because deterioration can be rapid",
+        "Empiric N-acetylcysteine is commonly started while etiology workup is pending",
+    ]
+    case["clinical_red_flags"] = [
+        "INR elevation, coagulopathy, encephalopathy, confusion, asterixis, or somnolence",
+        "Hypoglycemia, high ammonia, lactate elevation, renal failure, cerebral edema, or multiorgan failure",
+    ]
+    case["time_critical_actions"] = [
+        "Admit to ICU for high-acuity monitoring and contact liver transplant center for early transfer and transplant evaluation",
+        "Start N-acetylcysteine NAC acetylcysteine therapy while workup is pending",
+        "Send acetaminophen level and toxicology testing",
+        "Trend serial INR, ammonia, glucose, lactate, pH, renal function, creatinine, and neurologic encephalopathy status",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor for cerebral edema and intracranial pressure risk with head elevation, seizure monitoring, mannitol, or hypertonic saline planning",
+        "Avoid FFP fresh frozen plasma for coagulopathy correction unless bleeding or procedure need",
+        "Monitor glucose frequently and give dextrose support for hypoglycemia",
+        "Review prognosis and transfer using King's College criteria, MELD, transplant criteria, Status 1A listing, transplant-free survival, and early transplant-center transfer",
+        "Monitor infection, sepsis, cultures, and antibiotic need plus hemodynamic status, vasopressor need, fluid overload, and renal failure",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute Liver Failure",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK482374/",
+            "supports": [
+                "acute liver failure diagnosis and risk stratification",
+                "acute liver failure is severe acute liver injury with coagulopathy and hepatic encephalopathy",
+                "early transplant-center involvement is time critical because deterioration can be rapid",
+                "empiric N-acetylcysteine is commonly started while etiology workup is pending",
+                "INR elevation, coagulopathy, encephalopathy, confusion, asterixis, or somnolence as red flags",
+                "hypoglycemia, high ammonia, lactate elevation, renal failure, cerebral edema, or multiorgan failure as severity markers",
+                "ICU high-acuity monitoring and liver transplant center early transfer plus transplant evaluation",
+                "N-acetylcysteine NAC acetylcysteine therapy while workup is pending",
+                "acetaminophen level and toxicology testing",
+                "serial INR, ammonia, glucose, lactate, pH, renal function, creatinine, and neurologic encephalopathy status monitoring",
+                "cerebral edema and intracranial pressure risk with head elevation, seizure monitoring, mannitol, or hypertonic saline planning",
+                "FFP fresh frozen plasma avoidance for coagulopathy correction unless bleeding or procedure need",
+                "glucose monitoring and dextrose support for hypoglycemia",
+                "prognosis and transfer using King's College criteria, MELD, transplant criteria, Status 1A listing, transplant-free survival, and early transplant-center transfer",
+                "infection, sepsis, cultures, antibiotic need, hemodynamic status, vasopressor need, fluid overload, and renal failure monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "acute liver failure time-critical actions must include ICU" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_liver_failure_infection_hemodynamic_and_renal_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute liver failure"
+    case["patient_demographics"] = {
+        "age": 38,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion, jaundice, and severe hepatitis labs"
+    case["history_of_present_illness"] = (
+        "Patient has acute hepatitis with marked transaminitis, AST 1000, ALT 1000, "
+        "INR 2.6 coagulopathy, confusion, asterixis, somnolence, hypoglycemia, "
+        "lactate elevation, and acute kidney injury without known chronic liver disease."
+    )
+    case["key_teaching_points"] = [
+        "Acute liver failure is severe acute liver injury with coagulopathy and hepatic encephalopathy",
+        "Early transplant-center involvement is time critical because deterioration can be rapid",
+        "Empiric N-acetylcysteine is commonly started while etiology workup is pending",
+    ]
+    case["clinical_red_flags"] = [
+        "INR elevation, coagulopathy, encephalopathy, confusion, asterixis, or somnolence",
+        "Hypoglycemia, high ammonia, lactate elevation, renal failure, cerebral edema, or multiorgan failure",
+    ]
+    case["time_critical_actions"] = [
+        "Admit to ICU for high-acuity monitoring and contact liver transplant center for early transfer and transplant evaluation",
+        "Start N-acetylcysteine NAC acetylcysteine therapy while workup is pending",
+        "Send etiology workup including acetaminophen level, toxicology, viral hepatitis serologies, HSV testing, Wilson disease testing, ceruloplasmin, and autoimmune markers",
+        "Trend serial INR, ammonia, glucose, lactate, pH, renal function, creatinine, and neurologic encephalopathy status",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor for cerebral edema and intracranial pressure risk with head elevation, seizure monitoring, mannitol, or hypertonic saline planning",
+        "Avoid FFP fresh frozen plasma for coagulopathy correction unless bleeding or procedure need",
+        "Monitor glucose frequently and give dextrose support for hypoglycemia",
+        "Review prognosis and transfer using King's College criteria, MELD, transplant criteria, Status 1A listing, transplant-free survival, and early transplant-center transfer",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute Liver Failure",
+            "organization": "NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK482374/",
+            "supports": [
+                "acute liver failure diagnosis and risk stratification",
+                "acute liver failure is severe acute liver injury with coagulopathy and hepatic encephalopathy",
+                "early transplant-center involvement is time critical because deterioration can be rapid",
+                "empiric N-acetylcysteine is commonly started while etiology workup is pending",
+                "INR elevation, coagulopathy, encephalopathy, confusion, asterixis, or somnolence as red flags",
+                "hypoglycemia, high ammonia, lactate elevation, renal failure, cerebral edema, or multiorgan failure as severity markers",
+                "ICU high-acuity monitoring and liver transplant center early transfer plus transplant evaluation",
+                "N-acetylcysteine NAC acetylcysteine therapy while workup is pending",
+                "etiology workup including acetaminophen level, toxicology, viral hepatitis serologies, HSV testing, Wilson disease testing, ceruloplasmin, and autoimmune markers",
+                "serial INR, ammonia, glucose, lactate, pH, renal function, creatinine, and neurologic encephalopathy status monitoring",
+                "cerebral edema and intracranial pressure risk with head elevation, seizure monitoring, mannitol, or hypertonic saline planning",
+                "FFP fresh frozen plasma avoidance for coagulopathy correction unless bleeding or procedure need",
+                "glucose monitoring and dextrose support for hypoglycemia",
+                "prognosis and transfer using King's College criteria, MELD, transplant criteria, Status 1A listing, transplant-free survival, and early transplant-center transfer",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "infection/sepsis surveillance" in issue
         for issue in report.critical_issues
     )
 

@@ -5233,16 +5233,18 @@ ACUTE_LIVER_FAILURE_ICU_ACTION_TERMS = (
     "high-acuity",
     "중환자",
 )
-ACUTE_LIVER_FAILURE_TRANSPLANT_ACTION_TERMS = (
-    "early transfer",
+ACUTE_LIVER_FAILURE_TRANSPLANT_CENTER_ACTION_TERMS = (
     "liver transplant",
+    "transplant center",
+    "transplant service",
+    "이식",
+)
+ACUTE_LIVER_FAILURE_TRANSFER_EVALUATION_ACTION_TERMS = (
+    "early transfer",
     "status 1a",
     "transfer to liver",
     "transfer to transplant",
-    "transplant center",
-    "transplant service",
     "transplant evaluation",
-    "이식",
 )
 ACUTE_LIVER_FAILURE_NAC_ACTION_TERMS = (
     "acetylcysteine",
@@ -5250,35 +5252,56 @@ ACUTE_LIVER_FAILURE_NAC_ACTION_TERMS = (
     "nac",
     "엔아세틸시스테인",
 )
-ACUTE_LIVER_FAILURE_ETIOLOGY_WORKUP_ACTION_TERMS = (
+ACUTE_LIVER_FAILURE_TOX_WORKUP_ACTION_TERMS = (
     "acetaminophen",
-    "autoimmune",
+    "toxicology",
+)
+ACUTE_LIVER_FAILURE_VIRAL_WORKUP_ACTION_TERMS = (
     "hepatitis serologies",
     "hsv",
-    "toxicology",
     "viral hepatitis",
+)
+ACUTE_LIVER_FAILURE_AUTOIMMUNE_METABOLIC_WORKUP_ACTION_TERMS = (
+    "autoimmune",
+    "ceruloplasmin",
     "wilson",
     "원인",
 )
-ACUTE_LIVER_FAILURE_MONITORING_ACTION_TERMS = (
-    "ammonia",
-    "glucose",
+ACUTE_LIVER_FAILURE_COAG_MONITORING_ACTION_TERMS = (
     "inr",
-    "lactate",
-    "meld",
-    "neurologic",
-    "ph",
-    "renal",
+    "pt",
+    "prothrombin",
+)
+ACUTE_LIVER_FAILURE_AMMONIA_MONITORING_ACTION_TERMS = (
+    "ammonia",
+)
+ACUTE_LIVER_FAILURE_GLUCOSE_MONITORING_ACTION_TERMS = (
+    "glucose",
     "혈당",
 )
-ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_SAFETY_TERMS = (
+ACUTE_LIVER_FAILURE_PERFUSION_MONITORING_ACTION_TERMS = (
+    "lactate",
+    "ph",
+)
+ACUTE_LIVER_FAILURE_RENAL_MONITORING_ACTION_TERMS = (
+    "creatinine",
+    "renal",
+)
+ACUTE_LIVER_FAILURE_NEURO_MONITORING_ACTION_TERMS = (
+    "encephalopathy",
+    "neurologic",
+    "west haven",
+)
+ACUTE_LIVER_FAILURE_ICP_CEREBRAL_EDEMA_SAFETY_TERMS = (
     "cerebral edema",
+    "intracranial pressure",
+    "뇌부종",
+)
+ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_INTERVENTION_SAFETY_TERMS = (
     "head elevation",
     "hypertonic saline",
-    "intracranial pressure",
     "mannitol",
     "seizure",
-    "뇌부종",
 )
 ACUTE_LIVER_FAILURE_COAGULOPATHY_AVOID_SAFETY_TERMS = (
     "avoid ffp",
@@ -5298,22 +5321,41 @@ ACUTE_LIVER_FAILURE_COAGULOPATHY_EXCEPTION_SAFETY_TERMS = (
     "시술",
     "출혈",
 )
-ACUTE_LIVER_FAILURE_HYPOGLYCEMIA_SAFETY_TERMS = (
-    "dextrose",
+ACUTE_LIVER_FAILURE_GLUCOSE_MONITORING_SAFETY_TERMS = (
     "glucose",
-    "hypoglycemia",
     "monitor glucose",
     "혈당",
+)
+ACUTE_LIVER_FAILURE_DEXTROSE_HYPOGLYCEMIA_SAFETY_TERMS = (
+    "dextrose",
+    "hypoglycemia",
     "저혈당",
 )
-ACUTE_LIVER_FAILURE_PROGNOSIS_TRANSFER_SAFETY_TERMS = (
+ACUTE_LIVER_FAILURE_PROGNOSIS_CRITERIA_SAFETY_TERMS = (
     "king's college",
     "kings college",
-    "listing",
-    "status 1a",
+    "meld",
     "transplant criteria",
     "transplant-free",
+)
+ACUTE_LIVER_FAILURE_TRANSFER_LISTING_SAFETY_TERMS = (
+    "early transplant",
+    "listing",
+    "status 1a",
+    "transplant center",
     "전원",
+)
+ACUTE_LIVER_FAILURE_INFECTION_SAFETY_TERMS = (
+    "antibiotic",
+    "culture",
+    "infection",
+    "sepsis",
+)
+ACUTE_LIVER_FAILURE_HEMODYNAMIC_RENAL_SAFETY_TERMS = (
+    "fluid overload",
+    "hemodynamic",
+    "renal failure",
+    "vasopressor",
 )
 NEUTROPENIC_FEVER_CONTEXT_TERMS = (
     "absolute neutrophil count",
@@ -17491,12 +17533,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "acute liver failure time-critical actions must include ICU, "
                 "intensive-care, or high-acuity monitoring planning, liver-transplant, "
-                "transplant-center, transplant-service, transplant-evaluation, "
-                "or transplant-transfer involvement, N-acetylcysteine, NAC, "
-                "or acetylcysteine therapy, etiology workup for acetaminophen, "
-                "toxicology, viral hepatitis, hepatitis serologies, HSV, Wilson, "
-                "or autoimmune causes, and serial monitoring of INR, ammonia, "
-                "glucose, lactate, pH, renal function, MELD, or neurologic status"
+                "transplant-center, or transplant-service involvement plus "
+                "early-transfer, transplant-evaluation, or Status 1A planning, "
+                "N-acetylcysteine, NAC, or acetylcysteine therapy, etiology workup "
+                "covering acetaminophen/toxicology, viral hepatitis/hepatitis "
+                "serologies/HSV, and Wilson/ceruloplasmin or autoimmune causes, "
+                "and serial monitoring of INR/PT or prothrombin time, ammonia, "
+                "glucose, lactate or pH, renal function or creatinine, and "
+                "neurologic/encephalopathy status"
             ),
         ),
         DomainSafetyGate(
@@ -17506,13 +17550,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acute_liver_failure_treatment_safety_check,
             issue=(
                 "acute liver failure safety checks must include cerebral-edema "
-                "or intracranial-pressure planning with head elevation, seizure "
-                "monitoring, mannitol, or hypertonic saline, coagulopathy safety "
-                "including avoiding routine FFP or correction unless bleeding or "
-                "procedure need is present, hypoglycemia monitoring or dextrose "
-                "support, and prognosis or transfer review using King's College, "
-                "transplant criteria, Status 1A listing, transplant-free survival, "
-                "or early transplant-center transfer"
+                "or intracranial-pressure planning plus head elevation, seizure "
+                "monitoring, mannitol, or hypertonic saline intervention, "
+                "coagulopathy safety including avoiding routine FFP or correction "
+                "unless bleeding or procedure need is present, glucose monitoring "
+                "plus hypoglycemia/dextrose support, prognosis review using "
+                "King's College, MELD, transplant criteria, or transplant-free "
+                "survival plus Status 1A/listing/early-transplant-center transfer, "
+                "infection/sepsis surveillance with cultures or antibiotics, and "
+                "hemodynamic, vasopressor, fluid-overload, or renal-failure monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -24813,30 +24859,80 @@ def _has_acute_liver_failure_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_LIVER_FAILURE_ICU_ACTION_TERMS
     )
-    has_transplant = any(
+    has_transplant_center = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_LIVER_FAILURE_TRANSPLANT_ACTION_TERMS
+        for term in ACUTE_LIVER_FAILURE_TRANSPLANT_CENTER_ACTION_TERMS
+    )
+    has_transfer_evaluation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_TRANSFER_EVALUATION_ACTION_TERMS
     )
     has_nac = any(
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_LIVER_FAILURE_NAC_ACTION_TERMS
     )
-    has_etiology_workup = any(
+    has_tox_workup = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_LIVER_FAILURE_ETIOLOGY_WORKUP_ACTION_TERMS
+        for term in ACUTE_LIVER_FAILURE_TOX_WORKUP_ACTION_TERMS
     )
-    has_monitoring = any(
+    has_viral_workup = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_LIVER_FAILURE_MONITORING_ACTION_TERMS
+        for term in ACUTE_LIVER_FAILURE_VIRAL_WORKUP_ACTION_TERMS
     )
-    return has_icu and has_transplant and has_nac and has_etiology_workup and has_monitoring
+    has_autoimmune_metabolic_workup = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_AUTOIMMUNE_METABOLIC_WORKUP_ACTION_TERMS
+    )
+    has_coag_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_COAG_MONITORING_ACTION_TERMS
+    )
+    has_ammonia_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_AMMONIA_MONITORING_ACTION_TERMS
+    )
+    has_glucose_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_GLUCOSE_MONITORING_ACTION_TERMS
+    )
+    has_perfusion_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_PERFUSION_MONITORING_ACTION_TERMS
+    )
+    has_renal_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_RENAL_MONITORING_ACTION_TERMS
+    )
+    has_neuro_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_LIVER_FAILURE_NEURO_MONITORING_ACTION_TERMS
+    )
+    return (
+        has_icu
+        and has_transplant_center
+        and has_transfer_evaluation
+        and has_nac
+        and has_tox_workup
+        and has_viral_workup
+        and has_autoimmune_metabolic_workup
+        and has_coag_monitoring
+        and has_ammonia_monitoring
+        and has_glucose_monitoring
+        and has_perfusion_monitoring
+        and has_renal_monitoring
+        and has_neuro_monitoring
+    )
 
 
 def _has_acute_liver_failure_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_cerebral_edema = any(
+    has_icp_cerebral_edema = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_SAFETY_TERMS
+        for term in ACUTE_LIVER_FAILURE_ICP_CEREBRAL_EDEMA_SAFETY_TERMS
+    )
+    has_cerebral_edema_intervention = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIVER_FAILURE_CEREBRAL_EDEMA_INTERVENTION_SAFETY_TERMS
     )
     has_coagulopathy_avoid_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -24846,20 +24942,41 @@ def _has_acute_liver_failure_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_LIVER_FAILURE_COAGULOPATHY_EXCEPTION_SAFETY_TERMS
     )
-    has_hypoglycemia_safety = any(
+    has_glucose_monitoring_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_LIVER_FAILURE_HYPOGLYCEMIA_SAFETY_TERMS
+        for term in ACUTE_LIVER_FAILURE_GLUCOSE_MONITORING_SAFETY_TERMS
     )
-    has_prognosis_transfer = any(
+    has_dextrose_hypoglycemia_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_LIVER_FAILURE_PROGNOSIS_TRANSFER_SAFETY_TERMS
+        for term in ACUTE_LIVER_FAILURE_DEXTROSE_HYPOGLYCEMIA_SAFETY_TERMS
+    )
+    has_prognosis_criteria = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIVER_FAILURE_PROGNOSIS_CRITERIA_SAFETY_TERMS
+    )
+    has_transfer_listing = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIVER_FAILURE_TRANSFER_LISTING_SAFETY_TERMS
+    )
+    has_infection_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIVER_FAILURE_INFECTION_SAFETY_TERMS
+    )
+    has_hemodynamic_renal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_LIVER_FAILURE_HEMODYNAMIC_RENAL_SAFETY_TERMS
     )
     return (
-        has_cerebral_edema
+        has_icp_cerebral_edema
+        and has_cerebral_edema_intervention
         and has_coagulopathy_avoid_safety
         and has_coagulopathy_exception_safety
-        and has_hypoglycemia_safety
-        and has_prognosis_transfer
+        and has_glucose_monitoring_safety
+        and has_dextrose_hypoglycemia_safety
+        and has_prognosis_criteria
+        and has_transfer_listing
+        and has_infection_safety
+        and has_hemodynamic_renal_safety
     )
 
 
