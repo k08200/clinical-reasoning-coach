@@ -14659,6 +14659,70 @@
     }
   },
   {
+    "name": "malignant_hyperthermia_requires_dantrolene_dose_or_repeat_plan",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "immediate IV dantrolene with 2.5 mg/kg"
+    ],
+    "overrides": {
+      "diagnosis": "Malignant hyperthermia crisis during anesthesia",
+      "patient_demographics": {
+        "age": 24,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Rapid hyperthermia and rigidity during anesthesia",
+      "history_of_present_illness": "Patient under volatile anesthetic after succinylcholine develops rapidly rising ETCO2, tachycardia, masseter rigidity, acidosis, hyperkalemia, and fever.",
+      "key_teaching_points": [
+        "Malignant hyperthermia is a life-threatening anesthesia emergency",
+        "Triggering volatile anesthetics and succinylcholine must be stopped immediately",
+        "Dantrolene plus active cooling and metabolic complication treatment are time critical"
+      ],
+      "clinical_red_flags": [
+        "Rapidly rising ETCO2 with tachycardia and masseter or generalized rigidity",
+        "Hyperthermia with acidosis, hyperkalemia, cola-colored urine, or rhabdomyolysis"
+      ],
+      "time_critical_actions": [
+        "Stop triggering volatile agent and succinylcholine, halt procedure if possible, and ventilate with 100% oxygen using non-triggering anesthesia",
+        "Give immediate IV dantrolene from the MH cart",
+        "Start active cooling with ice, cold saline, and temperature monitoring",
+        "Call for help, bring the MH cart, contact the malignant hyperthermia hotline, prepare ICU transfer, and monitor urine output"
+      ],
+      "contraindication_checks": [
+        "Treat potassium hyperkalemia with calcium and monitor blood gas acidosis, bicarbonate need, and ECG arrhythmia",
+        "Track creatine kinase CK, myoglobinuria, urine output, and rhabdomyolysis",
+        "Track core temperature and ETCO2 end-tidal CO2 during treatment",
+        "Review dantrolene dose, repeat dose need, recrudescence, and calcium channel blocker interaction risk",
+        "Stop cooling when temperature is below 38 C to avoid overcooling",
+        "Transfer to PACU or ICU for at least 24 hours of post anesthesia care observation",
+        "Document family history, RYR1 genetic susceptibility, medical alert need, and future trigger-free non-triggering anesthesia planning"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Managing A Crisis",
+          "organization": "Malignant Hyperthermia Association of the United States",
+          "url": "https://www.mhaus.org/healthcare-professionals/managing-a-crisis/",
+          "supports": [
+            "malignant hyperthermia crisis during anesthesia diagnosis and risk stratification",
+            "triggering volatile anesthetics and succinylcholine must be stopped immediately",
+            "100% oxygen and non-triggering anesthesia during malignant hyperthermia crisis",
+            "immediate IV dantrolene from the MH cart without explicit dose or repeat plan",
+            "active cooling with ice, cold saline, and temperature monitoring",
+            "call for help, MH cart, malignant hyperthermia hotline, ICU transfer, and urine output monitoring",
+            "potassium hyperkalemia treatment with calcium and blood gas acidosis bicarbonate plus ECG arrhythmia monitoring",
+            "creatine kinase CK, myoglobinuria, urine output, and rhabdomyolysis tracking",
+            "core temperature and ETCO2 end-tidal CO2 monitoring",
+            "dantrolene dose, repeat dose need, recrudescence, and calcium channel blocker interaction risk",
+            "stop cooling when temperature is below 38 C to avoid overcooling",
+            "PACU or ICU for at least 24 hours of post anesthesia care observation",
+            "family history, RYR1 genetic susceptibility, medical alert need, and future trigger-free non-triggering anesthesia planning"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "thyroid_storm_requires_beta_blocker_thionamide_iodine_and_steroid_support",
     "expected_passed": false,
     "expected_issue_substrings": [

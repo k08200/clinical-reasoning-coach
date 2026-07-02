@@ -6665,16 +6665,34 @@ const MALIGNANT_HYPERTHERMIA_TRIGGER_STOP_ACTION_TERMS = [
   "stop triggering",
   "triggering agent",
   "volatile agent",
+];
+
+const MALIGNANT_HYPERTHERMIA_OXYGEN_ACTION_TERMS = [
   "100% oxygen",
+  "high-flow oxygen",
+  "hyperventilate",
+  "hyperventilation",
+  "oxygen",
   "산소",
 ];
 
-const MALIGNANT_HYPERTHERMIA_DANTROLENE_ACTION_TERMS = [
+const MALIGNANT_HYPERTHERMIA_DANTROLENE_AGENT_ACTION_TERMS = [
   "dantrium",
   "dantrolene",
   "revonto",
   "ryanodex",
   "단트롤렌",
+];
+
+const MALIGNANT_HYPERTHERMIA_DANTROLENE_DOSE_ACTION_TERMS = [
+  "2.5 mg/kg",
+  "2.5mg/kg",
+  "large-bore iv",
+  "repeat",
+  "repeat dose",
+  "repeated",
+  "rapidly",
+  "반복",
 ];
 
 const MALIGNANT_HYPERTHERMIA_COOLING_ACTION_TERMS = [
@@ -6698,38 +6716,69 @@ const MALIGNANT_HYPERTHERMIA_ESCALATION_ACTION_TERMS = [
   "중환자",
 ];
 
-const MALIGNANT_HYPERTHERMIA_METABOLIC_SAFETY_TERMS = [
-  "acidosis",
-  "arrhythmia",
-  "blood gas",
+const MALIGNANT_HYPERTHERMIA_HYPERKALEMIA_SAFETY_TERMS = [
   "calcium",
-  "ck",
-  "creatine kinase",
   "hyperkalemia",
   "potassium",
-  "rhabdomyolysis",
-  "횡문근",
   "칼륨",
 ];
 
-const MALIGNANT_HYPERTHERMIA_MONITORING_SAFETY_TERMS = [
+const MALIGNANT_HYPERTHERMIA_ACIDOSIS_SAFETY_TERMS = [
+  "acidosis",
+  "bicarbonate",
+  "arrhythmia",
+  "blood gas",
+];
+
+const MALIGNANT_HYPERTHERMIA_RHABDOMYOLYSIS_SAFETY_TERMS = [
+  "ck",
+  "creatine kinase",
+  "myoglobin",
+  "rhabdomyolysis",
+  "횡문근",
+];
+
+const MALIGNANT_HYPERTHERMIA_CORE_MONITORING_SAFETY_TERMS = [
   "core temperature",
   "etco2",
   "end-tidal",
+];
+
+const MALIGNANT_HYPERTHERMIA_URINE_MONITORING_SAFETY_TERMS = [
   "myoglobin",
   "urine output",
-  "vital signs",
+  "urine-output",
   "소변",
 ];
 
-const MALIGNANT_HYPERTHERMIA_DANTROLENE_SAFETY_TERMS = [
-  "calcium channel blocker",
+const MALIGNANT_HYPERTHERMIA_DANTROLENE_REPEAT_SAFETY_TERMS = [
   "dantrolene",
   "dose",
   "recrudescence",
   "repeat dose",
-  "weakness",
   "단트롤렌",
+];
+
+const MALIGNANT_HYPERTHERMIA_DANTROLENE_INTERACTION_SAFETY_TERMS = [
+  "calcium channel blocker",
+  "interaction",
+];
+
+const MALIGNANT_HYPERTHERMIA_COOLING_ENDPOINT_SAFETY_TERMS = [
+  "<38",
+  "38 c",
+  "38°c",
+  "cooling endpoint",
+  "stop cooling",
+  "temperature below 38",
+];
+
+const MALIGNANT_HYPERTHERMIA_POSTCRISIS_OBSERVATION_SAFETY_TERMS = [
+  "24 hours",
+  "icu",
+  "intensive care",
+  "pacu",
+  "post anesthesia care",
 ];
 
 const MALIGNANT_HYPERTHERMIA_TRIGGER_PREVENTION_SAFETY_TERMS = [
@@ -21960,7 +22009,13 @@ function hasMalignantHyperthermiaTimeCriticalActions(actions: string[]): boolean
   const hasTriggerStop = MALIGNANT_HYPERTHERMIA_TRIGGER_STOP_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDantrolene = MALIGNANT_HYPERTHERMIA_DANTROLENE_ACTION_TERMS.some((term) =>
+  const hasOxygen = MALIGNANT_HYPERTHERMIA_OXYGEN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDantroleneAgent = MALIGNANT_HYPERTHERMIA_DANTROLENE_AGENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDantroleneDose = MALIGNANT_HYPERTHERMIA_DANTROLENE_DOSE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasCooling = MALIGNANT_HYPERTHERMIA_COOLING_ACTION_TERMS.some((term) =>
@@ -21969,24 +22024,62 @@ function hasMalignantHyperthermiaTimeCriticalActions(actions: string[]): boolean
   const hasEscalation = MALIGNANT_HYPERTHERMIA_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasTriggerStop && hasDantrolene && hasCooling && hasEscalation;
+  return (
+    hasTriggerStop &&
+    hasOxygen &&
+    hasDantroleneAgent &&
+    hasDantroleneDose &&
+    hasCooling &&
+    hasEscalation
+  );
 }
 
 function hasMalignantHyperthermiaTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasMetabolicSafety = MALIGNANT_HYPERTHERMIA_METABOLIC_SAFETY_TERMS.some((term) =>
+  const hasHyperkalemiaSafety = MALIGNANT_HYPERTHERMIA_HYPERKALEMIA_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasMonitoringSafety = MALIGNANT_HYPERTHERMIA_MONITORING_SAFETY_TERMS.some((term) =>
+  const hasAcidosisSafety = MALIGNANT_HYPERTHERMIA_ACIDOSIS_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDantroleneSafety = MALIGNANT_HYPERTHERMIA_DANTROLENE_SAFETY_TERMS.some((term) =>
+  const hasRhabdomyolysisSafety = MALIGNANT_HYPERTHERMIA_RHABDOMYOLYSIS_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasCoreMonitoringSafety = MALIGNANT_HYPERTHERMIA_CORE_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasUrineMonitoringSafety = MALIGNANT_HYPERTHERMIA_URINE_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDantroleneRepeatSafety = MALIGNANT_HYPERTHERMIA_DANTROLENE_REPEAT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDantroleneInteractionSafety =
+    MALIGNANT_HYPERTHERMIA_DANTROLENE_INTERACTION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCoolingEndpointSafety = MALIGNANT_HYPERTHERMIA_COOLING_ENDPOINT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPostcrisisObservationSafety =
+    MALIGNANT_HYPERTHERMIA_POSTCRISIS_OBSERVATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasTriggerPreventionSafety = MALIGNANT_HYPERTHERMIA_TRIGGER_PREVENTION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  return hasMetabolicSafety && hasMonitoringSafety && hasDantroleneSafety && hasTriggerPreventionSafety;
+  return (
+    hasHyperkalemiaSafety &&
+    hasAcidosisSafety &&
+    hasRhabdomyolysisSafety &&
+    hasCoreMonitoringSafety &&
+    hasUrineMonitoringSafety &&
+    hasDantroleneRepeatSafety &&
+    hasDantroleneInteractionSafety &&
+    hasCoolingEndpointSafety &&
+    hasPostcrisisObservationSafety &&
+    hasTriggerPreventionSafety
+  );
 }
 
 function requiresThyroidStormSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -29564,7 +29657,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasMalignantHyperthermiaTimeCriticalActions,
       issue:
-        "malignant hyperthermia time-critical actions must include stopping triggering anesthetics or succinylcholine with high-flow oxygen or non-triggering anesthesia, immediate dantrolene, active cooling, and MH cart, hotline, ICU, or urine-output escalation",
+        "malignant hyperthermia time-critical actions must include stopping triggering anesthetics or succinylcholine with non-triggering anesthesia, high-flow 100% oxygen or hyperventilation, immediate IV dantrolene with 2.5 mg/kg, rapid, or repeat-dose planning, active cooling, and MH cart, hotline, ICU, or urine-output escalation",
     },
     {
       name: "malignant_hyperthermia_treatment_safety",
@@ -29573,7 +29666,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasMalignantHyperthermiaTreatmentSafetyCheck,
       issue:
-        "malignant hyperthermia safety checks must include hyperkalemia, acidosis, arrhythmia, or rhabdomyolysis monitoring, core temperature or ETCO2 and urine-output monitoring, dantrolene repeat-dose or interaction safety, and trigger-free anesthesia or susceptibility prevention planning",
+        "malignant hyperthermia safety checks must include hyperkalemia/potassium treatment review, acidosis/blood-gas or arrhythmia review, rhabdomyolysis/CK/myoglobin monitoring, core temperature or ETCO2 monitoring, urine-output or myoglobinuria monitoring, dantrolene repeat-dose or recrudescence planning, calcium-channel blocker interaction avoidance, cooling endpoint such as stopping cooling near 38 C, post-crisis PACU/ICU observation for at least 24 hours, and trigger-free anesthesia or susceptibility prevention planning",
     },
     {
       name: "thyroid_storm_time_critical_actions",

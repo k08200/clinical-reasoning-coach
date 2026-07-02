@@ -12410,6 +12410,76 @@ def test_quality_gate_requires_malignant_hyperthermia_trigger_stop_dantrolene_co
     )
 
 
+def test_quality_gate_requires_malignant_hyperthermia_dantrolene_dose_or_repeat_plan():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Malignant hyperthermia crisis during anesthesia"
+    case["patient_demographics"] = {
+        "age": 24,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Rapid hyperthermia and rigidity during anesthesia"
+    case["history_of_present_illness"] = (
+        "Patient under volatile anesthetic after succinylcholine develops rapidly rising "
+        "ETCO2, tachycardia, masseter rigidity, acidosis, hyperkalemia, and fever."
+    )
+    case["key_teaching_points"] = [
+        "Malignant hyperthermia is a life-threatening anesthesia emergency",
+        "Triggering volatile anesthetics and succinylcholine must be stopped immediately",
+        "Dantrolene plus active cooling and metabolic complication treatment are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Rapidly rising ETCO2 with tachycardia and masseter or generalized rigidity",
+        "Hyperthermia with acidosis, hyperkalemia, cola-colored urine, or rhabdomyolysis",
+    ]
+    case["time_critical_actions"] = [
+        "Stop triggering volatile agent and succinylcholine, halt procedure if possible, and ventilate with 100% oxygen using non-triggering anesthesia",
+        "Give immediate IV dantrolene from the MH cart",
+        "Start active cooling with ice, cold saline, and temperature monitoring",
+        "Call for help, bring the MH cart, contact the malignant hyperthermia hotline, prepare ICU transfer, and monitor urine output",
+    ]
+    case["contraindication_checks"] = [
+        "Treat potassium hyperkalemia with calcium and monitor blood gas acidosis, bicarbonate need, and ECG arrhythmia",
+        "Track creatine kinase CK, myoglobinuria, urine output, and rhabdomyolysis",
+        "Track core temperature and ETCO2 end-tidal CO2 during treatment",
+        "Review dantrolene dose, repeat dose need, recrudescence, and calcium channel blocker interaction risk",
+        "Stop cooling when temperature is below 38 C to avoid overcooling",
+        "Transfer to PACU or ICU for at least 24 hours of post anesthesia care observation",
+        "Document family history, RYR1 genetic susceptibility, medical alert need, and future trigger-free non-triggering anesthesia planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Managing A Crisis",
+            "organization": "Malignant Hyperthermia Association of the United States",
+            "url": "https://www.mhaus.org/healthcare-professionals/managing-a-crisis/",
+            "supports": [
+                "malignant hyperthermia crisis during anesthesia diagnosis and risk stratification",
+                "triggering volatile anesthetics and succinylcholine must be stopped immediately",
+                "100% oxygen and non-triggering anesthesia during malignant hyperthermia crisis",
+                "immediate IV dantrolene from the MH cart without explicit dose or repeat plan",
+                "active cooling with ice, cold saline, and temperature monitoring",
+                "call for help, MH cart, malignant hyperthermia hotline, ICU transfer, and urine output monitoring",
+                "potassium hyperkalemia treatment with calcium and blood gas acidosis bicarbonate plus ECG arrhythmia monitoring",
+                "creatine kinase CK, myoglobinuria, urine output, and rhabdomyolysis tracking",
+                "core temperature and ETCO2 end-tidal CO2 monitoring",
+                "dantrolene dose, repeat dose need, recrudescence, and calcium channel blocker interaction risk",
+                "stop cooling when temperature is below 38 C to avoid overcooling",
+                "PACU or ICU for at least 24 hours of post anesthesia care observation",
+                "family history, RYR1 genetic susceptibility, medical alert need, and future trigger-free non-triggering anesthesia planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "immediate IV dantrolene with 2.5 mg/kg" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_malignant_hyperthermia_metabolic_monitoring_dantrolene_and_trigger_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Malignant hyperthermia crisis during anesthesia"
@@ -12435,7 +12505,7 @@ def test_quality_gate_requires_malignant_hyperthermia_metabolic_monitoring_dantr
     ]
     case["time_critical_actions"] = [
         "Stop triggering volatile agent and succinylcholine, halt procedure if possible, and ventilate with 100% oxygen using non-triggering anesthesia",
-        "Give immediate dantrolene from the MH cart",
+        "Give immediate IV dantrolene 2.5 mg/kg rapidly from the MH cart and repeat dose as needed",
         "Start active cooling with ice, cold saline, and temperature monitoring",
         "Call for help, bring the MH cart, contact the malignant hyperthermia hotline, prepare ICU transfer, and monitor urine output",
     ]
@@ -12456,7 +12526,7 @@ def test_quality_gate_requires_malignant_hyperthermia_metabolic_monitoring_dantr
                 "rapidly rising ETCO2 with tachycardia and masseter or generalized rigidity as red flags",
                 "hyperthermia with acidosis, hyperkalemia, cola-colored urine, or rhabdomyolysis as severity markers",
                 "stop triggering volatile agent and succinylcholine, halt procedure if possible, and ventilate with 100% oxygen using non-triggering anesthesia",
-                "immediate dantrolene from the MH cart",
+                "immediate IV dantrolene 2.5 mg/kg rapidly from the MH cart and repeat dose as needed",
                 "active cooling with ice, cold saline, and temperature monitoring",
                 "call for help, MH cart, malignant hyperthermia hotline, ICU transfer, and urine output monitoring",
                 "medication allergy before antiemetics",
@@ -12470,6 +12540,72 @@ def test_quality_gate_requires_malignant_hyperthermia_metabolic_monitoring_dantr
     assert not report.passed
     assert any(
         "malignant hyperthermia safety checks must include hyperkalemia" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_malignant_hyperthermia_cooling_endpoint_and_24_hour_observation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Malignant hyperthermia crisis during anesthesia"
+    case["patient_demographics"] = {
+        "age": 24,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Rapid hyperthermia and rigidity during anesthesia"
+    case["history_of_present_illness"] = (
+        "Patient under volatile anesthetic after succinylcholine develops rapidly rising "
+        "ETCO2, tachycardia, masseter rigidity, acidosis, hyperkalemia, and fever."
+    )
+    case["key_teaching_points"] = [
+        "Malignant hyperthermia is a life-threatening anesthesia emergency",
+        "Triggering volatile anesthetics and succinylcholine must be stopped immediately",
+        "Dantrolene plus active cooling and metabolic complication treatment are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Rapidly rising ETCO2 with tachycardia and masseter or generalized rigidity",
+        "Hyperthermia with acidosis, hyperkalemia, cola-colored urine, or rhabdomyolysis",
+    ]
+    case["time_critical_actions"] = [
+        "Stop triggering volatile agent and succinylcholine, halt procedure if possible, and ventilate with 100% oxygen using non-triggering anesthesia",
+        "Give immediate IV dantrolene 2.5 mg/kg rapidly from the MH cart and repeat dose as needed",
+        "Start active cooling with ice, cold saline, and temperature monitoring",
+        "Call for help, bring the MH cart, contact the malignant hyperthermia hotline, prepare ICU transfer, and monitor urine output",
+    ]
+    case["contraindication_checks"] = [
+        "Treat potassium hyperkalemia with calcium and monitor blood gas acidosis, bicarbonate need, and ECG arrhythmia",
+        "Track creatine kinase CK, myoglobinuria, urine output, and rhabdomyolysis",
+        "Track core temperature and ETCO2 end-tidal CO2 during treatment",
+        "Review dantrolene dose, repeat dose need, recrudescence, and calcium channel blocker interaction risk",
+        "Document family history, RYR1 genetic susceptibility, medical alert need, and future trigger-free non-triggering anesthesia planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Managing A Crisis",
+            "organization": "Malignant Hyperthermia Association of the United States",
+            "url": "https://www.mhaus.org/healthcare-professionals/managing-a-crisis/",
+            "supports": [
+                "malignant hyperthermia crisis during anesthesia diagnosis and risk stratification",
+                "triggering volatile anesthetics and succinylcholine must be stopped immediately",
+                "100% oxygen and non-triggering anesthesia during malignant hyperthermia crisis",
+                "immediate IV dantrolene 2.5 mg/kg rapidly from the MH cart and repeat dose as needed",
+                "active cooling with ice, cold saline, and temperature monitoring",
+                "call for help, MH cart, malignant hyperthermia hotline, ICU transfer, and urine output monitoring",
+                "potassium hyperkalemia treatment with calcium and blood gas acidosis bicarbonate plus ECG arrhythmia monitoring",
+                "creatine kinase CK, myoglobinuria, urine output, and rhabdomyolysis tracking",
+                "core temperature and ETCO2 end-tidal CO2 monitoring",
+                "dantrolene dose, repeat dose need, recrudescence, and calcium channel blocker interaction risk",
+                "family history, RYR1 genetic susceptibility, medical alert need, and future trigger-free non-triggering anesthesia planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "cooling endpoint such as stopping cooling near 38 C" in issue
         for issue in report.critical_issues
     )
 

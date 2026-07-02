@@ -5993,15 +5993,31 @@ MALIGNANT_HYPERTHERMIA_TRIGGER_STOP_ACTION_TERMS = (
     "stop triggering",
     "triggering agent",
     "volatile agent",
+)
+MALIGNANT_HYPERTHERMIA_OXYGEN_ACTION_TERMS = (
     "100% oxygen",
+    "high-flow oxygen",
+    "hyperventilate",
+    "hyperventilation",
+    "oxygen",
     "산소",
 )
-MALIGNANT_HYPERTHERMIA_DANTROLENE_ACTION_TERMS = (
+MALIGNANT_HYPERTHERMIA_DANTROLENE_AGENT_ACTION_TERMS = (
     "dantrium",
     "dantrolene",
     "revonto",
     "ryanodex",
     "단트롤렌",
+)
+MALIGNANT_HYPERTHERMIA_DANTROLENE_DOSE_ACTION_TERMS = (
+    "2.5 mg/kg",
+    "2.5mg/kg",
+    "large-bore iv",
+    "repeat",
+    "repeat dose",
+    "repeated",
+    "rapidly",
+    "반복",
 )
 MALIGNANT_HYPERTHERMIA_COOLING_ACTION_TERMS = (
     "active cooling",
@@ -6022,36 +6038,61 @@ MALIGNANT_HYPERTHERMIA_ESCALATION_ACTION_TERMS = (
     "urine output",
     "중환자",
 )
-MALIGNANT_HYPERTHERMIA_METABOLIC_SAFETY_TERMS = (
-    "acidosis",
-    "arrhythmia",
-    "blood gas",
+MALIGNANT_HYPERTHERMIA_HYPERKALEMIA_SAFETY_TERMS = (
     "calcium",
-    "ck",
-    "creatine kinase",
     "hyperkalemia",
     "potassium",
-    "rhabdomyolysis",
-    "횡문근",
     "칼륨",
 )
-MALIGNANT_HYPERTHERMIA_MONITORING_SAFETY_TERMS = (
+MALIGNANT_HYPERTHERMIA_ACIDOSIS_SAFETY_TERMS = (
+    "acidosis",
+    "bicarbonate",
+    "arrhythmia",
+    "blood gas",
+)
+MALIGNANT_HYPERTHERMIA_RHABDOMYOLYSIS_SAFETY_TERMS = (
+    "ck",
+    "creatine kinase",
+    "myoglobin",
+    "rhabdomyolysis",
+    "횡문근",
+)
+MALIGNANT_HYPERTHERMIA_CORE_MONITORING_SAFETY_TERMS = (
     "core temperature",
     "etco2",
     "end-tidal",
+)
+MALIGNANT_HYPERTHERMIA_URINE_MONITORING_SAFETY_TERMS = (
     "myoglobin",
     "urine output",
-    "vital signs",
+    "urine-output",
     "소변",
 )
-MALIGNANT_HYPERTHERMIA_DANTROLENE_SAFETY_TERMS = (
-    "calcium channel blocker",
+MALIGNANT_HYPERTHERMIA_DANTROLENE_REPEAT_SAFETY_TERMS = (
     "dantrolene",
     "dose",
     "recrudescence",
     "repeat dose",
-    "weakness",
-    "단트롤렌",
+    "반복",
+)
+MALIGNANT_HYPERTHERMIA_DANTROLENE_INTERACTION_SAFETY_TERMS = (
+    "calcium channel blocker",
+    "interaction",
+)
+MALIGNANT_HYPERTHERMIA_COOLING_ENDPOINT_SAFETY_TERMS = (
+    "<38",
+    "38 c",
+    "38°c",
+    "cooling endpoint",
+    "stop cooling",
+    "temperature below 38",
+)
+MALIGNANT_HYPERTHERMIA_POSTCRISIS_OBSERVATION_SAFETY_TERMS = (
+    "24 hours",
+    "icu",
+    "intensive care",
+    "pacu",
+    "post anesthesia care",
 )
 MALIGNANT_HYPERTHERMIA_TRIGGER_PREVENTION_SAFETY_TERMS = (
     "family history",
@@ -17837,9 +17878,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_malignant_hyperthermia_time_critical_actions,
             issue=(
                 "malignant hyperthermia time-critical actions must include stopping "
-                "triggering anesthetics or succinylcholine with high-flow oxygen or "
-                "non-triggering anesthesia, immediate dantrolene, active cooling, and "
-                "MH cart, hotline, ICU, or urine-output escalation"
+                "triggering anesthetics or succinylcholine with non-triggering "
+                "anesthesia, high-flow 100% oxygen or hyperventilation, immediate "
+                "IV dantrolene with 2.5 mg/kg, rapid, or repeat-dose planning, "
+                "active cooling, and MH cart, hotline, ICU, or urine-output "
+                "escalation"
             ),
         ),
         DomainSafetyGate(
@@ -17848,11 +17891,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="contraindication_checks",
             validator=_has_malignant_hyperthermia_treatment_safety_check,
             issue=(
-                "malignant hyperthermia safety checks must include hyperkalemia, "
-                "acidosis, arrhythmia, or rhabdomyolysis monitoring, core temperature "
-                "or ETCO2 and urine-output monitoring, dantrolene repeat-dose or "
-                "interaction safety, and trigger-free anesthesia or susceptibility "
-                "prevention planning"
+                "malignant hyperthermia safety checks must include hyperkalemia/"
+                "potassium treatment review, acidosis/blood-gas or arrhythmia "
+                "review, rhabdomyolysis/CK/myoglobin monitoring, core temperature "
+                "or ETCO2 monitoring, urine-output or myoglobinuria monitoring, "
+                "dantrolene repeat-dose or recrudescence planning, calcium-channel "
+                "blocker interaction avoidance, cooling endpoint such as stopping "
+                "cooling near 38 C, post-crisis PACU/ICU observation for at least "
+                "24 hours, and trigger-free anesthesia or susceptibility prevention "
+                "planning"
             ),
         ),
         DomainSafetyGate(
@@ -25677,9 +25724,17 @@ def _has_malignant_hyperthermia_time_critical_actions(actions: list[Any]) -> boo
         _contains_safety_term(normalized_actions, term)
         for term in MALIGNANT_HYPERTHERMIA_TRIGGER_STOP_ACTION_TERMS
     )
-    has_dantrolene = any(
+    has_oxygen = any(
         _contains_safety_term(normalized_actions, term)
-        for term in MALIGNANT_HYPERTHERMIA_DANTROLENE_ACTION_TERMS
+        for term in MALIGNANT_HYPERTHERMIA_OXYGEN_ACTION_TERMS
+    )
+    has_dantrolene_agent = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MALIGNANT_HYPERTHERMIA_DANTROLENE_AGENT_ACTION_TERMS
+    )
+    has_dantrolene_dose = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MALIGNANT_HYPERTHERMIA_DANTROLENE_DOSE_ACTION_TERMS
     )
     has_cooling = any(
         _contains_safety_term(normalized_actions, term)
@@ -25689,31 +25744,68 @@ def _has_malignant_hyperthermia_time_critical_actions(actions: list[Any]) -> boo
         _contains_safety_term(normalized_actions, term)
         for term in MALIGNANT_HYPERTHERMIA_ESCALATION_ACTION_TERMS
     )
-    return has_trigger_stop and has_dantrolene and has_cooling and has_escalation
+    return (
+        has_trigger_stop
+        and has_oxygen
+        and has_dantrolene_agent
+        and has_dantrolene_dose
+        and has_cooling
+        and has_escalation
+    )
 
 
 def _has_malignant_hyperthermia_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_metabolic_safety = any(
+    has_hyperkalemia_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in MALIGNANT_HYPERTHERMIA_METABOLIC_SAFETY_TERMS
+        for term in MALIGNANT_HYPERTHERMIA_HYPERKALEMIA_SAFETY_TERMS
     )
-    has_monitoring_safety = any(
+    has_acidosis_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in MALIGNANT_HYPERTHERMIA_MONITORING_SAFETY_TERMS
+        for term in MALIGNANT_HYPERTHERMIA_ACIDOSIS_SAFETY_TERMS
     )
-    has_dantrolene_safety = any(
+    has_rhabdomyolysis_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in MALIGNANT_HYPERTHERMIA_DANTROLENE_SAFETY_TERMS
+        for term in MALIGNANT_HYPERTHERMIA_RHABDOMYOLYSIS_SAFETY_TERMS
+    )
+    has_core_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MALIGNANT_HYPERTHERMIA_CORE_MONITORING_SAFETY_TERMS
+    )
+    has_urine_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MALIGNANT_HYPERTHERMIA_URINE_MONITORING_SAFETY_TERMS
+    )
+    has_dantrolene_repeat_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MALIGNANT_HYPERTHERMIA_DANTROLENE_REPEAT_SAFETY_TERMS
+    )
+    has_dantrolene_interaction_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MALIGNANT_HYPERTHERMIA_DANTROLENE_INTERACTION_SAFETY_TERMS
+    )
+    has_cooling_endpoint_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MALIGNANT_HYPERTHERMIA_COOLING_ENDPOINT_SAFETY_TERMS
+    )
+    has_postcrisis_observation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MALIGNANT_HYPERTHERMIA_POSTCRISIS_OBSERVATION_SAFETY_TERMS
     )
     has_trigger_prevention_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in MALIGNANT_HYPERTHERMIA_TRIGGER_PREVENTION_SAFETY_TERMS
     )
     return (
-        has_metabolic_safety
-        and has_monitoring_safety
-        and has_dantrolene_safety
+        has_hyperkalemia_safety
+        and has_acidosis_safety
+        and has_rhabdomyolysis_safety
+        and has_core_monitoring_safety
+        and has_urine_monitoring_safety
+        and has_dantrolene_repeat_safety
+        and has_dantrolene_interaction_safety
+        and has_cooling_endpoint_safety
+        and has_postcrisis_observation_safety
         and has_trigger_prevention_safety
     )
 
