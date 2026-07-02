@@ -4715,88 +4715,156 @@ const ACUTE_ANGLE_CLOSURE_GLAUCOMA_ANGLE_CONTEXT_TERMS = [
   "동공",
 ];
 
-const ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_ASSESSMENT_ACTION_TERMS = [
-  "gonioscopy",
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_MEASUREMENT_ACTION_TERMS = [
   "intraocular pressure",
   "iop",
-  "slit lamp",
   "tonometry",
   "안압",
 ];
 
-const ACUTE_ANGLE_CLOSURE_GLAUCOMA_AQUEOUS_SUPPRESSANT_ACTION_TERMS = [
-  "apraclonidine",
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_EYE_EXAM_ACTION_TERMS = [
+  "anterior chamber",
+  "gonioscopy",
+  "shallow anterior chamber",
+  "slit lamp",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_IMMEDIATE_ACTION_TERMS = [
+  "emergency",
+  "immediate",
+  "immediately",
+  "urgent",
+  "응급",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_BETA_BLOCKER_ACTION_TERMS = [
   "beta blocker",
+  "timolol",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_ALPHA_AGONIST_ACTION_TERMS = [
+  "apraclonidine",
   "brimonidine",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_ACTION_TERMS = [
+  "miotic",
+  "pilocarpine",
+  "필로카르핀",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_ADJUNCT_ACTION_TERMS = [
   "dorzolamide",
   "timolol",
   "topical",
   "점안",
 ];
 
-const ACUTE_ANGLE_CLOSURE_GLAUCOMA_SYSTEMIC_IOP_ACTION_TERMS = [
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_ACTION_TERMS = [
   "acetazolamide",
   "diamox",
+  "아세타졸아마이드",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_OSMOTIC_ACTION_TERMS = [
   "glycerol",
   "isosorbide",
   "mannitol",
   "osmotic",
-  "systemic",
-  "아세타졸아마이드",
 ];
 
-const ACUTE_ANGLE_CLOSURE_GLAUCOMA_DEFINITIVE_ACTION_TERMS = [
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_OPHTHALMOLOGY_ACTION_TERMS = [
+  "ophthalmology",
+  "urgent ophthalmology",
+  "안과",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_IRIDOTOMY_ACTION_TERMS = [
   "iridectomy",
   "iridotomy",
   "laser peripheral iridotomy",
   "lpi",
-  "ophthalmology",
-  "urgent ophthalmology",
-  "안과",
   "홍채절개",
 ];
 
-const ACUTE_ANGLE_CLOSURE_GLAUCOMA_MED_CONTRA_SAFETY_TERMS = [
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_MED_SAFETY_TERMS = [
+  "acetazolamide",
   "acetazolamide allergy",
+  "diamox",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_CONTRA_SAFETY_TERMS = [
+  "allergy",
+  "renal failure",
+  "renal impairment",
+  "sulfa allergy",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_BETA_BLOCKER_MED_SAFETY_TERMS = [
+  "beta blocker",
+  "timolol",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_BETA_BLOCKER_CONTRA_SAFETY_TERMS = [
   "asthma",
   "bradycardia",
   "copd",
-  "renal failure",
-  "sulfa allergy",
-  "timolol",
   "금기",
 ];
 
-const ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_SAFETY_TERMS = [
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_TIMING_SAFETY_TERMS = [
   "avoid pilocarpine",
-  "corneal edema",
   "defer pilocarpine",
-  "high iop",
-  "lens-induced",
+  "pilocarpine timing",
   "pilocarpine",
-  "phacomorphic",
-  "pupil block",
   "필로카르핀",
 ];
 
-const ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_SAFETY_TERMS = [
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_CONTEXT_SAFETY_TERMS = [
+  "corneal edema",
+  "high iop",
+  "lens-induced",
+  "phacomorphic",
+  "pupil block",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_ASSESSMENT_SAFETY_TERMS = [
   "bilateral",
   "both eyes",
   "fellow eye",
-  "prophylactic iridotomy",
   "second eye",
   "양안",
 ];
 
-const ACUTE_ANGLE_CLOSURE_GLAUCOMA_MONITORING_SAFETY_TERMS = [
-  "corneal edema",
-  "optic nerve",
-  "recheck iop",
-  "repeat iop",
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_IRIDOTOMY_SAFETY_TERMS = [
+  "iridotomy",
+  "lpi",
+  "prophylactic iridotomy",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_VISUAL_MONITORING_SAFETY_TERMS = [
   "visual acuity",
   "vision loss",
   "시력",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_MONITORING_SAFETY_TERMS = [
+  "recheck iop",
+  "repeat iop",
   "안압 재측정",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_OPTIC_CORNEAL_MONITORING_SAFETY_TERMS = [
+  "corneal edema",
+  "optic nerve",
+];
+
+const ACUTE_ANGLE_CLOSURE_GLAUCOMA_MYDRIATIC_AVOIDANCE_SAFETY_TERMS = [
+  "anticholinergic",
+  "avoid mydriatic",
+  "dilating drops",
+  "mydriatic",
+  "pupil dilation",
 ];
 
 const RETINAL_DETACHMENT_DIRECT_CONTEXT_TERMS = [
@@ -20163,38 +20231,120 @@ function requiresAcuteAngleClosureGlaucomaSafetyCheck(
 
 function hasAcuteAngleClosureGlaucomaTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasIopAssessment = ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_ASSESSMENT_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
-  const hasAqueousSuppression =
-    ACUTE_ANGLE_CLOSURE_GLAUCOMA_AQUEOUS_SUPPRESSANT_ACTION_TERMS.some((term) =>
+  const hasIopMeasurement =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_MEASUREMENT_ACTION_TERMS.some((term) =>
       containsSafetyTerm(normalizedActions, term),
     );
-  const hasSystemicIopLowering =
-    ACUTE_ANGLE_CLOSURE_GLAUCOMA_SYSTEMIC_IOP_ACTION_TERMS.some((term) =>
-      containsSafetyTerm(normalizedActions, term),
-    );
-  const hasDefinitivePlan = ACUTE_ANGLE_CLOSURE_GLAUCOMA_DEFINITIVE_ACTION_TERMS.some((term) =>
+  const hasEyeExam = ACUTE_ANGLE_CLOSURE_GLAUCOMA_EYE_EXAM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasIopAssessment && hasAqueousSuppression && hasSystemicIopLowering && hasDefinitivePlan;
+  const hasImmediateTreatment = ACUTE_ANGLE_CLOSURE_GLAUCOMA_IMMEDIATE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTopicalBetaBlocker =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_BETA_BLOCKER_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasTopicalAlphaAgonist =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_ALPHA_AGONIST_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasPilocarpine = ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTopicalContext = ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_ADJUNCT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAcetazolamide = ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOsmoticEscalation = ACUTE_ANGLE_CLOSURE_GLAUCOMA_OSMOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOphthalmology = ACUTE_ANGLE_CLOSURE_GLAUCOMA_OPHTHALMOLOGY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIridotomy = ACUTE_ANGLE_CLOSURE_GLAUCOMA_IRIDOTOMY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasIopMeasurement &&
+    hasEyeExam &&
+    hasImmediateTreatment &&
+    hasTopicalBetaBlocker &&
+    hasTopicalAlphaAgonist &&
+    hasPilocarpine &&
+    hasTopicalContext &&
+    hasAcetazolamide &&
+    hasOsmoticEscalation &&
+    hasOphthalmology &&
+    hasIridotomy
+  );
 }
 
 function hasAcuteAngleClosureGlaucomaTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasMedContraSafety = ACUTE_ANGLE_CLOSURE_GLAUCOMA_MED_CONTRA_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
-  );
-  const hasPilocarpineSafety = ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_SAFETY_TERMS.some(
+  const hasAcetazolamideMedSafety =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_MED_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAcetazolamideContraSafety =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_CONTRA_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasBetaBlockerMedSafety =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_BETA_BLOCKER_MED_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasBetaBlockerContraSafety =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_BETA_BLOCKER_CONTRA_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasPilocarpineTimingSafety =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_TIMING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasPilocarpineContextSafety =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_CONTEXT_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasFellowEyeAssessmentSafety =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_ASSESSMENT_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasFellowEyeIridotomySafety =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_IRIDOTOMY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasVisualMonitoringSafety =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_VISUAL_MONITORING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasIopMonitoringSafety = ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_MONITORING_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasFellowEyeSafety = ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
+  const hasOpticCornealMonitoringSafety =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_OPTIC_CORNEAL_MONITORING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasMydriaticAvoidanceSafety =
+    ACUTE_ANGLE_CLOSURE_GLAUCOMA_MYDRIATIC_AVOIDANCE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasAcetazolamideMedSafety &&
+    hasAcetazolamideContraSafety &&
+    hasBetaBlockerMedSafety &&
+    hasBetaBlockerContraSafety &&
+    hasPilocarpineTimingSafety &&
+    hasPilocarpineContextSafety &&
+    hasFellowEyeAssessmentSafety &&
+    hasFellowEyeIridotomySafety &&
+    hasVisualMonitoringSafety &&
+    hasIopMonitoringSafety &&
+    hasOpticCornealMonitoringSafety &&
+    hasMydriaticAvoidanceSafety
   );
-  const hasMonitoringSafety = ACUTE_ANGLE_CLOSURE_GLAUCOMA_MONITORING_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
-  );
-  return hasMedContraSafety && hasPilocarpineSafety && hasFellowEyeSafety && hasMonitoringSafety;
 }
 
 function requiresRetinalDetachmentSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -28371,7 +28521,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcuteAngleClosureGlaucomaTimeCriticalActions,
       issue:
-        "acute angle-closure glaucoma time-critical actions must include IOP, intraocular-pressure, tonometry, slit-lamp, or gonioscopy assessment, topical aqueous suppression with timolol, beta blocker, brimonidine, apraclonidine, dorzolamide, or topical drops, systemic IOP lowering with acetazolamide, Diamox, osmotic agent, mannitol, glycerol, or isosorbide, and urgent ophthalmology plus laser peripheral iridotomy, LPI, iridotomy, or iridectomy definitive planning",
+        "acute angle-closure glaucoma time-critical actions must include IOP/intraocular-pressure measurement with tonometry plus slit-lamp, gonioscopy, or anterior-chamber assessment, immediate or urgent treatment, topical timolol/beta-blocker plus brimonidine or apraclonidine and pilocarpine/miotic therapy, systemic acetazolamide/Diamox plus osmotic-agent escalation such as mannitol, glycerol, or isosorbide, and urgent ophthalmology with laser peripheral iridotomy, LPI, iridotomy, or iridectomy definitive planning",
     },
     {
       name: "acute_angle_closure_glaucoma_treatment_safety",
@@ -28380,7 +28530,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAcuteAngleClosureGlaucomaTreatmentSafetyCheck,
       issue:
-        "acute angle-closure glaucoma safety checks must include medication contraindication review for acetazolamide allergy, sulfa allergy, renal failure, timolol, asthma, COPD, bradycardia, or beta-blocker risk, pilocarpine timing or avoidance review for high IOP, corneal edema, lens-induced or phacomorphic angle closure, or pupil block, fellow-eye or bilateral prophylactic iridotomy planning, and visual acuity, optic-nerve, corneal-edema, vision-loss, repeat-IOP, or recheck-IOP monitoring",
+        "acute angle-closure glaucoma safety checks must include medication contraindication review for acetazolamide/Diamox with sulfa allergy or renal failure/impairment and timolol/beta-blocker with asthma, COPD, or bradycardia, pilocarpine timing or avoidance review for high IOP, corneal edema, lens-induced or phacomorphic angle closure, or pupil block, fellow-eye/bilateral assessment plus prophylactic iridotomy planning, visual-acuity/vision-loss, repeat-IOP/recheck-IOP, and optic-nerve/corneal-edema monitoring, and avoidance of mydriatic, pupil-dilating, or anticholinergic triggers",
     },
     {
       name: "retinal_detachment_time_critical_actions",

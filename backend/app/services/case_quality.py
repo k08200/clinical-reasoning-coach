@@ -4271,81 +4271,134 @@ ACUTE_ANGLE_CLOSURE_GLAUCOMA_ANGLE_CONTEXT_TERMS = (
     "안압",
     "동공",
 )
-ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_ASSESSMENT_ACTION_TERMS = (
-    "gonioscopy",
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_MEASUREMENT_ACTION_TERMS = (
     "intraocular pressure",
     "iop",
-    "slit lamp",
     "tonometry",
     "안압",
 )
-ACUTE_ANGLE_CLOSURE_GLAUCOMA_AQUEOUS_SUPPRESSANT_ACTION_TERMS = (
-    "apraclonidine",
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_EYE_EXAM_ACTION_TERMS = (
+    "anterior chamber",
+    "gonioscopy",
+    "shallow anterior chamber",
+    "slit lamp",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_IMMEDIATE_ACTION_TERMS = (
+    "emergency",
+    "immediate",
+    "immediately",
+    "urgent",
+    "응급",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_BETA_BLOCKER_ACTION_TERMS = (
     "beta blocker",
+    "timolol",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_ALPHA_AGONIST_ACTION_TERMS = (
+    "apraclonidine",
     "brimonidine",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_ACTION_TERMS = (
+    "miotic",
+    "pilocarpine",
+    "필로카르핀",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_ADJUNCT_ACTION_TERMS = (
     "dorzolamide",
     "timolol",
     "topical",
     "점안",
 )
-ACUTE_ANGLE_CLOSURE_GLAUCOMA_SYSTEMIC_IOP_ACTION_TERMS = (
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_ACTION_TERMS = (
     "acetazolamide",
     "diamox",
+    "아세타졸아마이드",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_OSMOTIC_ACTION_TERMS = (
     "glycerol",
     "isosorbide",
     "mannitol",
     "osmotic",
-    "systemic",
-    "아세타졸아마이드",
 )
-ACUTE_ANGLE_CLOSURE_GLAUCOMA_DEFINITIVE_ACTION_TERMS = (
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_OPHTHALMOLOGY_ACTION_TERMS = (
+    "ophthalmology",
+    "urgent ophthalmology",
+    "안과",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_IRIDOTOMY_ACTION_TERMS = (
     "iridectomy",
     "iridotomy",
     "laser peripheral iridotomy",
     "lpi",
-    "ophthalmology",
-    "urgent ophthalmology",
-    "안과",
     "홍채절개",
 )
-ACUTE_ANGLE_CLOSURE_GLAUCOMA_MED_CONTRA_SAFETY_TERMS = (
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_MED_SAFETY_TERMS = (
+    "acetazolamide",
     "acetazolamide allergy",
+    "diamox",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_CONTRA_SAFETY_TERMS = (
+    "allergy",
+    "renal failure",
+    "renal impairment",
+    "sulfa allergy",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_BETA_BLOCKER_MED_SAFETY_TERMS = (
+    "beta blocker",
+    "timolol",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_BETA_BLOCKER_CONTRA_SAFETY_TERMS = (
     "asthma",
     "bradycardia",
     "copd",
-    "renal failure",
-    "sulfa allergy",
-    "timolol",
     "금기",
 )
-ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_SAFETY_TERMS = (
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_TIMING_SAFETY_TERMS = (
     "avoid pilocarpine",
-    "corneal edema",
     "defer pilocarpine",
-    "high iop",
-    "lens-induced",
+    "pilocarpine timing",
     "pilocarpine",
-    "phacomorphic",
-    "pupil block",
     "필로카르핀",
 )
-ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_SAFETY_TERMS = (
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_CONTEXT_SAFETY_TERMS = (
+    "corneal edema",
+    "high iop",
+    "lens-induced",
+    "phacomorphic",
+    "pupil block",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_ASSESSMENT_SAFETY_TERMS = (
     "bilateral",
     "both eyes",
     "fellow eye",
-    "prophylactic iridotomy",
     "second eye",
     "양안",
 )
-ACUTE_ANGLE_CLOSURE_GLAUCOMA_MONITORING_SAFETY_TERMS = (
-    "corneal edema",
-    "optic nerve",
-    "recheck iop",
-    "repeat iop",
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_IRIDOTOMY_SAFETY_TERMS = (
+    "iridotomy",
+    "lpi",
+    "prophylactic iridotomy",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_VISUAL_MONITORING_SAFETY_TERMS = (
     "visual acuity",
     "vision loss",
     "시력",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_MONITORING_SAFETY_TERMS = (
+    "recheck iop",
+    "repeat iop",
     "안압 재측정",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_OPTIC_CORNEAL_MONITORING_SAFETY_TERMS = (
+    "corneal edema",
+    "optic nerve",
+)
+ACUTE_ANGLE_CLOSURE_GLAUCOMA_MYDRIATIC_AVOIDANCE_SAFETY_TERMS = (
+    "anticholinergic",
+    "avoid mydriatic",
+    "dilating drops",
+    "mydriatic",
+    "pupil dilation",
 )
 RETINAL_DETACHMENT_DIRECT_CONTEXT_TERMS = (
     "macula-off retinal detachment",
@@ -17074,13 +17127,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acute_angle_closure_glaucoma_time_critical_actions,
             issue=(
                 "acute angle-closure glaucoma time-critical actions must include "
-                "IOP, intraocular-pressure, tonometry, slit-lamp, or gonioscopy "
-                "assessment, topical aqueous suppression with timolol, beta blocker, "
-                "brimonidine, apraclonidine, dorzolamide, or topical drops, systemic "
-                "IOP lowering with acetazolamide, Diamox, osmotic agent, mannitol, "
-                "glycerol, or isosorbide, and urgent ophthalmology plus laser "
-                "peripheral iridotomy, LPI, iridotomy, or iridectomy definitive "
-                "planning"
+                "IOP/intraocular-pressure measurement with tonometry plus slit-lamp, "
+                "gonioscopy, or anterior-chamber assessment, immediate or urgent "
+                "treatment, topical timolol/beta-blocker plus brimonidine or "
+                "apraclonidine and pilocarpine/miotic therapy, systemic "
+                "acetazolamide/Diamox plus osmotic-agent escalation such as "
+                "mannitol, glycerol, or isosorbide, and urgent ophthalmology "
+                "with laser peripheral iridotomy, LPI, iridotomy, or iridectomy "
+                "definitive planning"
             ),
         ),
         DomainSafetyGate(
@@ -17090,13 +17144,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acute_angle_closure_glaucoma_treatment_safety_check,
             issue=(
                 "acute angle-closure glaucoma safety checks must include medication "
-                "contraindication review for acetazolamide allergy, sulfa allergy, "
-                "renal failure, timolol, asthma, COPD, bradycardia, or beta-blocker "
-                "risk, pilocarpine timing or avoidance review for high IOP, corneal "
-                "edema, lens-induced or phacomorphic angle closure, or pupil block, "
-                "fellow-eye or bilateral prophylactic iridotomy planning, and visual "
-                "acuity, optic-nerve, corneal-edema, vision-loss, repeat-IOP, or "
-                "recheck-IOP monitoring"
+                "contraindication review for acetazolamide/Diamox with sulfa allergy "
+                "or renal failure/impairment and timolol/beta-blocker with asthma, "
+                "COPD, or bradycardia, pilocarpine timing or avoidance review for "
+                "high IOP, corneal edema, lens-induced or phacomorphic angle closure, "
+                "or pupil block, fellow-eye/bilateral assessment plus prophylactic "
+                "iridotomy planning, visual-acuity/vision-loss, repeat-IOP/recheck-IOP, "
+                "and optic-nerve/corneal-edema monitoring, and avoidance of mydriatic, "
+                "pupil-dilating, or anticholinergic triggers"
             ),
         ),
         DomainSafetyGate(
@@ -23688,27 +23743,62 @@ def _has_acute_angle_closure_glaucoma_time_critical_actions(
     actions: list[Any],
 ) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_iop_assessment = any(
+    has_iop_measurement = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_ASSESSMENT_ACTION_TERMS
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_MEASUREMENT_ACTION_TERMS
     )
-    has_aqueous_suppression = any(
+    has_eye_exam = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_AQUEOUS_SUPPRESSANT_ACTION_TERMS
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_EYE_EXAM_ACTION_TERMS
     )
-    has_systemic_iop_lowering = any(
+    has_immediate_treatment = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_SYSTEMIC_IOP_ACTION_TERMS
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_IMMEDIATE_ACTION_TERMS
     )
-    has_definitive_plan = any(
+    has_topical_beta_blocker = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_DEFINITIVE_ACTION_TERMS
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_BETA_BLOCKER_ACTION_TERMS
+    )
+    has_topical_alpha_agonist = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_ALPHA_AGONIST_ACTION_TERMS
+    )
+    has_pilocarpine = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_ACTION_TERMS
+    )
+    has_topical_context = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_TOPICAL_ADJUNCT_ACTION_TERMS
+    )
+    has_acetazolamide = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_ACTION_TERMS
+    )
+    has_osmotic_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_OSMOTIC_ACTION_TERMS
+    )
+    has_ophthalmology = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_OPHTHALMOLOGY_ACTION_TERMS
+    )
+    has_iridotomy = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_IRIDOTOMY_ACTION_TERMS
     )
     return (
-        has_iop_assessment
-        and has_aqueous_suppression
-        and has_systemic_iop_lowering
-        and has_definitive_plan
+        has_iop_measurement
+        and has_eye_exam
+        and has_immediate_treatment
+        and has_topical_beta_blocker
+        and has_topical_alpha_agonist
+        and has_pilocarpine
+        and has_topical_context
+        and has_acetazolamide
+        and has_osmotic_escalation
+        and has_ophthalmology
+        and has_iridotomy
     )
 
 
@@ -23716,27 +23806,67 @@ def _has_acute_angle_closure_glaucoma_treatment_safety_check(
     checks: list[Any],
 ) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_med_contra_safety = any(
+    has_acetazolamide_med_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_MED_CONTRA_SAFETY_TERMS
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_MED_SAFETY_TERMS
     )
-    has_pilocarpine_safety = any(
+    has_acetazolamide_contra_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_SAFETY_TERMS
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_ACETAZOLAMIDE_CONTRA_SAFETY_TERMS
     )
-    has_fellow_eye_safety = any(
+    has_beta_blocker_med_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_SAFETY_TERMS
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_BETA_BLOCKER_MED_SAFETY_TERMS
     )
-    has_monitoring_safety = any(
+    has_beta_blocker_contra_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_MONITORING_SAFETY_TERMS
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_BETA_BLOCKER_CONTRA_SAFETY_TERMS
+    )
+    has_pilocarpine_timing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_TIMING_SAFETY_TERMS
+    )
+    has_pilocarpine_context_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_PILOCARPINE_CONTEXT_SAFETY_TERMS
+    )
+    has_fellow_eye_assessment_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_ASSESSMENT_SAFETY_TERMS
+    )
+    has_fellow_eye_iridotomy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_FELLOW_EYE_IRIDOTOMY_SAFETY_TERMS
+    )
+    has_visual_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_VISUAL_MONITORING_SAFETY_TERMS
+    )
+    has_iop_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_IOP_MONITORING_SAFETY_TERMS
+    )
+    has_optic_corneal_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_OPTIC_CORNEAL_MONITORING_SAFETY_TERMS
+    )
+    has_mydriatic_avoidance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_ANGLE_CLOSURE_GLAUCOMA_MYDRIATIC_AVOIDANCE_SAFETY_TERMS
     )
     return (
-        has_med_contra_safety
-        and has_pilocarpine_safety
-        and has_fellow_eye_safety
-        and has_monitoring_safety
+        has_acetazolamide_med_safety
+        and has_acetazolamide_contra_safety
+        and has_beta_blocker_med_safety
+        and has_beta_blocker_contra_safety
+        and has_pilocarpine_timing_safety
+        and has_pilocarpine_context_safety
+        and has_fellow_eye_assessment_safety
+        and has_fellow_eye_iridotomy_safety
+        and has_visual_monitoring_safety
+        and has_iop_monitoring_safety
+        and has_optic_corneal_monitoring_safety
+        and has_mydriatic_avoidance_safety
     )
 
 
