@@ -9251,7 +9251,7 @@ def test_quality_gate_requires_crao_onset_eye_confirmation_stroke_workup_and_rep
         "Review mimics including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
         "Review thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
         "Plan secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
-        "Screen for arteritic cause with ESR, CRP, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and steroid planning",
+        "Screen for arteritic cause with ESR, CRP, platelet count, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and high-dose steroid planning",
     ]
     case["clinical_sources"] = [
         {
@@ -9271,7 +9271,7 @@ def test_quality_gate_requires_crao_onset_eye_confirmation_stroke_workup_and_rep
                 "mimic review including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
                 "thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
                 "secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
-                "arteritic cause screening with ESR, CRP, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and steroid planning",
+                "arteritic cause screening with ESR, CRP, platelet count, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and high-dose steroid planning",
             ],
         },
         {
@@ -9324,6 +9324,7 @@ def test_quality_gate_requires_crao_mimic_thrombolysis_secondary_prevention_and_
         "Confirm with ophthalmology using visual acuity, dilated fundus exam, fundus photograph, cherry red spot, retinal whitening, and optic disc assessment",
         "Begin stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
         "Review reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+        "Start acute IOP lowering or retinal perfusion support with timolol, acetazolamide, ocular massage, anterior chamber paracentesis, or hyperbaric oxygen when appropriate",
     ]
     case["contraindication_checks"] = [
         "Medication allergy before antiemetics",
@@ -9345,6 +9346,7 @@ def test_quality_gate_requires_crao_mimic_thrombolysis_secondary_prevention_and_
                 "ophthalmology confirmation using visual acuity, dilated fundus exam, fundus photograph, cherry red spot, retinal whitening, and optic disc assessment",
                 "stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
                 "reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+                "acute IOP lowering or retinal perfusion support with timolol, acetazolamide, ocular massage, anterior chamber paracentesis, or hyperbaric oxygen when appropriate",
                 "medication allergy before antiemetics",
                 "fall risk precautions while vision is impaired",
             ],
@@ -9358,6 +9360,280 @@ def test_quality_gate_requires_crao_mimic_thrombolysis_secondary_prevention_and_
                 "acute monocular vision loss requires emergency stroke-oriented evaluation",
             ],
         },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "central retinal artery occlusion safety checks must include mimic review"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_crao_stroke_activation_not_onset_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Central retinal artery occlusion"
+    case["patient_demographics"] = {
+        "age": 70,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden painless monocular vision loss"
+    case["history_of_present_illness"] = (
+        "Older patient with hypertension, diabetes, and atrial fibrillation has "
+        "abrupt painless loss of vision in one eye with severe acuity reduction "
+        "and a cherry red spot on fundus view."
+    )
+    case["key_teaching_points"] = [
+        "Acute retinal ischemia is treated as an ischemic stroke emergency",
+        "Fewer patients recover functional vision when triage and treatment are delayed",
+        "Acute ocular ischemia can signal future vascular events and needs secondary prevention",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden painless monocular vision loss, monocular blindness, or acute visual field loss",
+        "Atrial fibrillation, carotid disease, hypertension, diabetes, embolus, or vascular risk factors",
+    ]
+    case["time_critical_actions"] = [
+        "Document symptom onset and last known well timing",
+        "Confirm with ophthalmology using visual acuity, dilated fundus exam, cherry red spot, retinal whitening, and optic disc assessment",
+        "Begin stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
+        "Review reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+        "Start acute IOP lowering or retinal perfusion support with timolol, acetazolamide, ocular massage, anterior chamber paracentesis, or hyperbaric oxygen when appropriate",
+    ]
+    case["contraindication_checks"] = [
+        "Review mimics including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
+        "Review thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
+        "Plan secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
+        "Screen for arteritic cause with ESR, CRP, platelet count, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and high-dose steroid planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Central Retinal Artery Occlusion and Branch Retinal Artery Occlusion",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/retinal-disorders/central-retinal-artery-occlusion-and-branch-retinal-artery-occlusion",
+            "supports": [
+                "central retinal artery occlusion diagnosis and risk stratification",
+                "acute retinal ischemia is treated as an ischemic stroke emergency",
+                "sudden painless monocular vision loss, monocular blindness, or acute visual field loss as red flags",
+                "symptom onset and last known well timing",
+                "ophthalmology confirmation using visual acuity, dilated fundus exam, cherry red spot, retinal whitening, and optic disc assessment",
+                "stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
+                "reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+                "acute IOP lowering or retinal perfusion support with timolol, acetazolamide, ocular massage, anterior chamber paracentesis, or hyperbaric oxygen when appropriate",
+                "mimic review including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
+                "thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
+                "secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
+                "arteritic cause screening with ESR, CRP, platelet count, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and high-dose steroid planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "central retinal artery occlusion time-critical actions must include symptom-onset"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_crao_carotid_and_cardiac_source_not_stroke_workup_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Central retinal artery occlusion"
+    case["patient_demographics"] = {
+        "age": 70,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden painless monocular vision loss"
+    case["history_of_present_illness"] = (
+        "Older patient with hypertension, diabetes, and atrial fibrillation has "
+        "abrupt painless loss of vision in one eye with severe acuity reduction "
+        "and a cherry red spot on fundus view."
+    )
+    case["key_teaching_points"] = [
+        "Acute retinal ischemia is treated as an ischemic stroke emergency",
+        "Fewer patients recover functional vision when triage and treatment are delayed",
+        "Acute ocular ischemia can signal future vascular events and needs secondary prevention",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden painless monocular vision loss, monocular blindness, or acute visual field loss",
+        "Atrial fibrillation, carotid disease, hypertension, diabetes, embolus, or vascular risk factors",
+    ]
+    case["time_critical_actions"] = [
+        "Document symptom onset and last known well, activate stroke code, and transfer to a stroke center or stroke pathway",
+        "Confirm with ophthalmology using visual acuity, dilated fundus exam, cherry red spot, retinal whitening, and optic disc assessment",
+        "Begin stroke workup with brain imaging and CTA or MRA vascular imaging",
+        "Review reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+        "Start acute IOP lowering or retinal perfusion support with timolol, acetazolamide, ocular massage, anterior chamber paracentesis, or hyperbaric oxygen when appropriate",
+    ]
+    case["contraindication_checks"] = [
+        "Review mimics including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
+        "Review thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
+        "Plan secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
+        "Screen for arteritic cause with ESR, CRP, platelet count, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and high-dose steroid planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Central Retinal Artery Occlusion and Branch Retinal Artery Occlusion",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/retinal-disorders/central-retinal-artery-occlusion-and-branch-retinal-artery-occlusion",
+            "supports": [
+                "central retinal artery occlusion diagnosis and risk stratification",
+                "acute retinal ischemia is treated as an ischemic stroke emergency",
+                "sudden painless monocular vision loss, monocular blindness, or acute visual field loss as red flags",
+                "symptom onset and last known well, stroke code activation, stroke center transfer, and stroke pathway",
+                "ophthalmology confirmation using visual acuity, dilated fundus exam, cherry red spot, retinal whitening, and optic disc assessment",
+                "stroke workup with brain imaging and CTA or MRA vascular imaging",
+                "reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+                "acute IOP lowering or retinal perfusion support with timolol, acetazolamide, ocular massage, anterior chamber paracentesis, or hyperbaric oxygen when appropriate",
+                "mimic review including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
+                "thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
+                "secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
+                "arteritic cause screening with ESR, CRP, platelet count, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and high-dose steroid planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "central retinal artery occlusion time-critical actions must include symptom-onset"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_crao_iop_lowering_not_thrombolysis_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Central retinal artery occlusion"
+    case["patient_demographics"] = {
+        "age": 70,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden painless monocular vision loss"
+    case["history_of_present_illness"] = (
+        "Older patient with hypertension, diabetes, and atrial fibrillation has "
+        "abrupt painless loss of vision in one eye with severe acuity reduction "
+        "and a cherry red spot on fundus view."
+    )
+    case["key_teaching_points"] = [
+        "Acute retinal ischemia is treated as an ischemic stroke emergency",
+        "Fewer patients recover functional vision when triage and treatment are delayed",
+        "Acute ocular ischemia can signal future vascular events and needs secondary prevention",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden painless monocular vision loss, monocular blindness, or acute visual field loss",
+        "Atrial fibrillation, carotid disease, hypertension, diabetes, embolus, or vascular risk factors",
+    ]
+    case["time_critical_actions"] = [
+        "Document symptom onset and last known well, activate stroke code, and transfer to a stroke center or stroke pathway",
+        "Confirm with ophthalmology using visual acuity, dilated fundus exam, cherry red spot, retinal whitening, and optic disc assessment",
+        "Begin stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
+        "Review reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+    ]
+    case["contraindication_checks"] = [
+        "Review mimics including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
+        "Review thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
+        "Plan secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
+        "Screen for arteritic cause with ESR, CRP, platelet count, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and high-dose steroid planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Central Retinal Artery Occlusion and Branch Retinal Artery Occlusion",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/retinal-disorders/central-retinal-artery-occlusion-and-branch-retinal-artery-occlusion",
+            "supports": [
+                "central retinal artery occlusion diagnosis and risk stratification",
+                "acute retinal ischemia is treated as an ischemic stroke emergency",
+                "sudden painless monocular vision loss, monocular blindness, or acute visual field loss as red flags",
+                "symptom onset and last known well, stroke code activation, stroke center transfer, and stroke pathway",
+                "ophthalmology confirmation using visual acuity, dilated fundus exam, cherry red spot, retinal whitening, and optic disc assessment",
+                "stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
+                "reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+                "mimic review including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
+                "thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
+                "secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
+                "arteritic cause screening with ESR, CRP, platelet count, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and high-dose steroid planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "central retinal artery occlusion time-critical actions must include symptom-onset"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_crao_arteritic_platelet_and_high_dose_steroid_not_steroid_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Central retinal artery occlusion"
+    case["patient_demographics"] = {
+        "age": 70,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden painless monocular vision loss"
+    case["history_of_present_illness"] = (
+        "Older patient with hypertension, diabetes, and atrial fibrillation has "
+        "abrupt painless loss of vision in one eye with severe acuity reduction "
+        "and a cherry red spot on fundus view."
+    )
+    case["key_teaching_points"] = [
+        "Acute retinal ischemia is treated as an ischemic stroke emergency",
+        "Fewer patients recover functional vision when triage and treatment are delayed",
+        "Acute ocular ischemia can signal future vascular events and needs secondary prevention",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden painless monocular vision loss, monocular blindness, or acute visual field loss",
+        "Atrial fibrillation, carotid disease, hypertension, diabetes, embolus, or vascular risk factors",
+    ]
+    case["time_critical_actions"] = [
+        "Document symptom onset and last known well, activate stroke code, and transfer to a stroke center or stroke pathway",
+        "Confirm with ophthalmology using visual acuity, dilated fundus exam, cherry red spot, retinal whitening, and optic disc assessment",
+        "Begin stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
+        "Review reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+        "Start acute IOP lowering or retinal perfusion support with timolol, acetazolamide, ocular massage, anterior chamber paracentesis, or hyperbaric oxygen when appropriate",
+    ]
+    case["contraindication_checks"] = [
+        "Review mimics including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
+        "Review thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
+        "Plan secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
+        "Screen for arteritic cause with ESR, CRP, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and steroid planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Central Retinal Artery Occlusion and Branch Retinal Artery Occlusion",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/retinal-disorders/central-retinal-artery-occlusion-and-branch-retinal-artery-occlusion",
+            "supports": [
+                "central retinal artery occlusion diagnosis and risk stratification",
+                "acute retinal ischemia is treated as an ischemic stroke emergency",
+                "sudden painless monocular vision loss, monocular blindness, or acute visual field loss as red flags",
+                "symptom onset and last known well, stroke code activation, stroke center transfer, and stroke pathway",
+                "ophthalmology confirmation using visual acuity, dilated fundus exam, cherry red spot, retinal whitening, and optic disc assessment",
+                "stroke workup with brain imaging, CTA or MRA vascular imaging, carotid evaluation, ECG, echocardiogram, and embolus source assessment",
+                "reperfusion eligibility with alteplase tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+                "acute IOP lowering or retinal perfusion support with timolol, acetazolamide, ocular massage, anterior chamber paracentesis, or hyperbaric oxygen when appropriate",
+                "mimic review including retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, and giant cell arteritis GCA",
+                "thrombolysis eligibility and contraindications including bleeding, hemorrhage, anticoagulant use, INR, platelets, blood pressure, and recent surgery",
+                "secondary prevention with antiplatelet therapy, statin, atrial fibrillation evaluation, carotid stenosis management, vascular risk and risk factor control",
+                "arteritic cause screening with ESR, CRP, temporal arteritis or giant cell arteritis symptoms, jaw claudication, scalp tenderness, temporal headache, and steroid planning",
+            ],
+        }
     ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))

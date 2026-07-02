@@ -4587,46 +4587,60 @@ CENTRAL_RETINAL_ARTERY_OCCLUSION_STROKE_RISK_CONTEXT_TERMS = (
     "당뇨",
     "색전",
 )
-CENTRAL_RETINAL_ARTERY_OCCLUSION_ONSET_STROKE_ACTION_TERMS = (
+CENTRAL_RETINAL_ARTERY_OCCLUSION_ONSET_ACTION_TERMS = (
     "last known well",
     "last-known-normal",
     "last-known-well",
     "onset",
+    "symptom onset",
+    "증상 발생",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_STROKE_ACTIVATION_ACTION_TERMS = (
     "stroke activation",
     "stroke center",
     "stroke code",
     "stroke pathway",
-    "symptom onset",
-    "증상 발생",
 )
-CENTRAL_RETINAL_ARTERY_OCCLUSION_OPHTHALMIC_CONFIRM_ACTION_TERMS = (
+CENTRAL_RETINAL_ARTERY_OCCLUSION_VISUAL_CONFIRM_ACTION_TERMS = (
+    "visual acuity",
+    "시력",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_FUNDUS_CONFIRM_ACTION_TERMS = (
     "cherry red spot",
     "dilated fundus",
     "fundus exam",
     "fundus photograph",
-    "ophthalmology",
     "optic disc",
     "retinal exam",
     "retinal whitening",
-    "visual acuity",
     "안저",
-    "시력",
 )
-CENTRAL_RETINAL_ARTERY_OCCLUSION_VASCULAR_WORKUP_ACTION_TERMS = (
+CENTRAL_RETINAL_ARTERY_OCCLUSION_OPHTHALMOLOGY_CONFIRM_ACTION_TERMS = (
+    "ophthalmology",
+    "retina",
+    "안과",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_BRAIN_VASCULAR_ACTION_TERMS = (
     "brain imaging",
-    "carotid",
     "cta",
     "ct angiography",
-    "ecg",
-    "echocardiogram",
-    "embol",
     "mra",
     "mri",
     "stroke workup",
     "vascular imaging",
     "혈관",
 )
-CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_ACTION_TERMS = (
+CENTRAL_RETINAL_ARTERY_OCCLUSION_CAROTID_ACTION_TERMS = (
+    "carotid",
+    "carotid doppler",
+    "carotid ultrasound",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_CARDIAC_EMBOLIC_ACTION_TERMS = (
+    "ecg",
+    "echocardiogram",
+    "embol",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_REVIEW_ACTION_TERMS = (
     "alteplase",
     "fibrinolysis",
     "reperfusion",
@@ -4636,49 +4650,78 @@ CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_ACTION_TERMS = (
     "tpa",
     "혈전용해",
 )
-CENTRAL_RETINAL_ARTERY_OCCLUSION_MIMIC_SAFETY_TERMS = (
-    "acute optic neuropathy",
-    "gca",
-    "giant cell arteritis",
-    "migraine",
-    "optic neuritis",
+CENTRAL_RETINAL_ARTERY_OCCLUSION_IOP_LOWERING_ACTION_TERMS = (
+    "acetazolamide",
+    "anterior chamber paracentesis",
+    "hyperbaric oxygen",
+    "iop lowering",
+    "ocular hypotensive",
+    "ocular massage",
+    "paracentesis",
+    "timolol",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_RETINAL_MIMIC_SAFETY_TERMS = (
     "retinal detachment",
     "vitreous hemorrhage",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_NEURO_MIMIC_SAFETY_TERMS = (
+    "acute optic neuropathy",
+    "migraine",
+    "optic neuritis",
     "감별",
 )
-CENTRAL_RETINAL_ARTERY_OCCLUSION_THROMBOLYSIS_SAFETY_TERMS = (
-    "anticoagulant",
-    "bleeding",
-    "blood pressure",
+CENTRAL_RETINAL_ARTERY_OCCLUSION_THROMBOLYSIS_ELIGIBILITY_SAFETY_TERMS = (
     "contraindication",
-    "hemorrhage",
-    "inr",
-    "platelet",
-    "recent surgery",
     "thrombolysis eligibility",
     "금기",
 )
-CENTRAL_RETINAL_ARTERY_OCCLUSION_SECONDARY_PREVENTION_SAFETY_TERMS = (
+CENTRAL_RETINAL_ARTERY_OCCLUSION_BLEEDING_RISK_SAFETY_TERMS = (
+    "anticoagulant",
+    "bleeding",
+    "hemorrhage",
+    "inr",
+    "platelet",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_BP_SURGERY_RISK_SAFETY_TERMS = (
+    "blood pressure",
+    "recent surgery",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_ANTIPLATELET_STATIN_SAFETY_TERMS = (
     "antiplatelet",
+    "statin",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_AFIB_CAROTID_SAFETY_TERMS = (
     "atrial fibrillation",
     "carotid stenosis",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_RISK_FACTOR_SAFETY_TERMS = (
     "risk factor",
     "secondary prevention",
-    "statin",
     "stroke prevention",
     "vascular risk",
     "예방",
 )
-CENTRAL_RETINAL_ARTERY_OCCLUSION_ARTERITIC_SAFETY_TERMS = (
+CENTRAL_RETINAL_ARTERY_OCCLUSION_ESR_CRP_SAFETY_TERMS = (
     "crp",
     "esr",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_PLATELET_SAFETY_TERMS = (
+    "platelet",
+    "혈소판",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_GCA_SYMPTOM_SAFETY_TERMS = (
+    "gca",
     "giant cell arteritis",
     "jaw claudication",
     "scalp tenderness",
-    "steroid",
     "temporal arteritis",
     "temporal headache",
     "측두",
+)
+CENTRAL_RETINAL_ARTERY_OCCLUSION_STEROID_SAFETY_TERMS = (
+    "high-dose steroid",
+    "high-dose systemic corticosteroid",
+    "steroid",
 )
 OPEN_GLOBE_DIRECT_CONTEXT_TERMS = (
     "globe laceration",
@@ -17207,14 +17250,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_central_retinal_artery_occlusion_time_critical_actions,
             issue=(
                 "central retinal artery occlusion time-critical actions must "
-                "include symptom-onset, last-known-well, stroke-code, stroke-center, "
-                "or stroke-pathway activation, ophthalmic confirmation with visual "
-                "acuity, fundus exam, dilated fundus, fundus photograph, cherry-red "
-                "spot, retinal whitening, optic-disc, or ophthalmology assessment, "
-                "brain, vascular, carotid, CTA, MRA, MRI, ECG, echocardiogram, "
-                "embolus, or stroke-workup evaluation, and reperfusion eligibility "
-                "review with alteplase, tPA, TNK, thrombolysis, fibrinolysis, or "
-                "thrombolytic planning"
+                "include symptom-onset or last-known-well timing plus stroke-code, "
+                "stroke-center, or stroke-pathway activation, ophthalmic confirmation "
+                "with visual acuity plus fundus/cherry-red-spot/retinal-whitening/"
+                "optic-disc assessment and ophthalmology/retina involvement, brain "
+                "or vascular imaging plus carotid evaluation plus ECG/echocardiogram "
+                "or embolic-source assessment, reperfusion eligibility review with "
+                "alteplase, tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic "
+                "planning, and acute IOP-lowering or retinal-perfusion support such "
+                "as timolol, acetazolamide, ocular massage, anterior-chamber "
+                "paracentesis, or hyperbaric oxygen"
             ),
         ),
         DomainSafetyGate(
@@ -17224,15 +17269,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_central_retinal_artery_occlusion_treatment_safety_check,
             issue=(
                 "central retinal artery occlusion safety checks must include "
-                "mimic review for retinal detachment, vitreous hemorrhage, acute "
-                "optic neuropathy, optic neuritis, migraine, giant cell arteritis, "
-                "or GCA, thrombolysis eligibility or contraindication review for "
-                "bleeding, hemorrhage, anticoagulant, INR, platelet, blood pressure, "
-                "or recent surgery, secondary stroke prevention for antiplatelet, "
-                "statin, atrial fibrillation, carotid stenosis, vascular risk, or "
-                "risk-factor control, and arteritic CRAO screening with ESR, CRP, "
-                "temporal arteritis, giant cell arteritis, jaw claudication, scalp "
-                "tenderness, temporal headache, or steroid planning"
+                "mimic review for retinal detachment/vitreous hemorrhage plus optic "
+                "neuropathy, optic neuritis, or migraine, thrombolysis eligibility "
+                "and contraindication review covering bleeding/hemorrhage/"
+                "anticoagulant/INR/platelet risk plus blood pressure or recent "
+                "surgery, secondary stroke prevention with antiplatelet/statin, "
+                "atrial-fibrillation/carotid-stenosis evaluation, and vascular "
+                "risk-factor control, and arteritic CRAO screening with ESR/CRP "
+                "plus platelet count, GCA symptoms such as jaw claudication, scalp "
+                "tenderness, or temporal headache, and high-dose steroid planning "
+                "when arteritic disease is suspected"
             ),
         ),
         DomainSafetyGate(
@@ -24055,27 +24101,57 @@ def _has_central_retinal_artery_occlusion_time_critical_actions(
     actions: list[Any],
 ) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_onset_stroke_action = any(
+    has_onset = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_ONSET_STROKE_ACTION_TERMS
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_ONSET_ACTION_TERMS
     )
-    has_ophthalmic_confirmation = any(
+    has_stroke_activation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_OPHTHALMIC_CONFIRM_ACTION_TERMS
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_STROKE_ACTIVATION_ACTION_TERMS
     )
-    has_vascular_workup = any(
+    has_visual_confirmation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_VASCULAR_WORKUP_ACTION_TERMS
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_VISUAL_CONFIRM_ACTION_TERMS
+    )
+    has_fundus_confirmation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_FUNDUS_CONFIRM_ACTION_TERMS
+    )
+    has_ophthalmology_confirmation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_OPHTHALMOLOGY_CONFIRM_ACTION_TERMS
+    )
+    has_brain_vascular = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_BRAIN_VASCULAR_ACTION_TERMS
+    )
+    has_carotid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_CAROTID_ACTION_TERMS
+    )
+    has_cardiac_embolic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_CARDIAC_EMBOLIC_ACTION_TERMS
     )
     has_reperfusion_review = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_ACTION_TERMS
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_REVIEW_ACTION_TERMS
+    )
+    has_iop_lowering = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_IOP_LOWERING_ACTION_TERMS
     )
     return (
-        has_onset_stroke_action
-        and has_ophthalmic_confirmation
-        and has_vascular_workup
+        has_onset
+        and has_stroke_activation
+        and has_visual_confirmation
+        and has_fundus_confirmation
+        and has_ophthalmology_confirmation
+        and has_brain_vascular
+        and has_carotid
+        and has_cardiac_embolic
         and has_reperfusion_review
+        and has_iop_lowering
     )
 
 
@@ -24083,27 +24159,67 @@ def _has_central_retinal_artery_occlusion_treatment_safety_check(
     checks: list[Any],
 ) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_mimic_safety = any(
+    has_retinal_mimic_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_MIMIC_SAFETY_TERMS
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_RETINAL_MIMIC_SAFETY_TERMS
     )
-    has_thrombolysis_safety = any(
+    has_neuro_mimic_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_THROMBOLYSIS_SAFETY_TERMS
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_NEURO_MIMIC_SAFETY_TERMS
     )
-    has_secondary_prevention = any(
+    has_thrombolysis_eligibility_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_SECONDARY_PREVENTION_SAFETY_TERMS
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_THROMBOLYSIS_ELIGIBILITY_SAFETY_TERMS
     )
-    has_arteritic_safety = any(
+    has_bleeding_risk_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_ARTERITIC_SAFETY_TERMS
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_BLEEDING_RISK_SAFETY_TERMS
+    )
+    has_bp_surgery_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_BP_SURGERY_RISK_SAFETY_TERMS
+    )
+    has_antiplatelet_statin_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_ANTIPLATELET_STATIN_SAFETY_TERMS
+    )
+    has_afib_carotid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_AFIB_CAROTID_SAFETY_TERMS
+    )
+    has_risk_factor_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_RISK_FACTOR_SAFETY_TERMS
+    )
+    has_esr_crp_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_ESR_CRP_SAFETY_TERMS
+    )
+    has_platelet_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_PLATELET_SAFETY_TERMS
+    )
+    has_gca_symptom_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_GCA_SYMPTOM_SAFETY_TERMS
+    )
+    has_steroid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CENTRAL_RETINAL_ARTERY_OCCLUSION_STEROID_SAFETY_TERMS
     )
     return (
-        has_mimic_safety
-        and has_thrombolysis_safety
-        and has_secondary_prevention
-        and has_arteritic_safety
+        has_retinal_mimic_safety
+        and has_neuro_mimic_safety
+        and has_thrombolysis_eligibility_safety
+        and has_bleeding_risk_safety
+        and has_bp_surgery_risk_safety
+        and has_antiplatelet_statin_safety
+        and has_afib_carotid_safety
+        and has_risk_factor_safety
+        and has_esr_crp_safety
+        and has_platelet_safety
+        and has_gca_symptom_safety
+        and has_steroid_safety
     )
 
 

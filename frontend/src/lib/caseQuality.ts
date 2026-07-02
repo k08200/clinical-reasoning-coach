@@ -5076,41 +5076,48 @@ const CENTRAL_RETINAL_ARTERY_OCCLUSION_STROKE_RISK_CONTEXT_TERMS = [
   "색전",
 ];
 
-const CENTRAL_RETINAL_ARTERY_OCCLUSION_ONSET_STROKE_ACTION_TERMS = [
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_ONSET_ACTION_TERMS = [
   "last known well",
   "last-known-normal",
   "last-known-well",
   "onset",
-  "stroke activation",
-  "stroke center",
-  "stroke code",
-  "stroke pathway",
   "symptom onset",
   "증상 발생",
 ];
 
-const CENTRAL_RETINAL_ARTERY_OCCLUSION_OPHTHALMIC_CONFIRM_ACTION_TERMS = [
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_STROKE_ACTIVATION_ACTION_TERMS = [
+  "stroke activation",
+  "stroke center",
+  "stroke code",
+  "stroke pathway",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_VISUAL_CONFIRM_ACTION_TERMS = [
+  "visual acuity",
+  "시력",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_FUNDUS_CONFIRM_ACTION_TERMS = [
   "cherry red spot",
   "dilated fundus",
   "fundus exam",
   "fundus photograph",
-  "ophthalmology",
   "optic disc",
   "retinal exam",
   "retinal whitening",
-  "visual acuity",
   "안저",
-  "시력",
 ];
 
-const CENTRAL_RETINAL_ARTERY_OCCLUSION_VASCULAR_WORKUP_ACTION_TERMS = [
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_OPHTHALMOLOGY_CONFIRM_ACTION_TERMS = [
+  "ophthalmology",
+  "retina",
+  "안과",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_BRAIN_VASCULAR_ACTION_TERMS = [
   "brain imaging",
-  "carotid",
   "cta",
   "ct angiography",
-  "ecg",
-  "echocardiogram",
-  "embol",
   "mra",
   "mri",
   "stroke workup",
@@ -5118,7 +5125,19 @@ const CENTRAL_RETINAL_ARTERY_OCCLUSION_VASCULAR_WORKUP_ACTION_TERMS = [
   "혈관",
 ];
 
-const CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_ACTION_TERMS = [
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_CAROTID_ACTION_TERMS = [
+  "carotid",
+  "carotid doppler",
+  "carotid ultrasound",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_CARDIAC_EMBOLIC_ACTION_TERMS = [
+  "ecg",
+  "echocardiogram",
+  "embol",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_REVIEW_ACTION_TERMS = [
   "alteplase",
   "fibrinolysis",
   "reperfusion",
@@ -5129,52 +5148,90 @@ const CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_ACTION_TERMS = [
   "혈전용해",
 ];
 
-const CENTRAL_RETINAL_ARTERY_OCCLUSION_MIMIC_SAFETY_TERMS = [
-  "acute optic neuropathy",
-  "gca",
-  "giant cell arteritis",
-  "migraine",
-  "optic neuritis",
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_IOP_LOWERING_ACTION_TERMS = [
+  "acetazolamide",
+  "anterior chamber paracentesis",
+  "hyperbaric oxygen",
+  "iop lowering",
+  "ocular hypotensive",
+  "ocular massage",
+  "paracentesis",
+  "timolol",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_RETINAL_MIMIC_SAFETY_TERMS = [
   "retinal detachment",
   "vitreous hemorrhage",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_NEURO_MIMIC_SAFETY_TERMS = [
+  "acute optic neuropathy",
+  "migraine",
+  "optic neuritis",
   "감별",
 ];
 
-const CENTRAL_RETINAL_ARTERY_OCCLUSION_THROMBOLYSIS_SAFETY_TERMS = [
-  "anticoagulant",
-  "bleeding",
-  "blood pressure",
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_THROMBOLYSIS_ELIGIBILITY_SAFETY_TERMS = [
   "contraindication",
-  "hemorrhage",
-  "inr",
-  "platelet",
-  "recent surgery",
   "thrombolysis eligibility",
   "금기",
 ];
 
-const CENTRAL_RETINAL_ARTERY_OCCLUSION_SECONDARY_PREVENTION_SAFETY_TERMS = [
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_BLEEDING_RISK_SAFETY_TERMS = [
+  "anticoagulant",
+  "bleeding",
+  "hemorrhage",
+  "inr",
+  "platelet",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_BP_SURGERY_RISK_SAFETY_TERMS = [
+  "blood pressure",
+  "recent surgery",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_ANTIPLATELET_STATIN_SAFETY_TERMS = [
   "antiplatelet",
+  "statin",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_AFIB_CAROTID_SAFETY_TERMS = [
   "atrial fibrillation",
   "carotid stenosis",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_RISK_FACTOR_SAFETY_TERMS = [
   "risk factor",
   "secondary prevention",
-  "statin",
   "stroke prevention",
   "vascular risk",
   "예방",
 ];
 
-const CENTRAL_RETINAL_ARTERY_OCCLUSION_ARTERITIC_SAFETY_TERMS = [
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_ESR_CRP_SAFETY_TERMS = [
   "crp",
   "esr",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_PLATELET_SAFETY_TERMS = [
+  "platelet",
+  "혈소판",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_GCA_SYMPTOM_SAFETY_TERMS = [
+  "gca",
   "giant cell arteritis",
   "jaw claudication",
   "scalp tenderness",
-  "steroid",
   "temporal arteritis",
   "temporal headache",
   "측두",
+];
+
+const CENTRAL_RETINAL_ARTERY_OCCLUSION_STEROID_SAFETY_TERMS = [
+  "high-dose steroid",
+  "high-dose systemic corticosteroid",
+  "steroid",
 ];
 
 const OPEN_GLOBE_DIRECT_CONTEXT_TERMS = [
@@ -20511,38 +20568,108 @@ function requiresCentralRetinalArteryOcclusionSafetyCheck(
 
 function hasCentralRetinalArteryOcclusionTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasOnsetStrokeAction = CENTRAL_RETINAL_ARTERY_OCCLUSION_ONSET_STROKE_ACTION_TERMS.some(
+  const hasOnset = CENTRAL_RETINAL_ARTERY_OCCLUSION_ONSET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasStrokeActivation = CENTRAL_RETINAL_ARTERY_OCCLUSION_STROKE_ACTIVATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasOphthalmicConfirmation =
-    CENTRAL_RETINAL_ARTERY_OCCLUSION_OPHTHALMIC_CONFIRM_ACTION_TERMS.some((term) =>
+  const hasVisualConfirmation =
+    CENTRAL_RETINAL_ARTERY_OCCLUSION_VISUAL_CONFIRM_ACTION_TERMS.some((term) =>
       containsSafetyTerm(normalizedActions, term),
     );
-  const hasVascularWorkup = CENTRAL_RETINAL_ARTERY_OCCLUSION_VASCULAR_WORKUP_ACTION_TERMS.some(
+  const hasFundusConfirmation = CENTRAL_RETINAL_ARTERY_OCCLUSION_FUNDUS_CONFIRM_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasReperfusionReview = CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_ACTION_TERMS.some(
+  const hasOphthalmologyConfirmation =
+    CENTRAL_RETINAL_ARTERY_OCCLUSION_OPHTHALMOLOGY_CONFIRM_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasBrainVascular = CENTRAL_RETINAL_ARTERY_OCCLUSION_BRAIN_VASCULAR_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  return hasOnsetStrokeAction && hasOphthalmicConfirmation && hasVascularWorkup && hasReperfusionReview;
+  const hasCarotid = CENTRAL_RETINAL_ARTERY_OCCLUSION_CAROTID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCardiacEmbolic = CENTRAL_RETINAL_ARTERY_OCCLUSION_CARDIAC_EMBOLIC_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasReperfusionReview =
+    CENTRAL_RETINAL_ARTERY_OCCLUSION_REPERFUSION_REVIEW_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasIopLowering = CENTRAL_RETINAL_ARTERY_OCCLUSION_IOP_LOWERING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasOnset &&
+    hasStrokeActivation &&
+    hasVisualConfirmation &&
+    hasFundusConfirmation &&
+    hasOphthalmologyConfirmation &&
+    hasBrainVascular &&
+    hasCarotid &&
+    hasCardiacEmbolic &&
+    hasReperfusionReview &&
+    hasIopLowering
+  );
 }
 
 function hasCentralRetinalArteryOcclusionTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasMimicSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_MIMIC_SAFETY_TERMS.some((term) =>
+  const hasRetinalMimicSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_RETINAL_MIMIC_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasThrombolysisSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_THROMBOLYSIS_SAFETY_TERMS.some(
+  const hasNeuroMimicSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_NEURO_MIMIC_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasSecondaryPrevention =
-    CENTRAL_RETINAL_ARTERY_OCCLUSION_SECONDARY_PREVENTION_SAFETY_TERMS.some((term) =>
+  const hasThrombolysisEligibilitySafety =
+    CENTRAL_RETINAL_ARTERY_OCCLUSION_THROMBOLYSIS_ELIGIBILITY_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasArteriticSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_ARTERITIC_SAFETY_TERMS.some(
+  const hasBleedingRiskSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_BLEEDING_RISK_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  return hasMimicSafety && hasThrombolysisSafety && hasSecondaryPrevention && hasArteriticSafety;
+  const hasBpSurgeryRiskSafety =
+    CENTRAL_RETINAL_ARTERY_OCCLUSION_BP_SURGERY_RISK_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAntiplateletStatinSafety =
+    CENTRAL_RETINAL_ARTERY_OCCLUSION_ANTIPLATELET_STATIN_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAfibCarotidSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_AFIB_CAROTID_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRiskFactorSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_RISK_FACTOR_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEsrCrpSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_ESR_CRP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPlateletSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_PLATELET_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasGcaSymptomSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_GCA_SYMPTOM_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidSafety = CENTRAL_RETINAL_ARTERY_OCCLUSION_STEROID_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasRetinalMimicSafety &&
+    hasNeuroMimicSafety &&
+    hasThrombolysisEligibilitySafety &&
+    hasBleedingRiskSafety &&
+    hasBpSurgeryRiskSafety &&
+    hasAntiplateletStatinSafety &&
+    hasAfibCarotidSafety &&
+    hasRiskFactorSafety &&
+    hasEsrCrpSafety &&
+    hasPlateletSafety &&
+    hasGcaSymptomSafety &&
+    hasSteroidSafety
+  );
 }
 
 function requiresOpenGlobeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -28625,7 +28752,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasCentralRetinalArteryOcclusionTimeCriticalActions,
       issue:
-        "central retinal artery occlusion time-critical actions must include symptom-onset, last-known-well, stroke-code, stroke-center, or stroke-pathway activation, ophthalmic confirmation with visual acuity, fundus exam, dilated fundus, fundus photograph, cherry-red spot, retinal whitening, optic-disc, or ophthalmology assessment, brain, vascular, carotid, CTA, MRA, MRI, ECG, echocardiogram, embolus, or stroke-workup evaluation, and reperfusion eligibility review with alteplase, tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning",
+        "central retinal artery occlusion time-critical actions must include symptom-onset or last-known-well timing plus stroke-code, stroke-center, or stroke-pathway activation, ophthalmic confirmation with visual acuity plus fundus/cherry-red-spot/retinal-whitening/optic-disc assessment and ophthalmology/retina involvement, brain or vascular imaging plus carotid evaluation plus ECG/echocardiogram or embolic-source assessment, reperfusion eligibility review with alteplase, tPA, TNK, thrombolysis, fibrinolysis, or thrombolytic planning, and acute IOP-lowering or retinal-perfusion support such as timolol, acetazolamide, ocular massage, anterior-chamber paracentesis, or hyperbaric oxygen",
     },
     {
       name: "central_retinal_artery_occlusion_treatment_safety",
@@ -28634,7 +28761,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasCentralRetinalArteryOcclusionTreatmentSafetyCheck,
       issue:
-        "central retinal artery occlusion safety checks must include mimic review for retinal detachment, vitreous hemorrhage, acute optic neuropathy, optic neuritis, migraine, giant cell arteritis, or GCA, thrombolysis eligibility or contraindication review for bleeding, hemorrhage, anticoagulant, INR, platelet, blood pressure, or recent surgery, secondary stroke prevention for antiplatelet, statin, atrial fibrillation, carotid stenosis, vascular risk, or risk-factor control, and arteritic CRAO screening with ESR, CRP, temporal arteritis, giant cell arteritis, jaw claudication, scalp tenderness, temporal headache, or steroid planning",
+        "central retinal artery occlusion safety checks must include mimic review for retinal detachment/vitreous hemorrhage plus optic neuropathy, optic neuritis, or migraine, thrombolysis eligibility and contraindication review covering bleeding/hemorrhage/anticoagulant/INR/platelet risk plus blood pressure or recent surgery, secondary stroke prevention with antiplatelet/statin, atrial-fibrillation/carotid-stenosis evaluation, and vascular risk-factor control, and arteritic CRAO screening with ESR/CRP plus platelet count, GCA symptoms such as jaw claudication, scalp tenderness, or temporal headache, and high-dose steroid planning when arteritic disease is suspected",
     },
     {
       name: "open_globe_time_critical_actions",
