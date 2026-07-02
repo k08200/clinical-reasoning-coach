@@ -8080,6 +8080,286 @@ def test_quality_gate_requires_giant_cell_arteritis_no_delay_vision_steroid_risk
     )
 
 
+def test_quality_gate_requires_giant_cell_arteritis_high_dose_specific_steroid_not_steroid_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suspected giant cell arteritis with transient vision loss"
+    case["patient_demographics"] = {
+        "age": 74,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "New temporal headache, jaw claudication, and transient vision loss"
+    case["history_of_present_illness"] = (
+        "Older patient presents with new headache, temporal artery tenderness, "
+        "scalp tenderness, jaw claudication, amaurosis fugax, diplopia, and "
+        "suspected giant cell arteritis."
+    )
+    case["key_teaching_points"] = [
+        "Giant cell arteritis can cause irreversible vision loss and stroke",
+        "Immediate high-dose glucocorticoids should begin when GCA is strongly suspected",
+        "Temporal artery biopsy or ultrasound supports diagnosis but must not delay treatment",
+    ]
+    case["clinical_red_flags"] = [
+        "Amaurosis fugax, diplopia, visual disturbance, vision loss, or cranial ischemia",
+        "New temporal headache, scalp tenderness, temporal artery tenderness, jaw claudication, polymyalgia rheumatica, or stroke symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Start steroid therapy for suspected GCA",
+        "Order ESR, CRP, CBC, platelet count, and inflammatory marker testing immediately",
+        "Arrange temporal artery biopsy or temporal artery ultrasound with color Doppler halo sign assessment",
+        "Escalate same-day to ophthalmology and rheumatology for emergency visual symptom and vision loss assessment",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay steroid treatment before biopsy, ultrasound, labs, or specialist review when GCA is strongly suspected",
+        "Review amaurosis fugax, diplopia, visual disturbance, vision loss, cranial ischemia, ischemic complications, and stroke risk",
+        "Mitigate steroid toxicity with glucose and diabetes monitoring, infection screening, osteoporosis fracture prevention, bone protection, and PPI or GI risk review",
+        "Plan follow-up for taper, relapse, large vessel disease, vascular imaging, polymyalgia rheumatica symptoms, and tocilizumab steroid-sparing consideration",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Giant Cell Arteritis",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/musculoskeletal-and-connective-tissue-disorders/vasculitis/giant-cell-arteritis",
+            "supports": [
+                "suspected giant cell arteritis with transient vision loss diagnosis and risk stratification",
+                "giant cell arteritis can cause irreversible vision loss and stroke",
+                "immediate high-dose glucocorticoids should begin when GCA is strongly suspected",
+                "temporal artery biopsy or ultrasound supports diagnosis but must not delay treatment",
+                "amaurosis fugax, diplopia, visual disturbance, vision loss, or cranial ischemia as red flags",
+                "new temporal headache, scalp tenderness, temporal artery tenderness, jaw claudication, polymyalgia rheumatica, or stroke symptoms as severity markers",
+                "steroid therapy for suspected GCA",
+                "ESR, CRP, CBC, platelet count, and inflammatory marker testing",
+                "temporal artery biopsy or temporal artery ultrasound with color Doppler halo sign assessment",
+                "same-day ophthalmology and rheumatology escalation for emergency visual symptom and vision loss assessment",
+                "do not delay steroid treatment before biopsy, ultrasound, labs, or specialist review when GCA is strongly suspected",
+                "amaurosis fugax, diplopia, visual disturbance, vision loss, cranial ischemia, ischemic complications, and stroke risk review",
+                "steroid toxicity mitigation with glucose and diabetes monitoring, infection screening, osteoporosis fracture prevention, bone protection, and PPI or GI risk review",
+                "follow-up for taper, relapse, large vessel disease, vascular imaging, polymyalgia rheumatica symptoms, and tocilizumab steroid-sparing consideration",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "giant cell arteritis time-critical actions must include immediate high-dose"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_giant_cell_arteritis_esr_crp_not_cbc_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suspected giant cell arteritis with transient vision loss"
+    case["patient_demographics"] = {
+        "age": 74,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "New temporal headache, jaw claudication, and transient vision loss"
+    case["history_of_present_illness"] = (
+        "Older patient presents with new headache, temporal artery tenderness, "
+        "scalp tenderness, jaw claudication, amaurosis fugax, diplopia, and "
+        "suspected giant cell arteritis."
+    )
+    case["key_teaching_points"] = [
+        "Giant cell arteritis can cause irreversible vision loss and stroke",
+        "Immediate high-dose glucocorticoids should begin when GCA is strongly suspected",
+        "Temporal artery biopsy or ultrasound supports diagnosis but must not delay treatment",
+    ]
+    case["clinical_red_flags"] = [
+        "Amaurosis fugax, diplopia, visual disturbance, vision loss, or cranial ischemia",
+        "New temporal headache, scalp tenderness, temporal artery tenderness, jaw claudication, polymyalgia rheumatica, or stroke symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Start immediate high-dose prednisone 40 to 60 mg glucocorticoid therapy; use IV methylprednisolone if visual symptoms threaten vision",
+        "Order CBC and platelet count immediately",
+        "Arrange temporal artery biopsy or temporal artery ultrasound with color Doppler halo sign assessment",
+        "Escalate same-day to ophthalmology and rheumatology for emergency visual symptom and vision loss assessment",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay steroid treatment before biopsy, ultrasound, labs, or specialist review when GCA is strongly suspected",
+        "Review amaurosis fugax, diplopia, visual disturbance, vision loss, cranial ischemia, ischemic complications, and stroke risk",
+        "Mitigate steroid toxicity with glucose and diabetes monitoring, infection screening, osteoporosis fracture prevention, bone protection, and PPI or GI risk review",
+        "Plan follow-up for taper, relapse, large vessel disease, vascular imaging, polymyalgia rheumatica symptoms, and tocilizumab steroid-sparing consideration",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Giant Cell Arteritis",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/musculoskeletal-and-connective-tissue-disorders/vasculitis/giant-cell-arteritis",
+            "supports": [
+                "suspected giant cell arteritis with transient vision loss diagnosis and risk stratification",
+                "giant cell arteritis can cause irreversible vision loss and stroke",
+                "immediate high-dose glucocorticoids should begin when GCA is strongly suspected",
+                "temporal artery biopsy or ultrasound supports diagnosis but must not delay treatment",
+                "amaurosis fugax, diplopia, visual disturbance, vision loss, or cranial ischemia as red flags",
+                "new temporal headache, scalp tenderness, temporal artery tenderness, jaw claudication, polymyalgia rheumatica, or stroke symptoms as severity markers",
+                "immediate high-dose prednisone 40 to 60 mg glucocorticoid therapy and IV methylprednisolone if visual symptoms threaten vision",
+                "CBC and platelet count",
+                "temporal artery biopsy or temporal artery ultrasound with color Doppler halo sign assessment",
+                "same-day ophthalmology and rheumatology escalation for emergency visual symptom and vision loss assessment",
+                "do not delay steroid treatment before biopsy, ultrasound, labs, or specialist review when GCA is strongly suspected",
+                "amaurosis fugax, diplopia, visual disturbance, vision loss, cranial ischemia, ischemic complications, and stroke risk review",
+                "steroid toxicity mitigation with glucose and diabetes monitoring, infection screening, osteoporosis fracture prevention, bone protection, and PPI or GI risk review",
+                "follow-up for taper, relapse, large vessel disease, vascular imaging, polymyalgia rheumatica symptoms, and tocilizumab steroid-sparing consideration",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "giant cell arteritis time-critical actions must include immediate high-dose"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_giant_cell_arteritis_no_delay_before_diagnostics_not_immediate_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suspected giant cell arteritis with transient vision loss"
+    case["patient_demographics"] = {
+        "age": 74,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "New temporal headache, jaw claudication, and transient vision loss"
+    case["history_of_present_illness"] = (
+        "Older patient presents with new headache, temporal artery tenderness, "
+        "scalp tenderness, jaw claudication, amaurosis fugax, diplopia, and "
+        "suspected giant cell arteritis."
+    )
+    case["key_teaching_points"] = [
+        "Giant cell arteritis can cause irreversible vision loss and stroke",
+        "Immediate high-dose glucocorticoids should begin when GCA is strongly suspected",
+        "Temporal artery biopsy or ultrasound supports diagnosis but must not delay treatment",
+    ]
+    case["clinical_red_flags"] = [
+        "Amaurosis fugax, diplopia, visual disturbance, vision loss, or cranial ischemia",
+        "New temporal headache, scalp tenderness, temporal artery tenderness, jaw claudication, polymyalgia rheumatica, or stroke symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Start immediate high-dose prednisone 40 to 60 mg glucocorticoid therapy; use IV methylprednisolone if visual symptoms threaten vision",
+        "Order ESR, CRP, CBC, platelet count, and inflammatory marker testing immediately",
+        "Arrange temporal artery biopsy or temporal artery ultrasound with color Doppler halo sign assessment",
+        "Escalate same-day to ophthalmology and rheumatology for emergency visual symptom and vision loss assessment",
+    ]
+    case["contraindication_checks"] = [
+        "Immediate steroid planning for suspected GCA",
+        "Review amaurosis fugax, diplopia, visual disturbance, vision loss, cranial ischemia, ischemic complications, and stroke risk",
+        "Mitigate steroid toxicity with glucose and diabetes monitoring, infection screening, osteoporosis fracture prevention, bone protection, and PPI or GI risk review",
+        "Plan follow-up for taper, relapse, large vessel disease, vascular imaging, polymyalgia rheumatica symptoms, and tocilizumab steroid-sparing consideration",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Giant Cell Arteritis",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/musculoskeletal-and-connective-tissue-disorders/vasculitis/giant-cell-arteritis",
+            "supports": [
+                "suspected giant cell arteritis with transient vision loss diagnosis and risk stratification",
+                "giant cell arteritis can cause irreversible vision loss and stroke",
+                "immediate high-dose glucocorticoids should begin when GCA is strongly suspected",
+                "temporal artery biopsy or ultrasound supports diagnosis but must not delay treatment",
+                "amaurosis fugax, diplopia, visual disturbance, vision loss, or cranial ischemia as red flags",
+                "new temporal headache, scalp tenderness, temporal artery tenderness, jaw claudication, polymyalgia rheumatica, or stroke symptoms as severity markers",
+                "immediate high-dose prednisone 40 to 60 mg glucocorticoid therapy and IV methylprednisolone if visual symptoms threaten vision",
+                "ESR, CRP, CBC, platelet count, and inflammatory marker testing",
+                "temporal artery biopsy or temporal artery ultrasound with color Doppler halo sign assessment",
+                "same-day ophthalmology and rheumatology escalation for emergency visual symptom and vision loss assessment",
+                "immediate steroid planning for suspected GCA",
+                "amaurosis fugax, diplopia, visual disturbance, vision loss, cranial ischemia, ischemic complications, and stroke risk review",
+                "steroid toxicity mitigation with glucose and diabetes monitoring, infection screening, osteoporosis fracture prevention, bone protection, and PPI or GI risk review",
+                "follow-up for taper, relapse, large vessel disease, vascular imaging, polymyalgia rheumatica symptoms, and tocilizumab steroid-sparing consideration",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "giant cell arteritis safety checks must include explicit do-not-delay"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_giant_cell_arteritis_full_steroid_risk_and_followup_not_glucose_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suspected giant cell arteritis with transient vision loss"
+    case["patient_demographics"] = {
+        "age": 74,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "New temporal headache, jaw claudication, and transient vision loss"
+    case["history_of_present_illness"] = (
+        "Older patient presents with new headache, temporal artery tenderness, "
+        "scalp tenderness, jaw claudication, amaurosis fugax, diplopia, and "
+        "suspected giant cell arteritis."
+    )
+    case["key_teaching_points"] = [
+        "Giant cell arteritis can cause irreversible vision loss and stroke",
+        "Immediate high-dose glucocorticoids should begin when GCA is strongly suspected",
+        "Temporal artery biopsy or ultrasound supports diagnosis but must not delay treatment",
+    ]
+    case["clinical_red_flags"] = [
+        "Amaurosis fugax, diplopia, visual disturbance, vision loss, or cranial ischemia",
+        "New temporal headache, scalp tenderness, temporal artery tenderness, jaw claudication, polymyalgia rheumatica, or stroke symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Start immediate high-dose prednisone 40 to 60 mg glucocorticoid therapy; use IV methylprednisolone if visual symptoms threaten vision",
+        "Order ESR, CRP, CBC, platelet count, and inflammatory marker testing immediately",
+        "Arrange temporal artery biopsy or temporal artery ultrasound with color Doppler halo sign assessment",
+        "Escalate same-day to ophthalmology and rheumatology for emergency visual symptom and vision loss assessment",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay steroid treatment before biopsy, ultrasound, labs, or specialist review when GCA is strongly suspected",
+        "Review amaurosis fugax, diplopia, visual disturbance, vision loss, cranial ischemia, ischemic complications, and stroke risk",
+        "Monitor glucose during steroids",
+        "Arrange follow-up",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Giant Cell Arteritis",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/musculoskeletal-and-connective-tissue-disorders/vasculitis/giant-cell-arteritis",
+            "supports": [
+                "suspected giant cell arteritis with transient vision loss diagnosis and risk stratification",
+                "giant cell arteritis can cause irreversible vision loss and stroke",
+                "immediate high-dose glucocorticoids should begin when GCA is strongly suspected",
+                "temporal artery biopsy or ultrasound supports diagnosis but must not delay treatment",
+                "amaurosis fugax, diplopia, visual disturbance, vision loss, or cranial ischemia as red flags",
+                "new temporal headache, scalp tenderness, temporal artery tenderness, jaw claudication, polymyalgia rheumatica, or stroke symptoms as severity markers",
+                "immediate high-dose prednisone 40 to 60 mg glucocorticoid therapy and IV methylprednisolone if visual symptoms threaten vision",
+                "ESR, CRP, CBC, platelet count, and inflammatory marker testing",
+                "temporal artery biopsy or temporal artery ultrasound with color Doppler halo sign assessment",
+                "same-day ophthalmology and rheumatology escalation for emergency visual symptom and vision loss assessment",
+                "do not delay steroid treatment before biopsy, ultrasound, labs, or specialist review when GCA is strongly suspected",
+                "amaurosis fugax, diplopia, visual disturbance, vision loss, cranial ischemia, ischemic complications, and stroke risk review",
+                "glucose monitoring during steroids",
+                "follow-up",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "giant cell arteritis safety checks must include explicit do-not-delay"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acute_angle_closure_glaucoma_iop_drops_systemic_lowering_and_iridotomy():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute angle-closure glaucoma"

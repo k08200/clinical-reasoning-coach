@@ -4558,93 +4558,128 @@ const GIANT_CELL_ARTERITIS_ISCHEMIC_CONTEXT_TERMS = [
   "턱",
 ];
 
-const GIANT_CELL_ARTERITIS_STEROID_ACTION_TERMS = [
-  "corticosteroid",
-  "glucocorticoid",
+const GIANT_CELL_ARTERITIS_HIGH_DOSE_STEROID_ACTION_TERMS = [
+  "high-dose",
+  "immediate high-dose",
+  "prednisone 40",
+  "prednisone 60",
+  "40 to 60 mg",
+  "40-60 mg",
+];
+
+const GIANT_CELL_ARTERITIS_STEROID_AGENT_ACTION_TERMS = [
   "high-dose prednisone",
   "iv methylprednisolone",
   "methylprednisolone",
   "prednisone",
   "prednisolone",
-  "steroid",
-  "스테로이드",
 ];
 
-const GIANT_CELL_ARTERITIS_LAB_ACTION_TERMS = [
-  "cbc",
-  "crp",
+const GIANT_CELL_ARTERITIS_ESR_ACTION_TERMS = [
   "erythrocyte sedimentation rate",
   "esr",
-  "inflammatory marker",
+];
+
+const GIANT_CELL_ARTERITIS_CRP_ACTION_TERMS = [
+  "c-reactive protein",
+  "crp",
+];
+
+const GIANT_CELL_ARTERITIS_CBC_PLATELET_ACTION_TERMS = [
+  "cbc",
   "platelet",
   "혈소판",
 ];
 
-const GIANT_CELL_ARTERITIS_DIAGNOSTIC_ACTION_TERMS = [
+const GIANT_CELL_ARTERITIS_BIOPSY_ACTION_TERMS = [
   "biopsy",
-  "color doppler",
-  "halo sign",
   "temporal artery biopsy",
-  "temporal artery ultrasound",
-  "ultrasound",
-  "초음파",
   "생검",
 ];
 
-const GIANT_CELL_ARTERITIS_ESCALATION_ACTION_TERMS = [
+const GIANT_CELL_ARTERITIS_ULTRASOUND_ACTION_TERMS = [
+  "color doppler",
+  "halo sign",
+  "temporal artery ultrasound",
+  "ultrasound",
+  "초음파",
+];
+
+const GIANT_CELL_ARTERITIS_URGENT_TIMING_ACTION_TERMS = [
   "emergency",
-  "ophthalmology",
-  "rheumatology",
   "same-day",
   "urgent referral",
+  "응급",
+];
+
+const GIANT_CELL_ARTERITIS_SPECIALIST_ACTION_TERMS = [
+  "ophthalmology",
+  "rheumatology",
   "vision loss",
   "visual symptom",
-  "응급",
   "안과",
   "류마티스",
 ];
 
-const GIANT_CELL_ARTERITIS_DO_NOT_DELAY_SAFETY_TERMS = [
-  "before biopsy",
+const GIANT_CELL_ARTERITIS_NO_DELAY_SAFETY_TERMS = [
   "do not delay",
   "do not wait",
-  "immediate",
   "not delay",
-  "same day",
   "지연",
-  "즉시",
 ];
 
-const GIANT_CELL_ARTERITIS_VISION_ISCHEMIA_SAFETY_TERMS = [
+const GIANT_CELL_ARTERITIS_DIAGNOSTIC_DELAY_SAFETY_TERMS = [
+  "before biopsy",
+  "before ultrasound",
+  "before labs",
+  "before specialist",
+  "biopsy",
+  "ultrasound",
+];
+
+const GIANT_CELL_ARTERITIS_VISUAL_SYMPTOM_SAFETY_TERMS = [
   "amaurosis fugax",
-  "cranial ischemia",
   "diplopia",
-  "stroke",
   "visual disturbance",
   "vision loss",
   "시력",
 ];
 
-const GIANT_CELL_ARTERITIS_STEROID_RISK_SAFETY_TERMS = [
-  "bone protection",
+const GIANT_CELL_ARTERITIS_CRANIAL_ISCHEMIA_SAFETY_TERMS = [
+  "cranial ischemia",
+  "ischemic",
+  "stroke",
+];
+
+const GIANT_CELL_ARTERITIS_GLUCOSE_SAFETY_TERMS = [
   "diabetes",
-  "fracture",
   "glucose",
-  "infection",
-  "osteoporosis",
-  "ppi",
-  "steroid toxicity",
-  "위장",
   "혈당",
 ];
 
-const GIANT_CELL_ARTERITIS_FOLLOWUP_SAFETY_TERMS = [
-  "large vessel",
-  "polymyalgia rheumatica",
+const GIANT_CELL_ARTERITIS_INFECTION_SAFETY_TERMS = ["infection"];
+
+const GIANT_CELL_ARTERITIS_BONE_SAFETY_TERMS = [
+  "bone protection",
+  "fracture",
+  "osteoporosis",
+];
+
+const GIANT_CELL_ARTERITIS_GI_SAFETY_TERMS = ["ppi", "위장"];
+
+const GIANT_CELL_ARTERITIS_TAPER_RELAPSE_SAFETY_TERMS = [
   "relapse",
   "taper",
-  "tocilizumab",
+];
+
+const GIANT_CELL_ARTERITIS_LARGE_VESSEL_SAFETY_TERMS = [
+  "large vessel",
   "vascular imaging",
+];
+
+const GIANT_CELL_ARTERITIS_STEROID_SPARING_SAFETY_TERMS = [
+  "polymyalgia rheumatica",
+  "tocilizumab",
   "follow-up",
   "추적",
 ];
@@ -20006,36 +20041,93 @@ function requiresGiantCellArteritisSafetyCheck(detail: ClinicalCaseReviewDetail)
 
 function hasGiantCellArteritisTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasSteroid = GIANT_CELL_ARTERITIS_STEROID_ACTION_TERMS.some((term) =>
+  const hasHighDoseSteroid = GIANT_CELL_ARTERITIS_HIGH_DOSE_STEROID_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasLabs = GIANT_CELL_ARTERITIS_LAB_ACTION_TERMS.some((term) =>
+  const hasSteroidAgent = GIANT_CELL_ARTERITIS_STEROID_AGENT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDiagnosticConfirmation = GIANT_CELL_ARTERITIS_DIAGNOSTIC_ACTION_TERMS.some((term) =>
+  const hasEsr = GIANT_CELL_ARTERITIS_ESR_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasEscalation = GIANT_CELL_ARTERITIS_ESCALATION_ACTION_TERMS.some((term) =>
+  const hasCrp = GIANT_CELL_ARTERITIS_CRP_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasSteroid && hasLabs && hasDiagnosticConfirmation && hasEscalation;
+  const hasCbcPlatelet = GIANT_CELL_ARTERITIS_CBC_PLATELET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBiopsy = GIANT_CELL_ARTERITIS_BIOPSY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUltrasound = GIANT_CELL_ARTERITIS_ULTRASOUND_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUrgentTiming = GIANT_CELL_ARTERITIS_URGENT_TIMING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSpecialist = GIANT_CELL_ARTERITIS_SPECIALIST_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasHighDoseSteroid &&
+    hasSteroidAgent &&
+    hasEsr &&
+    hasCrp &&
+    hasCbcPlatelet &&
+    (hasBiopsy || hasUltrasound) &&
+    hasUrgentTiming &&
+    hasSpecialist
+  );
 }
 
 function hasGiantCellArteritisTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasDoNotDelay = GIANT_CELL_ARTERITIS_DO_NOT_DELAY_SAFETY_TERMS.some((term) =>
+  const hasNoDelay = GIANT_CELL_ARTERITIS_NO_DELAY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasVisionIschemiaSafety = GIANT_CELL_ARTERITIS_VISION_ISCHEMIA_SAFETY_TERMS.some((term) =>
+  const hasDiagnosticDelay = GIANT_CELL_ARTERITIS_DIAGNOSTIC_DELAY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasSteroidRiskSafety = GIANT_CELL_ARTERITIS_STEROID_RISK_SAFETY_TERMS.some((term) =>
+  const hasVisualSymptomSafety = GIANT_CELL_ARTERITIS_VISUAL_SYMPTOM_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasFollowupSafety = GIANT_CELL_ARTERITIS_FOLLOWUP_SAFETY_TERMS.some((term) =>
+  const hasCranialIschemiaSafety = GIANT_CELL_ARTERITIS_CRANIAL_ISCHEMIA_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasGlucoseSafety = GIANT_CELL_ARTERITIS_GLUCOSE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasDoNotDelay && hasVisionIschemiaSafety && hasSteroidRiskSafety && hasFollowupSafety;
+  const hasInfectionSafety = GIANT_CELL_ARTERITIS_INFECTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBoneSafety = GIANT_CELL_ARTERITIS_BONE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasGiSafety = GIANT_CELL_ARTERITIS_GI_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTaperRelapseSafety = GIANT_CELL_ARTERITIS_TAPER_RELAPSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLargeVesselSafety = GIANT_CELL_ARTERITIS_LARGE_VESSEL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidSparingSafety = GIANT_CELL_ARTERITIS_STEROID_SPARING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasNoDelay &&
+    hasDiagnosticDelay &&
+    hasVisualSymptomSafety &&
+    hasCranialIschemiaSafety &&
+    hasGlucoseSafety &&
+    hasInfectionSafety &&
+    hasBoneSafety &&
+    hasGiSafety &&
+    hasTaperRelapseSafety &&
+    hasLargeVesselSafety &&
+    hasSteroidSparingSafety
+  );
 }
 
 function requiresAcuteAngleClosureGlaucomaSafetyCheck(
@@ -28261,7 +28353,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasGiantCellArteritisTimeCriticalActions,
       issue:
-        "giant cell arteritis time-critical actions must include immediate high-dose glucocorticoid or corticosteroid therapy such as prednisone, prednisolone, or IV methylprednisolone, ESR, CRP, CBC, platelet, or inflammatory-marker testing, temporal artery biopsy, temporal artery ultrasound, color Doppler, halo-sign, or diagnostic confirmation planning, and urgent ophthalmology, rheumatology, emergency, same-day, visual-symptom, or vision-loss escalation",
+        "giant cell arteritis time-critical actions must include immediate high-dose glucocorticoid/corticosteroid therapy with a specific agent such as prednisone, prednisolone, or IV methylprednisolone, ESR plus CRP plus CBC/platelet testing, temporal artery biopsy or temporal artery ultrasound/color-Doppler/halo-sign diagnostic planning, and urgent/same-day ophthalmology or rheumatology escalation for visual symptoms or vision loss",
     },
     {
       name: "giant_cell_arteritis_treatment_safety",
@@ -28270,7 +28362,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasGiantCellArteritisTreatmentSafetyCheck,
       issue:
-        "giant cell arteritis safety checks must include explicit do-not-delay, do-not-wait, immediate, same-day, or before-biopsy steroid planning, vision or cranial-ischemia risk review for amaurosis fugax, diplopia, visual disturbance, vision loss, or stroke, steroid-risk mitigation for glucose, diabetes, infection, osteoporosis, fracture, bone protection, PPI, GI, or toxicity, and follow-up planning for taper, relapse, large-vessel disease, vascular imaging, polymyalgia rheumatica, or tocilizumab",
+        "giant cell arteritis safety checks must include explicit do-not-delay steroid planning before biopsy, ultrasound, labs, or specialist review, visual-symptom and cranial-ischemia risk review for amaurosis fugax, diplopia, visual disturbance, vision loss, or stroke, steroid-risk mitigation for glucose/diabetes, infection, osteoporosis/fracture/bone protection, and PPI/GI risk, plus follow-up planning for taper/relapse, large-vessel disease or vascular imaging, and polymyalgia rheumatica or tocilizumab/steroid-sparing therapy",
     },
     {
       name: "acute_angle_closure_glaucoma_time_critical_actions",
