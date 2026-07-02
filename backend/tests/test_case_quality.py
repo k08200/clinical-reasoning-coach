@@ -9679,7 +9679,7 @@ def test_quality_gate_requires_open_globe_shield_antibiotics_tetanus_imaging_and
         "Avoid pressure, eye patching, tonometry, ocular ultrasound, and manipulation that could extrude ocular contents",
         "Keep NPO, give antiemetic for vomiting or nausea, and provide analgesia and pain control",
         "Do not remove a protruding foreign body, leave it in place, and avoid MRI if metallic intraocular foreign body is possible",
-        "Monitor for posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
+        "Avoid topical antibiotics and avoid ointment before closure; monitor for posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
     ]
     case["clinical_sources"] = [
         {
@@ -9699,7 +9699,7 @@ def test_quality_gate_requires_open_globe_shield_antibiotics_tetanus_imaging_and
                 "avoid pressure, eye patching, tonometry, ocular ultrasound, and manipulation that could extrude ocular contents",
                 "NPO, antiemetic for vomiting or nausea, analgesia, and pain control",
                 "do not remove a protruding foreign body, leave it in place, and avoid MRI if metallic intraocular foreign body is possible",
-                "posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
+                "avoid topical antibiotics and avoid ointment before closure; posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
             ],
         },
         {
@@ -9756,7 +9756,7 @@ def test_quality_gate_requires_open_globe_specific_repair_not_generic_surgery_pl
         "Avoid pressure, eye patching, tonometry, ocular ultrasound, and manipulation that could extrude ocular contents",
         "Keep NPO, give antiemetic for vomiting or nausea, and provide analgesia and pain control",
         "Do not remove a protruding foreign body, leave it in place, and avoid MRI if metallic intraocular foreign body is possible",
-        "Monitor for posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
+        "Avoid topical antibiotics and avoid ointment before closure; monitor for posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
     ]
     case["clinical_sources"] = [
         {
@@ -9777,7 +9777,7 @@ def test_quality_gate_requires_open_globe_specific_repair_not_generic_surgery_pl
                 "avoid pressure, eye patching, tonometry, ocular ultrasound, and manipulation that could extrude ocular contents",
                 "NPO, antiemetic for vomiting or nausea, analgesia, and pain control",
                 "do not remove a protruding foreign body, leave it in place, and avoid MRI if metallic intraocular foreign body is possible",
-                "posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
+                "avoid topical antibiotics and avoid ointment before closure; posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
             ],
         },
         {
@@ -9863,6 +9863,144 @@ def test_quality_gate_requires_open_globe_no_pressure_npo_foreign_body_and_infec
                 "analgesia, antibiotics, and eye protection are necessary to limit IOP, prevent infection, and prevent further injury",
             ],
         },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "open globe safety checks must include avoiding pressure" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_open_globe_specific_iv_antibiotics_not_generic_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suspected globe rupture"
+    case["patient_demographics"] = {
+        "age": 44,
+        "sex": "male",
+        "weight_kg": 81,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe eye pain and vision loss after metal fragment injury"
+    case["history_of_present_illness"] = (
+        "Patient was hammering metal and developed eye trauma with severe pain, "
+        "decreased vision, irregular pupil, shallow anterior chamber, aqueous leak, "
+        "and positive Seidel sign."
+    )
+    case["key_teaching_points"] = [
+        "Suspected open globe is an ophthalmologic emergency requiring surgical repair",
+        "Avoid pressure because ocular contents can extrude through the wound",
+        "Eye shield, systemic antibiotics, tetanus prophylaxis, and CT orbit are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Penetrating mechanism, high-speed metal, projectile, or sharp eye trauma",
+        "Irregular or misshapen pupil, positive Seidel sign, aqueous leak, shallow anterior chamber, or uveal prolapse",
+    ]
+    case["time_critical_actions"] = [
+        "Place a rigid eye shield protective shield without pressure",
+        "Give broad-spectrum IV antibiotics and update tetanus prophylaxis",
+        "Obtain CT orbit to assess intraocular foreign body and orbital injury",
+        "Consult urgent ophthalmology for globe exploration, surgical repair, operative repair, and closure planning",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid pressure, eye patching, tonometry, ocular ultrasound, and manipulation that could extrude ocular contents",
+        "Keep NPO, give antiemetic for vomiting or nausea, and provide analgesia and pain control",
+        "Do not remove a protruding foreign body, leave it in place, and avoid MRI if metallic intraocular foreign body is possible",
+        "Avoid topical antibiotics and avoid ointment before closure; monitor for posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Globe Injury",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/eye-trauma/globe-injury",
+            "supports": [
+                "suspected globe rupture diagnosis and risk stratification",
+                "suspected open globe is an ophthalmologic emergency requiring surgical repair",
+                "avoid pressure because ocular contents can extrude through the wound",
+                "eye shield, systemic antibiotics, tetanus prophylaxis, and CT orbit are time critical",
+                "penetrating mechanism, high-speed metal, projectile, or sharp eye trauma as red flags",
+                "irregular or misshapen pupil, positive Seidel sign, aqueous leak, shallow anterior chamber, or uveal prolapse as severity markers",
+                "rigid eye shield protective shield without pressure",
+                "broad-spectrum IV antibiotics and tetanus prophylaxis",
+                "CT orbit to assess intraocular foreign body and orbital injury",
+                "urgent ophthalmology for globe exploration, surgical repair, operative repair, and closure planning",
+                "avoid pressure, eye patching, tonometry, ocular ultrasound, and manipulation that could extrude ocular contents",
+                "NPO, antiemetic for vomiting or nausea, analgesia, and pain control",
+                "do not remove a protruding foreign body, leave it in place, and avoid MRI if metallic intraocular foreign body is possible",
+                "avoid topical antibiotics and avoid ointment before closure; posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "open globe time-critical actions must include rigid eye shield" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_open_globe_topical_ointment_avoidance_not_infection_monitoring_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suspected globe rupture"
+    case["patient_demographics"] = {
+        "age": 44,
+        "sex": "male",
+        "weight_kg": 81,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe eye pain and vision loss after metal fragment injury"
+    case["history_of_present_illness"] = (
+        "Patient was hammering metal and developed eye trauma with severe pain, "
+        "decreased vision, irregular pupil, shallow anterior chamber, aqueous leak, "
+        "and positive Seidel sign."
+    )
+    case["key_teaching_points"] = [
+        "Suspected open globe is an ophthalmologic emergency requiring surgical repair",
+        "Avoid pressure because ocular contents can extrude through the wound",
+        "Eye shield, systemic antibiotics, tetanus prophylaxis, and CT orbit are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Penetrating mechanism, high-speed metal, projectile, or sharp eye trauma",
+        "Irregular or misshapen pupil, positive Seidel sign, aqueous leak, shallow anterior chamber, or uveal prolapse",
+    ]
+    case["time_critical_actions"] = [
+        "Place a rigid eye shield protective shield without pressure",
+        "Give IV antibiotics with vancomycin plus ceftazidime and update tetanus prophylaxis",
+        "Obtain CT orbit to assess intraocular foreign body and orbital injury",
+        "Consult urgent ophthalmology for globe exploration, surgical repair, operative repair, and closure planning",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid pressure, eye patching, tonometry, ocular ultrasound, and manipulation that could extrude ocular contents",
+        "Keep NPO, give antiemetic for vomiting or nausea, and provide analgesia and pain control",
+        "Do not remove a protruding foreign body, leave it in place, and avoid MRI if metallic intraocular foreign body is possible",
+        "Monitor for posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Globe Injury",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/eye-trauma/globe-injury",
+            "supports": [
+                "suspected globe rupture diagnosis and risk stratification",
+                "suspected open globe is an ophthalmologic emergency requiring surgical repair",
+                "avoid pressure because ocular contents can extrude through the wound",
+                "eye shield, systemic antibiotics, tetanus prophylaxis, and CT orbit are time critical",
+                "penetrating mechanism, high-speed metal, projectile, or sharp eye trauma as red flags",
+                "irregular or misshapen pupil, positive Seidel sign, aqueous leak, shallow anterior chamber, or uveal prolapse as severity markers",
+                "rigid eye shield protective shield without pressure",
+                "IV antibiotics with vancomycin plus ceftazidime and tetanus prophylaxis",
+                "CT orbit to assess intraocular foreign body and orbital injury",
+                "urgent ophthalmology for globe exploration, surgical repair, operative repair, and closure planning",
+                "avoid pressure, eye patching, tonometry, ocular ultrasound, and manipulation that could extrude ocular contents",
+                "NPO, antiemetic for vomiting or nausea, analgesia, and pain control",
+                "do not remove a protruding foreign body, leave it in place, and avoid MRI if metallic intraocular foreign body is possible",
+                "posttraumatic endophthalmitis, intravitreal antibiotic need, sympathetic ophthalmia, infection, vision prognosis, and close recheck",
+            ],
+        }
     ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))

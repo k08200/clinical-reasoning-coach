@@ -5270,28 +5270,37 @@ const OPEN_GLOBE_SIGN_CONTEXT_TERMS = [
   "동공",
 ];
 
-const OPEN_GLOBE_SHIELD_ACTION_TERMS = [
+const OPEN_GLOBE_RIGID_SHIELD_ACTION_TERMS = [
   "eye shield",
   "protective shield",
   "rigid shield",
-  "shield",
-  "안대",
   "보호대",
 ];
 
-const OPEN_GLOBE_ANTIBIOTIC_ACTION_TERMS = [
+const OPEN_GLOBE_SHIELD_NO_PRESSURE_ACTION_TERMS = [
+  "avoid pressure",
+  "no pressure",
+  "without pressure",
+  "압박",
+];
+
+const OPEN_GLOBE_SYSTEMIC_IV_ANTIBIOTIC_ACTION_TERMS = [
   "antibiotic",
   "broad-spectrum antibiotic",
+  "iv antibiotics",
+  "systemic antibiotic",
+  "항생제",
+];
+
+const OPEN_GLOBE_VANCOMYCIN_ACTION_TERMS = ["vancomycin"];
+
+const OPEN_GLOBE_GRAM_NEGATIVE_ACTION_TERMS = [
   "ceftazidime",
   "cefazolin",
   "cephalosporin",
   "fluoroquinolone",
-  "iv antibiotics",
   "levofloxacin",
   "moxifloxacin",
-  "systemic antibiotic",
-  "vancomycin",
-  "항생제",
 ];
 
 const OPEN_GLOBE_TETANUS_ACTION_TERMS = [
@@ -5302,18 +5311,21 @@ const OPEN_GLOBE_TETANUS_ACTION_TERMS = [
   "파상풍",
 ];
 
-const OPEN_GLOBE_IMAGING_ACTION_TERMS = [
-  "ct",
+const OPEN_GLOBE_CT_ORBIT_ACTION_TERMS = [
   "ct orbit",
   "ct orbits",
+  "orbital ct",
+];
+
+const OPEN_GLOBE_FOREIGN_BODY_IMAGING_ACTION_TERMS = [
   "foreign body",
   "intraocular foreign body",
-  "orbital ct",
   "x-ray",
   "영상",
 ];
 
-const OPEN_GLOBE_OPHTHALMOLOGY_ACTION_TERMS = [
+const OPEN_GLOBE_URGENT_OPHTHALMOLOGY_ACTION_TERMS = [
+  "emergency ophthalmology",
   "ophthalmology",
   "ophthalmologist",
   "urgent ophthalmology",
@@ -5338,50 +5350,84 @@ const OPEN_GLOBE_SURGICAL_REPAIR_ACTION_TERMS = [
   "안구 수술",
 ];
 
-const OPEN_GLOBE_NO_PRESSURE_SAFETY_TERMS = [
+const OPEN_GLOBE_PRESSURE_AVOIDANCE_SAFETY_TERMS = [
   "avoid pressure",
   "do not press",
   "no pressure",
-  "not patch",
   "pressure patch",
-  "tonometry",
-  "ultrasound",
   "압박",
+];
+
+const OPEN_GLOBE_PATCH_TONOMETRY_SAFETY_TERMS = [
+  "eye patching",
+  "not patch",
+  "tonometry",
   "안압",
 ];
 
-const OPEN_GLOBE_NPO_ANTIEMETIC_SAFETY_TERMS = [
-  "analgesia",
-  "antiemetic",
-  "nausea",
+const OPEN_GLOBE_ULTRASOUND_MANIPULATION_SAFETY_TERMS = [
+  "manipulation",
+  "ocular ultrasound",
+  "ultrasound",
+];
+
+const OPEN_GLOBE_EXTRUSION_SAFETY_TERMS = [
+  "extrude ocular contents",
+  "extrusion",
+  "ocular contents",
+];
+
+const OPEN_GLOBE_NPO_SAFETY_TERMS = [
   "nothing by mouth",
   "npo",
-  "pain control",
-  "vomiting",
-  "구토",
   "금식",
 ];
 
-const OPEN_GLOBE_FOREIGN_BODY_MRI_SAFETY_TERMS = [
+const OPEN_GLOBE_ANTIEMETIC_SAFETY_TERMS = [
+  "antiemetic",
+  "nausea",
+  "vomiting",
+  "구토",
+];
+
+const OPEN_GLOBE_ANALGESIA_SAFETY_TERMS = [
+  "analgesia",
+  "pain control",
+];
+
+const OPEN_GLOBE_FOREIGN_BODY_REMOVAL_SAFETY_TERMS = [
   "do not remove",
-  "foreign body",
-  "intraocular foreign body",
   "leave in place",
+  "remove foreign body",
+];
+
+const OPEN_GLOBE_MRI_METALLIC_SAFETY_TERMS = [
   "metallic",
   "mri",
-  "remove foreign body",
   "금속",
 ];
 
-const OPEN_GLOBE_ENDOPHTHALMITIS_FOLLOWUP_SAFETY_TERMS = [
+const OPEN_GLOBE_TOPICAL_OINTMENT_SAFETY_TERMS = [
+  "avoid ointment",
+  "avoid topical",
+  "ointment",
+  "topical antibiotics are avoided",
+];
+
+const OPEN_GLOBE_ENDOPHTHALMITIS_SAFETY_TERMS = [
   "endophthalmitis",
-  "intravitreal",
   "posttraumatic infection",
+  "감염",
+  "안내염",
+];
+
+const OPEN_GLOBE_INTRAVITREAL_SAFETY_TERMS = ["intravitreal"];
+
+const OPEN_GLOBE_FOLLOWUP_PROGNOSIS_SAFETY_TERMS = [
+  "close recheck",
   "recheck",
   "sympathetic ophthalmia",
   "vision prognosis",
-  "감염",
-  "안내염",
 ];
 
 const ENDOPHTHALMITIS_DIRECT_CONTEXT_TERMS = [
@@ -20703,29 +20749,45 @@ function requiresOpenGlobeSafetyCheck(detail: ClinicalCaseReviewDetail): boolean
 
 function hasOpenGlobeTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasShield = OPEN_GLOBE_SHIELD_ACTION_TERMS.some((term) =>
+  const hasRigidShield = OPEN_GLOBE_RIGID_SHIELD_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntibiotic = OPEN_GLOBE_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+  const hasShieldNoPressure = OPEN_GLOBE_SHIELD_NO_PRESSURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSystemicIvAntibiotic = OPEN_GLOBE_SYSTEMIC_IV_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVancomycin = OPEN_GLOBE_VANCOMYCIN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasGramNegativeCoverage = OPEN_GLOBE_GRAM_NEGATIVE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasTetanus = OPEN_GLOBE_TETANUS_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasImaging = OPEN_GLOBE_IMAGING_ACTION_TERMS.some((term) =>
+  const hasCtOrbit = OPEN_GLOBE_CT_ORBIT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasOphthalmology = OPEN_GLOBE_OPHTHALMOLOGY_ACTION_TERMS.some((term) =>
+  const hasForeignBodyImaging = OPEN_GLOBE_FOREIGN_BODY_IMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOphthalmology = OPEN_GLOBE_URGENT_OPHTHALMOLOGY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasSurgicalRepair = OPEN_GLOBE_SURGICAL_REPAIR_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasShield &&
-    hasAntibiotic &&
+    hasRigidShield &&
+    hasShieldNoPressure &&
+    hasSystemicIvAntibiotic &&
+    hasVancomycin &&
+    hasGramNegativeCoverage &&
     hasTetanus &&
-    hasImaging &&
+    hasCtOrbit &&
+    hasForeignBodyImaging &&
     hasOphthalmology &&
     hasSurgicalRepair
   );
@@ -20733,19 +20795,60 @@ function hasOpenGlobeTimeCriticalActions(actions: string[]): boolean {
 
 function hasOpenGlobeTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasNoPressure = OPEN_GLOBE_NO_PRESSURE_SAFETY_TERMS.some((term) =>
+  const hasPressureAvoidance = OPEN_GLOBE_PRESSURE_AVOIDANCE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasNpoAntiemetic = OPEN_GLOBE_NPO_ANTIEMETIC_SAFETY_TERMS.some((term) =>
+  const hasPatchTonometryAvoidance = OPEN_GLOBE_PATCH_TONOMETRY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasForeignBodyMri = OPEN_GLOBE_FOREIGN_BODY_MRI_SAFETY_TERMS.some((term) =>
+  const hasUltrasoundManipulationAvoidance = OPEN_GLOBE_ULTRASOUND_MANIPULATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasEndophthalmitisFollowup = OPEN_GLOBE_ENDOPHTHALMITIS_FOLLOWUP_SAFETY_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
+  const hasExtrusionSafety = OPEN_GLOBE_EXTRUSION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
   );
-  return hasNoPressure && hasNpoAntiemetic && hasForeignBodyMri && hasEndophthalmitisFollowup;
+  const hasNpoSafety = OPEN_GLOBE_NPO_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntiemeticSafety = OPEN_GLOBE_ANTIEMETIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAnalgesiaSafety = OPEN_GLOBE_ANALGESIA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasForeignBodyRemovalSafety = OPEN_GLOBE_FOREIGN_BODY_REMOVAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMriMetallicSafety = OPEN_GLOBE_MRI_METALLIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTopicalOintmentSafety = OPEN_GLOBE_TOPICAL_OINTMENT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEndophthalmitisSafety = OPEN_GLOBE_ENDOPHTHALMITIS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasIntravitrealSafety = OPEN_GLOBE_INTRAVITREAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFollowupPrognosisSafety = OPEN_GLOBE_FOLLOWUP_PROGNOSIS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasPressureAvoidance &&
+    hasPatchTonometryAvoidance &&
+    hasUltrasoundManipulationAvoidance &&
+    hasExtrusionSafety &&
+    hasNpoSafety &&
+    hasAntiemeticSafety &&
+    hasAnalgesiaSafety &&
+    hasForeignBodyRemovalSafety &&
+    hasMriMetallicSafety &&
+    hasTopicalOintmentSafety &&
+    hasEndophthalmitisSafety &&
+    hasIntravitrealSafety &&
+    hasFollowupPrognosisSafety
+  );
 }
 
 function requiresEndophthalmitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -28770,7 +28873,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasOpenGlobeTimeCriticalActions,
       issue:
-        "open globe time-critical actions must include rigid eye shield, protective shield, or eye-shield placement without pressure, systemic or IV antibiotics such as vancomycin, ceftazidime, moxifloxacin, fluoroquinolone, plus tetanus planning, CT orbit, orbital CT, x-ray, foreign-body, or intraocular-foreign-body imaging, urgent ophthalmology or ophthalmologist escalation, and specific globe exploration, surgical repair, operative repair, closure, or globe repair planning",
+        "open globe time-critical actions must include rigid eye shield, protective shield, or eye-shield placement with explicit no-pressure handling, systemic/IV antibiotic coverage including vancomycin plus ceftazidime/cefazolin/cephalosporin or a fluoroquinolone, tetanus planning, CT orbit/orbital CT plus foreign-body or intraocular-foreign-body imaging, urgent ophthalmology or ophthalmologist escalation, and specific globe exploration, surgical repair, operative repair, closure, or globe repair planning",
     },
     {
       name: "open_globe_treatment_safety",
@@ -28779,7 +28882,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasOpenGlobeTreatmentSafetyCheck,
       issue:
-        "open globe safety checks must include avoiding pressure, eye patching, tonometry, ocular ultrasound, or manipulation that can extrude ocular contents, NPO, antiemetic, analgesia, vomiting, or pain-control planning, intraocular foreign-body precautions including do-not-remove, leave-in-place, metallic foreign body, or MRI avoidance review, and posttraumatic endophthalmitis, intravitreal antibiotic, sympathetic ophthalmia, infection, vision-prognosis, or close follow-up monitoring",
+        "open globe safety checks must include avoiding pressure plus eye patching/tonometry avoidance and ocular-ultrasound/manipulation avoidance because ocular contents can extrude, NPO plus antiemetic and analgesia/pain-control planning, intraocular foreign-body precautions with do-not-remove/leave-in-place and metallic foreign body/MRI avoidance review, topical-antibiotic or ointment avoidance, and posttraumatic endophthalmitis/infection, intravitreal-antibiotic, sympathetic-ophthalmia, vision-prognosis, or close-follow-up monitoring",
     },
     {
       name: "endophthalmitis_time_critical_actions",

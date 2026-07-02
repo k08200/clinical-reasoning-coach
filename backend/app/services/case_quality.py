@@ -4756,27 +4756,33 @@ OPEN_GLOBE_SIGN_CONTEXT_TERMS = (
     "uveal prolapse",
     "동공",
 )
-OPEN_GLOBE_SHIELD_ACTION_TERMS = (
+OPEN_GLOBE_RIGID_SHIELD_ACTION_TERMS = (
     "eye shield",
     "protective shield",
     "rigid shield",
-    "shield",
-    "안대",
     "보호대",
 )
-OPEN_GLOBE_ANTIBIOTIC_ACTION_TERMS = (
+OPEN_GLOBE_SHIELD_NO_PRESSURE_ACTION_TERMS = (
+    "avoid pressure",
+    "no pressure",
+    "without pressure",
+    "압박",
+)
+OPEN_GLOBE_SYSTEMIC_IV_ANTIBIOTIC_ACTION_TERMS = (
     "antibiotic",
     "broad-spectrum antibiotic",
+    "iv antibiotics",
+    "systemic antibiotic",
+    "항생제",
+)
+OPEN_GLOBE_VANCOMYCIN_ACTION_TERMS = ("vancomycin",)
+OPEN_GLOBE_GRAM_NEGATIVE_ACTION_TERMS = (
     "ceftazidime",
     "cefazolin",
     "cephalosporin",
     "fluoroquinolone",
-    "iv antibiotics",
     "levofloxacin",
     "moxifloxacin",
-    "systemic antibiotic",
-    "vancomycin",
-    "항생제",
 )
 OPEN_GLOBE_TETANUS_ACTION_TERMS = (
     "tdap",
@@ -4785,17 +4791,19 @@ OPEN_GLOBE_TETANUS_ACTION_TERMS = (
     "tetanus vaccine",
     "파상풍",
 )
-OPEN_GLOBE_IMAGING_ACTION_TERMS = (
-    "ct",
+OPEN_GLOBE_CT_ORBIT_ACTION_TERMS = (
     "ct orbit",
     "ct orbits",
+    "orbital ct",
+)
+OPEN_GLOBE_FOREIGN_BODY_IMAGING_ACTION_TERMS = (
     "foreign body",
     "intraocular foreign body",
-    "orbital ct",
     "x-ray",
     "영상",
 )
-OPEN_GLOBE_OPHTHALMOLOGY_ACTION_TERMS = (
+OPEN_GLOBE_URGENT_OPHTHALMOLOGY_ACTION_TERMS = (
+    "emergency ophthalmology",
     "ophthalmology",
     "ophthalmologist",
     "urgent ophthalmology",
@@ -4818,47 +4826,72 @@ OPEN_GLOBE_SURGICAL_REPAIR_ACTION_TERMS = (
     "안구 봉합",
     "안구 수술",
 )
-OPEN_GLOBE_NO_PRESSURE_SAFETY_TERMS = (
+OPEN_GLOBE_PRESSURE_AVOIDANCE_SAFETY_TERMS = (
     "avoid pressure",
     "do not press",
     "no pressure",
-    "not patch",
     "pressure patch",
-    "tonometry",
-    "ultrasound",
     "압박",
+)
+OPEN_GLOBE_PATCH_TONOMETRY_SAFETY_TERMS = (
+    "eye patching",
+    "not patch",
+    "tonometry",
     "안압",
 )
-OPEN_GLOBE_NPO_ANTIEMETIC_SAFETY_TERMS = (
-    "analgesia",
-    "antiemetic",
-    "nausea",
+OPEN_GLOBE_ULTRASOUND_MANIPULATION_SAFETY_TERMS = (
+    "manipulation",
+    "ocular ultrasound",
+    "ultrasound",
+)
+OPEN_GLOBE_EXTRUSION_SAFETY_TERMS = (
+    "extrude ocular contents",
+    "extrusion",
+    "ocular contents",
+)
+OPEN_GLOBE_NPO_SAFETY_TERMS = (
     "nothing by mouth",
     "npo",
-    "pain control",
-    "vomiting",
-    "구토",
     "금식",
 )
-OPEN_GLOBE_FOREIGN_BODY_MRI_SAFETY_TERMS = (
+OPEN_GLOBE_ANTIEMETIC_SAFETY_TERMS = (
+    "antiemetic",
+    "nausea",
+    "vomiting",
+    "구토",
+)
+OPEN_GLOBE_ANALGESIA_SAFETY_TERMS = (
+    "analgesia",
+    "pain control",
+)
+OPEN_GLOBE_FOREIGN_BODY_REMOVAL_SAFETY_TERMS = (
     "do not remove",
-    "foreign body",
-    "intraocular foreign body",
     "leave in place",
+    "remove foreign body",
+)
+OPEN_GLOBE_MRI_METALLIC_SAFETY_TERMS = (
     "metallic",
     "mri",
-    "remove foreign body",
     "금속",
 )
-OPEN_GLOBE_ENDOPHTHALMITIS_FOLLOWUP_SAFETY_TERMS = (
+OPEN_GLOBE_TOPICAL_OINTMENT_SAFETY_TERMS = (
+    "avoid ointment",
+    "avoid topical",
+    "ointment",
+    "topical antibiotics are avoided",
+)
+OPEN_GLOBE_ENDOPHTHALMITIS_SAFETY_TERMS = (
     "endophthalmitis",
-    "intravitreal",
     "posttraumatic infection",
+    "감염",
+    "안내염",
+)
+OPEN_GLOBE_INTRAVITREAL_SAFETY_TERMS = ("intravitreal",)
+OPEN_GLOBE_FOLLOWUP_PROGNOSIS_SAFETY_TERMS = (
+    "close recheck",
     "recheck",
     "sympathetic ophthalmia",
     "vision prognosis",
-    "감염",
-    "안내염",
 )
 ENDOPHTHALMITIS_DIRECT_CONTEXT_TERMS = (
     "acute endophthalmitis",
@@ -17288,13 +17321,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_open_globe_time_critical_actions,
             issue=(
                 "open globe time-critical actions must include rigid eye shield, "
-                "protective shield, or eye-shield placement without pressure, "
-                "systemic or IV antibiotics such as vancomycin, ceftazidime, "
-                "moxifloxacin, fluoroquinolone, plus tetanus planning, CT orbit, "
-                "orbital CT, x-ray, foreign-body, or intraocular-foreign-body "
-                "imaging, urgent ophthalmology or ophthalmologist escalation, "
-                "and specific globe exploration, surgical repair, operative "
-                "repair, closure, or globe repair planning"
+                "protective shield, or eye-shield placement with explicit no-pressure "
+                "handling, systemic/IV antibiotic coverage including vancomycin plus "
+                "ceftazidime/cefazolin/cephalosporin or a fluoroquinolone, tetanus "
+                "planning, CT orbit/orbital CT plus foreign-body or intraocular-"
+                "foreign-body imaging, urgent ophthalmology or ophthalmologist "
+                "escalation, and specific globe exploration, surgical repair, "
+                "operative repair, closure, or globe repair planning"
             ),
         ),
         DomainSafetyGate(
@@ -17303,14 +17336,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="contraindication_checks",
             validator=_has_open_globe_treatment_safety_check,
             issue=(
-                "open globe safety checks must include avoiding pressure, eye "
-                "patching, tonometry, ocular ultrasound, or manipulation that can "
-                "extrude ocular contents, NPO, antiemetic, analgesia, vomiting, "
-                "or pain-control planning, intraocular foreign-body precautions "
-                "including do-not-remove, leave-in-place, metallic foreign body, "
-                "or MRI avoidance review, and posttraumatic endophthalmitis, "
-                "intravitreal antibiotic, sympathetic ophthalmia, infection, "
-                "vision-prognosis, or close follow-up monitoring"
+                "open globe safety checks must include avoiding pressure plus eye "
+                "patching/tonometry avoidance and ocular-ultrasound/manipulation "
+                "avoidance because ocular contents can extrude, NPO plus antiemetic "
+                "and analgesia/pain-control planning, intraocular foreign-body "
+                "precautions with do-not-remove/leave-in-place and metallic foreign "
+                "body/MRI avoidance review, topical-antibiotic or ointment avoidance, "
+                "and posttraumatic endophthalmitis/infection, intravitreal-antibiotic, "
+                "sympathetic-ophthalmia, vision-prognosis, or close-follow-up monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -24262,35 +24295,55 @@ def _requires_open_globe_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_open_globe_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_shield = any(
+    has_rigid_shield = any(
         _contains_safety_term(normalized_actions, term)
-        for term in OPEN_GLOBE_SHIELD_ACTION_TERMS
+        for term in OPEN_GLOBE_RIGID_SHIELD_ACTION_TERMS
     )
-    has_antibiotic = any(
+    has_shield_no_pressure = any(
         _contains_safety_term(normalized_actions, term)
-        for term in OPEN_GLOBE_ANTIBIOTIC_ACTION_TERMS
+        for term in OPEN_GLOBE_SHIELD_NO_PRESSURE_ACTION_TERMS
+    )
+    has_systemic_iv_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_GLOBE_SYSTEMIC_IV_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_vancomycin = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_GLOBE_VANCOMYCIN_ACTION_TERMS
+    )
+    has_gram_negative_coverage = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_GLOBE_GRAM_NEGATIVE_ACTION_TERMS
     )
     has_tetanus = any(
         _contains_safety_term(normalized_actions, term)
         for term in OPEN_GLOBE_TETANUS_ACTION_TERMS
     )
-    has_imaging = any(
+    has_ct_orbit = any(
         _contains_safety_term(normalized_actions, term)
-        for term in OPEN_GLOBE_IMAGING_ACTION_TERMS
+        for term in OPEN_GLOBE_CT_ORBIT_ACTION_TERMS
+    )
+    has_foreign_body_imaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OPEN_GLOBE_FOREIGN_BODY_IMAGING_ACTION_TERMS
     )
     has_ophthalmology = any(
         _contains_safety_term(normalized_actions, term)
-        for term in OPEN_GLOBE_OPHTHALMOLOGY_ACTION_TERMS
+        for term in OPEN_GLOBE_URGENT_OPHTHALMOLOGY_ACTION_TERMS
     )
     has_surgical_repair = any(
         _contains_safety_term(normalized_actions, term)
         for term in OPEN_GLOBE_SURGICAL_REPAIR_ACTION_TERMS
     )
     return (
-        has_shield
-        and has_antibiotic
+        has_rigid_shield
+        and has_shield_no_pressure
+        and has_systemic_iv_antibiotic
+        and has_vancomycin
+        and has_gram_negative_coverage
         and has_tetanus
-        and has_imaging
+        and has_ct_orbit
+        and has_foreign_body_imaging
         and has_ophthalmology
         and has_surgical_repair
     )
@@ -24298,27 +24351,72 @@ def _has_open_globe_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_open_globe_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_no_pressure = any(
+    has_pressure_avoidance = any(
         _contains_safety_term(normalized_checks, term)
-        for term in OPEN_GLOBE_NO_PRESSURE_SAFETY_TERMS
+        for term in OPEN_GLOBE_PRESSURE_AVOIDANCE_SAFETY_TERMS
     )
-    has_npo_antiemetic = any(
+    has_patch_tonometry_avoidance = any(
         _contains_safety_term(normalized_checks, term)
-        for term in OPEN_GLOBE_NPO_ANTIEMETIC_SAFETY_TERMS
+        for term in OPEN_GLOBE_PATCH_TONOMETRY_SAFETY_TERMS
     )
-    has_foreign_body_mri = any(
+    has_ultrasound_manipulation_avoidance = any(
         _contains_safety_term(normalized_checks, term)
-        for term in OPEN_GLOBE_FOREIGN_BODY_MRI_SAFETY_TERMS
+        for term in OPEN_GLOBE_ULTRASOUND_MANIPULATION_SAFETY_TERMS
     )
-    has_endophthalmitis_followup = any(
+    has_extrusion_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in OPEN_GLOBE_ENDOPHTHALMITIS_FOLLOWUP_SAFETY_TERMS
+        for term in OPEN_GLOBE_EXTRUSION_SAFETY_TERMS
+    )
+    has_npo_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_NPO_SAFETY_TERMS
+    )
+    has_antiemetic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_ANTIEMETIC_SAFETY_TERMS
+    )
+    has_analgesia_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_ANALGESIA_SAFETY_TERMS
+    )
+    has_foreign_body_removal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_FOREIGN_BODY_REMOVAL_SAFETY_TERMS
+    )
+    has_mri_metallic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_MRI_METALLIC_SAFETY_TERMS
+    )
+    has_topical_ointment_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_TOPICAL_OINTMENT_SAFETY_TERMS
+    )
+    has_endophthalmitis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_ENDOPHTHALMITIS_SAFETY_TERMS
+    )
+    has_intravitreal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_INTRAVITREAL_SAFETY_TERMS
+    )
+    has_followup_prognosis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OPEN_GLOBE_FOLLOWUP_PROGNOSIS_SAFETY_TERMS
     )
     return (
-        has_no_pressure
-        and has_npo_antiemetic
-        and has_foreign_body_mri
-        and has_endophthalmitis_followup
+        has_pressure_avoidance
+        and has_patch_tonometry_avoidance
+        and has_ultrasound_manipulation_avoidance
+        and has_extrusion_safety
+        and has_npo_safety
+        and has_antiemetic_safety
+        and has_analgesia_safety
+        and has_foreign_body_removal_safety
+        and has_mri_metallic_safety
+        and has_topical_ointment_safety
+        and has_endophthalmitis_safety
+        and has_intravitreal_safety
+        and has_followup_prognosis_safety
     )
 
 
