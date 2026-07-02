@@ -5875,13 +5875,20 @@ INSULIN_SULFONYLUREA_TOXICITY_GLUCOSE_MONITOR_ACTION_TERMS = (
     "poc glucose",
     "serial glucose",
 )
-INSULIN_SULFONYLUREA_TOXICITY_DEXTROSE_ACTION_TERMS = (
-    "d10",
+INSULIN_SULFONYLUREA_TOXICITY_DEXTROSE_RESCUE_ACTION_TERMS = (
     "d50",
-    "dextrose",
-    "glucose infusion",
-    "glucose IV",
+    "dextrose bolus",
+    "iv dextrose",
     "iv glucose",
+    "glucose IV",
+)
+INSULIN_SULFONYLUREA_TOXICITY_DEXTROSE_INFUSION_ACTION_TERMS = (
+    "continuous dextrose",
+    "continuous glucose",
+    "d10",
+    "dextrose drip",
+    "dextrose infusion",
+    "glucose infusion",
 )
 INSULIN_SULFONYLUREA_TOXICITY_NUTRITION_ACTION_TERMS = (
     "complex carbohydrate",
@@ -5891,11 +5898,10 @@ INSULIN_SULFONYLUREA_TOXICITY_NUTRITION_ACTION_TERMS = (
     "nutrition",
     "oral carbohydrate",
 )
-INSULIN_SULFONYLUREA_TOXICITY_OCTREOTIDE_ESCALATION_ACTION_TERMS = (
+INSULIN_SULFONYLUREA_TOXICITY_ESCALATION_ACTION_TERMS = (
     "admit",
     "hdu",
     "icu",
-    "octreotide",
     "poison center",
     "poison control",
     "toxicologist",
@@ -5910,16 +5916,18 @@ INSULIN_SULFONYLUREA_TOXICITY_ELECTROLYTE_ACTION_TERMS = (
     "phosphate",
     "potassium",
 )
-INSULIN_SULFONYLUREA_TOXICITY_RECURRENCE_OBSERVATION_SAFETY_TERMS = (
-    "12 hours",
-    "6 hours",
+INSULIN_SULFONYLUREA_TOXICITY_RECURRENCE_RISK_SAFETY_TERMS = (
     "delayed",
-    "euglycemia",
-    "euglycaemia",
     "extended release",
     "long-acting",
-    "observation",
     "recurrent",
+)
+INSULIN_SULFONYLUREA_TOXICITY_OBSERVATION_DURATION_SAFETY_TERMS = (
+    "12 hours",
+    "6 hours",
+    "euglycemia",
+    "euglycaemia",
+    "observation",
     "stopping dextrose",
 )
 INSULIN_SULFONYLUREA_TOXICITY_DEXTROSE_SAFETY_TERMS = (
@@ -5958,6 +5966,14 @@ INSULIN_SULFONYLUREA_TOXICITY_DISPOSITION_SAFETY_TERMS = (
     "normal diet",
     "octreotide discontinuation",
     "therapeutic dosing",
+)
+INSULIN_SULFONYLUREA_TOXICITY_DISPOSITION_STABILITY_SAFETY_TERMS = (
+    "euglycemia",
+    "euglycaemia",
+    "medical clearance",
+    "normal diet",
+    "octreotide discontinuation",
+    "stopping dextrose",
 )
 MALIGNANT_HYPERTHERMIA_CONTEXT_TERMS = (
     "malignant hyperthermia",
@@ -17773,11 +17789,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_insulin_sulfonylurea_toxicity_time_critical_actions,
             issue=(
                 "insulin or sulfonylurea toxicity time-critical actions must include "
-                "serial or frequent glucose monitoring, IV dextrose bolus or "
-                "continuous dextrose/glucose infusion, complex carbohydrate, meal, "
-                "feeding, or nutrition once safe, octreotide, poison-center, "
-                "toxicologist, ICU, HDU, or admission escalation, and potassium, "
-                "magnesium, phosphate, EUC, or electrolyte monitoring"
+                "serial or frequent glucose monitoring, immediate IV dextrose or "
+                "glucose bolus rescue, continuous dextrose/glucose infusion for "
+                "recurrent or prolonged hypoglycemia, complex carbohydrate, meal, "
+                "feeding, or nutrition once safe, poison-center, toxicologist, ICU, "
+                "HDU, or admission escalation, and potassium, magnesium, phosphate, "
+                "EUC, or electrolyte monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -17799,16 +17816,18 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_insulin_sulfonylurea_toxicity_treatment_safety_check,
             issue=(
                 "insulin or sulfonylurea toxicity safety checks must include "
-                "recurrent or delayed hypoglycemia observation for long-acting, "
-                "extended-release, euglycemia, post-dextrose stopping, 6-hour, or "
-                "12-hour monitoring, high-dose or concentrated dextrose safety with "
-                "central-line, D10, D25, D50, hyponatremia, tapering, or weaning "
-                "review, potassium, magnesium, phosphate, low-to-normal, or other "
-                "electrolyte monitoring, high-risk patient review for child, elderly, "
-                "non-diabetic, one-tablet, renal, hepatic, or liver risk, and "
-                "disposition review for admission, ICU, HDU, normal diet, octreotide "
-                "discontinuation, medical clearance, endocrine review, or therapeutic "
-                "dosing cause"
+                "recurrent or delayed hypoglycemia risk from long-acting or "
+                "extended-release exposure, observation duration such as 6-hour, "
+                "12-hour, euglycemia, or post-dextrose stopping monitoring, "
+                "high-dose or concentrated dextrose safety with central-line, D10, "
+                "D25, D50, hyponatremia, tapering, or weaning review, potassium, "
+                "magnesium, phosphate, low-to-normal, or other electrolyte monitoring, "
+                "high-risk patient review for child, elderly, non-diabetic, "
+                "one-tablet, renal, hepatic, or liver risk, and disposition review "
+                "for admission, ICU, HDU, endocrine review, or therapeutic dosing "
+                "cause plus stability criteria such as normal diet, sustained "
+                "euglycemia, medical clearance, octreotide discontinuation, or "
+                "stopping dextrose"
             ),
         ),
         DomainSafetyGate(
@@ -25544,17 +25563,21 @@ def _has_insulin_sulfonylurea_toxicity_time_critical_actions(
         _contains_safety_term(normalized_actions, term)
         for term in INSULIN_SULFONYLUREA_TOXICITY_GLUCOSE_MONITOR_ACTION_TERMS
     )
-    has_dextrose = any(
+    has_dextrose_rescue = any(
         _contains_safety_term(normalized_actions, term)
-        for term in INSULIN_SULFONYLUREA_TOXICITY_DEXTROSE_ACTION_TERMS
+        for term in INSULIN_SULFONYLUREA_TOXICITY_DEXTROSE_RESCUE_ACTION_TERMS
+    )
+    has_dextrose_infusion = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in INSULIN_SULFONYLUREA_TOXICITY_DEXTROSE_INFUSION_ACTION_TERMS
     )
     has_nutrition = any(
         _contains_safety_term(normalized_actions, term)
         for term in INSULIN_SULFONYLUREA_TOXICITY_NUTRITION_ACTION_TERMS
     )
-    has_octreotide_escalation = any(
+    has_escalation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in INSULIN_SULFONYLUREA_TOXICITY_OCTREOTIDE_ESCALATION_ACTION_TERMS
+        for term in INSULIN_SULFONYLUREA_TOXICITY_ESCALATION_ACTION_TERMS
     )
     has_electrolyte = any(
         _contains_safety_term(normalized_actions, term)
@@ -25562,9 +25585,10 @@ def _has_insulin_sulfonylurea_toxicity_time_critical_actions(
     )
     return (
         has_glucose_monitoring
-        and has_dextrose
+        and has_dextrose_rescue
+        and has_dextrose_infusion
         and has_nutrition
-        and has_octreotide_escalation
+        and has_escalation
         and has_electrolyte
     )
 
@@ -25581,9 +25605,13 @@ def _has_insulin_sulfonylurea_toxicity_treatment_safety_check(
     checks: list[Any],
 ) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_recurrence_observation = any(
+    has_recurrence_risk = any(
         _contains_safety_term(normalized_checks, term)
-        for term in INSULIN_SULFONYLUREA_TOXICITY_RECURRENCE_OBSERVATION_SAFETY_TERMS
+        for term in INSULIN_SULFONYLUREA_TOXICITY_RECURRENCE_RISK_SAFETY_TERMS
+    )
+    has_observation_duration = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in INSULIN_SULFONYLUREA_TOXICITY_OBSERVATION_DURATION_SAFETY_TERMS
     )
     has_dextrose_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -25601,12 +25629,18 @@ def _has_insulin_sulfonylurea_toxicity_treatment_safety_check(
         _contains_safety_term(normalized_checks, term)
         for term in INSULIN_SULFONYLUREA_TOXICITY_DISPOSITION_SAFETY_TERMS
     )
+    has_disposition_stability = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in INSULIN_SULFONYLUREA_TOXICITY_DISPOSITION_STABILITY_SAFETY_TERMS
+    )
     return (
-        has_recurrence_observation
+        has_recurrence_risk
+        and has_observation_duration
         and has_dextrose_safety
         and has_potassium_electrolyte_safety
         and has_risk_group_safety
         and has_disposition_safety
+        and has_disposition_stability
     )
 
 

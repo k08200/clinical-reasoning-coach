@@ -12077,6 +12077,96 @@ def test_quality_gate_requires_insulin_sulfonylurea_glucose_dextrose_nutrition_o
     )
 
 
+def test_quality_gate_requires_insulin_sulfonylurea_continuous_dextrose_infusion_not_bolus_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sulfonylurea toxicity with recurrent hypoglycemia"
+    case["patient_demographics"] = {
+        "age": 74,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion and seizure after glipizide overdose"
+    case["history_of_present_illness"] = (
+        "Elderly non-diabetic patient presents after glipizide sulfonylurea overdose "
+        "with diaphoresis, confusion, recurrent hypoglycemia, seizure, and blood "
+        "glucose 32 mg/dL."
+    )
+    case["past_medical_history"] = "Chronic kidney disease and accidental access to family sulfonylurea tablets"
+    case["physical_exam"] = {
+        "vitals": {"bp": "104/62", "hr": 112, "rr": 18, "temp_c": 35.9, "spo2": 96},
+        "general": "Diaphoretic and confused",
+        "cardiovascular": "Tachycardic",
+        "pulmonary": "Protecting airway after brief seizure",
+        "abdomen": "No abdominal tenderness",
+        "neuro": "Postictal with recurrent neuroglycopenic symptoms",
+        "other": "Pill count suggests modified release sulfonylurea exposure",
+    }
+    case["initial_labs"] = {
+        "glucose": "32 mg/dL",
+        "potassium": "3.2 mEq/L",
+        "creatinine": "2.0 mg/dL",
+        "ecg": "Sinus tachycardia",
+    }
+    case["key_teaching_points"] = [
+        "Sulfonylurea toxicity can cause profound and prolonged recurrent hypoglycemia",
+        "Dextrose is temporizing and octreotide helps stop sulfonylurea-driven insulin release",
+        "Renal impairment, elderly patients, non-diabetic exposure, and one tablet in children increase risk",
+    ]
+    case["clinical_red_flags"] = [
+        "Seizure, coma, confusion, recurrent hypoglycemia, or blood glucose below 40 mg/dL",
+        "Extended release sulfonylurea, delayed hypoglycemia, renal impairment, or non-diabetic ingestion",
+    ]
+    case["time_critical_actions"] = [
+        "Check serial glucose with point-of-care glucose every 15 minutes during resuscitation then hourly once stable",
+        "Give immediate IV dextrose D50 bolus for recurrent hypoglycemia",
+        "Allow feeding, meal, nutrition, and complex carbohydrate once awake and safe to swallow",
+        "Start octreotide and call poison center toxicologist; admit to ICU or HDU for recurrent sulfonylurea hypoglycemia",
+        "Monitor potassium, magnesium, phosphate, EUC, and electrolyte shifts during glucose and insulin treatment",
+    ]
+    case["contraindication_checks"] = [
+        "Observe for delayed recurrent hypoglycemia from extended release sulfonylurea for at least 12 hours and after stopping dextrose",
+        "Review high-dose dextrose infusion safety including D10, D25 or D50 concentration, central line need, hyponatremia, taper, and wean plan",
+        "Supplement potassium to low-to-normal range and monitor magnesium, phosphate, and other electrolyte shifts",
+        "Review high-risk patient factors including elderly, non-diabetic exposure, renal impairment, hepatic dysfunction, and one tablet risk in a child",
+        "Plan admission or ICU/HDU disposition until normal diet is tolerated and euglycemia persists after octreotide discontinuation; consider endocrine review if therapeutic dosing caused hypoglycemia",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hypoglycemia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/endocrine-and-metabolic-disorders/diabetes-mellitus-and-hypoglycemia/hypoglycemia",
+            "supports": [
+                "sulfonylurea toxicity with recurrent hypoglycemia diagnosis and risk stratification",
+                "glipizide sulfonylurea overdose can cause diaphoresis, confusion, recurrent hypoglycemia, seizure, and blood glucose 32 mg/dL",
+                "sulfonylurea toxicity can cause profound and prolonged recurrent hypoglycemia",
+                "dextrose is temporizing and octreotide helps stop sulfonylurea-driven insulin release",
+                "renal impairment, elderly patients, non-diabetic exposure, and one tablet in children increase risk",
+                "seizure, coma, confusion, recurrent hypoglycemia, or blood glucose below 40 mg/dL as red flags",
+                "extended release sulfonylurea, delayed hypoglycemia, renal impairment, or non-diabetic ingestion as severity markers",
+                "serial glucose with point-of-care glucose every 15 minutes during resuscitation then hourly once stable",
+                "immediate IV dextrose D50 bolus for recurrent hypoglycemia",
+                "feeding, meal, nutrition, and complex carbohydrate once awake and safe to swallow",
+                "octreotide and poison center toxicologist; ICU or HDU admission for recurrent sulfonylurea hypoglycemia",
+                "potassium, magnesium, phosphate, EUC, and electrolyte shift monitoring during glucose and insulin treatment",
+                "delayed recurrent hypoglycemia from extended release sulfonylurea for at least 12 hours and after stopping dextrose",
+                "high-dose dextrose infusion safety including D10, D25 or D50 concentration, central line need, hyponatremia, taper, and wean plan",
+                "potassium to low-to-normal range and magnesium, phosphate, and other electrolyte shift monitoring",
+                "elderly, non-diabetic exposure, renal impairment, hepatic dysfunction, and one tablet risk in a child",
+                "admission or ICU/HDU disposition until normal diet is tolerated and euglycemia persists after octreotide discontinuation; endocrine review if therapeutic dosing caused hypoglycemia",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "continuous dextrose/glucose infusion" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_sulfonylurea_octreotide_not_escalation_only():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Sulfonylurea toxicity with recurrent hypoglycemia"
