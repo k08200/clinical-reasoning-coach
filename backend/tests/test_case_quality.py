@@ -10322,7 +10322,7 @@ def test_quality_gate_requires_ttp_pex_adamts13_steroids_and_antivwf_actions():
     ]
     case["time_critical_actions"] = [
         "Call hematology urgently and arrange therapeutic plasma exchange plasmapheresis TPE",
-        "Draw ADAMTS13 before plasma products and send hemolysis labs including LDH, blood smear, peripheral smear, and schistocyte review",
+        "Draw ADAMTS13 before plasma products and send hemolysis labs including LDH, haptoglobin, bilirubin, reticulocyte count, blood smear, peripheral smear, and schistocyte review plus PT, PTT, fibrinogen, renal function, creatinine, and urinalysis",
         "Start corticosteroid therapy with methylprednisolone or prednisone steroid treatment",
     ]
     case["contraindication_checks"] = [
@@ -10344,7 +10344,7 @@ def test_quality_gate_requires_ttp_pex_adamts13_steroids_and_antivwf_actions():
                 "MAHA, schistocytes, hemolysis, severe thrombocytopenia, and normal coagulation profile as red flags",
                 "neurologic symptoms, confusion, seizure, stroke, fever, renal injury, or AKI as severity markers",
                 "urgent hematology and therapeutic plasma exchange plasmapheresis TPE planning",
-                "ADAMTS13 before plasma products and hemolysis labs including LDH, blood smear, peripheral smear, and schistocyte review",
+                "ADAMTS13 before plasma products and hemolysis labs including LDH, haptoglobin, bilirubin, reticulocyte count, blood smear, peripheral smear, and schistocyte review plus PT, PTT, fibrinogen, renal function, creatinine, and urinalysis",
                 "corticosteroid therapy with methylprednisolone or prednisone steroid treatment",
                 "do not wait for pending ADAMTS13, treat empirically, and do not delay plasma exchange",
                 "avoid platelet transfusion unless life-threatening bleeding or urgent procedure need",
@@ -10398,7 +10398,7 @@ def test_quality_gate_requires_ttp_plasma_exchange_not_hematology_label_only():
     ]
     case["time_critical_actions"] = [
         "Call hematology urgently for suspected TTP",
-        "Draw ADAMTS13 before plasma products and send hemolysis labs including LDH, blood smear, peripheral smear, and schistocyte review",
+        "Draw ADAMTS13 before plasma products and send hemolysis labs including LDH, haptoglobin, bilirubin, reticulocyte count, blood smear, peripheral smear, and schistocyte review plus PT, PTT, fibrinogen, renal function, creatinine, and urinalysis",
         "Start corticosteroid therapy with methylprednisolone or prednisone steroid treatment",
         "Consider caplacizumab anti-VWF, rituximab, or immunosuppression with hematology",
     ]
@@ -10421,7 +10421,7 @@ def test_quality_gate_requires_ttp_plasma_exchange_not_hematology_label_only():
                 "MAHA, schistocytes, hemolysis, severe thrombocytopenia, and normal coagulation profile as red flags",
                 "neurologic symptoms, confusion, seizure, stroke, fever, renal injury, or AKI as severity markers",
                 "urgent hematology for suspected TTP",
-                "ADAMTS13 before plasma products and hemolysis labs including LDH, blood smear, peripheral smear, and schistocyte review",
+                "ADAMTS13 before plasma products and hemolysis labs including LDH, haptoglobin, bilirubin, reticulocyte count, blood smear, peripheral smear, and schistocyte review plus PT, PTT, fibrinogen, renal function, creatinine, and urinalysis",
                 "corticosteroid therapy with methylprednisolone or prednisone steroid treatment",
                 "caplacizumab anti-VWF, rituximab, or immunosuppression with hematology",
                 "do not wait for pending ADAMTS13, treat empirically, and do not delay plasma exchange",
@@ -10477,7 +10477,7 @@ def test_quality_gate_requires_ttp_no_wait_platelet_differential_and_monitoring_
     ]
     case["time_critical_actions"] = [
         "Call hematology urgently and arrange therapeutic plasma exchange plasmapheresis TPE",
-        "Draw ADAMTS13 before plasma products and send hemolysis labs including LDH, blood smear, peripheral smear, and schistocyte review",
+        "Draw ADAMTS13 before plasma products and send hemolysis labs including LDH, haptoglobin, bilirubin, reticulocyte count, blood smear, peripheral smear, and schistocyte review plus PT, PTT, fibrinogen, renal function, creatinine, and urinalysis",
         "Start corticosteroid therapy with methylprednisolone or prednisone steroid treatment",
         "Consider caplacizumab anti-VWF, rituximab, or immunosuppression with hematology",
     ]
@@ -10498,7 +10498,7 @@ def test_quality_gate_requires_ttp_no_wait_platelet_differential_and_monitoring_
                 "MAHA, schistocytes, hemolysis, severe thrombocytopenia, and normal coagulation profile as red flags",
                 "neurologic symptoms, confusion, seizure, stroke, fever, renal injury, or AKI as severity markers",
                 "urgent hematology and therapeutic plasma exchange plasmapheresis TPE planning",
-                "ADAMTS13 before plasma products and hemolysis labs including LDH, blood smear, peripheral smear, and schistocyte review",
+                "ADAMTS13 before plasma products and hemolysis labs including LDH, haptoglobin, bilirubin, reticulocyte count, blood smear, peripheral smear, and schistocyte review plus PT, PTT, fibrinogen, renal function, creatinine, and urinalysis",
                 "corticosteroid therapy with methylprednisolone or prednisone steroid treatment",
                 "caplacizumab anti-VWF, rituximab, or immunosuppression with hematology",
                 "medication allergy before antiemetics",
@@ -10514,6 +10514,144 @@ def test_quality_gate_requires_ttp_no_wait_platelet_differential_and_monitoring_
                 "adults with thrombotic thrombocytopenic purpura are often given corticosteroids and rituximab",
             ],
         },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "TTP safety checks must include explicit do-not-wait" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ttp_hemolysis_coag_and_renal_labs_not_adamts13_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acquired thrombotic thrombocytopenic purpura"
+    case["patient_demographics"] = {
+        "age": 46,
+        "sex": "female",
+        "weight_kg": 66,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion, bruising, anemia, and low platelets"
+    case["history_of_present_illness"] = (
+        "Patient has fever, confusion, petechiae, severe thrombocytopenia with "
+        "platelet count 18, hemolytic anemia, schistocytes on smear, elevated LDH, "
+        "indirect bilirubin elevation, and acute kidney injury."
+    )
+    case["key_teaching_points"] = [
+        "TTP is a life-threatening thrombotic microangiopathy requiring emergency treatment",
+        "Plasma exchange and corticosteroids should start before ADAMTS13 results return when suspicion is high",
+        "Caplacizumab or rituximab may be considered with hematology in immune disease",
+    ]
+    case["clinical_red_flags"] = [
+        "MAHA, schistocytes, hemolysis, severe thrombocytopenia, and normal coagulation profile",
+        "Neurologic symptoms, confusion, seizure, stroke, fever, renal injury, or AKI",
+    ]
+    case["time_critical_actions"] = [
+        "Call hematology urgently and arrange therapeutic plasma exchange plasmapheresis TPE",
+        "Draw ADAMTS13 before plasma products before TPE",
+        "Start corticosteroid therapy with methylprednisolone or prednisone steroid treatment",
+        "Consider rituximab immunosuppression and caplacizumab anti-VWF with hematology",
+    ]
+    case["contraindication_checks"] = [
+        "Do not wait for pending ADAMTS13; treat empirically and do not delay plasma exchange",
+        "Avoid platelet transfusion unless life-threatening bleeding or urgent procedure need",
+        "Review differential diagnosis including HUS, aHUS, ITP, DIC, sepsis, HELLP, preeclampsia, and disseminated intravascular coagulation",
+        "Monitor platelet count, platelet recovery, LDH, hemolysis, AKI, renal injury, neurologic status, cardiac ischemia, bleeding, thrombosis, organ complications, relapse, recurrence, and refractory disease",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Thrombotic Thrombocytopenic Purpura",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/hematology-and-oncology/thrombocytopenia-and-platelet-dysfunction/thrombotic-thrombocytopenic-purpura-ttp",
+            "supports": [
+                "acquired thrombotic thrombocytopenic purpura diagnosis and risk stratification",
+                "TTP is a life-threatening thrombotic microangiopathy requiring emergency treatment",
+                "plasma exchange and corticosteroids should start before ADAMTS13 results return when suspicion is high",
+                "caplacizumab or rituximab may be considered with hematology in immune disease",
+                "MAHA, schistocytes, hemolysis, severe thrombocytopenia, and normal coagulation profile as red flags",
+                "neurologic symptoms, confusion, seizure, stroke, fever, renal injury, or AKI as severity markers",
+                "urgent hematology and therapeutic plasma exchange plasmapheresis TPE planning",
+                "ADAMTS13 before plasma products before TPE",
+                "corticosteroid therapy with methylprednisolone or prednisone steroid treatment",
+                "rituximab immunosuppression and caplacizumab anti-VWF with hematology",
+                "do not wait for pending ADAMTS13, treat empirically, and do not delay plasma exchange",
+                "avoid platelet transfusion unless life-threatening bleeding or urgent procedure need",
+                "HUS, aHUS, ITP, DIC, sepsis, HELLP, preeclampsia, and disseminated intravascular coagulation differential review",
+                "platelet count, platelet recovery, LDH, hemolysis, AKI, renal injury, neurologic status, cardiac ischemia, bleeding, thrombosis, organ complications, relapse, recurrence, and refractory disease monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "TTP time-critical actions must include urgent hematology" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_ttp_platelet_avoidance_exception_not_transfusion_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acquired thrombotic thrombocytopenic purpura"
+    case["patient_demographics"] = {
+        "age": 46,
+        "sex": "female",
+        "weight_kg": 66,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion, bruising, anemia, and low platelets"
+    case["history_of_present_illness"] = (
+        "Patient has fever, confusion, petechiae, severe thrombocytopenia with "
+        "platelet count 18, hemolytic anemia, schistocytes on smear, elevated LDH, "
+        "indirect bilirubin elevation, and acute kidney injury."
+    )
+    case["key_teaching_points"] = [
+        "TTP is a life-threatening thrombotic microangiopathy requiring emergency treatment",
+        "Plasma exchange and corticosteroids should start before ADAMTS13 results return when suspicion is high",
+        "Caplacizumab or rituximab may be considered with hematology in immune disease",
+    ]
+    case["clinical_red_flags"] = [
+        "MAHA, schistocytes, hemolysis, severe thrombocytopenia, and normal coagulation profile",
+        "Neurologic symptoms, confusion, seizure, stroke, fever, renal injury, or AKI",
+    ]
+    case["time_critical_actions"] = [
+        "Call hematology urgently and arrange therapeutic plasma exchange plasmapheresis TPE",
+        "Draw ADAMTS13 before plasma products and send hemolysis labs including LDH, haptoglobin, bilirubin, reticulocyte count, blood smear, peripheral smear, and schistocyte review plus PT, PTT, fibrinogen, renal function, creatinine, and urinalysis",
+        "Start corticosteroid therapy with methylprednisolone or prednisone steroid treatment",
+        "Consider rituximab immunosuppression and caplacizumab anti-VWF with hematology",
+    ]
+    case["contraindication_checks"] = [
+        "Do not wait for pending ADAMTS13; treat empirically and do not delay plasma exchange",
+        "Review platelet transfusion safety",
+        "Review differential diagnosis including HUS, aHUS, ITP, DIC, sepsis, HELLP, preeclampsia, and disseminated intravascular coagulation",
+        "Monitor platelet count, platelet recovery, LDH, hemolysis, AKI, renal injury, neurologic status, cardiac ischemia, bleeding, thrombosis, organ complications, relapse, recurrence, and refractory disease",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Thrombotic Thrombocytopenic Purpura",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/hematology-and-oncology/thrombocytopenia-and-platelet-dysfunction/thrombotic-thrombocytopenic-purpura-ttp",
+            "supports": [
+                "acquired thrombotic thrombocytopenic purpura diagnosis and risk stratification",
+                "TTP is a life-threatening thrombotic microangiopathy requiring emergency treatment",
+                "plasma exchange and corticosteroids should start before ADAMTS13 results return when suspicion is high",
+                "caplacizumab or rituximab may be considered with hematology in immune disease",
+                "MAHA, schistocytes, hemolysis, severe thrombocytopenia, and normal coagulation profile as red flags",
+                "neurologic symptoms, confusion, seizure, stroke, fever, renal injury, or AKI as severity markers",
+                "urgent hematology and therapeutic plasma exchange plasmapheresis TPE planning",
+                "ADAMTS13 before plasma products and hemolysis labs including LDH, haptoglobin, bilirubin, reticulocyte count, blood smear, peripheral smear, and schistocyte review plus PT, PTT, fibrinogen, renal function, creatinine, and urinalysis",
+                "corticosteroid therapy with methylprednisolone or prednisone steroid treatment",
+                "rituximab immunosuppression and caplacizumab anti-VWF with hematology",
+                "do not wait for pending ADAMTS13, treat empirically, and do not delay plasma exchange",
+                "platelet transfusion safety review",
+                "HUS, aHUS, ITP, DIC, sepsis, HELLP, preeclampsia, and disseminated intravascular coagulation differential review",
+                "platelet count, platelet recovery, LDH, hemolysis, AKI, renal injury, neurologic status, cardiac ischemia, bleeding, thrombosis, organ complications, relapse, recurrence, and refractory disease monitoring",
+            ],
+        }
     ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))

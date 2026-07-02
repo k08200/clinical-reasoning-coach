@@ -5090,15 +5090,36 @@ TTP_PEX_ACTION_TERMS = (
     "tpe",
     "혈장교환",
 )
-TTP_ADAMTS13_LAB_ACTION_TERMS = (
+TTP_ADAMTS13_ACTION_TERMS = (
     "adamts13",
+)
+TTP_ADAMTS13_BEFORE_TREATMENT_ACTION_TERMS = (
+    "before plasma",
+    "before plasma exchange",
+    "before plasma products",
+    "before tpe",
+)
+TTP_HEMOLYSIS_LAB_ACTION_TERMS = (
+    "bilirubin",
     "blood smear",
+    "coombs",
+    "direct antiglobulin",
+    "haptoglobin",
     "hemolysis labs",
     "ldh",
     "peripheral smear",
+    "reticulocyte",
     "schistocyte",
     "schistocytes",
     "혈액도말",
+)
+TTP_COAG_RENAL_LAB_ACTION_TERMS = (
+    "creatinine",
+    "fibrinogen",
+    "pt",
+    "ptt",
+    "renal function",
+    "urinalysis",
 )
 TTP_STEROID_ACTION_TERMS = (
     "corticosteroid",
@@ -5108,11 +5129,14 @@ TTP_STEROID_ACTION_TERMS = (
     "steroid",
     "스테로이드",
 )
-TTP_ANTIVWF_ACTION_TERMS = (
-    "caplacizumab",
+TTP_RITUXIMAB_ACTION_TERMS = (
     "rituximab",
-    "anti-vwf",
     "immunosuppression",
+)
+TTP_CAPLACIZUMAB_ACTION_TERMS = (
+    "anti-vwf",
+    "anti-von willebrand",
+    "caplacizumab",
     "카플라시주맙",
 )
 TTP_DO_NOT_WAIT_SAFETY_TERMS = (
@@ -5124,34 +5148,55 @@ TTP_DO_NOT_WAIT_SAFETY_TERMS = (
     "treat empirically",
     "지연",
 )
-TTP_PLATELET_TRANSFUSION_SAFETY_TERMS = (
+TTP_PLATELET_AVOIDANCE_SAFETY_TERMS = (
     "avoid platelet",
+    "avoid transfusion",
+    "do not transfuse platelets",
+    "no platelet transfusion",
+)
+TTP_PLATELET_EXCEPTION_SAFETY_TERMS = (
     "life-threatening bleeding",
+    "major bleeding",
+    "procedure need",
     "platelet transfusion",
     "transfusion only",
-    "avoid transfusion",
+    "urgent procedure",
     "혈소판 수혈",
 )
-TTP_DIFFERENTIAL_SAFETY_TERMS = (
+TTP_TMA_DIFFERENTIAL_SAFETY_TERMS = (
     "ahus",
+    "hus",
+    "itp",
+)
+TTP_COAG_SEPSIS_PREGNANCY_DIFFERENTIAL_SAFETY_TERMS = (
     "dic",
     "disseminated intravascular coagulation",
     "hellp",
-    "hus",
-    "itp",
+    "preeclampsia",
     "sepsis",
     "감별",
 )
-TTP_MONITORING_COMPLICATION_SAFETY_TERMS = (
-    "aki",
-    "bleeding",
+TTP_PLATELET_LDH_MONITORING_SAFETY_TERMS = (
     "hemolysis",
     "ldh",
-    "neurologic",
+    "platelet count",
     "platelet recovery",
+    "혈소판",
+)
+TTP_ORGAN_COMPLICATION_MONITORING_SAFETY_TERMS = (
+    "aki",
+    "bleeding",
+    "cardiac",
+    "myocardial",
+    "neurologic",
     "renal",
     "thrombosis",
-    "혈소판",
+)
+TTP_RELAPSE_REFRACTORY_SAFETY_TERMS = (
+    "recurrence",
+    "refractory",
+    "relapse",
+    "relapsing",
 )
 ACUTE_LIVER_FAILURE_DIRECT_CONTEXT_TERMS = (
     "acute hepatic failure",
@@ -17413,11 +17458,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "TTP time-critical actions must include urgent hematology plus "
                 "therapeutic plasma exchange, plasma exchange, plasmapheresis, "
-                "or TPE planning, ADAMTS13 sampling plus hemolysis labs, LDH, "
-                "peripheral smear, blood smear, schistocyte, or schistocytes "
+                "or TPE planning, ADAMTS13 sampling before plasma products or "
+                "plasma exchange, hemolysis labs such as LDH, haptoglobin, "
+                "bilirubin, reticulocyte count, peripheral smear, blood smear, "
+                "or schistocytes plus PT/PTT/fibrinogen and renal/urinalysis "
                 "assessment, corticosteroid, glucocorticoid, methylprednisolone, "
-                "prednisone, or steroid therapy, and caplacizumab, anti-VWF, "
-                "rituximab, or immunosuppression consideration"
+                "prednisone, or steroid therapy, rituximab or immunosuppression "
+                "planning, and caplacizumab or anti-VWF consideration"
             ),
         ),
         DomainSafetyGate(
@@ -17428,11 +17475,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "TTP safety checks must include explicit do-not-wait, do-not-delay, "
                 "pending-ADAMTS13, before-ADAMTS13, or empiric-treatment planning, "
-                "platelet transfusion avoidance except life-threatening bleeding "
-                "or procedure need, differential review for DIC, HUS, aHUS, ITP, "
-                "HELLP, sepsis, or disseminated intravascular coagulation, and "
-                "monitoring for platelet recovery, LDH, hemolysis, AKI, renal, "
-                "neurologic, bleeding, thrombosis, or complications"
+                "platelet transfusion avoidance plus explicit life-threatening "
+                "bleeding or urgent-procedure exception, differential review for "
+                "TMA mimics such as HUS, aHUS, or ITP plus DIC, sepsis, HELLP, "
+                "or preeclampsia, monitoring for platelet count/recovery, LDH, "
+                "or hemolysis plus renal, neurologic, cardiac, bleeding, thrombosis, "
+                "or organ complications, and relapse/refractory recurrence planning"
             ),
         ),
         DomainSafetyGate(
@@ -24635,24 +24683,44 @@ def _has_ttp_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in TTP_PEX_ACTION_TERMS
     )
-    has_adamts13_labs = any(
+    has_adamts13 = any(
         _contains_safety_term(normalized_actions, term)
-        for term in TTP_ADAMTS13_LAB_ACTION_TERMS
+        for term in TTP_ADAMTS13_ACTION_TERMS
+    )
+    has_adamts13_before_treatment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TTP_ADAMTS13_BEFORE_TREATMENT_ACTION_TERMS
+    )
+    has_hemolysis_labs = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TTP_HEMOLYSIS_LAB_ACTION_TERMS
+    )
+    has_coag_renal_labs = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TTP_COAG_RENAL_LAB_ACTION_TERMS
     )
     has_steroid = any(
         _contains_safety_term(normalized_actions, term)
         for term in TTP_STEROID_ACTION_TERMS
     )
-    has_antivwf = any(
+    has_rituximab = any(
         _contains_safety_term(normalized_actions, term)
-        for term in TTP_ANTIVWF_ACTION_TERMS
+        for term in TTP_RITUXIMAB_ACTION_TERMS
+    )
+    has_caplacizumab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TTP_CAPLACIZUMAB_ACTION_TERMS
     )
     return (
         has_hematology
         and has_pex
-        and has_adamts13_labs
+        and has_adamts13
+        and has_adamts13_before_treatment
+        and has_hemolysis_labs
+        and has_coag_renal_labs
         and has_steroid
-        and has_antivwf
+        and has_rituximab
+        and has_caplacizumab
     )
 
 
@@ -24662,23 +24730,43 @@ def _has_ttp_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in TTP_DO_NOT_WAIT_SAFETY_TERMS
     )
-    has_platelet_transfusion_safety = any(
+    has_platelet_avoidance = any(
         _contains_safety_term(normalized_checks, term)
-        for term in TTP_PLATELET_TRANSFUSION_SAFETY_TERMS
+        for term in TTP_PLATELET_AVOIDANCE_SAFETY_TERMS
     )
-    has_differential_safety = any(
+    has_platelet_exception = any(
         _contains_safety_term(normalized_checks, term)
-        for term in TTP_DIFFERENTIAL_SAFETY_TERMS
+        for term in TTP_PLATELET_EXCEPTION_SAFETY_TERMS
     )
-    has_monitoring_safety = any(
+    has_tma_differential = any(
         _contains_safety_term(normalized_checks, term)
-        for term in TTP_MONITORING_COMPLICATION_SAFETY_TERMS
+        for term in TTP_TMA_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_coag_sepsis_pregnancy_differential = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TTP_COAG_SEPSIS_PREGNANCY_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_platelet_ldh_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TTP_PLATELET_LDH_MONITORING_SAFETY_TERMS
+    )
+    has_organ_complication_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TTP_ORGAN_COMPLICATION_MONITORING_SAFETY_TERMS
+    )
+    has_relapse_refractory_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TTP_RELAPSE_REFRACTORY_SAFETY_TERMS
     )
     return (
         has_do_not_wait
-        and has_platelet_transfusion_safety
-        and has_differential_safety
-        and has_monitoring_safety
+        and has_platelet_avoidance
+        and has_platelet_exception
+        and has_tma_differential
+        and has_coag_sepsis_pregnancy_differential
+        and has_platelet_ldh_monitoring
+        and has_organ_complication_monitoring
+        and has_relapse_refractory_safety
     )
 
 

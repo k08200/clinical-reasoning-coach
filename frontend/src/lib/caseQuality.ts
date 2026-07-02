@@ -5653,15 +5653,39 @@ const TTP_PEX_ACTION_TERMS = [
   "혈장교환",
 ];
 
-const TTP_ADAMTS13_LAB_ACTION_TERMS = [
+const TTP_ADAMTS13_ACTION_TERMS = [
   "adamts13",
+];
+
+const TTP_ADAMTS13_BEFORE_TREATMENT_ACTION_TERMS = [
+  "before plasma",
+  "before plasma exchange",
+  "before plasma products",
+  "before tpe",
+];
+
+const TTP_HEMOLYSIS_LAB_ACTION_TERMS = [
+  "bilirubin",
   "blood smear",
+  "coombs",
+  "direct antiglobulin",
+  "haptoglobin",
   "hemolysis labs",
   "ldh",
   "peripheral smear",
+  "reticulocyte",
   "schistocyte",
   "schistocytes",
   "혈액도말",
+];
+
+const TTP_COAG_RENAL_LAB_ACTION_TERMS = [
+  "creatinine",
+  "fibrinogen",
+  "pt",
+  "ptt",
+  "renal function",
+  "urinalysis",
 ];
 
 const TTP_STEROID_ACTION_TERMS = [
@@ -5673,11 +5697,15 @@ const TTP_STEROID_ACTION_TERMS = [
   "스테로이드",
 ];
 
-const TTP_ANTIVWF_ACTION_TERMS = [
-  "caplacizumab",
+const TTP_RITUXIMAB_ACTION_TERMS = [
   "rituximab",
-  "anti-vwf",
   "immunosuppression",
+];
+
+const TTP_CAPLACIZUMAB_ACTION_TERMS = [
+  "anti-vwf",
+  "anti-von willebrand",
+  "caplacizumab",
   "카플라시주맙",
 ];
 
@@ -5691,36 +5719,60 @@ const TTP_DO_NOT_WAIT_SAFETY_TERMS = [
   "지연",
 ];
 
-const TTP_PLATELET_TRANSFUSION_SAFETY_TERMS = [
+const TTP_PLATELET_AVOIDANCE_SAFETY_TERMS = [
   "avoid platelet",
-  "life-threatening bleeding",
-  "platelet transfusion",
-  "transfusion only",
   "avoid transfusion",
+  "do not transfuse platelets",
+  "no platelet transfusion",
+];
+
+const TTP_PLATELET_EXCEPTION_SAFETY_TERMS = [
+  "life-threatening bleeding",
+  "major bleeding",
+  "procedure need",
+  "transfusion only",
+  "urgent procedure",
   "혈소판 수혈",
 ];
 
-const TTP_DIFFERENTIAL_SAFETY_TERMS = [
+const TTP_TMA_DIFFERENTIAL_SAFETY_TERMS = [
   "ahus",
+  "hus",
+  "itp",
+];
+
+const TTP_COAG_SEPSIS_PREGNANCY_DIFFERENTIAL_SAFETY_TERMS = [
   "dic",
   "disseminated intravascular coagulation",
   "hellp",
-  "hus",
-  "itp",
+  "preeclampsia",
   "sepsis",
   "감별",
 ];
 
-const TTP_MONITORING_COMPLICATION_SAFETY_TERMS = [
-  "aki",
-  "bleeding",
+const TTP_PLATELET_LDH_MONITORING_SAFETY_TERMS = [
   "hemolysis",
   "ldh",
-  "neurologic",
+  "platelet count",
   "platelet recovery",
+  "혈소판",
+];
+
+const TTP_ORGAN_COMPLICATION_MONITORING_SAFETY_TERMS = [
+  "aki",
+  "bleeding",
+  "cardiac",
+  "myocardial",
+  "neurologic",
   "renal",
   "thrombosis",
-  "혈소판",
+];
+
+const TTP_RELAPSE_REFRACTORY_SAFETY_TERMS = [
+  "recurrence",
+  "refractory",
+  "relapse",
+  "relapsing",
 ];
 
 const ACUTE_LIVER_FAILURE_DIRECT_CONTEXT_TERMS = [
@@ -21034,16 +21086,38 @@ function hasTtpTimeCriticalActions(actions: string[]): boolean {
   const hasPex = TTP_PEX_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAdamts13Labs = TTP_ADAMTS13_LAB_ACTION_TERMS.some((term) =>
+  const hasAdamts13 = TTP_ADAMTS13_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAdamts13BeforeTreatment = TTP_ADAMTS13_BEFORE_TREATMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHemolysisLabs = TTP_HEMOLYSIS_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCoagRenalLabs = TTP_COAG_RENAL_LAB_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasSteroid = TTP_STEROID_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntivwf = TTP_ANTIVWF_ACTION_TERMS.some((term) =>
+  const hasRituximab = TTP_RITUXIMAB_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasHematology && hasPex && hasAdamts13Labs && hasSteroid && hasAntivwf;
+  const hasCaplacizumab = TTP_CAPLACIZUMAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasHematology &&
+    hasPex &&
+    hasAdamts13 &&
+    hasAdamts13BeforeTreatment &&
+    hasHemolysisLabs &&
+    hasCoagRenalLabs &&
+    hasSteroid &&
+    hasRituximab &&
+    hasCaplacizumab
+  );
 }
 
 function hasTtpTreatmentSafetyCheck(checks: string[]): boolean {
@@ -21051,16 +21125,37 @@ function hasTtpTreatmentSafetyCheck(checks: string[]): boolean {
   const hasDoNotWait = TTP_DO_NOT_WAIT_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasPlateletTransfusionSafety = TTP_PLATELET_TRANSFUSION_SAFETY_TERMS.some((term) =>
+  const hasPlateletAvoidance = TTP_PLATELET_AVOIDANCE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDifferentialSafety = TTP_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+  const hasPlateletException = TTP_PLATELET_EXCEPTION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasMonitoringSafety = TTP_MONITORING_COMPLICATION_SAFETY_TERMS.some((term) =>
+  const hasTmaDifferential = TTP_TMA_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasDoNotWait && hasPlateletTransfusionSafety && hasDifferentialSafety && hasMonitoringSafety;
+  const hasCoagSepsisPregnancyDifferential = TTP_COAG_SEPSIS_PREGNANCY_DIFFERENTIAL_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPlateletLdhMonitoring = TTP_PLATELET_LDH_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOrganComplicationMonitoring = TTP_ORGAN_COMPLICATION_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRelapseRefractorySafety = TTP_RELAPSE_REFRACTORY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasDoNotWait &&
+    hasPlateletAvoidance &&
+    hasPlateletException &&
+    hasTmaDifferential &&
+    hasCoagSepsisPregnancyDifferential &&
+    hasPlateletLdhMonitoring &&
+    hasOrganComplicationMonitoring &&
+    hasRelapseRefractorySafety
+  );
 }
 
 function requiresAcuteLiverFailureSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -28989,7 +29084,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasTtpTimeCriticalActions,
       issue:
-        "TTP time-critical actions must include urgent hematology plus therapeutic plasma exchange, plasma exchange, plasmapheresis, or TPE planning, ADAMTS13 sampling plus hemolysis labs, LDH, peripheral smear, blood smear, schistocyte, or schistocytes assessment, corticosteroid, glucocorticoid, methylprednisolone, prednisone, or steroid therapy, and caplacizumab, anti-VWF, rituximab, or immunosuppression consideration",
+        "TTP time-critical actions must include urgent hematology plus therapeutic plasma exchange, plasma exchange, plasmapheresis, or TPE planning, ADAMTS13 sampling before plasma products or plasma exchange, hemolysis labs such as LDH, haptoglobin, bilirubin, reticulocyte count, peripheral smear, blood smear, or schistocytes plus PT/PTT/fibrinogen and renal/urinalysis assessment, corticosteroid, glucocorticoid, methylprednisolone, prednisone, or steroid therapy, rituximab or immunosuppression planning, and caplacizumab or anti-VWF consideration",
     },
     {
       name: "ttp_treatment_safety",
@@ -28998,7 +29093,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasTtpTreatmentSafetyCheck,
       issue:
-        "TTP safety checks must include explicit do-not-wait, do-not-delay, pending-ADAMTS13, before-ADAMTS13, or empiric-treatment planning, platelet transfusion avoidance except life-threatening bleeding or procedure need, differential review for DIC, HUS, aHUS, ITP, HELLP, sepsis, or disseminated intravascular coagulation, and monitoring for platelet recovery, LDH, hemolysis, AKI, renal, neurologic, bleeding, thrombosis, or complications",
+        "TTP safety checks must include explicit do-not-wait, do-not-delay, pending-ADAMTS13, before-ADAMTS13, or empiric-treatment planning, platelet transfusion avoidance plus explicit life-threatening bleeding or urgent-procedure exception, differential review for TMA mimics such as HUS, aHUS, or ITP plus DIC, sepsis, HELLP, or preeclampsia, monitoring for platelet count/recovery, LDH, or hemolysis plus renal, neurologic, cardiac, bleeding, thrombosis, or organ complications, and relapse/refractory recurrence planning",
     },
     {
       name: "acute_liver_failure_time_critical_actions",
