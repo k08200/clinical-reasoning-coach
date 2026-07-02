@@ -11064,9 +11064,9 @@ def test_quality_gate_requires_neutropenic_fever_anc_cultures_antipseudomonal_an
     ]
     case["contraindication_checks"] = [
         "Review antibiotic allergy, creatinine, renal dosing, hepatic function, local antibiogram, and toxicity before cefepime or piperacillin-tazobactam",
-        "Assess central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
+        "Vancomycin is not routine and not recommended as standard therapy; assess central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
         "Use MASCC or CISNE high risk or low risk score, comorbidity, social reliability, outpatient eligibility, discharge safety, and return precautions",
-        "Reassess persistent fever or deterioration at 72 hours for resistant infection, fungal infection, and antifungal therapy need",
+        "Reassess persistent fever after 4-7 days or deterioration with clinical and microbiologic reassessment for resistant infection, fungal infection, invasive fungal infection, and antifungal therapy need",
     ]
     case["clinical_sources"] = [
         {
@@ -11084,9 +11084,9 @@ def test_quality_gate_requires_neutropenic_fever_anc_cultures_antipseudomonal_an
                 "blood cultures from peripheral and central line plus urine or source cultures without delaying therapy",
                 "oncology or hematology escalation with MASCC or CISNE sepsis-risk stratification",
                 "antibiotic allergy, creatinine, renal dosing, hepatic function, local antibiogram, and toxicity before cefepime or piperacillin-tazobactam",
-                "central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
+                "vancomycin is not routine and not recommended as standard therapy; central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
                 "MASCC or CISNE high risk or low risk score, comorbidity, social reliability, outpatient eligibility, discharge safety, and return precautions",
-                "persistent fever or deterioration at 72 hours for resistant infection, fungal infection, and antifungal therapy need",
+                "persistent fever after 4-7 days or deterioration with clinical and microbiologic reassessment for resistant infection, fungal infection, invasive fungal infection, and antifungal therapy need",
             ],
         }
     ]
@@ -11132,9 +11132,9 @@ def test_quality_gate_requires_neutropenic_fever_antipseudomonal_not_broad_antib
     ]
     case["contraindication_checks"] = [
         "Review antibiotic allergy, creatinine, renal dosing, hepatic function, local antibiogram, and toxicity before cefepime or piperacillin-tazobactam",
-        "Assess central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
+        "Vancomycin is not routine and not recommended as standard therapy; assess central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
         "Use MASCC or CISNE high risk or low risk score, comorbidity, social reliability, outpatient eligibility, discharge safety, and return precautions",
-        "Reassess persistent fever or deterioration at 72 hours for resistant infection, fungal infection, and antifungal therapy need",
+        "Reassess persistent fever after 4-7 days or deterioration with clinical and microbiologic reassessment for resistant infection, fungal infection, invasive fungal infection, and antifungal therapy need",
     ]
     case["clinical_sources"] = [
         {
@@ -11153,9 +11153,9 @@ def test_quality_gate_requires_neutropenic_fever_antipseudomonal_not_broad_antib
                 "empiric broad-spectrum antibiotics within 1 hour",
                 "oncology or hematology escalation with MASCC or CISNE sepsis-risk stratification",
                 "antibiotic allergy, creatinine, renal dosing, hepatic function, local antibiogram, and toxicity before cefepime or piperacillin-tazobactam",
-                "central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
+                "vancomycin is not routine and not recommended as standard therapy; central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
                 "MASCC or CISNE high risk or low risk score, comorbidity, social reliability, outpatient eligibility, discharge safety, and return precautions",
-                "persistent fever or deterioration at 72 hours for resistant infection, fungal infection, and antifungal therapy need",
+                "persistent fever after 4-7 days or deterioration with clinical and microbiologic reassessment for resistant infection, fungal infection, invasive fungal infection, and antifungal therapy need",
             ],
         }
     ]
@@ -11164,7 +11164,7 @@ def test_quality_gate_requires_neutropenic_fever_antipseudomonal_not_broad_antib
 
     assert not report.passed
     assert any(
-        "immediate empiric antipseudomonal antibiotics within 1 hour" in issue
+        "immediate empiric antipseudomonal antibiotics such as" in issue
         for issue in report.critical_issues
     )
 
@@ -11230,6 +11230,142 @@ def test_quality_gate_requires_neutropenic_fever_antibiotic_central_line_risk_an
     assert any(
         "febrile neutropenia safety checks must include antibiotic allergy"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_neutropenic_fever_central_peripheral_and_source_cultures_not_blood_culture_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Febrile neutropenia after chemotherapy"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "female",
+        "weight_kg": 63,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever after chemotherapy"
+    case["history_of_present_illness"] = (
+        "Patient on cytotoxic chemotherapy presents with fever 38.6 C, chills, "
+        "mucositis, central venous catheter, and suspected ANC below 500."
+    )
+    case["key_teaching_points"] = [
+        "Febrile neutropenia can progress rapidly with subtle localizing signs",
+        "CBC with differential and ANC confirm severity but treatment should not wait",
+        "Empiric antipseudomonal broad-spectrum antibiotics are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever with ANC below 500 after recent chemotherapy",
+        "Hypotension, rigors, mucositis, central line tenderness, or pneumonia symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm CBC with differential and absolute neutrophil count ANC immediately",
+        "Obtain blood cultures without delaying therapy",
+        "Start empiric antipseudomonal broad-spectrum antibiotics within 1 hour with cefepime or piperacillin-tazobactam",
+        "Admit and escalate to oncology or hematology with MASCC or CISNE sepsis-risk stratification",
+    ]
+    case["contraindication_checks"] = [
+        "Review antibiotic allergy, creatinine, renal dosing, hepatic function, local antibiogram, and toxicity before cefepime or piperacillin-tazobactam",
+        "Vancomycin is not routine and not recommended as standard therapy; assess central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
+        "Use MASCC or CISNE high risk or low risk score, comorbidity, social reliability, outpatient eligibility, discharge safety, and return precautions",
+        "Reassess persistent fever after 4-7 days or deterioration with clinical and microbiologic reassessment for resistant infection, fungal infection, invasive fungal infection, and antifungal therapy need",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "IDSA fever and neutropenia guideline",
+            "organization": "Infectious Diseases Society of America",
+            "url": "https://academic.oup.com/cid/article/52/4/e56/382256",
+            "supports": [
+                "febrile neutropenia after chemotherapy diagnosis and risk stratification",
+                "febrile neutropenia can progress rapidly with subtle localizing signs",
+                "CBC with differential and ANC confirm severity but treatment should not wait",
+                "empiric antipseudomonal broad-spectrum antibiotics are time critical",
+                "fever with ANC below 500 after recent chemotherapy as red flags",
+                "hypotension, rigors, mucositis, central line tenderness, or pneumonia symptoms as severity markers",
+                "CBC with differential and absolute neutrophil count ANC immediately",
+                "blood cultures without delaying therapy",
+                "empiric antipseudomonal broad-spectrum antibiotics within 1 hour with cefepime or piperacillin-tazobactam",
+                "oncology or hematology escalation with MASCC or CISNE sepsis-risk stratification",
+                "antibiotic allergy, creatinine, renal dosing, hepatic function, local antibiogram, and toxicity before cefepime or piperacillin-tazobactam",
+                "vancomycin is not routine and not recommended as standard therapy; central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
+                "MASCC or CISNE high risk or low risk score, comorbidity, social reliability, outpatient eligibility, discharge safety, and return precautions",
+                "persistent fever after 4-7 days or deterioration with clinical and microbiologic reassessment for resistant infection, fungal infection, invasive fungal infection, and antifungal therapy need",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "blood cultures with peripheral and central-line" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_neutropenic_fever_vancomycin_not_routine_stewardship():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Febrile neutropenia after chemotherapy"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "female",
+        "weight_kg": 63,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever after chemotherapy"
+    case["history_of_present_illness"] = (
+        "Patient on cytotoxic chemotherapy presents with fever 38.6 C, chills, "
+        "mucositis, central venous catheter, and suspected ANC below 500."
+    )
+    case["key_teaching_points"] = [
+        "Febrile neutropenia can progress rapidly with subtle localizing signs",
+        "CBC with differential and ANC confirm severity but treatment should not wait",
+        "Empiric antipseudomonal broad-spectrum antibiotics are time critical",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever with ANC below 500 after recent chemotherapy",
+        "Hypotension, rigors, mucositis, central line tenderness, or pneumonia symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm CBC with differential and absolute neutrophil count ANC immediately",
+        "Obtain blood cultures from peripheral vein and central line each lumen plus urine or source cultures without delaying therapy",
+        "Start empiric antipseudomonal broad-spectrum antibiotics within 1 hour with cefepime or piperacillin-tazobactam",
+        "Admit and escalate to oncology or hematology with MASCC or CISNE sepsis-risk stratification",
+    ]
+    case["contraindication_checks"] = [
+        "Review antibiotic allergy, creatinine, renal dosing, hepatic function, local antibiogram, and toxicity before cefepime or piperacillin-tazobactam",
+        "Assess central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
+        "Use MASCC or CISNE high risk or low risk score, comorbidity, social reliability, outpatient eligibility, discharge safety, and return precautions",
+        "Reassess persistent fever after 4-7 days or deterioration with clinical and microbiologic reassessment for resistant infection, fungal infection, invasive fungal infection, and antifungal therapy need",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "IDSA fever and neutropenia guideline",
+            "organization": "Infectious Diseases Society of America",
+            "url": "https://academic.oup.com/cid/article/52/4/e56/382256",
+            "supports": [
+                "febrile neutropenia after chemotherapy diagnosis and risk stratification",
+                "febrile neutropenia can progress rapidly with subtle localizing signs",
+                "CBC with differential and ANC confirm severity but treatment should not wait",
+                "empiric antipseudomonal broad-spectrum antibiotics are time critical",
+                "fever with ANC below 500 after recent chemotherapy as red flags",
+                "hypotension, rigors, mucositis, central line tenderness, or pneumonia symptoms as severity markers",
+                "CBC with differential and absolute neutrophil count ANC immediately",
+                "blood cultures from peripheral vein and central line each lumen plus urine or source cultures without delaying therapy",
+                "empiric antipseudomonal broad-spectrum antibiotics within 1 hour with cefepime or piperacillin-tazobactam",
+                "oncology or hematology escalation with MASCC or CISNE sepsis-risk stratification",
+                "antibiotic allergy, creatinine, renal dosing, hepatic function, local antibiogram, and toxicity before cefepime or piperacillin-tazobactam",
+                "central line catheter infection, skin or soft tissue infection, pneumonia, MRSA, resistant gram-positive organism, and vancomycin indications",
+                "MASCC or CISNE high risk or low risk score, comorbidity, social reliability, outpatient eligibility, discharge safety, and return precautions",
+                "persistent fever after 4-7 days or deterioration with clinical and microbiologic reassessment for resistant infection, fungal infection, invasive fungal infection, and antifungal therapy need",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "vancomycin-not-routine stewardship" in issue
         for issue in report.critical_issues
     )
 

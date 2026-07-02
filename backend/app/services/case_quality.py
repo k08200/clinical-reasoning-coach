@@ -5377,12 +5377,24 @@ NEUTROPENIC_FEVER_ANC_ACTION_TERMS = (
     "백혈구",
     "호중구",
 )
-NEUTROPENIC_FEVER_CULTURE_ACTION_TERMS = (
+NEUTROPENIC_FEVER_BLOOD_CULTURE_ACTION_TERMS = (
     "blood culture",
+    "blood cultures",
+)
+NEUTROPENIC_FEVER_CENTRAL_LINE_CULTURE_ACTION_TERMS = (
     "central line culture",
+    "central line",
+    "each lumen",
+    "lumen",
+)
+NEUTROPENIC_FEVER_PERIPHERAL_CULTURE_ACTION_TERMS = (
+    "peripheral culture",
+    "peripheral vein",
+    "peripheral",
+)
+NEUTROPENIC_FEVER_SOURCE_CULTURE_ACTION_TERMS = (
     "culture",
     "cultures",
-    "peripheral culture",
     "source",
     "urinalysis",
     "배양",
@@ -5405,23 +5417,31 @@ NEUTROPENIC_FEVER_ANTIBIOTIC_TIMING_ACTION_TERMS = (
     "one hour",
     "즉시",
 )
-NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS = (
+NEUTROPENIC_FEVER_ADMISSION_ESCALATION_ACTION_TERMS = (
     "admit",
-    "cisne",
-    "hematology",
+    "hospital",
+    "inpatient",
     "icu",
-    "mascc",
-    "oncology",
-    "risk score",
-    "risk stratification",
     "sepsis",
     "입원",
+)
+NEUTROPENIC_FEVER_ONCOLOGY_ESCALATION_ACTION_TERMS = (
+    "hematology",
+    "oncology",
     "혈액",
     "종양",
 )
-NEUTROPENIC_FEVER_ANTIBIOTIC_SAFETY_TERMS = (
+NEUTROPENIC_FEVER_RISK_SCORE_ACTION_TERMS = (
+    "cisne",
+    "mascc",
+    "risk score",
+    "risk stratification",
+)
+NEUTROPENIC_FEVER_ALLERGY_SAFETY_TERMS = (
     "allergy",
-    "antibiogram",
+    "hypersensitivity",
+)
+NEUTROPENIC_FEVER_RENAL_HEPATIC_DOSING_SAFETY_TERMS = (
     "creatinine",
     "hepatic",
     "kidney",
@@ -5431,41 +5451,65 @@ NEUTROPENIC_FEVER_ANTIBIOTIC_SAFETY_TERMS = (
     "간",
     "신장",
 )
-NEUTROPENIC_FEVER_CATHETER_RESISTANCE_SAFETY_TERMS = (
+NEUTROPENIC_FEVER_LOCAL_RESISTANCE_SAFETY_TERMS = (
+    "antibiogram",
+    "local microbiology",
+    "resistant",
+)
+NEUTROPENIC_FEVER_VANCOMYCIN_NOT_ROUTINE_SAFETY_TERMS = (
+    "not routine vancomycin",
+    "not standard vancomycin",
+    "routine vancomycin not",
+    "vancomycin not recommended",
+    "vancomycin not routine",
+)
+NEUTROPENIC_FEVER_VANCOMYCIN_INDICATION_SAFETY_TERMS = (
     "catheter",
     "central line",
     "gram-positive",
-    "local microbiology",
     "mrsa",
     "pneumonia",
-    "resistant",
     "skin",
     "soft tissue",
     "vancomycin",
     "중심정맥",
 )
-NEUTROPENIC_FEVER_RISK_DISPOSITION_SAFETY_TERMS = (
+NEUTROPENIC_FEVER_RISK_SCORE_SAFETY_TERMS = (
     "cisne",
-    "comorbidity",
-    "discharge",
     "high risk",
     "low risk",
     "mascc",
-    "outpatient",
-    "return precautions",
     "risk score",
+)
+NEUTROPENIC_FEVER_OUTPATIENT_CRITERIA_SAFETY_TERMS = (
+    "comorbidity",
+    "discharge",
+    "outpatient",
     "social",
     "퇴원",
 )
-NEUTROPENIC_FEVER_REASSESSMENT_SAFETY_TERMS = (
-    "antifungal",
-    "deterioration",
-    "fungal",
+NEUTROPENIC_FEVER_RETURN_PRECAUTION_SAFETY_TERMS = (
+    "readmission",
+    "return precautions",
+    "worsening",
+)
+NEUTROPENIC_FEVER_PERSISTENT_FEVER_SAFETY_TERMS = (
+    "4-7 days",
+    "4 to 7 days",
     "persistent fever",
+    "recurrent fever",
+)
+NEUTROPENIC_FEVER_ANTIFUNGAL_REASSESSMENT_SAFETY_TERMS = (
+    "antifungal",
+    "fungal",
+    "invasive fungal",
+)
+NEUTROPENIC_FEVER_CLINICAL_MICRO_REASSESSMENT_SAFETY_TERMS = (
+    "deterioration",
+    "microbiologic",
     "reassess",
     "reassessment",
     "resistant",
-    "72 hours",
     "재평가",
 )
 OBSTRUCTIVE_PYELONEPHRITIS_COMBINED_CONTEXT_TERMS = (
@@ -17568,9 +17612,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_neutropenic_fever_time_critical_actions,
             issue=(
                 "febrile neutropenia time-critical actions must include ANC or "
-                "CBC confirmation, blood cultures or source cultures, immediate "
-                "empiric antipseudomonal antibiotics within 1 hour, and "
-                "oncology/hematology or sepsis-risk escalation"
+                "CBC confirmation, blood cultures with peripheral and central-line "
+                "or lumen cultures plus source/urine cultures when indicated, "
+                "immediate empiric antipseudomonal antibiotics such as cefepime, "
+                "piperacillin-tazobactam, meropenem, imipenem, or ceftazidime "
+                "within 1 hour, and admission/sepsis escalation plus oncology or "
+                "hematology involvement with MASCC, CISNE, or risk-score stratification"
             ),
         ),
         DomainSafetyGate(
@@ -17580,9 +17627,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_neutropenic_fever_treatment_safety_check,
             issue=(
                 "febrile neutropenia safety checks must include antibiotic allergy "
-                "or renal/hepatic dosing review, central-line or resistant-organism "
-                "coverage indications, validated risk/disposition assessment, and "
-                "persistent fever or fungal-risk reassessment"
+                "plus renal/hepatic dosing and toxicity review, local antibiogram "
+                "or resistance review, vancomycin-not-routine stewardship plus "
+                "specific vancomycin indications such as catheter infection, skin/"
+                "soft-tissue infection, pneumonia, MRSA, resistant gram-positive "
+                "organism, or hemodynamic instability, validated MASCC/CISNE risk "
+                "and outpatient/discharge/social eligibility with return precautions "
+                "or readmission plan, and persistent or recurrent fever after 4-7 "
+                "days with antifungal/fungal-risk plus clinical/microbiologic "
+                "reassessment"
             ),
         ),
         DomainSafetyGate(
@@ -25013,9 +25066,21 @@ def _has_neutropenic_fever_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in NEUTROPENIC_FEVER_ANC_ACTION_TERMS
     )
-    has_cultures = any(
+    has_blood_culture = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NEUTROPENIC_FEVER_CULTURE_ACTION_TERMS
+        for term in NEUTROPENIC_FEVER_BLOOD_CULTURE_ACTION_TERMS
+    )
+    has_central_line_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUTROPENIC_FEVER_CENTRAL_LINE_CULTURE_ACTION_TERMS
+    )
+    has_peripheral_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUTROPENIC_FEVER_PERIPHERAL_CULTURE_ACTION_TERMS
+    )
+    has_source_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUTROPENIC_FEVER_SOURCE_CULTURE_ACTION_TERMS
     )
     has_antipseudomonal_antibiotics = any(
         _contains_safety_term(normalized_actions, term)
@@ -25025,42 +25090,90 @@ def _has_neutropenic_fever_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in NEUTROPENIC_FEVER_ANTIBIOTIC_TIMING_ACTION_TERMS
     )
-    has_escalation = any(
+    has_admission_escalation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS
+        for term in NEUTROPENIC_FEVER_ADMISSION_ESCALATION_ACTION_TERMS
+    )
+    has_oncology_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUTROPENIC_FEVER_ONCOLOGY_ESCALATION_ACTION_TERMS
+    )
+    has_risk_score = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUTROPENIC_FEVER_RISK_SCORE_ACTION_TERMS
     )
     return (
         has_anc_check
-        and has_cultures
+        and has_blood_culture
+        and has_central_line_culture
+        and has_peripheral_culture
+        and has_source_culture
         and has_antipseudomonal_antibiotics
         and has_antibiotic_timing
-        and has_escalation
+        and has_admission_escalation
+        and has_oncology_escalation
+        and has_risk_score
     )
 
 
 def _has_neutropenic_fever_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_antibiotic_safety = any(
+    has_allergy_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in NEUTROPENIC_FEVER_ANTIBIOTIC_SAFETY_TERMS
+        for term in NEUTROPENIC_FEVER_ALLERGY_SAFETY_TERMS
     )
-    has_catheter_resistance_safety = any(
+    has_renal_hepatic_dosing_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in NEUTROPENIC_FEVER_CATHETER_RESISTANCE_SAFETY_TERMS
+        for term in NEUTROPENIC_FEVER_RENAL_HEPATIC_DOSING_SAFETY_TERMS
     )
-    has_risk_disposition_safety = any(
+    has_local_resistance_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in NEUTROPENIC_FEVER_RISK_DISPOSITION_SAFETY_TERMS
+        for term in NEUTROPENIC_FEVER_LOCAL_RESISTANCE_SAFETY_TERMS
     )
-    has_reassessment_safety = any(
+    has_vancomycin_not_routine = any(
         _contains_safety_term(normalized_checks, term)
-        for term in NEUTROPENIC_FEVER_REASSESSMENT_SAFETY_TERMS
+        for term in NEUTROPENIC_FEVER_VANCOMYCIN_NOT_ROUTINE_SAFETY_TERMS
+    )
+    has_vancomycin_indication = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUTROPENIC_FEVER_VANCOMYCIN_INDICATION_SAFETY_TERMS
+    )
+    has_risk_score_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUTROPENIC_FEVER_RISK_SCORE_SAFETY_TERMS
+    )
+    has_outpatient_criteria_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUTROPENIC_FEVER_OUTPATIENT_CRITERIA_SAFETY_TERMS
+    )
+    has_return_precaution_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUTROPENIC_FEVER_RETURN_PRECAUTION_SAFETY_TERMS
+    )
+    has_persistent_fever_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUTROPENIC_FEVER_PERSISTENT_FEVER_SAFETY_TERMS
+    )
+    has_antifungal_reassessment_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUTROPENIC_FEVER_ANTIFUNGAL_REASSESSMENT_SAFETY_TERMS
+    )
+    has_clinical_micro_reassessment_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NEUTROPENIC_FEVER_CLINICAL_MICRO_REASSESSMENT_SAFETY_TERMS
     )
     return (
-        has_antibiotic_safety
-        and has_catheter_resistance_safety
-        and has_risk_disposition_safety
-        and has_reassessment_safety
+        has_allergy_safety
+        and has_renal_hepatic_dosing_safety
+        and has_local_resistance_safety
+        and has_vancomycin_not_routine
+        and has_vancomycin_indication
+        and has_risk_score_safety
+        and has_outpatient_criteria_safety
+        and has_return_precaution_safety
+        and has_persistent_fever_safety
+        and has_antifungal_reassessment_safety
+        and has_clinical_micro_reassessment_safety
     )
 
 

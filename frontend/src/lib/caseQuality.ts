@@ -5982,12 +5982,27 @@ const NEUTROPENIC_FEVER_ANC_ACTION_TERMS = [
   "호중구",
 ];
 
-const NEUTROPENIC_FEVER_CULTURE_ACTION_TERMS = [
+const NEUTROPENIC_FEVER_BLOOD_CULTURE_ACTION_TERMS = [
   "blood culture",
+  "blood cultures",
+];
+
+const NEUTROPENIC_FEVER_CENTRAL_LINE_CULTURE_ACTION_TERMS = [
   "central line culture",
+  "central line",
+  "each lumen",
+  "lumen",
+];
+
+const NEUTROPENIC_FEVER_PERIPHERAL_CULTURE_ACTION_TERMS = [
+  "peripheral culture",
+  "peripheral vein",
+  "peripheral",
+];
+
+const NEUTROPENIC_FEVER_SOURCE_CULTURE_ACTION_TERMS = [
   "culture",
   "cultures",
-  "peripheral culture",
   "source",
   "urinalysis",
   "배양",
@@ -6013,24 +6028,35 @@ const NEUTROPENIC_FEVER_ANTIBIOTIC_TIMING_ACTION_TERMS = [
   "즉시",
 ];
 
-const NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS = [
+const NEUTROPENIC_FEVER_ADMISSION_ESCALATION_ACTION_TERMS = [
   "admit",
-  "cisne",
-  "hematology",
+  "hospital",
+  "inpatient",
   "icu",
-  "mascc",
-  "oncology",
-  "risk score",
-  "risk stratification",
   "sepsis",
   "입원",
+];
+
+const NEUTROPENIC_FEVER_ONCOLOGY_ESCALATION_ACTION_TERMS = [
+  "hematology",
+  "oncology",
   "혈액",
   "종양",
 ];
 
-const NEUTROPENIC_FEVER_ANTIBIOTIC_SAFETY_TERMS = [
+const NEUTROPENIC_FEVER_RISK_SCORE_ACTION_TERMS = [
+  "cisne",
+  "mascc",
+  "risk score",
+  "risk stratification",
+];
+
+const NEUTROPENIC_FEVER_ALLERGY_SAFETY_TERMS = [
   "allergy",
-  "antibiogram",
+  "hypersensitivity",
+];
+
+const NEUTROPENIC_FEVER_RENAL_HEPATIC_DOSING_SAFETY_TERMS = [
   "creatinine",
   "hepatic",
   "kidney",
@@ -6041,43 +6067,73 @@ const NEUTROPENIC_FEVER_ANTIBIOTIC_SAFETY_TERMS = [
   "신장",
 ];
 
-const NEUTROPENIC_FEVER_CATHETER_RESISTANCE_SAFETY_TERMS = [
+const NEUTROPENIC_FEVER_LOCAL_RESISTANCE_SAFETY_TERMS = [
+  "antibiogram",
+  "local microbiology",
+  "resistant",
+];
+
+const NEUTROPENIC_FEVER_VANCOMYCIN_NOT_ROUTINE_SAFETY_TERMS = [
+  "not routine vancomycin",
+  "not standard vancomycin",
+  "routine vancomycin not",
+  "vancomycin not recommended",
+  "vancomycin not routine",
+];
+
+const NEUTROPENIC_FEVER_VANCOMYCIN_INDICATION_SAFETY_TERMS = [
   "catheter",
   "central line",
   "gram-positive",
-  "local microbiology",
   "mrsa",
   "pneumonia",
-  "resistant",
   "skin",
   "soft tissue",
   "vancomycin",
   "중심정맥",
 ];
 
-const NEUTROPENIC_FEVER_RISK_DISPOSITION_SAFETY_TERMS = [
+const NEUTROPENIC_FEVER_RISK_SCORE_SAFETY_TERMS = [
   "cisne",
-  "comorbidity",
-  "discharge",
   "high risk",
   "low risk",
   "mascc",
-  "outpatient",
-  "return precautions",
   "risk score",
+];
+
+const NEUTROPENIC_FEVER_OUTPATIENT_CRITERIA_SAFETY_TERMS = [
+  "comorbidity",
+  "discharge",
+  "outpatient",
   "social",
   "퇴원",
 ];
 
-const NEUTROPENIC_FEVER_REASSESSMENT_SAFETY_TERMS = [
-  "antifungal",
-  "deterioration",
-  "fungal",
+const NEUTROPENIC_FEVER_RETURN_PRECAUTION_SAFETY_TERMS = [
+  "readmission",
+  "return precautions",
+  "worsening",
+];
+
+const NEUTROPENIC_FEVER_PERSISTENT_FEVER_SAFETY_TERMS = [
+  "4-7 days",
+  "4 to 7 days",
   "persistent fever",
+  "recurrent fever",
+];
+
+const NEUTROPENIC_FEVER_ANTIFUNGAL_REASSESSMENT_SAFETY_TERMS = [
+  "antifungal",
+  "fungal",
+  "invasive fungal",
+];
+
+const NEUTROPENIC_FEVER_CLINICAL_MICRO_REASSESSMENT_SAFETY_TERMS = [
+  "deterioration",
+  "microbiologic",
   "reassess",
   "reassessment",
   "resistant",
-  "72 hours",
   "재평가",
 ];
 
@@ -21372,7 +21428,16 @@ function hasNeutropenicFeverTimeCriticalActions(actions: string[]): boolean {
   const hasAncCheck = NEUTROPENIC_FEVER_ANC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasCultures = NEUTROPENIC_FEVER_CULTURE_ACTION_TERMS.some((term) =>
+  const hasBloodCulture = NEUTROPENIC_FEVER_BLOOD_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCentralLineCulture = NEUTROPENIC_FEVER_CENTRAL_LINE_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPeripheralCulture = NEUTROPENIC_FEVER_PERIPHERAL_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSourceCulture = NEUTROPENIC_FEVER_SOURCE_CULTURE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasAntipseudomonalAntibiotics = NEUTROPENIC_FEVER_ANTIPSEUDOMONAL_ACTION_TERMS.some(
@@ -21381,37 +21446,76 @@ function hasNeutropenicFeverTimeCriticalActions(actions: string[]): boolean {
   const hasAntibioticTiming = NEUTROPENIC_FEVER_ANTIBIOTIC_TIMING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasEscalation = NEUTROPENIC_FEVER_ESCALATION_ACTION_TERMS.some((term) =>
+  const hasAdmissionEscalation = NEUTROPENIC_FEVER_ADMISSION_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOncologyEscalation = NEUTROPENIC_FEVER_ONCOLOGY_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRiskScore = NEUTROPENIC_FEVER_RISK_SCORE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
     hasAncCheck &&
-    hasCultures &&
+    hasBloodCulture &&
+    hasCentralLineCulture &&
+    hasPeripheralCulture &&
+    hasSourceCulture &&
     hasAntipseudomonalAntibiotics &&
     hasAntibioticTiming &&
-    hasEscalation
+    hasAdmissionEscalation &&
+    hasOncologyEscalation &&
+    hasRiskScore
   );
 }
 
 function hasNeutropenicFeverTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasAntibioticSafety = NEUTROPENIC_FEVER_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
+  const hasAllergySafety = NEUTROPENIC_FEVER_ALLERGY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasCatheterResistanceSafety = NEUTROPENIC_FEVER_CATHETER_RESISTANCE_SAFETY_TERMS.some(
+  const hasRenalHepaticDosingSafety = NEUTROPENIC_FEVER_RENAL_HEPATIC_DOSING_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasRiskDispositionSafety = NEUTROPENIC_FEVER_RISK_DISPOSITION_SAFETY_TERMS.some((term) =>
+  const hasLocalResistanceSafety = NEUTROPENIC_FEVER_LOCAL_RESISTANCE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasReassessmentSafety = NEUTROPENIC_FEVER_REASSESSMENT_SAFETY_TERMS.some((term) =>
+  const hasVancomycinNotRoutine = NEUTROPENIC_FEVER_VANCOMYCIN_NOT_ROUTINE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVancomycinIndication = NEUTROPENIC_FEVER_VANCOMYCIN_INDICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRiskScoreSafety = NEUTROPENIC_FEVER_RISK_SCORE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOutpatientCriteriaSafety = NEUTROPENIC_FEVER_OUTPATIENT_CRITERIA_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasReturnPrecautionSafety = NEUTROPENIC_FEVER_RETURN_PRECAUTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPersistentFeverSafety = NEUTROPENIC_FEVER_PERSISTENT_FEVER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntifungalReassessmentSafety = NEUTROPENIC_FEVER_ANTIFUNGAL_REASSESSMENT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasClinicalMicroReassessmentSafety = NEUTROPENIC_FEVER_CLINICAL_MICRO_REASSESSMENT_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasAntibioticSafety &&
-    hasCatheterResistanceSafety &&
-    hasRiskDispositionSafety &&
-    hasReassessmentSafety
+    hasAllergySafety &&
+    hasRenalHepaticDosingSafety &&
+    hasLocalResistanceSafety &&
+    hasVancomycinNotRoutine &&
+    hasVancomycinIndication &&
+    hasRiskScoreSafety &&
+    hasOutpatientCriteriaSafety &&
+    hasReturnPrecautionSafety &&
+    hasPersistentFeverSafety &&
+    hasAntifungalReassessmentSafety &&
+    hasClinicalMicroReassessmentSafety
   );
 }
 
@@ -29233,7 +29337,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasNeutropenicFeverTimeCriticalActions,
       issue:
-        "febrile neutropenia time-critical actions must include ANC or CBC confirmation, blood cultures or source cultures, immediate empiric antipseudomonal antibiotics within 1 hour, and oncology/hematology or sepsis-risk escalation",
+        "febrile neutropenia time-critical actions must include ANC or CBC confirmation, blood cultures with peripheral and central-line or lumen cultures plus source/urine cultures when indicated, immediate empiric antipseudomonal antibiotics such as cefepime, piperacillin-tazobactam, meropenem, imipenem, or ceftazidime within 1 hour, and admission/sepsis escalation plus oncology or hematology involvement with MASCC, CISNE, or risk-score stratification",
     },
     {
       name: "neutropenic_fever_treatment_safety",
@@ -29242,7 +29346,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasNeutropenicFeverTreatmentSafetyCheck,
       issue:
-        "febrile neutropenia safety checks must include antibiotic allergy or renal/hepatic dosing review, central-line or resistant-organism coverage indications, validated risk/disposition assessment, and persistent fever or fungal-risk reassessment",
+        "febrile neutropenia safety checks must include antibiotic allergy plus renal/hepatic dosing and toxicity review, local antibiogram or resistance review, vancomycin-not-routine stewardship plus specific vancomycin indications such as catheter infection, skin/soft-tissue infection, pneumonia, MRSA, resistant gram-positive organism, or hemodynamic instability, validated MASCC/CISNE risk and outpatient/discharge/social eligibility with return precautions or readmission plan, and persistent or recurrent fever after 4-7 days with antifungal/fungal-risk plus clinical/microbiologic reassessment",
     },
     {
       name: "obstructive_pyelonephritis_time_critical_actions",
