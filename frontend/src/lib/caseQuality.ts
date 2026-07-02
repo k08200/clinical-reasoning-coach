@@ -4908,46 +4908,59 @@ const RETINAL_DETACHMENT_RISK_CONTEXT_TERMS = [
   "외상",
 ];
 
-const RETINAL_DETACHMENT_VISUAL_ASSESSMENT_ACTION_TERMS = [
-  "afferent pupillary defect",
-  "apd",
-  "dilated fundus",
-  "fundoscopy",
-  "pupil",
-  "red reflex",
-  "relative afferent pupillary defect",
+const RETINAL_DETACHMENT_VISUAL_ACUITY_ACTION_TERMS = [
   "visual acuity",
-  "visual field",
-  "산동",
   "시력",
+];
+
+const RETINAL_DETACHMENT_VISUAL_FIELD_ACTION_TERMS = [
+  "central vision",
+  "peripheral visual field",
+  "visual field",
   "시야",
 ];
 
-const RETINAL_DETACHMENT_RETINAL_EXAM_ACTION_TERMS = [
-  "b-scan",
+const RETINAL_DETACHMENT_PUPIL_RED_REFLEX_ACTION_TERMS = [
+  "afferent pupillary defect",
+  "apd",
+  "pupil",
+  "red reflex",
+  "relative afferent pupillary defect",
+];
+
+const RETINAL_DETACHMENT_DILATED_INDIRECT_EXAM_ACTION_TERMS = [
   "dilated exam",
+  "dilated fundus",
   "dilated retinal exam",
   "indirect ophthalmoscopy",
-  "ocular ultrasound",
   "ophthalmoscopy",
   "retinal exam",
   "slit lamp",
-  "ultrasound",
   "안저",
+  "산동",
+];
+
+const RETINAL_DETACHMENT_BSCAN_ACTION_TERMS = [
+  "b-scan",
+  "ocular ultrasound",
+  "ultrasound",
   "초음파",
 ];
 
-const RETINAL_DETACHMENT_URGENT_SPECIALIST_ACTION_TERMS = [
+const RETINAL_DETACHMENT_URGENT_TIMING_ACTION_TERMS = [
   "emergency department",
   "emergency ophthalmology",
+  "same-day",
+  "urgent referral",
+  "응급",
+];
+
+const RETINAL_DETACHMENT_SPECIALIST_ACTION_TERMS = [
   "ophthalmology",
   "retina specialist",
   "retinal surgery",
-  "same-day",
   "urgent ophthalmology",
-  "urgent referral",
   "vitreoretinal",
-  "응급",
   "안과",
 ];
 
@@ -4957,57 +4970,67 @@ const RETINAL_DETACHMENT_DEFINITIVE_REPAIR_ACTION_TERMS = [
   "pneumatic retinopexy",
   "retinal repair",
   "scleral buckle",
-  "surgery",
   "vitrectomy",
   "레이저",
-  "수술",
 ];
 
-const RETINAL_DETACHMENT_DELAY_SAFETY_TERMS = [
+const RETINAL_DETACHMENT_NO_DELAY_SAFETY_TERMS = [
   "do not delay",
-  "emergency",
-  "immediate",
   "not delay",
-  "same day",
-  "urgent",
-  "응급",
-  "즉시",
   "지연",
 ];
 
-const RETINAL_DETACHMENT_MACULA_SAFETY_TERMS = [
-  "central vision",
+const RETINAL_DETACHMENT_URGENT_OPHTHALMOLOGY_SAFETY_TERMS = [
+  "emergency ophthalmology",
+  "same day",
+  "same-day",
+  "urgent ophthalmology",
+  "urgent",
+  "응급",
+  "즉시",
+];
+
+const RETINAL_DETACHMENT_MACULA_STATUS_SAFETY_TERMS = [
   "macula",
   "macula off",
   "macula on",
   "macular involvement",
-  "visual field",
-  "중심시력",
   "황반",
 ];
 
-const RETINAL_DETACHMENT_DIFFERENTIAL_SAFETY_TERMS = [
-  "migraine",
-  "posterior vitreous detachment",
-  "pvd",
+const RETINAL_DETACHMENT_CENTRAL_VISUAL_STATUS_SAFETY_TERMS = [
+  "central vision",
+  "visual field",
+  "중심시력",
+];
+
+const RETINAL_DETACHMENT_RETINAL_BREAK_DIFFERENTIAL_SAFETY_TERMS = [
   "retinal tear",
-  "vitreous hemorrhage",
-  "vitreous detachment",
-  "감별",
   "망막 열공",
 ];
 
-const RETINAL_DETACHMENT_PRECAUTION_SAFETY_TERMS = [
-  "avoid eye pressure",
-  "head position",
-  "nothing by mouth",
-  "npo",
+const RETINAL_DETACHMENT_VITREOUS_DIFFERENTIAL_SAFETY_TERMS = [
+  "posterior vitreous detachment",
+  "pvd",
+  "vitreous hemorrhage",
+  "vitreous detachment",
+  "감별",
+];
+
+const RETINAL_DETACHMENT_RETURN_PRECAUTION_SAFETY_TERMS = [
   "progression",
   "recheck",
   "return precautions",
   "worsening vision",
-  "금식",
   "악화",
+];
+
+const RETINAL_DETACHMENT_PERIOPERATIVE_PRECAUTION_SAFETY_TERMS = [
+  "avoid eye pressure",
+  "head position",
+  "nothing by mouth",
+  "npo",
+  "금식",
 ];
 
 const CENTRAL_RETINAL_ARTERY_OCCLUSION_DIRECT_CONTEXT_TERMS = [
@@ -20378,36 +20401,81 @@ function requiresRetinalDetachmentSafetyCheck(detail: ClinicalCaseReviewDetail):
 
 function hasRetinalDetachmentTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasVisualAssessment = RETINAL_DETACHMENT_VISUAL_ASSESSMENT_ACTION_TERMS.some((term) =>
+  const hasVisualAcuity = RETINAL_DETACHMENT_VISUAL_ACUITY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasRetinalExam = RETINAL_DETACHMENT_RETINAL_EXAM_ACTION_TERMS.some((term) =>
+  const hasVisualField = RETINAL_DETACHMENT_VISUAL_FIELD_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasUrgentSpecialist = RETINAL_DETACHMENT_URGENT_SPECIALIST_ACTION_TERMS.some((term) =>
+  const hasPupilRedReflex = RETINAL_DETACHMENT_PUPIL_RED_REFLEX_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDilatedIndirectExam = RETINAL_DETACHMENT_DILATED_INDIRECT_EXAM_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBscan = RETINAL_DETACHMENT_BSCAN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUrgentTiming = RETINAL_DETACHMENT_URGENT_TIMING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSpecialist = RETINAL_DETACHMENT_SPECIALIST_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasDefinitiveRepair = RETINAL_DETACHMENT_DEFINITIVE_REPAIR_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasVisualAssessment && hasRetinalExam && hasUrgentSpecialist && hasDefinitiveRepair;
+  return (
+    hasVisualAcuity &&
+    hasVisualField &&
+    hasPupilRedReflex &&
+    hasDilatedIndirectExam &&
+    hasBscan &&
+    hasUrgentTiming &&
+    hasSpecialist &&
+    hasDefinitiveRepair
+  );
 }
 
 function hasRetinalDetachmentTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasDelaySafety = RETINAL_DETACHMENT_DELAY_SAFETY_TERMS.some((term) =>
+  const hasNoDelaySafety = RETINAL_DETACHMENT_NO_DELAY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasMaculaSafety = RETINAL_DETACHMENT_MACULA_SAFETY_TERMS.some((term) =>
+  const hasUrgentOphthalmologySafety = RETINAL_DETACHMENT_URGENT_OPHTHALMOLOGY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMaculaStatusSafety = RETINAL_DETACHMENT_MACULA_STATUS_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDifferentialSafety = RETINAL_DETACHMENT_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+  const hasCentralVisualStatusSafety = RETINAL_DETACHMENT_CENTRAL_VISUAL_STATUS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRetinalBreakDifferentialSafety =
+    RETINAL_DETACHMENT_RETINAL_BREAK_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasVitreousDifferentialSafety =
+    RETINAL_DETACHMENT_VITREOUS_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasReturnPrecautionSafety = RETINAL_DETACHMENT_RETURN_PRECAUTION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasPrecautionSafety = RETINAL_DETACHMENT_PRECAUTION_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
+  const hasPerioperativePrecautionSafety =
+    RETINAL_DETACHMENT_PERIOPERATIVE_PRECAUTION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasNoDelaySafety &&
+    hasUrgentOphthalmologySafety &&
+    hasMaculaStatusSafety &&
+    hasCentralVisualStatusSafety &&
+    hasRetinalBreakDifferentialSafety &&
+    hasVitreousDifferentialSafety &&
+    hasReturnPrecautionSafety &&
+    hasPerioperativePrecautionSafety
   );
-  return hasDelaySafety && hasMaculaSafety && hasDifferentialSafety && hasPrecautionSafety;
 }
 
 function requiresCentralRetinalArteryOcclusionSafetyCheck(
@@ -28539,7 +28607,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasRetinalDetachmentTimeCriticalActions,
       issue:
-        "retinal detachment time-critical actions must include visual acuity, visual-field, pupil, APD, red-reflex, or dilated assessment, dilated retinal exam, indirect ophthalmoscopy, fundoscopy, slit-lamp, ocular ultrasound, or B-scan evaluation, urgent ophthalmology, retina specialist, vitreoretinal, same-day, emergency-department, or urgent-referral escalation, and definitive repair planning such as laser retinopexy, cryotherapy, pneumatic retinopexy, scleral buckle, vitrectomy, retinal repair, or surgery",
+        "retinal detachment time-critical actions must include visual acuity plus visual-field or central/peripheral-vision assessment and pupil/APD/red-reflex review, dilated retinal exam or indirect ophthalmoscopy plus B-scan/ocular ultrasound when the view is limited, same-day/urgent/emergency timing with ophthalmology, retina specialist, or vitreoretinal escalation, and specific definitive repair planning such as laser retinopexy, cryotherapy, pneumatic retinopexy, scleral buckle, vitrectomy, or retinal repair",
     },
     {
       name: "retinal_detachment_treatment_safety",
@@ -28548,7 +28616,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasRetinalDetachmentTreatmentSafetyCheck,
       issue:
-        "retinal detachment safety checks must include explicit do-not-delay, same-day, immediate, urgent, or emergency ophthalmology planning, macula-on, macula-off, macular involvement, central-vision, or visual-field status review, differential review for retinal tear, posterior vitreous detachment, PVD, vitreous hemorrhage, or migraine, and precautions for worsening vision, progression, recheck, return precautions, NPO, head positioning, or avoiding eye pressure",
+        "retinal detachment safety checks must include explicit do-not-delay language plus same-day/urgent/emergency ophthalmology planning, macula-on/off or macular-involvement status plus central vision or visual-field review, differential review for retinal tear plus posterior vitreous detachment/PVD or vitreous hemorrhage, and precautions for worsening vision/progression/recheck/return plus perioperative NPO, head positioning, or avoiding eye pressure",
     },
     {
       name: "central_retinal_artery_occlusion_time_critical_actions",

@@ -4438,44 +4438,53 @@ RETINAL_DETACHMENT_RISK_CONTEXT_TERMS = (
     "백내장 수술",
     "외상",
 )
-RETINAL_DETACHMENT_VISUAL_ASSESSMENT_ACTION_TERMS = (
+RETINAL_DETACHMENT_VISUAL_ACUITY_ACTION_TERMS = (
+    "visual acuity",
+    "시력",
+)
+RETINAL_DETACHMENT_VISUAL_FIELD_ACTION_TERMS = (
+    "central vision",
+    "peripheral visual field",
+    "visual field",
+    "시야",
+)
+RETINAL_DETACHMENT_PUPIL_RED_REFLEX_ACTION_TERMS = (
     "afferent pupillary defect",
     "apd",
-    "dilated fundus",
-    "fundoscopy",
     "pupil",
     "red reflex",
     "relative afferent pupillary defect",
-    "visual acuity",
-    "visual field",
-    "산동",
-    "시력",
-    "시야",
 )
-RETINAL_DETACHMENT_RETINAL_EXAM_ACTION_TERMS = (
-    "b-scan",
+RETINAL_DETACHMENT_DILATED_INDIRECT_EXAM_ACTION_TERMS = (
     "dilated exam",
+    "dilated fundus",
     "dilated retinal exam",
     "indirect ophthalmoscopy",
-    "ocular ultrasound",
     "ophthalmoscopy",
     "retinal exam",
     "slit lamp",
-    "ultrasound",
     "안저",
+    "산동",
+)
+RETINAL_DETACHMENT_BSCAN_ACTION_TERMS = (
+    "b-scan",
+    "ocular ultrasound",
+    "ultrasound",
     "초음파",
 )
-RETINAL_DETACHMENT_URGENT_SPECIALIST_ACTION_TERMS = (
+RETINAL_DETACHMENT_URGENT_TIMING_ACTION_TERMS = (
     "emergency department",
     "emergency ophthalmology",
+    "same-day",
+    "urgent referral",
+    "응급",
+)
+RETINAL_DETACHMENT_SPECIALIST_ACTION_TERMS = (
     "ophthalmology",
     "retina specialist",
     "retinal surgery",
-    "same-day",
     "urgent ophthalmology",
-    "urgent referral",
     "vitreoretinal",
-    "응급",
     "안과",
 )
 RETINAL_DETACHMENT_DEFINITIVE_REPAIR_ACTION_TERMS = (
@@ -4484,53 +4493,59 @@ RETINAL_DETACHMENT_DEFINITIVE_REPAIR_ACTION_TERMS = (
     "pneumatic retinopexy",
     "retinal repair",
     "scleral buckle",
-    "surgery",
     "vitrectomy",
     "레이저",
-    "수술",
 )
-RETINAL_DETACHMENT_DELAY_SAFETY_TERMS = (
+RETINAL_DETACHMENT_NO_DELAY_SAFETY_TERMS = (
     "do not delay",
-    "emergency",
-    "immediate",
     "not delay",
+    "지연",
+)
+RETINAL_DETACHMENT_URGENT_OPHTHALMOLOGY_SAFETY_TERMS = (
+    "emergency ophthalmology",
     "same day",
+    "same-day",
+    "urgent ophthalmology",
     "urgent",
     "응급",
     "즉시",
-    "지연",
 )
-RETINAL_DETACHMENT_MACULA_SAFETY_TERMS = (
-    "central vision",
+RETINAL_DETACHMENT_MACULA_STATUS_SAFETY_TERMS = (
     "macula",
     "macula off",
     "macula on",
     "macular involvement",
-    "visual field",
-    "중심시력",
     "황반",
 )
-RETINAL_DETACHMENT_DIFFERENTIAL_SAFETY_TERMS = (
-    "migraine",
+RETINAL_DETACHMENT_CENTRAL_VISUAL_STATUS_SAFETY_TERMS = (
+    "central vision",
+    "visual field",
+    "중심시력",
+)
+RETINAL_DETACHMENT_RETINAL_BREAK_DIFFERENTIAL_SAFETY_TERMS = (
+    "retinal tear",
+    "망막 열공",
+)
+RETINAL_DETACHMENT_VITREOUS_DIFFERENTIAL_SAFETY_TERMS = (
     "posterior vitreous detachment",
     "pvd",
-    "retinal tear",
     "vitreous hemorrhage",
     "vitreous detachment",
     "감별",
-    "망막 열공",
 )
-RETINAL_DETACHMENT_PRECAUTION_SAFETY_TERMS = (
-    "avoid eye pressure",
-    "head position",
-    "nothing by mouth",
-    "npo",
+RETINAL_DETACHMENT_RETURN_PRECAUTION_SAFETY_TERMS = (
     "progression",
     "recheck",
     "return precautions",
     "worsening vision",
-    "금식",
     "악화",
+)
+RETINAL_DETACHMENT_PERIOPERATIVE_PRECAUTION_SAFETY_TERMS = (
+    "avoid eye pressure",
+    "head position",
+    "nothing by mouth",
+    "npo",
+    "금식",
 )
 CENTRAL_RETINAL_ARTERY_OCCLUSION_DIRECT_CONTEXT_TERMS = (
     "branch retinal artery occlusion",
@@ -17161,14 +17176,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_retinal_detachment_time_critical_actions,
             issue=(
                 "retinal detachment time-critical actions must include visual "
-                "acuity, visual-field, pupil, APD, red-reflex, or dilated "
-                "assessment, dilated retinal exam, indirect ophthalmoscopy, "
-                "fundoscopy, slit-lamp, ocular ultrasound, or B-scan evaluation, "
-                "urgent ophthalmology, retina specialist, vitreoretinal, "
-                "same-day, emergency-department, or urgent-referral escalation, "
-                "and definitive repair planning such as laser retinopexy, "
-                "cryotherapy, pneumatic retinopexy, scleral buckle, vitrectomy, "
-                "retinal repair, or surgery"
+                "acuity plus visual-field or central/peripheral-vision assessment "
+                "and pupil/APD/red-reflex review, dilated retinal exam or indirect "
+                "ophthalmoscopy plus B-scan/ocular ultrasound when the view is "
+                "limited, same-day/urgent/emergency timing with ophthalmology, "
+                "retina specialist, or vitreoretinal escalation, and specific "
+                "definitive repair planning such as laser retinopexy, cryotherapy, "
+                "pneumatic retinopexy, scleral buckle, vitrectomy, or retinal repair"
             ),
         ),
         DomainSafetyGate(
@@ -17178,13 +17192,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_retinal_detachment_treatment_safety_check,
             issue=(
                 "retinal detachment safety checks must include explicit "
-                "do-not-delay, same-day, immediate, urgent, or emergency "
-                "ophthalmology planning, macula-on, macula-off, macular "
-                "involvement, central-vision, or visual-field status review, "
-                "differential review for retinal tear, posterior vitreous "
-                "detachment, PVD, vitreous hemorrhage, or migraine, and "
-                "precautions for worsening vision, progression, recheck, return "
-                "precautions, NPO, head positioning, or avoiding eye pressure"
+                "do-not-delay language plus same-day/urgent/emergency ophthalmology "
+                "planning, macula-on/off or macular-involvement status plus central "
+                "vision or visual-field review, differential review for retinal "
+                "tear plus posterior vitreous detachment/PVD or vitreous hemorrhage, "
+                "and precautions for worsening vision/progression/recheck/return "
+                "plus perioperative NPO, head positioning, or avoiding eye pressure"
             ),
         ),
         DomainSafetyGate(
@@ -23909,53 +23922,93 @@ def _requires_retinal_detachment_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_retinal_detachment_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_visual_assessment = any(
+    has_visual_acuity = any(
         _contains_safety_term(normalized_actions, term)
-        for term in RETINAL_DETACHMENT_VISUAL_ASSESSMENT_ACTION_TERMS
+        for term in RETINAL_DETACHMENT_VISUAL_ACUITY_ACTION_TERMS
     )
-    has_retinal_exam = any(
+    has_visual_field = any(
         _contains_safety_term(normalized_actions, term)
-        for term in RETINAL_DETACHMENT_RETINAL_EXAM_ACTION_TERMS
+        for term in RETINAL_DETACHMENT_VISUAL_FIELD_ACTION_TERMS
     )
-    has_urgent_specialist = any(
+    has_pupil_red_reflex = any(
         _contains_safety_term(normalized_actions, term)
-        for term in RETINAL_DETACHMENT_URGENT_SPECIALIST_ACTION_TERMS
+        for term in RETINAL_DETACHMENT_PUPIL_RED_REFLEX_ACTION_TERMS
+    )
+    has_dilated_indirect_exam = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RETINAL_DETACHMENT_DILATED_INDIRECT_EXAM_ACTION_TERMS
+    )
+    has_bscan = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RETINAL_DETACHMENT_BSCAN_ACTION_TERMS
+    )
+    has_urgent_timing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RETINAL_DETACHMENT_URGENT_TIMING_ACTION_TERMS
+    )
+    has_specialist = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RETINAL_DETACHMENT_SPECIALIST_ACTION_TERMS
     )
     has_definitive_repair = any(
         _contains_safety_term(normalized_actions, term)
         for term in RETINAL_DETACHMENT_DEFINITIVE_REPAIR_ACTION_TERMS
     )
     return (
-        has_visual_assessment
-        and has_retinal_exam
-        and has_urgent_specialist
+        has_visual_acuity
+        and has_visual_field
+        and has_pupil_red_reflex
+        and has_dilated_indirect_exam
+        and has_bscan
+        and has_urgent_timing
+        and has_specialist
         and has_definitive_repair
     )
 
 
 def _has_retinal_detachment_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_delay_safety = any(
+    has_no_delay_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in RETINAL_DETACHMENT_DELAY_SAFETY_TERMS
+        for term in RETINAL_DETACHMENT_NO_DELAY_SAFETY_TERMS
     )
-    has_macula_safety = any(
+    has_urgent_ophthalmology_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in RETINAL_DETACHMENT_MACULA_SAFETY_TERMS
+        for term in RETINAL_DETACHMENT_URGENT_OPHTHALMOLOGY_SAFETY_TERMS
     )
-    has_differential_safety = any(
+    has_macula_status_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in RETINAL_DETACHMENT_DIFFERENTIAL_SAFETY_TERMS
+        for term in RETINAL_DETACHMENT_MACULA_STATUS_SAFETY_TERMS
     )
-    has_precaution_safety = any(
+    has_central_visual_status_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in RETINAL_DETACHMENT_PRECAUTION_SAFETY_TERMS
+        for term in RETINAL_DETACHMENT_CENTRAL_VISUAL_STATUS_SAFETY_TERMS
+    )
+    has_retinal_break_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RETINAL_DETACHMENT_RETINAL_BREAK_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_vitreous_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RETINAL_DETACHMENT_VITREOUS_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_return_precaution_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RETINAL_DETACHMENT_RETURN_PRECAUTION_SAFETY_TERMS
+    )
+    has_perioperative_precaution_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RETINAL_DETACHMENT_PERIOPERATIVE_PRECAUTION_SAFETY_TERMS
     )
     return (
-        has_delay_safety
-        and has_macula_safety
-        and has_differential_safety
-        and has_precaution_safety
+        has_no_delay_safety
+        and has_urgent_ophthalmology_safety
+        and has_macula_status_safety
+        and has_central_visual_status_safety
+        and has_retinal_break_differential_safety
+        and has_vitreous_differential_safety
+        and has_return_precaution_safety
+        and has_perioperative_precaution_safety
     )
 
 

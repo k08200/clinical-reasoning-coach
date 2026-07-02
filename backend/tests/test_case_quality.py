@@ -8946,6 +8946,278 @@ def test_quality_gate_requires_retinal_detachment_delay_macula_differential_and_
     )
 
 
+def test_quality_gate_requires_retinal_detachment_visual_acuity_and_field_not_pupil_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Macula-on retinal detachment"
+    case["patient_demographics"] = {
+        "age": 62,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "New flashes, floaters, and a curtain over vision"
+    case["history_of_present_illness"] = (
+        "Patient with high myopia and prior cataract surgery presents with sudden "
+        "flashes, many new floaters, and a dark curtain or shadow crossing the "
+        "peripheral visual field."
+    )
+    case["key_teaching_points"] = [
+        "Retinal detachment is an ophthalmic emergency that can cause permanent vision loss",
+        "Sudden flashes, floaters, curtain, shadow, or visual field loss require urgent evaluation",
+        "Macula-on status and timely repair planning affect visual outcome",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden floaters, flashes, photopsia, curtain, veil, shadow, visual field defect, or vision loss",
+        "High myopia, prior cataract surgery, eye trauma, lattice degeneration, PVD, or vitreous hemorrhage",
+    ]
+    case["time_critical_actions"] = [
+        "Check pupils, APD, red reflex, and dilated fundus assessment",
+        "Perform dilated retinal exam with indirect ophthalmoscopy, slit lamp, and ocular ultrasound B-scan if view is limited",
+        "Escalate same-day to urgent ophthalmology, retina specialist, vitreoretinal surgery, or emergency department referral",
+        "Plan definitive retinal repair such as laser retinopexy, cryotherapy, pneumatic retinopexy, scleral buckle, or vitrectomy",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay same-day urgent emergency ophthalmology planning",
+        "Review macula-on, macula-off, macular involvement, central vision, and visual field status",
+        "Review retinal tear, posterior vitreous detachment PVD, and vitreous hemorrhage differential",
+        "Give worsening vision, progression, recheck, return precautions, NPO, head position, and avoid eye pressure instructions",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Retinal Detachment",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/retinal-disorders/retinal-detachment",
+            "supports": [
+                "macula-on retinal detachment diagnosis and risk stratification",
+                "retinal detachment is an ophthalmic emergency that can cause permanent vision loss",
+                "sudden flashes, floaters, curtain, shadow, or visual field loss require urgent evaluation",
+                "high myopia, prior cataract surgery, eye trauma, lattice degeneration, PVD, or vitreous hemorrhage as risk factors",
+                "pupils, APD, red reflex, and dilated fundus assessment",
+                "dilated retinal exam with indirect ophthalmoscopy, slit lamp, and ocular ultrasound B-scan if view is limited",
+                "same-day urgent ophthalmology, retina specialist, vitreoretinal surgery, or emergency department referral",
+                "definitive retinal repair such as laser retinopexy, cryotherapy, pneumatic retinopexy, scleral buckle, or vitrectomy",
+                "same-day urgent emergency ophthalmology planning without delay",
+                "macula-on, macula-off, macular involvement, central vision, and visual field status review",
+                "retinal tear, posterior vitreous detachment PVD, and vitreous hemorrhage differential review",
+                "worsening vision, progression, recheck, return precautions, NPO, head position, and avoiding eye pressure precautions",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "retinal detachment time-critical actions must include visual acuity"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_retinal_detachment_specific_repair_not_generic_surgery_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Macula-on retinal detachment"
+    case["patient_demographics"] = {
+        "age": 62,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "New flashes, floaters, and a curtain over vision"
+    case["history_of_present_illness"] = (
+        "Patient with high myopia and prior cataract surgery presents with sudden "
+        "flashes, many new floaters, and a dark curtain or shadow crossing the "
+        "peripheral visual field."
+    )
+    case["key_teaching_points"] = [
+        "Retinal detachment is an ophthalmic emergency that can cause permanent vision loss",
+        "Sudden flashes, floaters, curtain, shadow, or visual field loss require urgent evaluation",
+        "Macula-on status and timely repair planning affect visual outcome",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden floaters, flashes, photopsia, curtain, veil, shadow, visual field defect, or vision loss",
+        "High myopia, prior cataract surgery, eye trauma, lattice degeneration, PVD, or vitreous hemorrhage",
+    ]
+    case["time_critical_actions"] = [
+        "Check visual acuity, visual field, pupils, APD, red reflex, and dilated fundus assessment",
+        "Perform dilated retinal exam with indirect ophthalmoscopy, slit lamp, and ocular ultrasound B-scan if view is limited",
+        "Escalate same-day to urgent ophthalmology, retina specialist, vitreoretinal surgery, or emergency department referral",
+        "Plan surgery for retinal detachment",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay same-day urgent emergency ophthalmology planning",
+        "Review macula-on, macula-off, macular involvement, central vision, and visual field status",
+        "Review retinal tear, posterior vitreous detachment PVD, and vitreous hemorrhage differential",
+        "Give worsening vision, progression, recheck, return precautions, NPO, head position, and avoid eye pressure instructions",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Retinal Detachment",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/retinal-disorders/retinal-detachment",
+            "supports": [
+                "macula-on retinal detachment diagnosis and risk stratification",
+                "retinal detachment is an ophthalmic emergency that can cause permanent vision loss",
+                "sudden flashes, floaters, curtain, shadow, or visual field loss require urgent evaluation",
+                "high myopia, prior cataract surgery, eye trauma, lattice degeneration, PVD, or vitreous hemorrhage as risk factors",
+                "visual acuity, visual field, pupils, APD, red reflex, and dilated fundus assessment",
+                "dilated retinal exam with indirect ophthalmoscopy, slit lamp, and ocular ultrasound B-scan if view is limited",
+                "same-day urgent ophthalmology, retina specialist, vitreoretinal surgery, or emergency department referral",
+                "surgery for retinal detachment",
+                "same-day urgent emergency ophthalmology planning without delay",
+                "macula-on, macula-off, macular involvement, central vision, and visual field status review",
+                "retinal tear, posterior vitreous detachment PVD, and vitreous hemorrhage differential review",
+                "worsening vision, progression, recheck, return precautions, NPO, head position, and avoiding eye pressure precautions",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "retinal detachment time-critical actions must include visual acuity"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_retinal_detachment_explicit_no_delay_not_urgent_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Macula-on retinal detachment"
+    case["patient_demographics"] = {
+        "age": 62,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "New flashes, floaters, and a curtain over vision"
+    case["history_of_present_illness"] = (
+        "Patient with high myopia and prior cataract surgery presents with sudden "
+        "flashes, many new floaters, and a dark curtain or shadow crossing the "
+        "peripheral visual field."
+    )
+    case["key_teaching_points"] = [
+        "Retinal detachment is an ophthalmic emergency that can cause permanent vision loss",
+        "Sudden flashes, floaters, curtain, shadow, or visual field loss require urgent evaluation",
+        "Macula-on status and timely repair planning affect visual outcome",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden floaters, flashes, photopsia, curtain, veil, shadow, visual field defect, or vision loss",
+        "High myopia, prior cataract surgery, eye trauma, lattice degeneration, PVD, or vitreous hemorrhage",
+    ]
+    case["time_critical_actions"] = [
+        "Check visual acuity, visual field, pupils, APD, red reflex, and dilated fundus assessment",
+        "Perform dilated retinal exam with indirect ophthalmoscopy, slit lamp, and ocular ultrasound B-scan if view is limited",
+        "Escalate same-day to urgent ophthalmology, retina specialist, vitreoretinal surgery, or emergency department referral",
+        "Plan definitive retinal repair such as laser retinopexy, cryotherapy, pneumatic retinopexy, scleral buckle, or vitrectomy",
+    ]
+    case["contraindication_checks"] = [
+        "Same-day urgent emergency ophthalmology planning",
+        "Review macula-on, macula-off, macular involvement, central vision, and visual field status",
+        "Review retinal tear, posterior vitreous detachment PVD, and vitreous hemorrhage differential",
+        "Give worsening vision, progression, recheck, return precautions, NPO, head position, and avoid eye pressure instructions",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Retinal Detachment",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/retinal-disorders/retinal-detachment",
+            "supports": [
+                "macula-on retinal detachment diagnosis and risk stratification",
+                "retinal detachment is an ophthalmic emergency that can cause permanent vision loss",
+                "sudden flashes, floaters, curtain, shadow, or visual field loss require urgent evaluation",
+                "high myopia, prior cataract surgery, eye trauma, lattice degeneration, PVD, or vitreous hemorrhage as risk factors",
+                "visual acuity, visual field, pupils, APD, red reflex, and dilated fundus assessment",
+                "dilated retinal exam with indirect ophthalmoscopy, slit lamp, and ocular ultrasound B-scan if view is limited",
+                "same-day urgent ophthalmology, retina specialist, vitreoretinal surgery, or emergency department referral",
+                "definitive retinal repair such as laser retinopexy, cryotherapy, pneumatic retinopexy, scleral buckle, or vitrectomy",
+                "same-day urgent emergency ophthalmology planning",
+                "macula-on, macula-off, macular involvement, central vision, and visual field status review",
+                "retinal tear, posterior vitreous detachment PVD, and vitreous hemorrhage differential review",
+                "worsening vision, progression, recheck, return precautions, NPO, head position, and avoiding eye pressure precautions",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "retinal detachment safety checks must include explicit do-not-delay"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_retinal_detachment_retinal_tear_and_vitreous_differential_not_migraine_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Macula-on retinal detachment"
+    case["patient_demographics"] = {
+        "age": 62,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "New flashes, floaters, and a curtain over vision"
+    case["history_of_present_illness"] = (
+        "Patient with high myopia and prior cataract surgery presents with sudden "
+        "flashes, many new floaters, and a dark curtain or shadow crossing the "
+        "peripheral visual field."
+    )
+    case["key_teaching_points"] = [
+        "Retinal detachment is an ophthalmic emergency that can cause permanent vision loss",
+        "Sudden flashes, floaters, curtain, shadow, or visual field loss require urgent evaluation",
+        "Macula-on status and timely repair planning affect visual outcome",
+    ]
+    case["clinical_red_flags"] = [
+        "Sudden floaters, flashes, photopsia, curtain, veil, shadow, visual field defect, or vision loss",
+        "High myopia, prior cataract surgery, eye trauma, lattice degeneration, PVD, or vitreous hemorrhage",
+    ]
+    case["time_critical_actions"] = [
+        "Check visual acuity, visual field, pupils, APD, red reflex, and dilated fundus assessment",
+        "Perform dilated retinal exam with indirect ophthalmoscopy, slit lamp, and ocular ultrasound B-scan if view is limited",
+        "Escalate same-day to urgent ophthalmology, retina specialist, vitreoretinal surgery, or emergency department referral",
+        "Plan definitive retinal repair such as laser retinopexy, cryotherapy, pneumatic retinopexy, scleral buckle, or vitrectomy",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay same-day urgent emergency ophthalmology planning",
+        "Review macula-on, macula-off, macular involvement, central vision, and visual field status",
+        "Review migraine differential",
+        "Give worsening vision, progression, recheck, return precautions, NPO, head position, and avoid eye pressure instructions",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Retinal Detachment",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/retinal-disorders/retinal-detachment",
+            "supports": [
+                "macula-on retinal detachment diagnosis and risk stratification",
+                "retinal detachment is an ophthalmic emergency that can cause permanent vision loss",
+                "sudden flashes, floaters, curtain, shadow, or visual field loss require urgent evaluation",
+                "high myopia, prior cataract surgery, eye trauma, lattice degeneration, PVD, or vitreous hemorrhage as risk factors",
+                "visual acuity, visual field, pupils, APD, red reflex, and dilated fundus assessment",
+                "dilated retinal exam with indirect ophthalmoscopy, slit lamp, and ocular ultrasound B-scan if view is limited",
+                "same-day urgent ophthalmology, retina specialist, vitreoretinal surgery, or emergency department referral",
+                "definitive retinal repair such as laser retinopexy, cryotherapy, pneumatic retinopexy, scleral buckle, or vitrectomy",
+                "same-day urgent emergency ophthalmology planning without delay",
+                "macula-on, macula-off, macular involvement, central vision, and visual field status review",
+                "migraine differential review",
+                "worsening vision, progression, recheck, return precautions, NPO, head position, and avoiding eye pressure precautions",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "retinal detachment safety checks must include explicit do-not-delay"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_crao_onset_eye_confirmation_stroke_workup_and_reperfusion_review():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Central retinal artery occlusion"
