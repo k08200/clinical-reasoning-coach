@@ -6179,33 +6179,63 @@ const OBSTRUCTIVE_PYELONEPHRITIS_OBSTRUCTION_CONTEXT_TERMS = [
   "요로폐색",
 ];
 
-const OBSTRUCTIVE_PYELONEPHRITIS_CULTURE_ANTIBIOTIC_ACTION_TERMS = [
+const OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_ACTION_TERMS = [
   "antibiotic",
   "antibiotics",
-  "blood culture",
+  "broad-spectrum",
   "cefepime",
   "ceftriaxone",
-  "culture",
+  "empiric",
+  "immediate antibiotics",
   "piperacillin",
-  "urine culture",
   "항생제",
-  "배양",
 ];
 
-const OBSTRUCTIVE_PYELONEPHRITIS_IMAGING_OBSTRUCTION_ACTION_TERMS = [
+const OBSTRUCTIVE_PYELONEPHRITIS_URINE_CULTURE_ACTION_TERMS = [
+  "urine culture",
+  "urine sample",
+  "urine specimen",
+  "urinary culture",
+  "소변 배양",
+  "요 배양",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_BLOOD_CULTURE_ACTION_TERMS = [
+  "blood culture",
+  "blood cultures",
+  "blood sample",
+  "blood specimen",
+  "혈액 배양",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_IMAGING_ACTION_TERMS = [
   "ct",
+  "computed tomography",
+  "ultrasound",
+  "초음파",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_OBSTRUCTION_ACTION_TERMS = [
   "hydronephrosis",
   "obstruction",
   "obstructive",
   "stone",
-  "ultrasound",
   "ureteral stone",
   "urolithiasis",
   "수신증",
   "요로결석",
 ];
 
-const OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_ACTION_TERMS = [
+const OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_URGENCY_ACTION_TERMS = [
+  "decompression",
+  "drainage",
+  "source control",
+  "urgent",
+  "배액",
+  "응급",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_ROUTE_ACTION_TERMS = [
   "double-j stent",
   "double j stent",
   "jj stent",
@@ -6229,7 +6259,6 @@ const OBSTRUCTIVE_PYELONEPHRITIS_SEPSIS_SUPPORT_ACTION_TERMS = [
   "fluid",
   "icu",
   "lactate",
-  "sepsis",
   "septic shock",
   "shock",
   "vasopressor",
@@ -6237,39 +6266,67 @@ const OBSTRUCTIVE_PYELONEPHRITIS_SEPSIS_SUPPORT_ACTION_TERMS = [
   "수액",
 ];
 
-const OBSTRUCTIVE_PYELONEPHRITIS_DELAY_STONE_SAFETY_TERMS = [
+const OBSTRUCTIVE_PYELONEPHRITIS_DELAY_INTENT_SAFETY_TERMS = [
   "defer",
-  "definitive stone",
   "delay",
-  "lithotripsy",
   "postpone",
-  "stone removal",
-  "until infection",
-  "until sepsis",
+  "wait",
   "지연",
 ];
 
-const OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_OPTION_SAFETY_TERMS = [
+const OBSTRUCTIVE_PYELONEPHRITIS_DEFINITIVE_STONE_SAFETY_TERMS = [
+  "definitive stone",
+  "lithotripsy",
+  "stone removal",
+  "ureteroscopy",
+  "쇄석술",
+  "요관경",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_INFECTION_RESOLUTION_SAFETY_TERMS = [
+  "infection resolves",
+  "sepsis resolves",
+  "until infection",
+  "until sepsis",
+  "감염 조절",
+  "패혈증 조절",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_REVIEW_SAFETY_TERMS = [
   "decompression",
-  "drainage",
+  "drainage option",
+  "drainage options",
+  "review drainage",
+  "source control",
+  "배액",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_ROUTE_SAFETY_TERMS = [
   "nephrostomy",
   "pcn",
   "percutaneous nephrostomy",
-  "retrograde",
+  "retrograde stent",
   "stent",
   "ureteral stent",
-  "배액",
+  "신루",
   "스텐트",
 ];
 
-const OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_SAFETY_TERMS = [
+const OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_INTENT_SAFETY_TERMS = [
+  "adjust",
+  "reassess",
+  "re-evaluate",
+  "re-evaluation",
+  "재평가",
+];
+
+const OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_DATA_SAFETY_TERMS = [
   "antibiogram",
-  "antibiotic adjustment",
   "culture result",
   "renal dosing",
-  "reassess",
   "resistance",
-  "source control",
+  "susceptibility",
+  "urine culture",
   "배양",
 ];
 
@@ -21552,35 +21609,69 @@ function requiresObstructivePyelonephritisSafetyCheck(
 
 function hasObstructivePyelonephritisTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasAntibioticsAndCultures =
-    OBSTRUCTIVE_PYELONEPHRITIS_CULTURE_ANTIBIOTIC_ACTION_TERMS.some((term) =>
-      containsSafetyTerm(normalizedActions, term),
-    );
-  const hasObstructionImaging =
-    OBSTRUCTIVE_PYELONEPHRITIS_IMAGING_OBSTRUCTION_ACTION_TERMS.some((term) =>
-      containsSafetyTerm(normalizedActions, term),
-    );
-  const hasDecompression = OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_ACTION_TERMS.some((term) =>
+  const hasAntibiotics = OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasUrineCulture = OBSTRUCTIVE_PYELONEPHRITIS_URINE_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodCulture = OBSTRUCTIVE_PYELONEPHRITIS_BLOOD_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImaging = OBSTRUCTIVE_PYELONEPHRITIS_IMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasObstructionImaging = OBSTRUCTIVE_PYELONEPHRITIS_OBSTRUCTION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDecompressionUrgency =
+    OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_URGENCY_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasDecompressionRoute =
+    OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_ROUTE_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
   const hasSepsisSupport = OBSTRUCTIVE_PYELONEPHRITIS_SEPSIS_SUPPORT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasAntibioticsAndCultures && hasObstructionImaging && hasDecompression && hasSepsisSupport;
+  return (
+    hasAntibiotics &&
+    hasUrineCulture &&
+    hasBloodCulture &&
+    hasImaging &&
+    hasObstructionImaging &&
+    hasDecompressionUrgency &&
+    hasDecompressionRoute &&
+    hasSepsisSupport
+  );
 }
 
 function hasObstructivePyelonephritisTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasDelayedStoneTreatment =
-    OBSTRUCTIVE_PYELONEPHRITIS_DELAY_STONE_SAFETY_TERMS.some((term) =>
+  const hasDelayIntent = OBSTRUCTIVE_PYELONEPHRITIS_DELAY_INTENT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDefinitiveStoneTreatment =
+    OBSTRUCTIVE_PYELONEPHRITIS_DEFINITIVE_STONE_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasDrainageOptionReview =
-    OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_OPTION_SAFETY_TERMS.some((term) =>
+  const hasInfectionResolution =
+    OBSTRUCTIVE_PYELONEPHRITIS_INFECTION_RESOLUTION_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasAntibioticReassessment =
-    OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_SAFETY_TERMS.some((term) =>
+  const hasDrainageReview = OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_REVIEW_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDrainageRoute = OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_ROUTE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntibioticReassessmentIntent =
+    OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_INTENT_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAntibioticReassessmentData =
+    OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_DATA_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
   const hasComplicationRiskReview =
@@ -21588,9 +21679,13 @@ function hasObstructivePyelonephritisTreatmentSafetyCheck(checks: string[]): boo
       containsSafetyTerm(normalizedChecks, term),
     );
   return (
-    hasDelayedStoneTreatment &&
-    hasDrainageOptionReview &&
-    hasAntibioticReassessment &&
+    hasDelayIntent &&
+    hasDefinitiveStoneTreatment &&
+    hasInfectionResolution &&
+    hasDrainageReview &&
+    hasDrainageRoute &&
+    hasAntibioticReassessmentIntent &&
+    hasAntibioticReassessmentData &&
     hasComplicationRiskReview
   );
 }
@@ -29355,7 +29450,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasObstructivePyelonephritisTimeCriticalActions,
       issue:
-        "obstructive pyelonephritis time-critical actions must include immediate antibiotics and urine or blood cultures, CT, ultrasound, hydronephrosis, obstruction, stone, or ureteral-stone imaging, urgent decompression using ureteral stent, ureteral stenting, percutaneous drainage, percutaneous nephrostomy, PCN, or nephrostomy catheter, and sepsis support with fluids, lactate, shock, vasopressor, ICU, or septic-shock monitoring",
+        "obstructive pyelonephritis time-critical actions must include immediate broad-spectrum antibiotics, both urine and blood cultures, CT or ultrasound plus obstruction, hydronephrosis, stone, or ureteral-stone findings, urgent decompression/source control using a specific route such as ureteral stent, ureteral stenting, percutaneous drainage, percutaneous nephrostomy, PCN, or nephrostomy catheter, and sepsis support with fluids, lactate, shock, vasopressor, ICU, or septic-shock monitoring",
     },
     {
       name: "obstructive_pyelonephritis_treatment_safety",
@@ -29364,7 +29459,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasObstructivePyelonephritisTreatmentSafetyCheck,
       issue:
-        "obstructive pyelonephritis safety checks must include delayed definitive stone removal until infection or sepsis resolves, drainage option review for ureteral stent, retrograde stent, percutaneous nephrostomy, PCN, or nephrostomy, antibiotic reassessment with culture result, antibiogram, resistance, renal dosing, or source-control review, and complication risk review for anuria, AKI, renal failure, solitary kidney, pregnancy, immunocompromised state, urosepsis, or septic shock",
+        "obstructive pyelonephritis safety checks must include delayed definitive stone removal, ureteroscopy, or lithotripsy until infection or sepsis resolves, drainage option review with a specific ureteral stent or percutaneous nephrostomy route, antibiotic reassessment or adjustment using culture result, antibiogram, susceptibility, resistance, or renal dosing data, and complication risk review for anuria, AKI, renal failure, solitary kidney, pregnancy, immunocompromised state, urosepsis, or septic shock",
     },
     {
       name: "severe_hypoglycemia_time_critical_actions",

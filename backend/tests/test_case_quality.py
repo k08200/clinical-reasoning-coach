@@ -11434,8 +11434,79 @@ def test_quality_gate_requires_obstructive_pyelonephritis_antibiotics_imaging_de
 
     assert not report.passed
     assert any(
-        "obstructive pyelonephritis time-critical actions must include immediate antibiotics"
+        "obstructive pyelonephritis time-critical actions must include immediate broad-spectrum antibiotics"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_obstructive_pyelonephritis_both_urine_and_blood_cultures():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Obstructive pyelonephritis from infected ureteral stone"
+    case["patient_demographics"] = {
+        "age": 64,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, flank pain, and hypotension with obstructing stone"
+    case["history_of_present_illness"] = (
+        "Patient presents with fever, rigors, flank pain, hypotension, elevated "
+        "lactate, AKI, CT hydronephrosis, and an obstructing ureteral stone "
+        "causing urosepsis and obstructive pyelonephritis."
+    )
+    case["key_teaching_points"] = [
+        "An infected obstructed kidney is a urologic emergency",
+        "Antibiotics alone are insufficient when infected hydronephrosis needs source control",
+        "Urgent decompression can be performed with ureteral stent or percutaneous nephrostomy",
+        "Definitive stone removal should wait until infection or sepsis resolves",
+    ]
+    case["clinical_red_flags"] = [
+        "Sepsis, septic shock, anuria, AKI, renal failure, solitary kidney, pregnancy, or immunocompromised state",
+        "Hydronephrosis, obstructive uropathy, infected ureteral stone, or worsening hypotension",
+    ]
+    case["time_critical_actions"] = [
+        "Start immediate broad-spectrum antibiotics such as ceftriaxone or piperacillin tazobactam and obtain urine culture",
+        "Order CT or ultrasound to identify hydronephrosis, obstruction, obstructive uropathy, stone, and ureteral stone",
+        "Call urology for urgent decompression with ureteral stent or percutaneous nephrostomy PCN nephrostomy drainage",
+        "Treat sepsis with IV fluids, lactate trend, vasopressor planning, ICU escalation, and septic shock monitoring",
+    ]
+    case["contraindication_checks"] = [
+        "Delay definitive stone removal, ureteroscopy, and lithotripsy until infection and sepsis have resolved",
+        "Review drainage options with urology including ureteral stent, retrograde stent, percutaneous nephrostomy PCN, nephrostomy, and drainage option selection",
+        "Reassess antibiotics after culture result and antibiogram, resistance data, renal dosing, and source control",
+        "Review anuria, AKI, renal failure, solitary kidney, pregnancy, immunocompromised state, urosepsis, and septic shock",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "EAU Guidelines on Urolithiasis",
+            "organization": "European Association of Urology",
+            "url": "https://uroweb.org/guidelines/urolithiasis/chapter/guidelines",
+            "supports": [
+                "obstructive pyelonephritis from infected ureteral stone diagnosis and risk stratification",
+                "an infected obstructed kidney is a urologic emergency",
+                "antibiotics alone are insufficient when infected hydronephrosis needs source control",
+                "urgent decompression can be performed with ureteral stent or percutaneous nephrostomy",
+                "definitive stone removal should wait until infection or sepsis resolves",
+                "sepsis, septic shock, anuria, AKI, renal failure, solitary kidney, pregnancy, or immunocompromised state as red flags",
+                "hydronephrosis, obstructive uropathy, infected ureteral stone, or worsening hypotension as severity markers",
+                "immediate broad-spectrum antibiotics such as ceftriaxone or piperacillin tazobactam and urine culture",
+                "CT or ultrasound to identify hydronephrosis, obstruction, obstructive uropathy, stone, and ureteral stone",
+                "urology urgent decompression with ureteral stent or percutaneous nephrostomy PCN nephrostomy drainage",
+                "sepsis treatment with IV fluids, lactate trend, vasopressor planning, ICU escalation, and septic shock monitoring",
+                "delay definitive stone removal, ureteroscopy, and lithotripsy until infection and sepsis have resolved",
+                "drainage options with urology including ureteral stent, retrograde stent, percutaneous nephrostomy PCN, nephrostomy, and drainage option selection",
+                "antibiotics reassessment after culture result and antibiogram, resistance data, renal dosing, and source control",
+                "anuria, AKI, renal failure, solitary kidney, pregnancy, immunocompromised state, urosepsis, and septic shock risk review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "both urine and blood cultures" in issue
         for issue in report.critical_issues
     )
 
@@ -11506,7 +11577,7 @@ def test_quality_gate_requires_specific_obstructive_pyelonephritis_drainage_rout
 
     assert not report.passed
     assert any(
-        "obstructive pyelonephritis time-critical actions must include immediate antibiotics"
+        "obstructive pyelonephritis time-critical actions must include immediate broad-spectrum antibiotics"
         in issue
         for issue in report.critical_issues
     )
@@ -11576,6 +11647,77 @@ def test_quality_gate_requires_obstructive_pyelonephritis_delay_stone_drainage_a
     assert any(
         "obstructive pyelonephritis safety checks must include delayed definitive stone removal"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_obstructive_pyelonephritis_culture_guided_antibiotic_reassessment():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Obstructive pyelonephritis from infected ureteral stone"
+    case["patient_demographics"] = {
+        "age": 64,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, flank pain, and hypotension with obstructing stone"
+    case["history_of_present_illness"] = (
+        "Patient presents with fever, rigors, flank pain, hypotension, elevated "
+        "lactate, AKI, CT hydronephrosis, and an obstructing ureteral stone "
+        "causing urosepsis and obstructive pyelonephritis."
+    )
+    case["key_teaching_points"] = [
+        "An infected obstructed kidney is a urologic emergency",
+        "Antibiotics alone are insufficient when infected hydronephrosis needs source control",
+        "Urgent decompression can be performed with ureteral stent or percutaneous nephrostomy",
+        "Definitive stone removal should wait until infection or sepsis resolves",
+    ]
+    case["clinical_red_flags"] = [
+        "Sepsis, septic shock, anuria, AKI, renal failure, solitary kidney, pregnancy, or immunocompromised state",
+        "Hydronephrosis, obstructive uropathy, infected ureteral stone, or worsening hypotension",
+    ]
+    case["time_critical_actions"] = [
+        "Start immediate broad-spectrum antibiotics such as ceftriaxone or piperacillin tazobactam and obtain urine culture plus blood cultures",
+        "Order CT or ultrasound to identify hydronephrosis, obstruction, obstructive uropathy, stone, and ureteral stone",
+        "Call urology for urgent decompression with ureteral stent or percutaneous nephrostomy PCN nephrostomy drainage",
+        "Treat sepsis with IV fluids, lactate trend, vasopressor planning, ICU escalation, and septic shock monitoring",
+    ]
+    case["contraindication_checks"] = [
+        "Delay definitive stone removal, ureteroscopy, and lithotripsy until infection and sepsis have resolved",
+        "Review drainage options with urology including ureteral stent, retrograde stent, percutaneous nephrostomy PCN, nephrostomy, and drainage option selection",
+        "Reassess antibiotics after source control using clinical response only",
+        "Review anuria, AKI, renal failure, solitary kidney, pregnancy, immunocompromised state, urosepsis, and septic shock",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "EAU Guidelines on Urolithiasis",
+            "organization": "European Association of Urology",
+            "url": "https://uroweb.org/guidelines/urolithiasis/chapter/guidelines",
+            "supports": [
+                "obstructive pyelonephritis from infected ureteral stone diagnosis and risk stratification",
+                "an infected obstructed kidney is a urologic emergency",
+                "antibiotics alone are insufficient when infected hydronephrosis needs source control",
+                "urgent decompression can be performed with ureteral stent or percutaneous nephrostomy",
+                "definitive stone removal should wait until infection or sepsis resolves",
+                "sepsis, septic shock, anuria, AKI, renal failure, solitary kidney, pregnancy, or immunocompromised state as red flags",
+                "hydronephrosis, obstructive uropathy, infected ureteral stone, or worsening hypotension as severity markers",
+                "immediate broad-spectrum antibiotics such as ceftriaxone or piperacillin tazobactam and urine culture plus blood cultures",
+                "CT or ultrasound to identify hydronephrosis, obstruction, obstructive uropathy, stone, and ureteral stone",
+                "urology urgent decompression with ureteral stent or percutaneous nephrostomy PCN nephrostomy drainage",
+                "sepsis treatment with IV fluids, lactate trend, vasopressor planning, ICU escalation, and septic shock monitoring",
+                "delay definitive stone removal, ureteroscopy, and lithotripsy until infection and sepsis have resolved",
+                "drainage options with urology including ureteral stent, retrograde stent, percutaneous nephrostomy PCN, nephrostomy, and drainage option selection",
+                "antibiotics reassessment after source control using clinical response only",
+                "anuria, AKI, renal failure, solitary kidney, pregnancy, immunocompromised state, urosepsis, and septic shock risk review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "antibiotic reassessment or adjustment using culture result" in issue
         for issue in report.critical_issues
     )
 

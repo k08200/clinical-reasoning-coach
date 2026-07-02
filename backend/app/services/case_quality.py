@@ -5551,31 +5551,57 @@ OBSTRUCTIVE_PYELONEPHRITIS_OBSTRUCTION_CONTEXT_TERMS = (
     "요로결석",
     "요로폐색",
 )
-OBSTRUCTIVE_PYELONEPHRITIS_CULTURE_ANTIBIOTIC_ACTION_TERMS = (
+OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_ACTION_TERMS = (
     "antibiotic",
     "antibiotics",
-    "blood culture",
+    "broad-spectrum",
     "cefepime",
     "ceftriaxone",
-    "culture",
+    "empiric",
+    "immediate antibiotics",
     "piperacillin",
-    "urine culture",
     "항생제",
-    "배양",
 )
-OBSTRUCTIVE_PYELONEPHRITIS_IMAGING_OBSTRUCTION_ACTION_TERMS = (
+OBSTRUCTIVE_PYELONEPHRITIS_URINE_CULTURE_ACTION_TERMS = (
+    "urine culture",
+    "urine sample",
+    "urine specimen",
+    "urinary culture",
+    "소변 배양",
+    "요 배양",
+)
+OBSTRUCTIVE_PYELONEPHRITIS_BLOOD_CULTURE_ACTION_TERMS = (
+    "blood culture",
+    "blood cultures",
+    "blood sample",
+    "blood specimen",
+    "혈액 배양",
+)
+OBSTRUCTIVE_PYELONEPHRITIS_IMAGING_ACTION_TERMS = (
     "ct",
+    "computed tomography",
+    "ultrasound",
+    "초음파",
+)
+OBSTRUCTIVE_PYELONEPHRITIS_OBSTRUCTION_ACTION_TERMS = (
     "hydronephrosis",
     "obstruction",
     "obstructive",
     "stone",
-    "ultrasound",
     "ureteral stone",
     "urolithiasis",
     "수신증",
     "요로결석",
 )
-OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_ACTION_TERMS = (
+OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_URGENCY_ACTION_TERMS = (
+    "decompression",
+    "drainage",
+    "source control",
+    "urgent",
+    "배액",
+    "응급",
+)
+OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_ROUTE_ACTION_TERMS = (
     "double-j stent",
     "double j stent",
     "jj stent",
@@ -5598,44 +5624,67 @@ OBSTRUCTIVE_PYELONEPHRITIS_SEPSIS_SUPPORT_ACTION_TERMS = (
     "fluid",
     "icu",
     "lactate",
-    "sepsis",
     "septic shock",
     "shock",
     "vasopressor",
     "쇼크",
     "수액",
 )
-OBSTRUCTIVE_PYELONEPHRITIS_DELAY_STONE_SAFETY_TERMS = (
+OBSTRUCTIVE_PYELONEPHRITIS_DELAY_INTENT_SAFETY_TERMS = (
     "defer",
-    "definitive stone",
     "delay",
-    "lithotripsy",
     "postpone",
-    "stone removal",
-    "until infection",
-    "until sepsis",
+    "wait",
     "지연",
 )
-OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_OPTION_SAFETY_TERMS = (
+OBSTRUCTIVE_PYELONEPHRITIS_DEFINITIVE_STONE_SAFETY_TERMS = (
+    "definitive stone",
+    "lithotripsy",
+    "stone removal",
+    "ureteroscopy",
+    "쇄석술",
+    "요관경",
+)
+OBSTRUCTIVE_PYELONEPHRITIS_INFECTION_RESOLUTION_SAFETY_TERMS = (
+    "infection resolves",
+    "sepsis resolves",
+    "until infection",
+    "until sepsis",
+    "감염 조절",
+    "패혈증 조절",
+)
+OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_REVIEW_SAFETY_TERMS = (
     "decompression",
-    "drainage",
+    "drainage option",
+    "drainage options",
+    "review drainage",
+    "source control",
+    "배액",
+)
+OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_ROUTE_SAFETY_TERMS = (
     "nephrostomy",
     "pcn",
     "percutaneous nephrostomy",
-    "retrograde",
+    "retrograde stent",
     "stent",
     "ureteral stent",
-    "배액",
+    "신루",
     "스텐트",
 )
-OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_SAFETY_TERMS = (
+OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_INTENT_SAFETY_TERMS = (
+    "adjust",
+    "reassess",
+    "re-evaluate",
+    "re-evaluation",
+    "재평가",
+)
+OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_DATA_SAFETY_TERMS = (
     "antibiogram",
-    "antibiotic adjustment",
     "culture result",
     "renal dosing",
-    "reassess",
     "resistance",
-    "source control",
+    "susceptibility",
+    "urine culture",
     "배양",
 )
 OBSTRUCTIVE_PYELONEPHRITIS_COMPLICATION_RISK_SAFETY_TERMS = (
@@ -17645,13 +17694,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_obstructive_pyelonephritis_time_critical_actions,
             issue=(
                 "obstructive pyelonephritis time-critical actions must include "
-                "immediate antibiotics and urine or blood cultures, CT, ultrasound, "
-                "hydronephrosis, obstruction, stone, or ureteral-stone imaging, "
-                "urgent decompression using ureteral stent, ureteral stenting, "
+                "immediate broad-spectrum antibiotics, both urine and blood cultures, "
+                "CT or ultrasound plus obstruction, hydronephrosis, stone, or "
+                "ureteral-stone findings, urgent decompression/source control using "
+                "a specific route such as ureteral stent, ureteral stenting, "
                 "percutaneous drainage, percutaneous nephrostomy, PCN, or "
-                "nephrostomy catheter, and "
-                "sepsis support with fluids, lactate, shock, vasopressor, ICU, "
-                "or septic-shock monitoring"
+                "nephrostomy catheter, and sepsis support with fluids, lactate, "
+                "shock, vasopressor, ICU, or septic-shock monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -17661,13 +17710,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_obstructive_pyelonephritis_treatment_safety_check,
             issue=(
                 "obstructive pyelonephritis safety checks must include delayed "
-                "definitive stone removal until infection or sepsis resolves, "
-                "drainage option review for ureteral stent, retrograde stent, "
-                "percutaneous nephrostomy, PCN, or nephrostomy, antibiotic "
-                "reassessment with culture result, antibiogram, resistance, "
-                "renal dosing, or source-control review, and complication risk "
-                "review for anuria, AKI, renal failure, solitary kidney, "
-                "pregnancy, immunocompromised state, urosepsis, or septic shock"
+                "definitive stone removal, ureteroscopy, or lithotripsy until "
+                "infection or sepsis resolves, drainage option review with a "
+                "specific ureteral stent or percutaneous nephrostomy route, "
+                "antibiotic reassessment or adjustment using culture result, "
+                "antibiogram, susceptibility, resistance, or renal dosing data, "
+                "and complication risk review for anuria, AKI, renal failure, "
+                "solitary kidney, pregnancy, immunocompromised state, urosepsis, "
+                "or septic shock"
             ),
         ),
         DomainSafetyGate(
@@ -25218,26 +25268,46 @@ def _has_obstructive_pyelonephritis_time_critical_actions(
     actions: list[Any],
 ) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_antibiotics_and_cultures = any(
+    has_antibiotics = any(
         _contains_safety_term(normalized_actions, term)
-        for term in OBSTRUCTIVE_PYELONEPHRITIS_CULTURE_ANTIBIOTIC_ACTION_TERMS
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_urine_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_URINE_CULTURE_ACTION_TERMS
+    )
+    has_blood_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_BLOOD_CULTURE_ACTION_TERMS
+    )
+    has_imaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_IMAGING_ACTION_TERMS
     )
     has_obstruction_imaging = any(
         _contains_safety_term(normalized_actions, term)
-        for term in OBSTRUCTIVE_PYELONEPHRITIS_IMAGING_OBSTRUCTION_ACTION_TERMS
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_OBSTRUCTION_ACTION_TERMS
     )
-    has_decompression = any(
+    has_decompression_urgency = any(
         _contains_safety_term(normalized_actions, term)
-        for term in OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_ACTION_TERMS
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_URGENCY_ACTION_TERMS
+    )
+    has_decompression_route = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_DECOMPRESSION_ROUTE_ACTION_TERMS
     )
     has_sepsis_support = any(
         _contains_safety_term(normalized_actions, term)
         for term in OBSTRUCTIVE_PYELONEPHRITIS_SEPSIS_SUPPORT_ACTION_TERMS
     )
     return (
-        has_antibiotics_and_cultures
+        has_antibiotics
+        and has_urine_culture
+        and has_blood_culture
+        and has_imaging
         and has_obstruction_imaging
-        and has_decompression
+        and has_decompression_urgency
+        and has_decompression_route
         and has_sepsis_support
     )
 
@@ -25246,26 +25316,46 @@ def _has_obstructive_pyelonephritis_treatment_safety_check(
     checks: list[Any],
 ) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_delayed_stone_treatment = any(
+    has_delay_intent = any(
         _contains_safety_term(normalized_checks, term)
-        for term in OBSTRUCTIVE_PYELONEPHRITIS_DELAY_STONE_SAFETY_TERMS
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_DELAY_INTENT_SAFETY_TERMS
     )
-    has_drainage_option_review = any(
+    has_definitive_stone_treatment = any(
         _contains_safety_term(normalized_checks, term)
-        for term in OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_OPTION_SAFETY_TERMS
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_DEFINITIVE_STONE_SAFETY_TERMS
     )
-    has_antibiotic_reassessment = any(
+    has_infection_resolution = any(
         _contains_safety_term(normalized_checks, term)
-        for term in OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_SAFETY_TERMS
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_INFECTION_RESOLUTION_SAFETY_TERMS
+    )
+    has_drainage_review = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_REVIEW_SAFETY_TERMS
+    )
+    has_drainage_route = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_DRAINAGE_ROUTE_SAFETY_TERMS
+    )
+    has_antibiotic_reassessment_intent = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_INTENT_SAFETY_TERMS
+    )
+    has_antibiotic_reassessment_data = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in OBSTRUCTIVE_PYELONEPHRITIS_ANTIBIOTIC_REASSESSMENT_DATA_SAFETY_TERMS
     )
     has_complication_risk_review = any(
         _contains_safety_term(normalized_checks, term)
         for term in OBSTRUCTIVE_PYELONEPHRITIS_COMPLICATION_RISK_SAFETY_TERMS
     )
     return (
-        has_delayed_stone_treatment
-        and has_drainage_option_review
-        and has_antibiotic_reassessment
+        has_delay_intent
+        and has_definitive_stone_treatment
+        and has_infection_resolution
+        and has_drainage_review
+        and has_drainage_route
+        and has_antibiotic_reassessment_intent
+        and has_antibiotic_reassessment_data
         and has_complication_risk_review
     )
 
