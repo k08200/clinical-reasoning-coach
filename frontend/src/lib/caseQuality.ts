@@ -6368,13 +6368,19 @@ const SEVERE_HYPOGLYCEMIA_GLUCOSE_CHECK_ACTION_TERMS = [
   "혈당",
 ];
 
-const SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS = [
-  "carbohydrate",
+const SEVERE_HYPOGLYCEMIA_RESCUE_TREATMENT_ACTION_TERMS = [
   "d10",
   "d50",
+  "dasiglucagon",
   "dextrose",
+  "glucose gel",
+  "glucose tablet",
+  "glucose tablets",
   "glucagon",
+  "iv dextrose",
   "oral glucose",
+  "parenteral glucose",
+  "sucrose",
   "포도당",
 ];
 
@@ -6407,9 +6413,9 @@ const SEVERE_HYPOGLYCEMIA_PROLONGED_RISK_ACTION_TERMS = [
 
 const SEVERE_HYPOGLYCEMIA_ESCALATION_ACTION_TERMS = [
   "admit",
+  "continuous dextrose",
+  "dextrose infusion",
   "hospitalize",
-  "monitoring",
-  "octreotide",
   "observation",
   "prolonged monitoring",
   "입원",
@@ -6434,11 +6440,16 @@ const SEVERE_HYPOGLYCEMIA_RECURRENCE_RISK_SAFETY_TERMS = [
   "재발",
 ];
 
-const SEVERE_HYPOGLYCEMIA_RECURRENCE_MITIGATION_SAFETY_TERMS = [
-  "octreotide",
+const SEVERE_HYPOGLYCEMIA_RECURRENCE_MONITORING_SAFETY_TERMS = [
+  "admit",
+  "continuous dextrose",
+  "dextrose infusion",
+  "hospitalize",
   "observation",
   "prolonged monitoring",
 ];
+
+const SEVERE_HYPOGLYCEMIA_OCTREOTIDE_SAFETY_TERMS = ["octreotide"];
 
 const SEVERE_HYPOGLYCEMIA_CAUSE_RISK_SAFETY_TERMS = [
   "adrenal",
@@ -21716,7 +21727,7 @@ function hasSevereHypoglycemiaTimeCriticalActions(actions: string[]): boolean {
   const hasGlucoseCheck = SEVERE_HYPOGLYCEMIA_GLUCOSE_CHECK_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDextroseOrGlucagon = SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS.some(
+  const hasRescueTreatment = SEVERE_HYPOGLYCEMIA_RESCUE_TREATMENT_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   const hasRecheck = SEVERE_HYPOGLYCEMIA_RECHECK_ACTION_TERMS.some((term) =>
@@ -21733,7 +21744,7 @@ function hasSevereHypoglycemiaTimeCriticalActions(actions: string[]): boolean {
   );
   return (
     hasGlucoseCheck &&
-    hasDextroseOrGlucagon &&
+    hasRescueTreatment &&
     hasRecheck &&
     hasSustainedGlucose &&
     hasProlongedRisk &&
@@ -21749,8 +21760,14 @@ function hasSevereHypoglycemiaTreatmentSafetyCheck(checks: string[]): boolean {
   const hasRecurrenceRiskSafety = SEVERE_HYPOGLYCEMIA_RECURRENCE_RISK_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasRecurrenceMitigationSafety =
-    SEVERE_HYPOGLYCEMIA_RECURRENCE_MITIGATION_SAFETY_TERMS.some((term) =>
+  const hasRecurrenceMonitoringSafety =
+    SEVERE_HYPOGLYCEMIA_RECURRENCE_MONITORING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasSulfonylureaRisk = containsSafetyTerm(normalizedChecks, "sulfonylurea");
+  const hasOctreotideWhenSulfonylurea =
+    !hasSulfonylureaRisk ||
+    SEVERE_HYPOGLYCEMIA_OCTREOTIDE_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
   const hasCauseRiskSafety = SEVERE_HYPOGLYCEMIA_CAUSE_RISK_SAFETY_TERMS.some((term) =>
@@ -21762,7 +21779,8 @@ function hasSevereHypoglycemiaTreatmentSafetyCheck(checks: string[]): boolean {
   return (
     hasRouteAirwaySafety &&
     hasRecurrenceRiskSafety &&
-    hasRecurrenceMitigationSafety &&
+    hasRecurrenceMonitoringSafety &&
+    hasOctreotideWhenSulfonylurea &&
     hasCauseRiskSafety &&
     hasDischargePreventionSafety
   );
@@ -29468,7 +29486,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSevereHypoglycemiaTimeCriticalActions,
       issue:
-        "severe hypoglycemia time-critical actions must include bedside or point-of-care glucose confirmation, immediate oral glucose, IV dextrose, or glucagon therapy, repeat glucose checks, sustained carbohydrate feeding or dextrose infusion to prevent recurrence, prolonged-risk recognition for long-acting insulin, sulfonylurea, seizure, renal failure, or persistent altered mental status, and admission, observation, octreotide, or prolonged-monitoring escalation",
+        "severe hypoglycemia time-critical actions must include bedside or point-of-care glucose confirmation, a specific immediate rescue treatment such as oral glucose, glucose tablets, IV dextrose/D50/D10, glucagon, or dasiglucagon rather than generic sugar/carbohydrate language, repeat glucose checks, sustained carbohydrate feeding or dextrose infusion to prevent recurrence, prolonged-risk recognition for long-acting insulin, sulfonylurea, seizure, renal failure, or persistent altered mental status, and admission, observation, prolonged monitoring, or continuous dextrose-infusion escalation",
     },
     {
       name: "severe_hypoglycemia_treatment_safety",
@@ -29477,7 +29495,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSevereHypoglycemiaTreatmentSafetyCheck,
       issue:
-        "severe hypoglycemia safety checks must include airway or swallow route safety, recurrent hypoglycemia risk from sulfonylurea, long-acting insulin, rebound, or recurrent episodes, octreotide or observation planning, renal, hepatic, alcohol, sepsis, or adrenal cause review, and discharge prevention such as education, dose adjustment, meal access, or glucagon planning",
+        "severe hypoglycemia safety checks must include airway or swallow route safety, recurrent hypoglycemia risk from sulfonylurea, long-acting insulin, rebound, or recurrent episodes, observation, prolonged monitoring, admission, or dextrose-infusion planning, octreotide planning when sulfonylurea risk is present, renal, hepatic, alcohol, sepsis, or adrenal cause review, and discharge prevention such as education, dose adjustment, meal access, or glucagon planning",
     },
     {
       name: "insulin_sulfonylurea_toxicity_time_critical_actions",

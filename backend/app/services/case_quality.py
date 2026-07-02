@@ -5722,13 +5722,19 @@ SEVERE_HYPOGLYCEMIA_GLUCOSE_CHECK_ACTION_TERMS = (
     "poc glucose",
     "혈당",
 )
-SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS = (
-    "carbohydrate",
+SEVERE_HYPOGLYCEMIA_RESCUE_TREATMENT_ACTION_TERMS = (
     "d10",
     "d50",
+    "dasiglucagon",
     "dextrose",
+    "glucose gel",
+    "glucose tablet",
+    "glucose tablets",
     "glucagon",
+    "iv dextrose",
     "oral glucose",
+    "parenteral glucose",
+    "sucrose",
     "포도당",
 )
 SEVERE_HYPOGLYCEMIA_RECHECK_ACTION_TERMS = (
@@ -5757,9 +5763,9 @@ SEVERE_HYPOGLYCEMIA_PROLONGED_RISK_ACTION_TERMS = (
 )
 SEVERE_HYPOGLYCEMIA_ESCALATION_ACTION_TERMS = (
     "admit",
+    "continuous dextrose",
+    "dextrose infusion",
     "hospitalize",
-    "monitoring",
-    "octreotide",
     "observation",
     "prolonged monitoring",
     "입원",
@@ -5781,10 +5787,16 @@ SEVERE_HYPOGLYCEMIA_RECURRENCE_RISK_SAFETY_TERMS = (
     "sulfonylurea",
     "재발",
 )
-SEVERE_HYPOGLYCEMIA_RECURRENCE_MITIGATION_SAFETY_TERMS = (
-    "octreotide",
+SEVERE_HYPOGLYCEMIA_RECURRENCE_MONITORING_SAFETY_TERMS = (
+    "admit",
+    "continuous dextrose",
+    "dextrose infusion",
+    "hospitalize",
     "observation",
     "prolonged monitoring",
+)
+SEVERE_HYPOGLYCEMIA_OCTREOTIDE_SAFETY_TERMS = (
+    "octreotide",
 )
 SEVERE_HYPOGLYCEMIA_CAUSE_RISK_SAFETY_TERMS = (
     "adrenal",
@@ -17727,13 +17739,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_severe_hypoglycemia_time_critical_actions,
             issue=(
                 "severe hypoglycemia time-critical actions must include bedside "
-                "or point-of-care glucose confirmation, immediate oral glucose, "
-                "IV dextrose, or glucagon therapy, repeat glucose checks, "
-                "sustained carbohydrate feeding or dextrose infusion to prevent "
-                "recurrence, prolonged-risk recognition for long-acting insulin, "
-                "sulfonylurea, seizure, renal failure, or persistent altered "
-                "mental status, and admission, observation, octreotide, or "
-                "prolonged-monitoring escalation"
+                "or point-of-care glucose confirmation, a specific immediate "
+                "rescue treatment such as oral glucose, glucose tablets, IV "
+                "dextrose/D50/D10, glucagon, or dasiglucagon rather than generic "
+                "sugar/carbohydrate language, repeat glucose checks, sustained "
+                "carbohydrate feeding or dextrose infusion to prevent recurrence, "
+                "prolonged-risk recognition for long-acting insulin, sulfonylurea, "
+                "seizure, renal failure, or persistent altered mental status, and "
+                "admission, observation, prolonged monitoring, or continuous "
+                "dextrose-infusion escalation"
             ),
         ),
         DomainSafetyGate(
@@ -17744,10 +17758,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "severe hypoglycemia safety checks must include airway or swallow "
                 "route safety, recurrent hypoglycemia risk from sulfonylurea, "
-                "long-acting insulin, rebound, or recurrent episodes, octreotide "
-                "or observation planning, renal, hepatic, alcohol, sepsis, or "
-                "adrenal cause review, and discharge prevention such as education, "
-                "dose adjustment, meal access, or glucagon planning"
+                "long-acting insulin, rebound, or recurrent episodes, observation, "
+                "prolonged monitoring, admission, or dextrose-infusion planning, "
+                "octreotide planning when sulfonylurea risk is present, renal, "
+                "hepatic, alcohol, sepsis, or adrenal cause review, and discharge "
+                "prevention such as education, dose adjustment, meal access, or "
+                "glucagon planning"
             ),
         ),
         DomainSafetyGate(
@@ -25393,9 +25409,9 @@ def _has_severe_hypoglycemia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SEVERE_HYPOGLYCEMIA_GLUCOSE_CHECK_ACTION_TERMS
     )
-    has_dextrose_or_glucagon = any(
+    has_rescue_treatment = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_HYPOGLYCEMIA_DEXTROSE_GLUCAGON_ACTION_TERMS
+        for term in SEVERE_HYPOGLYCEMIA_RESCUE_TREATMENT_ACTION_TERMS
     )
     has_recheck = any(
         _contains_safety_term(normalized_actions, term)
@@ -25415,7 +25431,7 @@ def _has_severe_hypoglycemia_time_critical_actions(actions: list[Any]) -> bool:
     )
     return (
         has_glucose_check
-        and has_dextrose_or_glucagon
+        and has_rescue_treatment
         and has_recheck
         and has_sustained_glucose
         and has_prolonged_risk
@@ -25433,9 +25449,19 @@ def _has_severe_hypoglycemia_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in SEVERE_HYPOGLYCEMIA_RECURRENCE_RISK_SAFETY_TERMS
     )
-    has_recurrence_mitigation_safety = any(
+    has_recurrence_monitoring_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_HYPOGLYCEMIA_RECURRENCE_MITIGATION_SAFETY_TERMS
+        for term in SEVERE_HYPOGLYCEMIA_RECURRENCE_MONITORING_SAFETY_TERMS
+    )
+    has_sulfonylurea_risk = _contains_safety_term(
+        normalized_checks, "sulfonylurea"
+    )
+    has_octreotide_when_sulfonylurea = (
+        not has_sulfonylurea_risk
+        or any(
+            _contains_safety_term(normalized_checks, term)
+            for term in SEVERE_HYPOGLYCEMIA_OCTREOTIDE_SAFETY_TERMS
+        )
     )
     has_cause_risk_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -25448,7 +25474,8 @@ def _has_severe_hypoglycemia_treatment_safety_check(checks: list[Any]) -> bool:
     return (
         has_route_airway_safety
         and has_recurrence_risk_safety
-        and has_recurrence_mitigation_safety
+        and has_recurrence_monitoring_safety
+        and has_octreotide_when_sulfonylurea
         and has_cause_risk_safety
         and has_discharge_prevention_safety
     )
