@@ -5482,80 +5482,114 @@ const ENDOPHTHALMITIS_URGENT_OPHTHO_ACTION_TERMS = [
   "안과",
 ];
 
-const ENDOPHTHALMITIS_TAP_CULTURE_ACTION_TERMS = [
+const ENDOPHTHALMITIS_OCULAR_SAMPLING_ACTION_TERMS = [
   "aqueous culture",
   "aqueous tap",
-  "culture",
-  "gram stain",
   "tap and inject",
   "vitreous aspirate",
   "vitreous culture",
   "vitreous tap",
+];
+
+const ENDOPHTHALMITIS_MICROBIOLOGY_ACTION_TERMS = [
+  "culture",
+  "gram stain",
   "배양",
 ];
 
-const ENDOPHTHALMITIS_INTRAVITREAL_ANTIBIOTIC_ACTION_TERMS = [
-  "ceftazidime",
+const ENDOPHTHALMITIS_INTRAVITREAL_ROUTE_ACTION_TERMS = [
   "intravitreal antibiotic",
   "intravitreal antimicrobials",
   "intravitreal injection",
   "tap and inject",
-  "vancomycin",
   "안내 주사",
   "항생제",
 ];
 
-const ENDOPHTHALMITIS_SYSTEMIC_SEVERE_ACTION_TERMS = [
-  "blood culture",
+const ENDOPHTHALMITIS_INTRAVITREAL_VANCOMYCIN_ACTION_TERMS = ["vancomycin"];
+
+const ENDOPHTHALMITIS_INTRAVITREAL_CEFTAZIDIME_ACTION_TERMS = [
+  "ceftazidime",
+  "cephalosporin",
+  "gram-negative",
+  "gram negative",
+];
+
+const ENDOPHTHALMITIS_ENDOGENOUS_CONTEXT_ACTION_TERMS = [
   "endogenous",
+  "systemic infection",
+  "sepsis",
+];
+
+const ENDOPHTHALMITIS_IV_ANTIMICROBIAL_ACTION_TERMS = [
   "iv antibiotic",
   "iv antimicrobials",
-  "sepsis",
-  "systemic infection",
+  "intravenous antibiotic",
+  "intravenous antimicrobials",
+];
+
+const ENDOPHTHALMITIS_BLOOD_URINE_CULTURE_ACTION_TERMS = [
+  "blood culture",
   "urine culture",
   "혈액배양",
 ];
 
-const ENDOPHTHALMITIS_DELAY_DIFFERENTIAL_SAFETY_TERMS = [
-  "conjunctivitis",
+const ENDOPHTHALMITIS_NO_DELAY_SAFETY_TERMS = [
   "do not delay",
   "emergency",
-  "not conjunctivitis",
   "not delay",
   "urgent",
-  "uveitis",
   "지연",
 ];
 
-const ENDOPHTHALMITIS_VITRECTOMY_SEVERITY_SAFETY_TERMS = [
+const ENDOPHTHALMITIS_DIFFERENTIAL_SAFETY_TERMS = [
+  "conjunctivitis",
+  "not conjunctivitis",
+  "uveitis",
+];
+
+const ENDOPHTHALMITIS_VITRECTOMY_ACTION_SAFETY_TERMS = [
+  "vitrectomy",
+  "유리체절제",
+];
+
+const ENDOPHTHALMITIS_SEVERE_VISION_SAFETY_TERMS = [
   "count fingers",
   "light perception",
   "poor vision",
   "severe case",
-  "vitrectomy",
   "vitreous opacity",
-  "유리체절제",
 ];
 
-const ENDOPHTHALMITIS_FUNGAL_STEROID_SAFETY_TERMS = [
-  "corticosteroid",
+const ENDOPHTHALMITIS_FUNGAL_CONTEXT_SAFETY_TERMS = [
   "fungal",
   "immunocompromised",
   "intravenous drug",
   "iv drug",
-  "steroid",
   "voriconazole",
   "진균",
 ];
 
-const ENDOPHTHALMITIS_RESPONSE_MONITORING_SAFETY_TERMS = [
-  "culture sensitivity",
+const ENDOPHTHALMITIS_STEROID_CONTRAINDICATION_SAFETY_TERMS = [
+  "avoid corticosteroid",
+  "avoid steroid",
+  "contraindicated corticosteroid",
+  "contraindicated steroid",
+  "corticosteroid contraindicated",
+  "steroid contraindicated",
+];
+
+const ENDOPHTHALMITIS_VISUAL_MONITORING_SAFETY_TERMS = [
+  "visual acuity",
   "daily exam",
+];
+
+const ENDOPHTHALMITIS_RESPONSE_CULTURE_MONITORING_SAFETY_TERMS = [
+  "culture sensitivity",
   "no improvement",
   "repeat injection",
   "repeat intravitreal",
   "recheck",
-  "visual acuity",
   "worsening",
   "추적",
 ];
@@ -20885,33 +20919,79 @@ function hasEndophthalmitisTimeCriticalActions(actions: string[]): boolean {
   const hasUrgentOphtho = ENDOPHTHALMITIS_URGENT_OPHTHO_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasTapCulture = ENDOPHTHALMITIS_TAP_CULTURE_ACTION_TERMS.some((term) =>
+  const hasOcularSampling = ENDOPHTHALMITIS_OCULAR_SAMPLING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasIntravitrealAntibiotic = ENDOPHTHALMITIS_INTRAVITREAL_ANTIBIOTIC_ACTION_TERMS.some(
+  const hasMicrobiology = ENDOPHTHALMITIS_MICROBIOLOGY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIntravitrealRoute = ENDOPHTHALMITIS_INTRAVITREAL_ROUTE_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasSystemicSevereAction = ENDOPHTHALMITIS_SYSTEMIC_SEVERE_ACTION_TERMS.some((term) =>
+  const hasVancomycin = ENDOPHTHALMITIS_INTRAVITREAL_VANCOMYCIN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasUrgentOphtho && hasTapCulture && hasIntravitrealAntibiotic && hasSystemicSevereAction;
+  const hasCeftazidime = ENDOPHTHALMITIS_INTRAVITREAL_CEFTAZIDIME_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEndogenousContext = ENDOPHTHALMITIS_ENDOGENOUS_CONTEXT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIvAntimicrobial = ENDOPHTHALMITIS_IV_ANTIMICROBIAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodUrineCulture = ENDOPHTHALMITIS_BLOOD_URINE_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasUrgentOphtho &&
+    hasOcularSampling &&
+    hasMicrobiology &&
+    hasIntravitrealRoute &&
+    hasVancomycin &&
+    hasCeftazidime &&
+    hasEndogenousContext &&
+    hasIvAntimicrobial &&
+    hasBloodUrineCulture
+  );
 }
 
 function hasEndophthalmitisTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasDelayDifferential = ENDOPHTHALMITIS_DELAY_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+  const hasNoDelay = ENDOPHTHALMITIS_NO_DELAY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasVitrectomySeverity = ENDOPHTHALMITIS_VITRECTOMY_SEVERITY_SAFETY_TERMS.some((term) =>
+  const hasDifferential = ENDOPHTHALMITIS_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasFungalSteroidSafety = ENDOPHTHALMITIS_FUNGAL_STEROID_SAFETY_TERMS.some((term) =>
+  const hasVitrectomyAction = ENDOPHTHALMITIS_VITRECTOMY_ACTION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasResponseMonitoring = ENDOPHTHALMITIS_RESPONSE_MONITORING_SAFETY_TERMS.some((term) =>
+  const hasSevereVision = ENDOPHTHALMITIS_SEVERE_VISION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasDelayDifferential && hasVitrectomySeverity && hasFungalSteroidSafety && hasResponseMonitoring;
+  const hasFungalContext = ENDOPHTHALMITIS_FUNGAL_CONTEXT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidContraindication = ENDOPHTHALMITIS_STEROID_CONTRAINDICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVisualMonitoring = ENDOPHTHALMITIS_VISUAL_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasResponseMonitoring = ENDOPHTHALMITIS_RESPONSE_CULTURE_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasNoDelay &&
+    hasDifferential &&
+    hasVitrectomyAction &&
+    hasSevereVision &&
+    hasFungalContext &&
+    hasSteroidContraindication &&
+    hasVisualMonitoring &&
+    hasResponseMonitoring
+  );
 }
 
 function requiresTtpSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -28891,7 +28971,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasEndophthalmitisTimeCriticalActions,
       issue:
-        "endophthalmitis time-critical actions must include emergency, same-day, urgent ophthalmology, retina, vitreoretinal, or urgent-referral escalation, aqueous tap, vitreous tap, vitreous aspirate, gram stain, culture, or tap-and-inject sampling, intravitreal antibiotics or antimicrobials such as vancomycin plus ceftazidime or intravitreal injection therapy, and systemic or endogenous infection evaluation with IV antibiotics, IV antimicrobials, blood culture, urine culture, sepsis, or systemic infection assessment when endogenous disease is possible",
+        "endophthalmitis time-critical actions must include emergency, same-day, urgent ophthalmology, retina, vitreoretinal, or urgent-referral escalation, ocular sampling with aqueous tap, vitreous tap, vitreous aspirate, or tap-and-inject plus gram stain/culture microbiology, intravitreal antibiotic or antimicrobial route with both vancomycin and ceftazidime or gram-negative cephalosporin coverage, and endogenous/systemic infection evaluation with IV antibiotics or IV antimicrobials plus blood or urine cultures",
     },
     {
       name: "endophthalmitis_treatment_safety",
@@ -28900,7 +28980,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasEndophthalmitisTreatmentSafetyCheck,
       issue:
-        "endophthalmitis safety checks must include explicit do-not-delay or emergency review and differentiation from conjunctivitis or uveitis, vitrectomy or severe-vision review for light perception, count-fingers, poor vision, severe disease, or vitreous opacity, fungal, immunocompromised, IV-drug, voriconazole, steroid, or corticosteroid safety review, and monitoring for visual acuity, daily exam, culture sensitivity, repeat intravitreal injection, no improvement, worsening, or recheck response",
+        "endophthalmitis safety checks must include explicit do-not-delay or emergency review and differentiation from conjunctivitis or uveitis, vitrectomy review tied to severe vision findings such as light perception, count-fingers, poor vision, severe disease, or vitreous opacity, fungal/immunocompromised/IV-drug/voriconazole context plus explicit steroid or corticosteroid contraindication, and monitoring for visual acuity or daily exam plus culture sensitivity, repeat intravitreal injection, no improvement, worsening, or recheck response",
     },
     {
       name: "ttp_time_critical_actions",

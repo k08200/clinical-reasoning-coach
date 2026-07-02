@@ -10043,7 +10043,7 @@ def test_quality_gate_requires_endophthalmitis_ophthalmology_tap_intravitreal_an
     case["contraindication_checks"] = [
         "Do not delay emergency care or mislabel as conjunctivitis or uveitis",
         "Review vitrectomy for severe case, light perception, count fingers, poor vision, or vitreous opacity",
-        "Review fungal, immunocompromised, IV drug, voriconazole, steroid, and corticosteroid safety",
+        "Review fungal, immunocompromised, IV drug, and voriconazole context; avoid steroid or corticosteroid because corticosteroids are contraindicated in fungal endophthalmitis",
         "Monitor visual acuity, daily exam, culture sensitivity, repeat intravitreal injection need, no improvement, worsening, and recheck response",
     ]
     case["clinical_sources"] = [
@@ -10063,7 +10063,7 @@ def test_quality_gate_requires_endophthalmitis_ophthalmology_tap_intravitreal_an
                 "intravitreal antibiotics using vancomycin plus ceftazidime intravitreal injection therapy",
                 "do not delay emergency care or mislabel as conjunctivitis or uveitis",
                 "vitrectomy review for severe case, light perception, count fingers, poor vision, or vitreous opacity",
-                "fungal, immunocompromised, IV drug, voriconazole, steroid, and corticosteroid safety review",
+                "fungal, immunocompromised, IV drug, and voriconazole context with steroid or corticosteroid contraindication in fungal endophthalmitis",
                 "visual acuity, daily exam, culture sensitivity, repeat intravitreal injection need, no improvement, worsening, and recheck response monitoring",
             ],
         },
@@ -10149,6 +10149,142 @@ def test_quality_gate_requires_endophthalmitis_delay_vitrectomy_fungal_steroid_a
                 "endogenous endophthalmitis evaluation includes systemic infection and blood cultures",
             ],
         },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "endophthalmitis safety checks must include explicit do-not-delay" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_endophthalmitis_specific_intravitreal_antibiotics_not_generic_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute postoperative endophthalmitis"
+    case["patient_demographics"] = {
+        "age": 74,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe eye pain and vision loss after cataract surgery"
+    case["history_of_present_illness"] = (
+        "Patient is 5 days after cataract surgery and presents with severe eye pain, "
+        "red eye, photophobia, decreased vision, hypopyon, vitritis, and loss of red reflex."
+    )
+    case["key_teaching_points"] = [
+        "Endophthalmitis is a vision-threatening medical emergency",
+        "Vision prognosis is related to time from onset to treatment",
+        "Initial treatment usually requires intravitreal broad-spectrum antibiotics after ocular sampling",
+    ]
+    case["clinical_red_flags"] = [
+        "Recent cataract surgery, ocular surgery, intravitreal injection, trabeculectomy, penetrating trauma, or postoperative eye infection",
+        "Severe ocular ache, eye pain, red eye, photophobia, decreased vision, hypopyon, vitritis, or loss of red reflex",
+    ]
+    case["time_critical_actions"] = [
+        "Escalate same-day to urgent ophthalmology, retina, or vitreoretinal specialist",
+        "Perform aqueous tap, vitreous tap, vitreous aspirate, gram stain, culture, and tap and inject sampling",
+        "Treat with broad-spectrum intravitreal antibiotic intravitreal injection therapy",
+        "Evaluate for endogenous systemic infection with blood culture, urine culture, sepsis assessment, IV antibiotics, and IV antimicrobials when endogenous disease is possible",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay emergency care or mislabel as conjunctivitis or uveitis",
+        "Review vitrectomy for severe case, light perception, count fingers, poor vision, or vitreous opacity",
+        "Review fungal, immunocompromised, IV drug, and voriconazole context; avoid steroid or corticosteroid because corticosteroids are contraindicated in fungal endophthalmitis",
+        "Monitor visual acuity, daily exam, culture sensitivity, repeat intravitreal injection need, no improvement, worsening, and recheck response",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Endophthalmitis",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/uveitis-and-related-disorders/endophthalmitis",
+            "supports": [
+                "acute postoperative endophthalmitis diagnosis and risk stratification",
+                "endophthalmitis is a vision-threatening medical emergency",
+                "vision prognosis is related to time from onset to treatment",
+                "initial treatment usually requires intravitreal broad-spectrum antibiotics after ocular sampling",
+                "recent cataract surgery, ocular surgery, intravitreal injection, trabeculectomy, penetrating trauma, or postoperative eye infection as red flags",
+                "severe ocular ache, eye pain, red eye, photophobia, decreased vision, hypopyon, vitritis, or loss of red reflex as severity markers",
+                "same-day urgent ophthalmology, retina, or vitreoretinal specialist escalation",
+                "aqueous tap, vitreous tap, vitreous aspirate, gram stain, culture, and tap and inject sampling",
+                "broad-spectrum intravitreal antibiotic intravitreal injection therapy",
+                "endogenous systemic infection evaluation with blood culture, urine culture, sepsis assessment, IV antibiotics, and IV antimicrobials when endogenous disease is possible",
+                "do not delay emergency care or mislabel as conjunctivitis or uveitis",
+                "vitrectomy review for severe case, light perception, count fingers, poor vision, or vitreous opacity",
+                "fungal, immunocompromised, IV drug, and voriconazole context with steroid or corticosteroid contraindication in fungal endophthalmitis",
+                "visual acuity, daily exam, culture sensitivity, repeat intravitreal injection need, no improvement, worsening, and recheck response monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "endophthalmitis time-critical actions must include emergency" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_endophthalmitis_fungal_steroid_contraindication_not_steroid_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute postoperative endophthalmitis"
+    case["patient_demographics"] = {
+        "age": 74,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe eye pain and vision loss after cataract surgery"
+    case["history_of_present_illness"] = (
+        "Patient is 5 days after cataract surgery and presents with severe eye pain, "
+        "red eye, photophobia, decreased vision, hypopyon, vitritis, and loss of red reflex."
+    )
+    case["key_teaching_points"] = [
+        "Endophthalmitis is a vision-threatening medical emergency",
+        "Vision prognosis is related to time from onset to treatment",
+        "Initial treatment usually requires intravitreal broad-spectrum antibiotics after ocular sampling",
+    ]
+    case["clinical_red_flags"] = [
+        "Recent cataract surgery, ocular surgery, intravitreal injection, trabeculectomy, penetrating trauma, or postoperative eye infection",
+        "Severe ocular ache, eye pain, red eye, photophobia, decreased vision, hypopyon, vitritis, or loss of red reflex",
+    ]
+    case["time_critical_actions"] = [
+        "Escalate same-day to urgent ophthalmology, retina, or vitreoretinal specialist",
+        "Perform aqueous tap, vitreous tap, vitreous aspirate, gram stain, culture, and tap and inject sampling",
+        "Treat with intravitreal antibiotics using vancomycin plus ceftazidime intravitreal injection therapy",
+        "Evaluate for endogenous systemic infection with blood culture, urine culture, sepsis assessment, IV antibiotics, and IV antimicrobials when endogenous disease is possible",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay emergency care or mislabel as conjunctivitis or uveitis",
+        "Review vitrectomy for severe case, light perception, count fingers, poor vision, or vitreous opacity",
+        "Review fungal, immunocompromised, IV drug, voriconazole, steroid, and corticosteroid safety",
+        "Monitor visual acuity, daily exam, culture sensitivity, repeat intravitreal injection need, no improvement, worsening, and recheck response",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Endophthalmitis",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/eye-disorders/uveitis-and-related-disorders/endophthalmitis",
+            "supports": [
+                "acute postoperative endophthalmitis diagnosis and risk stratification",
+                "endophthalmitis is a vision-threatening medical emergency",
+                "vision prognosis is related to time from onset to treatment",
+                "initial treatment usually requires intravitreal broad-spectrum antibiotics after ocular sampling",
+                "recent cataract surgery, ocular surgery, intravitreal injection, trabeculectomy, penetrating trauma, or postoperative eye infection as red flags",
+                "severe ocular ache, eye pain, red eye, photophobia, decreased vision, hypopyon, vitritis, or loss of red reflex as severity markers",
+                "same-day urgent ophthalmology, retina, or vitreoretinal specialist escalation",
+                "aqueous tap, vitreous tap, vitreous aspirate, gram stain, culture, and tap and inject sampling",
+                "intravitreal antibiotics using vancomycin plus ceftazidime intravitreal injection therapy",
+                "endogenous systemic infection evaluation with blood culture, urine culture, sepsis assessment, IV antibiotics, and IV antimicrobials when endogenous disease is possible",
+                "do not delay emergency care or mislabel as conjunctivitis or uveitis",
+                "vitrectomy review for severe case, light perception, count fingers, poor vision, or vitreous opacity",
+                "fungal, immunocompromised, IV drug, voriconazole, steroid, and corticosteroid safety review",
+                "visual acuity, daily exam, culture sensitivity, repeat intravitreal injection need, no improvement, worsening, and recheck response monitoring",
+            ],
+        }
     ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
