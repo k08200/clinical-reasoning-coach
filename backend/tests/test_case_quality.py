@@ -13650,6 +13650,81 @@ def test_quality_gate_requires_drowning_oxygen_respiratory_temp_trauma_and_obser
     )
 
 
+def test_quality_gate_requires_drowning_airway_breathing_support_not_oxygen_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Drowning with hypoxemia after pool submersion"
+    case["patient_demographics"] = {
+        "age": 8,
+        "sex": "male",
+        "weight_kg": 28,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Cough and low oxygen saturation after submersion"
+    case["history_of_present_illness"] = (
+        "Child was submerged in a pool for about two minutes and was rescued coughing "
+        "with water aspiration, hypoxia, tachypnea, and mild respiratory compromise."
+    )
+    case["key_teaching_points"] = [
+        "Drowning causes respiratory impairment after submersion or immersion in liquid",
+        "Initial management prioritizes oxygenation, ventilation, aspiration prevention, and temperature stabilization",
+        "Delayed respiratory deterioration can occur after initially mild symptoms",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypoxemia, increased work of breathing, abnormal lung exam, altered mental status, or aspiration",
+        "Diving, head trauma, or cervical spine trauma risk during submersion",
+    ]
+    case["time_critical_actions"] = [
+        "Give high-flow oxygen with SpO2 pulse oximetry and respiratory exam monitoring",
+        "Check pulse, cardiac monitoring, IV access, and CPR resuscitation planning for hypotension",
+        "Assess lung exam, ABG, and chest x-ray for persistent hypoxemia or progressive respiratory symptoms",
+        "Remove wet clothes, check core temperature, provide warming, and restore normothermia",
+        "Review diving, head trauma, cervical spine, C-spine, and trauma risk",
+        "Observe 4 to 8 hours and plan admission, ICU, or transfer for ongoing hypoxia",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid routine prophylactic antibiotics or corticosteroids unless clinical evidence of infection, sepsis, or gross contamination is present",
+        "Use 4 to 8 hours observation and discharge only if asymptomatic and stable with normal respiratory exam, SpO2 >=95%, and return precautions",
+        "Target oxygen saturation 92% to 96%, use high-flow oxygen if SpO2 is under 90%, and avoid hyperoxia",
+        "Use cervical spine immobilization only for diving, fall, head trauma, C-spine, or trauma risk and do not delay airway care",
+        "Monitor for delayed pulmonary edema, ARDS, increased respiratory effort, or respiratory deterioration",
+        "Evaluate underlying causes including seizure, hypoglycemia, arrhythmia, long QT, or intoxication",
+        "Prevent aspiration with recovery position or lateral decubitus if vomiting occurs",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Drowning: Clinical Management",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK430833/",
+            "supports": [
+                "drowning with hypoxemia after pool submersion diagnosis and risk stratification",
+                "drowning causes respiratory impairment after submersion or immersion in liquid",
+                "oxygenation, ventilation, and circulation are immediate priorities",
+                "high-flow oxygen with SpO2 pulse oximetry and respiratory exam monitoring",
+                "pulse, cardiac monitoring, IV access, and CPR resuscitation planning for hypotension",
+                "lung exam, ABG, and chest x-ray for persistent hypoxemia or progressive respiratory symptoms",
+                "wet clothes removal, core temperature, warming, and normothermia",
+                "diving, head trauma, cervical spine, C-spine, and trauma risk review",
+                "4 to 8 hours observation and admission, ICU, or transfer for ongoing hypoxia",
+                "avoid routine prophylactic antibiotics or corticosteroids unless clinical evidence of infection, sepsis, or gross contamination is present",
+                "4 to 8 hours observation and discharge only if asymptomatic and stable with normal respiratory exam, SpO2 >=95%, and return precautions",
+                "oxygen saturation 92% to 96%, high-flow oxygen if SpO2 is under 90%, and avoidance of hyperoxia",
+                "cervical spine immobilization only for diving, fall, head trauma, C-spine, or trauma risk without delaying airway care",
+                "delayed pulmonary edema, ARDS, increased respiratory effort, or respiratory deterioration monitoring",
+                "underlying causes including seizure, hypoglycemia, arrhythmia, long QT, or intoxication evaluation",
+                "aspiration prevention with recovery position or lateral decubitus if vomiting occurs",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "airway/breathing support" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_drowning_antibiotic_discharge_respiratory_cause_and_aspiration_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Drowning with hypoxemia after pool submersion"
@@ -13713,6 +13788,74 @@ def test_quality_gate_requires_drowning_antibiotic_discharge_respiratory_cause_a
     assert any(
         "drowning safety checks must include avoidance of routine prophylactic antibiotics"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_drowning_infection_indication_oxygen_target_and_cspine_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Drowning with hypoxemia after pool submersion"
+    case["patient_demographics"] = {
+        "age": 8,
+        "sex": "male",
+        "weight_kg": 28,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Cough and low oxygen saturation after submersion"
+    case["history_of_present_illness"] = (
+        "Child was submerged in a pool for about two minutes and was rescued coughing "
+        "with water aspiration, hypoxia, tachypnea, and mild respiratory compromise."
+    )
+    case["key_teaching_points"] = [
+        "Drowning causes respiratory impairment after submersion or immersion in liquid",
+        "Initial management prioritizes oxygenation, ventilation, aspiration prevention, and temperature stabilization",
+        "Delayed respiratory deterioration can occur after initially mild symptoms",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypoxemia, increased work of breathing, abnormal lung exam, altered mental status, or aspiration",
+        "Diving, head trauma, or cervical spine trauma risk during submersion",
+    ]
+    case["time_critical_actions"] = [
+        "Support airway and oxygen; begin rescue breaths, CPR, bag-valve ventilation, resuscitation, or assisted ventilation if needed",
+        "Assess respiratory exam, lung exam, SpO2 pulse oximetry, ABG, and chest x-ray for persistent hypoxemia or progressive respiratory symptoms",
+        "Check core temperature, remove wet clothes, provide warming, and stabilize normothermia",
+        "Review diving mechanism, head trauma, cervical spine, C-spine, and other trauma risk",
+        "Check pulse, cardiac monitoring, IV access, and plan observation for 8 hours plus admission, transfer, or ICU escalation for ongoing hypoxia or assisted ventilation",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid routine prophylactic antibiotics or corticosteroids after drowning aspiration",
+        "Use 4 to 8 hours observation and discharge only if asymptomatic and stable with normal respiratory exam, SpO2 >=95%, and return precautions",
+        "Monitor for delayed pulmonary edema, ARDS, increased respiratory effort, or respiratory deterioration",
+        "Evaluate underlying causes including seizure, hypoglycemia, arrhythmia, long QT, or intoxication",
+        "Prevent aspiration with recovery position or lateral decubitus if vomiting occurs",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Drowning: Clinical Management",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK430833/",
+            "supports": [
+                "drowning with hypoxemia after pool submersion diagnosis and risk stratification",
+                "drowning causes respiratory impairment after submersion or immersion in liquid",
+                "airway, oxygen, rescue breaths, CPR, bag-valve ventilation, resuscitation, or assisted ventilation support",
+                "respiratory exam, lung exam, SpO2 pulse oximetry, ABG, and chest x-ray for persistent hypoxemia or progressive respiratory symptoms",
+                "core temperature, wet clothes removal, warming, and normothermia stabilization",
+                "diving mechanism, head trauma, cervical spine, C-spine, and trauma risk review",
+                "pulse, cardiac monitoring, IV access, 8 hours observation, admission, transfer, or ICU escalation for ongoing hypoxia or assisted ventilation",
+                "avoid routine prophylactic antibiotics or corticosteroids after drowning aspiration",
+                "4 to 8 hours observation and discharge only if asymptomatic and stable with normal respiratory exam, SpO2 >=95%, and return precautions",
+                "delayed pulmonary edema, ARDS, increased respiratory effort, or respiratory deterioration monitoring",
+                "underlying causes including seizure, hypoglycemia, arrhythmia, long QT, or intoxication evaluation",
+                "aspiration prevention with recovery position or lateral decubitus if vomiting occurs",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "unless clinical infection" in issue
         for issue in report.critical_issues
     )
 

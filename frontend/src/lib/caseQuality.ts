@@ -7250,29 +7250,55 @@ const DROWNING_RESPIRATORY_RISK_TERMS = [
   "submerged",
 ];
 
-const DROWNING_OXYGEN_VENTILATION_ACTION_TERMS = [
+const DROWNING_AIRWAY_BREATHING_ACTION_TERMS = [
   "airway",
   "bag-valve",
-  "cpr",
-  "oxygen",
-  "resuscitation",
+  "breathing",
+  "intubation",
+  "rescue breath",
   "ventilation",
 ];
 
-const DROWNING_RESPIRATORY_ASSESSMENT_ACTION_TERMS = [
-  "abg",
-  "chest x-ray",
-  "lung exam",
+const DROWNING_OXYGENATION_ACTION_TERMS = [
+  "high-flow oxygen",
+  "oxygen",
+  "oxygenation",
+  "spo2",
+  "supplemental oxygen",
+];
+
+const DROWNING_CIRCULATION_RESUSCITATION_ACTION_TERMS = [
+  "cardiac monitoring",
+  "circulation",
+  "cpr",
+  "hypotension",
+  "iv access",
+  "pulse",
+  "resuscitation",
+];
+
+const DROWNING_RESPIRATORY_MONITORING_ACTION_TERMS = [
   "pulse oximetry",
   "respiratory exam",
   "spo2",
 ];
 
-const DROWNING_TEMPERATURE_ACTION_TERMS = [
+const DROWNING_INDICATED_RESPIRATORY_WORKUP_ACTION_TERMS = [
+  "abg",
+  "chest x-ray",
+  "lung exam",
+  "persistent hypoxemia",
+  "progressive respiratory",
+];
+
+const DROWNING_WET_CLOTHING_ACTION_TERMS = [
+  "remove wet clothes",
+  "remove wet clothing",
+];
+
+const DROWNING_REWARMING_ACTION_TERMS = [
   "core temperature",
   "normothermia",
-  "remove wet clothes",
-  "temperature",
   "warming",
 ];
 
@@ -7284,11 +7310,15 @@ const DROWNING_TRAUMA_CSPINE_ACTION_TERMS = [
   "trauma",
 ];
 
-const DROWNING_OBSERVATION_ESCALATION_ACTION_TERMS = [
+const DROWNING_OBSERVATION_ACTION_TERMS = [
   "8 hours",
+  "observation",
+];
+
+const DROWNING_ESCALATION_ACTION_TERMS = [
+  "admission",
   "assisted ventilation",
   "icu",
-  "observation",
   "ongoing hypoxia",
   "transfer",
 ];
@@ -7312,13 +7342,52 @@ const DROWNING_ANTIBIOTIC_STEROID_TARGET_SAFETY_TERMS = [
   "steroids",
 ];
 
-const DROWNING_DISCHARGE_OBSERVATION_SAFETY_TERMS = [
+const DROWNING_INFECTION_INDICATION_SAFETY_TERMS = [
+  "clinical evidence of infection",
+  "contamination",
+  "gross contamination",
+  "infection",
+  "sepsis",
+];
+
+const DROWNING_OBSERVATION_DURATION_SAFETY_TERMS = [
   "8 hours",
+  "4 to 8 hours",
+  "observation",
+];
+
+const DROWNING_DISCHARGE_STABILITY_SAFETY_TERMS = [
   "asymptomatic",
   "discharge",
   "normal respiratory",
-  "observation",
+  "return precautions",
+  "stable",
+];
+
+const DROWNING_DISCHARGE_OXYGEN_SAFETY_TERMS = [
+  "95%",
   "spo2 >=95",
+  "spo2 >=",
+];
+
+const DROWNING_OXYGEN_TARGET_SAFETY_TERMS = [
+  "90%",
+  "92%",
+  "96%",
+  "avoid hyperoxia",
+  "high-flow oxygen",
+  "hyperoxia",
+];
+
+const DROWNING_CSPINE_TARGETING_SAFETY_TERMS = [
+  "cervical spine",
+  "c-spine",
+  "diving",
+  "fall",
+  "head trauma",
+  "not delay airway",
+  "only for trauma",
+  "routine immobilization",
 ];
 
 const DROWNING_DELAYED_RESPIRATORY_SAFETY_TERMS = [
@@ -22494,27 +22563,47 @@ function requiresDrowningSafetyCheck(detail: ClinicalCaseReviewDetail): boolean 
 
 function hasDrowningTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasOxygenVentilation = DROWNING_OXYGEN_VENTILATION_ACTION_TERMS.some((term) =>
+  const hasAirwayBreathing = DROWNING_AIRWAY_BREATHING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasRespiratoryAssessment = DROWNING_RESPIRATORY_ASSESSMENT_ACTION_TERMS.some(
+  const hasOxygenation = DROWNING_OXYGENATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCirculationResuscitation = DROWNING_CIRCULATION_RESUSCITATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasTemperatureStabilization = DROWNING_TEMPERATURE_ACTION_TERMS.some((term) =>
+  const hasRespiratoryMonitoring = DROWNING_RESPIRATORY_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIndicatedRespiratoryWorkup = DROWNING_INDICATED_RESPIRATORY_WORKUP_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasWetClothing = DROWNING_WET_CLOTHING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTemperatureStabilization = DROWNING_REWARMING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasTraumaCspineReview = DROWNING_TRAUMA_CSPINE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasObservationEscalation = DROWNING_OBSERVATION_ESCALATION_ACTION_TERMS.some(
-    (term) => containsSafetyTerm(normalizedActions, term),
+  const hasObservation = DROWNING_OBSERVATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalation = DROWNING_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasOxygenVentilation &&
-    hasRespiratoryAssessment &&
+    hasAirwayBreathing &&
+    hasOxygenation &&
+    hasCirculationResuscitation &&
+    hasRespiratoryMonitoring &&
+    hasIndicatedRespiratoryWorkup &&
+    hasWetClothing &&
     hasTemperatureStabilization &&
     hasTraumaCspineReview &&
-    hasObservationEscalation
+    hasObservation &&
+    hasEscalation
   );
 }
 
@@ -22527,7 +22616,22 @@ function hasDrowningTreatmentSafetyCheck(checks: string[]): boolean {
   const hasAntibioticSteroidTarget = DROWNING_ANTIBIOTIC_STEROID_TARGET_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDischargeObservationSafety = DROWNING_DISCHARGE_OBSERVATION_SAFETY_TERMS.some(
+  const hasInfectionIndication = DROWNING_INFECTION_INDICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasObservationDurationSafety = DROWNING_OBSERVATION_DURATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDischargeStabilitySafety = DROWNING_DISCHARGE_STABILITY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDischargeOxygenSafety = DROWNING_DISCHARGE_OXYGEN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOxygenTargetSafety = DROWNING_OXYGEN_TARGET_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCspineTargetingSafety = DROWNING_CSPINE_TARGETING_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasDelayedRespiratorySafety = DROWNING_DELAYED_RESPIRATORY_SAFETY_TERMS.some(
@@ -22542,7 +22646,12 @@ function hasDrowningTreatmentSafetyCheck(checks: string[]): boolean {
   return (
     hasAntibioticSteroidAvoidance &&
     hasAntibioticSteroidTarget &&
-    hasDischargeObservationSafety &&
+    hasInfectionIndication &&
+    hasObservationDurationSafety &&
+    hasDischargeStabilitySafety &&
+    hasDischargeOxygenSafety &&
+    hasOxygenTargetSafety &&
+    hasCspineTargetingSafety &&
     hasDelayedRespiratorySafety &&
     hasUnderlyingCauseSafety &&
     hasAspirationSafety
@@ -29919,7 +30028,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasDrowningTimeCriticalActions,
       issue:
-        "drowning time-critical actions must include airway, oxygen, CPR, bag-valve, resuscitation, or ventilation support, respiratory assessment with SpO2, pulse oximetry, respiratory exam, ABG, or chest x-ray when indicated, temperature stabilization with core temperature, warming, normothermia, or wet-clothing removal, trauma or cervical-spine review for diving, head trauma, or C-spine risk, and observation, ICU, transfer, assisted ventilation, ongoing-hypoxia, or 8-hour monitoring planning",
+        "drowning time-critical actions must include airway/breathing support such as rescue breaths, bag-valve ventilation, intubation, or ventilation, oxygenation with supplemental or high-flow oxygen and SpO2 monitoring, circulation/resuscitation with pulse, CPR, cardiac monitoring, IV access, hypotension, or resuscitation planning, respiratory monitoring with SpO2, pulse oximetry, or respiratory exam, indicated respiratory workup with lung exam, ABG, chest x-ray, persistent hypoxemia, or progressive respiratory symptoms, wet-clothing removal, rewarming or normothermia/core temperature stabilization, trauma or cervical-spine review for diving, head trauma, or C-spine risk, observation such as 4-8 hours, and escalation/admission/ICU/transfer/assisted ventilation planning for ongoing hypoxia",
     },
     {
       name: "drowning_treatment_safety",
@@ -29928,7 +30037,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasDrowningTreatmentSafetyCheck,
       issue:
-        "drowning safety checks must include avoidance of routine prophylactic antibiotics or corticosteroids unless infection, sepsis, or gross contamination is present, 8-hour observation or discharge criteria with asymptomatic status, normal respiratory exam, and SpO2 >=95%, delayed respiratory deterioration, pulmonary-edema, ARDS, or increased-work-of-breathing monitoring, underlying-cause review for seizure, hypoglycemia, arrhythmia, long-QT, or intoxication, and aspiration prevention with recovery position, lateral decubitus, vomiting, or aspiration precautions",
+        "drowning safety checks must include avoidance of routine prophylactic antibiotics or corticosteroids unless clinical infection, sepsis, or gross contamination is present, observation duration such as 4-8 hours, discharge stability criteria with asymptomatic/stable status, normal respiratory exam, return precautions, and SpO2 >=95%, oxygen safety with SpO2 90/92-96%, high-flow oxygen, or avoidance of hyperoxia, targeted cervical-spine immobilization only for diving/fall/head trauma/C-spine risk without delaying airway care, delayed respiratory deterioration, pulmonary-edema, ARDS, or increased-work-of-breathing monitoring, underlying-cause review for seizure, hypoglycemia, arrhythmia, long-QT, or intoxication, and aspiration prevention with recovery position, lateral decubitus, vomiting, or aspiration precautions",
     },
     {
       name: "heat_stroke_time_critical_actions",
