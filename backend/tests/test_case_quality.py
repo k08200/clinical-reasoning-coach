@@ -12744,6 +12744,76 @@ def test_quality_gate_requires_thyroid_storm_explicit_beta_blocker_not_rate_cont
     )
 
 
+def test_quality_gate_requires_thyroid_storm_glucocorticoid_not_supportive_care_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Thyroid storm"
+    case["patient_demographics"] = {
+        "age": 39,
+        "sex": "female",
+        "weight_kg": 57,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, agitation, and severe tachycardia"
+    case["history_of_present_illness"] = (
+        "Patient with Graves disease after infection presents with fever 40 C, "
+        "delirium, atrial fibrillation, heart failure symptoms, vomiting, and severe tachycardia."
+    )
+    case["key_teaching_points"] = [
+        "Thyroid storm is a life-threatening thyrotoxic crisis",
+        "Treatment blocks adrenergic effects, hormone synthesis, hormone release, and T4 to T3 conversion",
+        "Iodine should be given after thionamide to avoid fueling new hormone synthesis",
+    ]
+    case["clinical_red_flags"] = [
+        "Hyperthermia with delirium, agitation, seizure, or coma",
+        "Atrial fibrillation, heart failure, shock, vomiting, diarrhea, or infection trigger",
+    ]
+    case["time_critical_actions"] = [
+        "Start propranolol beta-blocker or esmolol rate control for severe tachycardia if tolerated",
+        "Give PTU or methimazole thionamide antithyroid therapy",
+        "Give iodine or iodide such as Lugol solution or SSKI after thionamide therapy",
+        "Give active cooling, IV fluids, oxygen, acetaminophen, ICU admission, telemetry, and cardiac monitoring",
+    ]
+    case["contraindication_checks"] = [
+        "Sequence thionamide before iodine or iodide and give iodine one hour after PTU or methimazole",
+        "Review beta-blocker contraindications including asthma, bronchospasm, decompensated heart failure, hypotension, or shock and plan diltiazem, esmolol, metoprolol, atenolol, or cardioselective alternative if needed",
+        "Check pregnancy status, CBC for agranulocytosis, liver transaminases, hepatic injury, and PTU hepatotoxicity risk",
+        "Search for infection, thyroidectomy, MI, pulmonary embolism, arrhythmia, atrial fibrillation, and other precipitants with ICU telemetry and cardiac monitoring",
+        "Avoid aspirin and salicylate; use acetaminophen-based fever control",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Thyroid Storm",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK448095/",
+            "supports": [
+                "thyroid storm diagnosis and risk stratification",
+                "thyroid storm is a life-threatening thyrotoxic crisis",
+                "treatment blocks adrenergic effects, hormone synthesis, hormone release, and T4 to T3 conversion",
+                "iodine should be given after thionamide to avoid fueling new hormone synthesis",
+                "hyperthermia with delirium, agitation, seizure, or coma as red flags",
+                "atrial fibrillation, heart failure, shock, vomiting, diarrhea, or infection trigger as severity markers",
+                "propranolol beta-blocker or esmolol rate control for severe tachycardia if tolerated",
+                "PTU or methimazole thionamide antithyroid therapy",
+                "iodine or iodide such as Lugol solution or SSKI after thionamide therapy",
+                "active cooling, IV fluids, oxygen, acetaminophen, ICU admission, telemetry, and cardiac monitoring without glucocorticoid therapy",
+                "thionamide before iodine or iodide and iodine one hour after PTU or methimazole",
+                "beta-blocker contraindications and diltiazem, esmolol, metoprolol, atenolol, or cardioselective alternative planning",
+                "pregnancy status, CBC for agranulocytosis, liver transaminases, hepatic injury, and PTU hepatotoxicity risk",
+                "infection, thyroidectomy, MI, pulmonary embolism, arrhythmia, atrial fibrillation, and other precipitants with ICU telemetry and cardiac monitoring",
+                "avoid aspirin and salicylate with acetaminophen-based fever control",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "glucocorticoid therapy such as hydrocortisone" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_thyroid_storm_iodine_sequence_beta_blocker_drug_and_trigger_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Thyroid storm"
@@ -12803,7 +12873,7 @@ def test_quality_gate_requires_thyroid_storm_iodine_sequence_beta_blocker_drug_a
 
     assert not report.passed
     assert any(
-        "thyroid storm safety checks must include iodine-after-thionamide" in issue
+        "thyroid storm safety checks must include thionamide-before-iodine" in issue
         for issue in report.critical_issues
     )
 

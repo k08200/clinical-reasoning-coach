@@ -6829,17 +6829,30 @@ const THYROID_STORM_IODINE_ACTION_TERMS = [
   "요오드",
 ];
 
-const THYROID_STORM_STEROID_SUPPORT_ACTION_TERMS = [
-  "acetaminophen",
-  "cooling",
+const THYROID_STORM_STEROID_ACTION_TERMS = [
   "dexamethasone",
   "glucocorticoid",
   "hydrocortisone",
-  "icu",
-  "supportive care",
   "steroid",
-  "냉각",
   "스테로이드",
+];
+
+const THYROID_STORM_SUPPORTIVE_ACTION_TERMS = [
+  "acetaminophen",
+  "cooling",
+  "cooling blanket",
+  "iv fluid",
+  "iv fluids",
+  "oxygen",
+  "supportive care",
+  "냉각",
+];
+
+const THYROID_STORM_ICU_MONITORING_ACTION_TERMS = [
+  "cardiac monitoring",
+  "icu",
+  "intensive care",
+  "telemetry",
 ];
 
 const THYROID_STORM_SEQUENCE_SAFETY_TERMS = [
@@ -6854,6 +6867,8 @@ const THYROID_STORM_SEQUENCE_SAFETY_TERMS = [
   "요오드 전",
 ];
 
+const THYROID_STORM_ONE_HOUR_SEQUENCE_SAFETY_TERMS = ["1 hour", "one hour", "60 minutes"];
+
 const THYROID_STORM_BETA_BLOCKER_SAFETY_TERMS = [
   "asthma",
   "bronchospasm",
@@ -6865,21 +6880,31 @@ const THYROID_STORM_BETA_BLOCKER_SAFETY_TERMS = [
   "심부전",
 ];
 
-const THYROID_STORM_DRUG_LIVER_SAFETY_TERMS = [
+const THYROID_STORM_BETA_BLOCKER_ALTERNATIVE_SAFETY_TERMS = [
+  "atenolol",
+  "cardioselective",
+  "diltiazem",
+  "esmolol",
+  "metoprolol",
+];
+
+const THYROID_STORM_THIONAMIDE_TOXICITY_SAFETY_TERMS = [
   "agranulocytosis",
   "cbc",
   "hepatotoxicity",
   "liver",
-  "pregnancy",
   "ptu",
   "transaminase",
   "간",
+];
+
+const THYROID_STORM_PREGNANCY_SAFETY_TERMS = [
+  "pregnancy",
+  "pregnant",
   "임신",
 ];
 
-const THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS = [
-  "arrhythmia",
-  "atrial fibrillation",
+const THYROID_STORM_PRECIPITANT_SAFETY_TERMS = [
   "infection",
   "mi",
   "precipitant",
@@ -6887,6 +6912,22 @@ const THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS = [
   "thyroidectomy",
   "trigger",
   "감염",
+];
+
+const THYROID_STORM_CARDIAC_MONITORING_SAFETY_TERMS = [
+  "arrhythmia",
+  "atrial fibrillation",
+  "cardiac monitoring",
+  "icu",
+  "telemetry",
+];
+
+const THYROID_STORM_ASPIRIN_AVOIDANCE_SAFETY_TERMS = [
+  "acetaminophen",
+  "avoid aspirin",
+  "avoid salicylate",
+  "no aspirin",
+  "salicylate",
 ];
 
 const MYXEDEMA_COMA_DIRECT_CONTEXT_TERMS = [
@@ -22112,10 +22153,16 @@ function hasThyroidStormTimeCriticalActions(actions: string[]): boolean {
   const hasIodine = THYROID_STORM_IODINE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSteroidSupport = THYROID_STORM_STEROID_SUPPORT_ACTION_TERMS.some((term) =>
+  const hasSteroid = THYROID_STORM_STEROID_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasBetaBlocker && hasThionamide && hasIodine && hasSteroidSupport;
+  const hasSupportive = THYROID_STORM_SUPPORTIVE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIcuMonitoring = THYROID_STORM_ICU_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasBetaBlocker && hasThionamide && hasIodine && hasSteroid && hasSupportive && hasIcuMonitoring;
 }
 
 function hasThyroidStormTreatmentSafetyCheck(checks: string[]): boolean {
@@ -22123,16 +22170,41 @@ function hasThyroidStormTreatmentSafetyCheck(checks: string[]): boolean {
   const hasSequenceSafety = THYROID_STORM_SEQUENCE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasOneHourSequenceSafety = THYROID_STORM_ONE_HOUR_SEQUENCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasBetaBlockerSafety = THYROID_STORM_BETA_BLOCKER_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDrugLiverSafety = THYROID_STORM_DRUG_LIVER_SAFETY_TERMS.some((term) =>
+  const hasBetaBlockerAlternativeSafety = THYROID_STORM_BETA_BLOCKER_ALTERNATIVE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasTriggerMonitoringSafety = THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS.some((term) =>
+  const hasThionamideToxicitySafety = THYROID_STORM_THIONAMIDE_TOXICITY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasSequenceSafety && hasBetaBlockerSafety && hasDrugLiverSafety && hasTriggerMonitoringSafety;
+  const hasPregnancySafety = THYROID_STORM_PREGNANCY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPrecipitantSafety = THYROID_STORM_PRECIPITANT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCardiacMonitoringSafety = THYROID_STORM_CARDIAC_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAspirinAvoidanceSafety = THYROID_STORM_ASPIRIN_AVOIDANCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasSequenceSafety &&
+    hasOneHourSequenceSafety &&
+    hasBetaBlockerSafety &&
+    hasBetaBlockerAlternativeSafety &&
+    hasThionamideToxicitySafety &&
+    hasPregnancySafety &&
+    hasPrecipitantSafety &&
+    hasCardiacMonitoringSafety &&
+    hasAspirinAvoidanceSafety
+  );
 }
 
 function requiresMyxedemaComaSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -29675,7 +29747,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasThyroidStormTimeCriticalActions,
       issue:
-        "thyroid storm time-critical actions must include beta-blockade or rate control, thionamide antithyroid therapy, iodine or iodide therapy, and glucocorticoid plus cooling, ICU, or supportive care",
+        "thyroid storm time-critical actions must include beta-blockade or rate control with a specific beta-blocker such as propranolol or esmolol, thionamide antithyroid therapy such as PTU or methimazole, iodine or iodide therapy such as Lugol solution or SSKI, glucocorticoid therapy such as hydrocortisone or dexamethasone, supportive care with cooling, IV fluids, oxygen, or acetaminophen, and ICU, telemetry, or cardiac monitoring",
     },
     {
       name: "thyroid_storm_treatment_safety",
@@ -29684,7 +29756,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasThyroidStormTreatmentSafetyCheck,
       issue:
-        "thyroid storm safety checks must include iodine-after-thionamide sequencing, beta-blocker contraindication review, thionamide pregnancy, liver, or agranulocytosis safety, and precipitant, arrhythmia, or ICU monitoring",
+        "thyroid storm safety checks must include thionamide-before-iodine sequencing with iodine delayed about one hour, beta-blocker contraindication review for asthma, bronchospasm, decompensated heart failure, hypotension, or shock plus diltiazem, esmolol, metoprolol, atenolol, or cardioselective alternative planning, thionamide toxicity review for CBC/agranulocytosis plus liver/transaminase/PTU hepatotoxicity, pregnancy safety, precipitant search for infection, MI, pulmonary embolism, thyroidectomy, or other trigger, arrhythmia/atrial-fibrillation plus ICU, telemetry, or cardiac monitoring, and aspirin/salicylate avoidance with acetaminophen-based fever control",
     },
     {
       name: "myxedema_coma_time_critical_actions",

@@ -6137,17 +6137,28 @@ THYROID_STORM_IODINE_ACTION_TERMS = (
     "sski",
     "요오드",
 )
-THYROID_STORM_STEROID_SUPPORT_ACTION_TERMS = (
-    "acetaminophen",
-    "cooling",
+THYROID_STORM_STEROID_ACTION_TERMS = (
     "dexamethasone",
     "glucocorticoid",
     "hydrocortisone",
-    "icu",
-    "supportive care",
     "steroid",
-    "냉각",
     "스테로이드",
+)
+THYROID_STORM_SUPPORTIVE_ACTION_TERMS = (
+    "acetaminophen",
+    "cooling",
+    "cooling blanket",
+    "iv fluid",
+    "iv fluids",
+    "oxygen",
+    "supportive care",
+    "냉각",
+)
+THYROID_STORM_ICU_MONITORING_ACTION_TERMS = (
+    "cardiac monitoring",
+    "icu",
+    "intensive care",
+    "telemetry",
 )
 THYROID_STORM_SEQUENCE_SAFETY_TERMS = (
     "after thionamide",
@@ -6160,6 +6171,11 @@ THYROID_STORM_SEQUENCE_SAFETY_TERMS = (
     "thionamide before",
     "요오드 전",
 )
+THYROID_STORM_ONE_HOUR_SEQUENCE_SAFETY_TERMS = (
+    "1 hour",
+    "one hour",
+    "60 minutes",
+)
 THYROID_STORM_BETA_BLOCKER_SAFETY_TERMS = (
     "asthma",
     "bronchospasm",
@@ -6170,20 +6186,28 @@ THYROID_STORM_BETA_BLOCKER_SAFETY_TERMS = (
     "천식",
     "심부전",
 )
-THYROID_STORM_DRUG_LIVER_SAFETY_TERMS = (
+THYROID_STORM_BETA_BLOCKER_ALTERNATIVE_SAFETY_TERMS = (
+    "atenolol",
+    "cardioselective",
+    "diltiazem",
+    "esmolol",
+    "metoprolol",
+)
+THYROID_STORM_THIONAMIDE_TOXICITY_SAFETY_TERMS = (
     "agranulocytosis",
     "cbc",
     "hepatotoxicity",
     "liver",
-    "pregnancy",
     "ptu",
     "transaminase",
     "간",
+)
+THYROID_STORM_PREGNANCY_SAFETY_TERMS = (
+    "pregnancy",
+    "pregnant",
     "임신",
 )
-THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS = (
-    "arrhythmia",
-    "atrial fibrillation",
+THYROID_STORM_PRECIPITANT_SAFETY_TERMS = (
     "infection",
     "mi",
     "precipitant",
@@ -6191,6 +6215,20 @@ THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS = (
     "thyroidectomy",
     "trigger",
     "감염",
+)
+THYROID_STORM_CARDIAC_MONITORING_SAFETY_TERMS = (
+    "arrhythmia",
+    "atrial fibrillation",
+    "cardiac monitoring",
+    "icu",
+    "telemetry",
+)
+THYROID_STORM_ASPIRIN_AVOIDANCE_SAFETY_TERMS = (
+    "acetaminophen",
+    "avoid aspirin",
+    "avoid salicylate",
+    "no aspirin",
+    "salicylate",
 )
 MYXEDEMA_COMA_DIRECT_CONTEXT_TERMS = (
     "hypothyroid crisis",
@@ -17909,8 +17947,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_thyroid_storm_time_critical_actions,
             issue=(
                 "thyroid storm time-critical actions must include beta-blockade "
-                "or rate control, thionamide antithyroid therapy, iodine or iodide "
-                "therapy, and glucocorticoid plus cooling, ICU, or supportive care"
+                "or rate control with a specific beta-blocker such as propranolol "
+                "or esmolol, thionamide antithyroid therapy such as PTU or "
+                "methimazole, iodine or iodide therapy such as Lugol solution or "
+                "SSKI, glucocorticoid therapy such as hydrocortisone or "
+                "dexamethasone, supportive care with cooling, IV fluids, oxygen, "
+                "or acetaminophen, and ICU, telemetry, or cardiac monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -17919,10 +17961,17 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="contraindication_checks",
             validator=_has_thyroid_storm_treatment_safety_check,
             issue=(
-                "thyroid storm safety checks must include iodine-after-thionamide "
-                "sequencing, beta-blocker contraindication review, thionamide "
-                "pregnancy, liver, or agranulocytosis safety, and precipitant, "
-                "arrhythmia, or ICU monitoring"
+                "thyroid storm safety checks must include thionamide-before-iodine "
+                "sequencing with iodine delayed about one hour, beta-blocker "
+                "contraindication review for asthma, bronchospasm, decompensated "
+                "heart failure, hypotension, or shock plus diltiazem, esmolol, "
+                "metoprolol, atenolol, or cardioselective alternative planning, "
+                "thionamide toxicity review for CBC/agranulocytosis plus liver/"
+                "transaminase/PTU hepatotoxicity, pregnancy safety, precipitant "
+                "search for infection, MI, pulmonary embolism, thyroidectomy, or "
+                "other trigger, arrhythmia/atrial-fibrillation plus ICU, telemetry, "
+                "or cardiac monitoring, and aspirin/salicylate avoidance with "
+                "acetaminophen-based fever control"
             ),
         ),
         DomainSafetyGate(
@@ -25851,11 +25900,26 @@ def _has_thyroid_storm_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in THYROID_STORM_IODINE_ACTION_TERMS
     )
-    has_steroid_support = any(
+    has_steroid = any(
         _contains_safety_term(normalized_actions, term)
-        for term in THYROID_STORM_STEROID_SUPPORT_ACTION_TERMS
+        for term in THYROID_STORM_STEROID_ACTION_TERMS
     )
-    return has_beta_blocker and has_thionamide and has_iodine and has_steroid_support
+    has_supportive = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THYROID_STORM_SUPPORTIVE_ACTION_TERMS
+    )
+    has_icu_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in THYROID_STORM_ICU_MONITORING_ACTION_TERMS
+    )
+    return (
+        has_beta_blocker
+        and has_thionamide
+        and has_iodine
+        and has_steroid
+        and has_supportive
+        and has_icu_monitoring
+    )
 
 
 def _has_thyroid_storm_treatment_safety_check(checks: list[Any]) -> bool:
@@ -25864,23 +25928,48 @@ def _has_thyroid_storm_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in THYROID_STORM_SEQUENCE_SAFETY_TERMS
     )
+    has_one_hour_sequence_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THYROID_STORM_ONE_HOUR_SEQUENCE_SAFETY_TERMS
+    )
     has_beta_blocker_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in THYROID_STORM_BETA_BLOCKER_SAFETY_TERMS
     )
-    has_drug_liver_safety = any(
+    has_beta_blocker_alternative_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in THYROID_STORM_DRUG_LIVER_SAFETY_TERMS
+        for term in THYROID_STORM_BETA_BLOCKER_ALTERNATIVE_SAFETY_TERMS
     )
-    has_trigger_monitoring_safety = any(
+    has_thionamide_toxicity_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in THYROID_STORM_TRIGGER_MONITORING_SAFETY_TERMS
+        for term in THYROID_STORM_THIONAMIDE_TOXICITY_SAFETY_TERMS
+    )
+    has_pregnancy_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THYROID_STORM_PREGNANCY_SAFETY_TERMS
+    )
+    has_precipitant_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THYROID_STORM_PRECIPITANT_SAFETY_TERMS
+    )
+    has_cardiac_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THYROID_STORM_CARDIAC_MONITORING_SAFETY_TERMS
+    )
+    has_aspirin_avoidance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THYROID_STORM_ASPIRIN_AVOIDANCE_SAFETY_TERMS
     )
     return (
         has_sequence_safety
+        and has_one_hour_sequence_safety
         and has_beta_blocker_safety
-        and has_drug_liver_safety
-        and has_trigger_monitoring_safety
+        and has_beta_blocker_alternative_safety
+        and has_thionamide_toxicity_safety
+        and has_pregnancy_safety
+        and has_precipitant_safety
+        and has_cardiac_monitoring_safety
+        and has_aspirin_avoidance_safety
     )
 
 
