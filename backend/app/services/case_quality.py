@@ -6986,16 +6986,39 @@ NEUROLEPTIC_MALIGNANT_SYNDROME_STOP_AGENT_ACTION_TERMS = (
     "stop neuroleptic",
     "중단",
 )
-NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_SUPPORT_ACTION_TERMS = (
-    "cardiac monitoring",
+NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_ACTION_TERMS = (
     "icu",
     "intensive care",
+    "중환자",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_MONITORING_ACTION_TERMS = (
+    "cardiac monitoring",
+    "close monitoring",
+    "vital signs",
+    "telemetry",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_IV_FLUID_ACTION_TERMS = (
     "iv fluid",
     "iv fluids",
-    "supportive care",
-    "vital signs",
-    "중환자",
+    "volume deficit",
+    "hydration",
     "수액",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_ELECTROLYTE_ACTION_TERMS = (
+    "electrolyte",
+    "hyperkalemia",
+    "metabolic acidosis",
+    "acidosis",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_CARDIORESPIRATORY_ACTION_TERMS = (
+    "cardiac dysrhythmia",
+    "cardiac monitoring",
+    "mechanical ventilation",
+    "respiratory failure",
+    "ventilatory support",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_SUPPORTIVE_ACTION_TERMS = (
+    "supportive care",
 )
 NEUROLEPTIC_MALIGNANT_SYNDROME_COOLING_ACTION_TERMS = (
     "active cooling",
@@ -7012,14 +7035,18 @@ NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_ACTION_TERMS = (
     "dopamine agonist",
     "단트롤렌",
 )
-NEUROLEPTIC_MALIGNANT_SYNDROME_COMPLICATION_ACTION_TERMS = (
-    "aki",
+NEUROLEPTIC_MALIGNANT_SYNDROME_CK_RHABDO_ACTION_TERMS = (
     "ck",
     "creatine kinase",
-    "electrolyte",
-    "renal",
     "rhabdomyolysis",
     "횡문근",
+)
+NEUROLEPTIC_MALIGNANT_SYNDROME_RENAL_MYOGLOBIN_ACTION_TERMS = (
+    "aki",
+    "myoglobin",
+    "myoglobinuria",
+    "renal",
+    "rhabdomyolysis",
 )
 NEUROLEPTIC_MALIGNANT_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = (
     "cns infection",
@@ -18314,10 +18341,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "neuroleptic malignant syndrome time-critical actions must include "
                 "stopping dopamine-antagonist, neuroleptic, or antipsychotic agents, "
-                "ICU, supportive care, IV fluids, vital-sign, or cardiac monitoring, "
-                "active cooling or hyperthermia control, bromocriptine, amantadine, "
-                "dantrolene, or dopamine-agonist therapy "
-                "consideration, and CK, rhabdomyolysis, renal, AKI, or electrolyte "
+                "ICU or intensive-care admission, close vital-sign/cardiac/telemetry "
+                "monitoring and supportive care, IV fluids or hydration for volume "
+                "deficit, electrolyte/hyperkalemia/metabolic-acidosis correction, "
+                "cardiorespiratory support for cardiac dysrhythmia, respiratory "
+                "failure, mechanical ventilation, or ventilatory support, active "
+                "cooling or hyperthermia control, bromocriptine, amantadine, "
+                "dantrolene, or dopamine-agonist therapy consideration, CK/creatine-"
+                "kinase and rhabdomyolysis monitoring, and renal/AKI/myoglobinuria "
                 "complication monitoring"
             ),
         ),
@@ -26818,9 +26849,29 @@ def _has_neuroleptic_malignant_syndrome_time_critical_actions(
         _contains_safety_term(normalized_actions, term)
         for term in NEUROLEPTIC_MALIGNANT_SYNDROME_STOP_AGENT_ACTION_TERMS
     )
-    has_icu_support = any(
+    has_icu = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_SUPPORT_ACTION_TERMS
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_ACTION_TERMS
+    )
+    has_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_MONITORING_ACTION_TERMS
+    )
+    has_iv_fluid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_IV_FLUID_ACTION_TERMS
+    )
+    has_electrolyte = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_ELECTROLYTE_ACTION_TERMS
+    )
+    has_cardiorespiratory = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_CARDIORESPIRATORY_ACTION_TERMS
+    )
+    has_supportive = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_SUPPORTIVE_ACTION_TERMS
     )
     has_cooling = any(
         _contains_safety_term(normalized_actions, term)
@@ -26830,16 +26881,26 @@ def _has_neuroleptic_malignant_syndrome_time_critical_actions(
         _contains_safety_term(normalized_actions, term)
         for term in NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_ACTION_TERMS
     )
-    has_complication_monitoring = any(
+    has_ck_rhabdo = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_COMPLICATION_ACTION_TERMS
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_CK_RHABDO_ACTION_TERMS
+    )
+    has_renal_myoglobin = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NEUROLEPTIC_MALIGNANT_SYNDROME_RENAL_MYOGLOBIN_ACTION_TERMS
     )
     return (
         has_stop_agent
-        and has_icu_support
+        and has_icu
+        and has_monitoring
+        and has_iv_fluid
+        and has_electrolyte
+        and has_cardiorespiratory
+        and has_supportive
         and has_cooling
         and has_medication
-        and has_complication_monitoring
+        and has_ck_rhabdo
+        and has_renal_myoglobin
     )
 
 

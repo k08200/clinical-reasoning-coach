@@ -7778,16 +7778,44 @@ const NEUROLEPTIC_MALIGNANT_SYNDROME_STOP_AGENT_ACTION_TERMS = [
   "중단",
 ];
 
-const NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_SUPPORT_ACTION_TERMS = [
-  "cardiac monitoring",
+const NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_ACTION_TERMS = [
   "icu",
   "intensive care",
+  "중환자",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_MONITORING_ACTION_TERMS = [
+  "cardiac monitoring",
+  "close monitoring",
+  "vital signs",
+  "telemetry",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_IV_FLUID_ACTION_TERMS = [
   "iv fluid",
   "iv fluids",
-  "supportive care",
-  "vital signs",
-  "중환자",
+  "volume deficit",
+  "hydration",
   "수액",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_ELECTROLYTE_ACTION_TERMS = [
+  "electrolyte",
+  "hyperkalemia",
+  "metabolic acidosis",
+  "acidosis",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_CARDIORESPIRATORY_ACTION_TERMS = [
+  "cardiac dysrhythmia",
+  "cardiac monitoring",
+  "mechanical ventilation",
+  "respiratory failure",
+  "ventilatory support",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_SUPPORTIVE_ACTION_TERMS = [
+  "supportive care",
 ];
 
 const NEUROLEPTIC_MALIGNANT_SYNDROME_COOLING_ACTION_TERMS = [
@@ -7807,14 +7835,19 @@ const NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_ACTION_TERMS = [
   "단트롤렌",
 ];
 
-const NEUROLEPTIC_MALIGNANT_SYNDROME_COMPLICATION_ACTION_TERMS = [
-  "aki",
+const NEUROLEPTIC_MALIGNANT_SYNDROME_CK_RHABDO_ACTION_TERMS = [
   "ck",
   "creatine kinase",
-  "electrolyte",
-  "renal",
   "rhabdomyolysis",
   "횡문근",
+];
+
+const NEUROLEPTIC_MALIGNANT_SYNDROME_RENAL_MYOGLOBIN_ACTION_TERMS = [
+  "aki",
+  "myoglobin",
+  "myoglobinuria",
+  "renal",
+  "rhabdomyolysis",
 ];
 
 const NEUROLEPTIC_MALIGNANT_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = [
@@ -22930,7 +22963,22 @@ function hasNeurolepticMalignantSyndromeTimeCriticalActions(actions: string[]): 
   const hasStopAgent = NEUROLEPTIC_MALIGNANT_SYNDROME_STOP_AGENT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasIcuSupport = NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_SUPPORT_ACTION_TERMS.some((term) =>
+  const hasIcu = NEUROLEPTIC_MALIGNANT_SYNDROME_ICU_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMonitoring = NEUROLEPTIC_MALIGNANT_SYNDROME_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIvFluid = NEUROLEPTIC_MALIGNANT_SYNDROME_IV_FLUID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasElectrolyte = NEUROLEPTIC_MALIGNANT_SYNDROME_ELECTROLYTE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCardiorespiratory = NEUROLEPTIC_MALIGNANT_SYNDROME_CARDIORESPIRATORY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSupportive = NEUROLEPTIC_MALIGNANT_SYNDROME_SUPPORTIVE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasCooling = NEUROLEPTIC_MALIGNANT_SYNDROME_COOLING_ACTION_TERMS.some((term) =>
@@ -22939,10 +22987,25 @@ function hasNeurolepticMalignantSyndromeTimeCriticalActions(actions: string[]): 
   const hasMedication = NEUROLEPTIC_MALIGNANT_SYNDROME_MEDICATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasComplicationMonitoring = NEUROLEPTIC_MALIGNANT_SYNDROME_COMPLICATION_ACTION_TERMS.some(
+  const hasCkRhabdo = NEUROLEPTIC_MALIGNANT_SYNDROME_CK_RHABDO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRenalMyoglobin = NEUROLEPTIC_MALIGNANT_SYNDROME_RENAL_MYOGLOBIN_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  return hasStopAgent && hasIcuSupport && hasCooling && hasMedication && hasComplicationMonitoring;
+  return (
+    hasStopAgent &&
+    hasIcu &&
+    hasMonitoring &&
+    hasIvFluid &&
+    hasElectrolyte &&
+    hasCardiorespiratory &&
+    hasSupportive &&
+    hasCooling &&
+    hasMedication &&
+    hasCkRhabdo &&
+    hasRenalMyoglobin
+  );
 }
 
 function hasNeurolepticMalignantSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
@@ -30166,7 +30229,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasNeurolepticMalignantSyndromeTimeCriticalActions,
       issue:
-        "neuroleptic malignant syndrome time-critical actions must include stopping dopamine-antagonist, neuroleptic, or antipsychotic agents, ICU, supportive care, IV fluids, vital-sign, or cardiac monitoring, active cooling or hyperthermia control, bromocriptine, amantadine, dantrolene, or dopamine-agonist therapy consideration, and CK, rhabdomyolysis, renal, AKI, or electrolyte complication monitoring",
+        "neuroleptic malignant syndrome time-critical actions must include stopping dopamine-antagonist, neuroleptic, or antipsychotic agents, ICU or intensive-care admission, close vital-sign/cardiac/telemetry monitoring and supportive care, IV fluids or hydration for volume deficit, electrolyte/hyperkalemia/metabolic-acidosis correction, cardiorespiratory support for cardiac dysrhythmia, respiratory failure, mechanical ventilation, or ventilatory support, active cooling or hyperthermia control, bromocriptine, amantadine, dantrolene, or dopamine-agonist therapy consideration, CK/creatine-kinase and rhabdomyolysis monitoring, and renal/AKI/myoglobinuria complication monitoring",
     },
     {
       name: "neuroleptic_malignant_syndrome_treatment_safety",
