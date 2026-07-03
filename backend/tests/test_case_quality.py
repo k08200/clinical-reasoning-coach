@@ -13023,6 +13023,71 @@ def test_quality_gate_requires_myxedema_coma_iv_thyroid_hormone_not_oral_only():
     )
 
 
+def test_quality_gate_requires_myxedema_coma_airway_ventilation_and_hemodynamic_support():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Myxedema coma"
+    case["patient_demographics"] = {
+        "age": 72,
+        "sex": "male",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion, hypothermia, and bradycardia"
+    case["history_of_present_illness"] = (
+        "Patient with severe hypothyroidism and levothyroxine nonadherence presents with "
+        "altered mental status, hypothermia, bradycardia, hypoventilation, hyponatremia, "
+        "hypoglycemia, hypotension, and suspected pneumonia precipitant."
+    )
+    case["key_teaching_points"] = [
+        "Myxedema coma is a life-threatening decompensated hypothyroid crisis",
+        "Treatment requires ICU support, stress-dose hydrocortisone, and thyroid hormone replacement",
+        "Precipitating infection, hypothermia, hypoglycemia, hyponatremia, and hypoventilation must be treated",
+    ]
+    case["clinical_red_flags"] = [
+        "Altered mental status, coma, confusion, hypothermia, bradycardia, hypotension, or hypoventilation",
+        "Hyponatremia, hypoglycemia, hypercapnia, infection, sepsis, or precipitating medication exposure",
+    ]
+    case["time_critical_actions"] = [
+        "Admit to ICU or intensive care for close monitoring",
+        "Draw cortisol and give stress-dose hydrocortisone glucocorticoid steroid coverage",
+        "Start IV levothyroxine T4 thyroid hormone therapy and consider liothyronine T3 with endocrinology",
+        "Send TSH, free T4, blood culture, urine culture, chest x-ray, pneumonia infection and sepsis evaluation, and start empiric antibiotics for suspected precipitant",
+    ]
+    case["contraindication_checks"] = [
+        "Give hydrocortisone before thyroid hormone and review adrenal insufficiency or adrenal crisis risk with cortisol testing",
+        "Use passive rewarming blankets and avoid aggressive rewarming for hypothermia",
+        "Monitor sodium, hyponatremia, glucose, hypoglycemia, oxygen, arterial blood gas, hypercapnia, hypoxemia, and ventilation status",
+        "Use telemetry and lower dose thyroid hormone strategy in elderly coronary disease, ischemia, arrhythmia, or myocardial infarction risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Myxedema Coma",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK545193/",
+            "supports": [
+                "myxedema coma diagnosis and risk stratification",
+                "myxedema coma is a life-threatening decompensated hypothyroid crisis",
+                "ICU admission without explicit airway, ventilation, hypercapnia, hypotension, shock, fluid, or vasopressor planning",
+                "cortisol and stress-dose hydrocortisone glucocorticoid steroid coverage",
+                "IV levothyroxine T4 thyroid hormone therapy and liothyronine T3 with endocrinology",
+                "TSH, free T4, blood culture, urine culture, chest x-ray, pneumonia infection and sepsis evaluation, and empiric antibiotics for suspected precipitant",
+                "hydrocortisone before thyroid hormone and adrenal insufficiency or adrenal crisis risk with cortisol testing",
+                "passive rewarming blankets and avoidance of aggressive rewarming for hypothermia",
+                "sodium, hyponatremia, glucose, hypoglycemia, oxygen, arterial blood gas, hypercapnia, hypoxemia, and ventilation monitoring",
+                "telemetry and lower dose thyroid hormone strategy in elderly coronary disease, ischemia, arrhythmia, or myocardial infarction risk",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "airway/oxygen/ABG/hypercapnia or mechanical-ventilation support" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_myxedema_coma_steroid_rewarming_metabolic_and_cardiac_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Myxedema coma"
