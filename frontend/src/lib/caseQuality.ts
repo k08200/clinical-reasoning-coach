@@ -7593,15 +7593,27 @@ const SEROTONIN_SYNDROME_STOP_AGENT_ACTION_TERMS = [
   "중단",
 ];
 
-const SEROTONIN_SYNDROME_SUPPORTIVE_CARE_ACTION_TERMS = [
-  "cardiac monitoring",
+const SEROTONIN_SYNDROME_OXYGEN_ACTION_TERMS = [
+  "oxygen",
+  "oxygen saturation",
+  "spo2",
+  "산소",
+];
+
+const SEROTONIN_SYNDROME_IV_FLUID_ACTION_TERMS = [
+  "crystalloid",
   "iv fluid",
   "iv fluids",
-  "oxygen",
+  "volume depletion",
+  "수액",
+];
+
+const SEROTONIN_SYNDROME_MONITORING_ACTION_TERMS = [
+  "autonomic instability",
+  "blood pressure",
+  "cardiac monitoring",
   "supportive care",
   "vital signs",
-  "수액",
-  "산소",
 ];
 
 const SEROTONIN_SYNDROME_BENZODIAZEPINE_ACTION_TERMS = [
@@ -7623,14 +7635,21 @@ const SEROTONIN_SYNDROME_COOLING_ACTION_TERMS = [
   "냉각",
 ];
 
-const SEROTONIN_SYNDROME_ANTAGONIST_ESCALATION_ACTION_TERMS = [
+const SEROTONIN_SYNDROME_CYPROHEPTADINE_ACTION_TERMS = [
   "cyproheptadine",
+];
+
+const SEROTONIN_SYNDROME_TOXICOLOGY_ACTION_TERMS = [
+  "poison center",
+  "toxicologist",
+  "toxicology",
+];
+
+const SEROTONIN_SYNDROME_SEVERE_ESCALATION_ACTION_TERMS = [
   "icu",
   "intubation",
   "nondepolarizing",
   "paralysis",
-  "poison center",
-  "toxicologist",
   "중환자",
 ];
 
@@ -22801,7 +22820,13 @@ function hasSerotoninSyndromeTimeCriticalActions(actions: string[]): boolean {
   const hasStopAgent = SEROTONIN_SYNDROME_STOP_AGENT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSupportiveCare = SEROTONIN_SYNDROME_SUPPORTIVE_CARE_ACTION_TERMS.some((term) =>
+  const hasOxygen = SEROTONIN_SYNDROME_OXYGEN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIvFluid = SEROTONIN_SYNDROME_IV_FLUID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMonitoring = SEROTONIN_SYNDROME_MONITORING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasBenzodiazepine = SEROTONIN_SYNDROME_BENZODIAZEPINE_ACTION_TERMS.some((term) =>
@@ -22810,10 +22835,26 @@ function hasSerotoninSyndromeTimeCriticalActions(actions: string[]): boolean {
   const hasCooling = SEROTONIN_SYNDROME_COOLING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntagonistOrEscalation = SEROTONIN_SYNDROME_ANTAGONIST_ESCALATION_ACTION_TERMS.some(
+  const hasCyproheptadine = SEROTONIN_SYNDROME_CYPROHEPTADINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasToxicology = SEROTONIN_SYNDROME_TOXICOLOGY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSevereEscalation = SEROTONIN_SYNDROME_SEVERE_ESCALATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  return hasStopAgent && hasSupportiveCare && hasBenzodiazepine && hasCooling && hasAntagonistOrEscalation;
+  return (
+    hasStopAgent &&
+    hasOxygen &&
+    hasIvFluid &&
+    hasMonitoring &&
+    hasBenzodiazepine &&
+    hasCooling &&
+    hasCyproheptadine &&
+    hasToxicology &&
+    hasSevereEscalation
+  );
 }
 
 function hasSerotoninSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
@@ -30107,7 +30148,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSerotoninSyndromeTimeCriticalActions,
       issue:
-        "serotonin syndrome time-critical actions must include stopping serotonergic or offending agents, supportive care with oxygen, IV fluids, vital-sign, or cardiac monitoring, benzodiazepine or chemical sedation, active cooling or hyperthermia control, and cyproheptadine, poison-center, toxicology, ICU, intubation, or nondepolarizing paralysis escalation for severe disease",
+        "serotonin syndrome time-critical actions must include stopping serotonergic or offending agents, oxygen or SpO2 support with goal saturation such as >=94%, IV fluids/crystalloids for volume depletion, vital-sign/cardiac monitoring and autonomic-instability management, benzodiazepine or chemical sedation, active/external cooling or hyperthermia control, cyproheptadine consideration, poison-center/toxicology consultation, and ICU, intubation, or nondepolarizing paralysis escalation for severe disease",
     },
     {
       name: "serotonin_syndrome_treatment_safety",

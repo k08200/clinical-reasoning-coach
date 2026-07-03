@@ -6821,15 +6821,25 @@ SEROTONIN_SYNDROME_STOP_AGENT_ACTION_TERMS = (
     "withdraw serotonergic",
     "중단",
 )
-SEROTONIN_SYNDROME_SUPPORTIVE_CARE_ACTION_TERMS = (
-    "cardiac monitoring",
+SEROTONIN_SYNDROME_OXYGEN_ACTION_TERMS = (
+    "oxygen",
+    "oxygen saturation",
+    "spo2",
+    "산소",
+)
+SEROTONIN_SYNDROME_IV_FLUID_ACTION_TERMS = (
+    "crystalloid",
     "iv fluid",
     "iv fluids",
-    "oxygen",
+    "volume depletion",
+    "수액",
+)
+SEROTONIN_SYNDROME_MONITORING_ACTION_TERMS = (
+    "autonomic instability",
+    "blood pressure",
+    "cardiac monitoring",
     "supportive care",
     "vital signs",
-    "수액",
-    "산소",
 )
 SEROTONIN_SYNDROME_BENZODIAZEPINE_ACTION_TERMS = (
     "benzodiazepine",
@@ -6848,14 +6858,19 @@ SEROTONIN_SYNDROME_COOLING_ACTION_TERMS = (
     "temperature",
     "냉각",
 )
-SEROTONIN_SYNDROME_ANTAGONIST_ESCALATION_ACTION_TERMS = (
+SEROTONIN_SYNDROME_CYPROHEPTADINE_ACTION_TERMS = (
     "cyproheptadine",
+)
+SEROTONIN_SYNDROME_TOXICOLOGY_ACTION_TERMS = (
+    "poison center",
+    "toxicologist",
+    "toxicology",
+)
+SEROTONIN_SYNDROME_SEVERE_ESCALATION_ACTION_TERMS = (
     "icu",
     "intubation",
     "nondepolarizing",
     "paralysis",
-    "poison center",
-    "toxicologist",
     "중환자",
 )
 SEROTONIN_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = (
@@ -18264,11 +18279,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_serotonin_syndrome_time_critical_actions,
             issue=(
                 "serotonin syndrome time-critical actions must include stopping "
-                "serotonergic or offending agents, supportive care with oxygen, "
-                "IV fluids, vital-sign, or cardiac monitoring, benzodiazepine "
-                "or chemical sedation, active cooling or hyperthermia control, "
-                "and cyproheptadine, poison-center, toxicology, ICU, intubation, "
-                "or nondepolarizing paralysis escalation for severe disease"
+                "serotonergic or offending agents, oxygen or SpO2 support with "
+                "goal saturation such as >=94%, IV fluids/crystalloids for volume "
+                "depletion, vital-sign/cardiac monitoring and autonomic-instability "
+                "management, benzodiazepine or chemical sedation, active/external "
+                "cooling or hyperthermia control, cyproheptadine consideration, "
+                "poison-center/toxicology consultation, and ICU, intubation, or "
+                "nondepolarizing paralysis escalation for severe disease"
             ),
         ),
         DomainSafetyGate(
@@ -26662,9 +26679,17 @@ def _has_serotonin_syndrome_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SEROTONIN_SYNDROME_STOP_AGENT_ACTION_TERMS
     )
-    has_supportive_care = any(
+    has_oxygen = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEROTONIN_SYNDROME_SUPPORTIVE_CARE_ACTION_TERMS
+        for term in SEROTONIN_SYNDROME_OXYGEN_ACTION_TERMS
+    )
+    has_iv_fluid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEROTONIN_SYNDROME_IV_FLUID_ACTION_TERMS
+    )
+    has_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEROTONIN_SYNDROME_MONITORING_ACTION_TERMS
     )
     has_benzodiazepine = any(
         _contains_safety_term(normalized_actions, term)
@@ -26674,16 +26699,28 @@ def _has_serotonin_syndrome_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SEROTONIN_SYNDROME_COOLING_ACTION_TERMS
     )
-    has_antagonist_or_escalation = any(
+    has_cyproheptadine = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEROTONIN_SYNDROME_ANTAGONIST_ESCALATION_ACTION_TERMS
+        for term in SEROTONIN_SYNDROME_CYPROHEPTADINE_ACTION_TERMS
+    )
+    has_toxicology = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEROTONIN_SYNDROME_TOXICOLOGY_ACTION_TERMS
+    )
+    has_severe_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEROTONIN_SYNDROME_SEVERE_ESCALATION_ACTION_TERMS
     )
     return (
         has_stop_agent
-        and has_supportive_care
+        and has_oxygen
+        and has_iv_fluid
+        and has_monitoring
         and has_benzodiazepine
         and has_cooling
-        and has_antagonist_or_escalation
+        and has_cyproheptadine
+        and has_toxicology
+        and has_severe_escalation
     )
 
 
