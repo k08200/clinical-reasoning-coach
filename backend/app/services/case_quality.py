@@ -6403,25 +6403,57 @@ SEVERE_HYPOTHERMIA_GENTLE_ABC_ACTION_TERMS = (
     "remove wet clothing",
     "ventilation",
 )
-SEVERE_HYPOTHERMIA_REWARMING_ACTION_TERMS = (
+SEVERE_HYPOTHERMIA_ACTIVE_REWARMING_ACTION_TERMS = (
     "active core rewarming",
     "active external rewarming",
-    "ecmo",
-    "extracorporeal",
+    "active rewarming",
+    "core rewarming",
     "forced air",
-    "heated humidified oxygen",
-    "heated lavage",
-    "rewarming",
-    "warm iv fluid",
 )
-SEVERE_HYPOTHERMIA_ECG_LAB_ACTION_TERMS = (
+SEVERE_HYPOTHERMIA_CORE_REWARMING_MODALITY_ACTION_TERMS = (
+    "cardiopulmonary bypass",
+    "ecmo",
+    "ecls",
+    "extracorporeal",
+    "heated humidified oxygen",
+    "heated oxygen",
+    "heated lavage",
+    "heated infusion",
+    "warm iv fluid",
+    "warmed iv fluid",
+)
+SEVERE_HYPOTHERMIA_FLUID_PERFUSION_ACTION_TERMS = (
+    "fluid resuscitation",
+    "heated infusion",
+    "hypovolemia",
+    "perfusion",
+    "warm iv fluid",
+    "warmed iv fluid",
+)
+SEVERE_HYPOTHERMIA_ECG_ACTION_TERMS = (
     "ecg",
+    "ekg",
+    "j wave",
+    "osborn",
+)
+SEVERE_HYPOTHERMIA_METABOLIC_LAB_ACTION_TERMS = (
+    "abg",
+    "arterial blood gas",
     "electrolyte",
     "glucose",
-    "osborn",
+    "hypoglycemia",
     "potassium",
+)
+SEVERE_HYPOTHERMIA_SECONDARY_CAUSE_ACTION_TERMS = (
+    "cortisol",
+    "free thyroxine",
+    "hypothyroidism",
+    "intoxication",
+    "myxedema",
+    "sepsis",
     "trauma",
     "toxin",
+    "tsh",
 )
 SEVERE_HYPOTHERMIA_ARREST_ESCALATION_ACTION_TERMS = (
     "cardiac arrest",
@@ -18040,11 +18072,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "thermometer/probe, gentle handling, wet-"
                 "clothing removal, insulation, airway, oxygen, or ventilation "
                 "support, active external or active core rewarming such as forced "
-                "air, heated humidified oxygen, warm IV fluid, heated lavage, ECMO, "
-                "ECLS, or extracorporeal rewarming, ECG plus glucose, electrolyte, "
-                "potassium, Osborn-wave, trauma, or toxin assessment, and cardiac-"
-                "arrest escalation with CPR, defibrillation, ECMO, ECLS, VA-ECMO, "
-                "or extracorporeal support"
+                "air, specific core-rewarming modality planning with heated "
+                "humidified oxygen, warm IV fluid, heated infusion/lavage, ECMO, "
+                "ECLS, cardiopulmonary bypass, or extracorporeal rewarming, fluid "
+                "resuscitation or perfusion support, ECG/Osborn assessment, "
+                "glucose/electrolyte/potassium/ABG labs, secondary-cause review "
+                "for trauma, toxin, intoxication, sepsis, myxedema/hypothyroidism, "
+                "TSH, free thyroxine, or cortisol, and cardiac-arrest escalation "
+                "with CPR, defibrillation, ECMO, ECLS, VA-ECMO, or extracorporeal "
+                "support"
             ),
         ),
         DomainSafetyGate(
@@ -26158,13 +26194,29 @@ def _has_severe_hypothermia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SEVERE_HYPOTHERMIA_GENTLE_ABC_ACTION_TERMS
     )
-    has_rewarming = any(
+    has_active_rewarming = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_HYPOTHERMIA_REWARMING_ACTION_TERMS
+        for term in SEVERE_HYPOTHERMIA_ACTIVE_REWARMING_ACTION_TERMS
     )
-    has_ecg_labs = any(
+    has_core_rewarming_modality = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_HYPOTHERMIA_ECG_LAB_ACTION_TERMS
+        for term in SEVERE_HYPOTHERMIA_CORE_REWARMING_MODALITY_ACTION_TERMS
+    )
+    has_fluid_perfusion = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOTHERMIA_FLUID_PERFUSION_ACTION_TERMS
+    )
+    has_ecg = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOTHERMIA_ECG_ACTION_TERMS
+    )
+    has_metabolic_labs = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOTHERMIA_METABOLIC_LAB_ACTION_TERMS
+    )
+    has_secondary_cause = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_HYPOTHERMIA_SECONDARY_CAUSE_ACTION_TERMS
     )
     has_arrest_escalation = any(
         _contains_safety_term(normalized_actions, term)
@@ -26173,8 +26225,12 @@ def _has_severe_hypothermia_time_critical_actions(actions: list[Any]) -> bool:
     return (
         has_core_temp
         and has_gentle_abc
-        and has_rewarming
-        and has_ecg_labs
+        and has_active_rewarming
+        and has_core_rewarming_modality
+        and has_fluid_perfusion
+        and has_ecg
+        and has_metabolic_labs
+        and has_secondary_cause
         and has_arrest_escalation
     )
 

@@ -7122,26 +7122,62 @@ const SEVERE_HYPOTHERMIA_GENTLE_ABC_ACTION_TERMS = [
   "ventilation",
 ];
 
-const SEVERE_HYPOTHERMIA_REWARMING_ACTION_TERMS = [
+const SEVERE_HYPOTHERMIA_ACTIVE_REWARMING_ACTION_TERMS = [
   "active core rewarming",
   "active external rewarming",
-  "ecmo",
-  "extracorporeal",
+  "active rewarming",
+  "core rewarming",
   "forced air",
-  "heated humidified oxygen",
-  "heated lavage",
-  "rewarming",
-  "warm iv fluid",
 ];
 
-const SEVERE_HYPOTHERMIA_ECG_LAB_ACTION_TERMS = [
+const SEVERE_HYPOTHERMIA_CORE_REWARMING_MODALITY_ACTION_TERMS = [
+  "cardiopulmonary bypass",
+  "ecmo",
+  "ecls",
+  "extracorporeal",
+  "heated humidified oxygen",
+  "heated oxygen",
+  "heated lavage",
+  "heated infusion",
+  "warm iv fluid",
+  "warmed iv fluid",
+];
+
+const SEVERE_HYPOTHERMIA_FLUID_PERFUSION_ACTION_TERMS = [
+  "fluid resuscitation",
+  "heated infusion",
+  "hypovolemia",
+  "perfusion",
+  "warm iv fluid",
+  "warmed iv fluid",
+];
+
+const SEVERE_HYPOTHERMIA_ECG_ACTION_TERMS = [
   "ecg",
+  "ekg",
+  "j wave",
+  "osborn",
+];
+
+const SEVERE_HYPOTHERMIA_METABOLIC_LAB_ACTION_TERMS = [
+  "abg",
+  "arterial blood gas",
   "electrolyte",
   "glucose",
-  "osborn",
+  "hypoglycemia",
   "potassium",
+];
+
+const SEVERE_HYPOTHERMIA_SECONDARY_CAUSE_ACTION_TERMS = [
+  "cortisol",
+  "free thyroxine",
+  "hypothyroidism",
+  "intoxication",
+  "myxedema",
+  "sepsis",
   "trauma",
   "toxin",
+  "tsh",
 ];
 
 const SEVERE_HYPOTHERMIA_ARREST_ESCALATION_ACTION_TERMS = [
@@ -22367,16 +22403,38 @@ function hasSevereHypothermiaTimeCriticalActions(actions: string[]): boolean {
   const hasGentleAbc = SEVERE_HYPOTHERMIA_GENTLE_ABC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasRewarming = SEVERE_HYPOTHERMIA_REWARMING_ACTION_TERMS.some((term) =>
+  const hasActiveRewarming = SEVERE_HYPOTHERMIA_ACTIVE_REWARMING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasEcgLabs = SEVERE_HYPOTHERMIA_ECG_LAB_ACTION_TERMS.some((term) =>
+  const hasCoreRewarmingModality = SEVERE_HYPOTHERMIA_CORE_REWARMING_MODALITY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFluidPerfusion = SEVERE_HYPOTHERMIA_FLUID_PERFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEcg = SEVERE_HYPOTHERMIA_ECG_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMetabolicLabs = SEVERE_HYPOTHERMIA_METABOLIC_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSecondaryCause = SEVERE_HYPOTHERMIA_SECONDARY_CAUSE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasArrestEscalation = SEVERE_HYPOTHERMIA_ARREST_ESCALATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  return hasCoreTemp && hasGentleAbc && hasRewarming && hasEcgLabs && hasArrestEscalation;
+  return (
+    hasCoreTemp &&
+    hasGentleAbc &&
+    hasActiveRewarming &&
+    hasCoreRewarmingModality &&
+    hasFluidPerfusion &&
+    hasEcg &&
+    hasMetabolicLabs &&
+    hasSecondaryCause &&
+    hasArrestEscalation
+  );
 }
 
 function hasSevereHypothermiaTreatmentSafetyCheck(checks: string[]): boolean {
@@ -29843,7 +29901,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSevereHypothermiaTimeCriticalActions,
       issue:
-        "severe hypothermia time-critical actions must include core temperature measurement with rectal, esophageal, or low-reading thermometer/probe, gentle handling, wet-clothing removal, insulation, airway, oxygen, or ventilation support, active external or active core rewarming such as forced air, heated humidified oxygen, warm IV fluid, heated lavage, ECMO, ECLS, or extracorporeal rewarming, ECG plus glucose, electrolyte, potassium, Osborn-wave, trauma, or toxin assessment, and cardiac-arrest escalation with CPR, defibrillation, ECMO, ECLS, VA-ECMO, or extracorporeal support",
+        "severe hypothermia time-critical actions must include core temperature measurement with rectal, esophageal, or low-reading thermometer/probe, gentle handling, wet-clothing removal, insulation, airway, oxygen, or ventilation support, active external or active core rewarming such as forced air, specific core-rewarming modality planning with heated humidified oxygen, warm IV fluid, heated infusion/lavage, ECMO, ECLS, cardiopulmonary bypass, or extracorporeal rewarming, fluid resuscitation or perfusion support, ECG/Osborn assessment, glucose/electrolyte/potassium/ABG labs, secondary-cause review for trauma, toxin, intoxication, sepsis, myxedema/hypothyroidism, TSH, free thyroxine, or cortisol, and cardiac-arrest escalation with CPR, defibrillation, ECMO, ECLS, VA-ECMO, or extracorporeal support",
     },
     {
       name: "severe_hypothermia_treatment_safety",

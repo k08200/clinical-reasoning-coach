@@ -13338,6 +13338,170 @@ def test_quality_gate_requires_severe_hypothermia_core_not_oral_temperature():
     )
 
 
+def test_quality_gate_requires_severe_hypothermia_core_rewarming_modality_and_fluid_support():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe accidental hypothermia"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "male",
+        "weight_kg": 80,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Found confused after cold exposure"
+    case["history_of_present_illness"] = (
+        "Patient found outdoors after prolonged cold exposure with wet clothing, "
+        "confusion, bradycardia, hypotension, Osborn waves, and core temperature "
+        "27.5 C concerning for severe hypothermia."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "84/48", "hr": 38, "rr": 8, "temp_c": 27.5, "spo2": 88},
+        "general": "Confused, cold, and shivering has stopped",
+        "cardiovascular": "Bradycardic with weak pulses",
+        "pulmonary": "Slow respirations",
+        "neuro": "Obtunded but withdraws to pain",
+        "other": "Wet clothing and cold skin",
+    }
+    case["initial_labs"] = {
+        "glucose": "54 mg/dL",
+        "potassium": "4.9 mmol/L",
+        "ph": "7.22",
+        "lactate": "4.8 mmol/L",
+    }
+    case["key_teaching_points"] = [
+        "Severe hypothermia can cause bradycardia, Osborn waves, ventricular fibrillation, and cardiac arrest",
+        "Core temperature should be measured with an appropriate low-reading rectal or esophageal thermometer",
+        "Severe hypothermia requires active rewarming, perfusion support, and resuscitation planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Core temperature below 28 C, coma, hypotension, bradycardia, Osborn waves, ventricular fibrillation, or asystole",
+        "Hypoglycemia, trauma, toxin exposure, sepsis, myxedema, or electrolyte disturbance",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm core temperature with a low-reading rectal or esophageal thermometer",
+        "Use gentle handling, remove wet clothing, insulate, support airway, oxygen, and ventilation",
+        "Start active core rewarming and forced air warming protocol",
+        "Obtain ECG for Osborn waves and check glucose, electrolytes, potassium, trauma, and toxin causes",
+        "Prepare CPR and defibrillation if cardiac arrest or ventricular fibrillation develops",
+    ]
+    case["contraindication_checks"] = [
+        "Prevent afterdrop and rewarming collapse with gentle handling, thorax-focused warming, and avoidance of extremity-first rewarming",
+        "Review temperature-dependent ACLS: defer repeated defibrillation and epinephrine or vasopressor ACLS medications until about 30 C",
+        "Confirm perfusing rhythm with pulse check and ultrasound; bradycardia is expected and CPR is for nonperfusing rhythm only",
+        "Plan ECMO ECLS extracorporeal rewarming and rewarm before termination unless hyperkalemia potassium > 12 indicates futility",
+        "Review secondary causes including hypoglycemia, myxedema, sepsis, trauma, and toxin exposure",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hypothermia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/cold-injury/hypothermia",
+            "supports": [
+                "severe accidental hypothermia diagnosis and risk stratification",
+                "core temperature with low-reading rectal or esophageal thermometer",
+                "gentle handling, wet clothing removal, insulation, airway, oxygen, and ventilation",
+                "active core rewarming and forced air warming protocol",
+                "ECG for Osborn waves and glucose, electrolytes, potassium, trauma, and toxin causes",
+                "CPR and defibrillation if cardiac arrest or ventricular fibrillation develops",
+                "afterdrop and rewarming collapse prevention with gentle handling, thorax-focused warming, and avoidance of extremity-first rewarming",
+                "temperature-dependent ACLS: defer repeated defibrillation and epinephrine or vasopressor ACLS medications until about 30 C",
+                "perfusing rhythm with pulse check and ultrasound; bradycardia expected and CPR for nonperfusing rhythm only",
+                "ECMO ECLS extracorporeal rewarming and rewarm before termination unless hyperkalemia potassium > 12 indicates futility",
+                "secondary causes including hypoglycemia, myxedema, sepsis, trauma, and toxin exposure",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "specific core-rewarming modality planning" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_severe_hypothermia_ecg_metabolic_labs_and_secondary_causes():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe accidental hypothermia"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "male",
+        "weight_kg": 80,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Found confused after cold exposure"
+    case["history_of_present_illness"] = (
+        "Patient found outdoors after prolonged cold exposure with wet clothing, "
+        "confusion, bradycardia, hypotension, Osborn waves, and core temperature "
+        "27.5 C concerning for severe hypothermia."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "84/48", "hr": 38, "rr": 8, "temp_c": 27.5, "spo2": 88},
+        "general": "Confused, cold, and shivering has stopped",
+        "cardiovascular": "Bradycardic with weak pulses",
+        "pulmonary": "Slow respirations",
+        "neuro": "Obtunded but withdraws to pain",
+        "other": "Wet clothing and cold skin",
+    }
+    case["initial_labs"] = {
+        "glucose": "54 mg/dL",
+        "potassium": "4.9 mmol/L",
+        "ph": "7.22",
+        "lactate": "4.8 mmol/L",
+    }
+    case["key_teaching_points"] = [
+        "Severe hypothermia can cause bradycardia, Osborn waves, ventricular fibrillation, and cardiac arrest",
+        "Core temperature should be measured with an appropriate low-reading rectal or esophageal thermometer",
+        "Severe hypothermia evaluation includes metabolic labs and secondary causes",
+    ]
+    case["clinical_red_flags"] = [
+        "Core temperature below 28 C, coma, hypotension, bradycardia, Osborn waves, ventricular fibrillation, or asystole",
+        "Hypoglycemia, trauma, toxin exposure, sepsis, myxedema, or electrolyte disturbance",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm core temperature with a low-reading rectal or esophageal thermometer",
+        "Use gentle handling, remove wet clothing, insulate, support airway, oxygen, and ventilation",
+        "Start active external rewarming and active core rewarming with forced air, heated humidified oxygen, warm IV fluid, heated lavage, and ECMO ECLS extracorporeal consultation plus fluid resuscitation for perfusion",
+        "Obtain ECG for Osborn waves",
+        "Prepare CPR and defibrillation if cardiac arrest or ventricular fibrillation develops",
+    ]
+    case["contraindication_checks"] = [
+        "Prevent afterdrop and rewarming collapse with gentle handling, thorax-focused warming, and avoidance of extremity-first rewarming",
+        "Review temperature-dependent ACLS: defer repeated defibrillation and epinephrine or vasopressor ACLS medications until about 30 C",
+        "Confirm perfusing rhythm with pulse check and ultrasound; bradycardia is expected and CPR is for nonperfusing rhythm only",
+        "Plan ECMO ECLS extracorporeal rewarming and rewarm before termination unless hyperkalemia potassium > 12 indicates futility",
+        "Review secondary causes including hypoglycemia, myxedema, sepsis, trauma, and toxin exposure",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hypothermia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/cold-injury/hypothermia",
+            "supports": [
+                "severe accidental hypothermia diagnosis and risk stratification",
+                "core temperature with low-reading rectal or esophageal thermometer",
+                "gentle handling, wet clothing removal, insulation, airway, oxygen, and ventilation",
+                "active external rewarming and active core rewarming with forced air, heated humidified oxygen, warm IV fluid, heated lavage, ECMO ECLS extracorporeal consultation, and fluid resuscitation for perfusion",
+                "ECG for Osborn waves",
+                "CPR and defibrillation if cardiac arrest or ventricular fibrillation develops",
+                "afterdrop and rewarming collapse prevention with gentle handling, thorax-focused warming, and avoidance of extremity-first rewarming",
+                "temperature-dependent ACLS: defer repeated defibrillation and epinephrine or vasopressor ACLS medications until about 30 C",
+                "perfusing rhythm with pulse check and ultrasound; bradycardia expected and CPR for nonperfusing rhythm only",
+                "ECMO ECLS extracorporeal rewarming and rewarm before termination unless hyperkalemia potassium > 12 indicates futility",
+                "secondary causes including hypoglycemia, myxedema, sepsis, trauma, and toxin exposure",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "glucose/electrolyte/potassium/ABG labs" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_severe_hypothermia_afterdrop_acls_perfusing_rhythm_ecmo_and_secondary_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Severe accidental hypothermia with cardiac arrest risk"
