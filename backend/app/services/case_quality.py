@@ -6670,29 +6670,52 @@ HEAT_STROKE_CONTEXT_TERMS = (
 )
 HEAT_STROKE_CORE_TEMP_ACTION_TERMS = (
     "core temperature",
+    "esophageal",
+    "rectal",
     "rectal temperature",
+    "temperature probe",
+    "bladder",
     "심부체온",
     "직장체온",
 )
 HEAT_STROKE_RAPID_COOLING_ACTION_TERMS = (
-    "cold water immersion",
     "cool first",
-    "cooling",
+    "aggressive cooling",
+    "immediate cooling",
+    "rapid cooling",
+    "within 30 minutes",
+)
+HEAT_STROKE_COOLING_MODALITY_ACTION_TERMS = (
+    "cold water immersion",
+    "cool water immersion",
     "evaporative cooling",
+    "fan",
     "ice bath",
     "ice water immersion",
-    "rapid cooling",
+    "spray",
     "whole-body cooling",
     "냉각",
 )
-HEAT_STROKE_ABC_FLUID_ACTION_TERMS = (
+HEAT_STROKE_AIRWAY_BREATHING_ACTION_TERMS = (
     "airway",
+    "breathing",
+    "intubation",
+    "oxygen",
+    "ventilation",
+)
+HEAT_STROKE_CIRCULATION_ACTION_TERMS = (
+    "blood pressure",
     "circulation",
+    "hemodynamic",
+    "hypotension",
+    "resuscitation",
+)
+HEAT_STROKE_IV_FLUID_ACTION_TERMS = (
+    "isotonic saline",
     "iv fluid",
     "iv fluids",
     "normal saline",
-    "oxygen",
-    "resuscitation",
+    "saline",
     "수액",
 )
 HEAT_STROKE_ESCALATION_ACTION_TERMS = (
@@ -18209,10 +18232,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="time_critical_actions",
             validator=_has_heat_stroke_time_critical_actions,
             issue=(
-                "heat stroke time-critical actions must include core or rectal "
-                "temperature confirmation, immediate rapid whole-body cooling, "
-                "airway, oxygen, circulation, or IV-fluid resuscitation, and EMS, "
-                "ICU, transfer, or organ-failure escalation"
+                "heat stroke time-critical actions must include rectal, esophageal, "
+                "bladder, or core temperature-probe confirmation, immediate rapid "
+                "or aggressive cooling with a goal such as within 30 minutes, "
+                "specific cooling modality such as cold/ice-water immersion, "
+                "cool-water immersion, evaporative cooling, spray/fan, ice bath, "
+                "or whole-body cooling, airway/breathing support with oxygen, "
+                "ventilation, or intubation as needed, circulation/hemodynamic "
+                "support for hypotension or resuscitation, isotonic saline/normal "
+                "saline/IV-fluid replacement, and EMS, ICU, transfer, critical-care, "
+                "or organ-failure escalation"
             ),
         ),
         DomainSafetyGate(
@@ -26520,15 +26549,35 @@ def _has_heat_stroke_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in HEAT_STROKE_RAPID_COOLING_ACTION_TERMS
     )
-    has_abc_fluid = any(
+    has_cooling_modality = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HEAT_STROKE_ABC_FLUID_ACTION_TERMS
+        for term in HEAT_STROKE_COOLING_MODALITY_ACTION_TERMS
+    )
+    has_airway_breathing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HEAT_STROKE_AIRWAY_BREATHING_ACTION_TERMS
+    )
+    has_circulation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HEAT_STROKE_CIRCULATION_ACTION_TERMS
+    )
+    has_iv_fluid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HEAT_STROKE_IV_FLUID_ACTION_TERMS
     )
     has_escalation = any(
         _contains_safety_term(normalized_actions, term)
         for term in HEAT_STROKE_ESCALATION_ACTION_TERMS
     )
-    return has_core_temp and has_rapid_cooling and has_abc_fluid and has_escalation
+    return (
+        has_core_temp
+        and has_rapid_cooling
+        and has_cooling_modality
+        and has_airway_breathing
+        and has_circulation
+        and has_iv_fluid
+        and has_escalation
+    )
 
 
 def _has_heat_stroke_treatment_safety_check(checks: list[Any]) -> bool:
