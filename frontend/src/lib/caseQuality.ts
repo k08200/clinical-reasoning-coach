@@ -7950,42 +7950,77 @@ const CAUDA_EQUINA_MRI_REGION_TERMS = [
   "척추",
 ];
 
-const CAUDA_EQUINA_BLADDER_ACTION_TERMS = [
-  "bladder scan",
+const CAUDA_EQUINA_BLADDER_DYSFUNCTION_ACTION_TERMS = [
+  "bladder dysfunction",
+  "bowel/bladder",
+  "bowel bladder",
   "incontinence",
-  "post-void residual",
-  "postvoid residual",
-  "pvr",
   "urinary retention",
   "voiding",
   "배뇨",
   "요정체",
 ];
 
-const CAUDA_EQUINA_NEURO_EXAM_ACTION_TERMS = [
-  "anal tone",
-  "lower limb weakness",
-  "motor deficit",
+const CAUDA_EQUINA_PVR_ACTION_TERMS = [
+  "bladder scan",
+  "palpable bladder",
+  "post-void residual",
+  "postvoid residual",
+  "pvr",
+];
+
+const CAUDA_EQUINA_SADDLE_SENSORY_ACTION_TERMS = [
   "perianal",
   "perineal",
+  "perineum",
+  "s2",
+  "s3",
+  "s4",
+  "s5",
   "saddle anesthesia",
   "saddle anaesthesia",
-  "sensory deficit",
-  "항문긴장도",
   "회음부",
 ];
 
-const CAUDA_EQUINA_SPINE_ESCALATION_ACTION_TERMS = [
-  "decompression",
+const CAUDA_EQUINA_ANAL_TONE_REFLEX_ACTION_TERMS = [
+  "anal reflex",
+  "anal tone",
+  "bulbocavernosus",
+  "rectal tone",
+  "항문긴장도",
+];
+
+const CAUDA_EQUINA_LOWER_LIMB_NEURO_ACTION_TERMS = [
+  "areflexia",
+  "leg weakness",
+  "lower extremity weakness",
+  "lower limb weakness",
+  "motor deficit",
+  "reflex",
+  "sensation",
+  "sensory deficit",
+  "strength",
+  "하지",
+];
+
+const CAUDA_EQUINA_SPINE_CONSULT_ACTION_TERMS = [
   "neurosurgery",
-  "operative",
+  "orthopaedic spine",
+  "orthopedic spine",
+  "spinal surgeon",
+  "spine consult",
   "spine surgeon",
   "spine surgery",
-  "surgical referral",
-  "urgent surgery",
-  "감압",
   "신경외과",
   "척추",
+];
+
+const CAUDA_EQUINA_DECOMPRESSION_ACTION_TERMS = [
+  "decompression",
+  "discectomy",
+  "laminectomy",
+  "surgical decompression",
+  "감압",
 ];
 
 const CAUDA_EQUINA_RED_FLAG_SAFETY_TERMS = [
@@ -23057,16 +23092,37 @@ function requiresCaudaEquinaSafetyCheck(detail: ClinicalCaseReviewDetail): boole
 function hasCaudaEquinaTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
   const hasMri = hasCaudaEquinaEmergencyMriAction(actions);
-  const hasBladderAssessment = CAUDA_EQUINA_BLADDER_ACTION_TERMS.some((term) =>
+  const hasBladderDysfunctionAssessment = CAUDA_EQUINA_BLADDER_DYSFUNCTION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPvrAssessment = CAUDA_EQUINA_PVR_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasNeuroExam = CAUDA_EQUINA_NEURO_EXAM_ACTION_TERMS.some((term) =>
+  const hasSaddleSensoryExam = CAUDA_EQUINA_SADDLE_SENSORY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSpineEscalation = CAUDA_EQUINA_SPINE_ESCALATION_ACTION_TERMS.some((term) =>
+  const hasAnalToneOrReflexExam = CAUDA_EQUINA_ANAL_TONE_REFLEX_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasMri && hasBladderAssessment && hasNeuroExam && hasSpineEscalation;
+  const hasLowerLimbNeuroExam = CAUDA_EQUINA_LOWER_LIMB_NEURO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSpineConsult = CAUDA_EQUINA_SPINE_CONSULT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDecompressionPlan = CAUDA_EQUINA_DECOMPRESSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasMri &&
+    hasBladderDysfunctionAssessment &&
+    hasPvrAssessment &&
+    hasSaddleSensoryExam &&
+    hasAnalToneOrReflexExam &&
+    hasLowerLimbNeuroExam &&
+    hasSpineConsult &&
+    hasDecompressionPlan
+  );
 }
 
 function hasCaudaEquinaEmergencyMriAction(actions: string[]): boolean {
@@ -30247,7 +30303,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasCaudaEquinaTimeCriticalActions,
       issue:
-        "cauda equina time-critical actions must include emergency lumbar MRI, bladder or post-void residual assessment, saddle, perianal, anal-tone, or lower-limb neurologic exam, and urgent neurosurgery, spine surgery, or decompression escalation",
+        "cauda equina time-critical actions must include emergency lumbar MRI or lumbosacral MRI, bladder dysfunction or urinary retention assessment plus bladder scan/post-void residual PVR, saddle/perianal sensory exam, anal/rectal tone or bulbocavernosus/anal reflex, lower-limb motor/sensory/reflex exam, urgent neurosurgery/orthopedic-spine consultation, and surgical decompression planning",
     },
     {
       name: "cauda_equina_delay_safety",

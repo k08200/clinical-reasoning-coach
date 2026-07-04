@@ -15202,6 +15202,206 @@ def test_quality_gate_rejects_cauda_equina_generic_nonurgent_mri_plan():
     )
 
 
+def test_quality_gate_requires_cauda_equina_pvr_not_urinary_retention_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Cauda equina syndrome"
+    case["patient_demographics"] = {
+        "age": 46,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe low back pain with urinary retention"
+    case["history_of_present_illness"] = (
+        "Patient has acute low back pain radiating to both legs with saddle anesthesia, "
+        "new urinary retention, and progressive lower limb weakness concerning for cauda equina."
+    )
+    case["key_teaching_points"] = [
+        "Cauda equina syndrome is a neurologic emergency from lumbosacral nerve root compression",
+        "Emergency lumbar MRI and surgical decompression escalation are time-critical",
+        "Bowel, bladder, saddle sensory, sexual, or progressive neurologic red flags require urgent action",
+    ]
+    case["clinical_red_flags"] = [
+        "Urinary retention, overflow incontinence, or new bowel dysfunction",
+        "Saddle anesthesia, reduced anal tone, bilateral sciatica, or progressive lower limb weakness",
+    ]
+    case["time_critical_actions"] = [
+        "Order emergency lumbar MRI immediately for suspected cauda equina",
+        "Assess urinary retention and voiding symptoms",
+        "Perform focused neurologic exam including saddle anesthesia, perianal sensation, anal tone, and lower limb weakness",
+        "Escalate urgently to neurosurgery or orthopedic spine for surgical decompression planning",
+    ]
+    case["contraindication_checks"] = [
+        "Document bladder, bowel, saddle anesthesia, sexual dysfunction, and progressive neurologic red flags",
+        "Do not delay emergency pathway with outpatient physical therapy or routine low-back-pain discharge",
+        "Review spinal infection, epidural abscess, malignancy, tumor, trauma, stenosis, and other compressive causes",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Cauda Equina and Conus Medullaris Syndromes",
+            "organization": "StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK537200/",
+            "supports": [
+                "cauda equina syndrome diagnosis and risk stratification",
+                "cauda equina syndrome is a neurologic emergency from lumbosacral nerve root compression",
+                "emergency lumbar MRI and surgical decompression escalation are time-critical",
+                "bowel, bladder, saddle sensory, sexual, or progressive neurologic red flags require urgent action",
+                "urinary retention, overflow incontinence, or new bowel dysfunction as red flags",
+                "saddle anesthesia, reduced anal tone, bilateral sciatica, or progressive lower limb weakness as severity markers",
+                "emergency lumbar MRI immediately for suspected cauda equina",
+                "urinary retention and voiding symptom assessment",
+                "focused neurologic exam including saddle anesthesia, perianal sensation, anal tone, and lower limb weakness",
+                "urgent neurosurgery or orthopedic spine escalation for surgical decompression planning",
+                "bladder, bowel, saddle anesthesia, sexual dysfunction, and progressive neurologic red flag documentation",
+                "avoid delayed outpatient physical therapy or routine low-back-pain discharge",
+                "spinal infection, epidural abscess, malignancy, tumor, trauma, stenosis, and other compressive causes",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "bladder scan/post-void residual PVR" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_cauda_equina_anal_tone_and_lower_limb_exam():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Cauda equina syndrome"
+    case["patient_demographics"] = {
+        "age": 46,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe low back pain with urinary retention"
+    case["history_of_present_illness"] = (
+        "Patient has acute low back pain radiating to both legs with saddle anesthesia, "
+        "new urinary retention, and progressive lower limb weakness concerning for cauda equina."
+    )
+    case["key_teaching_points"] = [
+        "Cauda equina syndrome is a neurologic emergency from lumbosacral nerve root compression",
+        "Emergency lumbar MRI and surgical decompression escalation are time-critical",
+        "Bowel, bladder, saddle sensory, sexual, or progressive neurologic red flags require urgent action",
+    ]
+    case["clinical_red_flags"] = [
+        "Urinary retention, overflow incontinence, or new bowel dysfunction",
+        "Saddle anesthesia, reduced anal tone, bilateral sciatica, or progressive lower limb weakness",
+    ]
+    case["time_critical_actions"] = [
+        "Order emergency lumbar MRI immediately for suspected cauda equina",
+        "Assess urinary retention with bladder scan and post-void residual PVR",
+        "Perform focused neurologic exam for saddle anesthesia and perianal sensation",
+        "Escalate urgently to neurosurgery or orthopedic spine for surgical decompression planning",
+    ]
+    case["contraindication_checks"] = [
+        "Document bladder, bowel, saddle anesthesia, sexual dysfunction, and progressive neurologic red flags",
+        "Do not delay emergency pathway with outpatient physical therapy or routine low-back-pain discharge",
+        "Review spinal infection, epidural abscess, malignancy, tumor, trauma, stenosis, and other compressive causes",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Cauda Equina and Conus Medullaris Syndromes",
+            "organization": "StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK537200/",
+            "supports": [
+                "cauda equina syndrome diagnosis and risk stratification",
+                "cauda equina syndrome is a neurologic emergency from lumbosacral nerve root compression",
+                "emergency lumbar MRI and surgical decompression escalation are time-critical",
+                "bowel, bladder, saddle sensory, sexual, or progressive neurologic red flags require urgent action",
+                "urinary retention, overflow incontinence, or new bowel dysfunction as red flags",
+                "saddle anesthesia, reduced anal tone, bilateral sciatica, or progressive lower limb weakness as severity markers",
+                "emergency lumbar MRI immediately for suspected cauda equina",
+                "urinary retention bladder scan and post-void residual PVR assessment",
+                "focused neurologic exam for saddle anesthesia and perianal sensation",
+                "urgent neurosurgery or orthopedic spine escalation for surgical decompression planning",
+                "bladder, bowel, saddle anesthesia, sexual dysfunction, and progressive neurologic red flag documentation",
+                "avoid delayed outpatient physical therapy or routine low-back-pain discharge",
+                "spinal infection, epidural abscess, malignancy, tumor, trauma, stenosis, and other compressive causes",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "anal/rectal tone" in issue
+        and "lower-limb motor/sensory/reflex exam" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_cauda_equina_spine_consult_and_decompression_plan():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Cauda equina syndrome"
+    case["patient_demographics"] = {
+        "age": 46,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe low back pain with urinary retention"
+    case["history_of_present_illness"] = (
+        "Patient has acute low back pain radiating to both legs with saddle anesthesia, "
+        "new urinary retention, and progressive lower limb weakness concerning for cauda equina."
+    )
+    case["key_teaching_points"] = [
+        "Cauda equina syndrome is a neurologic emergency from lumbosacral nerve root compression",
+        "Emergency lumbar MRI and surgical decompression escalation are time-critical",
+        "Bowel, bladder, saddle sensory, sexual, or progressive neurologic red flags require urgent action",
+    ]
+    case["clinical_red_flags"] = [
+        "Urinary retention, overflow incontinence, or new bowel dysfunction",
+        "Saddle anesthesia, reduced anal tone, bilateral sciatica, or progressive lower limb weakness",
+    ]
+    case["time_critical_actions"] = [
+        "Order emergency lumbar MRI immediately for suspected cauda equina",
+        "Assess urinary retention with bladder scan and post-void residual PVR",
+        "Perform focused neurologic exam including saddle anesthesia, perianal sensation, anal tone, and lower limb weakness",
+        "Keep patient in an emergency pathway and do not delay urgent referral",
+    ]
+    case["contraindication_checks"] = [
+        "Document bladder, bowel, saddle anesthesia, sexual dysfunction, and progressive neurologic red flags",
+        "Do not delay emergency pathway with outpatient physical therapy or routine low-back-pain discharge",
+        "Review spinal infection, epidural abscess, malignancy, tumor, trauma, stenosis, and other compressive causes",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Suspected neurological conditions: recognition and referral",
+            "organization": "NICE",
+            "url": "https://www.nice.org.uk/guidance/ng127",
+            "supports": [
+                "cauda equina syndrome diagnosis and risk stratification",
+                "cauda equina syndrome is a neurologic emergency from lumbosacral nerve root compression",
+                "emergency lumbar MRI and surgical decompression escalation are time-critical",
+                "bowel, bladder, saddle sensory, sexual, or progressive neurologic red flags require urgent action",
+                "urinary retention, overflow incontinence, or new bowel dysfunction as red flags",
+                "saddle anesthesia, reduced anal tone, bilateral sciatica, or progressive lower limb weakness as severity markers",
+                "emergency lumbar MRI immediately for suspected cauda equina",
+                "urinary retention bladder scan and post-void residual PVR assessment",
+                "focused neurologic exam including saddle anesthesia, perianal sensation, anal tone, and lower limb weakness",
+                "emergency pathway and do not delay urgent referral",
+                "bladder, bowel, saddle anesthesia, sexual dysfunction, and progressive neurologic red flag documentation",
+                "avoid delayed outpatient physical therapy or routine low-back-pain discharge",
+                "spinal infection, epidural abscess, malignancy, tumor, trauma, stenosis, and other compressive causes",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "urgent neurosurgery/orthopedic-spine consultation" in issue
+        and "surgical decompression planning" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_cauda_equina_red_flags_delay_and_compressive_cause_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Cauda equina syndrome"

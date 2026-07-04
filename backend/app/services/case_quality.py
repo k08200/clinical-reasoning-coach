@@ -7139,40 +7139,71 @@ CAUDA_EQUINA_MRI_REGION_TERMS = (
     "요추",
     "척추",
 )
-CAUDA_EQUINA_BLADDER_ACTION_TERMS = (
-    "bladder scan",
+CAUDA_EQUINA_BLADDER_DYSFUNCTION_ACTION_TERMS = (
+    "bladder dysfunction",
+    "bowel/bladder",
+    "bowel bladder",
     "incontinence",
-    "post-void residual",
-    "postvoid residual",
-    "pvr",
     "urinary retention",
     "voiding",
     "배뇨",
     "요정체",
 )
-CAUDA_EQUINA_NEURO_EXAM_ACTION_TERMS = (
-    "anal tone",
-    "lower limb weakness",
-    "motor deficit",
+CAUDA_EQUINA_PVR_ACTION_TERMS = (
+    "bladder scan",
+    "palpable bladder",
+    "post-void residual",
+    "postvoid residual",
+    "pvr",
+)
+CAUDA_EQUINA_SADDLE_SENSORY_ACTION_TERMS = (
     "perianal",
     "perineal",
+    "perineum",
+    "s2",
+    "s3",
+    "s4",
+    "s5",
     "saddle anesthesia",
     "saddle anaesthesia",
-    "sensory deficit",
-    "항문긴장도",
     "회음부",
 )
-CAUDA_EQUINA_SPINE_ESCALATION_ACTION_TERMS = (
-    "decompression",
+CAUDA_EQUINA_ANAL_TONE_REFLEX_ACTION_TERMS = (
+    "anal reflex",
+    "anal tone",
+    "bulbocavernosus",
+    "rectal tone",
+    "항문긴장도",
+)
+CAUDA_EQUINA_LOWER_LIMB_NEURO_ACTION_TERMS = (
+    "areflexia",
+    "leg weakness",
+    "lower extremity weakness",
+    "lower limb weakness",
+    "motor deficit",
+    "reflex",
+    "sensation",
+    "sensory deficit",
+    "strength",
+    "하지",
+)
+CAUDA_EQUINA_SPINE_CONSULT_ACTION_TERMS = (
     "neurosurgery",
-    "operative",
+    "orthopaedic spine",
+    "orthopedic spine",
+    "spinal surgeon",
+    "spine consult",
     "spine surgeon",
     "spine surgery",
-    "surgical referral",
-    "urgent surgery",
-    "감압",
     "신경외과",
     "척추",
+)
+CAUDA_EQUINA_DECOMPRESSION_ACTION_TERMS = (
+    "decompression",
+    "discectomy",
+    "laminectomy",
+    "surgical decompression",
+    "감압",
 )
 CAUDA_EQUINA_RED_FLAG_SAFETY_TERMS = (
     "bowel",
@@ -18378,10 +18409,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_cauda_equina_time_critical_actions,
             issue=(
                 "cauda equina time-critical actions must include emergency "
-                "lumbar MRI, bladder or post-void residual assessment, "
-                "saddle, perianal, anal-tone, or lower-limb neurologic exam, "
-                "and urgent neurosurgery, spine surgery, or decompression "
-                "escalation"
+                "lumbar MRI or lumbosacral MRI, bladder dysfunction or "
+                "urinary retention assessment plus bladder scan/post-void "
+                "residual PVR, saddle/perianal sensory exam, anal/rectal "
+                "tone or bulbocavernosus/anal reflex, lower-limb "
+                "motor/sensory/reflex exam, urgent neurosurgery/orthopedic-"
+                "spine consultation, and surgical decompression planning"
             ),
         ),
         DomainSafetyGate(
@@ -26967,19 +27000,44 @@ def _requires_cauda_equina_safety_check(data: dict[str, Any]) -> bool:
 def _has_cauda_equina_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
     has_mri = _has_cauda_equina_emergency_mri_action(actions)
-    has_bladder_assessment = any(
+    has_bladder_dysfunction_assessment = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CAUDA_EQUINA_BLADDER_ACTION_TERMS
+        for term in CAUDA_EQUINA_BLADDER_DYSFUNCTION_ACTION_TERMS
     )
-    has_neuro_exam = any(
+    has_pvr_assessment = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CAUDA_EQUINA_NEURO_EXAM_ACTION_TERMS
+        for term in CAUDA_EQUINA_PVR_ACTION_TERMS
     )
-    has_spine_escalation = any(
+    has_saddle_sensory_exam = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CAUDA_EQUINA_SPINE_ESCALATION_ACTION_TERMS
+        for term in CAUDA_EQUINA_SADDLE_SENSORY_ACTION_TERMS
     )
-    return has_mri and has_bladder_assessment and has_neuro_exam and has_spine_escalation
+    has_anal_tone_or_reflex_exam = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CAUDA_EQUINA_ANAL_TONE_REFLEX_ACTION_TERMS
+    )
+    has_lower_limb_neuro_exam = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CAUDA_EQUINA_LOWER_LIMB_NEURO_ACTION_TERMS
+    )
+    has_spine_consult = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CAUDA_EQUINA_SPINE_CONSULT_ACTION_TERMS
+    )
+    has_decompression_plan = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CAUDA_EQUINA_DECOMPRESSION_ACTION_TERMS
+    )
+    return (
+        has_mri
+        and has_bladder_dysfunction_assessment
+        and has_pvr_assessment
+        and has_saddle_sensory_exam
+        and has_anal_tone_or_reflex_exam
+        and has_lower_limb_neuro_exam
+        and has_spine_consult
+        and has_decompression_plan
+    )
 
 
 def _has_cauda_equina_emergency_mri_action(actions: list[Any]) -> bool:
