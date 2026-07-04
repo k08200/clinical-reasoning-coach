@@ -32433,7 +32433,7 @@ def test_quality_gate_requires_stroke_last_known_normal_and_imaging_actions():
         "noncontrast head CT to exclude hemorrhage before treatment decision",
         "thrombolysis and thrombectomy eligibility in parallel",
         "intracranial hemorrhage or early extensive ischemic change on imaging",
-        "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
         "large vessel occlusion criteria and transfer needs for thrombectomy",
     ]
 
@@ -32441,7 +32441,7 @@ def test_quality_gate_requires_stroke_last_known_normal_and_imaging_actions():
 
     assert not report.passed
     assert any(
-        "stroke time-critical actions must include last-known-normal timing" in issue
+        "stroke time-critical actions must include last-known-normal" in issue
         for issue in report.critical_issues
     )
 
@@ -32462,7 +32462,7 @@ def test_quality_gate_requires_stroke_specific_thrombolysis_or_thrombectomy_acti
         "noncontrast head CT to exclude hemorrhage before treatment decision",
         "reperfusion eligibility review in parallel",
         "intracranial hemorrhage or early extensive ischemic change on imaging",
-        "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
         "large vessel occlusion criteria and transfer needs for thrombectomy",
         "CTA vascular imaging and CT perfusion or MRA MR perfusion when needed for thrombectomy selection",
         "NIHSS, modified Rankin mRS, ASPECTS, large vessel occlusion LVO, 6 hours, 24 hours, salvageable tissue, and thrombectomy eligibility",
@@ -32475,7 +32475,36 @@ def test_quality_gate_requires_stroke_specific_thrombolysis_or_thrombectomy_acti
 
     assert not report.passed
     assert any(
-        "stroke time-critical actions must include last-known-normal timing" in issue
+        "stroke time-critical actions must include last-known-normal" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_stroke_pathway_activation_and_noncontrast_imaging():
+    case = copy.deepcopy(CASE_POOL[4])
+    case["time_critical_actions"] = [
+        "Document last known well 07:00",
+        "Obtain brain imaging before treatment",
+        "Assess thrombolysis and thrombectomy eligibility in parallel",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "acute stroke diagnosis and severity assessment",
+        "sudden focal neurologic deficit and NIHSS severity assessment",
+        "potentially treatable stroke within reperfusion window from last known normal",
+        "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+        "document last known well 07:00",
+        "brain imaging before treatment",
+        "thrombolysis and thrombectomy eligibility in parallel",
+        "intracranial hemorrhage or early extensive ischemic change on imaging",
+        "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
+        "large vessel occlusion criteria and transfer needs for thrombectomy",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "stroke pathway/code-stroke activation" in issue
         for issue in report.critical_issues
     )
 
@@ -32509,12 +32538,17 @@ def test_quality_gate_requires_stroke_reperfusion_contraindication_checks():
     )
 
 
-def test_quality_gate_requires_stroke_advanced_reperfusion_monitoring_and_supportive_safety():
+def test_quality_gate_requires_stroke_coag_labs_and_bp_thresholds():
     case = copy.deepcopy(CASE_POOL[4])
     case["contraindication_checks"] = [
         "Intracranial hemorrhage or early extensive ischemic change on imaging",
         "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
         "Large vessel occlusion criteria and transfer needs for thrombectomy",
+        "Use CTA vascular imaging and CT perfusion or MRA MR perfusion when needed for thrombectomy selection",
+        "Review NIHSS, pre-stroke modified Rankin mRS, ASPECTS, large vessel occlusion LVO, 6 hours, 24 hours, salvageable tissue, and thrombectomy eligibility",
+        "Treat in a stroke service or stroke unit with stroke physician oversight, thrombolysis protocol, post-thrombolysis complication monitoring, and follow-up imaging or re-imaging",
+        "Plan aspirin, antiplatelet, and anticoagulation timing: delay antiplatelet for 24 hours after thrombolysis and use dysphagia-safe enteral or rectal swallow route",
+        "Check oxygen saturation SpO2, blood glucose, temperature, and dysphagia swallow screen before oral medication, food, hydration, or therapy",
     ]
     case["clinical_sources"][0]["supports"] = [
         "last-known-normal based reperfusion eligibility",
@@ -32526,6 +32560,37 @@ def test_quality_gate_requires_stroke_advanced_reperfusion_monitoring_and_suppor
         "assess thrombolysis and thrombectomy eligibility in parallel",
         "intracranial hemorrhage or early extensive ischemic change on imaging",
         "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "large vessel occlusion criteria and transfer needs for thrombectomy",
+        "CTA vascular imaging and CT perfusion or MRA MR perfusion when needed for thrombectomy selection",
+        "NIHSS, modified Rankin mRS, ASPECTS, large vessel occlusion LVO, 6 hours, 24 hours, salvageable tissue, and thrombectomy eligibility",
+        "stroke service or stroke unit with stroke physician oversight, thrombolysis protocol, post-thrombolysis complication monitoring, and follow-up imaging or re-imaging",
+        "aspirin, antiplatelet, and anticoagulation timing with dysphagia-safe enteral or rectal swallow route",
+        "oxygen saturation SpO2, blood glucose, temperature, and dysphagia swallow screen",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("PT/INR/aPTT/anti-Xa" in issue for issue in report.critical_issues)
+
+
+def test_quality_gate_requires_stroke_advanced_reperfusion_monitoring_and_supportive_safety():
+    case = copy.deepcopy(CASE_POOL[4])
+    case["contraindication_checks"] = [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Recent anticoagulant or DOAC/warfarin/heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
+        "Large vessel occlusion criteria and transfer needs for thrombectomy",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "last-known-normal based reperfusion eligibility",
+        "sudden focal neurologic deficit and NIHSS severity assessment",
+        "potentially treatable stroke within thrombolysis window from last known normal",
+        "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+        "noncontrast head CT to exclude hemorrhage before treatment decision",
+        "establish last known normal and activate stroke pathway immediately",
+        "assess thrombolysis and thrombectomy eligibility in parallel",
+        "intracranial hemorrhage or early extensive ischemic change on imaging",
+        "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
         "large vessel occlusion criteria and transfer needs for thrombectomy",
     ]
 
@@ -32542,7 +32607,7 @@ def test_quality_gate_requires_stroke_explicit_thrombectomy_selection_criteria()
     case = copy.deepcopy(CASE_POOL[4])
     case["contraindication_checks"] = [
         "Intracranial hemorrhage or early extensive ischemic change on imaging",
-        "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "Recent anticoagulant or DOAC/warfarin/heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
         "Use CTA vascular imaging and CT perfusion when needed for reperfusion planning",
         "Discuss thrombectomy with the stroke team if deficits persist",
         "Treat in a stroke unit with stroke physician oversight and follow-up imaging",
@@ -32558,7 +32623,7 @@ def test_quality_gate_requires_stroke_explicit_thrombectomy_selection_criteria()
         "establish last known normal and activate stroke pathway immediately",
         "assess thrombolysis and thrombectomy eligibility in parallel",
         "intracranial hemorrhage or early extensive ischemic change on imaging",
-        "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
         "CTA vascular imaging and CT perfusion when needed for reperfusion planning",
         "thrombectomy discussion with the stroke team if deficits persist",
         "stroke unit with stroke physician oversight and follow-up imaging",
@@ -32571,6 +32636,41 @@ def test_quality_gate_requires_stroke_explicit_thrombectomy_selection_criteria()
     assert not report.passed
     assert any(
         "stroke advanced reperfusion safety checks must include CTA" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_stroke_perfusion_core_and_window_selection():
+    case = copy.deepcopy(CASE_POOL[4])
+    case["contraindication_checks"] = [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Recent anticoagulant or DOAC/warfarin/heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
+        "Use CTA vascular imaging for large vessel occlusion criteria and transfer needs for thrombectomy",
+        "Treat in a stroke service or stroke unit with stroke physician oversight, thrombolysis protocol, post-thrombolysis complication monitoring, and follow-up imaging or re-imaging",
+        "Plan aspirin, antiplatelet, and anticoagulation timing: delay antiplatelet for 24 hours after thrombolysis and use dysphagia-safe enteral or rectal swallow route",
+        "Check oxygen saturation SpO2, blood glucose, temperature, and dysphagia swallow screen before oral medication, food, hydration, or therapy",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "last-known-normal based reperfusion eligibility",
+        "sudden focal neurologic deficit and NIHSS severity assessment",
+        "potentially treatable stroke within thrombolysis window from last known normal",
+        "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+        "noncontrast head CT to exclude hemorrhage before treatment decision",
+        "establish last known normal and activate stroke pathway immediately",
+        "assess thrombolysis and thrombectomy eligibility in parallel",
+        "intracranial hemorrhage or early extensive ischemic change on imaging",
+        "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
+        "CTA vascular imaging for large vessel occlusion criteria and transfer needs for thrombectomy",
+        "stroke service or stroke unit with stroke physician oversight, thrombolysis protocol, post-thrombolysis complication monitoring, and follow-up imaging or re-imaging",
+        "aspirin, antiplatelet, and anticoagulation timing with dysphagia-safe enteral or rectal swallow route",
+        "oxygen saturation SpO2, blood glucose, temperature, and dysphagia swallow screen",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "CT/MR perfusion or DWI limited-core/salvageable-tissue" in issue
         for issue in report.critical_issues
     )
 

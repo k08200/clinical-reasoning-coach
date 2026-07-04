@@ -15885,7 +15885,14 @@ STROKE_LAST_KNOWN_NORMAL_TERMS = (
     "최종 정상",
     "마지막 정상",
 )
-STROKE_BRAIN_IMAGING_TERMS = (
+STROKE_PATHWAY_ACTIVATION_TERMS = (
+    "activate stroke",
+    "code stroke",
+    "stroke alert",
+    "stroke code",
+    "stroke pathway",
+)
+STROKE_NONCONTRAST_BRAIN_IMAGING_TERMS = (
     "brain imaging",
     "ct",
     "head ct",
@@ -15909,28 +15916,46 @@ STROKE_REPERFUSION_ACTION_TERMS = (
     "혈전용해",
     "혈전제거",
 )
-STROKE_HEMORRHAGE_EXCLUSION_TERMS = (
-    "bleeding",
-    "ct",
+STROKE_HEMORRHAGE_EXCLUSION_SAFETY_TERMS = (
     "haemorrhage",
     "hemorrhage",
-    "imaging",
     "intracranial hemorrhage",
-    "noncontrast",
-    "non-contrast",
+    "bleeding",
     "출혈",
     "두개내출혈",
-    "비조영",
 )
-STROKE_ANTICOAGULANT_SAFETY_TERMS = (
+STROKE_EARLY_ISCHEMIC_CHANGE_SAFETY_TERMS = (
+    "early extensive ischemic change",
+    "extensive ischemic change",
+    "ischemic change",
+    "large infarct",
+    "multilobar infarction",
+)
+STROKE_ANTICOAGULANT_HISTORY_SAFETY_TERMS = (
     "anticoagulant",
     "anticoagulation",
     "apixaban",
-    "bleeding history",
+    "dabigatran",
     "doac",
-    "inr",
+    "factor xa",
+    "heparin",
+    "rivaroxaban",
     "warfarin",
     "항응고",
+)
+STROKE_COAGULATION_LAB_SAFETY_TERMS = (
+    "anti-xa",
+    "aptt",
+    "inr",
+    "pt",
+    "thrombin time",
+)
+STROKE_BLEEDING_HISTORY_SAFETY_TERMS = (
+    "bleeding history",
+    "bleeding tendency",
+    "head trauma",
+    "intracranial hemorrhage",
+    "recent surgery",
 )
 STROKE_PLATELET_TERMS = (
     "platelet",
@@ -15943,62 +15968,90 @@ STROKE_GLUCOSE_TERMS = (
     "혈당",
 )
 STROKE_BP_TERMS = (
-    "blood pressure",
-    "bp",
-    "hypertension",
-    "혈압",
+    "185/110",
+    "185 over 110",
+    "185/110 mmhg",
 )
 STROKE_VASCULAR_IMAGING_SAFETY_TERMS = (
     "cta",
     "ct angiography",
-    "ct perfusion",
     "mra",
     "mr angiography",
+    "vascular imaging",
+)
+STROKE_PERFUSION_CORE_SAFETY_TERMS = (
+    "ct perfusion",
+    "diffusion-weighted",
+    "dwi",
+    "infarct core",
+    "limited infarct core",
     "mr perfusion",
     "perfusion",
-    "vascular imaging",
+    "salvageable",
 )
 STROKE_THROMBECTOMY_OCCLUSION_SAFETY_TERMS = (
     "large vessel occlusion",
     "lvo",
+    "proximal anterior",
+    "proximal posterior",
 )
-STROKE_THROMBECTOMY_SELECTION_DETAIL_SAFETY_TERMS = (
+STROKE_THROMBECTOMY_TIME_WINDOW_SAFETY_TERMS = (
     "24 hours",
     "6 hours",
+    "last known well",
+    "lkw",
+    "wake-up",
+)
+STROKE_THROMBECTOMY_SELECTION_SCORE_SAFETY_TERMS = (
     "aspects",
     "modified rankin",
     "mrs",
     "nihss",
-    "salvageable",
 )
-STROKE_SERVICE_MONITORING_SAFETY_TERMS = (
-    "complication",
-    "follow-up imaging",
-    "post-thrombolysis",
-    "re-imaging",
+STROKE_SERVICE_TERMS = (
     "stroke physician",
     "stroke service",
     "stroke unit",
+)
+STROKE_THROMBOLYSIS_MONITORING_TERMS = (
+    "complication",
+    "post-thrombolysis",
     "thrombolysis protocol",
 )
-STROKE_ANTIPLATELET_TIMING_SAFETY_TERMS = (
+STROKE_FOLLOWUP_IMAGING_TERMS = (
+    "follow-up imaging",
+    "re-imaging",
+    "repeat imaging",
+)
+STROKE_ANTIPLATELET_ANTICOAG_TIMING_TERMS = (
+    "24 hours",
     "anticoagulation",
     "antiplatelet",
     "aspirin",
     "delay antiplatelet",
+)
+STROKE_DYSPHAGIA_ROUTE_TERMS = (
+    "dysphagia",
     "enteral",
     "rectal",
     "swallow route",
 )
-STROKE_HOMEOSTASIS_SWALLOW_SAFETY_TERMS = (
-    "blood glucose",
-    "dysphagia",
-    "glucose",
+STROKE_OXYGEN_SAFETY_TERMS = (
     "oxygen",
     "oxygen saturation",
     "spo2",
-    "swallow",
+)
+STROKE_HOMEOSTASIS_GLUCOSE_TERMS = (
+    "blood glucose",
+    "glucose",
+)
+STROKE_TEMPERATURE_TERMS = (
     "temperature",
+    "temp",
+)
+STROKE_SWALLOW_SCREEN_TERMS = (
+    "dysphagia",
+    "swallow",
 )
 PE_CONTEXT_TERMS = (
     "ct pulmonary angiography",
@@ -20964,7 +21017,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_stroke_time_critical_actions,
             issue=(
                 "stroke time-critical actions must include last-known-normal "
-                "timing, brain imaging, and thrombolysis or thrombectomy planning"
+                "or symptom-onset timing, stroke pathway/code-stroke activation, "
+                "immediate noncontrast CT or brain imaging to exclude hemorrhage, "
+                "and explicit alteplase, tenecteplase, thrombolysis, thrombectomy, "
+                "or parallel reperfusion eligibility planning"
             ),
         ),
         DomainSafetyGate(
@@ -20974,8 +21030,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_stroke_contraindication_safety_check,
             issue=(
                 "stroke reperfusion safety checks must include hemorrhage "
-                "exclusion, anticoagulant status, platelet count, glucose, and "
-                "blood pressure thresholds"
+                "exclusion and early extensive ischemic-change/large-infarct "
+                "review, anticoagulant/DOAC/warfarin/heparin status plus "
+                "PT/INR/aPTT/anti-Xa or relevant coagulation labs, "
+                "bleeding-history/recent-surgery/head-trauma risk, platelet "
+                "count, glucose or hypoglycemia threshold, and BP 185/110 "
+                "thrombolysis threshold"
             ),
         ),
         DomainSafetyGate(
@@ -20984,16 +21044,18 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="contraindication_checks",
             validator=_has_stroke_advanced_reperfusion_monitoring_safety_check,
             issue=(
-                "stroke advanced reperfusion safety checks must include CTA, "
-                "MRA, CT perfusion, MR perfusion, or vascular imaging for "
-                "thrombectomy selection, NIHSS, modified Rankin, ASPECTS, "
-                "large-vessel occlusion, 6-hour, 24-hour, salvageable-tissue, "
-                "or thrombectomy eligibility review, stroke-service, stroke-unit, "
-                "stroke-physician, post-thrombolysis complication, follow-up "
-                "imaging, or re-imaging monitoring, aspirin, antiplatelet, "
-                "anticoagulation, 24-hour, dysphagia, enteral, rectal, or "
-                "swallow-route timing review, and oxygen, glucose, temperature, "
-                "or dysphagia/swallow supportive safety checks"
+                "stroke advanced reperfusion safety checks must include CTA/MRA "
+                "vascular imaging, CT/MR perfusion or DWI limited-core/"
+                "salvageable-tissue review when beyond 6 hours, LVO/proximal "
+                "anterior/posterior occlusion confirmation, NIHSS, pre-stroke "
+                "modified Rankin/mRS, ASPECTS, 6-hour and 24-hour thrombectomy "
+                "window review, stroke-service/stroke-unit/stroke-physician "
+                "support, thrombolysis protocol and post-thrombolysis complication "
+                "monitoring, follow-up/repeat imaging before antiplatelet/"
+                "anticoagulation, 24-hour antiplatelet/aspirin/anticoagulation "
+                "timing, dysphagia-safe enteral/rectal/swallow route, and oxygen "
+                "saturation, glucose, temperature, and swallow-screen supportive "
+                "checks"
             ),
         ),
         DomainSafetyGate(
@@ -34618,26 +34680,47 @@ def _has_stroke_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in STROKE_LAST_KNOWN_NORMAL_TERMS
     )
-    has_brain_imaging = any(
+    has_pathway_activation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in STROKE_BRAIN_IMAGING_TERMS
+        for term in STROKE_PATHWAY_ACTIVATION_TERMS
+    )
+    has_noncontrast_imaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in STROKE_NONCONTRAST_BRAIN_IMAGING_TERMS
     )
     has_reperfusion_planning = any(
         _contains_safety_term(normalized_actions, term)
         for term in STROKE_REPERFUSION_ACTION_TERMS
     )
-    return has_last_known_normal and has_brain_imaging and has_reperfusion_planning
+    return (
+        has_last_known_normal
+        and has_pathway_activation
+        and has_noncontrast_imaging
+        and has_reperfusion_planning
+    )
 
 
 def _has_stroke_contraindication_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
     has_hemorrhage_exclusion = any(
         _contains_safety_term(normalized_checks, term)
-        for term in STROKE_HEMORRHAGE_EXCLUSION_TERMS
+        for term in STROKE_HEMORRHAGE_EXCLUSION_SAFETY_TERMS
+    )
+    has_early_ischemic_change = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_EARLY_ISCHEMIC_CHANGE_SAFETY_TERMS
     )
     has_anticoagulant_status = any(
         _contains_safety_term(normalized_checks, term)
-        for term in STROKE_ANTICOAGULANT_SAFETY_TERMS
+        for term in STROKE_ANTICOAGULANT_HISTORY_SAFETY_TERMS
+    )
+    has_coagulation_labs = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_COAGULATION_LAB_SAFETY_TERMS
+    )
+    has_bleeding_history = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_BLEEDING_HISTORY_SAFETY_TERMS
     )
     has_platelet_threshold = any(
         _contains_safety_term(normalized_checks, term)
@@ -34653,7 +34736,10 @@ def _has_stroke_contraindication_safety_check(checks: list[Any]) -> bool:
     )
     return (
         has_hemorrhage_exclusion
+        and has_early_ischemic_change
         and has_anticoagulant_status
+        and has_coagulation_labs
+        and has_bleeding_history
         and has_platelet_threshold
         and has_glucose_threshold
         and has_bp_threshold
@@ -34668,33 +34754,73 @@ def _has_stroke_advanced_reperfusion_monitoring_safety_check(
         _contains_safety_term(normalized_checks, term)
         for term in STROKE_VASCULAR_IMAGING_SAFETY_TERMS
     )
+    has_perfusion_core = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_PERFUSION_CORE_SAFETY_TERMS
+    )
     has_thrombectomy_occlusion = any(
         _contains_safety_term(normalized_checks, term)
         for term in STROKE_THROMBECTOMY_OCCLUSION_SAFETY_TERMS
     )
-    has_thrombectomy_selection_detail = any(
+    has_thrombectomy_time_window = any(
         _contains_safety_term(normalized_checks, term)
-        for term in STROKE_THROMBECTOMY_SELECTION_DETAIL_SAFETY_TERMS
+        for term in STROKE_THROMBECTOMY_TIME_WINDOW_SAFETY_TERMS
     )
-    has_service_monitoring = any(
+    has_thrombectomy_selection_score = any(
         _contains_safety_term(normalized_checks, term)
-        for term in STROKE_SERVICE_MONITORING_SAFETY_TERMS
+        for term in STROKE_THROMBECTOMY_SELECTION_SCORE_SAFETY_TERMS
+    )
+    has_service_support = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_SERVICE_TERMS
+    )
+    has_thrombolysis_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_THROMBOLYSIS_MONITORING_TERMS
+    )
+    has_followup_imaging = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_FOLLOWUP_IMAGING_TERMS
     )
     has_antiplatelet_timing = any(
         _contains_safety_term(normalized_checks, term)
-        for term in STROKE_ANTIPLATELET_TIMING_SAFETY_TERMS
+        for term in STROKE_ANTIPLATELET_ANTICOAG_TIMING_TERMS
     )
-    has_homeostasis_swallow = any(
+    has_dysphagia_route = any(
         _contains_safety_term(normalized_checks, term)
-        for term in STROKE_HOMEOSTASIS_SWALLOW_SAFETY_TERMS
+        for term in STROKE_DYSPHAGIA_ROUTE_TERMS
+    )
+    has_oxygen = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_OXYGEN_SAFETY_TERMS
+    )
+    has_glucose = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_HOMEOSTASIS_GLUCOSE_TERMS
+    )
+    has_temperature = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_TEMPERATURE_TERMS
+    )
+    has_swallow_screen = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STROKE_SWALLOW_SCREEN_TERMS
     )
     return (
         has_vascular_imaging
+        and has_perfusion_core
         and has_thrombectomy_occlusion
-        and has_thrombectomy_selection_detail
-        and has_service_monitoring
+        and has_thrombectomy_time_window
+        and has_thrombectomy_selection_score
+        and has_service_support
+        and has_thrombolysis_monitoring
+        and has_followup_imaging
         and has_antiplatelet_timing
-        and has_homeostasis_swallow
+        and has_dysphagia_route
+        and has_oxygen
+        and has_glucose
+        and has_temperature
+        and has_swallow_screen
     )
 
 

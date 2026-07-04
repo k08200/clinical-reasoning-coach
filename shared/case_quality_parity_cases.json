@@ -991,7 +991,7 @@
     "name": "stroke_requires_last_known_normal_and_imaging_actions",
     "expected_passed": false,
     "expected_issue_substrings": [
-      "stroke time-critical actions must include last-known-normal timing"
+      "stroke time-critical actions must include last-known-normal"
     ],
     "overrides": {
       "diagnosis": "Acute Ischemic Stroke",
@@ -1012,7 +1012,7 @@
       ],
       "contraindication_checks": [
         "Intracranial hemorrhage or early extensive ischemic change on imaging",
-        "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "Recent anticoagulant or DOAC/warfarin/heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
         "Large vessel occlusion criteria and transfer needs for thrombectomy"
       ],
       "clinical_sources": [
@@ -1029,7 +1029,7 @@
             "noncontrast head CT to exclude hemorrhage before treatment decision",
             "thrombolysis and thrombectomy eligibility in parallel",
             "intracranial hemorrhage or early extensive ischemic change on imaging",
-            "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+            "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
             "large vessel occlusion criteria and transfer needs for thrombectomy"
           ]
         }
@@ -1040,7 +1040,7 @@
     "name": "stroke_requires_specific_thrombolysis_or_thrombectomy_action",
     "expected_passed": false,
     "expected_issue_substrings": [
-      "stroke time-critical actions must include last-known-normal timing"
+      "stroke time-critical actions must include last-known-normal"
     ],
     "overrides": {
       "diagnosis": "Acute Ischemic Stroke",
@@ -1061,7 +1061,7 @@
       ],
       "contraindication_checks": [
         "Intracranial hemorrhage or early extensive ischemic change on imaging",
-        "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "Recent anticoagulant or DOAC/warfarin/heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
         "Large vessel occlusion criteria and transfer needs for thrombectomy",
         "Use CTA vascular imaging and CT perfusion or MRA MR perfusion when needed for thrombectomy selection",
         "Review NIHSS, pre-stroke modified Rankin mRS, ASPECTS, large vessel occlusion LVO, 6 hours, 24 hours, salvageable tissue, and thrombectomy eligibility",
@@ -1083,7 +1083,7 @@
             "noncontrast head CT to exclude hemorrhage before treatment decision",
             "reperfusion eligibility review in parallel",
             "intracranial hemorrhage or early extensive ischemic change on imaging",
-            "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+            "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
             "large vessel occlusion criteria and transfer needs for thrombectomy",
             "CTA vascular imaging and CT perfusion or MRA MR perfusion when needed for thrombectomy selection",
             "NIHSS, modified Rankin mRS, ASPECTS, large vessel occlusion LVO, 6 hours, 24 hours, salvageable tissue, and thrombectomy eligibility",
@@ -1145,6 +1145,114 @@
     }
   },
   {
+    "name": "stroke_requires_pathway_activation_and_noncontrast_imaging",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "stroke pathway/code-stroke activation"
+    ],
+    "overrides": {
+      "diagnosis": "Acute Ischemic Stroke",
+      "key_teaching_points": [
+        "Time-sensitive stroke reperfusion eligibility depends on last known normal",
+        "Noncontrast head CT is required before thrombolysis decisions",
+        "NIHSS and large vessel occlusion screening guide thrombectomy planning"
+      ],
+      "clinical_red_flags": [
+        "Sudden focal neurologic deficit with NIHSS 8",
+        "Potentially treatable stroke within reperfusion window from last known normal",
+        "Atrial fibrillation with missed anticoagulation suggesting embolic risk"
+      ],
+      "time_critical_actions": [
+        "Document last known well 07:00",
+        "Obtain brain imaging before treatment",
+        "Assess thrombolysis and thrombectomy eligibility in parallel"
+      ],
+      "contraindication_checks": [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Recent anticoagulant or DOAC/warfarin/heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
+        "Large vessel occlusion criteria and transfer needs for thrombectomy"
+      ],
+      "clinical_sources": [
+        {
+          "title": "NICE NG128: Stroke and transient ischaemic attack in over 16s",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/ng128/chapter/recommendations",
+          "supports": [
+            "acute stroke diagnosis and severity assessment",
+            "sudden focal neurologic deficit and NIHSS severity assessment",
+            "potentially treatable stroke within reperfusion window from last known normal",
+            "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+            "document last known well 07:00",
+            "brain imaging before treatment",
+            "thrombolysis and thrombectomy eligibility in parallel",
+            "intracranial hemorrhage or early extensive ischemic change on imaging",
+            "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
+            "large vessel occlusion criteria and transfer needs for thrombectomy"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "stroke_requires_coag_labs_and_bp_thresholds",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "PT/INR/aPTT/anti-Xa"
+    ],
+    "overrides": {
+      "diagnosis": "Acute Ischemic Stroke",
+      "key_teaching_points": [
+        "Time-sensitive stroke reperfusion eligibility depends on last known normal",
+        "Noncontrast head CT is required before thrombolysis decisions",
+        "NIHSS and large vessel occlusion screening guide thrombectomy planning"
+      ],
+      "clinical_red_flags": [
+        "Sudden focal neurologic deficit with NIHSS 8",
+        "Potentially treatable stroke within thrombolysis window from last known normal",
+        "Atrial fibrillation with missed anticoagulation suggesting embolic risk"
+      ],
+      "time_critical_actions": [
+        "Establish last known normal and activate stroke pathway immediately",
+        "Obtain noncontrast head CT to exclude hemorrhage without delaying treatment decision",
+        "Assess thrombolysis and thrombectomy eligibility in parallel"
+      ],
+      "contraindication_checks": [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "Large vessel occlusion criteria and transfer needs for thrombectomy",
+        "Use CTA vascular imaging and CT perfusion or MRA MR perfusion when needed for thrombectomy selection",
+        "Review NIHSS, pre-stroke modified Rankin mRS, ASPECTS, large vessel occlusion LVO, 6 hours, 24 hours, salvageable tissue, and thrombectomy eligibility",
+        "Treat in a stroke service or stroke unit with stroke physician oversight, thrombolysis protocol, post-thrombolysis complication monitoring, and follow-up imaging or re-imaging",
+        "Plan aspirin, antiplatelet, and anticoagulation timing: delay antiplatelet for 24 hours after thrombolysis and use dysphagia-safe enteral or rectal swallow route",
+        "Check oxygen saturation SpO2, blood glucose, temperature, and dysphagia swallow screen before oral medication, food, hydration, or therapy"
+      ],
+      "clinical_sources": [
+        {
+          "title": "NICE NG128: Stroke and transient ischaemic attack in over 16s",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/ng128/chapter/recommendations",
+          "supports": [
+            "last-known-normal based reperfusion eligibility",
+            "sudden focal neurologic deficit and NIHSS severity assessment",
+            "potentially treatable stroke within thrombolysis window from last known normal",
+            "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+            "noncontrast head CT to exclude hemorrhage before treatment decision",
+            "establish last known normal and activate stroke pathway immediately",
+            "assess thrombolysis and thrombectomy eligibility in parallel",
+            "intracranial hemorrhage or early extensive ischemic change on imaging",
+            "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+            "large vessel occlusion criteria and transfer needs for thrombectomy",
+            "CTA vascular imaging and CT perfusion or MRA MR perfusion when needed for thrombectomy selection",
+            "NIHSS, modified Rankin mRS, ASPECTS, large vessel occlusion LVO, 6 hours, 24 hours, salvageable tissue, and thrombectomy eligibility",
+            "stroke service or stroke unit with stroke physician oversight, thrombolysis protocol, post-thrombolysis complication monitoring, and follow-up imaging or re-imaging",
+            "aspirin, antiplatelet, and anticoagulation timing with dysphagia-safe enteral or rectal swallow route",
+            "oxygen saturation SpO2, blood glucose, temperature, and dysphagia swallow screen"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "stroke_requires_advanced_reperfusion_monitoring_and_supportive_safety",
     "expected_passed": false,
     "expected_issue_substrings": [
@@ -1169,7 +1277,7 @@
       ],
       "contraindication_checks": [
         "Intracranial hemorrhage or early extensive ischemic change on imaging",
-        "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "Recent anticoagulant or DOAC/warfarin/heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
         "Large vessel occlusion criteria and transfer needs for thrombectomy"
       ],
       "clinical_sources": [
@@ -1186,8 +1294,63 @@
             "establish last known normal and activate stroke pathway immediately",
             "assess thrombolysis and thrombectomy eligibility in parallel",
             "intracranial hemorrhage or early extensive ischemic change on imaging",
-            "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+            "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
             "large vessel occlusion criteria and transfer needs for thrombectomy"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "stroke_requires_perfusion_core_and_window_selection",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "CT/MR perfusion or DWI limited-core/salvageable-tissue"
+    ],
+    "overrides": {
+      "diagnosis": "Acute Ischemic Stroke",
+      "key_teaching_points": [
+        "Time-sensitive stroke reperfusion eligibility depends on last known normal",
+        "Noncontrast head CT is required before thrombolysis decisions",
+        "NIHSS and large vessel occlusion screening guide thrombectomy planning"
+      ],
+      "clinical_red_flags": [
+        "Sudden focal neurologic deficit with NIHSS 8",
+        "Potentially treatable stroke within thrombolysis window from last known normal",
+        "Atrial fibrillation with missed anticoagulation suggesting embolic risk"
+      ],
+      "time_critical_actions": [
+        "Establish last known normal and activate stroke pathway immediately",
+        "Obtain noncontrast head CT to exclude hemorrhage without delaying treatment decision",
+        "Assess thrombolysis and thrombectomy eligibility in parallel"
+      ],
+      "contraindication_checks": [
+        "Intracranial hemorrhage or early extensive ischemic change on imaging",
+        "Recent anticoagulant or DOAC/warfarin/heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
+        "Use CTA vascular imaging for large vessel occlusion criteria and transfer needs for thrombectomy",
+        "Treat in a stroke service or stroke unit with stroke physician oversight, thrombolysis protocol, post-thrombolysis complication monitoring, and follow-up imaging or re-imaging",
+        "Plan aspirin, antiplatelet, and anticoagulation timing: delay antiplatelet for 24 hours after thrombolysis and use dysphagia-safe enteral or rectal swallow route",
+        "Check oxygen saturation SpO2, blood glucose, temperature, and dysphagia swallow screen before oral medication, food, hydration, or therapy"
+      ],
+      "clinical_sources": [
+        {
+          "title": "NICE NG128: Stroke and transient ischaemic attack in over 16s",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/ng128/chapter/recommendations",
+          "supports": [
+            "last-known-normal based reperfusion eligibility",
+            "sudden focal neurologic deficit and NIHSS severity assessment",
+            "potentially treatable stroke within thrombolysis window from last known normal",
+            "atrial fibrillation with missed anticoagulation suggesting embolic risk",
+            "noncontrast head CT to exclude hemorrhage before treatment decision",
+            "establish last known normal and activate stroke pathway immediately",
+            "assess thrombolysis and thrombectomy eligibility in parallel",
+            "intracranial hemorrhage or early extensive ischemic change on imaging",
+            "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
+            "CTA vascular imaging for large vessel occlusion criteria and transfer needs for thrombectomy",
+            "stroke service or stroke unit with stroke physician oversight, thrombolysis protocol, post-thrombolysis complication monitoring, and follow-up imaging or re-imaging",
+            "aspirin, antiplatelet, and anticoagulation timing with dysphagia-safe enteral or rectal swallow route",
+            "oxygen saturation SpO2, blood glucose, temperature, and dysphagia swallow screen"
           ]
         }
       ]
@@ -1218,7 +1381,7 @@
       ],
       "contraindication_checks": [
         "Intracranial hemorrhage or early extensive ischemic change on imaging",
-        "Recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+        "Recent anticoagulant or DOAC/warfarin/heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
         "Use CTA vascular imaging and CT perfusion when needed for reperfusion planning",
         "Discuss thrombectomy with the stroke team if deficits persist",
         "Treat in a stroke unit with stroke physician oversight and follow-up imaging",
@@ -1239,7 +1402,7 @@
             "establish last known normal and activate stroke pathway immediately",
             "assess thrombolysis and thrombectomy eligibility in parallel",
             "intracranial hemorrhage or early extensive ischemic change on imaging",
-            "recent anticoagulant use, bleeding history, platelet count, glucose, and blood pressure thresholds",
+            "recent anticoagulant or DOAC warfarin heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
             "CTA vascular imaging and CT perfusion when needed for reperfusion planning",
             "thrombectomy discussion with the stroke team if deficits persist",
             "stroke unit with stroke physician oversight and follow-up imaging",
