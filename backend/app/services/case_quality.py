@@ -16468,6 +16468,25 @@ AORTIC_DISSECTION_IMAGING_ACTION_TERMS = (
     "식도초음파",
     "조영 ct",
 )
+AORTIC_DISSECTION_ACUTE_IMAGING_STRATEGY_ACTION_TERMS = (
+    "cta",
+    "ct angiography",
+    "computed tomography angiography",
+    "tee if unstable",
+    "tee when unstable",
+    "bedside tee",
+    "bedside tte",
+    "unstable patients",
+    "hemodynamically unstable",
+)
+AORTIC_DISSECTION_RISK_STRATIFICATION_ACTION_TERMS = (
+    "add-rs",
+    "aortic dissection detection risk score",
+    "d-dimer",
+    "high-risk feature",
+    "high risk feature",
+    "risk stratification",
+)
 AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS = (
     "anti-impulse",
     "beta blocker",
@@ -16593,6 +16612,17 @@ AORTIC_DISSECTION_DEFINITIVE_PATHWAY_SAFETY_TERMS = (
     "tevar",
     "urgent surgical",
     "응급 수술",
+)
+AORTIC_DISSECTION_SURGERY_PREP_SAFETY_TERMS = (
+    "blood products",
+    "crossmatch",
+    "cross-match",
+    "icu",
+    "intensive care",
+    "packed red blood",
+    "prbc",
+    "type and cross",
+    "type-and-cross",
 )
 
 
@@ -21289,9 +21319,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_aortic_dissection_time_critical_actions,
             issue=(
                 "aortic dissection time-critical actions must include definitive "
-                "aortic imaging, anti-impulse blood pressure or heart-rate control, "
-                "cardiothoracic, cardiac surgery, vascular surgery, transfer, "
-                "or aortic-team escalation, and specific type A open aortic "
+                "aortic imaging with CTA/CT angiography as first-line imaging or "
+                "TEE/TTE bedside imaging when unstable, ADD-RS, D-dimer, "
+                "high-risk-feature, or risk-stratification framing, anti-impulse "
+                "blood pressure or heart-rate control, cardiothoracic, cardiac "
+                "surgery, vascular surgery, transfer, or aortic-team escalation, "
+                "and specific type A open aortic "
                 "repair, ascending aortic repair, aortic replacement, intimal "
                 "tear excision, Bentall, operative repair, surgical repair, or "
                 "complicated type B TEVAR/endovascular repair pathway"
@@ -21319,7 +21352,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "continuous BP or arterial-line monitoring with access or urine-output "
                 "tracking, analgesia or morphine pain control, explicit heart-rate "
                 "or systolic BP targets, and type A surgical emergency or complicated "
-                "type B TEVAR, endovascular, or surgical pathway planning"
+                "type B TEVAR, endovascular, or surgical pathway planning, plus "
+                "ICU, type-and-cross, crossmatch, PRBC, or blood-product preparation"
             ),
         ),
     )
@@ -35282,6 +35316,14 @@ def _has_aortic_dissection_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in AORTIC_DISSECTION_IMAGING_ACTION_TERMS
     )
+    has_acute_imaging_strategy = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in AORTIC_DISSECTION_ACUTE_IMAGING_STRATEGY_ACTION_TERMS
+    )
+    has_risk_stratification = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in AORTIC_DISSECTION_RISK_STRATIFICATION_ACTION_TERMS
+    )
     has_anti_impulse = any(
         _contains_safety_term(normalized_actions, term)
         for term in AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS
@@ -35294,7 +35336,14 @@ def _has_aortic_dissection_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in AORTIC_DISSECTION_REPAIR_PATHWAY_ACTION_TERMS
     )
-    return has_aortic_imaging and has_anti_impulse and has_surgical_team and has_repair_pathway
+    return (
+        has_aortic_imaging
+        and has_acute_imaging_strategy
+        and has_risk_stratification
+        and has_anti_impulse
+        and has_surgical_team
+        and has_repair_pathway
+    )
 
 
 def _has_aortic_dissection_treatment_safety_check(checks: list[Any]) -> bool:
@@ -35332,11 +35381,16 @@ def _has_aortic_dissection_monitoring_targets_safety_check(checks: list[Any]) ->
         _contains_safety_term(normalized_checks, term)
         for term in AORTIC_DISSECTION_DEFINITIVE_PATHWAY_SAFETY_TERMS
     )
+    has_surgery_prep = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in AORTIC_DISSECTION_SURGERY_PREP_SAFETY_TERMS
+    )
     return (
         has_monitoring_access
         and has_analgesia
         and has_anti_impulse_targets
         and has_definitive_pathway
+        and has_surgery_prep
     )
 
 

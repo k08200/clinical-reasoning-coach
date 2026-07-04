@@ -18255,6 +18255,27 @@ const AORTIC_DISSECTION_IMAGING_ACTION_TERMS = [
   "조영 ct",
 ];
 
+const AORTIC_DISSECTION_ACUTE_IMAGING_STRATEGY_ACTION_TERMS = [
+  "cta",
+  "ct angiography",
+  "computed tomography angiography",
+  "tee if unstable",
+  "tee when unstable",
+  "bedside tee",
+  "bedside tte",
+  "unstable patients",
+  "hemodynamically unstable",
+];
+
+const AORTIC_DISSECTION_RISK_STRATIFICATION_ACTION_TERMS = [
+  "add-rs",
+  "aortic dissection detection risk score",
+  "d-dimer",
+  "high-risk feature",
+  "high risk feature",
+  "risk stratification",
+];
+
 const AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS = [
   "anti-impulse",
   "beta blocker",
@@ -18389,6 +18410,18 @@ const AORTIC_DISSECTION_DEFINITIVE_PATHWAY_SAFETY_TERMS = [
   "tevar",
   "urgent surgical",
   "응급 수술",
+];
+
+const AORTIC_DISSECTION_SURGERY_PREP_SAFETY_TERMS = [
+  "blood products",
+  "crossmatch",
+  "cross-match",
+  "icu",
+  "intensive care",
+  "packed red blood",
+  "prbc",
+  "type and cross",
+  "type-and-cross",
 ];
 
 type SourceAnchoredSafetyField =
@@ -29791,6 +29824,12 @@ function hasAorticDissectionTimeCriticalActions(actions: string[]): boolean {
   const hasAorticImaging = AORTIC_DISSECTION_IMAGING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasAcuteImagingStrategy = AORTIC_DISSECTION_ACUTE_IMAGING_STRATEGY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRiskStratification = AORTIC_DISSECTION_RISK_STRATIFICATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
   const hasAntiImpulse = AORTIC_DISSECTION_ANTI_IMPULSE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -29800,7 +29839,14 @@ function hasAorticDissectionTimeCriticalActions(actions: string[]): boolean {
   const hasRepairPathway = AORTIC_DISSECTION_REPAIR_PATHWAY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasAorticImaging && hasAntiImpulse && hasSurgicalTeam && hasRepairPathway;
+  return (
+    hasAorticImaging &&
+    hasAcuteImagingStrategy &&
+    hasRiskStratification &&
+    hasAntiImpulse &&
+    hasSurgicalTeam &&
+    hasRepairPathway
+  );
 }
 
 function hasAorticDissectionTreatmentSafetyCheck(checks: string[]): boolean {
@@ -29831,8 +29877,15 @@ function hasAorticDissectionMonitoringTargetsSafetyCheck(checks: string[]): bool
   const hasDefinitivePathway = AORTIC_DISSECTION_DEFINITIVE_PATHWAY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasSurgeryPrep = AORTIC_DISSECTION_SURGERY_PREP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
-    hasMonitoringAccess && hasAnalgesia && hasAntiImpulseTargets && hasDefinitivePathway
+    hasMonitoringAccess &&
+    hasAnalgesia &&
+    hasAntiImpulseTargets &&
+    hasDefinitivePathway &&
+    hasSurgeryPrep
   );
 }
 
@@ -32338,7 +32391,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAorticDissectionTimeCriticalActions,
       issue:
-        "aortic dissection time-critical actions must include definitive aortic imaging, anti-impulse blood pressure or heart-rate control, cardiothoracic, cardiac surgery, vascular surgery, transfer, or aortic-team escalation, and specific type A open aortic repair, ascending aortic repair, aortic replacement, intimal tear excision, Bentall, operative repair, surgical repair, or complicated type B TEVAR/endovascular repair pathway",
+        "aortic dissection time-critical actions must include definitive aortic imaging with CTA/CT angiography as first-line imaging or TEE/TTE bedside imaging when unstable, ADD-RS, D-dimer, high-risk-feature, or risk-stratification framing, anti-impulse blood pressure or heart-rate control, cardiothoracic, cardiac surgery, vascular surgery, transfer, or aortic-team escalation, and specific type A open aortic repair, ascending aortic repair, aortic replacement, intimal tear excision, Bentall, operative repair, surgical repair, or complicated type B TEVAR/endovascular repair pathway",
     },
     {
       name: "aortic_dissection_treatment_safety",
@@ -32356,7 +32409,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAorticDissectionMonitoringTargetsSafetyCheck,
       issue:
-        "aortic dissection monitoring safety checks must include continuous BP or arterial-line monitoring with access or urine-output tracking, analgesia or morphine pain control, explicit heart-rate or systolic BP targets, and type A surgical emergency or complicated type B TEVAR, endovascular, or surgical pathway planning",
+        "aortic dissection monitoring safety checks must include continuous BP or arterial-line monitoring with access or urine-output tracking, analgesia or morphine pain control, explicit heart-rate or systolic BP targets, and type A surgical emergency or complicated type B TEVAR, endovascular, or surgical pathway planning, plus ICU, type-and-cross, crossmatch, PRBC, or blood-product preparation",
     },
   ];
 }

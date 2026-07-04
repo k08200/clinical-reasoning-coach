@@ -33322,7 +33322,7 @@ def test_quality_gate_requires_aortic_dissection_specific_repair_not_team_transf
         "Syncope with pulse deficit and asymmetric blood pressure",
     ]
     case["time_critical_actions"] = [
-        "Obtain urgent CT angiography of the aorta or TEE if unstable",
+        "Use ADD-RS or high-risk feature risk stratification and obtain urgent CT angiography CTA of the aorta, or bedside TEE/TTE if hemodynamically unstable",
         "Start anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
         "Consult cardiothoracic surgery and transfer immediately to an aortic team for suspected type A dissection",
     ]
@@ -33330,7 +33330,7 @@ def test_quality_gate_requires_aortic_dissection_specific_repair_not_team_transf
         "Avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
         "Use beta-blocker before vasodilator and monitor heart rate to prevent reflex tachycardia",
         "Assess pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture risk",
-        "Use continuous BP monitoring with arterial line access, central venous access if needed, telemetry, Foley, and urine output tracking",
+        "Use ICU-level continuous BP monitoring with arterial line access, central venous access if needed, telemetry, Foley, urine output tracking, type and cross, crossmatch, PRBC, and blood products ready",
         "Provide analgesia with morphine or opioid pain control to reduce sympathetic tone",
         "Target heart rate 60 and systolic blood pressure 100-120 mm Hg as long as end-organ perfusion is preserved",
         "Treat type A dissection as a surgical emergency and plan urgent surgical repair with the aortic team; consider complicated type B TEVAR or endovascular repair when malperfusion or rupture is present",
@@ -33344,13 +33344,13 @@ def test_quality_gate_requires_aortic_dissection_specific_repair_not_team_transf
                 "acute aortic syndrome diagnosis and aortic dissection risk stratification",
                 "abrupt tearing chest pain radiating to the back as a high-risk feature",
                 "syncope with pulse deficit and asymmetric blood pressure as severity markers",
-                "urgent CT angiography of the aorta or TEE if unstable",
+                "ADD-RS or high-risk feature risk stratification with urgent CT angiography CTA of the aorta, or bedside TEE/TTE if hemodynamically unstable",
                 "anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
                 "cardiothoracic surgery consultation and immediate transfer to an aortic team for suspected type A dissection",
                 "avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
                 "beta-blocker before vasodilator with heart rate monitoring to prevent reflex tachycardia",
                 "pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture complications",
-                "continuous BP monitoring with arterial line access, central venous access if needed, telemetry, Foley, and urine output tracking",
+                "ICU-level continuous BP monitoring with arterial line access, central venous access if needed, telemetry, Foley, urine output tracking, type and cross, crossmatch, PRBC, and blood products ready",
                 "analgesia with morphine or opioid pain control to reduce sympathetic tone",
                 "heart rate 60 and systolic blood pressure 100-120 mm Hg target as long as end-organ perfusion is preserved",
                 "type A dissection as a surgical emergency with urgent surgical repair and complicated type B TEVAR or endovascular repair for malperfusion or rupture",
@@ -33365,6 +33365,68 @@ def test_quality_gate_requires_aortic_dissection_specific_repair_not_team_transf
         "aortic dissection time-critical actions must include definitive aortic imaging" in issue
         for issue in report.critical_issues
     )
+
+
+def test_quality_gate_requires_aortic_dissection_acute_cta_or_unstable_bedside_imaging_strategy():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute type A aortic dissection"
+    case["chief_complaint"] = "Tearing chest and back pain"
+    case["history_of_present_illness"] = (
+        "Patient with abrupt maximal chest pain radiating to the back, syncope, "
+        "and asymmetric arm blood pressures."
+    )
+    case["key_teaching_points"] = [
+        "Acute aortic syndrome requires rapid definitive aortic imaging",
+        "Anti-impulse therapy reduces aortic shear while the team prepares definitive care",
+        "Type A involvement requires immediate surgical escalation and emergent aortic repair",
+    ]
+    case["clinical_red_flags"] = [
+        "Abrupt tearing chest pain radiating to the back",
+        "Syncope with pulse deficit and asymmetric blood pressure",
+    ]
+    case["time_critical_actions"] = [
+        "Use ADD-RS and D-dimer risk stratification, then order MRA of the aorta when available",
+        "Start anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
+        "Consult cardiothoracic or vascular surgery and transfer to an aortic team for suspected type A dissection",
+        "Plan emergent open aortic repair, ascending aortic repair, aortic replacement, or Bentall operative repair pathway for type A dissection",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+        "Use beta-blocker before vasodilator and monitor heart rate to prevent reflex tachycardia",
+        "Assess pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture risk",
+        "Use ICU-level continuous BP monitoring with arterial line access, central venous access if needed, telemetry, Foley, urine output tracking, type and cross, crossmatch, PRBC, and blood products ready",
+        "Provide analgesia with morphine or opioid pain control to reduce sympathetic tone",
+        "Target heart rate 60 and systolic blood pressure 100-120 mm Hg as long as end-organ perfusion is preserved",
+        "Treat type A dissection as a surgical emergency and plan urgent surgical repair with the aortic team; consider complicated type B TEVAR or endovascular repair when malperfusion or rupture is present",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Aortic Dissection",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK441963/",
+            "supports": [
+                "acute aortic syndrome diagnosis and aortic dissection risk stratification",
+                "abrupt tearing chest pain radiating to the back as a high-risk feature",
+                "syncope with pulse deficit and asymmetric blood pressure as severity markers",
+                "ADD-RS and D-dimer risk stratification with MRA of the aorta when available",
+                "anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
+                "cardiothoracic or vascular surgery consultation and transfer to an aortic team for suspected type A dissection",
+                "emergent open aortic repair, ascending aortic repair, aortic replacement, or Bentall operative repair pathway for type A dissection",
+                "avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
+                "beta-blocker before vasodilator with heart rate monitoring to prevent reflex tachycardia",
+                "pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture complications",
+                "ICU-level continuous BP monitoring with arterial line access, central venous access if needed, telemetry, Foley, urine output tracking, type and cross, crossmatch, PRBC, and blood products ready",
+                "analgesia with morphine or opioid pain control to reduce sympathetic tone",
+                "heart rate 60 and systolic blood pressure 100-120 mm Hg target as long as end-organ perfusion is preserved",
+                "type A dissection as a surgical emergency with urgent surgical repair and complicated type B TEVAR or endovascular repair for malperfusion or rupture",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("CTA/CT angiography" in issue for issue in report.critical_issues)
 
 
 def test_quality_gate_requires_aortic_dissection_antithrombotic_impulse_and_complication_safety():
@@ -33385,7 +33447,7 @@ def test_quality_gate_requires_aortic_dissection_antithrombotic_impulse_and_comp
         "Syncope with pulse deficit and asymmetric blood pressure",
     ]
     case["time_critical_actions"] = [
-        "Obtain urgent CT angiography of the aorta or TEE if unstable",
+        "Use ADD-RS or high-risk feature risk stratification and obtain urgent CT angiography CTA of the aorta, or bedside TEE/TTE if hemodynamically unstable",
         "Start anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
         "Consult cardiothoracic or vascular surgery and transfer to an aortic team for suspected type A dissection",
         "Plan emergent open aortic repair, ascending aortic repair, aortic replacement, or Bentall operative repair pathway for type A dissection",
@@ -33403,7 +33465,7 @@ def test_quality_gate_requires_aortic_dissection_antithrombotic_impulse_and_comp
                 "acute aortic syndrome diagnosis and aortic dissection risk stratification",
                 "abrupt tearing chest pain radiating to the back as a high-risk feature",
                 "syncope with pulse deficit and asymmetric blood pressure as severity markers",
-                "urgent CT angiography of the aorta or TEE if unstable",
+                "ADD-RS or high-risk feature risk stratification with urgent CT angiography CTA of the aorta, or bedside TEE/TTE if hemodynamically unstable",
                 "anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
                 "cardiothoracic or vascular surgery consultation and transfer to an aortic team for suspected type A dissection",
                 "emergent open aortic repair, ascending aortic repair, aortic replacement, or Bentall operative repair pathway for type A dissection",
@@ -33440,7 +33502,7 @@ def test_quality_gate_requires_aortic_dissection_monitoring_targets_and_definiti
         "Syncope with pulse deficit and asymmetric blood pressure",
     ]
     case["time_critical_actions"] = [
-        "Obtain urgent CT angiography of the aorta or TEE if unstable",
+        "Use ADD-RS or high-risk feature risk stratification and obtain urgent CT angiography CTA of the aorta, or bedside TEE/TTE if hemodynamically unstable",
         "Start anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
         "Consult cardiothoracic or vascular surgery and transfer to an aortic team for suspected type A dissection",
         "Plan emergent open aortic repair, ascending aortic repair, aortic replacement, or Bentall operative repair pathway for type A dissection",
@@ -33459,7 +33521,7 @@ def test_quality_gate_requires_aortic_dissection_monitoring_targets_and_definiti
                 "acute aortic syndrome diagnosis and aortic dissection risk stratification",
                 "abrupt tearing chest pain radiating to the back as a high-risk feature",
                 "syncope with pulse deficit and asymmetric blood pressure as severity markers",
-                "urgent CT angiography of the aorta or TEE if unstable",
+                "ADD-RS or high-risk feature risk stratification with urgent CT angiography CTA of the aorta, or bedside TEE/TTE if hemodynamically unstable",
                 "anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
                 "cardiothoracic or vascular surgery consultation and transfer to an aortic team for suspected type A dissection",
                 "emergent open aortic repair, ascending aortic repair, aortic replacement, or Bentall operative repair pathway for type A dissection",
@@ -33496,7 +33558,7 @@ def test_quality_gate_requires_aortic_dissection_definitive_pathway_not_type_lab
         "neuro": "Transient focal neurologic deficit",
     }
     case["time_critical_actions"] = [
-        "Obtain CT angiography CTA of the aorta or TEE if unstable",
+        "Use ADD-RS or high-risk feature risk stratification and obtain CT angiography CTA of the aorta, or bedside TEE/TTE if hemodynamically unstable",
         "Start anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
         "Consult cardiothoracic or vascular surgery and transfer to an aortic team",
         "Plan emergent open aortic repair, ascending aortic repair, aortic replacement, or Bentall operative repair pathway",
@@ -33505,7 +33567,7 @@ def test_quality_gate_requires_aortic_dissection_definitive_pathway_not_type_lab
         "Avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
         "Give beta blocker before vasodilator to avoid reflex tachycardia",
         "Screen for aortic regurgitation, malperfusion, pulse deficit, neurologic deficit, rupture, and tamponade",
-        "Place arterial line monitoring, telemetry, Foley, and track continuous BP and urine output",
+        "Place ICU arterial line monitoring, telemetry, Foley, track continuous BP and urine output, and prepare type and cross, crossmatch, PRBC, and blood products",
         "Provide opioid analgesia and pain control to reduce sympathetic tone",
         "Target heart rate 60 and SBP 100-120 with anti-impulse therapy",
         "Document Stanford type A dissection classification and aortic-team discussion",
@@ -33517,13 +33579,13 @@ def test_quality_gate_requires_aortic_dissection_definitive_pathway_not_type_lab
             "url": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000001106",
             "supports": [
                 "acute aortic syndrome diagnosis and aortic dissection risk stratification",
-                "definitive aortic imaging with CT angiography CTA or TEE when unstable",
+                "ADD-RS or high-risk feature risk stratification with definitive aortic imaging using CT angiography CTA first-line or bedside TEE/TTE when unstable",
                 "anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
                 "cardiothoracic or vascular surgery consultation and transfer to an aortic team",
                 "avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
                 "beta blocker before vasodilator to avoid reflex tachycardia",
                 "aortic regurgitation, malperfusion, pulse deficit, neurologic deficit, rupture, and tamponade complication screening",
-                "arterial line monitoring, telemetry, Foley, continuous BP, and urine output",
+                "ICU arterial line monitoring, telemetry, Foley, continuous BP, urine output, type and cross, crossmatch, PRBC, and blood products",
                 "opioid analgesia and pain control to reduce sympathetic tone",
                 "heart rate 60 and SBP 100-120 anti-impulse targets",
                 "Stanford type A dissection classification and aortic-team discussion",
@@ -33559,7 +33621,7 @@ def test_quality_gate_allows_aortic_dissection_with_required_monitoring_targets_
         "Syncope with pulse deficit and asymmetric blood pressure",
     ]
     case["time_critical_actions"] = [
-        "Obtain urgent CT angiography of the aorta or TEE if unstable",
+        "Use ADD-RS or high-risk feature risk stratification and obtain urgent CT angiography CTA of the aorta, or bedside TEE/TTE if hemodynamically unstable",
         "Start anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
         "Consult cardiothoracic or vascular surgery and transfer to an aortic team for suspected type A dissection",
         "Plan emergent open aortic repair, ascending aortic repair, aortic replacement, or Bentall operative repair pathway for type A dissection",
@@ -33568,7 +33630,7 @@ def test_quality_gate_allows_aortic_dissection_with_required_monitoring_targets_
         "Avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
         "Use beta-blocker before vasodilator and monitor heart rate to prevent reflex tachycardia",
         "Assess pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture risk",
-        "Use continuous BP monitoring with arterial line access, central venous access if needed, telemetry, Foley, and urine output tracking",
+        "Use ICU-level continuous BP monitoring with arterial line access, central venous access if needed, telemetry, Foley, urine output tracking, type and cross, crossmatch, PRBC, and blood products ready",
         "Provide analgesia with morphine or opioid pain control to reduce sympathetic tone",
         "Target heart rate 60 and systolic blood pressure 100-120 mm Hg as long as end-organ perfusion is preserved",
         "Treat type A dissection as a surgical emergency and plan urgent surgical repair with the aortic team; consider complicated type B TEVAR or endovascular repair when malperfusion or rupture is present",
@@ -33582,14 +33644,14 @@ def test_quality_gate_allows_aortic_dissection_with_required_monitoring_targets_
                 "acute aortic syndrome diagnosis and aortic dissection risk stratification",
                 "abrupt tearing chest pain radiating to the back as a high-risk feature",
                 "syncope with pulse deficit and asymmetric blood pressure as severity markers",
-                "urgent CT angiography of the aorta or TEE if unstable",
+                "ADD-RS or high-risk feature risk stratification with urgent CT angiography CTA of the aorta, or bedside TEE/TTE if hemodynamically unstable",
                 "anti-impulse therapy with IV esmolol for heart rate and blood pressure control plus pain control",
                 "cardiothoracic or vascular surgery consultation and transfer to an aortic team for suspected type A dissection",
                 "emergent open aortic repair, ascending aortic repair, aortic replacement, or Bentall operative repair pathway for type A dissection",
                 "avoid anticoagulation, heparin, antiplatelet escalation, and thrombolysis until aortic dissection management is established",
                 "beta-blocker before vasodilator with heart rate monitoring to prevent reflex tachycardia",
                 "pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture complications",
-                "continuous BP monitoring with arterial line access, central venous access if needed, telemetry, Foley, and urine output tracking",
+                "ICU-level continuous BP monitoring with arterial line access, central venous access if needed, telemetry, Foley, urine output tracking, type and cross, crossmatch, PRBC, and blood products ready",
                 "analgesia with morphine or opioid pain control to reduce sympathetic tone",
                 "heart rate 60 and systolic blood pressure 100-120 mm Hg target as long as end-organ perfusion is preserved",
                 "type A dissection as a surgical emergency with urgent surgical repair and complicated type B TEVAR or endovascular repair for malperfusion or rupture",
