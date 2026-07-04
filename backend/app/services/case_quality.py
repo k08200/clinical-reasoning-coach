@@ -326,16 +326,16 @@ PREGNANCY_SAFETY_TERMS = (
     "임신",
 )
 PEDIATRIC_WEIGHT_SAFETY_TERMS = (
-    "weight",
     "weight-based",
     "weight based",
-    "kg",
-    "dose",
-    "dosing",
+    "weight-adjusted",
+    "weight adjusted",
+    "kg-based",
+    "kg based",
     "mg/kg",
     "ml/kg",
     "units/kg",
-    "체중",
+    "체중 기반",
 )
 RENAL_RISK_TRIGGER_TERMS = (
     "aminoglycoside",
@@ -16290,6 +16290,14 @@ ACS_ECG_ACTION_TERMS = (
     "within 10 minutes",
     "심전도",
 )
+ACS_STEMI_ACTIVATION_ACTION_TERMS = (
+    "activate local acs",
+    "activate reperfusion",
+    "cath lab",
+    "coronary angiography",
+    "stemi criteria",
+    "stemi pathway",
+)
 ACS_REPERFUSION_ACTION_TERMS = (
     "cath",
     "cath lab",
@@ -16303,14 +16311,35 @@ ACS_REPERFUSION_ACTION_TERMS = (
     "thrombolysis",
     "재관류",
 )
-ACS_ANTITHROMBOTIC_ACTION_TERMS = (
-    "anticoagulation",
-    "antiplatelet",
-    "antithrombotic",
+ACS_REPERFUSION_TIMING_ACTION_TERMS = (
+    "120 minutes",
+    "12 hours",
+    "90 minutes",
+    "door-to-balloon",
+    "door to balloon",
+    "door-to-needle",
+    "primary pci",
+)
+ACS_ASPIRIN_ACTION_TERMS = (
+    "300 mg aspirin",
     "aspirin",
+    "아스피린",
+)
+ACS_DAPT_ACTION_TERMS = (
+    "clopidogrel",
+    "dual antiplatelet",
+    "dapt",
+    "prasugrel",
+    "ticagrelor",
+)
+ACS_ANTICOAGULATION_ACTION_TERMS = (
+    "anticoagulation",
+    "antithrombin",
+    "fondaparinux",
     "heparin",
+    "unfractionated heparin",
+    "ufh",
     "항응고",
-    "항혈소판",
 )
 ACS_DISSECTION_SAFETY_TERMS = (
     "aortic dissection",
@@ -16326,6 +16355,19 @@ ACS_BLEEDING_SAFETY_TERMS = (
     "출혈",
     "수술",
 )
+ACS_ASPIRIN_ALLERGY_SAFETY_TERMS = (
+    "aspirin allergy",
+    "aspirin hypersensitivity",
+    "severe allergy",
+)
+ACS_ANTITHROMBIN_DOSING_SAFETY_TERMS = (
+    "age",
+    "bleeding risk",
+    "clotting function",
+    "dose adjustment",
+    "low body weight",
+    "renal impairment",
+)
 ACS_HEMODYNAMIC_SAFETY_TERMS = (
     "cardiogenic shock",
     "hemodynamic",
@@ -16337,6 +16379,16 @@ ACS_HEMODYNAMIC_SAFETY_TERMS = (
     "혈역학",
     "저혈압",
     "폐부종",
+)
+ACS_SERIAL_TROPONIN_RISK_SAFETY_TERMS = (
+    "cardiac biomarker",
+    "creatinine",
+    "glucose",
+    "grace",
+    "haemoglobin",
+    "hemoglobin",
+    "serial troponin",
+    "troponin",
 )
 ACS_NITRATE_SAFETY_TERMS = (
     "inferior infarct",
@@ -16366,12 +16418,33 @@ ACS_BETA_BLOCKER_SAFETY_TERMS = (
     "shock",
 )
 ACS_REPERFUSION_TIMING_SAFETY_TERMS = (
+    "120 minutes",
+    "12 hours",
+    "60 to 90 minutes",
+    "60-90 minutes",
     "door to balloon",
     "door-to-balloon",
     "door-to-needle",
     "fibrinolysis contraindication",
     "pci 90",
     "transfer 120",
+)
+ACS_FIBRINOLYSIS_RESCUE_SAFETY_TERMS = (
+    "antithrombin at the same time",
+    "failed reperfusion",
+    "fibrinolysis contraindication",
+    "post-fibrinolysis ecg",
+    "rescue pci",
+    "residual st",
+    "do not repeat fibrinolysis",
+)
+ACS_DAPT_CHOICE_SAFETY_TERMS = (
+    "clopidogrel",
+    "dual antiplatelet",
+    "high bleeding risk",
+    "oral anticoagulant",
+    "prasugrel",
+    "ticagrelor",
 )
 AORTIC_DISSECTION_CONTEXT_TERMS = (
     "acute aortic syndrome",
@@ -21165,8 +21238,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="time_critical_actions",
             validator=_has_acs_time_critical_actions,
             issue=(
-                "ACS time-critical actions must include ECG within 10 minutes, "
-                "reperfusion pathway, and antithrombotic planning"
+                "ACS time-critical actions must include 12-lead ECG within "
+                "10 minutes, STEMI/ACS pathway or cath-lab activation, explicit "
+                "primary PCI/coronary angiography or fibrinolysis reperfusion "
+                "planning with 90-minute/120-minute/12-hour or door-to-needle "
+                "timing, 300 mg aspirin or aspirin loading, dual antiplatelet "
+                "therapy planning, and UFH/heparin/fondaparinux/antithrombin "
+                "anticoagulation planning"
             ),
         ),
         DomainSafetyGate(
@@ -21176,8 +21254,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acs_contraindication_safety_check,
             issue=(
                 "ACS safety checks must include aortic dissection exclusion, "
-                "bleeding or recent-surgery risk, and hemodynamic or heart-failure "
-                "escalation"
+                "bleeding or recent-surgery risk, aspirin allergy or "
+                "hypersensitivity, anticoagulant/antithrombin bleeding-risk, "
+                "renal-impairment, low-body-weight, age, dose-adjustment, or "
+                "clotting-function monitoring, serial troponin/cardiac biomarker "
+                "and GRACE/NSTEMI risk assessment with creatinine, glucose, and "
+                "haemoglobin, and hemodynamic, cardiogenic-shock, or "
+                "heart-failure escalation"
             ),
         ),
         DomainSafetyGate(
@@ -21189,8 +21272,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "ACS medication and reperfusion safety checks must include "
                 "nitroglycerin or nitrate hypotension, right-ventricular/inferior "
                 "MI, or PDE5-inhibitor review, oxygen use tied to hypoxia or "
-                "saturation, beta-blocker contraindication review, and PCI or "
-                "fibrinolysis timing or contraindication planning"
+                "saturation and avoiding routine oxygen, beta-blocker "
+                "contraindication review for acute heart failure, shock, "
+                "bradycardia, AV block, or bronchospasm, PCI door-to-balloon, "
+                "transfer 120-minute, door-to-needle, 12-hour presentation, or "
+                "fibrinolysis contraindication timing review, antithrombin with "
+                "fibrinolysis, post-fibrinolysis ECG 60-90 minutes, rescue PCI "
+                "for failed reperfusion, no repeat fibrinolysis, and DAPT choice "
+                "by bleeding risk or oral anticoagulant status"
             ),
         ),
         DomainSafetyGate(
@@ -35057,15 +35146,39 @@ def _has_acs_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in ACS_ECG_ACTION_TERMS
     )
+    has_stemi_activation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACS_STEMI_ACTIVATION_ACTION_TERMS
+    )
     has_reperfusion = any(
         _contains_safety_term(normalized_actions, term)
         for term in ACS_REPERFUSION_ACTION_TERMS
     )
-    has_antithrombotic_planning = any(
+    has_reperfusion_timing = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACS_ANTITHROMBOTIC_ACTION_TERMS
+        for term in ACS_REPERFUSION_TIMING_ACTION_TERMS
     )
-    return has_ecg and has_reperfusion and has_antithrombotic_planning
+    has_aspirin = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACS_ASPIRIN_ACTION_TERMS
+    )
+    has_dapt = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACS_DAPT_ACTION_TERMS
+    )
+    has_anticoagulation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACS_ANTICOAGULATION_ACTION_TERMS
+    )
+    return (
+        has_ecg
+        and has_stemi_activation
+        and has_reperfusion
+        and has_reperfusion_timing
+        and has_aspirin
+        and has_dapt
+        and has_anticoagulation
+    )
 
 
 def _has_acs_contraindication_safety_check(checks: list[Any]) -> bool:
@@ -35078,11 +35191,30 @@ def _has_acs_contraindication_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in ACS_BLEEDING_SAFETY_TERMS
     )
+    has_aspirin_allergy = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_ASPIRIN_ALLERGY_SAFETY_TERMS
+    )
+    has_antithrombin_dosing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_ANTITHROMBIN_DOSING_SAFETY_TERMS
+    )
+    has_serial_troponin_risk = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_SERIAL_TROPONIN_RISK_SAFETY_TERMS
+    )
     has_hemodynamic_escalation = any(
         _contains_safety_term(normalized_checks, term)
         for term in ACS_HEMODYNAMIC_SAFETY_TERMS
     )
-    return has_dissection_exclusion and has_bleeding_safety and has_hemodynamic_escalation
+    return (
+        has_dissection_exclusion
+        and has_bleeding_safety
+        and has_aspirin_allergy
+        and has_antithrombin_dosing_safety
+        and has_serial_troponin_risk
+        and has_hemodynamic_escalation
+    )
 
 
 def _has_acs_medication_reperfusion_safety_check(checks: list[Any]) -> bool:
@@ -35103,11 +35235,21 @@ def _has_acs_medication_reperfusion_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in ACS_REPERFUSION_TIMING_SAFETY_TERMS
     )
+    has_fibrinolysis_rescue_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_FIBRINOLYSIS_RESCUE_SAFETY_TERMS
+    )
+    has_dapt_choice_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACS_DAPT_CHOICE_SAFETY_TERMS
+    )
     return (
         has_nitrate_safety
         and has_oxygen_safety
         and has_beta_blocker_safety
         and has_reperfusion_timing_safety
+        and has_fibrinolysis_rescue_safety
+        and has_dapt_choice_safety
     )
 
 

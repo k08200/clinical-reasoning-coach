@@ -326,16 +326,16 @@ const PREGNANCY_SAFETY_TERMS = [
 ];
 
 const PEDIATRIC_WEIGHT_SAFETY_TERMS = [
-  "weight",
   "weight-based",
   "weight based",
-  "kg",
-  "dose",
-  "dosing",
+  "weight-adjusted",
+  "weight adjusted",
+  "kg-based",
+  "kg based",
   "mg/kg",
   "ml/kg",
   "units/kg",
-  "체중",
+  "체중 기반",
 ];
 
 const RENAL_RISK_TRIGGER_TERMS = [
@@ -18057,6 +18057,15 @@ const ACS_ECG_ACTION_TERMS = [
   "심전도",
 ];
 
+const ACS_STEMI_ACTIVATION_ACTION_TERMS = [
+  "activate local acs",
+  "activate reperfusion",
+  "cath lab",
+  "coronary angiography",
+  "stemi criteria",
+  "stemi pathway",
+];
+
 const ACS_REPERFUSION_ACTION_TERMS = [
   "cath",
   "cath lab",
@@ -18071,14 +18080,38 @@ const ACS_REPERFUSION_ACTION_TERMS = [
   "재관류",
 ];
 
-const ACS_ANTITHROMBOTIC_ACTION_TERMS = [
-  "anticoagulation",
-  "antiplatelet",
-  "antithrombotic",
+const ACS_REPERFUSION_TIMING_ACTION_TERMS = [
+  "120 minutes",
+  "12 hours",
+  "90 minutes",
+  "door-to-balloon",
+  "door to balloon",
+  "door-to-needle",
+  "primary pci",
+];
+
+const ACS_ASPIRIN_ACTION_TERMS = [
+  "300 mg aspirin",
   "aspirin",
+  "아스피린",
+];
+
+const ACS_DAPT_ACTION_TERMS = [
+  "clopidogrel",
+  "dual antiplatelet",
+  "dapt",
+  "prasugrel",
+  "ticagrelor",
+];
+
+const ACS_ANTICOAGULATION_ACTION_TERMS = [
+  "anticoagulation",
+  "antithrombin",
+  "fondaparinux",
   "heparin",
+  "unfractionated heparin",
+  "ufh",
   "항응고",
-  "항혈소판",
 ];
 
 const ACS_DISSECTION_SAFETY_TERMS = [
@@ -18097,6 +18130,21 @@ const ACS_BLEEDING_SAFETY_TERMS = [
   "수술",
 ];
 
+const ACS_ASPIRIN_ALLERGY_SAFETY_TERMS = [
+  "aspirin allergy",
+  "aspirin hypersensitivity",
+  "severe allergy",
+];
+
+const ACS_ANTITHROMBIN_DOSING_SAFETY_TERMS = [
+  "age",
+  "bleeding risk",
+  "clotting function",
+  "dose adjustment",
+  "low body weight",
+  "renal impairment",
+];
+
 const ACS_HEMODYNAMIC_SAFETY_TERMS = [
   "cardiogenic shock",
   "hemodynamic",
@@ -18108,6 +18156,17 @@ const ACS_HEMODYNAMIC_SAFETY_TERMS = [
   "혈역학",
   "저혈압",
   "폐부종",
+];
+
+const ACS_SERIAL_TROPONIN_RISK_SAFETY_TERMS = [
+  "cardiac biomarker",
+  "creatinine",
+  "glucose",
+  "grace",
+  "haemoglobin",
+  "hemoglobin",
+  "serial troponin",
+  "troponin",
 ];
 
 const ACS_NITRATE_SAFETY_TERMS = [
@@ -18141,12 +18200,35 @@ const ACS_BETA_BLOCKER_SAFETY_TERMS = [
 ];
 
 const ACS_REPERFUSION_TIMING_SAFETY_TERMS = [
+  "120 minutes",
+  "12 hours",
+  "60 to 90 minutes",
+  "60-90 minutes",
   "door to balloon",
   "door-to-balloon",
   "door-to-needle",
   "fibrinolysis contraindication",
   "pci 90",
   "transfer 120",
+];
+
+const ACS_FIBRINOLYSIS_RESCUE_SAFETY_TERMS = [
+  "antithrombin at the same time",
+  "failed reperfusion",
+  "fibrinolysis contraindication",
+  "post-fibrinolysis ecg",
+  "rescue pci",
+  "residual st",
+  "do not repeat fibrinolysis",
+];
+
+const ACS_DAPT_CHOICE_SAFETY_TERMS = [
+  "clopidogrel",
+  "dual antiplatelet",
+  "high bleeding risk",
+  "oral anticoagulant",
+  "prasugrel",
+  "ticagrelor",
 ];
 
 const AORTIC_DISSECTION_CONTEXT_TERMS = [
@@ -29600,13 +29682,33 @@ function hasAcsTimeCriticalActions(actions: string[]): boolean {
   const hasEcg = ACS_ECG_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasStemiActivation = ACS_STEMI_ACTIVATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasReperfusion = ACS_REPERFUSION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntithromboticPlanning = ACS_ANTITHROMBOTIC_ACTION_TERMS.some((term) =>
+  const hasReperfusionTiming = ACS_REPERFUSION_TIMING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasEcg && hasReperfusion && hasAntithromboticPlanning;
+  const hasAspirin = ACS_ASPIRIN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDapt = ACS_DAPT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAnticoagulation = ACS_ANTICOAGULATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasEcg &&
+    hasStemiActivation &&
+    hasReperfusion &&
+    hasReperfusionTiming &&
+    hasAspirin &&
+    hasDapt &&
+    hasAnticoagulation
+  );
 }
 
 function hasAcsContraindicationSafetyCheck(checks: string[]): boolean {
@@ -29617,10 +29719,26 @@ function hasAcsContraindicationSafetyCheck(checks: string[]): boolean {
   const hasBleedingSafety = ACS_BLEEDING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasAspirinAllergy = ACS_ASPIRIN_ALLERGY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntithrombinDosingSafety = ACS_ANTITHROMBIN_DOSING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSerialTroponinRisk = ACS_SERIAL_TROPONIN_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasHemodynamicEscalation = ACS_HEMODYNAMIC_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasDissectionExclusion && hasBleedingSafety && hasHemodynamicEscalation;
+  return (
+    hasDissectionExclusion &&
+    hasBleedingSafety &&
+    hasAspirinAllergy &&
+    hasAntithrombinDosingSafety &&
+    hasSerialTroponinRisk &&
+    hasHemodynamicEscalation
+  );
 }
 
 function hasAcsMedicationReperfusionSafetyCheck(checks: string[]): boolean {
@@ -29637,7 +29755,20 @@ function hasAcsMedicationReperfusionSafetyCheck(checks: string[]): boolean {
   const hasReperfusionTimingSafety = ACS_REPERFUSION_TIMING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasNitrateSafety && hasOxygenSafety && hasBetaBlockerSafety && hasReperfusionTimingSafety;
+  const hasFibrinolysisRescueSafety = ACS_FIBRINOLYSIS_RESCUE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDaptChoiceSafety = ACS_DAPT_CHOICE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasNitrateSafety &&
+    hasOxygenSafety &&
+    hasBetaBlockerSafety &&
+    hasReperfusionTimingSafety &&
+    hasFibrinolysisRescueSafety &&
+    hasDaptChoiceSafety
+  );
 }
 
 function requiresAorticDissectionSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -32180,7 +32311,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcsTimeCriticalActions,
       issue:
-        "ACS time-critical actions must include ECG within 10 minutes, reperfusion pathway, and antithrombotic planning",
+        "ACS time-critical actions must include 12-lead ECG within 10 minutes, STEMI/ACS pathway or cath-lab activation, explicit primary PCI/coronary angiography or fibrinolysis reperfusion planning with 90-minute/120-minute/12-hour or door-to-needle timing, 300 mg aspirin or aspirin loading, dual antiplatelet therapy planning, and UFH/heparin/fondaparinux/antithrombin anticoagulation planning",
     },
     {
       name: "acs_contraindication_safety",
@@ -32189,7 +32320,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAcsContraindicationSafetyCheck,
       issue:
-        "ACS safety checks must include aortic dissection exclusion, bleeding or recent-surgery risk, and hemodynamic or heart-failure escalation",
+        "ACS safety checks must include aortic dissection exclusion, bleeding or recent-surgery risk, aspirin allergy or hypersensitivity, anticoagulant/antithrombin bleeding-risk, renal-impairment, low-body-weight, age, dose-adjustment, or clotting-function monitoring, serial troponin/cardiac biomarker and GRACE/NSTEMI risk assessment with creatinine, glucose, and haemoglobin, and hemodynamic, cardiogenic-shock, or heart-failure escalation",
     },
     {
       name: "acs_medication_reperfusion_safety",
@@ -32198,7 +32329,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAcsMedicationReperfusionSafetyCheck,
       issue:
-        "ACS medication and reperfusion safety checks must include nitroglycerin or nitrate hypotension, right-ventricular/inferior MI, or PDE5-inhibitor review, oxygen use tied to hypoxia or saturation, beta-blocker contraindication review, and PCI or fibrinolysis timing or contraindication planning",
+        "ACS medication and reperfusion safety checks must include nitroglycerin or nitrate hypotension, right-ventricular/inferior MI, or PDE5-inhibitor review, oxygen use tied to hypoxia or saturation and avoiding routine oxygen, beta-blocker contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm, PCI door-to-balloon, transfer 120-minute, door-to-needle, 12-hour presentation, or fibrinolysis contraindication timing review, antithrombin with fibrinolysis, post-fibrinolysis ECG 60-90 minutes, rescue PCI for failed reperfusion, no repeat fibrinolysis, and DAPT choice by bleeding risk or oral anticoagulant status",
     },
     {
       name: "aortic_dissection_time_critical_actions",

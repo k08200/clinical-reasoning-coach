@@ -11,18 +11,23 @@
           "supports": [
             "ACS diagnosis and risk stratification for acute chest pain",
             "life-threatening chest pain differential and severity markers",
-            "ECG within 10 minutes and reperfusion pathway activation",
+            "12-lead ECG within 10 minutes and reperfusion pathway activation",
+            "primary PCI or coronary angiography with 90 minute door-to-balloon, transfer 120 minute, 12 hour presentation, or door-to-needle fibrinolysis timing",
+            "300 mg aspirin loading, dual antiplatelet therapy, and UFH heparin antithrombin anticoagulation planning",
             "crushing substernal chest pain radiating to the arm with diaphoresis",
             "bibasilar crackles suggesting early heart failure",
             "tachycardia with multiple coronary risk factors",
             "aortic dissection features before anticoagulation or thrombolysis",
-            "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
-            "antiplatelet and anticoagulation only after checking ECG context and major contraindications",
+            "active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+            "anticoagulant and antithrombin bleeding risk, renal impairment, low body weight, age, dose adjustment, and clotting function monitoring before heparin or fondaparinux",
+            "serial troponin or cardiac biomarker review plus GRACE NSTEMI risk assessment using creatinine, glucose, and hemoglobin",
             "hemodynamic instability or pulmonary edema requiring escalation",
             "nitroglycerin or nitrate hypotension, right ventricular or inferior infarct, and PDE5 inhibitor safety review",
             "oxygen only for hypoxia or low SpO2 and avoid routine oxygen when oxygen saturation is adequate",
             "early rate-control medication contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
-            "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, and door-to-needle fibrinolysis contraindication planning"
+            "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation, and door-to-needle fibrinolysis contraindication planning",
+            "antithrombin at the same time as fibrinolysis, post-fibrinolysis ECG 60-90 minutes, rescue PCI for failed reperfusion, and do not repeat fibrinolysis",
+            "DAPT choice with prasugrel, ticagrelor, or clopidogrel based on bleeding risk or oral anticoagulant status"
           ]
         }
       ]
@@ -43,14 +48,23 @@
           "supports": [
             "ACS diagnosis and risk stratification for acute chest pain",
             "life-threatening chest pain differential and severity markers",
-            "ECG within 10 minutes and reperfusion pathway activation",
+            "12-lead ECG within 10 minutes and reperfusion pathway activation",
+            "primary PCI or coronary angiography with 90 minute door-to-balloon, transfer 120 minute, 12 hour presentation, or door-to-needle fibrinolysis timing",
+            "300 mg aspirin loading, dual antiplatelet therapy, and UFH heparin antithrombin anticoagulation planning",
             "crushing substernal chest pain radiating to the arm with diaphoresis",
             "bibasilar crackles suggesting early heart failure",
             "tachycardia with multiple coronary risk factors",
             "aortic dissection features before anticoagulation or thrombolysis",
-            "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
-            "antiplatelet and anticoagulation only after checking ECG context and major contraindications",
-            "hemodynamic instability or pulmonary edema requiring escalation"
+            "active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+            "anticoagulant and antithrombin bleeding risk, renal impairment, low body weight, age, dose adjustment, and clotting function monitoring before heparin or fondaparinux",
+            "serial troponin or cardiac biomarker review plus GRACE NSTEMI risk assessment using creatinine, glucose, and hemoglobin",
+            "hemodynamic instability or pulmonary edema requiring escalation",
+            "nitroglycerin or nitrate hypotension, right ventricular or inferior infarct, and PDE5 inhibitor safety review",
+            "oxygen only for hypoxia or low SpO2 and avoid routine oxygen when oxygen saturation is adequate",
+            "early rate-control medication contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+            "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation, and door-to-needle fibrinolysis contraindication planning",
+            "antithrombin at the same time as fibrinolysis, post-fibrinolysis ECG 60-90 minutes, rescue PCI for failed reperfusion, and do not repeat fibrinolysis",
+            "DAPT choice with prasugrel, ticagrelor, or clopidogrel based on bleeding risk or oral anticoagulant status"
           ]
         }
       ]
@@ -125,14 +139,23 @@
           "supports": [
             "ACS diagnosis and risk stratification for acute chest pain",
             "life-threatening chest pain differential and severity markers",
-            "ECG within 10 minutes and reperfusion pathway activation",
+            "12-lead ECG within 10 minutes and reperfusion pathway activation",
+            "primary PCI or coronary angiography with 90 minute door-to-balloon, transfer 120 minute, 12 hour presentation, or door-to-needle fibrinolysis timing",
+            "300 mg aspirin loading, dual antiplatelet therapy, and UFH heparin antithrombin anticoagulation planning",
             "crushing substernal chest pain radiating to the arm with diaphoresis",
             "bibasilar crackles suggesting early heart failure",
             "tachycardia with multiple coronary risk factors",
             "aortic dissection features before anticoagulation or thrombolysis",
-            "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
-            "antiplatelet and anticoagulation only after checking ECG context and major contraindications",
-            "hemodynamic instability or pulmonary edema requiring escalation"
+            "active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+            "anticoagulant and antithrombin bleeding risk, renal impairment, low body weight, age, dose adjustment, and clotting function monitoring before heparin or fondaparinux",
+            "serial troponin or cardiac biomarker review plus GRACE NSTEMI risk assessment using creatinine, glucose, and hemoglobin",
+            "hemodynamic instability or pulmonary edema requiring escalation",
+            "nitroglycerin or nitrate hypotension, right ventricular or inferior infarct, and PDE5 inhibitor safety review",
+            "oxygen only for hypoxia or low SpO2 and avoid routine oxygen when oxygen saturation is adequate",
+            "early rate-control medication contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+            "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation, and door-to-needle fibrinolysis contraindication planning",
+            "antithrombin at the same time as fibrinolysis, post-fibrinolysis ECG 60-90 minutes, rescue PCI for failed reperfusion, and do not repeat fibrinolysis",
+            "DAPT choice with prasugrel, ticagrelor, or clopidogrel based on bleeding risk or oral anticoagulant status"
           ]
         }
       ]
@@ -159,14 +182,23 @@
           "supports": [
             "ACS diagnosis and risk stratification for acute chest pain",
             "life-threatening chest pain differential and severity markers",
-            "ECG within 10 minutes and reperfusion pathway activation",
+            "12-lead ECG within 10 minutes and reperfusion pathway activation",
+            "primary PCI or coronary angiography with 90 minute door-to-balloon, transfer 120 minute, 12 hour presentation, or door-to-needle fibrinolysis timing",
+            "300 mg aspirin loading, dual antiplatelet therapy, and UFH heparin antithrombin anticoagulation planning",
             "crushing substernal chest pain radiating to the arm with diaphoresis",
             "bibasilar crackles suggesting early heart failure",
             "tachycardia with multiple coronary risk factors",
             "aortic dissection features before anticoagulation or thrombolysis",
-            "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
-            "antiplatelet and anticoagulation only after checking ECG context and major contraindications",
-            "hemodynamic instability or pulmonary edema requiring escalation"
+            "active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+            "anticoagulant and antithrombin bleeding risk, renal impairment, low body weight, age, dose adjustment, and clotting function monitoring before heparin or fondaparinux",
+            "serial troponin or cardiac biomarker review plus GRACE NSTEMI risk assessment using creatinine, glucose, and hemoglobin",
+            "hemodynamic instability or pulmonary edema requiring escalation",
+            "nitroglycerin or nitrate hypotension, right ventricular or inferior infarct, and PDE5 inhibitor safety review",
+            "oxygen only for hypoxia or low SpO2 and avoid routine oxygen when oxygen saturation is adequate",
+            "early rate-control medication contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+            "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation, and door-to-needle fibrinolysis contraindication planning",
+            "antithrombin at the same time as fibrinolysis, post-fibrinolysis ECG 60-90 minutes, rescue PCI for failed reperfusion, and do not repeat fibrinolysis",
+            "DAPT choice with prasugrel, ticagrelor, or clopidogrel based on bleeding risk or oral anticoagulant status"
           ]
         }
       ]
@@ -1983,7 +2015,7 @@
     "name": "acs_requires_ecg_reperfusion_and_antithrombotic_actions",
     "expected_passed": false,
     "expected_issue_substrings": [
-      "ACS time-critical actions must include ECG within 10 minutes"
+      "ACS time-critical actions must include 12-lead ECG within 10 minutes"
     ],
     "overrides": {
       "time_critical_actions": [
@@ -2017,7 +2049,7 @@
     "name": "acs_requires_explicit_reperfusion_not_stemi_label_only",
     "expected_passed": false,
     "expected_issue_substrings": [
-      "ACS time-critical actions must include ECG within 10 minutes"
+      "ACS time-critical actions must include 12-lead ECG within 10 minutes"
     ],
     "overrides": {
       "time_critical_actions": [
@@ -2042,6 +2074,38 @@
             "aortic dissection features before anticoagulation or thrombolysis",
             "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
             "hemodynamic instability or pulmonary edema requiring escalation"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "acs_requires_reperfusion_timing_aspirin_dapt_and_anticoagulation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "dual antiplatelet therapy planning"
+    ],
+    "overrides": {
+      "time_critical_actions": [
+        "Obtain 12-lead ECG within 10 minutes and repeat ECG if symptoms evolve",
+        "Activate local ACS/reperfusion pathway and cath lab when STEMI criteria are met",
+        "Plan PCI if STEMI is confirmed",
+        "Give aspirin and heparin after checking major contraindications"
+      ],
+      "clinical_sources": [
+        {
+          "title": "NICE NG185: Acute coronary syndromes",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/ng185/chapter/Recommendations",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "12-lead ECG within 10 minutes and repeat ECG if symptoms evolve",
+            "local ACS reperfusion pathway and cath lab activation when STEMI criteria are met",
+            "PCI if STEMI is confirmed",
+            "aspirin and heparin after checking major contraindications",
+            "aortic dissection features before anticoagulation or thrombolysis",
+            "active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy"
           ]
         }
       ]
@@ -2079,6 +2143,43 @@
     }
   },
   {
+    "name": "acs_requires_serial_troponin_grace_and_antithrombin_dosing_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "serial troponin/cardiac biomarker"
+    ],
+    "overrides": {
+      "contraindication_checks": [
+        "Aortic dissection features before anticoagulation or thrombolysis",
+        "Active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+        "Hemodynamic instability, cardiogenic shock, heart failure, or pulmonary edema requiring escalation",
+        "Nitroglycerin or nitrate only after checking hypotension, right ventricular or inferior infarct, and PDE5 inhibitor use",
+        "Use oxygen only for hypoxia or low SpO2; avoid routine oxygen when oxygen saturation is adequate",
+        "Early beta-blocker contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+        "Track door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation window, and door-to-needle fibrinolysis contraindication planning",
+        "If fibrinolysis is used, give antithrombin at the same time, repeat post-fibrinolysis ECG at 60-90 minutes, offer rescue PCI for failed reperfusion or residual ST elevation, and do not repeat fibrinolysis",
+        "Choose DAPT with prasugrel, ticagrelor, or clopidogrel according to high bleeding risk and oral anticoagulant status"
+      ],
+      "clinical_sources": [
+        {
+          "title": "NICE NG185: Acute coronary syndromes",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/ng185/chapter/Recommendations",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "aortic dissection features before anticoagulation or thrombolysis",
+            "active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+            "hemodynamic instability, cardiogenic shock, heart failure, or pulmonary edema requiring escalation",
+            "nitroglycerin or nitrate hypotension, right ventricular or inferior infarct, and PDE5 inhibitor safety review",
+            "oxygen only for hypoxia or low SpO2 and avoid routine oxygen when oxygen saturation is adequate",
+            "early beta-blocker contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "acs_requires_nitrate_oxygen_beta_blocker_and_reperfusion_safety",
     "expected_passed": false,
     "expected_issue_substrings": [
@@ -2106,6 +2207,43 @@
             "aortic dissection features before anticoagulation or thrombolysis",
             "active bleeding, severe allergy, or recent major surgery before antithrombotic therapy",
             "hemodynamic instability, shock, heart failure, or pulmonary edema requiring escalation"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "acs_requires_fibrinolysis_rescue_and_dapt_choice_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "post-fibrinolysis ECG 60-90 minutes"
+    ],
+    "overrides": {
+      "contraindication_checks": [
+        "Aortic dissection features before anticoagulation or thrombolysis",
+        "Active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+        "Anticoagulant and antithrombin bleeding risk, renal impairment, low body weight, age, dose adjustment, and clotting function monitoring before heparin or fondaparinux",
+        "Serial troponin or cardiac biomarker review plus GRACE NSTEMI risk assessment using creatinine, glucose, and hemoglobin",
+        "Hemodynamic instability, cardiogenic shock, heart failure, or pulmonary edema requiring escalation",
+        "Nitroglycerin or nitrate only after checking hypotension, right ventricular or inferior infarct, and PDE5 inhibitor use",
+        "Use oxygen only for hypoxia or low SpO2; avoid routine oxygen when oxygen saturation is adequate",
+        "Early beta-blocker contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+        "Track door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation window, and door-to-needle fibrinolysis contraindication planning"
+      ],
+      "clinical_sources": [
+        {
+          "title": "NICE NG185: Acute coronary syndromes",
+          "organization": "NICE",
+          "url": "https://www.nice.org.uk/guidance/ng185/chapter/Recommendations",
+          "supports": [
+            "ACS diagnosis and risk stratification for acute chest pain",
+            "life-threatening chest pain differential and severity markers",
+            "aortic dissection features before anticoagulation or thrombolysis",
+            "active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+            "antithrombin bleeding risk, renal impairment, low body weight, age, dose adjustment, and clotting function monitoring",
+            "serial troponin or cardiac biomarker review plus GRACE NSTEMI risk assessment using creatinine, glucose, and hemoglobin",
+            "hemodynamic instability, cardiogenic shock, heart failure, or pulmonary edema requiring escalation",
+            "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation window, and door-to-needle fibrinolysis contraindication planning"
           ]
         }
       ]

@@ -22567,39 +22567,47 @@ def test_quality_gate_allows_thrombolysis_with_bleeding_safety_check():
     case = copy.deepcopy(CASE_POOL[0])
     case["time_critical_actions"] = [
         "Obtain and interpret a 12-lead ECG within 10 minutes of presentation",
-        "Start thrombolysis pathway immediately when criteria are met",
-        "Activate reperfusion pathway for high-risk presentation",
-        "Give antiplatelet and anticoagulation only after checking major contraindications",
+        "Activate STEMI ACS reperfusion pathway and cath lab for high-risk presentation",
+        "Plan primary PCI or coronary angiography within the door-to-balloon 90 minute goal, transfer 120 minute limit, 12 hour presentation window, or door-to-needle fibrinolysis pathway if PCI is delayed",
+        "Give 300 mg aspirin loading plus dual antiplatelet therapy with ticagrelor, prasugrel, or clopidogrel and UFH heparin antithrombin anticoagulation after checking major contraindications",
     ]
     case["contraindication_checks"] = [
         "Pregnancy status before thrombolysis",
         "Renal function before contrast imaging",
-        "Active bleeding, recent surgery, anticoagulant use, platelet count, and blood pressure before thrombolysis",
+        "Active bleeding, recent surgery, aspirin allergy, aspirin hypersensitivity, anticoagulant use, platelet count, and blood pressure before thrombolysis",
+        "Anticoagulant and antithrombin bleeding risk, renal impairment, low body weight, age, dose adjustment, and clotting function monitoring before heparin or fondaparinux",
+        "Serial troponin or cardiac biomarker review plus GRACE NSTEMI risk assessment using creatinine, glucose, and hemoglobin",
         "Aortic dissection features before anticoagulation or thrombolysis",
         "Hemodynamic instability or pulmonary edema requiring escalation",
         "Nitroglycerin or nitrate only after checking hypotension, right ventricular or inferior infarct, and PDE5 inhibitor use",
         "Use oxygen only for hypoxia or low SpO2; avoid routine oxygen when oxygen saturation is adequate",
         "Early rate-control medication contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
-        "Track door-to-balloon PCI 90 minute goal, transfer 120 minute limit, and door-to-needle fibrinolysis contraindication planning",
+        "Track door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation, and door-to-needle fibrinolysis contraindication planning",
+        "Give antithrombin at the same time as fibrinolysis, repeat ECG 60-90 minutes after fibrinolysis, send for rescue PCI if reperfusion fails, and do not repeat fibrinolysis",
+        "Choose DAPT with prasugrel, ticagrelor, or clopidogrel based on bleeding risk or oral anticoagulant status",
     ]
     case["clinical_sources"][0]["supports"] = [
         "ACS diagnosis and risk stratification for acute chest pain",
         "life-threatening chest pain differential and severity markers",
-        "ECG within 10 minutes for acute chest pain",
-        "thrombolysis pathway activation and reperfusion timing for high-risk presentation",
-        "antiplatelet and anticoagulation after checking major contraindications",
+        "12-lead ECG within 10 minutes and reperfusion pathway activation",
+        "primary PCI or coronary angiography with 90 minute door-to-balloon, transfer 120 minute, 12 hour presentation, or door-to-needle fibrinolysis timing",
+        "300 mg aspirin loading, dual antiplatelet therapy, and UFH heparin antithrombin anticoagulation planning",
         "crushing substernal chest pain radiating to the arm with diaphoresis",
         "bibasilar crackles suggesting early heart failure",
         "tachycardia with multiple coronary risk factors",
         "pregnancy status before thrombolysis",
         "renal function before contrast imaging",
-        "active bleeding, recent surgery, anticoagulant use, platelet count, and blood pressure before thrombolysis",
+        "active bleeding, recent surgery, aspirin allergy, aspirin hypersensitivity, anticoagulant use, platelet count, and blood pressure before thrombolysis",
+        "anticoagulant and antithrombin bleeding risk, renal impairment, low body weight, age, dose adjustment, and clotting function monitoring before heparin or fondaparinux",
+        "serial troponin or cardiac biomarker review plus GRACE NSTEMI risk assessment using creatinine, glucose, and hemoglobin",
         "aortic dissection features before anticoagulation or thrombolysis",
         "hemodynamic instability or pulmonary edema requiring escalation",
         "nitroglycerin or nitrate hypotension, right ventricular or inferior infarct, and PDE5 inhibitor safety review",
         "oxygen only for hypoxia or low SpO2 and avoid routine oxygen when oxygen saturation is adequate",
         "early rate-control medication contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
-        "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, and door-to-needle fibrinolysis contraindication planning",
+        "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation, and door-to-needle fibrinolysis contraindication planning",
+        "antithrombin at the same time as fibrinolysis, post-fibrinolysis ECG 60-90 minutes, rescue PCI for failed reperfusion, and do not repeat fibrinolysis",
+        "DAPT choice with prasugrel, ticagrelor, or clopidogrel based on bleeding risk or oral anticoagulant status",
     ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
@@ -33063,7 +33071,7 @@ def test_quality_gate_requires_acs_ecg_reperfusion_and_antithrombotic_actions():
 
     assert not report.passed
     assert any(
-        "ACS time-critical actions must include ECG within 10 minutes" in issue
+        "ACS time-critical actions must include 12-lead ECG within 10 minutes" in issue
         for issue in report.critical_issues
     )
 
@@ -33093,7 +33101,35 @@ def test_quality_gate_requires_acs_explicit_reperfusion_not_stemi_label_only():
 
     assert not report.passed
     assert any(
-        "ACS time-critical actions must include ECG within 10 minutes" in issue
+        "ACS time-critical actions must include 12-lead ECG within 10 minutes" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acs_reperfusion_timing_aspirin_dapt_and_anticoagulation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["time_critical_actions"] = [
+        "Obtain 12-lead ECG within 10 minutes and repeat ECG if symptoms evolve",
+        "Activate local ACS/reperfusion pathway and cath lab when STEMI criteria are met",
+        "Plan PCI if STEMI is confirmed",
+        "Give aspirin and heparin after checking major contraindications",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "ACS diagnosis and risk stratification for acute chest pain",
+        "life-threatening chest pain differential and severity markers",
+        "12-lead ECG within 10 minutes and repeat ECG if symptoms evolve",
+        "local ACS reperfusion pathway and cath lab activation when STEMI criteria are met",
+        "PCI if STEMI is confirmed",
+        "aspirin and heparin after checking major contraindications",
+        "aortic dissection features before anticoagulation or thrombolysis",
+        "active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "dual antiplatelet therapy planning" in issue
         for issue in report.critical_issues
     )
 
@@ -33125,6 +33161,36 @@ def test_quality_gate_requires_acs_dissection_bleeding_and_hemodynamic_safety():
     )
 
 
+def test_quality_gate_requires_acs_serial_troponin_grace_and_antithrombin_dosing_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["contraindication_checks"] = [
+        "Aortic dissection features before anticoagulation or thrombolysis",
+        "Active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+        "Hemodynamic instability, cardiogenic shock, heart failure, or pulmonary edema requiring escalation",
+        "Nitroglycerin or nitrate only after checking hypotension, right ventricular or inferior infarct, and PDE5 inhibitor use",
+        "Use oxygen only for hypoxia or low SpO2; avoid routine oxygen when oxygen saturation is adequate",
+        "Early beta-blocker contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+        "Track door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation window, and door-to-needle fibrinolysis contraindication planning",
+        "If fibrinolysis is used, give antithrombin at the same time, repeat post-fibrinolysis ECG at 60-90 minutes, offer rescue PCI for failed reperfusion or residual ST elevation, and do not repeat fibrinolysis",
+        "Choose DAPT with prasugrel, ticagrelor, or clopidogrel according to high bleeding risk and oral anticoagulant status",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "ACS diagnosis and risk stratification for acute chest pain",
+        "life-threatening chest pain differential and severity markers",
+        "aortic dissection features before anticoagulation or thrombolysis",
+        "active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+        "hemodynamic instability, cardiogenic shock, heart failure, or pulmonary edema requiring escalation",
+        "nitroglycerin or nitrate hypotension, right ventricular or inferior infarct, and PDE5 inhibitor safety review",
+        "oxygen only for hypoxia or low SpO2 and avoid routine oxygen when oxygen saturation is adequate",
+        "early beta-blocker contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("serial troponin/cardiac biomarker" in issue for issue in report.critical_issues)
+
+
 def test_quality_gate_requires_acs_nitrate_oxygen_beta_blocker_and_reperfusion_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["contraindication_checks"] = [
@@ -33153,6 +33219,36 @@ def test_quality_gate_requires_acs_nitrate_oxygen_beta_blocker_and_reperfusion_s
         in issue
         for issue in report.critical_issues
     )
+
+
+def test_quality_gate_requires_acs_fibrinolysis_rescue_and_dapt_choice_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["contraindication_checks"] = [
+        "Aortic dissection features before anticoagulation or thrombolysis",
+        "Active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+        "Anticoagulant and antithrombin bleeding risk, renal impairment, low body weight, age, dose adjustment, and clotting function monitoring before heparin or fondaparinux",
+        "Serial troponin or cardiac biomarker review plus GRACE NSTEMI risk assessment using creatinine, glucose, and hemoglobin",
+        "Hemodynamic instability, cardiogenic shock, heart failure, or pulmonary edema requiring escalation",
+        "Nitroglycerin or nitrate only after checking hypotension, right ventricular or inferior infarct, and PDE5 inhibitor use",
+        "Use oxygen only for hypoxia or low SpO2; avoid routine oxygen when oxygen saturation is adequate",
+        "Early beta-blocker contraindication review for acute heart failure, shock, bradycardia, AV block, or bronchospasm",
+        "Track door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation window, and door-to-needle fibrinolysis contraindication planning",
+    ]
+    case["clinical_sources"][0]["supports"] = [
+        "ACS diagnosis and risk stratification for acute chest pain",
+        "life-threatening chest pain differential and severity markers",
+        "aortic dissection features before anticoagulation or thrombolysis",
+        "active bleeding, recent major surgery, aspirin allergy, aspirin hypersensitivity, or severe allergy before antithrombotic therapy",
+        "antithrombin bleeding risk, renal impairment, low body weight, age, dose adjustment, and clotting function monitoring",
+        "serial troponin or cardiac biomarker review plus GRACE NSTEMI risk assessment using creatinine, glucose, and hemoglobin",
+        "hemodynamic instability, cardiogenic shock, heart failure, or pulmonary edema requiring escalation",
+        "door-to-balloon PCI 90 minute goal, transfer 120 minute limit, 12 hour presentation window, and door-to-needle fibrinolysis contraindication planning",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("post-fibrinolysis ECG 60-90 minutes" in issue for issue in report.critical_issues)
 
 
 def test_quality_gate_requires_aortic_dissection_imaging_impulse_and_surgical_actions():
