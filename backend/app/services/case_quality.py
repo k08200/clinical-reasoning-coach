@@ -1461,6 +1461,25 @@ CNS_INFECTION_LP_CT_ACTION_TERMS = (
     "뇌영상",
     "요추천자",
 )
+CNS_INFECTION_CSF_DIAGNOSTIC_ACTION_TERMS = (
+    "cell count",
+    "csf culture",
+    "csf glucose",
+    "csf protein",
+    "csf to blood glucose",
+    "gram stain",
+    "pcr",
+)
+CNS_INFECTION_BLOOD_DIAGNOSTIC_ACTION_TERMS = (
+    "blood glucose",
+    "blood pcr",
+    "crp",
+    "hiv test",
+    "pcr",
+    "procalcitonin",
+    "white blood cell",
+    "wbc",
+)
 CNS_INFECTION_STEROID_ACTION_TERMS = (
     "dexamethasone",
     "steroid",
@@ -1543,6 +1562,18 @@ CNS_INFECTION_LISTERIA_COVERAGE_SAFETY_TERMS = (
     "older adult",
     "pregnancy",
     "pregnant",
+)
+CNS_INFECTION_CONTACT_PREVENTION_SAFETY_TERMS = (
+    "close contact",
+    "contact prophylaxis",
+    "droplet",
+    "haemophilus influenzae",
+    "hib",
+    "meningococcal",
+    "preventative measures",
+    "public health",
+    "risk of passing",
+    "transmission",
 )
 ENCEPHALITIS_CONTEXT_TERMS = (
     "encephalitis",
@@ -17289,8 +17320,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "CNS infection time-critical actions must include blood cultures, "
                 "immediate or within-1-hour empiric antibiotics that are not delayed "
                 "for lumbar puncture, CT, MRI, or neuroimaging, lumbar puncture or "
-                "CT-before-LP pathway, and dexamethasone timing when bacterial "
-                "meningitis is possible"
+                "CT-before-LP pathway, CSF cell count, protein, glucose, Gram "
+                "stain, culture, or PCR diagnostic planning with blood glucose, "
+                "WBC, CRP, procalcitonin, HIV, blood PCR, or paired blood testing, "
+                "and dexamethasone timing when bacterial meningitis is possible"
             ),
         ),
         DomainSafetyGate(
@@ -17318,7 +17351,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "consciousness, raised intracranial pressure, mass lesion, space-"
                 "occupying lesion, or immunocompromised status, and Listeria/ampicillin "
                 "or benzylpenicillin coverage review for older adult, pregnant, or "
-                "immunocompromised patients"
+                "immunocompromised patients, plus meningococcal or Hib transmission, "
+                "droplet, public-health, close-contact, or contact-prophylaxis "
+                "planning"
             ),
         ),
         DomainSafetyGate(
@@ -22099,6 +22134,14 @@ def _has_cns_infection_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in CNS_INFECTION_LP_CT_ACTION_TERMS
     )
+    has_csf_diagnostics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CNS_INFECTION_CSF_DIAGNOSTIC_ACTION_TERMS
+    )
+    has_blood_diagnostics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CNS_INFECTION_BLOOD_DIAGNOSTIC_ACTION_TERMS
+    )
     has_steroid_timing = any(
         _contains_safety_term(normalized_actions, term)
         for term in CNS_INFECTION_STEROID_ACTION_TERMS
@@ -22108,6 +22151,8 @@ def _has_cns_infection_time_critical_actions(actions: list[Any]) -> bool:
         and has_antibiotics
         and has_no_delay
         and has_lp_or_ct_pathway
+        and has_csf_diagnostics
+        and has_blood_diagnostics
         and has_steroid_timing
     )
 
@@ -22143,7 +22188,16 @@ def _has_cns_infection_delay_coverage_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in CNS_INFECTION_LISTERIA_COVERAGE_SAFETY_TERMS
     )
-    return has_delay_safety and has_ct_before_lp_indication and has_listeria_coverage
+    has_contact_prevention = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CNS_INFECTION_CONTACT_PREVENTION_SAFETY_TERMS
+    )
+    return (
+        has_delay_safety
+        and has_ct_before_lp_indication
+        and has_listeria_coverage
+        and has_contact_prevention
+    )
 
 
 def _requires_encephalitis_safety_check(data: dict[str, Any]) -> bool:

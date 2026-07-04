@@ -1604,6 +1604,7 @@ def test_quality_gate_requires_cns_infection_lp_and_steroid_safety():
         "Obtain blood cultures promptly without delaying empiric antibiotics",
         "Start empiric ceftriaxone and vancomycin immediately",
         "Assess lumbar puncture or head CT before LP pathway in parallel",
+        "Send CSF cell count, protein, glucose, Gram stain, culture, and PCR with paired blood glucose, WBC, CRP, procalcitonin, HIV test, and blood PCR when indicated",
         "Give dexamethasone before or with antibiotics when bacterial meningitis is possible",
     ]
     case["contraindication_checks"] = [
@@ -1622,6 +1623,7 @@ def test_quality_gate_requires_cns_infection_lp_and_steroid_safety():
                 "blood cultures promptly without delaying empiric antibiotics",
                 "empiric ceftriaxone and vancomycin immediately",
                 "lumbar puncture and head CT before LP pathway",
+                "CSF cell count, protein, glucose, Gram stain, culture, and PCR with paired blood glucose, WBC, CRP, procalcitonin, HIV test, and blood PCR when indicated",
                 "dexamethasone before or with antibiotics when bacterial meningitis is possible",
                 "antimicrobial allergy, renal function, and vancomycin dosing review",
                 "medication pregnancy status before imaging if relevant",
@@ -1636,6 +1638,67 @@ def test_quality_gate_requires_cns_infection_lp_and_steroid_safety():
         "CNS infection safety checks must include antimicrobial allergy" in issue
         for issue in report.critical_issues
     )
+
+
+def test_quality_gate_requires_cns_infection_csf_and_paired_blood_diagnostics():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Bacterial meningitis"
+    case["chief_complaint"] = "Fever, headache, and confusion"
+    case["history_of_present_illness"] = (
+        "Adult with abrupt fever, severe headache, neck stiffness, photophobia, "
+        "and worsening confusion."
+    )
+    case["key_teaching_points"] = [
+        "Bacterial meningitis requires immediate antibiotics and diagnostic sampling",
+        "CSF and paired blood testing shape organism-directed therapy",
+        "Infection prevention and public health planning matter for meningococcal disease",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever with neck stiffness and photophobia",
+        "Altered mental status suggesting invasive CNS infection",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain blood cultures promptly without delaying empiric antibiotics",
+        "Start empiric ceftriaxone and vancomycin immediately within 1 hour",
+        "Assess lumbar puncture or head CT before LP pathway in parallel",
+        "Give dexamethasone before or with antibiotics when bacterial meningitis is possible",
+    ]
+    case["contraindication_checks"] = [
+        "Antimicrobial allergy, renal function, and vancomycin dosing review",
+        "Head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
+        "Dexamethasone before or with antibiotics when bacterial meningitis is possible",
+        "Give antibiotics before imaging if LP or CT would cause a clinically significant delay; blood cultures then antibiotics within 1 hour",
+        "Review CT-before-LP indications including papilledema, focal neurologic deficit, focal seizure, abnormal pupillary reaction, low GCS, altered consciousness, raised intracranial pressure, mass lesion, space-occupying lesion, or immunocompromised status",
+        "Review Listeria coverage with ampicillin or benzylpenicillin for older adult, pregnant, or immunocompromised patients",
+        "Use droplet precautions and notify public health for meningococcal or Hib risk, with close-contact transmission and contact prophylaxis planning",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Meningitis (bacterial) and meningococcal disease",
+            "organization": "NICE",
+            "url": "https://www.nice.org.uk/guidance/ng240/chapter/Recommendations",
+            "supports": [
+                "bacterial meningitis diagnosis and risk stratification",
+                "fever with neck stiffness and photophobia as red flags",
+                "altered mental status suggesting invasive CNS infection severity",
+                "blood cultures promptly without delaying empiric antibiotics",
+                "empiric ceftriaxone and vancomycin immediately within 1 hour",
+                "lumbar puncture or head CT before LP pathway in parallel",
+                "dexamethasone before or with antibiotics when bacterial meningitis is possible",
+                "antimicrobial allergy, renal function, and vancomycin dosing review",
+                "head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
+                "antibiotics before imaging if LP or CT would cause a clinically significant delay; blood cultures then antibiotics within 1 hour",
+                "CT-before-LP indications including papilledema, focal neurologic deficit, focal seizure, abnormal pupillary reaction, low GCS, altered consciousness, raised intracranial pressure, mass lesion, space-occupying lesion, or immunocompromised status",
+                "Listeria coverage with ampicillin or benzylpenicillin for older adult, pregnant, or immunocompromised patients",
+                "droplet precautions and public health notification for meningococcal or Hib risk, with close-contact transmission and contact prophylaxis planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("CSF cell count" in issue for issue in report.critical_issues)
 
 
 def test_quality_gate_requires_cns_infection_antibiotic_delay_ct_indication_and_listeria_safety():
@@ -1665,6 +1728,7 @@ def test_quality_gate_requires_cns_infection_antibiotic_delay_ct_indication_and_
         "Obtain blood cultures promptly without delaying empiric antibiotics",
         "Start empiric ceftriaxone and vancomycin immediately within 1 hour",
         "Assess lumbar puncture or head CT before LP pathway in parallel",
+        "Send CSF cell count, protein, glucose, Gram stain, culture, and PCR with paired blood glucose, WBC, CRP, procalcitonin, HIV test, and blood PCR when indicated",
         "Give dexamethasone before or with antibiotics when bacterial meningitis is possible",
     ]
     case["contraindication_checks"] = [
@@ -1687,6 +1751,7 @@ def test_quality_gate_requires_cns_infection_antibiotic_delay_ct_indication_and_
                 "blood cultures promptly without delaying empiric antibiotics",
                 "empiric ceftriaxone and vancomycin immediately within 1 hour",
                 "lumbar puncture or head CT before LP pathway in parallel",
+                "CSF cell count, protein, glucose, Gram stain, culture, and PCR with paired blood glucose, WBC, CRP, procalcitonin, HIV test, and blood PCR when indicated",
                 "dexamethasone before or with antibiotics when bacterial meningitis is possible",
                 "antimicrobial allergy, renal function, and vancomycin dosing review",
                 "head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
@@ -1700,6 +1765,7 @@ def test_quality_gate_requires_cns_infection_antibiotic_delay_ct_indication_and_
                 "antibiotics before imaging if LP or CT would cause a clinically significant delay; blood cultures then antibiotics within 1 hour",
                 "CT-before-LP indications including papilledema, focal neurologic deficit, focal seizure, abnormal pupillary reaction, low GCS, altered consciousness, raised intracranial pressure, mass lesion, space-occupying lesion, or immunocompromised status",
                 "Listeria coverage with ampicillin or benzylpenicillin for older adult, pregnant, or immunocompromised patients",
+                "meningococcal or Hib transmission, droplet precautions, public health notification, close-contact risk, or contact prophylaxis planning",
             ],
         },
     ]
@@ -1712,6 +1778,76 @@ def test_quality_gate_requires_cns_infection_antibiotic_delay_ct_indication_and_
         in issue
         for issue in report.critical_issues
     )
+
+
+def test_quality_gate_requires_cns_infection_contact_prevention_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Bacterial meningitis in an immunocompromised older adult"
+    case["patient_demographics"] = {
+        "age": 72,
+        "sex": "male",
+        "weight_kg": 73,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, headache, confusion, and neck stiffness"
+    case["history_of_present_illness"] = (
+        "Older immunocompromised patient has abrupt fever, severe headache, neck "
+        "stiffness, photophobia, altered consciousness, and possible bacterial meningitis."
+    )
+    case["key_teaching_points"] = [
+        "Bacterial meningitis is a medical emergency requiring immediate antibiotics",
+        "LP and neuroimaging sequencing should not delay treatment",
+        "Meningococcal or Hib disease requires infection prevention and contact planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever, headache, neck stiffness, photophobia, and altered consciousness",
+        "Older age, immunocompromised status, focal seizure, papilledema, abnormal pupils, low GCS, or sepsis risk",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain blood cultures promptly without delaying empiric antibiotics",
+        "Start empiric ceftriaxone and vancomycin immediately within 1 hour",
+        "Assess lumbar puncture or head CT before LP pathway in parallel",
+        "Send CSF cell count, protein, glucose, Gram stain, culture, and PCR with paired blood glucose, WBC, CRP, procalcitonin, HIV test, and blood PCR when indicated",
+        "Give dexamethasone before or with antibiotics when bacterial meningitis is possible",
+    ]
+    case["contraindication_checks"] = [
+        "Antimicrobial allergy, renal function, and vancomycin dosing review",
+        "Head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
+        "Dexamethasone before or with antibiotics when bacterial meningitis is possible",
+        "Give antibiotics before imaging if LP or CT would cause a clinically significant delay; blood cultures then antibiotics within 1 hour",
+        "Review CT-before-LP indications including papilledema, focal neurologic deficit, focal seizure, abnormal pupillary reaction, low GCS, altered consciousness, raised intracranial pressure, mass lesion, space-occupying lesion, or immunocompromised status",
+        "Review Listeria coverage with ampicillin or benzylpenicillin for older adult, pregnant, or immunocompromised patients",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Meningitis (bacterial) and meningococcal disease",
+            "organization": "NICE",
+            "url": "https://www.nice.org.uk/guidance/ng240/chapter/Recommendations",
+            "supports": [
+                "bacterial meningitis in an immunocompromised older adult diagnosis and risk stratification",
+                "bacterial meningitis is a medical emergency requiring immediate antibiotics",
+                "LP and neuroimaging sequencing should not delay treatment",
+                "meningococcal or Hib disease requires infection prevention and contact planning",
+                "fever, headache, neck stiffness, photophobia, and altered consciousness as red flags",
+                "older age, immunocompromised status, focal seizure, papilledema, abnormal pupils, low GCS, or sepsis risk as severity markers",
+                "blood cultures promptly without delaying empiric antibiotics",
+                "empiric ceftriaxone and vancomycin immediately within 1 hour",
+                "lumbar puncture or head CT before LP pathway in parallel",
+                "CSF cell count, protein, glucose, Gram stain, culture, and PCR with paired blood glucose, WBC, CRP, procalcitonin, HIV test, and blood PCR when indicated",
+                "dexamethasone before or with antibiotics when bacterial meningitis is possible",
+                "antimicrobial allergy, renal function, and vancomycin dosing review",
+                "head CT before LP for papilledema, focal neurologic deficit, or mass lesion concern",
+                "antibiotics before imaging if LP or CT would cause a clinically significant delay; blood cultures then antibiotics within 1 hour",
+                "CT-before-LP indications including papilledema, focal neurologic deficit, focal seizure, abnormal pupillary reaction, low GCS, altered consciousness, raised intracranial pressure, mass lesion, space-occupying lesion, or immunocompromised status",
+                "Listeria coverage with ampicillin or benzylpenicillin for older adult, pregnant, or immunocompromised patients",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("contact-prophylaxis" in issue for issue in report.critical_issues)
 
 
 def test_quality_gate_requires_encephalitis_acyclovir_mri_csf_hsv_pcr_and_eeg_actions():
