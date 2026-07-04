@@ -7277,12 +7277,22 @@ METASTATIC_SPINAL_CORD_COMPRESSION_NEURO_RISK_TERMS = (
     "sensory loss",
     "weakness",
 )
-METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ACTION_TERMS = (
+METASTATIC_SPINAL_CORD_COMPRESSION_CONTACT_ACTION_TERMS = (
+    "call",
+    "contact",
+    "consult",
+    "discuss",
+    "liaise",
+    "notify",
+    "refer",
+    "transfer",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ROLE_TERMS = (
     "acute oncology",
     "mscc coordinator",
-    "oncologic emergency",
-    "oncological emergency",
-    "oncology",
+    "mscc service",
+    "on-call oncology",
+    "oncology registrar",
     "spinal surgeon",
     "spine surgeon",
 )
@@ -7303,6 +7313,10 @@ METASTATIC_SPINAL_CORD_COMPRESSION_MRI_URGENCY_TERMS = (
 METASTATIC_SPINAL_CORD_COMPRESSION_MRI_REGION_TERMS = (
     "spinal",
     "spine",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_MRI_WHOLE_SPINE_TERMS = (
+    "entire spine",
+    "spinal axis",
     "whole spine",
 )
 METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_SPECIFIC_TERMS = (
@@ -7313,22 +7327,41 @@ METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_DOSE_TERMS = (
     "16mg",
 )
 METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_CLASS_TERMS = (
-    "corticosteroid",
+    "equivalent parenteral",
+    "equivalent steroid",
     "dexamethasone",
-    "glucocorticoid",
-    "steroid",
 )
 METASTATIC_SPINAL_CORD_COMPRESSION_IMMOBILIZATION_ACTION_TERMS = (
     "brace",
     "bracing",
+    "external spinal support",
     "immobilisation",
     "immobilization",
+    "orthosis",
+    "spinal precautions",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_ASSESSMENT_ACTION_TERMS = (
+    "sins",
     "spinal instability",
+    "spinal instability neoplastic score",
+    "spinal stability",
     "spine stability",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_MDT_PLAN_ACTION_TERMS = (
+    "appropriate specialists",
+    "mscc mdt",
+    "mscc multidisciplinary",
+    "mscc review",
+    "mscc service",
+    "multidisciplinary",
+    "oncologist",
+    "spinal surgeon",
+    "spine surgeon",
+    "treatment plan",
 )
 METASTATIC_SPINAL_CORD_COMPRESSION_DEFINITIVE_ACTION_TERMS = (
     "decompression",
-    "radiotherapy",
+    "radiotherapy within 24",
     "spinal surgery",
     "surgical decompression",
     "surgical stabilisation",
@@ -7336,37 +7369,46 @@ METASTATIC_SPINAL_CORD_COMPRESSION_DEFINITIVE_ACTION_TERMS = (
     "urgent radiotherapy",
 )
 METASTATIC_SPINAL_CORD_COMPRESSION_NEURO_MONITORING_SAFETY_TERMS = (
-    "bladder",
-    "bowel",
     "neurologic monitoring",
     "neurological monitoring",
     "serial neurologic",
     "serial neurological",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_BLADDER_BOWEL_MONITORING_SAFETY_TERMS = (
+    "bladder",
+    "bowel",
     "worsening weakness",
 )
-METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_SAFETY_TERMS = (
+METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_GLUCOSE_SAFETY_TERMS = (
     "blood glucose",
-    "dexamethasone taper",
-    "discontinue dexamethasone",
     "glucose",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_GI_SAFETY_TERMS = (
     "ppi",
     "proton pump inhibitor",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_TAPER_STOP_SAFETY_TERMS = (
+    "dexamethasone taper",
+    "discontinue dexamethasone",
     "steroid taper",
 )
-METASTATIC_SPINAL_CORD_COMPRESSION_IMAGING_SAFETY_TERMS = (
+METASTATIC_SPINAL_CORD_COMPRESSION_CT_IF_MRI_CONTRAINDICATED_TERMS = (
     "ct if mri contraindicated",
+    "ct when mri contraindicated",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_PLAIN_XRAY_AVOIDANCE_TERMS = (
     "do not use x-ray",
-    "mri contraindicated",
     "no plain x-ray",
     "not plain x-ray",
-    "plain x-ray",
 )
-METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_TREATMENT_SAFETY_TERMS = (
-    "prognosis",
-    "radiotherapy within 24 hours",
+METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_SAFETY_TERMS = (
     "sins",
     "spinal instability neoplastic score",
     "spinal stability",
+)
+METASTATIC_SPINAL_CORD_COMPRESSION_TREATMENT_REVIEW_SAFETY_TERMS = (
+    "prognosis",
+    "radiotherapy within 24 hours",
     "surgical suitability",
     "tokuhashi",
 )
@@ -18437,12 +18479,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_metastatic_spinal_cord_compression_time_critical_actions,
             issue=(
                 "metastatic spinal cord compression time-critical actions must "
-                "include immediate MSCC coordinator, acute oncology, oncology, "
-                "or spine surgeon contact, urgent MRI spine or whole-spine MRI "
-                "within 24 hours, dexamethasone 16 mg or equivalent steroid "
-                "planning for neurologic signs, immobilization or spinal-stability "
-                "precautions, and urgent surgery, decompression, stabilization, "
-                "or radiotherapy planning"
+                "include immediate MSCC coordinator, acute oncology, MSCC service, "
+                "or spine surgeon contact, urgent MRI spine with whole-spine "
+                "imaging within 24 hours, dexamethasone 16 mg or equivalent "
+                "parenteral steroid planning for neurologic signs, immobilization "
+                "or external spinal-support precautions plus spinal-stability "
+                "assessment, and MSCC MDT treatment planning with urgent surgical "
+                "decompression, stabilization, or radiotherapy within 24 hours"
             ),
         ),
         DomainSafetyGate(
@@ -18452,12 +18495,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_metastatic_spinal_cord_compression_treatment_safety_check,
             issue=(
                 "metastatic spinal cord compression safety checks must include "
-                "serial neurologic, bladder, or bowel monitoring, steroid safety "
-                "with glucose, PPI, taper, or discontinuation if MSCC is ruled out, "
+                "serial neurologic monitoring plus bladder, bowel, or worsening-"
+                "weakness surveillance, steroid safety with glucose monitoring, "
+                "PPI protection, taper or discontinuation if MSCC is ruled out, "
                 "imaging safeguards such as CT if MRI is contraindicated and not "
-                "using plain x-ray to rule out MSCC, and spinal stability, prognosis, "
-                "SINS, Tokuhashi, surgical suitability, or radiotherapy-within-24-hours "
-                "treatment review"
+                "using plain x-ray to rule out MSCC, and spinal stability or SINS "
+                "assessment plus prognosis, Tokuhashi, surgical suitability, or "
+                "radiotherapy-within-24-hours treatment review"
             ),
         ),
         DomainSafetyGate(
@@ -27119,9 +27163,13 @@ def _has_metastatic_spinal_cord_compression_time_critical_actions(
     actions: list[Any],
 ) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_coordinator = any(
+    has_contact_action = any(
         _contains_safety_term(normalized_actions, term)
-        for term in METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ACTION_TERMS
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_CONTACT_ACTION_TERMS
+    )
+    has_coordinator_role = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ROLE_TERMS
     )
     has_mri = _has_metastatic_spinal_cord_compression_urgent_mri_action(actions)
     has_steroid = _has_metastatic_spinal_cord_compression_steroid_action(actions)
@@ -27129,15 +27177,26 @@ def _has_metastatic_spinal_cord_compression_time_critical_actions(
         _contains_safety_term(normalized_actions, term)
         for term in METASTATIC_SPINAL_CORD_COMPRESSION_IMMOBILIZATION_ACTION_TERMS
     )
+    has_stability_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_ASSESSMENT_ACTION_TERMS
+    )
+    has_mdt_plan = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_MDT_PLAN_ACTION_TERMS
+    )
     has_definitive_plan = any(
         _contains_safety_term(normalized_actions, term)
         for term in METASTATIC_SPINAL_CORD_COMPRESSION_DEFINITIVE_ACTION_TERMS
     )
     return (
-        has_coordinator
+        has_contact_action
+        and has_coordinator_role
         and has_mri
         and has_steroid
         and has_immobilization
+        and has_stability_assessment
+        and has_mdt_plan
         and has_definitive_plan
     )
 
@@ -27159,7 +27218,11 @@ def _has_metastatic_spinal_cord_compression_urgent_mri_action(
             _contains_safety_term(normalized_action, term)
             for term in METASTATIC_SPINAL_CORD_COMPRESSION_MRI_REGION_TERMS
         )
-        if has_modality and has_urgency and has_region:
+        has_whole_spine = any(
+            _contains_safety_term(normalized_action, term)
+            for term in METASTATIC_SPINAL_CORD_COMPRESSION_MRI_WHOLE_SPINE_TERMS
+        )
+        if has_modality and has_urgency and has_region and has_whole_spine:
             return True
     return False
 
@@ -27194,23 +27257,48 @@ def _has_metastatic_spinal_cord_compression_treatment_safety_check(
         _contains_safety_term(normalized_checks, term)
         for term in METASTATIC_SPINAL_CORD_COMPRESSION_NEURO_MONITORING_SAFETY_TERMS
     )
-    has_steroid_safety = any(
+    has_bladder_bowel_monitoring = any(
         _contains_safety_term(normalized_checks, term)
-        for term in METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_SAFETY_TERMS
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_BLADDER_BOWEL_MONITORING_SAFETY_TERMS
     )
-    has_imaging_safety = any(
+    has_steroid_glucose_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in METASTATIC_SPINAL_CORD_COMPRESSION_IMAGING_SAFETY_TERMS
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_GLUCOSE_SAFETY_TERMS
     )
-    has_stability_treatment_safety = any(
+    has_steroid_gi_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_TREATMENT_SAFETY_TERMS
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_GI_SAFETY_TERMS
+    )
+    has_steroid_taper_stop_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_TAPER_STOP_SAFETY_TERMS
+    )
+    has_ct_if_mri_contraindicated = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_CT_IF_MRI_CONTRAINDICATED_TERMS
+    )
+    has_plain_xray_avoidance = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_PLAIN_XRAY_AVOIDANCE_TERMS
+    )
+    has_stability_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_SAFETY_TERMS
+    )
+    has_treatment_review_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METASTATIC_SPINAL_CORD_COMPRESSION_TREATMENT_REVIEW_SAFETY_TERMS
     )
     return (
         has_neuro_monitoring
-        and has_steroid_safety
-        and has_imaging_safety
-        and has_stability_treatment_safety
+        and has_bladder_bowel_monitoring
+        and has_steroid_glucose_safety
+        and has_steroid_gi_safety
+        and has_steroid_taper_stop_safety
+        and has_ct_if_mri_contraindicated
+        and has_plain_xray_avoidance
+        and has_stability_safety
+        and has_treatment_review_safety
     )
 
 

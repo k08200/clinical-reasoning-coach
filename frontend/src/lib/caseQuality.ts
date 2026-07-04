@@ -8101,12 +8101,23 @@ const METASTATIC_SPINAL_CORD_COMPRESSION_NEURO_RISK_TERMS = [
   "weakness",
 ];
 
-const METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ACTION_TERMS = [
+const METASTATIC_SPINAL_CORD_COMPRESSION_CONTACT_ACTION_TERMS = [
+  "call",
+  "contact",
+  "consult",
+  "discuss",
+  "liaise",
+  "notify",
+  "refer",
+  "transfer",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ROLE_TERMS = [
   "acute oncology",
   "mscc coordinator",
-  "oncologic emergency",
-  "oncological emergency",
-  "oncology",
+  "mscc service",
+  "on-call oncology",
+  "oncology registrar",
   "spinal surgeon",
   "spine surgeon",
 ];
@@ -8130,6 +8141,11 @@ const METASTATIC_SPINAL_CORD_COMPRESSION_MRI_URGENCY_TERMS = [
 const METASTATIC_SPINAL_CORD_COMPRESSION_MRI_REGION_TERMS = [
   "spinal",
   "spine",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_MRI_WHOLE_SPINE_TERMS = [
+  "entire spine",
+  "spinal axis",
   "whole spine",
 ];
 
@@ -8143,24 +8159,45 @@ const METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_DOSE_TERMS = [
 ];
 
 const METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_CLASS_TERMS = [
-  "corticosteroid",
+  "equivalent parenteral",
+  "equivalent steroid",
   "dexamethasone",
-  "glucocorticoid",
-  "steroid",
 ];
 
 const METASTATIC_SPINAL_CORD_COMPRESSION_IMMOBILIZATION_ACTION_TERMS = [
   "brace",
   "bracing",
+  "external spinal support",
   "immobilisation",
   "immobilization",
+  "orthosis",
+  "spinal precautions",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_ASSESSMENT_ACTION_TERMS = [
+  "sins",
   "spinal instability",
+  "spinal instability neoplastic score",
+  "spinal stability",
   "spine stability",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_MDT_PLAN_ACTION_TERMS = [
+  "appropriate specialists",
+  "mscc mdt",
+  "mscc multidisciplinary",
+  "mscc review",
+  "mscc service",
+  "multidisciplinary",
+  "oncologist",
+  "spinal surgeon",
+  "spine surgeon",
+  "treatment plan",
 ];
 
 const METASTATIC_SPINAL_CORD_COMPRESSION_DEFINITIVE_ACTION_TERMS = [
   "decompression",
-  "radiotherapy",
+  "radiotherapy within 24",
   "spinal surgery",
   "surgical decompression",
   "surgical stabilisation",
@@ -8169,40 +8206,54 @@ const METASTATIC_SPINAL_CORD_COMPRESSION_DEFINITIVE_ACTION_TERMS = [
 ];
 
 const METASTATIC_SPINAL_CORD_COMPRESSION_NEURO_MONITORING_SAFETY_TERMS = [
-  "bladder",
-  "bowel",
   "neurologic monitoring",
   "neurological monitoring",
   "serial neurologic",
   "serial neurological",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_BLADDER_BOWEL_MONITORING_SAFETY_TERMS = [
+  "bladder",
+  "bowel",
   "worsening weakness",
 ];
 
-const METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_SAFETY_TERMS = [
+const METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_GLUCOSE_SAFETY_TERMS = [
   "blood glucose",
-  "dexamethasone taper",
-  "discontinue dexamethasone",
   "glucose",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_GI_SAFETY_TERMS = [
   "ppi",
   "proton pump inhibitor",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_TAPER_STOP_SAFETY_TERMS = [
+  "dexamethasone taper",
+  "discontinue dexamethasone",
   "steroid taper",
 ];
 
-const METASTATIC_SPINAL_CORD_COMPRESSION_IMAGING_SAFETY_TERMS = [
+const METASTATIC_SPINAL_CORD_COMPRESSION_CT_IF_MRI_CONTRAINDICATED_TERMS = [
   "ct if mri contraindicated",
-  "do not use x-ray",
-  "mri contraindicated",
-  "no plain x-ray",
-  "not plain x-ray",
-  "plain x-ray",
+  "ct when mri contraindicated",
 ];
 
-const METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_TREATMENT_SAFETY_TERMS = [
-  "prognosis",
-  "radiotherapy within 24 hours",
+const METASTATIC_SPINAL_CORD_COMPRESSION_PLAIN_XRAY_AVOIDANCE_TERMS = [
+  "do not use x-ray",
+  "no plain x-ray",
+  "not plain x-ray",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_SAFETY_TERMS = [
   "sins",
   "spinal instability neoplastic score",
   "spinal stability",
+];
+
+const METASTATIC_SPINAL_CORD_COMPRESSION_TREATMENT_REVIEW_SAFETY_TERMS = [
+  "prognosis",
+  "radiotherapy within 24 hours",
   "surgical suitability",
   "tokuhashi",
 ];
@@ -23187,7 +23238,10 @@ function requiresMetastaticSpinalCordCompressionSafetyCheck(
 
 function hasMetastaticSpinalCordCompressionTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasCoordinator = METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ACTION_TERMS.some(
+  const hasContactAction = METASTATIC_SPINAL_CORD_COMPRESSION_CONTACT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCoordinatorRole = METASTATIC_SPINAL_CORD_COMPRESSION_COORDINATOR_ROLE_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   const hasMri = hasMetastaticSpinalCordCompressionUrgentMriAction(actions);
@@ -23195,10 +23249,26 @@ function hasMetastaticSpinalCordCompressionTimeCriticalActions(actions: string[]
   const hasImmobilization = METASTATIC_SPINAL_CORD_COMPRESSION_IMMOBILIZATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
+  const hasStabilityAssessment =
+    METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_ASSESSMENT_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasMdtPlan = METASTATIC_SPINAL_CORD_COMPRESSION_MDT_PLAN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasDefinitivePlan = METASTATIC_SPINAL_CORD_COMPRESSION_DEFINITIVE_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  return hasCoordinator && hasMri && hasSteroid && hasImmobilization && hasDefinitivePlan;
+  return (
+    hasContactAction &&
+    hasCoordinatorRole &&
+    hasMri &&
+    hasSteroid &&
+    hasImmobilization &&
+    hasStabilityAssessment &&
+    hasMdtPlan &&
+    hasDefinitivePlan
+  );
 }
 
 function hasMetastaticSpinalCordCompressionUrgentMriAction(actions: string[]): boolean {
@@ -23213,7 +23283,10 @@ function hasMetastaticSpinalCordCompressionUrgentMriAction(actions: string[]): b
     const hasRegion = METASTATIC_SPINAL_CORD_COMPRESSION_MRI_REGION_TERMS.some((term) =>
       containsSafetyTerm(normalizedAction, term),
     );
-    return hasModality && hasUrgency && hasRegion;
+    const hasWholeSpine = METASTATIC_SPINAL_CORD_COMPRESSION_MRI_WHOLE_SPINE_TERMS.some((term) =>
+      containsSafetyTerm(normalizedAction, term),
+    );
+    return hasModality && hasUrgency && hasRegion && hasWholeSpine;
   });
 }
 
@@ -23239,17 +23312,47 @@ function hasMetastaticSpinalCordCompressionTreatmentSafetyCheck(checks: string[]
     METASTATIC_SPINAL_CORD_COMPRESSION_NEURO_MONITORING_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasSteroidSafety = METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
-  );
-  const hasImagingSafety = METASTATIC_SPINAL_CORD_COMPRESSION_IMAGING_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
-  );
-  const hasStabilityTreatmentSafety =
-    METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_TREATMENT_SAFETY_TERMS.some((term) =>
+  const hasBladderBowelMonitoring =
+    METASTATIC_SPINAL_CORD_COMPRESSION_BLADDER_BOWEL_MONITORING_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  return hasNeuroMonitoring && hasSteroidSafety && hasImagingSafety && hasStabilityTreatmentSafety;
+  const hasSteroidGlucoseSafety =
+    METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_GLUCOSE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasSteroidGiSafety = METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_GI_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidTaperStopSafety =
+    METASTATIC_SPINAL_CORD_COMPRESSION_STEROID_TAPER_STOP_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCtIfMriContraindicated =
+    METASTATIC_SPINAL_CORD_COMPRESSION_CT_IF_MRI_CONTRAINDICATED_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasPlainXrayAvoidance =
+    METASTATIC_SPINAL_CORD_COMPRESSION_PLAIN_XRAY_AVOIDANCE_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasStabilitySafety = METASTATIC_SPINAL_CORD_COMPRESSION_STABILITY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTreatmentReviewSafety =
+    METASTATIC_SPINAL_CORD_COMPRESSION_TREATMENT_REVIEW_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasNeuroMonitoring &&
+    hasBladderBowelMonitoring &&
+    hasSteroidGlucoseSafety &&
+    hasSteroidGiSafety &&
+    hasSteroidTaperStopSafety &&
+    hasCtIfMriContraindicated &&
+    hasPlainXrayAvoidance &&
+    hasStabilitySafety &&
+    hasTreatmentReviewSafety
+  );
 }
 
 function requiresOpenFractureSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -30321,7 +30424,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasMetastaticSpinalCordCompressionTimeCriticalActions,
       issue:
-        "metastatic spinal cord compression time-critical actions must include immediate MSCC coordinator, acute oncology, oncology, or spine surgeon contact, urgent MRI spine or whole-spine MRI within 24 hours, dexamethasone 16 mg or equivalent steroid planning for neurologic signs, immobilization or spinal-stability precautions, and urgent surgery, decompression, stabilization, or radiotherapy planning",
+        "metastatic spinal cord compression time-critical actions must include immediate MSCC coordinator, acute oncology, MSCC service, or spine surgeon contact, urgent MRI spine with whole-spine imaging within 24 hours, dexamethasone 16 mg or equivalent parenteral steroid planning for neurologic signs, immobilization or external spinal-support precautions plus spinal-stability assessment, and MSCC MDT treatment planning with urgent surgical decompression, stabilization, or radiotherapy within 24 hours",
     },
     {
       name: "metastatic_spinal_cord_compression_treatment_safety",
@@ -30330,7 +30433,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasMetastaticSpinalCordCompressionTreatmentSafetyCheck,
       issue:
-        "metastatic spinal cord compression safety checks must include serial neurologic, bladder, or bowel monitoring, steroid safety with glucose, PPI, taper, or discontinuation if MSCC is ruled out, imaging safeguards such as CT if MRI is contraindicated and not using plain x-ray to rule out MSCC, and spinal stability, prognosis, SINS, Tokuhashi, surgical suitability, or radiotherapy-within-24-hours treatment review",
+        "metastatic spinal cord compression safety checks must include serial neurologic monitoring plus bladder, bowel, or worsening-weakness surveillance, steroid safety with glucose monitoring, PPI protection, taper or discontinuation if MSCC is ruled out, imaging safeguards such as CT if MRI is contraindicated and not using plain x-ray to rule out MSCC, and spinal stability or SINS assessment plus prognosis, Tokuhashi, surgical suitability, or radiotherapy-within-24-hours treatment review",
     },
     {
       name: "open_fracture_time_critical_actions",
