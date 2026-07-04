@@ -17817,9 +17817,13 @@ const PE_CONTEXT_TERMS = [
 ];
 
 const PE_RISK_STRATIFICATION_TERMS = [
+  "clinical probability",
+  "high-risk",
   "massive",
+  "pesi",
   "risk stratification",
   "risk stratify",
+  "spesi",
   "submassive",
   "wells",
   "위험도",
@@ -17831,6 +17835,8 @@ const PE_HEMODYNAMIC_TERMS = [
   "hemodynamic",
   "hypotension",
   "instability",
+  "rv dysfunction",
+  "rv/lv",
   "rv strain",
   "right ventricular",
   "shock",
@@ -17841,11 +17847,11 @@ const PE_HEMODYNAMIC_TERMS = [
 
 const PE_IMAGING_PATHWAY_TERMS = [
   "bedside echo",
+  "bedside ultrasound",
   "ct pulmonary angiography",
   "ctpa",
-  "echo",
-  "imaging",
   "v/q",
+  "ventilation perfusion",
   "영상",
   "심초음파",
 ];
@@ -17880,24 +17886,35 @@ const PE_ANTICOAGULATION_OR_REPERFUSION_ACTION_TERMS = [
 ];
 
 const PE_BLEEDING_SAFETY_TERMS = [
+  "active bleeding",
   "bleeding",
+  "intracranial hemorrhage",
+  "major bleeding",
+  "neuraxial",
+  "recent intracranial",
   "recent surgery",
   "surgery",
-  "thrombolysis",
   "출혈",
   "수술",
 ];
 
-const PE_RENAL_CONTRAST_SAFETY_TERMS = [
-  "contrast",
+const PE_RENAL_FUNCTION_SAFETY_TERMS = [
   "creatinine",
   "egfr",
   "kidney",
   "renal",
-  "조영제",
   "크레아티닌",
   "신장",
   "콩팥",
+];
+
+const PE_CONTRAST_SAFETY_TERMS = [
+  "contrast allergy",
+  "contrast media",
+  "contrast safety",
+  "ctpa unsafe",
+  "severe renal impairment",
+  "조영제",
 ];
 
 const PE_PREGNANCY_SAFETY_TERMS = ["hcg", "pregnancy", "pregnant", "임신"];
@@ -17906,10 +17923,33 @@ const PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS = [
   "anticoagulation",
   "anticoagulant",
   "contraindication",
+  "continuous ufh infusion",
   "heparin",
+  "heparin infusion",
   "lmwh",
   "unfractionated",
+  "ufh infusion",
+  "unfractionated heparin",
   "항응고",
+];
+
+const PE_BASELINE_BLOOD_COUNT_SAFETY_TERMS = [
+  "cbc",
+  "fbc",
+  "full blood count",
+  "platelet",
+];
+
+const PE_BASELINE_COAGULATION_SAFETY_TERMS = [
+  "activated partial thromboplastin time",
+  "aptt",
+  "pt",
+  "prothrombin time",
+];
+
+const PE_BASELINE_HEPATIC_SAFETY_TERMS = [
+  "hepatic",
+  "liver",
 ];
 
 const PE_SYSTEMIC_THROMBOLYSIS_REVIEW_SAFETY_TERMS = [
@@ -17928,6 +17968,26 @@ const PE_SYSTEMIC_THROMBOLYSIS_HIGH_RISK_SAFETY_TERMS = [
   "obstructive shock",
   "persistent hypotension",
   "shock",
+];
+
+const PE_INTERMEDIATE_HIGH_MONITORING_SAFETY_TERMS = [
+  "bnp",
+  "cardiac biomarker",
+  "intermediate-high",
+  "positive troponin",
+  "rv dysfunction",
+  "rv strain",
+  "troponin",
+];
+
+const PE_NO_ROUTINE_THROMBOLYSIS_SAFETY_TERMS = [
+  "avoid routine thrombolysis",
+  "do not offer systemic thrombolysis",
+  "do not routinely thrombolyse",
+  "no routine thrombolysis",
+  "reserve rescue thrombolysis",
+  "routine primary systemic thrombolysis is not recommended",
+  "stable pe no thrombolysis",
 ];
 
 const PE_CATHETER_SURGICAL_BACKUP_SAFETY_TERMS = [
@@ -29442,13 +29502,33 @@ function hasPeContraindicationSafetyCheck(checks: string[]): boolean {
   const hasBleedingSafety = PE_BLEEDING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasRenalContrastSafety = PE_RENAL_CONTRAST_SAFETY_TERMS.some((term) =>
+  const hasBaselineBloodCount = PE_BASELINE_BLOOD_COUNT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBaselineCoagulation = PE_BASELINE_COAGULATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBaselineHepatic = PE_BASELINE_HEPATIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRenalFunctionSafety = PE_RENAL_FUNCTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasContrastSafety = PE_CONTRAST_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasPregnancySafety = PE_PREGNANCY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasBleedingSafety && hasRenalContrastSafety && hasPregnancySafety;
+  return (
+    hasBleedingSafety &&
+    hasBaselineBloodCount &&
+    hasBaselineCoagulation &&
+    hasBaselineHepatic &&
+    hasRenalFunctionSafety &&
+    hasContrastSafety &&
+    hasPregnancySafety
+  );
 }
 
 function hasPeReperfusionEscalationSafetyCheck(checks: string[]): boolean {
@@ -29463,6 +29543,12 @@ function hasPeReperfusionEscalationSafetyCheck(checks: string[]): boolean {
     PE_SYSTEMIC_THROMBOLYSIS_HIGH_RISK_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
+  const hasIntermediateHighMonitoring = PE_INTERMEDIATE_HIGH_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNoRoutineThrombolysis = PE_NO_ROUTINE_THROMBOLYSIS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasCatheterSurgicalBackup = PE_CATHETER_SURGICAL_BACKUP_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -29479,6 +29565,8 @@ function hasPeReperfusionEscalationSafetyCheck(checks: string[]): boolean {
     hasAnticoagulationPlan &&
     hasSystemicThrombolysisReview &&
     hasSystemicThrombolysisHighRiskTrigger &&
+    hasIntermediateHighMonitoring &&
+    hasNoRoutineThrombolysis &&
     hasCatheterSurgicalBackup &&
     hasUnstableImagingLogic &&
     hasAlternativeImagingReview &&
@@ -32065,7 +32153,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasPeTimeCriticalActions,
       issue:
-        "PE time-critical actions must include risk stratification, hemodynamic or RV-strain assessment, and imaging or bedside-echo pathway plus therapeutic anticoagulation, a specific anticoagulant such as UFH/heparin/LMWH/DOAC, or thrombolysis/embolectomy action",
+        "PE time-critical actions must include risk stratification, hemodynamic or RV-strain assessment, and a specific CTPA, V/Q, or bedside-echo/bedside-ultrasound pathway plus therapeutic anticoagulation, a specific anticoagulant such as UFH/heparin/LMWH/DOAC, or thrombolysis/embolectomy action",
     },
     {
       name: "pe_contraindication_safety",
@@ -32074,7 +32162,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasPeContraindicationSafetyCheck,
       issue:
-        "PE safety checks must include bleeding or recent-surgery risk, renal/contrast safety, and pregnancy status when selecting imaging or anticoagulation",
+        "PE safety checks must include bleeding or recent-surgery risk, baseline FBC/CBC, platelet, renal, hepatic, PT, and aPTT labs, renal function, contrast-allergy or severe-renal-impairment CTPA safety, and pregnancy status when selecting imaging or anticoagulation",
     },
     {
       name: "pe_reperfusion_escalation_safety",
@@ -32083,7 +32171,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasPeReperfusionEscalationSafetyCheck,
       issue:
-        "PE reperfusion escalation safety checks must include anticoagulation initiation or contraindication planning, systemic thrombolysis indication review for high-risk PE with shock, persistent hypotension, cardiac arrest, or hemodynamic instability, catheter-directed therapy or surgical/catheter embolectomy backup when thrombolysis is contraindicated, unavailable, or fails, unstable-patient bedside echo or no-delay imaging logic, renal/contrast or pregnancy alternative imaging review, and PERT, ICU, transfer, or specialist escalation",
+        "PE reperfusion escalation safety checks must include anticoagulation initiation or contraindication planning with UFH/continuous UFH infusion for hemodynamically unstable PE, systemic thrombolysis indication review for high-risk PE with shock, persistent hypotension, cardiac arrest, or hemodynamic instability, intermediate-high PE monitoring with RV dysfunction and troponin/cardiac biomarker review, no routine primary systemic thrombolysis while hemodynamically stable, catheter-directed therapy or surgical/catheter embolectomy backup when thrombolysis is contraindicated, unavailable, or fails, unstable-patient bedside echo or no-delay imaging logic, renal/contrast or pregnancy alternative imaging review, and PERT, ICU, transfer, or specialist escalation",
     },
     {
       name: "acs_time_critical_actions",

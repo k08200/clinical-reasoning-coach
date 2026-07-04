@@ -16067,9 +16067,13 @@ PE_CONTEXT_TERMS = (
     "폐색전증",
 )
 PE_RISK_STRATIFICATION_TERMS = (
+    "clinical probability",
+    "high-risk",
     "massive",
+    "pesi",
     "risk stratification",
     "risk stratify",
+    "spesi",
     "submassive",
     "wells",
     "위험도",
@@ -16080,6 +16084,8 @@ PE_HEMODYNAMIC_TERMS = (
     "hemodynamic",
     "hypotension",
     "instability",
+    "rv dysfunction",
+    "rv/lv",
     "rv strain",
     "right ventricular",
     "shock",
@@ -16089,11 +16095,11 @@ PE_HEMODYNAMIC_TERMS = (
 )
 PE_IMAGING_PATHWAY_TERMS = (
     "bedside echo",
+    "bedside ultrasound",
     "ct pulmonary angiography",
     "ctpa",
-    "echo",
-    "imaging",
     "v/q",
+    "ventilation perfusion",
     "영상",
     "심초음파",
 )
@@ -16126,23 +16132,33 @@ PE_ANTICOAGULATION_OR_REPERFUSION_ACTION_TERMS = (
     "혈전용해",
 )
 PE_BLEEDING_SAFETY_TERMS = (
+    "active bleeding",
     "bleeding",
+    "intracranial hemorrhage",
+    "major bleeding",
+    "neuraxial",
+    "recent intracranial",
     "recent surgery",
     "surgery",
-    "thrombolysis",
     "출혈",
     "수술",
 )
-PE_RENAL_CONTRAST_SAFETY_TERMS = (
-    "contrast",
+PE_RENAL_FUNCTION_SAFETY_TERMS = (
     "creatinine",
     "egfr",
     "kidney",
     "renal",
-    "조영제",
     "크레아티닌",
     "신장",
     "콩팥",
+)
+PE_CONTRAST_SAFETY_TERMS = (
+    "contrast allergy",
+    "contrast media",
+    "contrast safety",
+    "ctpa unsafe",
+    "severe renal impairment",
+    "조영제",
 )
 PE_PREGNANCY_SAFETY_TERMS = (
     "hcg",
@@ -16154,10 +16170,30 @@ PE_ANTICOAGULATION_INITIATION_SAFETY_TERMS = (
     "anticoagulation",
     "anticoagulant",
     "contraindication",
+    "continuous ufh infusion",
     "heparin",
+    "heparin infusion",
     "lmwh",
     "unfractionated",
+    "ufh infusion",
+    "unfractionated heparin",
     "항응고",
+)
+PE_BASELINE_BLOOD_COUNT_SAFETY_TERMS = (
+    "cbc",
+    "fbc",
+    "full blood count",
+    "platelet",
+)
+PE_BASELINE_COAGULATION_SAFETY_TERMS = (
+    "activated partial thromboplastin time",
+    "aptt",
+    "pt",
+    "prothrombin time",
+)
+PE_BASELINE_HEPATIC_SAFETY_TERMS = (
+    "hepatic",
+    "liver",
 )
 PE_SYSTEMIC_THROMBOLYSIS_REVIEW_SAFETY_TERMS = (
     "alteplase",
@@ -16174,6 +16210,24 @@ PE_SYSTEMIC_THROMBOLYSIS_HIGH_RISK_SAFETY_TERMS = (
     "obstructive shock",
     "persistent hypotension",
     "shock",
+)
+PE_INTERMEDIATE_HIGH_MONITORING_SAFETY_TERMS = (
+    "bnp",
+    "cardiac biomarker",
+    "intermediate-high",
+    "positive troponin",
+    "rv dysfunction",
+    "rv strain",
+    "troponin",
+)
+PE_NO_ROUTINE_THROMBOLYSIS_SAFETY_TERMS = (
+    "avoid routine thrombolysis",
+    "do not offer systemic thrombolysis",
+    "do not routinely thrombolyse",
+    "no routine thrombolysis",
+    "reserve rescue thrombolysis",
+    "routine primary systemic thrombolysis is not recommended",
+    "stable pe no thrombolysis",
 )
 PE_CATHETER_SURGICAL_BACKUP_SAFETY_TERMS = (
     "catheter directed",
@@ -21065,9 +21119,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_pe_time_critical_actions,
             issue=(
                 "PE time-critical actions must include risk stratification, "
-                "hemodynamic or RV-strain assessment, and imaging or bedside-echo "
-                "pathway plus therapeutic anticoagulation, a specific anticoagulant "
-                "such as UFH/heparin/LMWH/DOAC, or thrombolysis/embolectomy action"
+                "hemodynamic or RV-strain assessment, and a specific CTPA, V/Q, "
+                "or bedside-echo/bedside-ultrasound pathway plus therapeutic "
+                "anticoagulation, a specific anticoagulant such as "
+                "UFH/heparin/LMWH/DOAC, or thrombolysis/embolectomy action"
             ),
         ),
         DomainSafetyGate(
@@ -21077,8 +21132,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_pe_contraindication_safety_check,
             issue=(
                 "PE safety checks must include bleeding or recent-surgery risk, "
-                "renal/contrast safety, and pregnancy status when selecting imaging "
-                "or anticoagulation"
+                "baseline FBC/CBC, platelet, renal, hepatic, PT, and aPTT labs, "
+                "renal function, contrast-allergy or severe-renal-impairment CTPA "
+                "safety, and pregnancy status when selecting imaging or "
+                "anticoagulation"
             ),
         ),
         DomainSafetyGate(
@@ -21088,14 +21145,18 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_pe_reperfusion_escalation_safety_check,
             issue=(
                 "PE reperfusion escalation safety checks must include "
-                "anticoagulation initiation or contraindication planning, "
+                "anticoagulation initiation or contraindication planning with "
+                "UFH/continuous UFH infusion for hemodynamically unstable PE, "
                 "systemic thrombolysis indication review for high-risk PE with "
                 "shock, persistent hypotension, cardiac arrest, or hemodynamic "
-                "instability, catheter-directed therapy or surgical/catheter "
-                "embolectomy backup when thrombolysis is contraindicated, "
-                "unavailable, or fails, unstable-patient bedside echo or no-delay "
-                "imaging logic, renal/contrast or pregnancy alternative imaging "
-                "review, and PERT, ICU, transfer, or specialist escalation"
+                "instability, intermediate-high PE monitoring with RV dysfunction "
+                "and troponin/cardiac biomarker review, no routine primary "
+                "systemic thrombolysis while hemodynamically stable, "
+                "catheter-directed therapy or surgical/catheter embolectomy "
+                "backup when thrombolysis is contraindicated, unavailable, or "
+                "fails, unstable-patient bedside echo or no-delay imaging logic, "
+                "renal/contrast or pregnancy alternative imaging review, and "
+                "PERT, ICU, transfer, or specialist escalation"
             ),
         ),
         DomainSafetyGate(
@@ -34879,15 +34940,39 @@ def _has_pe_contraindication_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in PE_BLEEDING_SAFETY_TERMS
     )
-    has_renal_contrast_safety = any(
+    has_baseline_blood_count = any(
         _contains_safety_term(normalized_checks, term)
-        for term in PE_RENAL_CONTRAST_SAFETY_TERMS
+        for term in PE_BASELINE_BLOOD_COUNT_SAFETY_TERMS
+    )
+    has_baseline_coagulation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_BASELINE_COAGULATION_SAFETY_TERMS
+    )
+    has_baseline_hepatic = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_BASELINE_HEPATIC_SAFETY_TERMS
+    )
+    has_renal_function_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_RENAL_FUNCTION_SAFETY_TERMS
+    )
+    has_contrast_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_CONTRAST_SAFETY_TERMS
     )
     has_pregnancy_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in PE_PREGNANCY_SAFETY_TERMS
     )
-    return has_bleeding_safety and has_renal_contrast_safety and has_pregnancy_safety
+    return (
+        has_bleeding_safety
+        and has_baseline_blood_count
+        and has_baseline_coagulation
+        and has_baseline_hepatic
+        and has_renal_function_safety
+        and has_contrast_safety
+        and has_pregnancy_safety
+    )
 
 
 def _has_pe_reperfusion_escalation_safety_check(checks: list[Any]) -> bool:
@@ -34903,6 +34988,14 @@ def _has_pe_reperfusion_escalation_safety_check(checks: list[Any]) -> bool:
     has_systemic_thrombolysis_high_risk_trigger = any(
         _contains_safety_term(normalized_checks, term)
         for term in PE_SYSTEMIC_THROMBOLYSIS_HIGH_RISK_SAFETY_TERMS
+    )
+    has_intermediate_high_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_INTERMEDIATE_HIGH_MONITORING_SAFETY_TERMS
+    )
+    has_no_routine_thrombolysis = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PE_NO_ROUTINE_THROMBOLYSIS_SAFETY_TERMS
     )
     has_catheter_surgical_backup = any(
         _contains_safety_term(normalized_checks, term)
@@ -34924,6 +35017,8 @@ def _has_pe_reperfusion_escalation_safety_check(checks: list[Any]) -> bool:
         has_anticoagulation_plan
         and has_systemic_thrombolysis_review
         and has_systemic_thrombolysis_high_risk_trigger
+        and has_intermediate_high_monitoring
+        and has_no_routine_thrombolysis
         and has_catheter_surgical_backup
         and has_unstable_imaging_logic
         and has_alternative_imaging_review
