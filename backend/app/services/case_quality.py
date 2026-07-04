@@ -7911,30 +7911,34 @@ SPINAL_EPIDURAL_ABSCESS_CONTEXT_TERMS = (
     "vertebral osteomyelitis with epidural extension",
     "척추 경막외 농양",
 )
-SPINAL_EPIDURAL_ABSCESS_PAIN_FEVER_RED_FLAG_TERMS = (
+SPINAL_EPIDURAL_ABSCESS_BACK_PAIN_RED_FLAG_TERMS = (
     "atraumatic back pain",
     "back pain",
+    "radicular pain",
+)
+SPINAL_EPIDURAL_ABSCESS_FEVER_TENDERNESS_RED_FLAG_TERMS = (
     "fever",
     "focal spine tenderness",
     "percussion tenderness",
-    "radicular pain",
     "spine tenderness",
 )
-SPINAL_EPIDURAL_ABSCESS_NEURO_RISK_RED_FLAG_TERMS = (
-    "bacteremia",
+SPINAL_EPIDURAL_ABSCESS_NEURO_RED_FLAG_TERMS = (
     "bladder",
     "bowel",
+    "neurologic deficit",
+    "saddle anesthesia",
+    "sensory",
+    "weakness",
+)
+SPINAL_EPIDURAL_ABSCESS_INFECTION_RISK_RED_FLAG_TERMS = (
+    "bacteremia",
     "diabetes",
     "immunosuppression",
     "iv drug",
     "ivdu",
-    "neurologic deficit",
     "recent infection",
     "recent spinal procedure",
-    "saddle anesthesia",
     "sepsis",
-    "sensory",
-    "weakness",
 )
 SPINAL_EPIDURAL_ABSCESS_MRI_MODALITY_TERMS = (
     "magnetic resonance",
@@ -7963,16 +7967,25 @@ SPINAL_EPIDURAL_ABSCESS_MRI_CONTRAST_TERMS = (
     "contrast mri",
     "gadolinium",
 )
-SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS = (
+SPINAL_EPIDURAL_ABSCESS_BLOOD_CULTURE_ACTION_TERMS = (
     "blood culture",
     "blood cultures",
+    "two sets",
+    "2 sets",
+    "혈액배양",
+)
+SPINAL_EPIDURAL_ABSCESS_INFLAMMATORY_MARKER_ACTION_TERMS = (
     "crp",
+    "esr",
+)
+SPINAL_EPIDURAL_ABSCESS_SOURCE_CULTURE_ACTION_TERMS = (
+    "aspiration",
+    "biopsy",
     "culture",
     "cultures",
-    "esr",
+    "intraoperative",
     "source culture",
     "배양",
-    "혈액배양",
 )
 SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_BASE_TERMS = (
     "antibiotic",
@@ -8012,39 +8025,64 @@ SPINAL_EPIDURAL_ABSCESS_SURGERY_ACTION_TERMS = (
     "수술 배농",
     "수술적 감압",
 )
-SPINAL_EPIDURAL_ABSCESS_NEURO_SEPSIS_SAFETY_TERMS = (
+SPINAL_EPIDURAL_ABSCESS_SPINE_SURGERY_CONSULT_ACTION_TERMS = (
+    "neurosurgery",
+    "spine surgery",
+    "spine surgeon",
+    "surgical consult",
+    "신경외과",
+)
+SPINAL_EPIDURAL_ABSCESS_SERIAL_NEURO_SAFETY_TERMS = (
+    "neurologic",
+    "neurological",
+    "serial exam",
+    "serial neurologic",
+    "serial neurological",
+    "신경",
+)
+SPINAL_EPIDURAL_ABSCESS_NEURO_DEFICIT_SAFETY_TERMS = (
     "bowel",
     "bladder",
-    "neurologic",
     "paralysis",
-    "sepsis",
-    "serial exam",
     "weakness",
-    "신경",
+)
+SPINAL_EPIDURAL_ABSCESS_SEPSIS_SAFETY_TERMS = (
+    "hemodynamic",
+    "sepsis",
+    "septic shock",
+    "unstable",
     "패혈증",
 )
-SPINAL_EPIDURAL_ABSCESS_RISK_SOURCE_SAFETY_TERMS = (
+SPINAL_EPIDURAL_ABSCESS_BACTEREMIA_SOURCE_SAFETY_TERMS = (
     "bacteremia",
-    "diabetes",
     "endocarditis",
-    "immunosuppression",
-    "iv drug",
-    "ivdu",
-    "recent spinal procedure",
     "source",
     "staphylococcus",
     "감염원",
 )
-SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS = (
+SPINAL_EPIDURAL_ABSCESS_HOST_PROCEDURE_RISK_SAFETY_TERMS = (
+    "diabetes",
+    "immunosuppression",
+    "iv drug",
+    "ivdu",
+    "recent spinal procedure",
+)
+SPINAL_EPIDURAL_ABSCESS_CULTURE_BEFORE_ANTIBIOTIC_SAFETY_TERMS = (
     "after blood cultures",
-    "biopsy",
     "blood culture",
     "culture before",
+    "배양",
+)
+SPINAL_EPIDURAL_ABSCESS_BIOPSY_STABLE_SAFETY_TERMS = (
+    "biopsy",
+    "aspiration",
+    "stable",
+)
+SPINAL_EPIDURAL_ABSCESS_DO_NOT_DELAY_ANTIBIOTIC_SAFETY_TERMS = (
     "do not delay",
     "empiric antibiotics",
     "neurologic compromise",
     "unstable",
-    "배양",
 )
 SPINAL_EPIDURAL_ABSCESS_LP_AVOIDANCE_SAFETY_TERMS = (
     "avoid lumbar puncture",
@@ -18667,9 +18705,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_spinal_epidural_abscess_time_critical_actions,
             issue=(
                 "spinal epidural abscess time-critical actions must include "
-                "urgent MRI spine or whole-spine imaging, blood cultures, ESR, "
-                "CRP, source cultures, or microbiology workup, empiric IV "
-                "antibiotics, and surgical drainage, surgical decompression, "
+                "urgent gadolinium or contrast MRI spine or whole-spine imaging, "
+                "two sets of blood cultures, ESR and CRP, source culture, biopsy, "
+                "aspiration, or intraoperative microbiology workup, empiric IV "
+                "antibiotics with vancomycin, ceftriaxone, cefepime, ceftazidime, "
+                "meropenem, or equivalent coverage when neurologic compromise or "
+                "sepsis is present, immediate neurosurgery or spine-surgery "
+                "consultation, and surgical drainage, surgical decompression, "
                 "laminectomy, operative drainage, or epidural-abscess evacuation"
             ),
         ),
@@ -18680,11 +18722,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_spinal_epidural_abscess_red_flags,
             issue=(
                 "spinal epidural abscess red flags must include atraumatic back "
-                "pain, radicular pain, fever, focal spine tenderness, or percussion "
-                "tenderness plus neurologic deficit, weakness, sensory change, "
-                "saddle anesthesia, bowel/bladder dysfunction, sepsis, bacteremia, "
-                "diabetes, IVDU, immunosuppression, recent infection, or recent "
-                "spinal procedure risk"
+                "pain or radicular pain plus fever, focal spine tenderness, or "
+                "percussion tenderness, plus neurologic deficit, weakness, sensory "
+                "change, saddle anesthesia, or bowel/bladder dysfunction, and "
+                "infection risk such as sepsis, bacteremia, diabetes, IVDU, "
+                "immunosuppression, recent infection, or recent spinal procedure"
             ),
         ),
         DomainSafetyGate(
@@ -18693,13 +18735,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="contraindication_checks",
             validator=_has_spinal_epidural_abscess_treatment_safety_check,
             issue=(
-                "spinal epidural abscess safety checks must include neurologic "
-                "deficit, bowel or bladder dysfunction, serial neurologic exams, "
-                "or sepsis monitoring, bacteremia, endocarditis, diabetes, IVDU, "
-                "immunosuppression, recent spinal procedure, staphylococcal, or "
-                "source-risk review, and culture-before-antibiotics, biopsy, "
-                "or do-not-delay empiric antibiotics for unstable or neurologic "
-                "compromise planning"
+                "spinal epidural abscess safety checks must include serial "
+                "neurologic exams, neurologic deficit or bowel/bladder dysfunction "
+                "monitoring, sepsis or hemodynamic-instability monitoring, "
+                "bacteremia, endocarditis, staphylococcal, or source-risk review, "
+                "diabetes, IVDU, immunosuppression, or recent spinal procedure "
+                "review, blood-culture-before-antibiotics planning, biopsy or "
+                "aspiration planning when stable, and do-not-delay empiric "
+                "antibiotics planning for unstable patient, sepsis, or neurologic "
+                "compromise"
             ),
         ),
         DomainSafetyGate(
@@ -27715,30 +27759,58 @@ def _requires_spinal_epidural_abscess_safety_check(data: dict[str, Any]) -> bool
 
 def _has_spinal_epidural_abscess_red_flags(red_flags: list[Any]) -> bool:
     normalized_red_flags = " ".join(str(red_flag).lower() for red_flag in red_flags)
-    has_pain_fever = any(
+    has_back_pain = any(
         _contains_safety_term(normalized_red_flags, term)
-        for term in SPINAL_EPIDURAL_ABSCESS_PAIN_FEVER_RED_FLAG_TERMS
+        for term in SPINAL_EPIDURAL_ABSCESS_BACK_PAIN_RED_FLAG_TERMS
     )
-    has_neuro_risk = any(
+    has_fever_tenderness = any(
         _contains_safety_term(normalized_red_flags, term)
-        for term in SPINAL_EPIDURAL_ABSCESS_NEURO_RISK_RED_FLAG_TERMS
+        for term in SPINAL_EPIDURAL_ABSCESS_FEVER_TENDERNESS_RED_FLAG_TERMS
     )
-    return has_pain_fever and has_neuro_risk
+    has_neuro_deficit = any(
+        _contains_safety_term(normalized_red_flags, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_NEURO_RED_FLAG_TERMS
+    )
+    has_infection_risk = any(
+        _contains_safety_term(normalized_red_flags, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_INFECTION_RISK_RED_FLAG_TERMS
+    )
+    return has_back_pain and has_fever_tenderness and has_neuro_deficit and has_infection_risk
 
 
 def _has_spinal_epidural_abscess_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
     has_mri = _has_spinal_epidural_abscess_urgent_mri_action(actions)
-    has_culture_lab = any(
+    has_blood_cultures = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS
+        for term in SPINAL_EPIDURAL_ABSCESS_BLOOD_CULTURE_ACTION_TERMS
+    )
+    has_inflammatory_markers = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_INFLAMMATORY_MARKER_ACTION_TERMS
+    )
+    has_source_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_SOURCE_CULTURE_ACTION_TERMS
     )
     has_antibiotic = _has_spinal_epidural_abscess_empiric_antibiotic_action(actions)
+    has_spine_surgery_consult = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_SPINE_SURGERY_CONSULT_ACTION_TERMS
+    )
     has_surgery = any(
         _contains_safety_term(normalized_actions, term)
         for term in SPINAL_EPIDURAL_ABSCESS_SURGERY_ACTION_TERMS
     )
-    return has_mri and has_culture_lab and has_antibiotic and has_surgery
+    return (
+        has_mri
+        and has_blood_cultures
+        and has_inflammatory_markers
+        and has_source_culture
+        and has_antibiotic
+        and has_spine_surgery_consult
+        and has_surgery
+    )
 
 
 def _has_spinal_epidural_abscess_urgent_mri_action(actions: list[Any]) -> bool:
@@ -27760,7 +27832,7 @@ def _has_spinal_epidural_abscess_urgent_mri_action(actions: list[Any]) -> bool:
             _contains_safety_term(normalized_action, term)
             for term in SPINAL_EPIDURAL_ABSCESS_MRI_CONTRAST_TERMS
         )
-        if has_modality and has_urgency and (has_region or has_contrast):
+        if has_modality and has_urgency and has_region and has_contrast:
             return True
     return False
 
@@ -27782,29 +27854,54 @@ def _has_spinal_epidural_abscess_empiric_antibiotic_action(
             _contains_safety_term(normalized_action, term)
             for term in SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_URGENCY_TERMS
         )
-        if has_specific_antibiotic or (has_base_antibiotic and has_urgency):
+        if has_base_antibiotic and has_specific_antibiotic and has_urgency:
             return True
     return False
 
 
 def _has_spinal_epidural_abscess_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_neuro_sepsis_safety = any(
+    has_serial_neuro_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SPINAL_EPIDURAL_ABSCESS_NEURO_SEPSIS_SAFETY_TERMS
+        for term in SPINAL_EPIDURAL_ABSCESS_SERIAL_NEURO_SAFETY_TERMS
     )
-    has_risk_source_safety = any(
+    has_neuro_deficit_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SPINAL_EPIDURAL_ABSCESS_RISK_SOURCE_SAFETY_TERMS
+        for term in SPINAL_EPIDURAL_ABSCESS_NEURO_DEFICIT_SAFETY_TERMS
     )
-    has_antibiotic_timing_safety = any(
+    has_sepsis_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS
+        for term in SPINAL_EPIDURAL_ABSCESS_SEPSIS_SAFETY_TERMS
+    )
+    has_bacteremia_source_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_BACTEREMIA_SOURCE_SAFETY_TERMS
+    )
+    has_host_procedure_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_HOST_PROCEDURE_RISK_SAFETY_TERMS
+    )
+    has_culture_before_antibiotic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_CULTURE_BEFORE_ANTIBIOTIC_SAFETY_TERMS
+    )
+    has_biopsy_stable_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_BIOPSY_STABLE_SAFETY_TERMS
+    )
+    has_do_not_delay_antibiotic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SPINAL_EPIDURAL_ABSCESS_DO_NOT_DELAY_ANTIBIOTIC_SAFETY_TERMS
     )
     return (
-        has_neuro_sepsis_safety
-        and has_risk_source_safety
-        and has_antibiotic_timing_safety
+        has_serial_neuro_safety
+        and has_neuro_deficit_safety
+        and has_sepsis_safety
+        and has_bacteremia_source_safety
+        and has_host_procedure_risk_safety
+        and has_culture_before_antibiotic_safety
+        and has_biopsy_stable_safety
+        and has_do_not_delay_antibiotic_safety
     )
 
 

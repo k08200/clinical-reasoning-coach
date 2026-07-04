@@ -8803,31 +8803,37 @@ const SPINAL_EPIDURAL_ABSCESS_CONTEXT_TERMS = [
   "척추 경막외 농양",
 ];
 
-const SPINAL_EPIDURAL_ABSCESS_PAIN_FEVER_RED_FLAG_TERMS = [
+const SPINAL_EPIDURAL_ABSCESS_BACK_PAIN_RED_FLAG_TERMS = [
   "atraumatic back pain",
   "back pain",
+  "radicular pain",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_FEVER_TENDERNESS_RED_FLAG_TERMS = [
   "fever",
   "focal spine tenderness",
   "percussion tenderness",
-  "radicular pain",
   "spine tenderness",
 ];
 
-const SPINAL_EPIDURAL_ABSCESS_NEURO_RISK_RED_FLAG_TERMS = [
-  "bacteremia",
+const SPINAL_EPIDURAL_ABSCESS_NEURO_RED_FLAG_TERMS = [
   "bladder",
   "bowel",
+  "neurologic deficit",
+  "saddle anesthesia",
+  "sensory",
+  "weakness",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_INFECTION_RISK_RED_FLAG_TERMS = [
+  "bacteremia",
   "diabetes",
   "immunosuppression",
   "iv drug",
   "ivdu",
-  "neurologic deficit",
   "recent infection",
   "recent spinal procedure",
-  "saddle anesthesia",
   "sepsis",
-  "sensory",
-  "weakness",
 ];
 
 const SPINAL_EPIDURAL_ABSCESS_MRI_MODALITY_TERMS = [
@@ -8861,16 +8867,27 @@ const SPINAL_EPIDURAL_ABSCESS_MRI_CONTRAST_TERMS = [
   "gadolinium",
 ];
 
-const SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS = [
+const SPINAL_EPIDURAL_ABSCESS_BLOOD_CULTURE_ACTION_TERMS = [
   "blood culture",
   "blood cultures",
+  "two sets",
+  "2 sets",
+  "혈액배양",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_INFLAMMATORY_MARKER_ACTION_TERMS = [
   "crp",
+  "esr",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_SOURCE_CULTURE_ACTION_TERMS = [
+  "aspiration",
+  "biopsy",
   "culture",
   "cultures",
-  "esr",
+  "intraoperative",
   "source culture",
   "배양",
-  "혈액배양",
 ];
 
 const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_BASE_TERMS = [
@@ -8915,41 +8932,72 @@ const SPINAL_EPIDURAL_ABSCESS_SURGERY_ACTION_TERMS = [
   "수술적 감압",
 ];
 
-const SPINAL_EPIDURAL_ABSCESS_NEURO_SEPSIS_SAFETY_TERMS = [
+const SPINAL_EPIDURAL_ABSCESS_SPINE_SURGERY_CONSULT_ACTION_TERMS = [
+  "neurosurgery",
+  "spine surgery",
+  "spine surgeon",
+  "surgical consult",
+  "신경외과",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_SERIAL_NEURO_SAFETY_TERMS = [
+  "neurologic",
+  "neurological",
+  "serial exam",
+  "serial neurologic",
+  "serial neurological",
+  "신경",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_NEURO_DEFICIT_SAFETY_TERMS = [
   "bowel",
   "bladder",
-  "neurologic",
   "paralysis",
-  "sepsis",
-  "serial exam",
   "weakness",
-  "신경",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_SEPSIS_SAFETY_TERMS = [
+  "hemodynamic",
+  "sepsis",
+  "septic shock",
+  "unstable",
   "패혈증",
 ];
 
-const SPINAL_EPIDURAL_ABSCESS_RISK_SOURCE_SAFETY_TERMS = [
+const SPINAL_EPIDURAL_ABSCESS_BACTEREMIA_SOURCE_SAFETY_TERMS = [
   "bacteremia",
-  "diabetes",
   "endocarditis",
-  "immunosuppression",
-  "iv drug",
-  "ivdu",
-  "recent spinal procedure",
   "source",
   "staphylococcus",
   "감염원",
 ];
 
-const SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS = [
+const SPINAL_EPIDURAL_ABSCESS_HOST_PROCEDURE_RISK_SAFETY_TERMS = [
+  "diabetes",
+  "immunosuppression",
+  "iv drug",
+  "ivdu",
+  "recent spinal procedure",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_CULTURE_BEFORE_ANTIBIOTIC_SAFETY_TERMS = [
   "after blood cultures",
-  "biopsy",
   "blood culture",
   "culture before",
+  "배양",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_BIOPSY_STABLE_SAFETY_TERMS = [
+  "biopsy",
+  "aspiration",
+  "stable",
+];
+
+const SPINAL_EPIDURAL_ABSCESS_DO_NOT_DELAY_ANTIBIOTIC_SAFETY_TERMS = [
   "do not delay",
   "empiric antibiotics",
   "neurologic compromise",
   "unstable",
-  "배양",
 ];
 
 const SPINAL_EPIDURAL_ABSCESS_LP_AVOIDANCE_SAFETY_TERMS = [
@@ -23673,26 +23721,49 @@ function requiresSpinalEpiduralAbscessSafetyCheck(detail: ClinicalCaseReviewDeta
 
 function hasSpinalEpiduralAbscessRedFlags(redFlags: string[]): boolean {
   const normalizedRedFlags = redFlags.join(" ").toLowerCase();
-  const hasPainFever = SPINAL_EPIDURAL_ABSCESS_PAIN_FEVER_RED_FLAG_TERMS.some((term) =>
+  const hasBackPain = SPINAL_EPIDURAL_ABSCESS_BACK_PAIN_RED_FLAG_TERMS.some((term) =>
     containsSafetyTerm(normalizedRedFlags, term),
   );
-  const hasNeuroRisk = SPINAL_EPIDURAL_ABSCESS_NEURO_RISK_RED_FLAG_TERMS.some((term) =>
+  const hasFeverTenderness = SPINAL_EPIDURAL_ABSCESS_FEVER_TENDERNESS_RED_FLAG_TERMS.some((term) =>
     containsSafetyTerm(normalizedRedFlags, term),
   );
-  return hasPainFever && hasNeuroRisk;
+  const hasNeuroDeficit = SPINAL_EPIDURAL_ABSCESS_NEURO_RED_FLAG_TERMS.some((term) =>
+    containsSafetyTerm(normalizedRedFlags, term),
+  );
+  const hasInfectionRisk = SPINAL_EPIDURAL_ABSCESS_INFECTION_RISK_RED_FLAG_TERMS.some((term) =>
+    containsSafetyTerm(normalizedRedFlags, term),
+  );
+  return hasBackPain && hasFeverTenderness && hasNeuroDeficit && hasInfectionRisk;
 }
 
 function hasSpinalEpiduralAbscessTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
   const hasMri = hasSpinalEpiduralAbscessUrgentMriAction(actions);
-  const hasCultureLab = SPINAL_EPIDURAL_ABSCESS_CULTURE_LAB_ACTION_TERMS.some((term) =>
+  const hasBloodCultures = SPINAL_EPIDURAL_ABSCESS_BLOOD_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasInflammatoryMarkers = SPINAL_EPIDURAL_ABSCESS_INFLAMMATORY_MARKER_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSourceCulture = SPINAL_EPIDURAL_ABSCESS_SOURCE_CULTURE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasAntibiotic = hasSpinalEpiduralAbscessEmpiricAntibioticAction(actions);
+  const hasSpineSurgeryConsult = SPINAL_EPIDURAL_ABSCESS_SPINE_SURGERY_CONSULT_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
   const hasSurgery = SPINAL_EPIDURAL_ABSCESS_SURGERY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasMri && hasCultureLab && hasAntibiotic && hasSurgery;
+  return (
+    hasMri &&
+    hasBloodCultures &&
+    hasInflammatoryMarkers &&
+    hasSourceCulture &&
+    hasAntibiotic &&
+    hasSpineSurgeryConsult &&
+    hasSurgery
+  );
 }
 
 function hasSpinalEpiduralAbscessUrgentMriAction(actions: string[]): boolean {
@@ -23710,7 +23781,7 @@ function hasSpinalEpiduralAbscessUrgentMriAction(actions: string[]): boolean {
     const hasContrast = SPINAL_EPIDURAL_ABSCESS_MRI_CONTRAST_TERMS.some((term) =>
       containsSafetyTerm(normalizedAction, term),
     );
-    return hasModality && hasUrgency && (hasRegion || hasContrast);
+    return hasModality && hasUrgency && hasRegion && hasContrast;
   });
 }
 
@@ -23726,23 +23797,50 @@ function hasSpinalEpiduralAbscessEmpiricAntibioticAction(actions: string[]): boo
     const hasUrgency = SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_URGENCY_TERMS.some((term) =>
       containsSafetyTerm(normalizedAction, term),
     );
-    return hasSpecificAntibiotic || (hasBaseAntibiotic && hasUrgency);
+    return hasBaseAntibiotic && hasSpecificAntibiotic && hasUrgency;
   });
 }
 
 function hasSpinalEpiduralAbscessTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasNeuroSepsisSafety = SPINAL_EPIDURAL_ABSCESS_NEURO_SEPSIS_SAFETY_TERMS.some(
+  const hasSerialNeuroSafety = SPINAL_EPIDURAL_ABSCESS_SERIAL_NEURO_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasRiskSourceSafety = SPINAL_EPIDURAL_ABSCESS_RISK_SOURCE_SAFETY_TERMS.some((term) =>
+  const hasNeuroDeficitSafety = SPINAL_EPIDURAL_ABSCESS_NEURO_DEFICIT_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasAntibioticTimingSafety =
-    SPINAL_EPIDURAL_ABSCESS_ANTIBIOTIC_TIMING_SAFETY_TERMS.some((term) =>
+  const hasSepsisSafety = SPINAL_EPIDURAL_ABSCESS_SEPSIS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBacteremiaSourceSafety =
+    SPINAL_EPIDURAL_ABSCESS_BACTEREMIA_SOURCE_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  return hasNeuroSepsisSafety && hasRiskSourceSafety && hasAntibioticTimingSafety;
+  const hasHostProcedureRiskSafety =
+    SPINAL_EPIDURAL_ABSCESS_HOST_PROCEDURE_RISK_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCultureBeforeAntibioticSafety =
+    SPINAL_EPIDURAL_ABSCESS_CULTURE_BEFORE_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasBiopsyStableSafety = SPINAL_EPIDURAL_ABSCESS_BIOPSY_STABLE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDoNotDelayAntibioticSafety =
+    SPINAL_EPIDURAL_ABSCESS_DO_NOT_DELAY_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasSerialNeuroSafety &&
+    hasNeuroDeficitSafety &&
+    hasSepsisSafety &&
+    hasBacteremiaSourceSafety &&
+    hasHostProcedureRiskSafety &&
+    hasCultureBeforeAntibioticSafety &&
+    hasBiopsyStableSafety &&
+    hasDoNotDelayAntibioticSafety
+  );
 }
 
 function hasSpinalEpiduralAbscessLpDrainageAntibioticSafetyCheck(checks: string[]): boolean {
@@ -30532,7 +30630,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSpinalEpiduralAbscessTimeCriticalActions,
       issue:
-        "spinal epidural abscess time-critical actions must include urgent MRI spine or whole-spine imaging, blood cultures, ESR, CRP, source cultures, or microbiology workup, empiric IV antibiotics, and surgical drainage, surgical decompression, laminectomy, operative drainage, or epidural-abscess evacuation",
+        "spinal epidural abscess time-critical actions must include urgent gadolinium or contrast MRI spine or whole-spine imaging, two sets of blood cultures, ESR and CRP, source culture, biopsy, aspiration, or intraoperative microbiology workup, empiric IV antibiotics with vancomycin, ceftriaxone, cefepime, ceftazidime, meropenem, or equivalent coverage when neurologic compromise or sepsis is present, immediate neurosurgery or spine-surgery consultation, and surgical drainage, surgical decompression, laminectomy, operative drainage, or epidural-abscess evacuation",
     },
     {
       name: "spinal_epidural_abscess_red_flags",
@@ -30541,7 +30639,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "clinical_red_flags",
       validator: hasSpinalEpiduralAbscessRedFlags,
       issue:
-        "spinal epidural abscess red flags must include atraumatic back pain, radicular pain, fever, focal spine tenderness, or percussion tenderness plus neurologic deficit, weakness, sensory change, saddle anesthesia, bowel/bladder dysfunction, sepsis, bacteremia, diabetes, IVDU, immunosuppression, recent infection, or recent spinal procedure risk",
+        "spinal epidural abscess red flags must include atraumatic back pain or radicular pain plus fever, focal spine tenderness, or percussion tenderness, plus neurologic deficit, weakness, sensory change, saddle anesthesia, or bowel/bladder dysfunction, and infection risk such as sepsis, bacteremia, diabetes, IVDU, immunosuppression, recent infection, or recent spinal procedure",
     },
     {
       name: "spinal_epidural_abscess_treatment_safety",
@@ -30550,7 +30648,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSpinalEpiduralAbscessTreatmentSafetyCheck,
       issue:
-        "spinal epidural abscess safety checks must include neurologic deficit, bowel or bladder dysfunction, serial neurologic exams, or sepsis monitoring, bacteremia, endocarditis, diabetes, IVDU, immunosuppression, recent spinal procedure, staphylococcal, or source-risk review, and culture-before-antibiotics, biopsy, or do-not-delay empiric antibiotics for unstable or neurologic compromise planning",
+        "spinal epidural abscess safety checks must include serial neurologic exams, neurologic deficit or bowel/bladder dysfunction monitoring, sepsis or hemodynamic-instability monitoring, bacteremia, endocarditis, staphylococcal, or source-risk review, diabetes, IVDU, immunosuppression, or recent spinal procedure review, blood-culture-before-antibiotics planning, biopsy or aspiration planning when stable, and do-not-delay empiric antibiotics planning for unstable patient, sepsis, or neurologic compromise",
     },
     {
       name: "spinal_epidural_abscess_lp_drainage_antibiotic_safety",
