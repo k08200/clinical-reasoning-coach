@@ -12815,21 +12815,40 @@ const RHABDOMYOLYSIS_SEVERE_RISK_TERMS = [
 
 const RHABDOMYOLYSIS_CK_MYOGLOBIN_ACTION_TERMS = [
   "ck",
-  "cPK",
+  "cpk",
   "creatine kinase",
   "myoglobin",
   "myoglobinuria",
   "urinalysis",
 ];
 
-const RHABDOMYOLYSIS_FLUID_ACTION_TERMS = [
+const RHABDOMYOLYSIS_CK_TREND_ACTION_TERMS = [
+  "ck trend",
+  "cpk trend",
+  "creatine kinase trend",
+  "daily ck",
+  "down-trending",
+  "downtrending",
+  "serial ck",
+  "trend ck",
+];
+
+const RHABDOMYOLYSIS_ISOTONIC_FLUID_ACTION_TERMS = [
   "crystalloid",
-  "fluid",
-  "hydration",
   "isotonic saline",
+  "isotonic crystalloid",
   "iv fluids",
   "lactated ringer",
   "normal saline",
+];
+
+const RHABDOMYOLYSIS_RESUSCITATION_FLUID_ACTION_TERMS = [
+  "aggressive",
+  "fluid resuscitation",
+  "hydration",
+  "iv fluid resuscitation",
+  "renal perfusion",
+  "resuscitation",
 ];
 
 const RHABDOMYOLYSIS_URINE_MONITORING_ACTION_TERMS = [
@@ -12857,12 +12876,16 @@ const RHABDOMYOLYSIS_URINE_OUTPUT_TARGET_ACTION_TERMS = [
 ];
 
 const RHABDOMYOLYSIS_ELECTROLYTE_ECG_ACTION_TERMS = [
-  "calcium",
   "ecg",
   "electrolyte",
   "hyperkalemia",
-  "phosphate",
   "potassium",
+];
+
+const RHABDOMYOLYSIS_CALCIUM_PHOSPHATE_ACTION_TERMS = [
+  "calcium",
+  "phosphate",
+  "phosphorus",
 ];
 
 const RHABDOMYOLYSIS_CAUSE_COMPLICATION_ACTION_TERMS = [
@@ -12882,22 +12905,41 @@ const RHABDOMYOLYSIS_VOLUME_RENAL_SAFETY_TERMS = [
   "volume overload",
 ];
 
-const RHABDOMYOLYSIS_BICARB_MANNITOL_SAFETY_TERMS = [
+const RHABDOMYOLYSIS_BICARB_PH_SAFETY_TERMS = [
   "alkalinization",
   "bicarbonate",
+  "serum ph",
+  "urine ph",
+];
+
+const RHABDOMYOLYSIS_BICARB_LIMIT_SAFETY_TERMS = [
+  "calcium phosphate",
+  "ph 7.5",
+  "serum ph 7.5",
+  "urine ph",
+];
+
+const RHABDOMYOLYSIS_MANNITOL_DIURETIC_SAFETY_TERMS = [
+  "diuretic",
+  "loop diuretic",
   "mannitol",
   "oliguria",
-  "ph 7.5",
-  "urine ph",
+  "volume overload",
 ];
 
 const RHABDOMYOLYSIS_DIALYSIS_SAFETY_TERMS = [
   "anuric",
   "dialysis",
   "hemodialysis",
+  "nephrology",
+  "renal replacement",
+];
+
+const RHABDOMYOLYSIS_DIALYSIS_INDICATION_SAFETY_TERMS = [
   "refractory hyperkalemia",
   "severe acidosis",
   "uremia",
+  "volume overload",
 ];
 
 const RHABDOMYOLYSIS_CALCIUM_ELECTROLYTE_SAFETY_TERMS = [
@@ -26745,7 +26787,13 @@ function hasRhabdomyolysisTimeCriticalActions(actions: string[]): boolean {
   const hasCkMyoglobin = RHABDOMYOLYSIS_CK_MYOGLOBIN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasFluid = RHABDOMYOLYSIS_FLUID_ACTION_TERMS.some((term) =>
+  const hasCkTrend = RHABDOMYOLYSIS_CK_TREND_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIsotonicFluid = RHABDOMYOLYSIS_ISOTONIC_FLUID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasResuscitationFluid = RHABDOMYOLYSIS_RESUSCITATION_FLUID_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasUrineMonitoring = RHABDOMYOLYSIS_URINE_MONITORING_ACTION_TERMS.some(
@@ -26757,15 +26805,21 @@ function hasRhabdomyolysisTimeCriticalActions(actions: string[]): boolean {
   const hasElectrolyteEcg = RHABDOMYOLYSIS_ELECTROLYTE_ECG_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasCalciumPhosphate = RHABDOMYOLYSIS_CALCIUM_PHOSPHATE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasCauseComplication = RHABDOMYOLYSIS_CAUSE_COMPLICATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   return (
     hasCkMyoglobin &&
-    hasFluid &&
+    hasCkTrend &&
+    hasIsotonicFluid &&
+    hasResuscitationFluid &&
     hasUrineMonitoring &&
     hasUrineOutputTarget &&
     hasElectrolyteEcg &&
+    hasCalciumPhosphate &&
     hasCauseComplication
   );
 }
@@ -26775,11 +26829,20 @@ function hasRhabdomyolysisTreatmentSafetyCheck(checks: string[]): boolean {
   const hasVolumeRenalSafety = RHABDOMYOLYSIS_VOLUME_RENAL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasBicarbMannitolSafety = RHABDOMYOLYSIS_BICARB_MANNITOL_SAFETY_TERMS.some(
+  const hasBicarbPhSafety = RHABDOMYOLYSIS_BICARB_PH_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBicarbLimitSafety = RHABDOMYOLYSIS_BICARB_LIMIT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMannitolDiureticSafety = RHABDOMYOLYSIS_MANNITOL_DIURETIC_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasDialysisSafety = RHABDOMYOLYSIS_DIALYSIS_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDialysisIndicationSafety = RHABDOMYOLYSIS_DIALYSIS_INDICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasCalciumElectrolyteSafety = RHABDOMYOLYSIS_CALCIUM_ELECTROLYTE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
@@ -26789,8 +26852,11 @@ function hasRhabdomyolysisTreatmentSafetyCheck(checks: string[]): boolean {
   );
   return (
     hasVolumeRenalSafety &&
-    hasBicarbMannitolSafety &&
+    hasBicarbPhSafety &&
+    hasBicarbLimitSafety &&
+    hasMannitolDiureticSafety &&
     hasDialysisSafety &&
+    hasDialysisIndicationSafety &&
     hasCalciumElectrolyteSafety &&
     hasCompartmentDicSafety
   );
@@ -31853,7 +31919,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasRhabdomyolysisTimeCriticalActions,
       issue:
-        "rhabdomyolysis time-critical actions must include CK, CPK, creatine-kinase, myoglobin, myoglobinuria, or urinalysis assessment, isotonic crystalloid, normal saline, lactated Ringer, hydration, fluid, or IV-fluid resuscitation, urine-output or Foley monitoring plus a 200-300 mL/hour or goal-directed urine-output target, electrolyte, potassium, hyperkalemia, calcium, phosphate, or ECG assessment, and cause or complication control including crush, trauma, offending-agent removal, stop-statin, compartment, or DIC review",
+        "rhabdomyolysis time-critical actions must include CK, CPK, creatine-kinase, myoglobin, myoglobinuria, or urinalysis assessment with CK, CPK, or creatine-kinase trend monitoring, isotonic crystalloid, normal saline, lactated Ringer, or IV fluids with aggressive hydration or fluid-resuscitation planning, urine-output or Foley monitoring plus a 200-300 mL/hour or goal-directed urine-output target, potassium, hyperkalemia, electrolyte, or ECG assessment plus calcium or phosphate review, and cause or complication control including crush, trauma, offending-agent removal, stop-statin, compartment, or DIC review",
     },
     {
       name: "rhabdomyolysis_treatment_safety",
@@ -31862,7 +31928,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasRhabdomyolysisTreatmentSafetyCheck,
       issue:
-        "rhabdomyolysis safety checks must include renal, AKI, volume-overload, or fluid-overload monitoring, bicarbonate, alkalinization, urine-pH, pH-7.5, mannitol, oliguria, or diuretic-limit safety, dialysis or hemodialysis indications for anuria, refractory hyperkalemia, severe acidosis, uremia, or volume overload, potassium, hyperkalemia, hypocalcemia, hypercalcemia, or calcium-caution electrolyte safety, and compartment-syndrome, neurovascular, fasciotomy, DIC, platelet, or PT complication monitoring",
+        "rhabdomyolysis safety checks must include renal, AKI, volume-overload, or fluid-overload monitoring, bicarbonate or alkalinization pH safeguards such as urine pH, serum pH, pH 7.5, or calcium-phosphate precipitation review, mannitol or diuretic safety for oliguria, AKI, or volume overload, dialysis, hemodialysis, nephrology, or renal-replacement planning with indications such as refractory hyperkalemia, severe acidosis, uremia, or volume overload, potassium, hyperkalemia, hypocalcemia, hypercalcemia, or calcium-caution electrolyte safety, and compartment-syndrome, neurovascular, fasciotomy, DIC, platelet, or PT complication monitoring",
     },
     {
       name: "hypercalcemia_time_critical_actions",

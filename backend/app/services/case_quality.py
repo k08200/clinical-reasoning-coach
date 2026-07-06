@@ -11546,20 +11546,37 @@ RHABDOMYOLYSIS_SEVERE_RISK_TERMS = (
 )
 RHABDOMYOLYSIS_CK_MYOGLOBIN_ACTION_TERMS = (
     "ck",
-    "cPK",
+    "cpk",
     "creatine kinase",
     "myoglobin",
     "myoglobinuria",
     "urinalysis",
 )
-RHABDOMYOLYSIS_FLUID_ACTION_TERMS = (
+RHABDOMYOLYSIS_CK_TREND_ACTION_TERMS = (
+    "ck trend",
+    "cpk trend",
+    "creatine kinase trend",
+    "daily ck",
+    "down-trending",
+    "downtrending",
+    "serial ck",
+    "trend ck",
+)
+RHABDOMYOLYSIS_ISOTONIC_FLUID_ACTION_TERMS = (
     "crystalloid",
-    "fluid",
-    "hydration",
     "isotonic saline",
+    "isotonic crystalloid",
     "iv fluids",
     "lactated ringer",
     "normal saline",
+)
+RHABDOMYOLYSIS_RESUSCITATION_FLUID_ACTION_TERMS = (
+    "aggressive",
+    "fluid resuscitation",
+    "hydration",
+    "iv fluid resuscitation",
+    "renal perfusion",
+    "resuscitation",
 )
 RHABDOMYOLYSIS_URINE_MONITORING_ACTION_TERMS = (
     "foley",
@@ -11584,12 +11601,15 @@ RHABDOMYOLYSIS_URINE_OUTPUT_TARGET_ACTION_TERMS = (
     "urine output target",
 )
 RHABDOMYOLYSIS_ELECTROLYTE_ECG_ACTION_TERMS = (
-    "calcium",
     "ecg",
     "electrolyte",
     "hyperkalemia",
-    "phosphate",
     "potassium",
+)
+RHABDOMYOLYSIS_CALCIUM_PHOSPHATE_ACTION_TERMS = (
+    "calcium",
+    "phosphate",
+    "phosphorus",
 )
 RHABDOMYOLYSIS_CAUSE_COMPLICATION_ACTION_TERMS = (
     "compartment",
@@ -11606,21 +11626,37 @@ RHABDOMYOLYSIS_VOLUME_RENAL_SAFETY_TERMS = (
     "renal",
     "volume overload",
 )
-RHABDOMYOLYSIS_BICARB_MANNITOL_SAFETY_TERMS = (
+RHABDOMYOLYSIS_BICARB_PH_SAFETY_TERMS = (
     "alkalinization",
     "bicarbonate",
+    "serum ph",
+    "urine ph",
+)
+RHABDOMYOLYSIS_BICARB_LIMIT_SAFETY_TERMS = (
+    "calcium phosphate",
+    "ph 7.5",
+    "serum ph 7.5",
+    "urine ph",
+)
+RHABDOMYOLYSIS_MANNITOL_DIURETIC_SAFETY_TERMS = (
+    "diuretic",
+    "loop diuretic",
     "mannitol",
     "oliguria",
-    "ph 7.5",
-    "urine ph",
+    "volume overload",
 )
 RHABDOMYOLYSIS_DIALYSIS_SAFETY_TERMS = (
     "anuric",
     "dialysis",
     "hemodialysis",
+    "nephrology",
+    "renal replacement",
+)
+RHABDOMYOLYSIS_DIALYSIS_INDICATION_SAFETY_TERMS = (
     "refractory hyperkalemia",
     "severe acidosis",
     "uremia",
+    "volume overload",
 )
 RHABDOMYOLYSIS_CALCIUM_ELECTROLYTE_SAFETY_TERMS = (
     "calcium caution",
@@ -20133,11 +20169,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "rhabdomyolysis time-critical actions must include CK, CPK, "
                 "creatine-kinase, myoglobin, myoglobinuria, or urinalysis "
-                "assessment, isotonic crystalloid, normal saline, lactated "
-                "Ringer, hydration, fluid, or IV-fluid resuscitation, urine-output "
-                "or Foley monitoring plus a 200-300 mL/hour or goal-directed "
-                "urine-output target, electrolyte, "
-                "potassium, hyperkalemia, calcium, phosphate, or ECG assessment, "
+                "assessment with CK, CPK, or creatine-kinase trend monitoring, "
+                "isotonic crystalloid, normal saline, lactated Ringer, or IV "
+                "fluids with aggressive hydration or fluid-resuscitation planning, "
+                "urine-output or Foley monitoring plus a 200-300 mL/hour or "
+                "goal-directed urine-output target, potassium, hyperkalemia, "
+                "electrolyte, or ECG assessment plus calcium or phosphate review, "
                 "and cause or complication control including crush, trauma, "
                 "offending-agent removal, stop-statin, compartment, or DIC review"
             ),
@@ -20149,11 +20186,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_rhabdomyolysis_treatment_safety_check,
             issue=(
                 "rhabdomyolysis safety checks must include renal, AKI, volume-"
-                "overload, or fluid-overload monitoring, bicarbonate, "
-                "alkalinization, urine-pH, pH-7.5, mannitol, oliguria, or "
-                "diuretic-limit safety, dialysis or hemodialysis indications for "
-                "anuria, refractory hyperkalemia, severe acidosis, uremia, or "
-                "volume overload, potassium, hyperkalemia, hypocalcemia, "
+                "overload, or fluid-overload monitoring, bicarbonate or "
+                "alkalinization pH safeguards such as urine pH, serum pH, pH 7.5, "
+                "or calcium-phosphate precipitation review, mannitol or diuretic "
+                "safety for oliguria, AKI, or volume overload, dialysis, "
+                "hemodialysis, nephrology, or renal-replacement planning with "
+                "indications such as refractory hyperkalemia, severe acidosis, "
+                "uremia, or volume overload, potassium, hyperkalemia, hypocalcemia, "
                 "hypercalcemia, or calcium-caution electrolyte safety, and "
                 "compartment-syndrome, neurovascular, fasciotomy, DIC, platelet, "
                 "or PT complication monitoring"
@@ -31443,9 +31482,17 @@ def _has_rhabdomyolysis_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in RHABDOMYOLYSIS_CK_MYOGLOBIN_ACTION_TERMS
     )
-    has_fluid = any(
+    has_ck_trend = any(
         _contains_safety_term(normalized_actions, term)
-        for term in RHABDOMYOLYSIS_FLUID_ACTION_TERMS
+        for term in RHABDOMYOLYSIS_CK_TREND_ACTION_TERMS
+    )
+    has_isotonic_fluid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RHABDOMYOLYSIS_ISOTONIC_FLUID_ACTION_TERMS
+    )
+    has_resuscitation_fluid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RHABDOMYOLYSIS_RESUSCITATION_FLUID_ACTION_TERMS
     )
     has_urine_monitoring = any(
         _contains_safety_term(normalized_actions, term)
@@ -31459,16 +31506,23 @@ def _has_rhabdomyolysis_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in RHABDOMYOLYSIS_ELECTROLYTE_ECG_ACTION_TERMS
     )
+    has_calcium_phosphate = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in RHABDOMYOLYSIS_CALCIUM_PHOSPHATE_ACTION_TERMS
+    )
     has_cause_complication = any(
         _contains_safety_term(normalized_actions, term)
         for term in RHABDOMYOLYSIS_CAUSE_COMPLICATION_ACTION_TERMS
     )
     return (
         has_ck_myoglobin
-        and has_fluid
+        and has_ck_trend
+        and has_isotonic_fluid
+        and has_resuscitation_fluid
         and has_urine_monitoring
         and has_urine_output_target
         and has_electrolyte_ecg
+        and has_calcium_phosphate
         and has_cause_complication
     )
 
@@ -31479,13 +31533,25 @@ def _has_rhabdomyolysis_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in RHABDOMYOLYSIS_VOLUME_RENAL_SAFETY_TERMS
     )
-    has_bicarb_mannitol_safety = any(
+    has_bicarb_ph_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in RHABDOMYOLYSIS_BICARB_MANNITOL_SAFETY_TERMS
+        for term in RHABDOMYOLYSIS_BICARB_PH_SAFETY_TERMS
+    )
+    has_bicarb_limit_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RHABDOMYOLYSIS_BICARB_LIMIT_SAFETY_TERMS
+    )
+    has_mannitol_diuretic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RHABDOMYOLYSIS_MANNITOL_DIURETIC_SAFETY_TERMS
     )
     has_dialysis_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in RHABDOMYOLYSIS_DIALYSIS_SAFETY_TERMS
+    )
+    has_dialysis_indication_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in RHABDOMYOLYSIS_DIALYSIS_INDICATION_SAFETY_TERMS
     )
     has_calcium_electrolyte_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -31497,8 +31563,11 @@ def _has_rhabdomyolysis_treatment_safety_check(checks: list[Any]) -> bool:
     )
     return (
         has_volume_renal_safety
-        and has_bicarb_mannitol_safety
+        and has_bicarb_ph_safety
+        and has_bicarb_limit_safety
+        and has_mannitol_diuretic_safety
         and has_dialysis_safety
+        and has_dialysis_indication_safety
         and has_calcium_electrolyte_safety
         and has_compartment_dic_safety
     )
