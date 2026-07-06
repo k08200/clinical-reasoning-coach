@@ -13008,15 +13008,42 @@ const HYPERCALCEMIA_ECG_RENAL_ACTION_TERMS = [
 
 const HYPERCALCEMIA_SALINE_ACTION_TERMS = [
   "0.9% saline",
-  "fluid",
-  "hydration",
   "isotonic saline",
   "normal saline",
-  "saline",
+];
+
+const HYPERCALCEMIA_VOLUME_TARGET_ACTION_TERMS = [
+  "100-150 ml/h",
+  "100-150 ml/hour",
+  "1 to 2 l",
+  "1-2 l",
+  "200-300 ml/h",
+  "200-300 ml/hour",
+  "euvolemia",
+  "fluid resuscitation",
+  "hydration",
+  "urine output",
+  "volume repletion",
 ];
 
 const HYPERCALCEMIA_CALCITONIN_ACTION_TERMS = [
   "calcitonin",
+];
+
+const HYPERCALCEMIA_CALCITONIN_BRIDGE_ACTION_TERMS = [
+  "bridge",
+  "bridging",
+  "early onset",
+  "faster",
+  "rapid onset",
+  "rapid-onset",
+];
+
+const HYPERCALCEMIA_CALCITONIN_TACHYPHYLAXIS_ACTION_TERMS = [
+  "24-48",
+  "48 hours",
+  "short duration",
+  "tachyphylaxis",
 ];
 
 const HYPERCALCEMIA_ANTIRESORPTIVE_ACTION_TERMS = [
@@ -13027,12 +13054,18 @@ const HYPERCALCEMIA_ANTIRESORPTIVE_ACTION_TERMS = [
   "zoledronate",
 ];
 
-const HYPERCALCEMIA_CAUSE_DIALYSIS_ACTION_TERMS = [
-  "dialysis",
+const HYPERCALCEMIA_CAUSE_ACTION_TERMS = [
   "malignancy",
   "pth",
   "pthrp",
   "vitamin d",
+];
+
+const HYPERCALCEMIA_DIALYSIS_ACTION_TERMS = [
+  "dialysis",
+  "hemodialysis",
+  "renal failure",
+  "refractory",
 ];
 
 const HYPERCALCEMIA_FLUID_SAFETY_TERMS = [
@@ -13040,6 +13073,13 @@ const HYPERCALCEMIA_FLUID_SAFETY_TERMS = [
   "heart failure",
   "renal",
   "volume overload",
+];
+
+const HYPERCALCEMIA_ELECTROLYTE_MONITORING_SAFETY_TERMS = [
+  "hypokalemia",
+  "hypomagnesemia",
+  "magnesium",
+  "potassium",
 ];
 
 const HYPERCALCEMIA_LOOP_DIURETIC_SAFETY_TERMS = [
@@ -26901,22 +26941,38 @@ function hasHypercalcemiaTimeCriticalActions(actions: string[]): boolean {
   const hasSaline = HYPERCALCEMIA_SALINE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasVolumeTarget = HYPERCALCEMIA_VOLUME_TARGET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasCalcitonin = HYPERCALCEMIA_CALCITONIN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCalcitoninBridge = HYPERCALCEMIA_CALCITONIN_BRIDGE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCalcitoninTachyphylaxis = HYPERCALCEMIA_CALCITONIN_TACHYPHYLAXIS_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
   );
   const hasAntiresorptive = HYPERCALCEMIA_ANTIRESORPTIVE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasCauseDialysis = HYPERCALCEMIA_CAUSE_DIALYSIS_ACTION_TERMS.some((term) =>
+  const hasCause = HYPERCALCEMIA_CAUSE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDialysis = HYPERCALCEMIA_DIALYSIS_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
     hasCalciumConfirmation &&
     hasEcgRenal &&
     hasSaline &&
+    hasVolumeTarget &&
     hasCalcitonin &&
+    hasCalcitoninBridge &&
+    hasCalcitoninTachyphylaxis &&
     hasAntiresorptive &&
-    hasCauseDialysis
+    hasCause &&
+    hasDialysis
   );
 }
 
@@ -26927,6 +26983,9 @@ function hasHypercalcemiaTreatmentSafetyCheck(checks: string[]): boolean {
   );
   const hasLoopDiureticSafety = HYPERCALCEMIA_LOOP_DIURETIC_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasElectrolyteMonitoring = HYPERCALCEMIA_ELECTROLYTE_MONITORING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasRenalAntiresorptiveSafety = HYPERCALCEMIA_RENAL_ANTIRESORPTIVE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
@@ -26940,6 +26999,7 @@ function hasHypercalcemiaTreatmentSafetyCheck(checks: string[]): boolean {
   return (
     hasFluidSafety &&
     hasLoopDiureticSafety &&
+    hasElectrolyteMonitoring &&
     hasRenalAntiresorptiveSafety &&
     hasOffendingAgentSafety &&
     hasRefractoryDialysisSafety
@@ -31937,7 +31997,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasHypercalcemiaTimeCriticalActions,
       issue:
-        "severe hypercalcemia time-critical actions must include serum, corrected, repeat, albumin-adjusted, or ionized calcium confirmation, ECG, short-QT, creatinine, BUN, kidney, or renal assessment, isotonic saline, normal saline, 0.9% saline, fluid, or hydration resuscitation, explicit calcitonin for rapid onset or tachyphylaxis-aware bridging, bisphosphonate, zoledronate, pamidronate, or denosumab antiresorptive therapy, and cause or dialysis planning for PTH, PTHrP, vitamin D, malignancy, refractory disease, or renal failure",
+        "severe hypercalcemia time-critical actions must include serum, corrected, repeat, albumin-adjusted, or ionized calcium confirmation, ECG, short-QT, creatinine, BUN, kidney, or renal assessment, isotonic saline, normal saline, or 0.9% saline plus volume repletion, fluid-resuscitation, euvolemia, urine-output, or 200-300 mL/hour planning, explicit calcitonin with rapid-onset bridging and tachyphylaxis or short-duration awareness, bisphosphonate, zoledronate, pamidronate, or denosumab antiresorptive therapy, cause evaluation for PTH, PTHrP, vitamin D, or malignancy, and dialysis planning for refractory disease or renal failure",
     },
     {
       name: "hypercalcemia_treatment_safety",
@@ -31946,7 +32006,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasHypercalcemiaTreatmentSafetyCheck,
       issue:
-        "severe hypercalcemia safety checks must include cardiac, heart-failure, renal, or volume-overload caution during saline hydration, loop-diuretic safety with furosemide only after rehydration, urine-output monitoring, or avoiding volume depletion, antiresorptive renal safety including severe renal impairment, denosumab alternative, vitamin D, or hypocalcemia risk, stopping or reviewing calcium supplements, vitamin D, vitamin A, thiazide, or lithium contributors, and refractory hypercalcemia dialysis planning for renal insufficiency or renal failure",
+        "severe hypercalcemia safety checks must include cardiac, heart-failure, renal, or volume-overload caution during saline hydration, loop-diuretic safety with furosemide only after rehydration, urine-output monitoring, or avoiding volume depletion, potassium, magnesium, hypokalemia, or hypomagnesemia monitoring during calciuresis, antiresorptive renal safety including severe renal impairment, denosumab alternative, vitamin D, or hypocalcemia risk, stopping or reviewing calcium supplements, vitamin D, vitamin A, thiazide, or lithium contributors, and refractory hypercalcemia dialysis planning for renal insufficiency or renal failure",
     },
     {
       name: "hypocalcemia_time_critical_actions",

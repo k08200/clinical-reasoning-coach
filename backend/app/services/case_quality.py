@@ -11718,14 +11718,38 @@ HYPERCALCEMIA_ECG_RENAL_ACTION_TERMS = (
 )
 HYPERCALCEMIA_SALINE_ACTION_TERMS = (
     "0.9% saline",
-    "fluid",
-    "hydration",
     "isotonic saline",
     "normal saline",
-    "saline",
+)
+HYPERCALCEMIA_VOLUME_TARGET_ACTION_TERMS = (
+    "100-150 ml/h",
+    "100-150 ml/hour",
+    "1 to 2 l",
+    "1-2 l",
+    "200-300 ml/h",
+    "200-300 ml/hour",
+    "euvolemia",
+    "fluid resuscitation",
+    "hydration",
+    "urine output",
+    "volume repletion",
 )
 HYPERCALCEMIA_CALCITONIN_ACTION_TERMS = (
     "calcitonin",
+)
+HYPERCALCEMIA_CALCITONIN_BRIDGE_ACTION_TERMS = (
+    "bridge",
+    "bridging",
+    "early onset",
+    "faster",
+    "rapid onset",
+    "rapid-onset",
+)
+HYPERCALCEMIA_CALCITONIN_TACHYPHYLAXIS_ACTION_TERMS = (
+    "24-48",
+    "48 hours",
+    "short duration",
+    "tachyphylaxis",
 )
 HYPERCALCEMIA_ANTIRESORPTIVE_ACTION_TERMS = (
     "bisphosphonate",
@@ -11734,18 +11758,29 @@ HYPERCALCEMIA_ANTIRESORPTIVE_ACTION_TERMS = (
     "zoledronic",
     "zoledronate",
 )
-HYPERCALCEMIA_CAUSE_DIALYSIS_ACTION_TERMS = (
-    "dialysis",
+HYPERCALCEMIA_CAUSE_ACTION_TERMS = (
     "malignancy",
     "pth",
     "pthrp",
     "vitamin d",
+)
+HYPERCALCEMIA_DIALYSIS_ACTION_TERMS = (
+    "dialysis",
+    "hemodialysis",
+    "renal failure",
+    "refractory",
 )
 HYPERCALCEMIA_FLUID_SAFETY_TERMS = (
     "cardiac",
     "heart failure",
     "renal",
     "volume overload",
+)
+HYPERCALCEMIA_ELECTROLYTE_MONITORING_SAFETY_TERMS = (
+    "hypokalemia",
+    "hypomagnesemia",
+    "magnesium",
+    "potassium",
 )
 HYPERCALCEMIA_LOOP_DIURETIC_SAFETY_TERMS = (
     "after rehydration",
@@ -20207,12 +20242,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "severe hypercalcemia time-critical actions must include serum, "
                 "corrected, repeat, albumin-adjusted, or ionized calcium "
                 "confirmation, ECG, short-QT, creatinine, BUN, kidney, or renal "
-                "assessment, isotonic saline, normal saline, 0.9% saline, fluid, "
-                "or hydration resuscitation, explicit calcitonin for rapid onset "
-                "or tachyphylaxis-aware bridging, bisphosphonate, zoledronate, "
-                "pamidronate, or denosumab antiresorptive therapy, and cause or "
-                "dialysis planning for PTH, PTHrP, vitamin D, malignancy, "
-                "refractory disease, or renal failure"
+                "assessment, isotonic saline, normal saline, or 0.9% saline plus "
+                "volume repletion, fluid-resuscitation, euvolemia, urine-output, "
+                "or 200-300 mL/hour planning, explicit calcitonin with rapid-onset "
+                "bridging and tachyphylaxis or short-duration awareness, "
+                "bisphosphonate, zoledronate, pamidronate, or denosumab "
+                "antiresorptive therapy, cause evaluation for PTH, PTHrP, vitamin "
+                "D, or malignancy, and dialysis planning for refractory disease "
+                "or renal failure"
             ),
         ),
         DomainSafetyGate(
@@ -20225,12 +20262,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "failure, renal, or volume-overload caution during saline "
                 "hydration, loop-diuretic safety with furosemide only after "
                 "rehydration, urine-output monitoring, or avoiding volume "
-                "depletion, antiresorptive renal safety including severe renal "
-                "impairment, denosumab alternative, vitamin D, or hypocalcemia "
-                "risk, stopping or reviewing calcium supplements, vitamin D, "
-                "vitamin A, thiazide, or lithium contributors, and refractory "
-                "hypercalcemia dialysis planning for renal insufficiency or renal "
-                "failure"
+                "depletion, potassium, magnesium, hypokalemia, or hypomagnesemia "
+                "monitoring during calciuresis, antiresorptive renal safety "
+                "including severe renal impairment, denosumab alternative, vitamin "
+                "D, or hypocalcemia risk, stopping or reviewing calcium "
+                "supplements, vitamin D, vitamin A, thiazide, or lithium "
+                "contributors, and refractory hypercalcemia dialysis planning for "
+                "renal insufficiency or renal failure"
             ),
         ),
         DomainSafetyGate(
@@ -31617,25 +31655,45 @@ def _has_hypercalcemia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in HYPERCALCEMIA_SALINE_ACTION_TERMS
     )
+    has_volume_target = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERCALCEMIA_VOLUME_TARGET_ACTION_TERMS
+    )
     has_calcitonin = any(
         _contains_safety_term(normalized_actions, term)
         for term in HYPERCALCEMIA_CALCITONIN_ACTION_TERMS
+    )
+    has_calcitonin_bridge = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERCALCEMIA_CALCITONIN_BRIDGE_ACTION_TERMS
+    )
+    has_calcitonin_tachyphylaxis = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERCALCEMIA_CALCITONIN_TACHYPHYLAXIS_ACTION_TERMS
     )
     has_antiresorptive = any(
         _contains_safety_term(normalized_actions, term)
         for term in HYPERCALCEMIA_ANTIRESORPTIVE_ACTION_TERMS
     )
-    has_cause_dialysis = any(
+    has_cause = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HYPERCALCEMIA_CAUSE_DIALYSIS_ACTION_TERMS
+        for term in HYPERCALCEMIA_CAUSE_ACTION_TERMS
+    )
+    has_dialysis = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERCALCEMIA_DIALYSIS_ACTION_TERMS
     )
     return (
         has_calcium_confirmation
         and has_ecg_renal
         and has_saline
+        and has_volume_target
         and has_calcitonin
+        and has_calcitonin_bridge
+        and has_calcitonin_tachyphylaxis
         and has_antiresorptive
-        and has_cause_dialysis
+        and has_cause
+        and has_dialysis
     )
 
 
@@ -31648,6 +31706,10 @@ def _has_hypercalcemia_treatment_safety_check(checks: list[Any]) -> bool:
     has_loop_diuretic_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in HYPERCALCEMIA_LOOP_DIURETIC_SAFETY_TERMS
+    )
+    has_electrolyte_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERCALCEMIA_ELECTROLYTE_MONITORING_SAFETY_TERMS
     )
     has_renal_antiresorptive_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -31664,6 +31726,7 @@ def _has_hypercalcemia_treatment_safety_check(checks: list[Any]) -> bool:
     return (
         has_fluid_safety
         and has_loop_diuretic_safety
+        and has_electrolyte_monitoring
         and has_renal_antiresorptive_safety
         and has_offending_agent_safety
         and has_refractory_dialysis_safety

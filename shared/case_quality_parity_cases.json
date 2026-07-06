@@ -5583,6 +5583,148 @@
     }
   },
   {
+    "name": "hypercalcemia_requires_calcitonin_bridge_and_tachyphylaxis_awareness",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "severe hypercalcemia time-critical actions must include serum"
+    ],
+    "overrides": {
+      "diagnosis": "Severe hypercalcemia of malignancy",
+      "chief_complaint": "Confusion, dehydration, and constipation",
+      "history_of_present_illness": "Patient with metastatic lung cancer presents with symptomatic hypercalcemia, confusion, dehydration, constipation, polyuria, corrected calcium 15.2 mg/dL, AKI, and short QT interval concerning for hypercalcemic crisis.",
+      "initial_labs": {
+        "corrected_calcium": "15.2 mg/dL",
+        "ionized_calcium": "1.78 mmol/L",
+        "creatinine": "2.0 mg/dL",
+        "bun": "44 mg/dL",
+        "phosphate": "2.1 mg/dL"
+      },
+      "key_teaching_points": [
+        "Severe hypercalcemia above 14 mg/dL with symptoms requires urgent calcium-lowering therapy",
+        "Volume repletion with isotonic saline is essential because most significant hypercalcemia is hypovolemic",
+        "Calcitonin provides faster calcium reduction while bisphosphonate or denosumab therapy takes longer"
+      ],
+      "clinical_red_flags": [
+        "Confusion, delirium, stupor, coma, dehydration, AKI, renal failure, arrhythmia, short QT, or shock",
+        "Calcium 15.2 mg/dL, malignancy, PTHrP excess, vitamin D toxicity, or renal insufficiency"
+      ],
+      "time_critical_actions": [
+        "Confirm serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+        "Obtain ECG for short QT and assess creatinine, BUN, kidney function, and renal status",
+        "Start 0.9% saline or normal saline hydration with isotonic saline fluid resuscitation and urine output monitoring",
+        "Give calcitonin",
+        "Start antiresorptive therapy with zoledronate, pamidronate, bisphosphonate, or denosumab",
+        "Send PTH, PTHrP, vitamin D studies, malignancy evaluation, and dialysis consult if refractory or renal failure develops"
+      ],
+      "contraindication_checks": [
+        "Use saline cautiously with cardiac disease, heart failure, renal impairment, and volume overload monitoring",
+        "Give loop diuretic such as furosemide only after rehydration with urine output monitoring and avoid volume depletion",
+        "Monitor potassium, magnesium, hypokalemia, and hypomagnesemia during calciuresis",
+        "Review bisphosphonate renal impairment; use denosumab alternative for severe renal impairment and correct vitamin D to prevent hypocalcemia",
+        "Stop calcium supplement, vitamin D, vitamin A, thiazide, lithium, and other offending contributors",
+        "Plan hemodialysis or dialysis for refractory hypercalcemia with renal insufficiency or renal failure"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hypercalcemia",
+          "organization": "Endotext / NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK279037/",
+          "supports": [
+            "severe hypercalcemia of malignancy diagnosis and risk stratification",
+            "symptomatic hypercalcemia with confusion, dehydration, constipation, polyuria, corrected calcium 15.2 mg/dL, AKI, and short QT interval",
+            "severe hypercalcemia above 14 mg/dL with symptoms requires urgent calcium-lowering therapy",
+            "volume repletion with isotonic saline is essential because most significant hypercalcemia is hypovolemic",
+            "calcitonin provides faster calcium reduction while bisphosphonate or denosumab therapy takes longer",
+            "confusion, delirium, stupor, coma, dehydration, AKI, renal failure, arrhythmia, short QT, or shock as red flags",
+            "calcium 15.2 mg/dL, malignancy, PTHrP excess, vitamin D toxicity, or renal insufficiency as severity markers",
+            "serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+            "ECG for short QT and creatinine, BUN, kidney function, and renal status",
+            "0.9% saline or normal saline hydration with isotonic saline fluid resuscitation and urine output monitoring",
+            "calcitonin",
+            "zoledronate, pamidronate, bisphosphonate, or denosumab antiresorptive therapy",
+            "PTH, PTHrP, vitamin D studies, malignancy evaluation, and dialysis consult if refractory or renal failure develops",
+            "saline caution with cardiac disease, heart failure, renal impairment, and volume overload monitoring",
+            "loop diuretic such as furosemide only after rehydration with urine output monitoring and avoid volume depletion",
+            "potassium, magnesium, hypokalemia, and hypomagnesemia monitoring during calciuresis",
+            "bisphosphonate renal impairment; denosumab alternative for severe renal impairment and vitamin D correction to prevent hypocalcemia",
+            "stop calcium supplement, vitamin D, vitamin A, thiazide, lithium, and other offending contributors",
+            "hemodialysis or dialysis for refractory hypercalcemia with renal insufficiency or renal failure"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "hypercalcemia_requires_calciuresis_electrolyte_monitoring",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "severe hypercalcemia safety checks must include cardiac"
+    ],
+    "overrides": {
+      "diagnosis": "Symptomatic hypercalcemia with renal failure",
+      "chief_complaint": "Delirium and vomiting",
+      "history_of_present_illness": "Patient taking calcium carbonate, vitamin D, thiazide, and lithium presents with symptomatic hypercalcemia, delirium, vomiting, dehydration, corrected calcium 14.8 mg/dL, renal failure, and short QT interval.",
+      "initial_labs": {
+        "corrected_calcium": "14.8 mg/dL",
+        "ionized_calcium": "1.72 mmol/L",
+        "creatinine": "3.4 mg/dL",
+        "bun": "62 mg/dL",
+        "pth": "pending"
+      },
+      "key_teaching_points": [
+        "Acute symptomatic hypercalcemia above 14 mg/dL requires urgent treatment",
+        "Saline restores euvolemia, calcitonin works quickly, and antiresorptive therapy reduces bone resorption",
+        "Renal failure or refractory hypercalcemia may require dialysis"
+      ],
+      "clinical_red_flags": [
+        "Delirium, confusion, coma, dehydration, AKI, renal failure, arrhythmia, short QT, or shock",
+        "Calcium carbonate, vitamin D, thiazide, lithium, malignancy, hyperparathyroidism, or granulomatous disease trigger"
+      ],
+      "time_critical_actions": [
+        "Confirm serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+        "Obtain ECG or EKG for short QT and assess creatinine, BUN, kidney function, and renal status",
+        "Start isotonic saline, normal saline, 0.9% saline hydration, fluid resuscitation, and urine output monitoring",
+        "Give calcitonin for rapid onset bridge while noting tachyphylaxis risk",
+        "Start antiresorptive therapy with zoledronate or pamidronate bisphosphonate; use denosumab if renal impairment limits bisphosphonate",
+        "Check PTH, PTHrP, vitamin D, malignancy causes, and arrange dialysis if refractory or renal failure worsens"
+      ],
+      "contraindication_checks": [
+        "Use saline cautiously with cardiac disease, heart failure, renal impairment, and volume overload monitoring",
+        "Give loop diuretic such as furosemide only after rehydration with urine output monitoring and avoid volume depletion",
+        "Review bisphosphonate renal impairment; use denosumab alternative for severe renal impairment and correct vitamin D to prevent hypocalcemia",
+        "Stop calcium supplement, vitamin D, vitamin A, thiazide, lithium, and other offending contributors",
+        "Plan hemodialysis or dialysis for refractory hypercalcemia with renal insufficiency or renal failure"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hypercalcemia",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/nephrology/electrolyte-disorders/hypercalcemia",
+          "supports": [
+            "symptomatic hypercalcemia with renal failure diagnosis and risk stratification",
+            "symptomatic hypercalcemia, delirium, vomiting, dehydration, corrected calcium 14.8 mg/dL, renal failure, and short QT interval",
+            "acute symptomatic hypercalcemia above 14 mg/dL requires urgent treatment",
+            "saline restores euvolemia, calcitonin works quickly, and antiresorptive therapy reduces bone resorption",
+            "renal failure or refractory hypercalcemia may require dialysis",
+            "delirium, confusion, coma, dehydration, AKI, renal failure, arrhythmia, short QT, or shock as red flags",
+            "calcium carbonate, vitamin D, thiazide, lithium, malignancy, hyperparathyroidism, or granulomatous disease trigger",
+            "serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+            "ECG or EKG for short QT and creatinine, BUN, kidney function, and renal status",
+            "isotonic saline, normal saline, 0.9% saline hydration, fluid resuscitation, and urine output monitoring",
+            "calcitonin for rapid onset bridge while noting tachyphylaxis risk",
+            "zoledronate or pamidronate bisphosphonate; denosumab if renal impairment limits bisphosphonate",
+            "PTH, PTHrP, vitamin D, malignancy causes, and dialysis if refractory or renal failure worsens",
+            "saline caution with cardiac disease, heart failure, renal impairment, and volume overload monitoring",
+            "loop diuretic such as furosemide only after rehydration with urine output monitoring and avoid volume depletion",
+            "bisphosphonate renal impairment; denosumab alternative for severe renal impairment and vitamin D correction to prevent hypocalcemia",
+            "stop calcium supplement, vitamin D, vitamin A, thiazide, lithium, and other offending contributors",
+            "hemodialysis or dialysis for refractory hypercalcemia with renal insufficiency or renal failure"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "hypocalcemia_requires_calcium_ecg_iv_calcium_infusion_and_cause_actions",
     "expected_passed": false,
     "expected_issue_substrings": [
