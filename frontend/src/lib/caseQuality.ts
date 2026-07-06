@@ -14802,20 +14802,29 @@ const SALICYLATE_TOXICITY_CONTEXT_TERMS = [
   "아스피린",
 ];
 
-const SALICYLATE_LEVEL_ACTION_TERMS = [
+const SALICYLATE_SERIAL_LEVEL_ACTION_TERMS = [
   "repeat level",
+  "serial level",
+];
+
+const SALICYLATE_LEVEL_ACTION_TERMS = [
   "salicylate concentration",
   "salicylate level",
-  "serial level",
   "살리실산 농도",
 ];
 
-const SALICYLATE_ACID_BASE_ACTION_TERMS = [
-  "abg",
+const SALICYLATE_ANION_GAP_ACTION_TERMS = [
   "anion gap",
+];
+
+const SALICYLATE_BLOOD_GAS_ACTION_TERMS = [
+  "abg",
   "blood gas",
-  "electrolyte",
   "vbg",
+];
+
+const SALICYLATE_ELECTROLYTE_ACTION_TERMS = [
+  "electrolyte",
 ];
 
 const SALICYLATE_DECONTAMINATION_ACTION_TERMS = [
@@ -14826,15 +14835,21 @@ const SALICYLATE_DECONTAMINATION_ACTION_TERMS = [
   "활성탄",
 ];
 
-const SALICYLATE_ALKALINIZATION_ACTION_TERMS = [
+const SALICYLATE_BICARBONATE_ACTION_TERMS = [
+  "bicarbonate",
+  "sodium bicarbonate",
+  "중탄산",
+];
+
+const SALICYLATE_URINE_ALKALINIZATION_ACTION_TERMS = [
   "alkaline diuresis",
   "alkalinization",
-  "bicarbonate",
-  "potassium",
-  "sodium bicarbonate",
   "urine ph",
   "urinary alkalinization",
-  "중탄산",
+];
+
+const SALICYLATE_POTASSIUM_ACTION_TERMS = [
+  "potassium",
 ];
 
 const SALICYLATE_TOXICOLOGY_ESCALATION_ACTION_TERMS = [
@@ -14852,7 +14867,12 @@ const SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS = [
   "혈액투석",
 ];
 
-const SALICYLATE_DIALYSIS_INDICATION_SAFETY_TERMS = [
+const SALICYLATE_DIALYSIS_REVIEW_SAFETY_TERMS = [
+  "dialysis indication",
+  "hemodialysis indication",
+];
+
+const SALICYLATE_DIALYSIS_SEVERITY_SAFETY_TERMS = [
   "acidemia",
   "altered mental status",
   "high level",
@@ -14865,20 +14885,25 @@ const SALICYLATE_DIALYSIS_INDICATION_SAFETY_TERMS = [
   "투석",
 ];
 
-const SALICYLATE_INTUBATION_PH_SAFETY_TERMS = [
-  "bicarbonate bolus",
-  "hyperventilation",
+const SALICYLATE_AIRWAY_VENTILATION_SAFETY_TERMS = [
   "intubation",
   "mechanical ventilation",
-  "ph",
-  "respiratory alkalosis",
   "ventilator",
   "삽관",
 ];
 
-const SALICYLATE_ALKALINIZATION_TARGET_SAFETY_TERMS = [
+const SALICYLATE_PH_PRESERVATION_SAFETY_TERMS = [
+  "bicarbonate bolus",
+  "hyperventilation",
+  "ph",
+  "respiratory alkalosis",
+];
+
+const SALICYLATE_SERUM_PH_SAFETY_TERMS = [
   "serum ph",
-  "urine output",
+];
+
+const SALICYLATE_URINE_PH_TARGET_SAFETY_TERMS = [
   "urine ph",
   "urine ph 7.5",
   "urine ph 7.5 to 8",
@@ -14887,17 +14912,27 @@ const SALICYLATE_ALKALINIZATION_TARGET_SAFETY_TERMS = [
   "urinary ph 7.5 to 8",
 ];
 
-const SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS = [
-  "cerebral edema",
-  "glucose",
-  "hypoglycemia",
+const SALICYLATE_URINE_OUTPUT_SAFETY_TERMS = [
+  "urine output",
+];
+
+const SALICYLATE_POTASSIUM_SAFETY_TERMS = [
   "hypokalemia",
   "potassium",
+  "칼륨",
+];
+
+const SALICYLATE_GLUCOSE_SAFETY_TERMS = [
+  "glucose",
+  "hypoglycemia",
+  "혈당",
+];
+
+const SALICYLATE_TEMPERATURE_EDEMA_SAFETY_TERMS = [
+  "cerebral edema",
   "pulmonary edema",
   "temperature",
   "전해질",
-  "칼륨",
-  "혈당",
 ];
 
 const CARBON_MONOXIDE_CONTEXT_TERMS = [
@@ -28157,16 +28192,31 @@ function requiresSalicylateToxicitySafetyCheck(detail: ClinicalCaseReviewDetail)
 
 function hasSalicylateToxicityTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
+  const hasSerialLevelAction = SALICYLATE_SERIAL_LEVEL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasSalicylateLevelAction = SALICYLATE_LEVEL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAcidBaseAction = SALICYLATE_ACID_BASE_ACTION_TERMS.some((term) =>
+  const hasAnionGapAction = SALICYLATE_ANION_GAP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodGasAction = SALICYLATE_BLOOD_GAS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasElectrolyteAction = SALICYLATE_ELECTROLYTE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasDecontaminationAction = SALICYLATE_DECONTAMINATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAlkalinizationAction = SALICYLATE_ALKALINIZATION_ACTION_TERMS.some((term) =>
+  const hasBicarbonateAction = SALICYLATE_BICARBONATE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUrineAlkalinizationAction = SALICYLATE_URINE_ALKALINIZATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPotassiumAction = SALICYLATE_POTASSIUM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasToxicologyEscalation = SALICYLATE_TOXICOLOGY_ESCALATION_ACTION_TERMS.some(
@@ -28176,10 +28226,15 @@ function hasSalicylateToxicityTimeCriticalActions(actions: string[]): boolean {
     containsSafetyTerm(normalizedActions, term),
   );
   return (
+    hasSerialLevelAction &&
     hasSalicylateLevelAction &&
-    hasAcidBaseAction &&
+    hasAnionGapAction &&
+    hasBloodGasAction &&
+    hasElectrolyteAction &&
     hasDecontaminationAction &&
-    hasAlkalinizationAction &&
+    hasBicarbonateAction &&
+    hasUrineAlkalinizationAction &&
+    hasPotassiumAction &&
     hasToxicologyEscalation &&
     hasDialysisEscalation
   );
@@ -28187,23 +28242,47 @@ function hasSalicylateToxicityTimeCriticalActions(actions: string[]): boolean {
 
 function hasSalicylateToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasDialysisIndicationSafety = SALICYLATE_DIALYSIS_INDICATION_SAFETY_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
-  );
-  const hasIntubationPhSafety = SALICYLATE_INTUBATION_PH_SAFETY_TERMS.some((term) =>
+  const hasDialysisReviewSafety = SALICYLATE_DIALYSIS_REVIEW_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasAlkalinizationTargetSafety = SALICYLATE_ALKALINIZATION_TARGET_SAFETY_TERMS.some(
+  const hasDialysisSeveritySafety = SALICYLATE_DIALYSIS_SEVERITY_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasElectrolyteGlucoseSafety = SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS.some(
+  const hasAirwayVentilationSafety = SALICYLATE_AIRWAY_VENTILATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPhPreservationSafety = SALICYLATE_PH_PRESERVATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSerumPhSafety = SALICYLATE_SERUM_PH_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasUrinePhTargetSafety = SALICYLATE_URINE_PH_TARGET_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasUrineOutputSafety = SALICYLATE_URINE_OUTPUT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPotassiumSafety = SALICYLATE_POTASSIUM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasGlucoseSafety = SALICYLATE_GLUCOSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTemperatureEdemaSafety = SALICYLATE_TEMPERATURE_EDEMA_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasDialysisIndicationSafety &&
-    hasIntubationPhSafety &&
-    hasAlkalinizationTargetSafety &&
-    hasElectrolyteGlucoseSafety
+    hasDialysisReviewSafety &&
+    hasDialysisSeveritySafety &&
+    hasAirwayVentilationSafety &&
+    hasPhPreservationSafety &&
+    hasSerumPhSafety &&
+    hasUrinePhTargetSafety &&
+    hasUrineOutputSafety &&
+    hasPotassiumSafety &&
+    hasGlucoseSafety &&
+    hasTemperatureEdemaSafety
   );
 }
 
@@ -32487,7 +32566,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSalicylateToxicityTimeCriticalActions,
       issue:
-        "salicylate toxicity time-critical actions must include serial salicylate levels with anion gap, blood gas, ABG, VBG, or electrolyte monitoring, activated charcoal or multidose charcoal decontamination planning, sodium bicarbonate, urine alkalinization, alkaline diuresis, potassium, or urine pH planning, poison-center or toxicologist consultation, and hemodialysis, ECTR, or extracorporeal-treatment escalation",
+        "salicylate toxicity time-critical actions must include serial salicylate levels or repeat salicylate levels, anion gap monitoring, ABG, VBG, or blood gas monitoring, electrolyte monitoring, activated charcoal or multidose-charcoal decontamination planning, sodium bicarbonate or bicarbonate therapy plus urine alkalinization, alkaline diuresis, or urine pH planning plus potassium repletion or monitoring, poison-center or toxicologist consultation, and hemodialysis, ECTR, or extracorporeal-treatment escalation",
     },
     {
       name: "salicylate_toxicity_treatment_safety",
@@ -32496,7 +32575,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSalicylateToxicityTreatmentSafetyCheck,
       issue:
-        "salicylate toxicity safety checks must include hemodialysis indication review for acidemia, severe acidosis, altered mental status, seizure, renal failure, kidney failure, pulmonary edema, or very high salicylate level, intubation or mechanical ventilation pH-preservation planning with hyperventilation or bicarbonate safeguards, serum pH, urine pH 7.5 to 8, urine-output, or urinary-alkalinization target monitoring, and potassium, hypokalemia, glucose, hypoglycemia, temperature, pulmonary edema, or cerebral edema monitoring",
+        "salicylate toxicity safety checks must include hemodialysis indication review plus acidemia, severe acidosis, altered mental status, seizure, renal failure, kidney failure, pulmonary edema, or very high salicylate level criteria, intubation or mechanical-ventilation planning plus pH preservation with hyperventilation, respiratory alkalosis, or bicarbonate safeguards, serum pH monitoring plus urine pH 7.5 to 8 or urinary-pH target monitoring plus urine-output monitoring, and potassium or hypokalemia monitoring plus glucose or hypoglycemia monitoring plus temperature, pulmonary edema, or cerebral-edema monitoring",
     },
     {
       name: "carbon_monoxide_poisoning_time_critical_actions",

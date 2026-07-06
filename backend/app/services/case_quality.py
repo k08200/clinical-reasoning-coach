@@ -13321,19 +13321,25 @@ SALICYLATE_TOXICITY_CONTEXT_TERMS = (
     "살리실산",
     "아스피린",
 )
-SALICYLATE_LEVEL_ACTION_TERMS = (
+SALICYLATE_SERIAL_LEVEL_ACTION_TERMS = (
     "repeat level",
+    "serial level",
+)
+SALICYLATE_LEVEL_ACTION_TERMS = (
     "salicylate concentration",
     "salicylate level",
-    "serial level",
     "살리실산 농도",
 )
-SALICYLATE_ACID_BASE_ACTION_TERMS = (
-    "abg",
+SALICYLATE_ANION_GAP_ACTION_TERMS = (
     "anion gap",
+)
+SALICYLATE_BLOOD_GAS_ACTION_TERMS = (
+    "abg",
     "blood gas",
-    "electrolyte",
     "vbg",
+)
+SALICYLATE_ELECTROLYTE_ACTION_TERMS = (
+    "electrolyte",
 )
 SALICYLATE_DECONTAMINATION_ACTION_TERMS = (
     "activated charcoal",
@@ -13342,15 +13348,19 @@ SALICYLATE_DECONTAMINATION_ACTION_TERMS = (
     "multiple-dose charcoal",
     "활성탄",
 )
-SALICYLATE_ALKALINIZATION_ACTION_TERMS = (
+SALICYLATE_BICARBONATE_ACTION_TERMS = (
+    "bicarbonate",
+    "sodium bicarbonate",
+    "중탄산",
+)
+SALICYLATE_URINE_ALKALINIZATION_ACTION_TERMS = (
     "alkaline diuresis",
     "alkalinization",
-    "bicarbonate",
-    "potassium",
-    "sodium bicarbonate",
     "urine ph",
     "urinary alkalinization",
-    "중탄산",
+)
+SALICYLATE_POTASSIUM_ACTION_TERMS = (
+    "potassium",
 )
 SALICYLATE_TOXICOLOGY_ESCALATION_ACTION_TERMS = (
     "poison center",
@@ -13365,7 +13375,11 @@ SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS = (
     "hemodialysis",
     "혈액투석",
 )
-SALICYLATE_DIALYSIS_INDICATION_SAFETY_TERMS = (
+SALICYLATE_DIALYSIS_REVIEW_SAFETY_TERMS = (
+    "dialysis indication",
+    "hemodialysis indication",
+)
+SALICYLATE_DIALYSIS_SEVERITY_SAFETY_TERMS = (
     "acidemia",
     "altered mental status",
     "high level",
@@ -13377,19 +13391,22 @@ SALICYLATE_DIALYSIS_INDICATION_SAFETY_TERMS = (
     "very high",
     "투석",
 )
-SALICYLATE_INTUBATION_PH_SAFETY_TERMS = (
-    "bicarbonate bolus",
-    "hyperventilation",
+SALICYLATE_AIRWAY_VENTILATION_SAFETY_TERMS = (
     "intubation",
     "mechanical ventilation",
-    "ph",
-    "respiratory alkalosis",
     "ventilator",
     "삽관",
 )
-SALICYLATE_ALKALINIZATION_TARGET_SAFETY_TERMS = (
+SALICYLATE_PH_PRESERVATION_SAFETY_TERMS = (
+    "bicarbonate bolus",
+    "hyperventilation",
+    "ph",
+    "respiratory alkalosis",
+)
+SALICYLATE_SERUM_PH_SAFETY_TERMS = (
     "serum ph",
-    "urine output",
+)
+SALICYLATE_URINE_PH_TARGET_SAFETY_TERMS = (
     "urine ph",
     "urine ph 7.5",
     "urine ph 7.5 to 8",
@@ -13397,17 +13414,24 @@ SALICYLATE_ALKALINIZATION_TARGET_SAFETY_TERMS = (
     "urinary ph 7.5",
     "urinary ph 7.5 to 8",
 )
-SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS = (
-    "cerebral edema",
-    "glucose",
-    "hypoglycemia",
+SALICYLATE_URINE_OUTPUT_SAFETY_TERMS = (
+    "urine output",
+)
+SALICYLATE_POTASSIUM_SAFETY_TERMS = (
     "hypokalemia",
     "potassium",
+    "칼륨",
+)
+SALICYLATE_GLUCOSE_SAFETY_TERMS = (
+    "glucose",
+    "hypoglycemia",
+    "혈당",
+)
+SALICYLATE_TEMPERATURE_EDEMA_SAFETY_TERMS = (
+    "cerebral edema",
     "pulmonary edema",
     "temperature",
     "전해질",
-    "칼륨",
-    "혈당",
 )
 CARBON_MONOXIDE_CONTEXT_TERMS = (
     "carbon monoxide poisoning",
@@ -20768,11 +20792,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_salicylate_toxicity_time_critical_actions,
             issue=(
                 "salicylate toxicity time-critical actions must include serial "
-                "salicylate levels with anion gap, blood gas, ABG, VBG, or "
-                "electrolyte monitoring, activated charcoal or multidose charcoal "
-                "decontamination planning, sodium bicarbonate, urine alkalinization, "
-                "alkaline diuresis, potassium, or urine pH planning, poison-center "
-                "or toxicologist consultation, and hemodialysis, ECTR, or "
+                "salicylate levels or repeat salicylate levels, anion gap monitoring, ABG, VBG, "
+                "or blood gas monitoring, electrolyte monitoring, activated "
+                "charcoal or multidose-charcoal decontamination planning, "
+                "sodium bicarbonate or bicarbonate therapy plus urine "
+                "alkalinization, alkaline diuresis, or urine pH planning plus "
+                "potassium repletion or monitoring, poison-center or "
+                "toxicologist consultation, and hemodialysis, ECTR, or "
                 "extracorporeal-treatment escalation"
             ),
         ),
@@ -20783,14 +20809,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_salicylate_toxicity_treatment_safety_check,
             issue=(
                 "salicylate toxicity safety checks must include hemodialysis "
-                "indication review for acidemia, severe acidosis, altered mental "
-                "status, seizure, renal failure, kidney failure, pulmonary edema, "
-                "or very high salicylate level, intubation or mechanical ventilation "
-                "pH-preservation planning with hyperventilation or bicarbonate "
-                "safeguards, serum pH, urine pH 7.5 to 8, urine-output, or "
-                "urinary-alkalinization target monitoring, and potassium, "
-                "hypokalemia, glucose, hypoglycemia, temperature, pulmonary edema, "
-                "or cerebral edema monitoring"
+                "indication review plus acidemia, severe acidosis, altered "
+                "mental status, seizure, renal failure, kidney failure, "
+                "pulmonary edema, or very high salicylate level criteria, "
+                "intubation or mechanical-ventilation planning plus pH "
+                "preservation with hyperventilation, respiratory alkalosis, or "
+                "bicarbonate safeguards, serum pH monitoring plus urine pH 7.5 "
+                "to 8 or urinary-pH target monitoring plus urine-output "
+                "monitoring, and potassium or hypokalemia monitoring plus "
+                "glucose or hypoglycemia monitoring plus temperature, pulmonary "
+                "edema, or cerebral-edema monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -33112,21 +33140,41 @@ def _requires_salicylate_toxicity_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_salicylate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_serial_level_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SALICYLATE_SERIAL_LEVEL_ACTION_TERMS
+    )
     has_salicylate_level_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in SALICYLATE_LEVEL_ACTION_TERMS
     )
-    has_acid_base_action = any(
+    has_anion_gap_action = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SALICYLATE_ACID_BASE_ACTION_TERMS
+        for term in SALICYLATE_ANION_GAP_ACTION_TERMS
+    )
+    has_blood_gas_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SALICYLATE_BLOOD_GAS_ACTION_TERMS
+    )
+    has_electrolyte_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SALICYLATE_ELECTROLYTE_ACTION_TERMS
     )
     has_decontamination_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in SALICYLATE_DECONTAMINATION_ACTION_TERMS
     )
-    has_alkalinization_action = any(
+    has_bicarbonate_action = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SALICYLATE_ALKALINIZATION_ACTION_TERMS
+        for term in SALICYLATE_BICARBONATE_ACTION_TERMS
+    )
+    has_urine_alkalinization_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SALICYLATE_URINE_ALKALINIZATION_ACTION_TERMS
+    )
+    has_potassium_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SALICYLATE_POTASSIUM_ACTION_TERMS
     )
     has_toxicology_escalation = any(
         _contains_safety_term(normalized_actions, term)
@@ -33137,10 +33185,15 @@ def _has_salicylate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         for term in SALICYLATE_DIALYSIS_ESCALATION_ACTION_TERMS
     )
     return (
-        has_salicylate_level_action
-        and has_acid_base_action
+        has_serial_level_action
+        and has_salicylate_level_action
+        and has_anion_gap_action
+        and has_blood_gas_action
+        and has_electrolyte_action
         and has_decontamination_action
-        and has_alkalinization_action
+        and has_bicarbonate_action
+        and has_urine_alkalinization_action
+        and has_potassium_action
         and has_toxicology_escalation
         and has_dialysis_escalation
     )
@@ -33148,27 +33201,57 @@ def _has_salicylate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_salicylate_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_dialysis_indication_safety = any(
+    has_dialysis_review_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SALICYLATE_DIALYSIS_INDICATION_SAFETY_TERMS
+        for term in SALICYLATE_DIALYSIS_REVIEW_SAFETY_TERMS
     )
-    has_intubation_ph_safety = any(
+    has_dialysis_severity_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SALICYLATE_INTUBATION_PH_SAFETY_TERMS
+        for term in SALICYLATE_DIALYSIS_SEVERITY_SAFETY_TERMS
     )
-    has_alkalinization_target_safety = any(
+    has_airway_ventilation_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SALICYLATE_ALKALINIZATION_TARGET_SAFETY_TERMS
+        for term in SALICYLATE_AIRWAY_VENTILATION_SAFETY_TERMS
     )
-    has_electrolyte_glucose_safety = any(
+    has_ph_preservation_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SALICYLATE_ELECTROLYTE_GLUCOSE_SAFETY_TERMS
+        for term in SALICYLATE_PH_PRESERVATION_SAFETY_TERMS
+    )
+    has_serum_ph_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SALICYLATE_SERUM_PH_SAFETY_TERMS
+    )
+    has_urine_ph_target_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SALICYLATE_URINE_PH_TARGET_SAFETY_TERMS
+    )
+    has_urine_output_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SALICYLATE_URINE_OUTPUT_SAFETY_TERMS
+    )
+    has_potassium_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SALICYLATE_POTASSIUM_SAFETY_TERMS
+    )
+    has_glucose_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SALICYLATE_GLUCOSE_SAFETY_TERMS
+    )
+    has_temperature_edema_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SALICYLATE_TEMPERATURE_EDEMA_SAFETY_TERMS
     )
     return (
-        has_dialysis_indication_safety
-        and has_intubation_ph_safety
-        and has_alkalinization_target_safety
-        and has_electrolyte_glucose_safety
+        has_dialysis_review_safety
+        and has_dialysis_severity_safety
+        and has_airway_ventilation_safety
+        and has_ph_preservation_safety
+        and has_serum_ph_safety
+        and has_urine_ph_target_safety
+        and has_urine_output_safety
+        and has_potassium_safety
+        and has_glucose_safety
+        and has_temperature_edema_safety
     )
 
 

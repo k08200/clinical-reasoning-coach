@@ -28514,6 +28514,76 @@ def test_quality_gate_requires_salicylate_level_not_acid_base_labs_alone():
     )
 
 
+def test_quality_gate_requires_salicylate_blood_gas_electrolytes_and_potassium_with_alkalinization():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Salicylate toxicity"
+    case["patient_demographics"] = {
+        "age": 41,
+        "sex": "male",
+        "weight_kg": 74,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Tinnitus, vomiting, and tachypnea after aspirin ingestion"
+    case["history_of_present_illness"] = (
+        "Patient presents after large aspirin ingestion with tinnitus, vomiting, "
+        "tachypnea, fever, confusion, respiratory alkalosis, anion gap metabolic "
+        "acidosis, and rising salicylate level."
+    )
+    case["key_teaching_points"] = [
+        "Salicylate toxicity requires serial salicylate levels with simultaneous acid-base and electrolyte monitoring",
+        "Urine alkalinization requires sodium bicarbonate, urine pH targeting, and potassium repletion or monitoring",
+        "Severe salicylate poisoning needs early poison center and hemodialysis planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Tinnitus, vomiting, tachypnea, fever, confusion, seizure, pulmonary edema, or altered mental status",
+        "Mixed respiratory alkalosis and metabolic acidosis with rising salicylate level",
+    ]
+    case["time_critical_actions"] = [
+        "Trend serial salicylate level and repeat level with anion gap until clearly falling",
+        "Give activated charcoal when airway and bowel status allow",
+        "Start sodium bicarbonate infusion for urinary alkalinization and urine pH planning",
+        "Call poison center, toxicologist, and nephrology for hemodialysis or ECTR escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Review hemodialysis indications including acidemia, severe acidosis, altered mental status, seizure, renal failure, pulmonary edema, or very high salicylate level",
+        "If intubation or mechanical ventilation is unavoidable, preserve hyperventilation and pH with bicarbonate bolus safeguards",
+        "Monitor serum pH and target urine pH 7.5 to 8 with urine output monitoring",
+        "Monitor potassium, hypokalemia, glucose, hypoglycemia, temperature, pulmonary edema, and cerebral edema",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Aspirin and Other Salicylate Poisoning",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/poisoning/aspirin-and-other-salicylate-poisoning",
+            "supports": [
+                "salicylate toxicity diagnosis and risk stratification",
+                "salicylate toxicity requires serial salicylate levels with simultaneous acid-base and electrolyte monitoring",
+                "urine alkalinization requires sodium bicarbonate, urine pH targeting, and potassium repletion or monitoring",
+                "severe salicylate poisoning needs early poison center and hemodialysis planning",
+                "tinnitus, vomiting, tachypnea, fever, confusion, seizure, pulmonary edema, or altered mental status as red flags",
+                "mixed respiratory alkalosis and metabolic acidosis with rising salicylate level as severity markers",
+                "serial salicylate level and repeat level with anion gap until clearly falling",
+                "activated charcoal when airway and bowel status allow",
+                "sodium bicarbonate infusion for urinary alkalinization and urine pH planning",
+                "poison center, toxicologist, and nephrology for hemodialysis or ECTR escalation",
+                "hemodialysis indications including acidemia, severe acidosis, altered mental status, seizure, renal failure, pulmonary edema, or very high salicylate level",
+                "intubation or mechanical ventilation safeguards to preserve hyperventilation and pH with bicarbonate bolus",
+                "serum pH and urine pH 7.5 to 8 with urine output monitoring",
+                "potassium, hypokalemia, glucose, hypoglycemia, temperature, pulmonary edema, and cerebral edema monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "salicylate toxicity time-critical actions must include serial salicylate levels"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_salicylate_dialysis_intubation_and_electrolyte_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Salicylate toxicity"
@@ -28565,6 +28635,76 @@ def test_quality_gate_requires_salicylate_dialysis_intubation_and_electrolyte_sa
                 "poison center, toxicologist, and nephrology for hemodialysis or dialysis escalation",
                 "medication allergy before antiemetics",
                 "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "salicylate toxicity safety checks must include hemodialysis indication"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_salicylate_specific_dialysis_ph_alkalinization_and_metabolic_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Salicylate toxicity"
+    case["patient_demographics"] = {
+        "age": 52,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion, tachypnea, and tinnitus after aspirin ingestion"
+    case["history_of_present_illness"] = (
+        "Patient presents after aspirin overdose with tinnitus, vomiting, tachypnea, "
+        "confusion, fever, mixed respiratory alkalosis and metabolic acidosis, "
+        "pulmonary edema, and very high salicylate level."
+    )
+    case["key_teaching_points"] = [
+        "Severe salicylate poisoning requires hemodialysis indication review for acidemia, renal failure, pulmonary edema, neurologic toxicity, or very high level",
+        "If intubation is unavoidable, hyperventilation and pH must be preserved with bicarbonate safeguards",
+        "Alkalinization safety requires serum pH, urine pH target, urine output, potassium, glucose, temperature, and edema monitoring",
+    ]
+    case["clinical_red_flags"] = [
+        "Altered mental status, seizure, acidemia, severe acidosis, pulmonary edema, renal failure, or very high salicylate level",
+        "Hypokalemia, hypoglycemia, fever, cerebral edema, dehydration, or worsening respiratory status",
+    ]
+    case["time_critical_actions"] = [
+        "Trend serial salicylate level, anion gap, ABG or VBG blood gas, and electrolytes until clearly falling",
+        "Give activated charcoal and consider multidose charcoal if ongoing absorption or bezoar concern",
+        "Start sodium bicarbonate infusion for urine alkalinization with potassium repletion and urine pH monitoring",
+        "Call poison center, toxicologist, and nephrology for hemodialysis or ECTR escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Review hemodialysis indications before disposition",
+        "If intubation or mechanical ventilation is unavoidable, prepare airway plan",
+        "Target urine pH 7.5 to 8",
+        "Monitor potassium only",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Aspirin and Other Salicylate Poisoning",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/poisoning/aspirin-and-other-salicylate-poisoning",
+            "supports": [
+                "salicylate toxicity diagnosis and risk stratification",
+                "severe salicylate poisoning requires hemodialysis indication review for acidemia, renal failure, pulmonary edema, neurologic toxicity, or very high level",
+                "if intubation is unavoidable, hyperventilation and pH must be preserved with bicarbonate safeguards",
+                "alkalinization safety requires serum pH, urine pH target, urine output, potassium, glucose, temperature, and edema monitoring",
+                "altered mental status, seizure, acidemia, severe acidosis, pulmonary edema, renal failure, or very high salicylate level as red flags",
+                "hypokalemia, hypoglycemia, fever, cerebral edema, dehydration, or worsening respiratory status as severity markers",
+                "serial salicylate level, anion gap, ABG or VBG blood gas, and electrolytes until clearly falling",
+                "activated charcoal and multidose charcoal if ongoing absorption or bezoar concern",
+                "sodium bicarbonate infusion for urine alkalinization with potassium repletion and urine pH monitoring",
+                "poison center, toxicologist, and nephrology for hemodialysis or ECTR escalation",
+                "hemodialysis indications before disposition",
+                "intubation or mechanical ventilation airway plan",
+                "urine pH 7.5 to 8",
+                "potassium monitoring only",
             ],
         }
     ]
