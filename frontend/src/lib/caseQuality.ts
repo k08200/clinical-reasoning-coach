@@ -13346,6 +13346,22 @@ const STATUS_EPILEPTICUS_BENZO_ACTION_TERMS = [
   "미다졸람",
 ];
 
+const STATUS_EPILEPTICUS_BENZO_REPEAT_ROUTE_ACTION_TERMS = [
+  "buccal",
+  "diazepam",
+  "im",
+  "intramuscular",
+  "intranasal",
+  "iv access",
+  "lorazepam",
+  "midazolam",
+  "nasal",
+  "rectal",
+  "repeat dose",
+  "repeat lorazepam",
+  "second dose",
+];
+
 const STATUS_EPILEPTICUS_SECOND_LINE_PATHWAY_ACTION_TERMS = [
   "antiseizure loading",
   "anti-seizure loading",
@@ -13382,6 +13398,43 @@ const STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS = [
   "midazolam infusion",
   "뇌파",
   "중환자",
+];
+
+const STATUS_EPILEPTICUS_MONITORING_ACTION_TERMS = [
+  "blood pressure",
+  "cardiac monitoring",
+  "continuous monitoring",
+  "ecg",
+  "heart rate",
+  "oxygen saturation",
+  "respiratory rate",
+  "spo2",
+  "telemetry",
+];
+
+const STATUS_EPILEPTICUS_ETIOLOGY_SAFETY_TERMS = [
+  "antiepileptic drug level",
+  "aed level",
+  "bun",
+  "calcium",
+  "cbc",
+  "creatinine",
+  "electrolyte",
+  "magnesium",
+  "sodium",
+  "toxicology",
+  "tox screen",
+];
+
+const STATUS_EPILEPTICUS_PREGNANCY_ECLAMPSIA_SAFETY_TERMS = [
+  "eclampsia",
+  "fetal",
+  "magnesium sulfate",
+  "pregnancy test",
+  "pregnancy",
+  "teratogen",
+  "valproate avoidance",
+  "avoid valproate",
 ];
 
 const STATUS_EPILEPTICUS_GLUCOSE_SAFETY_TERMS = [
@@ -26949,6 +27002,9 @@ function hasStatusEpilepticusTimeCriticalActions(actions: string[]): boolean {
   const hasBenzo = STATUS_EPILEPTICUS_BENZO_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasBenzoRepeatRoute = STATUS_EPILEPTICUS_BENZO_REPEAT_ROUTE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasSecondLinePathway = STATUS_EPILEPTICUS_SECOND_LINE_PATHWAY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -26958,9 +27014,14 @@ function hasStatusEpilepticusTimeCriticalActions(actions: string[]): boolean {
   const hasRefractoryEscalation = STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasMonitoring = STATUS_EPILEPTICUS_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   return (
     hasAirway &&
     hasBenzo &&
+    hasBenzoRepeatRoute &&
+    hasMonitoring &&
     hasSecondLinePathway &&
     hasSecondLineMedication &&
     hasRefractoryEscalation
@@ -26978,7 +27039,19 @@ function hasStatusEpilepticusTreatmentSafetyCheck(checks: string[]): boolean {
   const hasAsmSafety = STATUS_EPILEPTICUS_ASM_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasGlucoseSafety && hasRespiratorySafety && hasAsmSafety;
+  const hasEtiologySafety = STATUS_EPILEPTICUS_ETIOLOGY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPregnancyEclampsiaSafety = STATUS_EPILEPTICUS_PREGNANCY_ECLAMPSIA_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasGlucoseSafety &&
+    hasRespiratorySafety &&
+    hasAsmSafety &&
+    hasEtiologySafety &&
+    hasPregnancyEclampsiaSafety
+  );
 }
 
 function requiresSevereAlcoholWithdrawalSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -31745,7 +31818,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasStatusEpilepticusTimeCriticalActions,
       issue:
-        "status epilepticus time-critical actions must include airway or oxygen support, benzodiazepine treatment, second-line antiseizure loading pathway, specific second-line medication such as levetiracetam, fosphenytoin, phenytoin, valproate, valproic acid, or phenobarbital, and refractory seizure escalation",
+        "status epilepticus time-critical actions must include airway or oxygen support, cardiac/ECG, blood-pressure, respiratory-rate, oxygen-saturation, SpO2, telemetry, or continuous monitoring, benzodiazepine treatment with repeat-dose or non-IV route planning such as IM, intranasal, buccal, or rectal midazolam/diazepam when IV access is unavailable, second-line antiseizure loading pathway, specific second-line medication such as levetiracetam, fosphenytoin, phenytoin, valproate, valproic acid, or phenobarbital, and refractory seizure escalation",
     },
     {
       name: "status_epilepticus_treatment_safety",
@@ -31754,7 +31827,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasStatusEpilepticusTreatmentSafetyCheck,
       issue:
-        "status epilepticus safety checks must include bedside glucose, blood glucose, hypoglycemia, or dextrose assessment, respiratory depression or aspiration safeguards, and second-line antiseizure dosing or contraindication review",
+        "status epilepticus safety checks must include bedside glucose, blood glucose, hypoglycemia, or dextrose assessment, respiratory depression or aspiration safeguards, and second-line antiseizure dosing or contraindication review, etiology labs such as sodium, calcium, magnesium, electrolytes, BUN, creatinine, CBC, antiepileptic drug levels, or toxicology testing, and pregnancy/eclampsia safety including pregnancy test, magnesium sulfate, fetal considerations, teratogenic risk, or valproate avoidance",
     },
     {
       name: "severe_alcohol_withdrawal_time_critical_actions",

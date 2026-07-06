@@ -12021,6 +12021,21 @@ STATUS_EPILEPTICUS_BENZO_ACTION_TERMS = (
     "로라제팜",
     "미다졸람",
 )
+STATUS_EPILEPTICUS_BENZO_REPEAT_ROUTE_ACTION_TERMS = (
+    "buccal",
+    "diazepam",
+    "im",
+    "intramuscular",
+    "intranasal",
+    "iv access",
+    "lorazepam",
+    "midazolam",
+    "nasal",
+    "rectal",
+    "repeat dose",
+    "repeat lorazepam",
+    "second dose",
+)
 STATUS_EPILEPTICUS_SECOND_LINE_PATHWAY_ACTION_TERMS = (
     "antiseizure loading",
     "anti-seizure loading",
@@ -12055,6 +12070,40 @@ STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS = (
     "midazolam infusion",
     "뇌파",
     "중환자",
+)
+STATUS_EPILEPTICUS_MONITORING_ACTION_TERMS = (
+    "blood pressure",
+    "cardiac monitoring",
+    "continuous monitoring",
+    "ecg",
+    "heart rate",
+    "oxygen saturation",
+    "respiratory rate",
+    "spo2",
+    "telemetry",
+)
+STATUS_EPILEPTICUS_ETIOLOGY_SAFETY_TERMS = (
+    "antiepileptic drug level",
+    "aed level",
+    "bun",
+    "calcium",
+    "cbc",
+    "creatinine",
+    "electrolyte",
+    "magnesium",
+    "sodium",
+    "toxicology",
+    "tox screen",
+)
+STATUS_EPILEPTICUS_PREGNANCY_ECLAMPSIA_SAFETY_TERMS = (
+    "eclampsia",
+    "fetal",
+    "magnesium sulfate",
+    "pregnancy test",
+    "pregnancy",
+    "teratogen",
+    "valproate avoidance",
+    "avoid valproate",
 )
 STATUS_EPILEPTICUS_GLUCOSE_SAFETY_TERMS = (
     "bedside glucose",
@@ -20160,8 +20209,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_status_epilepticus_time_critical_actions,
             issue=(
                 "status epilepticus time-critical actions must include airway or "
-                "oxygen support, benzodiazepine treatment, second-line antiseizure "
-                "loading pathway, specific second-line medication such as "
+                "oxygen support, cardiac/ECG, blood-pressure, respiratory-rate, "
+                "oxygen-saturation, SpO2, telemetry, or continuous monitoring, "
+                "benzodiazepine treatment with repeat-dose or non-IV route planning "
+                "such as IM, intranasal, buccal, or rectal midazolam/diazepam when "
+                "IV access is unavailable, second-line antiseizure loading pathway, "
+                "specific second-line medication such as "
                 "levetiracetam, fosphenytoin, phenytoin, valproate, valproic "
                 "acid, or phenobarbital, and refractory seizure escalation"
             ),
@@ -20175,7 +20228,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "status epilepticus safety checks must include bedside glucose, "
                 "blood glucose, hypoglycemia, or dextrose assessment, respiratory "
                 "depression or aspiration safeguards, and "
-                "second-line antiseizure dosing or contraindication review"
+                "second-line antiseizure dosing or contraindication review, etiology "
+                "labs such as sodium, calcium, magnesium, electrolytes, BUN, "
+                "creatinine, CBC, antiepileptic drug levels, or toxicology testing, "
+                "and pregnancy/eclampsia safety including pregnancy test, magnesium "
+                "sulfate, fetal considerations, teratogenic risk, or valproate avoidance"
             ),
         ),
         DomainSafetyGate(
@@ -31720,6 +31777,10 @@ def _has_status_epilepticus_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in STATUS_EPILEPTICUS_BENZO_ACTION_TERMS
     )
+    has_benzo_repeat_route = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in STATUS_EPILEPTICUS_BENZO_REPEAT_ROUTE_ACTION_TERMS
+    )
     has_second_line_pathway = any(
         _contains_safety_term(normalized_actions, term)
         for term in STATUS_EPILEPTICUS_SECOND_LINE_PATHWAY_ACTION_TERMS
@@ -31732,9 +31793,15 @@ def _has_status_epilepticus_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in STATUS_EPILEPTICUS_REFRACTORY_ACTION_TERMS
     )
+    has_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in STATUS_EPILEPTICUS_MONITORING_ACTION_TERMS
+    )
     return (
         has_airway
         and has_benzo
+        and has_benzo_repeat_route
+        and has_monitoring
         and has_second_line_pathway
         and has_second_line_medication
         and has_refractory_escalation
@@ -31755,7 +31822,21 @@ def _has_status_epilepticus_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in STATUS_EPILEPTICUS_ASM_SAFETY_TERMS
     )
-    return has_glucose_safety and has_respiratory_safety and has_asm_safety
+    has_etiology_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STATUS_EPILEPTICUS_ETIOLOGY_SAFETY_TERMS
+    )
+    has_pregnancy_eclampsia_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in STATUS_EPILEPTICUS_PREGNANCY_ECLAMPSIA_SAFETY_TERMS
+    )
+    return (
+        has_glucose_safety
+        and has_respiratory_safety
+        and has_asm_safety
+        and has_etiology_safety
+        and has_pregnancy_eclampsia_safety
+    )
 
 
 def _requires_severe_alcohol_withdrawal_safety_check(data: dict[str, Any]) -> bool:

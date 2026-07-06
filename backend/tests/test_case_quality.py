@@ -24912,7 +24912,7 @@ def test_quality_gate_requires_status_epilepticus_specific_second_line_medicatio
     )
 
 
-def test_quality_gate_requires_status_epilepticus_glucose_respiratory_and_asm_safety():
+def test_quality_gate_requires_status_epilepticus_benzo_repeat_route_and_monitoring_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Convulsive status epilepticus"
     case["chief_complaint"] = "Ongoing convulsions"
@@ -24936,6 +24936,64 @@ def test_quality_gate_requires_status_epilepticus_glucose_respiratory_and_asm_sa
         "Escalate refractory seizures to neurology, ICU, continuous EEG, and anesthetic infusion planning",
     ]
     case["contraindication_checks"] = [
+        "Check bedside glucose and give dextrose with thiamine if hypoglycemia or malnutrition is possible",
+        "Prepare airway support, suction, oxygen saturation monitoring, and respiratory depression safeguards after benzodiazepines",
+        "Weight-based dosing plus renal, hepatic, pregnancy, ECG, and hypotension review before second-line antiseizure loading",
+        "Check sodium, calcium, magnesium, electrolytes, BUN, creatinine, CBC, antiepileptic drug levels, and toxicology screen for reversible causes",
+        "Obtain pregnancy test and review fetal considerations; if eclampsia is suspected use magnesium sulfate and avoid valproate teratogen exposure",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Status Epilepticus",
+            "organization": "StatPearls / NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK430686/",
+            "supports": [
+                "convulsive status epilepticus diagnosis and staged treatment",
+                "continuous seizure activity longer than 5 minutes as a red flag",
+                "hypoxia and aspiration risk during ongoing convulsions",
+                "airway and breathing support with oxygen, suction, and intubation preparation",
+                "IV lorazepam immediately for ongoing seizure activity",
+                "levetiracetam or fosphenytoin loading if seizures continue after benzodiazepine",
+                "neurology, ICU, continuous EEG, and anesthetic infusion planning for refractory seizures",
+                "bedside glucose and dextrose with thiamine if hypoglycemia or malnutrition is possible",
+                "airway support, suction, oxygen saturation monitoring, and respiratory depression safeguards after benzodiazepines",
+                "weight-based dosing plus renal, hepatic, pregnancy, ECG, and hypotension review before second-line antiseizure loading",
+                "sodium, calcium, magnesium, electrolytes, BUN, creatinine, CBC, antiepileptic drug levels, and toxicology screen for reversible causes",
+                "pregnancy test and fetal considerations; eclampsia magnesium sulfate and valproate teratogen avoidance",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("repeat-dose or non-IV route" in issue for issue in report.critical_issues)
+
+
+def test_quality_gate_requires_status_epilepticus_glucose_respiratory_and_asm_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Convulsive status epilepticus"
+    case["chief_complaint"] = "Ongoing convulsions"
+    case["history_of_present_illness"] = (
+        "Patient brought in with continuous generalized convulsions lasting more "
+        "than 5 minutes and no return to baseline."
+    )
+    case["key_teaching_points"] = [
+        "Prolonged convulsions require immediate staged treatment",
+        "Benzodiazepines are first-line but should not delay second-line loading",
+        "Refractory seizures require ICU-level escalation and continuous EEG planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Continuous seizure activity longer than 5 minutes",
+        "Hypoxia and aspiration risk during ongoing convulsions",
+    ]
+    case["time_critical_actions"] = [
+        "Support airway and breathing with oxygen, suction, cardiac monitoring, ECG, blood pressure, respiratory rate, oxygen saturation, SpO2, telemetry, and intubation preparation",
+        "Give IV lorazepam immediately for ongoing seizure activity, repeat dose in 3 to 5 minutes if needed, and use IM or intranasal midazolam or rectal diazepam if IV access is unavailable",
+        "Load levetiracetam or fosphenytoin if seizures continue after benzodiazepine",
+        "Escalate refractory seizures to neurology, ICU, continuous EEG, and anesthetic infusion planning",
+    ]
+    case["contraindication_checks"] = [
         "Medication allergy before antiseizure therapy",
         "Temperature and infection trigger assessment",
     ]
@@ -24948,8 +25006,8 @@ def test_quality_gate_requires_status_epilepticus_glucose_respiratory_and_asm_sa
                 "convulsive status epilepticus diagnosis and staged treatment",
                 "continuous seizure activity longer than 5 minutes as a red flag",
                 "hypoxia and aspiration risk during ongoing convulsions",
-                "airway and breathing support with oxygen, suction, and intubation preparation",
-                "IV lorazepam immediately for ongoing seizure activity",
+                "airway and breathing support with oxygen, suction, cardiac monitoring, ECG, blood pressure, respiratory rate, oxygen saturation, SpO2, telemetry, and intubation preparation",
+                "IV lorazepam immediately for ongoing seizure activity, repeat dose in 3 to 5 minutes if needed, and IM or intranasal midazolam or rectal diazepam if IV access is unavailable",
                 "levetiracetam or fosphenytoin loading if seizures continue after benzodiazepine",
                 "neurology, ICU, continuous EEG, and anesthetic infusion planning for refractory seizures",
                 "medication allergy before antiseizure therapy",
@@ -24965,6 +25023,60 @@ def test_quality_gate_requires_status_epilepticus_glucose_respiratory_and_asm_sa
         "status epilepticus safety checks must include bedside glucose" in issue
         for issue in report.critical_issues
     )
+
+
+def test_quality_gate_requires_status_epilepticus_etiology_labs_and_pregnancy_eclampsia_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Convulsive status epilepticus"
+    case["chief_complaint"] = "Ongoing convulsions"
+    case["history_of_present_illness"] = (
+        "Patient brought in with continuous generalized convulsions lasting more "
+        "than 5 minutes and no return to baseline."
+    )
+    case["key_teaching_points"] = [
+        "Prolonged convulsions require immediate staged treatment",
+        "Benzodiazepines are first-line but should not delay second-line loading",
+        "Refractory seizures require ICU-level escalation and continuous EEG planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Continuous seizure activity longer than 5 minutes",
+        "Hypoxia and aspiration risk during ongoing convulsions",
+    ]
+    case["time_critical_actions"] = [
+        "Support airway and breathing with oxygen, suction, cardiac monitoring, ECG, blood pressure, respiratory rate, oxygen saturation, SpO2, telemetry, and intubation preparation",
+        "Give IV lorazepam immediately for ongoing seizure activity, repeat dose in 3 to 5 minutes if needed, and use IM or intranasal midazolam or rectal diazepam if IV access is unavailable",
+        "Load levetiracetam or fosphenytoin if seizures continue after benzodiazepine",
+        "Escalate refractory seizures to neurology, ICU, continuous EEG, and anesthetic infusion planning",
+    ]
+    case["contraindication_checks"] = [
+        "Check bedside glucose and give dextrose with thiamine if hypoglycemia or malnutrition is possible",
+        "Prepare airway support, suction, oxygen saturation monitoring, and respiratory depression safeguards after benzodiazepines",
+        "Weight-based dosing plus renal, hepatic, pregnancy, ECG, and hypotension review before second-line antiseizure loading",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Status Epilepticus",
+            "organization": "StatPearls / NCBI Bookshelf",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK430686/",
+            "supports": [
+                "convulsive status epilepticus diagnosis and staged treatment",
+                "continuous seizure activity longer than 5 minutes as a red flag",
+                "hypoxia and aspiration risk during ongoing convulsions",
+                "airway and breathing support with oxygen, suction, cardiac monitoring, ECG, blood pressure, respiratory rate, oxygen saturation, SpO2, telemetry, and intubation preparation",
+                "IV lorazepam immediately for ongoing seizure activity, repeat dose in 3 to 5 minutes if needed, and IM or intranasal midazolam or rectal diazepam if IV access is unavailable",
+                "levetiracetam or fosphenytoin loading if seizures continue after benzodiazepine",
+                "neurology, ICU, continuous EEG, and anesthetic infusion planning for refractory seizures",
+                "bedside glucose and dextrose with thiamine if hypoglycemia or malnutrition is possible",
+                "airway support, suction, oxygen saturation monitoring, and respiratory depression safeguards after benzodiazepines",
+                "weight-based dosing plus renal, hepatic, pregnancy, ECG, and hypotension review before second-line antiseizure loading",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("etiology labs" in issue for issue in report.critical_issues)
 
 
 def test_quality_gate_requires_status_epilepticus_bedside_glucose_not_thiamine_alone():
@@ -24985,8 +25097,8 @@ def test_quality_gate_requires_status_epilepticus_bedside_glucose_not_thiamine_a
         "Hypoxia and aspiration risk during ongoing convulsions",
     ]
     case["time_critical_actions"] = [
-        "Support airway and breathing with oxygen, suction, and intubation preparation",
-        "Give IV lorazepam immediately for ongoing seizure activity",
+        "Support airway and breathing with oxygen, suction, cardiac monitoring, ECG, blood pressure, respiratory rate, oxygen saturation, SpO2, telemetry, and intubation preparation",
+        "Give IV lorazepam immediately for ongoing seizure activity, repeat dose in 3 to 5 minutes if needed, and use IM or intranasal midazolam or rectal diazepam if IV access is unavailable",
         "Load levetiracetam or fosphenytoin if seizures continue after benzodiazepine",
         "Escalate refractory seizures to neurology, ICU, continuous EEG, and anesthetic infusion planning",
     ]
@@ -25004,8 +25116,8 @@ def test_quality_gate_requires_status_epilepticus_bedside_glucose_not_thiamine_a
                 "convulsive status epilepticus diagnosis and staged treatment",
                 "continuous seizure activity longer than 5 minutes as a red flag",
                 "hypoxia and aspiration risk during ongoing convulsions",
-                "airway and breathing support with oxygen, suction, and intubation preparation",
-                "IV lorazepam immediately for ongoing seizure activity",
+                "airway and breathing support with oxygen, suction, cardiac monitoring, ECG, blood pressure, respiratory rate, oxygen saturation, SpO2, telemetry, and intubation preparation",
+                "IV lorazepam immediately for ongoing seizure activity, repeat dose in 3 to 5 minutes if needed, and IM or intranasal midazolam or rectal diazepam if IV access is unavailable",
                 "levetiracetam or fosphenytoin loading if seizures continue after benzodiazepine",
                 "neurology, ICU, continuous EEG, and anesthetic infusion planning for refractory seizures",
                 "thiamine if malnutrition or alcohol use is possible",
