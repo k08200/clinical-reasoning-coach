@@ -15339,27 +15339,57 @@ const SNAKEBITE_ENVENOMATION_RISK_TERMS = [
   "thrombocytopenia",
 ];
 
-const SNAKEBITE_FIELD_IMMOBILIZATION_ACTION_TERMS = [
-  "heart level",
-  "immobilize",
-  "loosely",
+const SNAKEBITE_RAPID_TRANSPORT_ACTION_TERMS = [
   "rapid transport",
+  "transport",
+];
+
+const SNAKEBITE_CONSTRICTING_REMOVAL_ACTION_TERMS = [
   "remove constricting",
   "remove rings",
   "remove watches",
 ];
 
-const SNAKEBITE_SERIAL_EXAM_LAB_ACTION_TERMS = [
-  "cbc",
+const SNAKEBITE_IMMOBILIZATION_POSITION_ACTION_TERMS = [
+  "heart level",
+  "immobilize",
+  "loosely",
+  "splint",
+];
+
+const SNAKEBITE_SERIAL_EDEMA_EXAM_ACTION_TERMS = [
+  "15 to 30",
   "circumference",
+  "edema",
+  "leading edge",
+  "mark swelling",
+  "measure swelling",
+  "repeat exam",
+  "serial exam",
+];
+
+const SNAKEBITE_CBC_PLATELET_ACTION_TERMS = [
+  "cbc",
+  "complete blood count",
+  "platelet",
+];
+
+const SNAKEBITE_COAGULATION_LAB_ACTION_TERMS = [
   "coagulation",
+  "fdp",
+  "fibrin degradation",
   "fibrinogen",
   "inr",
-  "mark swelling",
-  "platelet",
   "pt",
-  "repeat exam",
-  "serial",
+  "ptt",
+];
+
+const SNAKEBITE_RENAL_URINE_LAB_ACTION_TERMS = [
+  "bun",
+  "creatinine",
+  "electrolyte",
+  "renal",
+  "urinalysis",
 ];
 
 const SNAKEBITE_ANTIVENOM_ACTION_TERMS = [
@@ -15382,6 +15412,14 @@ const SNAKEBITE_ANTIVENOM_ACTION_TERMS = [
   "start antivenom",
 ];
 
+const SNAKEBITE_ANTIVENOM_CONTROL_ACTION_TERMS = [
+  "additional dose",
+  "control",
+  "initial control",
+  "maintenance",
+  "repeat dose",
+];
+
 const SNAKEBITE_POISON_ESCALATION_ACTION_TERMS = [
   "consult",
   "icu",
@@ -15401,6 +15439,14 @@ const SNAKEBITE_RESPIRATORY_NEURO_ACTION_TERMS = [
   "ventilation",
 ];
 
+const SNAKEBITE_SHOCK_SUPPORT_ACTION_TERMS = [
+  "fluid",
+  "hypotension",
+  "iv access",
+  "shock",
+  "vasopressor",
+];
+
 const SNAKEBITE_HARMFUL_FIRST_AID_SAFETY_TERMS = [
   "electric shock",
   "ice",
@@ -15410,6 +15456,7 @@ const SNAKEBITE_HARMFUL_FIRST_AID_SAFETY_TERMS = [
 ];
 
 const SNAKEBITE_OBSERVATION_DISPOSITION_SAFETY_TERMS = [
+  "12 hours",
   "8 hours",
   "disposition",
   "longer",
@@ -15421,14 +15468,28 @@ const SNAKEBITE_COAGULOPATHY_SAFETY_TERMS = [
   "bleeding",
   "coagulopathy",
   "defibrination",
+  "fdp",
+  "fibrin degradation",
   "fibrinogen",
   "inr",
   "platelet",
   "pt",
+  "ptt",
+];
+
+const SNAKEBITE_BLOOD_PRODUCT_SAFETY_TERMS = [
+  "adequate antivenom",
+  "before blood product",
+  "cryoprecipitate",
+  "fresh frozen plasma",
+  "platelet transfusion",
+  "transfusion",
 ];
 
 const SNAKEBITE_ANTIVENOM_REACTION_SAFETY_TERMS = [
+  "anaphylaxis",
   "hypersensitivity",
+  "infusion rate",
   "premedication",
   "reaction",
   "serum sickness",
@@ -15440,6 +15501,22 @@ const SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS = [
   "fasciotomy",
   "pressure",
   "surgical consult",
+];
+
+const SNAKEBITE_PRESSURE_IMMOBILIZATION_SAFETY_TERMS = [
+  "arterial insufficiency",
+  "necrosis",
+  "pit viper",
+  "pressure immobilization",
+  "tourniquet",
+];
+
+const SNAKEBITE_TETANUS_WOUND_ANTIBIOTIC_SAFETY_TERMS = [
+  "antibiotics only",
+  "infection",
+  "no prophylactic antibiotic",
+  "tetanus",
+  "wound care",
 ];
 
 const MAJOR_BURN_CONTEXT_TERMS = [
@@ -28688,13 +28765,31 @@ function requiresSnakebiteEnvenomationSafetyCheck(detail: ClinicalCaseReviewDeta
 
 function hasSnakebiteEnvenomationTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasFieldImmobilization = SNAKEBITE_FIELD_IMMOBILIZATION_ACTION_TERMS.some((term) =>
+  const hasRapidTransport = SNAKEBITE_RAPID_TRANSPORT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSerialExamLab = SNAKEBITE_SERIAL_EXAM_LAB_ACTION_TERMS.some((term) =>
+  const hasConstrictingRemoval = SNAKEBITE_CONSTRICTING_REMOVAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImmobilizationPosition = SNAKEBITE_IMMOBILIZATION_POSITION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSerialEdemaExam = SNAKEBITE_SERIAL_EDEMA_EXAM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCbcPlateletLab = SNAKEBITE_CBC_PLATELET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCoagulationLab = SNAKEBITE_COAGULATION_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRenalUrineLab = SNAKEBITE_RENAL_URINE_LAB_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasAntivenomAction = SNAKEBITE_ANTIVENOM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAntivenomControlAction = SNAKEBITE_ANTIVENOM_CONTROL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasPoisonEscalation = SNAKEBITE_POISON_ESCALATION_ACTION_TERMS.some((term) =>
@@ -28703,12 +28798,22 @@ function hasSnakebiteEnvenomationTimeCriticalActions(actions: string[]): boolean
   const hasRespiratoryNeuro = SNAKEBITE_RESPIRATORY_NEURO_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasShockSupport = SNAKEBITE_SHOCK_SUPPORT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   return (
-    hasFieldImmobilization &&
-    hasSerialExamLab &&
+    hasRapidTransport &&
+    hasConstrictingRemoval &&
+    hasImmobilizationPosition &&
+    hasSerialEdemaExam &&
+    hasCbcPlateletLab &&
+    hasCoagulationLab &&
+    hasRenalUrineLab &&
     hasAntivenomAction &&
+    hasAntivenomControlAction &&
     hasPoisonEscalation &&
-    hasRespiratoryNeuro
+    hasRespiratoryNeuro &&
+    hasShockSupport
   );
 }
 
@@ -28723,18 +28828,31 @@ function hasSnakebiteEnvenomationTreatmentSafetyCheck(checks: string[]): boolean
   const hasCoagulopathySafety = SNAKEBITE_COAGULOPATHY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasBloodProductSafety = SNAKEBITE_BLOOD_PRODUCT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasAntivenomReactionSafety = SNAKEBITE_ANTIVENOM_REACTION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasCompartmentFasciotomySafety = SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasPressureImmobilizationSafety = SNAKEBITE_PRESSURE_IMMOBILIZATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTetanusWoundAntibioticSafety =
+    SNAKEBITE_TETANUS_WOUND_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   return (
     hasHarmfulFirstAidSafety &&
     hasObservationDisposition &&
     hasCoagulopathySafety &&
+    hasBloodProductSafety &&
     hasAntivenomReactionSafety &&
-    hasCompartmentFasciotomySafety
+    hasCompartmentFasciotomySafety &&
+    hasPressureImmobilizationSafety &&
+    hasTetanusWoundAntibioticSafety
   );
 }
 
@@ -32857,7 +32975,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSnakebiteEnvenomationTimeCriticalActions,
       issue:
-        "snakebite envenomation time-critical actions must include rapid transport with loose immobilization at heart level and removal of constricting rings or watches, serial exam or labs for swelling, CBC, platelets, PT/INR, fibrinogen, or coagulopathy, antivenom treatment action when envenomation progresses, poison center or toxicology consultation, and respiratory or neurologic support for airway, oxygen, ventilation, or neurotoxicity",
+        "snakebite envenomation time-critical actions must include rapid transport, removal of constricting rings, watches, or clothing, loose immobilization or splinting at heart level, serial edema or circumference exams every 15 to 30 minutes, CBC or platelet testing, coagulation labs including PT, PTT, INR, fibrinogen, FDP, or defibrination assessment, renal or urine labs including urinalysis, electrolytes, BUN, or creatinine, antivenom treatment action plus initial-control, repeat-dose, additional-dose, or maintenance planning, poison-center or toxicology consultation, respiratory or neurologic support for airway, oxygen, ventilation, or neurotoxicity, and shock support with IV access, fluids, or vasopressors",
     },
     {
       name: "snakebite_envenomation_treatment_safety",
@@ -32866,7 +32984,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSnakebiteEnvenomationTreatmentSafetyCheck,
       issue:
-        "snakebite envenomation safety checks must include avoidance of harmful first aid such as tourniquet, incision, suction, ice, or electric shock, at least 8-hour observation or longer serial monitoring when envenomation findings are present, coagulopathy monitoring with platelets, PT/INR, fibrinogen, bleeding, or defibrination, antivenom reaction monitoring for hypersensitivity, serum sickness, reaction, or premedication needs, and compartment-syndrome or fasciotomy caution with pressure measurement, surgical consultation, or antivenom-first planning",
+        "snakebite envenomation safety checks must include avoidance of harmful first aid such as tourniquet, incision, suction, ice, or electric shock, at least 8-hour observation or longer serial monitoring when envenomation findings are present, coagulopathy monitoring with platelets, PT, PTT, INR, fibrinogen, FDP, bleeding, or defibrination, blood-product caution until adequate antivenom has been given, antivenom reaction monitoring for anaphylaxis, hypersensitivity, serum sickness, infusion-rate reaction, or premedication needs, compartment-syndrome or fasciotomy caution with pressure measurement, surgical consultation, or antivenom-first planning, pressure-immobilization caution for pit-viper bites because of arterial insufficiency or necrosis risk, and tetanus, wound-care, infection, or no-routine-antibiotic safety",
     },
     {
       name: "major_burn_time_critical_actions",
