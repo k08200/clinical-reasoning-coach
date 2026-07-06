@@ -14438,21 +14438,25 @@ const TOXIC_ALCOHOL_CONTEXT_TERMS = [
   "메탄올",
 ];
 
-const TOXIC_ALCOHOL_OSMOL_GAP_ACTION_TERMS = [
+const TOXIC_ALCOHOL_SERUM_OSMOLALITY_ACTION_TERMS = [
   "measured serum osmolality",
-  "osmol gap",
-  "osmolal gap",
-  "osmolar gap",
+  "measured osmolality",
   "serum osmolality",
 ];
 
-const TOXIC_ALCOHOL_LEVEL_ACTION_TERMS = [
+const TOXIC_ALCOHOL_OSMOL_GAP_ACTION_TERMS = [
+  "osmol gap",
+  "osmolal gap",
+  "osmolar gap",
+];
+
+const TOXIC_ALCOHOL_SPECIFIC_LEVEL_ACTION_TERMS = [
   "ethylene glycol concentration",
   "ethylene glycol level",
   "methanol concentration",
   "methanol level",
-  "toxic alcohol concentration",
-  "toxic alcohol level",
+  "methanol and ethylene glycol levels",
+  "methanol, ethylene glycol, and toxic alcohol levels",
 ];
 
 const TOXIC_ALCOHOL_ANION_GAP_ACTION_TERMS = [
@@ -14460,13 +14464,9 @@ const TOXIC_ALCOHOL_ANION_GAP_ACTION_TERMS = [
   "음이온차",
 ];
 
-const TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS = [
-  "adh blockade",
-  "adh inhibitor",
-  "alcohol dehydrogenase blockade",
-  "alcohol dehydrogenase inhibitor",
+const TOXIC_ALCOHOL_NAMED_ANTIDOTE_ACTION_TERMS = [
   "ethanol antidote",
-  "ethanol blockade",
+  "ethanol therapy",
   "fomepizole",
   "포메피졸",
 ];
@@ -14490,68 +14490,92 @@ const TOXIC_ALCOHOL_ACIDOSIS_SUPPORT_ACTION_TERMS = [
   "acidosis",
   "bicarbonate",
   "blood gas",
-  "ph",
+  "ph reassessment",
   "sodium bicarbonate",
   "중탄산",
   "산증",
 ];
 
-const TOXIC_ALCOHOL_DIALYSIS_INDICATION_SAFETY_TERMS = [
-  "anion gap",
-  "coma",
+const TOXIC_ALCOHOL_DIALYSIS_REVIEW_SAFETY_TERMS = [
   "dialysis indication",
+  "dialysis criteria",
+  "ectr indication",
+  "ectr criteria",
   "hemodialysis indication",
+  "hemodialysis criteria",
+];
+
+const TOXIC_ALCOHOL_DIALYSIS_SEVERITY_SAFETY_TERMS = [
+  "coma",
+  "high-risk level",
+  "high level",
   "kidney failure",
   "renal failure",
   "seizure",
   "severe acidosis",
-  "visual",
+  "visual symptom",
+  "visual symptoms",
   "투석",
   "시력",
 ];
 
-const TOXIC_ALCOHOL_ORGAN_INJURY_SAFETY_TERMS = [
-  "calcium oxalate",
-  "hypocalcemia",
-  "kidney",
+const TOXIC_ALCOHOL_OPTIC_INJURY_SAFETY_TERMS = [
   "optic",
-  "renal",
-  "urine",
   "vision",
   "visual",
-  "신장",
   "시력",
 ];
 
-const TOXIC_ALCOHOL_COINGESTION_DIFFERENTIAL_SAFETY_TERMS = [
+const TOXIC_ALCOHOL_RENAL_OXALATE_INJURY_SAFETY_TERMS = [
+  "calcium oxalate",
+  "hypocalcemia",
+  "kidney",
+  "renal",
+  "urine",
+  "신장",
+];
+
+const TOXIC_ALCOHOL_ALCOHOL_DIFFERENTIAL_SAFETY_TERMS = [
+  "ethanol",
+  "isopropanol",
+];
+
+const TOXIC_ALCOHOL_METABOLIC_DIFFERENTIAL_SAFETY_TERMS = [
   "alcoholic ketoacidosis",
   "co-ingestion",
   "coingestion",
   "diabetic ketoacidosis",
-  "ethanol",
-  "isopropanol",
   "lactic acidosis",
   "late presentation",
   "salicylate",
   "동반",
 ];
 
-const TOXIC_ALCOHOL_EMPIRIC_ANTIDOTE_SAFETY_TERMS = [
+const TOXIC_ALCOHOL_EMPIRIC_URGENCY_SAFETY_TERMS = [
   "awaiting confirmation",
   "do not wait",
   "do-not-wait",
-  "empiric antidote",
-  "empiric fomepizole",
   "high suspicion",
-  "immediate fomepizole",
   "levels unavailable",
   "suspected ingestion",
 ];
 
-const TOXIC_ALCOHOL_COFACTOR_SAFETY_TERMS = [
+const TOXIC_ALCOHOL_EMPIRIC_ANTIDOTE_SAFETY_TERMS = [
+  "alcohol dehydrogenase blockade",
+  "alcohol dehydrogenase inhibitor",
+  "empiric antidote",
+  "empiric fomepizole",
+  "fomepizole",
+  "immediate fomepizole",
+];
+
+const TOXIC_ALCOHOL_METHANOL_COFACTOR_SAFETY_TERMS = [
   "folate",
   "folic acid",
   "folinic acid",
+];
+
+const TOXIC_ALCOHOL_EG_COFACTOR_SAFETY_TERMS = [
   "pyridoxine",
   "thiamine",
   "vitamin b6",
@@ -27808,16 +27832,19 @@ function requiresToxicAlcoholSafetyCheck(detail: ClinicalCaseReviewDetail): bool
 
 function hasToxicAlcoholTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
+  const hasSerumOsmolalityAction = TOXIC_ALCOHOL_SERUM_OSMOLALITY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
   const hasOsmolGapAction = TOXIC_ALCOHOL_OSMOL_GAP_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasToxicAlcoholLevelAction = TOXIC_ALCOHOL_LEVEL_ACTION_TERMS.some((term) =>
+  const hasSpecificLevelAction = TOXIC_ALCOHOL_SPECIFIC_LEVEL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasAnionGapAction = TOXIC_ALCOHOL_ANION_GAP_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntidoteAction = TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS.some((term) =>
+  const hasNamedAntidoteAction = TOXIC_ALCOHOL_NAMED_ANTIDOTE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasToxicologyEscalation = TOXIC_ALCOHOL_TOXICOLOGY_ESCALATION_ACTION_TERMS.some(
@@ -27830,10 +27857,11 @@ function hasToxicAlcoholTimeCriticalActions(actions: string[]): boolean {
     containsSafetyTerm(normalizedActions, term),
   );
   return (
+    hasSerumOsmolalityAction &&
     hasOsmolGapAction &&
-    hasToxicAlcoholLevelAction &&
+    hasSpecificLevelAction &&
     hasAnionGapAction &&
-    hasAntidoteAction &&
+    hasNamedAntidoteAction &&
     hasToxicologyEscalation &&
     hasDialysisEscalation &&
     hasAcidosisSupport
@@ -27842,28 +27870,48 @@ function hasToxicAlcoholTimeCriticalActions(actions: string[]): boolean {
 
 function hasToxicAlcoholTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasDialysisIndicationSafety = TOXIC_ALCOHOL_DIALYSIS_INDICATION_SAFETY_TERMS.some(
+  const hasDialysisReviewSafety = TOXIC_ALCOHOL_DIALYSIS_REVIEW_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasOrganInjurySafety = TOXIC_ALCOHOL_ORGAN_INJURY_SAFETY_TERMS.some((term) =>
+  const hasDialysisSeveritySafety = TOXIC_ALCOHOL_DIALYSIS_SEVERITY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOpticInjurySafety = TOXIC_ALCOHOL_OPTIC_INJURY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasCoingestionDifferentialSafety =
-    TOXIC_ALCOHOL_COINGESTION_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+  const hasRenalOxalateInjurySafety = TOXIC_ALCOHOL_RENAL_OXALATE_INJURY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAlcoholDifferentialSafety = TOXIC_ALCOHOL_ALCOHOL_DIFFERENTIAL_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMetabolicDifferentialSafety =
+    TOXIC_ALCOHOL_METABOLIC_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
+  const hasEmpiricUrgencySafety = TOXIC_ALCOHOL_EMPIRIC_URGENCY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   const hasEmpiricAntidoteSafety = TOXIC_ALCOHOL_EMPIRIC_ANTIDOTE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasCofactorSafety = TOXIC_ALCOHOL_COFACTOR_SAFETY_TERMS.some((term) =>
+  const hasMethanolCofactorSafety = TOXIC_ALCOHOL_METHANOL_COFACTOR_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEgCofactorSafety = TOXIC_ALCOHOL_EG_COFACTOR_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasDialysisIndicationSafety &&
-    hasOrganInjurySafety &&
-    hasCoingestionDifferentialSafety &&
+    hasDialysisReviewSafety &&
+    hasDialysisSeveritySafety &&
+    hasOpticInjurySafety &&
+    hasRenalOxalateInjurySafety &&
+    hasAlcoholDifferentialSafety &&
+    hasMetabolicDifferentialSafety &&
+    hasEmpiricUrgencySafety &&
     hasEmpiricAntidoteSafety &&
-    hasCofactorSafety
+    hasMethanolCofactorSafety &&
+    hasEgCofactorSafety
   );
 }
 
@@ -32272,7 +32320,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasToxicAlcoholTimeCriticalActions,
       issue:
-        "toxic alcohol time-critical actions must include anion gap, osmolal gap, osmolar gap, or measured serum osmolality assessment, methanol, ethylene glycol, or toxic alcohol level assessment, explicit fomepizole, ethanol antidote, or alcohol-dehydrogenase blockade, poison-center or toxicologist consultation, hemodialysis, ECTR, or extracorporeal-treatment escalation, and acidosis, blood gas, pH, or bicarbonate support planning",
+        "toxic alcohol time-critical actions must include anion gap assessment plus measured serum osmolality and osmolal or osmolar gap calculation, specific methanol or ethylene glycol level assessment, named antidote therapy with fomepizole or ethanol, poison-center or toxicologist consultation, hemodialysis, ECTR, or extracorporeal-treatment escalation, and acidosis support with blood gas, pH reassessment, bicarbonate, or sodium bicarbonate planning",
     },
     {
       name: "toxic_alcohol_treatment_safety",
@@ -32281,7 +32329,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasToxicAlcoholTreatmentSafetyCheck,
       issue:
-        "toxic alcohol safety checks must include hemodialysis indication review for severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level, vision, optic, renal, kidney, urine, hypocalcemia, or calcium oxalate organ-injury monitoring, ethanol, isopropanol, salicylate, ketoacidosis, lactic acidosis, late presentation, or co-ingestion differential review, empiric fomepizole or alcohol-dehydrogenase blockade without waiting for confirmatory levels when suspicion is high, and folinic acid, folate, thiamine, or pyridoxine cofactor planning",
+        "toxic alcohol safety checks must include hemodialysis indication review plus severe acidosis, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level criteria, optic or vision monitoring plus renal, kidney, urine, hypocalcemia, or calcium-oxalate monitoring, ethanol or isopropanol differential review plus salicylate, ketoacidosis, lactic acidosis, late-presentation, or co-ingestion review, urgency not to wait for confirmatory levels plus empiric fomepizole, antidote, or alcohol-dehydrogenase blockade, and folinic acid or folate plus thiamine, pyridoxine, or vitamin B6 cofactor planning",
     },
     {
       name: "lithium_toxicity_time_critical_actions",

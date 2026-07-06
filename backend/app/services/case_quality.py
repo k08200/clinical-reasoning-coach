@@ -13006,32 +13006,31 @@ TOXIC_ALCOHOL_CONTEXT_TERMS = (
     "부동액",
     "메탄올",
 )
-TOXIC_ALCOHOL_OSMOL_GAP_ACTION_TERMS = (
+TOXIC_ALCOHOL_SERUM_OSMOLALITY_ACTION_TERMS = (
     "measured serum osmolality",
+    "measured osmolality",
+    "serum osmolality",
+)
+TOXIC_ALCOHOL_OSMOL_GAP_ACTION_TERMS = (
     "osmol gap",
     "osmolal gap",
     "osmolar gap",
-    "serum osmolality",
 )
-TOXIC_ALCOHOL_LEVEL_ACTION_TERMS = (
+TOXIC_ALCOHOL_SPECIFIC_LEVEL_ACTION_TERMS = (
     "ethylene glycol concentration",
     "ethylene glycol level",
     "methanol concentration",
     "methanol level",
-    "toxic alcohol concentration",
-    "toxic alcohol level",
+    "methanol and ethylene glycol levels",
+    "methanol, ethylene glycol, and toxic alcohol levels",
 )
 TOXIC_ALCOHOL_ANION_GAP_ACTION_TERMS = (
     "anion gap",
     "음이온차",
 )
-TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS = (
-    "adh blockade",
-    "adh inhibitor",
-    "alcohol dehydrogenase blockade",
-    "alcohol dehydrogenase inhibitor",
+TOXIC_ALCOHOL_NAMED_ANTIDOTE_ACTION_TERMS = (
     "ethanol antidote",
-    "ethanol blockade",
+    "ethanol therapy",
     "fomepizole",
     "포메피졸",
 )
@@ -13052,63 +13051,82 @@ TOXIC_ALCOHOL_ACIDOSIS_SUPPORT_ACTION_TERMS = (
     "acidosis",
     "bicarbonate",
     "blood gas",
-    "ph",
+    "ph reassessment",
     "sodium bicarbonate",
     "중탄산",
     "산증",
 )
-TOXIC_ALCOHOL_DIALYSIS_INDICATION_SAFETY_TERMS = (
-    "anion gap",
-    "coma",
+TOXIC_ALCOHOL_DIALYSIS_REVIEW_SAFETY_TERMS = (
     "dialysis indication",
+    "dialysis criteria",
+    "ectr indication",
+    "ectr criteria",
     "hemodialysis indication",
+    "hemodialysis criteria",
+)
+TOXIC_ALCOHOL_DIALYSIS_SEVERITY_SAFETY_TERMS = (
+    "coma",
+    "high-risk level",
+    "high level",
     "kidney failure",
     "renal failure",
     "seizure",
     "severe acidosis",
-    "visual",
+    "visual symptom",
+    "visual symptoms",
     "투석",
     "시력",
 )
-TOXIC_ALCOHOL_ORGAN_INJURY_SAFETY_TERMS = (
+TOXIC_ALCOHOL_OPTIC_INJURY_SAFETY_TERMS = (
+    "optic",
+    "vision",
+    "visual",
+    "시력",
+)
+TOXIC_ALCOHOL_RENAL_OXALATE_INJURY_SAFETY_TERMS = (
     "calcium oxalate",
     "hypocalcemia",
     "kidney",
-    "optic",
     "renal",
     "urine",
-    "vision",
-    "visual",
     "신장",
-    "시력",
 )
-TOXIC_ALCOHOL_COINGESTION_DIFFERENTIAL_SAFETY_TERMS = (
+TOXIC_ALCOHOL_ALCOHOL_DIFFERENTIAL_SAFETY_TERMS = (
+    "ethanol",
+    "isopropanol",
+)
+TOXIC_ALCOHOL_METABOLIC_DIFFERENTIAL_SAFETY_TERMS = (
     "alcoholic ketoacidosis",
     "co-ingestion",
     "coingestion",
     "diabetic ketoacidosis",
-    "ethanol",
-    "isopropanol",
     "lactic acidosis",
     "late presentation",
     "salicylate",
     "동반",
 )
-TOXIC_ALCOHOL_EMPIRIC_ANTIDOTE_SAFETY_TERMS = (
+TOXIC_ALCOHOL_EMPIRIC_URGENCY_SAFETY_TERMS = (
     "awaiting confirmation",
     "do not wait",
     "do-not-wait",
-    "empiric antidote",
-    "empiric fomepizole",
     "high suspicion",
-    "immediate fomepizole",
     "levels unavailable",
     "suspected ingestion",
 )
-TOXIC_ALCOHOL_COFACTOR_SAFETY_TERMS = (
+TOXIC_ALCOHOL_EMPIRIC_ANTIDOTE_SAFETY_TERMS = (
+    "alcohol dehydrogenase blockade",
+    "alcohol dehydrogenase inhibitor",
+    "empiric antidote",
+    "empiric fomepizole",
+    "fomepizole",
+    "immediate fomepizole",
+)
+TOXIC_ALCOHOL_METHANOL_COFACTOR_SAFETY_TERMS = (
     "folate",
     "folic acid",
     "folinic acid",
+)
+TOXIC_ALCOHOL_EG_COFACTOR_SAFETY_TERMS = (
     "pyridoxine",
     "thiamine",
     "vitamin b6",
@@ -20619,13 +20637,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="time_critical_actions",
             validator=_has_toxic_alcohol_time_critical_actions,
             issue=(
-                "toxic alcohol time-critical actions must include anion gap, "
-                "osmolal gap, osmolar gap, or measured serum osmolality assessment, "
-                "methanol, ethylene glycol, or toxic alcohol level assessment, "
-                "explicit fomepizole, ethanol antidote, or alcohol-dehydrogenase "
-                "blockade, poison-center or toxicologist consultation, "
+                "toxic alcohol time-critical actions must include anion gap "
+                "assessment plus measured serum osmolality and osmolal or "
+                "osmolar gap calculation, specific methanol or ethylene glycol "
+                "level assessment, named antidote therapy with fomepizole or "
+                "ethanol, poison-center or toxicologist consultation, "
                 "hemodialysis, ECTR, or extracorporeal-treatment escalation, "
-                "and acidosis, blood gas, pH, or bicarbonate support planning"
+                "and acidosis support with blood gas, pH reassessment, "
+                "bicarbonate, or sodium bicarbonate planning"
             ),
         ),
         DomainSafetyGate(
@@ -20635,15 +20654,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_toxic_alcohol_treatment_safety_check,
             issue=(
                 "toxic alcohol safety checks must include hemodialysis indication "
-                "review for severe acidosis, anion gap, coma, seizure, visual "
-                "symptoms, renal failure, kidney failure, or high-risk level, "
-                "vision, optic, renal, kidney, urine, hypocalcemia, or calcium "
-                "oxalate organ-injury monitoring, ethanol, isopropanol, "
-                "salicylate, ketoacidosis, lactic acidosis, late presentation, "
-                "or co-ingestion differential review, empiric fomepizole or "
-                "alcohol-dehydrogenase blockade without waiting for confirmatory "
-                "levels when suspicion is high, and folinic acid, folate, thiamine, "
-                "or pyridoxine cofactor planning"
+                "review plus severe acidosis, coma, seizure, visual symptoms, "
+                "renal failure, kidney failure, or high-risk level criteria, "
+                "optic or vision monitoring plus renal, kidney, urine, "
+                "hypocalcemia, or calcium-oxalate monitoring, ethanol or "
+                "isopropanol differential review plus salicylate, ketoacidosis, "
+                "lactic acidosis, late-presentation, or co-ingestion review, "
+                "urgency not to wait for confirmatory levels plus empiric "
+                "fomepizole, antidote, or alcohol-dehydrogenase blockade, and "
+                "folinic acid or folate plus thiamine, pyridoxine, or vitamin B6 "
+                "cofactor planning"
             ),
         ),
         DomainSafetyGate(
@@ -32721,21 +32741,25 @@ def _requires_toxic_alcohol_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_toxic_alcohol_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_serum_osmolality_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TOXIC_ALCOHOL_SERUM_OSMOLALITY_ACTION_TERMS
+    )
     has_osmol_gap_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in TOXIC_ALCOHOL_OSMOL_GAP_ACTION_TERMS
     )
-    has_toxic_alcohol_level_action = any(
+    has_specific_level_action = any(
         _contains_safety_term(normalized_actions, term)
-        for term in TOXIC_ALCOHOL_LEVEL_ACTION_TERMS
+        for term in TOXIC_ALCOHOL_SPECIFIC_LEVEL_ACTION_TERMS
     )
     has_anion_gap_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in TOXIC_ALCOHOL_ANION_GAP_ACTION_TERMS
     )
-    has_antidote_action = any(
+    has_named_antidote_action = any(
         _contains_safety_term(normalized_actions, term)
-        for term in TOXIC_ALCOHOL_ANTIDOTE_ACTION_TERMS
+        for term in TOXIC_ALCOHOL_NAMED_ANTIDOTE_ACTION_TERMS
     )
     has_toxicology_escalation = any(
         _contains_safety_term(normalized_actions, term)
@@ -32750,10 +32774,11 @@ def _has_toxic_alcohol_time_critical_actions(actions: list[Any]) -> bool:
         for term in TOXIC_ALCOHOL_ACIDOSIS_SUPPORT_ACTION_TERMS
     )
     return (
-        has_osmol_gap_action
-        and has_toxic_alcohol_level_action
+        has_serum_osmolality_action
+        and has_osmol_gap_action
+        and has_specific_level_action
         and has_anion_gap_action
-        and has_antidote_action
+        and has_named_antidote_action
         and has_toxicology_escalation
         and has_dialysis_escalation
         and has_acidosis_support
@@ -32762,32 +32787,57 @@ def _has_toxic_alcohol_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_toxic_alcohol_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_dialysis_indication_safety = any(
+    has_dialysis_review_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in TOXIC_ALCOHOL_DIALYSIS_INDICATION_SAFETY_TERMS
+        for term in TOXIC_ALCOHOL_DIALYSIS_REVIEW_SAFETY_TERMS
     )
-    has_organ_injury_safety = any(
+    has_dialysis_severity_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in TOXIC_ALCOHOL_ORGAN_INJURY_SAFETY_TERMS
+        for term in TOXIC_ALCOHOL_DIALYSIS_SEVERITY_SAFETY_TERMS
     )
-    has_coingestion_differential_safety = any(
+    has_optic_injury_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in TOXIC_ALCOHOL_COINGESTION_DIFFERENTIAL_SAFETY_TERMS
+        for term in TOXIC_ALCOHOL_OPTIC_INJURY_SAFETY_TERMS
+    )
+    has_renal_oxalate_injury_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_RENAL_OXALATE_INJURY_SAFETY_TERMS
+    )
+    has_alcohol_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_ALCOHOL_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_metabolic_differential_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_METABOLIC_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_empiric_urgency_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_EMPIRIC_URGENCY_SAFETY_TERMS
     )
     has_empiric_antidote_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in TOXIC_ALCOHOL_EMPIRIC_ANTIDOTE_SAFETY_TERMS
     )
-    has_cofactor_safety = any(
+    has_methanol_cofactor_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in TOXIC_ALCOHOL_COFACTOR_SAFETY_TERMS
+        for term in TOXIC_ALCOHOL_METHANOL_COFACTOR_SAFETY_TERMS
+    )
+    has_eg_cofactor_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_EG_COFACTOR_SAFETY_TERMS
     )
     return (
-        has_dialysis_indication_safety
-        and has_organ_injury_safety
-        and has_coingestion_differential_safety
+        has_dialysis_review_safety
+        and has_dialysis_severity_safety
+        and has_optic_injury_safety
+        and has_renal_oxalate_injury_safety
+        and has_alcohol_differential_safety
+        and has_metabolic_differential_safety
+        and has_empiric_urgency_safety
         and has_empiric_antidote_safety
-        and has_cofactor_safety
+        and has_methanol_cofactor_safety
+        and has_eg_cofactor_safety
     )
 
 

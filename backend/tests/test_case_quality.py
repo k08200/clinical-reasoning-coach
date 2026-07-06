@@ -27429,6 +27429,78 @@ def test_quality_gate_requires_toxic_alcohol_specific_level_not_gap_labs_alone()
     )
 
 
+def test_quality_gate_requires_toxic_alcohol_measured_osmolality_gap_and_specific_levels_together():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Methanol toxic alcohol ingestion"
+    case["patient_demographics"] = {
+        "age": 39,
+        "sex": "male",
+        "weight_kg": 72,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Visual symptoms and confusion after washer fluid"
+    case["history_of_present_illness"] = (
+        "Patient presents after suspected methanol windshield washer fluid ingestion "
+        "with visual symptoms, confusion, high anion gap metabolic acidosis, and "
+        "elevated osmolar gap."
+    )
+    case["key_teaching_points"] = [
+        "Toxic alcohol diagnosis needs measured serum osmolality, osmolal gap, anion gap, and specific methanol or ethylene glycol levels",
+        "Fomepizole or ethanol should be started promptly for suspected toxic alcohol ingestion",
+        "Severe acidosis, visual symptoms, renal failure, coma, seizure, or high levels require hemodialysis planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Visual symptoms, coma, seizure, severe acidosis, or high anion gap after methanol exposure",
+        "Renal injury, hypocalcemia, calcium oxalate crystals, or flank pain after ethylene glycol exposure",
+    ]
+    case["time_critical_actions"] = [
+        "Calculate anion gap and check measured serum osmolality with a generic toxic alcohol level",
+        "Start fomepizole immediately or ethanol antidote if fomepizole is unavailable",
+        "Call poison center, toxicologist, and nephrology for hemodialysis or extracorporeal escalation",
+        "Treat severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
+    ]
+    case["contraindication_checks"] = [
+        "Review hemodialysis indications including severe acidosis, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+        "Monitor vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury",
+        "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+        "Do not wait for confirmatory levels when suspicion is high; give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+        "Plan cofactors with folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "ANTIZOL (fomepizole) injection",
+            "organization": "DailyMed / U.S. National Library of Medicine",
+            "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=c045b5a8-b220-4f0a-a831-155b29c19454",
+            "supports": [
+                "methanol toxic alcohol ingestion diagnosis and risk stratification",
+                "toxic alcohol diagnosis needs measured serum osmolality, osmolal gap, anion gap, and specific methanol or ethylene glycol levels",
+                "fomepizole or ethanol should be started promptly for suspected toxic alcohol ingestion",
+                "severe acidosis, visual symptoms, renal failure, coma, seizure, or high levels require hemodialysis planning",
+                "visual symptoms, coma, seizure, severe acidosis, or high anion gap after methanol exposure as red flags",
+                "renal injury, hypocalcemia, calcium oxalate crystals, or flank pain after ethylene glycol exposure as severity markers",
+                "anion gap and measured serum osmolality with a generic toxic alcohol level",
+                "fomepizole immediately or ethanol antidote if fomepizole is unavailable",
+                "poison center, toxicologist, and nephrology for hemodialysis or extracorporeal escalation",
+                "severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
+                "hemodialysis indications including severe acidosis, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+                "vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury monitoring",
+                "ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+                "do not wait for confirmatory levels when suspicion is high and give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+                "folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol cofactor planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "toxic alcohol time-critical actions must include anion gap"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_toxic_alcohol_explicit_antidote_not_enzyme_mention_alone():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Ethylene glycol toxic alcohol ingestion"
@@ -27622,6 +27694,78 @@ def test_quality_gate_requires_toxic_alcohol_dialysis_organ_and_differential_saf
                 "severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
                 "medication allergy before antiemetics",
                 "pregnancy status before imaging if needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "toxic alcohol safety checks must include hemodialysis indication"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_toxic_alcohol_specific_dialysis_organ_differential_empiric_and_cofactor_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Ethylene glycol toxic alcohol ingestion"
+    case["patient_demographics"] = {
+        "age": 47,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Vomiting and flank pain after antifreeze ingestion"
+    case["history_of_present_illness"] = (
+        "Patient presents after suspected ethylene glycol antifreeze ingestion with "
+        "vomiting, confusion, high anion gap metabolic acidosis, elevated osmolar "
+        "gap, flank pain, hypocalcemia, calcium oxalate crystalluria, and AKI."
+    )
+    case["key_teaching_points"] = [
+        "Ethylene glycol can cause high anion gap metabolic acidosis, hypocalcemia, calcium oxalate crystalluria, and renal failure",
+        "Fomepizole or ethanol blocks alcohol dehydrogenase and treatment should not wait for confirmatory levels when suspicion is high",
+        "Hemodialysis indications should be reviewed when severe acidosis, renal failure, coma, seizure, or high levels are present",
+    ]
+    case["clinical_red_flags"] = [
+        "Visual symptoms, coma, seizure, severe acidosis, or high anion gap after methanol exposure",
+        "Renal injury, hypocalcemia, calcium oxalate crystals, flank pain, kidney failure, or renal failure after ethylene glycol exposure",
+    ]
+    case["time_critical_actions"] = [
+        "Calculate anion gap and osmolar gap with measured serum osmolality and send methanol and ethylene glycol levels",
+        "Start fomepizole immediately or ethanol antidote if fomepizole is unavailable",
+        "Call poison center, toxicologist, and nephrology for hemodialysis or extracorporeal escalation",
+        "Treat severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
+    ]
+    case["contraindication_checks"] = [
+        "Review hemodialysis indications before disposition",
+        "Monitor renal function and urine output",
+        "Assess ethanol co-ingestion only",
+        "Give fomepizole when toxic alcohol ingestion is suspected",
+        "Plan folate cofactor support",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Ethylene Glycol Medical Management Guidelines",
+            "organization": "CDC ATSDR",
+            "url": "https://wwwn.cdc.gov/TSP/MMG/MMGDetails.aspx?mmgid=82&toxid=21",
+            "supports": [
+                "ethylene glycol toxic alcohol ingestion diagnosis and risk stratification",
+                "ethylene glycol can cause high anion gap metabolic acidosis, hypocalcemia, calcium oxalate crystalluria, and renal failure",
+                "fomepizole or ethanol blocks alcohol dehydrogenase and treatment should not wait for confirmatory levels when suspicion is high",
+                "hemodialysis indications should be reviewed when severe acidosis, renal failure, coma, seizure, or high levels are present",
+                "visual symptoms, coma, seizure, severe acidosis, or high anion gap after methanol exposure as red flags",
+                "renal injury, hypocalcemia, calcium oxalate crystals, flank pain, kidney failure, or renal failure after ethylene glycol exposure",
+                "anion gap and osmolar gap with measured serum osmolality and methanol and ethylene glycol levels",
+                "fomepizole immediately or ethanol antidote if fomepizole is unavailable",
+                "poison center, toxicologist, and nephrology for hemodialysis or extracorporeal escalation",
+                "severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
+                "hemodialysis indications before disposition",
+                "renal function and urine output monitoring",
+                "ethanol co-ingestion only",
+                "fomepizole when toxic alcohol ingestion is suspected",
+                "folate cofactor support",
             ],
         }
     ]
