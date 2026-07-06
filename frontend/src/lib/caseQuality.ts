@@ -15176,15 +15176,38 @@ const CYANIDE_POISONING_CONTEXT_TERMS = [
   "시안화",
 ];
 
-const CYANIDE_REMOVAL_OXYGEN_SUPPORT_ACTION_TERMS = [
+const CYANIDE_SOURCE_REMOVAL_ACTION_TERMS = [
+  "decontamination",
+  "remove clothing",
+  "remove from source",
+  "removed from source",
+  "source removal",
+  "wash",
+];
+
+const CYANIDE_OXYGEN_ACTION_TERMS = [
   "100% oxygen",
-  "circulatory support",
   "high-flow oxygen",
   "oxygen",
-  "remove from source",
-  "respiratory support",
-  "source removal",
   "산소",
+];
+
+const CYANIDE_AIRWAY_RESPIRATORY_ACTION_TERMS = [
+  "airway",
+  "apnea",
+  "intubation",
+  "mechanical ventilation",
+  "respiratory support",
+  "ventilation",
+];
+
+const CYANIDE_CIRCULATORY_SUPPORT_ACTION_TERMS = [
+  "circulatory support",
+  "fluid",
+  "hemodynamic",
+  "hypotension",
+  "shock",
+  "vasopressor",
 ];
 
 const CYANIDE_HYDROXOCOBALAMIN_ACTION_TERMS = [
@@ -15193,16 +15216,39 @@ const CYANIDE_HYDROXOCOBALAMIN_ACTION_TERMS = [
   "하이드록소코발라민",
 ];
 
-const CYANIDE_LACTATE_ACIDOSIS_ACTION_TERMS = [
-  "abg",
-  "anion gap",
-  "blood gas",
+const CYANIDE_EMPIRIC_ANTIDOTE_ACTION_TERMS = [
+  "do not delay",
+  "empiric",
+  "immediate",
+  "rapid",
+];
+
+const CYANIDE_LACTATE_ACTION_TERMS = [
   "lactate",
+  "lactic acidosis",
+  "젖산",
+];
+
+const CYANIDE_BLOOD_GAS_ACTION_TERMS = [
+  "abg",
+  "blood gas",
+  "vbg",
+];
+
+const CYANIDE_ACID_BASE_ACTION_TERMS = [
+  "anion gap",
   "metabolic acidosis",
   "ph",
-  "vbg",
-  "젖산",
   "산증",
+];
+
+const CYANIDE_CO_TOXICITY_ACTION_TERMS = [
+  "carbon monoxide",
+  "carboxyhemoglobin",
+  "co poisoning",
+  "co-oximetry",
+  "cohb",
+  "smoke inhalation",
 ];
 
 const CYANIDE_POISON_ESCALATION_ACTION_TERMS = [
@@ -28543,22 +28589,50 @@ function requiresCyanidePoisoningSafetyCheck(detail: ClinicalCaseReviewDetail): 
 
 function hasCyanidePoisoningTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasRemovalOxygenSupport = CYANIDE_REMOVAL_OXYGEN_SUPPORT_ACTION_TERMS.some((term) =>
+  const hasSourceRemoval = CYANIDE_SOURCE_REMOVAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOxygen = CYANIDE_OXYGEN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAirwayRespiratorySupport = CYANIDE_AIRWAY_RESPIRATORY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCirculatorySupport = CYANIDE_CIRCULATORY_SUPPORT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasAntidoteAction = CYANIDE_HYDROXOCOBALAMIN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasLactateAcidosisAction = CYANIDE_LACTATE_ACIDOSIS_ACTION_TERMS.some((term) =>
+  const hasEmpiricAntidoteAction = CYANIDE_EMPIRIC_ANTIDOTE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLactateAction = CYANIDE_LACTATE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodGasAction = CYANIDE_BLOOD_GAS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAcidBaseAction = CYANIDE_ACID_BASE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCoToxicityAction = CYANIDE_CO_TOXICITY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasPoisonEscalation = CYANIDE_POISON_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasRemovalOxygenSupport &&
+    hasSourceRemoval &&
+    hasOxygen &&
+    hasAirwayRespiratorySupport &&
+    hasCirculatorySupport &&
     hasAntidoteAction &&
-    hasLactateAcidosisAction &&
+    hasEmpiricAntidoteAction &&
+    hasLactateAction &&
+    hasBloodGasAction &&
+    hasAcidBaseAction &&
+    hasCoToxicityAction &&
     hasPoisonEscalation
   );
 }
@@ -32765,7 +32839,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasCyanidePoisoningTimeCriticalActions,
       issue:
-        "cyanide poisoning time-critical actions must include source removal or 100% oxygen with respiratory or circulatory support, hydroxocobalamin or Cyanokit antidote planning, lactate, blood gas, ABG, VBG, pH, anion gap, or metabolic acidosis assessment, and poison center, toxicologist, ICU, or burn center escalation",
+        "cyanide poisoning time-critical actions must include source removal or decontamination, 100% oxygen, airway or ventilatory support, hemodynamic support with fluids or vasopressors, immediate empiric hydroxocobalamin or Cyanokit antidote planning, lactate measurement, blood gas assessment, anion gap, pH, or metabolic-acidosis assessment, carbon-monoxide or smoke-inhalation co-toxicity assessment, and poison center, toxicologist, ICU, or burn center escalation",
     },
     {
       name: "cyanide_poisoning_treatment_safety",

@@ -13651,31 +13651,70 @@ CYANIDE_POISONING_CONTEXT_TERMS = (
     "smoke inhalation with shock",
     "시안화",
 )
-CYANIDE_REMOVAL_OXYGEN_SUPPORT_ACTION_TERMS = (
+CYANIDE_SOURCE_REMOVAL_ACTION_TERMS = (
+    "decontamination",
+    "remove clothing",
+    "remove from source",
+    "removed from source",
+    "source removal",
+    "wash",
+)
+CYANIDE_OXYGEN_ACTION_TERMS = (
     "100% oxygen",
-    "circulatory support",
     "high-flow oxygen",
     "oxygen",
-    "remove from source",
-    "respiratory support",
-    "source removal",
     "산소",
+)
+CYANIDE_AIRWAY_RESPIRATORY_ACTION_TERMS = (
+    "airway",
+    "apnea",
+    "intubation",
+    "mechanical ventilation",
+    "respiratory support",
+    "ventilation",
+)
+CYANIDE_CIRCULATORY_SUPPORT_ACTION_TERMS = (
+    "circulatory support",
+    "fluid",
+    "hemodynamic",
+    "hypotension",
+    "shock",
+    "vasopressor",
 )
 CYANIDE_HYDROXOCOBALAMIN_ACTION_TERMS = (
     "cyanokit",
     "hydroxocobalamin",
     "하이드록소코발라민",
 )
-CYANIDE_LACTATE_ACIDOSIS_ACTION_TERMS = (
-    "abg",
-    "anion gap",
-    "blood gas",
+CYANIDE_EMPIRIC_ANTIDOTE_ACTION_TERMS = (
+    "do not delay",
+    "empiric",
+    "immediate",
+    "rapid",
+)
+CYANIDE_LACTATE_ACTION_TERMS = (
     "lactate",
+    "lactic acidosis",
+    "젖산",
+)
+CYANIDE_BLOOD_GAS_ACTION_TERMS = (
+    "abg",
+    "blood gas",
+    "vbg",
+)
+CYANIDE_ACID_BASE_ACTION_TERMS = (
+    "anion gap",
     "metabolic acidosis",
     "ph",
-    "vbg",
-    "젖산",
     "산증",
+)
+CYANIDE_CO_TOXICITY_ACTION_TERMS = (
+    "carbon monoxide",
+    "carboxyhemoglobin",
+    "co poisoning",
+    "co-oximetry",
+    "cohb",
+    "smoke inhalation",
 )
 CYANIDE_POISON_ESCALATION_ACTION_TERMS = (
     "burn center",
@@ -20975,10 +21014,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_cyanide_poisoning_time_critical_actions,
             issue=(
                 "cyanide poisoning time-critical actions must include source "
-                "removal or 100% oxygen with respiratory or circulatory support, "
-                "hydroxocobalamin or Cyanokit antidote planning, lactate, blood "
-                "gas, ABG, VBG, pH, anion gap, or metabolic acidosis assessment, "
-                "and poison center, toxicologist, ICU, or burn center escalation"
+                "removal or decontamination, 100% oxygen, airway or ventilatory "
+                "support, hemodynamic support with fluids or vasopressors, "
+                "immediate empiric hydroxocobalamin or Cyanokit antidote planning, "
+                "lactate measurement, blood gas assessment, anion gap, pH, or "
+                "metabolic-acidosis assessment, carbon-monoxide or smoke-inhalation "
+                "co-toxicity assessment, and poison center, toxicologist, ICU, "
+                "or burn center escalation"
             ),
         ),
         DomainSafetyGate(
@@ -33548,26 +33590,61 @@ def _requires_cyanide_poisoning_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_cyanide_poisoning_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_removal_oxygen_support = any(
+    has_source_removal = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CYANIDE_REMOVAL_OXYGEN_SUPPORT_ACTION_TERMS
+        for term in CYANIDE_SOURCE_REMOVAL_ACTION_TERMS
+    )
+    has_oxygen = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CYANIDE_OXYGEN_ACTION_TERMS
+    )
+    has_airway_respiratory_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CYANIDE_AIRWAY_RESPIRATORY_ACTION_TERMS
+    )
+    has_circulatory_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CYANIDE_CIRCULATORY_SUPPORT_ACTION_TERMS
     )
     has_antidote_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in CYANIDE_HYDROXOCOBALAMIN_ACTION_TERMS
     )
-    has_lactate_acidosis_action = any(
+    has_empiric_antidote_action = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CYANIDE_LACTATE_ACIDOSIS_ACTION_TERMS
+        for term in CYANIDE_EMPIRIC_ANTIDOTE_ACTION_TERMS
+    )
+    has_lactate_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CYANIDE_LACTATE_ACTION_TERMS
+    )
+    has_blood_gas_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CYANIDE_BLOOD_GAS_ACTION_TERMS
+    )
+    has_acid_base_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CYANIDE_ACID_BASE_ACTION_TERMS
+    )
+    has_co_toxicity_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CYANIDE_CO_TOXICITY_ACTION_TERMS
     )
     has_poison_escalation = any(
         _contains_safety_term(normalized_actions, term)
         for term in CYANIDE_POISON_ESCALATION_ACTION_TERMS
     )
     return (
-        has_removal_oxygen_support
+        has_source_removal
+        and has_oxygen
+        and has_airway_respiratory_support
+        and has_circulatory_support
         and has_antidote_action
-        and has_lactate_acidosis_action
+        and has_empiric_antidote_action
+        and has_lactate_action
+        and has_blood_gas_action
+        and has_acid_base_action
+        and has_co_toxicity_action
         and has_poison_escalation
     )
 
