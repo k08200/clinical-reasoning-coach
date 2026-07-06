@@ -6814,6 +6814,112 @@
     }
   },
   {
+    "name": "acetaminophen_toxicity_requires_four_hour_nomogram_not_generic_level",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "timed acetaminophen level drawn at or after 4 hours"
+    ],
+    "overrides": {
+      "diagnosis": "Acetaminophen toxicity",
+      "chief_complaint": "Intentional pill ingestion",
+      "history_of_present_illness": "Patient presents several hours after ingesting a large quantity of pain medication with nausea and right upper quadrant discomfort.",
+      "key_teaching_points": [
+        "Acetaminophen toxicity depends on timed serum concentration and ingestion timing",
+        "N-acetylcysteine should be started promptly when criteria are met or timing is uncertain",
+        "AST, ALT, INR, creatinine, acidosis, encephalopathy, and transplant risk guide escalation"
+      ],
+      "clinical_red_flags": [
+        "Unknown ingestion time with repeated vomiting",
+        "Right upper quadrant pain with rising AST and INR"
+      ],
+      "time_critical_actions": [
+        "Obtain acetaminophen level now and repeat labs later",
+        "Start N-acetylcysteine treatment promptly when level, timing, or risk criteria indicate",
+        "Check AST, ALT, bilirubin, INR, PT, creatinine, glucose, lactate, CMP, and call poison center for toxicology guidance"
+      ],
+      "contraindication_checks": [
+        "Dose, duration, time of ingestion, unknown time, unreliable history, extended-release formulation, co-ingestion, staggered ingestion, and repeated supratherapeutic use before nomogram interpretation",
+        "Do not use nomogram for drawn before 4 hour levels or repeated ingestion; extended-release or unreliable history may need repeat level or non-nomogram management",
+        "Activated charcoal decontamination only with protected airway and no contraindication",
+        "Weight-based N-acetylcysteine loading dose, infusion rate, vomiting, and anaphylactoid reaction safeguards",
+        "Do not delay start NAC when treatment would begin after 8 hours or while awaiting level",
+        "Continue NAC until acetaminophen level < 10, INR < 2, AST and ALT improve, and patient is clinically well",
+        "Monitor acidosis, lactate, hypoglycemia, encephalopathy, hepatic failure, and liver transplant center risk",
+        "Escalate massive ingestion, metabolic acidosis, dialysis, hemodialysis, extracorporeal, or transplant center needs"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Acetaminophen Poisoning",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/injuries-poisoning/poisoning/acetaminophen-poisoning",
+          "supports": [
+            "acetaminophen toxicity diagnosis and risk stratification depends on timed serum concentration and ingestion timing",
+            "unknown ingestion time with repeated vomiting as a red flag",
+            "right upper quadrant pain with rising AST and INR as severity markers",
+            "acetaminophen level now and repeat labs later",
+            "N-acetylcysteine treatment promptly when level, timing, or risk criteria indicate",
+            "AST, ALT, bilirubin, INR, PT, creatinine, glucose, lactate, CMP, and poison center toxicology guidance",
+            "dose, duration, time of ingestion, unknown time, unreliable history, extended-release formulation, co-ingestion, staggered ingestion, and repeated supratherapeutic use before nomogram interpretation",
+            "do not use nomogram for drawn before 4 hour levels or repeated ingestion and extended-release or unreliable history repeat level or non-nomogram management",
+            "activated charcoal decontamination only with protected airway and no contraindication",
+            "weight-based N-acetylcysteine loading dose, infusion rate, vomiting, and anaphylactoid reaction safeguards",
+            "do not delay start NAC when treatment would begin after 8 hours or while awaiting level",
+            "continue NAC until acetaminophen level < 10, INR < 2, AST and ALT improve, and patient is clinically well",
+            "acidosis, lactate, hypoglycemia, encephalopathy, hepatic failure, and liver transplant center risk monitoring",
+            "massive ingestion, metabolic acidosis, dialysis, hemodialysis, extracorporeal, or transplant center escalation"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "acetaminophen_toxicity_requires_nomogram_nac_decon_and_liver_failure_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "acetaminophen toxicity safety checks must include ingestion timing"
+    ],
+    "overrides": {
+      "diagnosis": "Acetaminophen toxicity",
+      "chief_complaint": "Intentional pill ingestion",
+      "history_of_present_illness": "Patient presents several hours after ingesting a large quantity of pain medication with nausea and right upper quadrant discomfort.",
+      "key_teaching_points": [
+        "Acetaminophen toxicity depends on timed serum concentration and ingestion timing",
+        "N-acetylcysteine should be started promptly when criteria are met or timing is uncertain",
+        "AST, ALT, INR, acidosis, encephalopathy, and transplant risk guide escalation"
+      ],
+      "clinical_red_flags": [
+        "Unknown ingestion time with repeated vomiting",
+        "Right upper quadrant pain with rising AST and INR"
+      ],
+      "time_critical_actions": [
+        "Obtain timed acetaminophen level at 4 hours and plot on Rumack-Matthew nomogram",
+        "Start N-acetylcysteine treatment promptly when level, timing, or risk criteria indicate",
+        "Check AST, ALT, bilirubin, INR, PT, creatinine, glucose, lactate, CMP, hepatic function, and call poison center for toxicology guidance"
+      ],
+      "contraindication_checks": [
+        "Medication allergy before antiemetics",
+        "Pregnancy status before imaging if needed"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Management of Acetaminophen Poisoning",
+          "organization": "JAMA Network Open",
+          "url": "https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2808062",
+          "supports": [
+            "acetaminophen toxicity diagnosis and risk stratification depends on timed serum concentration and ingestion timing",
+            "unknown ingestion time with repeated vomiting as a red flag",
+            "right upper quadrant pain with rising AST and INR as severity markers",
+            "timed acetaminophen level at 4 hours and Rumack-Matthew nomogram planning",
+            "N-acetylcysteine treatment promptly when level, timing, or risk criteria indicate",
+            "AST, ALT, bilirubin, INR, PT, creatinine, glucose, lactate, CMP, hepatic function, and poison center toxicology guidance",
+            "medication allergy before antiemetics",
+            "pregnancy status before imaging if needed"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "valproate_toxicity_requires_levels_labs_stabilization_decon_carnitine_and_dialysis_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

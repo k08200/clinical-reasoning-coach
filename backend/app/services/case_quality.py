@@ -12646,15 +12646,23 @@ ACETAMINOPHEN_TOXICITY_CONTEXT_TERMS = (
     "tylenol overdose",
     "아세트아미노펜",
 )
-ACETAMINOPHEN_LEVEL_NOMOGRAM_ACTION_TERMS = (
-    "4 hour",
-    "4-hour",
+ACETAMINOPHEN_LEVEL_ACTION_TERMS = (
     "acetaminophen concentration",
     "acetaminophen level",
     "apap level",
-    "nomogram",
     "paracetamol concentration",
     "paracetamol level",
+)
+ACETAMINOPHEN_LEVEL_TIMING_ACTION_TERMS = (
+    "4 hour",
+    "4-hour",
+    "4 to 24",
+    "after 4",
+    "at least 4",
+    "timed",
+)
+ACETAMINOPHEN_NOMOGRAM_ACTION_TERMS = (
+    "nomogram",
     "rumack",
 )
 ACETAMINOPHEN_NAC_ACTION_TERMS = (
@@ -12663,53 +12671,145 @@ ACETAMINOPHEN_NAC_ACTION_TERMS = (
     "nac",
     "엔아세틸시스테인",
 )
-ACETAMINOPHEN_HEPATIC_TOX_ACTION_TERMS = (
+ACETAMINOPHEN_HEPATIC_ENZYME_ACTION_TERMS = (
     "alt",
     "ast",
-    "bilirubin",
+    "aminotransferase",
     "hepatic function",
-    "inr",
+    "bilirubin",
     "lft",
+    "liver enzyme",
     "liver function",
-    "prothrombin",
-    "pt",
     "transaminase",
     "간기능",
     "간 효소",
 )
-ACETAMINOPHEN_TIMING_FORMULATION_SAFETY_TERMS = (
-    "co-ingestion",
-    "coingestion",
-    "extended release",
-    "extended-release",
-    "repeated supratherapeutic",
-    "staggered",
+ACETAMINOPHEN_COAGULATION_ACTION_TERMS = (
+    "inr",
+    "prothrombin",
+    "pt",
+)
+ACETAMINOPHEN_METABOLIC_RENAL_ACTION_TERMS = (
+    "acidosis",
+    "blood gas",
+    "bun",
+    "cmp",
+    "creatinine",
+    "electrolyte",
+    "glucose",
+    "hypoglycemia",
+    "lactate",
+    "renal",
+)
+ACETAMINOPHEN_TOXICOLOGY_ESCALATION_ACTION_TERMS = (
+    "poison center",
+    "poison control",
+    "toxicologist",
+    "toxicology",
+)
+ACETAMINOPHEN_HISTORY_SAFETY_TERMS = (
+    "dose",
+    "duration",
+    "pattern",
+    "time ingestion",
     "time of ingestion",
     "unknown time",
+    "unreliable",
     "복용 시간",
+)
+ACETAMINOPHEN_FORMULATION_COIN_SAFETY_TERMS = (
+    "co-ingestion",
+    "coingestion",
+    "concomitant",
+    "extended release",
+    "extended-release",
+    "opioid",
+    "repeated supratherapeutic",
+    "staggered",
+    "sustained release",
     "서방",
 )
-ACETAMINOPHEN_NAC_SAFETY_TERMS = (
+ACETAMINOPHEN_NOMOGRAM_LIMIT_SAFETY_TERMS = (
+    "before 4 hour",
+    "before 4-hour",
+    "cannot be used",
+    "drawn before 4",
+    "nomogram cannot",
+    "not use nomogram",
+    "not valid",
+    "only single acute",
+    "pre-4",
+    "repeat level",
+    "repeated ingestion",
+    "unreliable history",
+    "unknown time",
+)
+ACETAMINOPHEN_DECONTAMINATION_SAFETY_TERMS = (
+    "activated charcoal",
+    "airway",
+    "charcoal",
+    "contraindication",
+    "decontamination",
+    "sdac",
+)
+ACETAMINOPHEN_NAC_DOSING_SAFETY_TERMS = (
     "anaphylactoid",
     "dose",
     "dosing",
     "infusion",
+    "loading dose",
+    "rate",
+    "vomiting",
     "weight",
     "용량",
     "체중",
 )
-ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS = (
-    "acidosis",
+ACETAMINOPHEN_NAC_DELAY_SAFETY_TERMS = (
+    "8 hour",
+    "8-hour",
+    "awaiting acetaminophen",
+    "awaiting level",
+    "do not delay",
+    "more than 8",
+    "over 8",
+    "start nac",
+    "while awaiting",
+)
+ACETAMINOPHEN_NAC_STOPPING_SAFETY_TERMS = (
+    "acetaminophen concentration < 10",
+    "acetaminophen level < 10",
     "alt",
     "ast",
+    "clinically well",
+    "continue nac",
+    "decreased by 50",
+    "inr < 2",
+    "nac continuation",
+    "nac stopping",
+    "stop nac",
+    "undetectable",
+)
+ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS = (
+    "acidosis",
     "encephalopathy",
     "hepatic failure",
     "hypoglycemia",
     "inr",
+    "lactate",
     "liver failure",
     "transplant",
     "간부전",
     "저혈당",
+)
+ACETAMINOPHEN_SEVERE_ESCALATION_SAFETY_TERMS = (
+    "dialysis",
+    "extracorporeal",
+    "hemodialysis",
+    "king's college",
+    "liver transplant",
+    "massive",
+    "metabolic acidosis",
+    "transplant center",
 )
 VALPROATE_TOXICITY_DIRECT_CONTEXT_TERMS = (
     "divalproex overdose",
@@ -20609,9 +20709,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acetaminophen_toxicity_time_critical_actions,
             issue=(
                 "acetaminophen toxicity time-critical actions must include a "
-                "timed acetaminophen level with Rumack-Matthew nomogram planning, "
-                "N-acetylcysteine treatment planning, and explicit hepatic injury "
-                "labs such as AST, ALT, INR, PT, bilirubin, or LFT monitoring"
+                "timed acetaminophen level drawn at or after 4 hours with "
+                "Rumack-Matthew nomogram planning, N-acetylcysteine treatment "
+                "planning, explicit hepatic injury labs such as AST, ALT, "
+                "bilirubin, or LFT monitoring, coagulation monitoring with INR, "
+                "PT, or prothrombin time, metabolic or renal labs such as "
+                "creatinine, glucose, lactate, acidosis, CMP, or electrolytes, "
+                "and poison-center or toxicologist escalation"
             ),
         ),
         DomainSafetyGate(
@@ -20621,8 +20725,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acetaminophen_toxicity_treatment_safety_check,
             issue=(
                 "acetaminophen toxicity safety checks must include ingestion timing "
-                "or formulation limits for nomogram use, N-acetylcysteine dosing "
-                "or infusion safety, and hepatic failure or transplant-risk monitoring"
+                "and dose-history reliability, formulation, co-ingestion, staggered, "
+                "or repeated supratherapeutic ingestion limits for nomogram use, "
+                "a warning that pre-4-hour levels, unreliable timing, extended-release, "
+                "or repeated ingestion may require repeat levels or non-nomogram "
+                "management, activated-charcoal/decontamination airway safety, "
+                "N-acetylcysteine dosing or infusion safety, no-delay NAC safeguards "
+                "when treatment would start after 8 hours or while levels are pending, "
+                "NAC continuation or stopping criteria, hepatic failure monitoring, "
+                "and transplant, hemodialysis, extracorporeal, massive-ingestion, "
+                "or severe metabolic-acidosis escalation"
             ),
         ),
         DomainSafetyGate(
@@ -32533,36 +32645,99 @@ def _requires_acetaminophen_toxicity_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_acetaminophen_toxicity_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_level_or_nomogram = any(
+    has_level = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACETAMINOPHEN_LEVEL_NOMOGRAM_ACTION_TERMS
+        for term in ACETAMINOPHEN_LEVEL_ACTION_TERMS
+    )
+    has_level_timing = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACETAMINOPHEN_LEVEL_TIMING_ACTION_TERMS
+    )
+    has_nomogram = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACETAMINOPHEN_NOMOGRAM_ACTION_TERMS
     )
     has_nac = any(
         _contains_safety_term(normalized_actions, term)
         for term in ACETAMINOPHEN_NAC_ACTION_TERMS
     )
-    has_hepatic_or_toxicology_monitoring = any(
+    has_hepatic_enzyme_monitoring = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACETAMINOPHEN_HEPATIC_TOX_ACTION_TERMS
+        for term in ACETAMINOPHEN_HEPATIC_ENZYME_ACTION_TERMS
     )
-    return has_level_or_nomogram and has_nac and has_hepatic_or_toxicology_monitoring
+    has_coagulation_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACETAMINOPHEN_COAGULATION_ACTION_TERMS
+    )
+    has_metabolic_or_renal_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACETAMINOPHEN_METABOLIC_RENAL_ACTION_TERMS
+    )
+    has_toxicology_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACETAMINOPHEN_TOXICOLOGY_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_level
+        and has_level_timing
+        and has_nomogram
+        and has_nac
+        and has_hepatic_enzyme_monitoring
+        and has_coagulation_monitoring
+        and has_metabolic_or_renal_monitoring
+        and has_toxicology_escalation
+    )
 
 
 def _has_acetaminophen_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_timing_formulation_safety = any(
+    has_history_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACETAMINOPHEN_TIMING_FORMULATION_SAFETY_TERMS
+        for term in ACETAMINOPHEN_HISTORY_SAFETY_TERMS
     )
-    has_nac_safety = any(
+    has_formulation_or_coingestion_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACETAMINOPHEN_NAC_SAFETY_TERMS
+        for term in ACETAMINOPHEN_FORMULATION_COIN_SAFETY_TERMS
+    )
+    has_nomogram_limit_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACETAMINOPHEN_NOMOGRAM_LIMIT_SAFETY_TERMS
+    )
+    has_decontamination_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACETAMINOPHEN_DECONTAMINATION_SAFETY_TERMS
+    )
+    has_nac_dosing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACETAMINOPHEN_NAC_DOSING_SAFETY_TERMS
+    )
+    has_nac_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACETAMINOPHEN_NAC_DELAY_SAFETY_TERMS
+    )
+    has_nac_stopping_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACETAMINOPHEN_NAC_STOPPING_SAFETY_TERMS
     )
     has_hepatic_failure_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS
     )
-    return has_timing_formulation_safety and has_nac_safety and has_hepatic_failure_safety
+    has_severe_escalation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACETAMINOPHEN_SEVERE_ESCALATION_SAFETY_TERMS
+    )
+    return (
+        has_history_safety
+        and has_formulation_or_coingestion_safety
+        and has_nomogram_limit_safety
+        and has_decontamination_safety
+        and has_nac_dosing_safety
+        and has_nac_delay_safety
+        and has_nac_stopping_safety
+        and has_hepatic_failure_safety
+        and has_severe_escalation_safety
+    )
 
 
 def _requires_valproate_toxicity_safety_check(data: dict[str, Any]) -> bool:

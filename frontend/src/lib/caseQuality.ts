@@ -14038,15 +14038,25 @@ const ACETAMINOPHEN_TOXICITY_CONTEXT_TERMS = [
   "아세트아미노펜",
 ];
 
-const ACETAMINOPHEN_LEVEL_NOMOGRAM_ACTION_TERMS = [
-  "4 hour",
-  "4-hour",
+const ACETAMINOPHEN_LEVEL_ACTION_TERMS = [
   "acetaminophen concentration",
   "acetaminophen level",
   "apap level",
-  "nomogram",
   "paracetamol concentration",
   "paracetamol level",
+];
+
+const ACETAMINOPHEN_LEVEL_TIMING_ACTION_TERMS = [
+  "4 hour",
+  "4-hour",
+  "4 to 24",
+  "after 4",
+  "at least 4",
+  "timed",
+];
+
+const ACETAMINOPHEN_NOMOGRAM_ACTION_TERMS = [
+  "nomogram",
   "rumack",
 ];
 
@@ -14057,56 +14067,157 @@ const ACETAMINOPHEN_NAC_ACTION_TERMS = [
   "엔아세틸시스테인",
 ];
 
-const ACETAMINOPHEN_HEPATIC_TOX_ACTION_TERMS = [
+const ACETAMINOPHEN_HEPATIC_ENZYME_ACTION_TERMS = [
   "alt",
   "ast",
-  "bilirubin",
+  "aminotransferase",
   "hepatic function",
-  "inr",
+  "bilirubin",
   "lft",
+  "liver enzyme",
   "liver function",
-  "prothrombin",
-  "pt",
   "transaminase",
   "간기능",
   "간 효소",
 ];
 
-const ACETAMINOPHEN_TIMING_FORMULATION_SAFETY_TERMS = [
-  "co-ingestion",
-  "coingestion",
-  "extended release",
-  "extended-release",
-  "repeated supratherapeutic",
-  "staggered",
+const ACETAMINOPHEN_COAGULATION_ACTION_TERMS = [
+  "inr",
+  "prothrombin",
+  "pt",
+];
+
+const ACETAMINOPHEN_METABOLIC_RENAL_ACTION_TERMS = [
+  "acidosis",
+  "blood gas",
+  "bun",
+  "cmp",
+  "creatinine",
+  "electrolyte",
+  "glucose",
+  "hypoglycemia",
+  "lactate",
+  "renal",
+];
+
+const ACETAMINOPHEN_TOXICOLOGY_ESCALATION_ACTION_TERMS = [
+  "poison center",
+  "poison control",
+  "toxicologist",
+  "toxicology",
+];
+
+const ACETAMINOPHEN_HISTORY_SAFETY_TERMS = [
+  "dose",
+  "duration",
+  "pattern",
+  "time ingestion",
   "time of ingestion",
   "unknown time",
+  "unreliable",
   "복용 시간",
+];
+
+const ACETAMINOPHEN_FORMULATION_COIN_SAFETY_TERMS = [
+  "co-ingestion",
+  "coingestion",
+  "concomitant",
+  "extended release",
+  "extended-release",
+  "opioid",
+  "repeated supratherapeutic",
+  "staggered",
+  "sustained release",
   "서방",
 ];
 
-const ACETAMINOPHEN_NAC_SAFETY_TERMS = [
+const ACETAMINOPHEN_NOMOGRAM_LIMIT_SAFETY_TERMS = [
+  "before 4 hour",
+  "before 4-hour",
+  "cannot be used",
+  "drawn before 4",
+  "nomogram cannot",
+  "not use nomogram",
+  "not valid",
+  "only single acute",
+  "pre-4",
+  "repeat level",
+  "repeated ingestion",
+  "unreliable history",
+  "unknown time",
+];
+
+const ACETAMINOPHEN_DECONTAMINATION_SAFETY_TERMS = [
+  "activated charcoal",
+  "airway",
+  "charcoal",
+  "contraindication",
+  "decontamination",
+  "sdac",
+];
+
+const ACETAMINOPHEN_NAC_DOSING_SAFETY_TERMS = [
   "anaphylactoid",
   "dose",
   "dosing",
   "infusion",
+  "loading dose",
+  "rate",
+  "vomiting",
   "weight",
   "용량",
   "체중",
 ];
 
-const ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS = [
-  "acidosis",
+const ACETAMINOPHEN_NAC_DELAY_SAFETY_TERMS = [
+  "8 hour",
+  "8-hour",
+  "awaiting acetaminophen",
+  "awaiting level",
+  "do not delay",
+  "more than 8",
+  "over 8",
+  "start nac",
+  "while awaiting",
+];
+
+const ACETAMINOPHEN_NAC_STOPPING_SAFETY_TERMS = [
+  "acetaminophen concentration < 10",
+  "acetaminophen level < 10",
   "alt",
   "ast",
+  "clinically well",
+  "continue nac",
+  "decreased by 50",
+  "inr < 2",
+  "nac continuation",
+  "nac stopping",
+  "stop nac",
+  "undetectable",
+];
+
+const ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS = [
+  "acidosis",
   "encephalopathy",
   "hepatic failure",
   "hypoglycemia",
   "inr",
+  "lactate",
   "liver failure",
   "transplant",
   "간부전",
   "저혈당",
+];
+
+const ACETAMINOPHEN_SEVERE_ESCALATION_SAFETY_TERMS = [
+  "dialysis",
+  "extracorporeal",
+  "hemodialysis",
+  "king's college",
+  "liver transplant",
+  "massive",
+  "metabolic acidosis",
+  "transplant center",
 ];
 
 const VALPROATE_TOXICITY_DIRECT_CONTEXT_TERMS = [
@@ -27688,30 +27799,82 @@ function requiresAcetaminophenToxicitySafetyCheck(detail: ClinicalCaseReviewDeta
 
 function hasAcetaminophenToxicityTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasLevelNomogram = ACETAMINOPHEN_LEVEL_NOMOGRAM_ACTION_TERMS.some((term) =>
+  const hasLevel = ACETAMINOPHEN_LEVEL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLevelTiming = ACETAMINOPHEN_LEVEL_TIMING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNomogram = ACETAMINOPHEN_NOMOGRAM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasNac = ACETAMINOPHEN_NAC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasHepaticMonitoring = ACETAMINOPHEN_HEPATIC_TOX_ACTION_TERMS.some((term) =>
+  const hasHepaticEnzymeMonitoring = ACETAMINOPHEN_HEPATIC_ENZYME_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCoagulationMonitoring = ACETAMINOPHEN_COAGULATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasLevelNomogram && hasNac && hasHepaticMonitoring;
+  const hasMetabolicOrRenalMonitoring = ACETAMINOPHEN_METABOLIC_RENAL_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasToxicologyEscalation = ACETAMINOPHEN_TOXICOLOGY_ESCALATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasLevel &&
+    hasLevelTiming &&
+    hasNomogram &&
+    hasNac &&
+    hasHepaticEnzymeMonitoring &&
+    hasCoagulationMonitoring &&
+    hasMetabolicOrRenalMonitoring &&
+    hasToxicologyEscalation
+  );
 }
 
 function hasAcetaminophenToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasTimingOrFormulationSafety = ACETAMINOPHEN_TIMING_FORMULATION_SAFETY_TERMS.some(
+  const hasHistorySafety = ACETAMINOPHEN_HISTORY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFormulationOrCoingestionSafety = ACETAMINOPHEN_FORMULATION_COIN_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasNacSafety = ACETAMINOPHEN_NAC_SAFETY_TERMS.some((term) =>
+  const hasNomogramLimitSafety = ACETAMINOPHEN_NOMOGRAM_LIMIT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDecontaminationSafety = ACETAMINOPHEN_DECONTAMINATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNacDosingSafety = ACETAMINOPHEN_NAC_DOSING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasHepaticFailureSafety = ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS.some((term) =>
+  const hasNacDelaySafety = ACETAMINOPHEN_NAC_DELAY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasTimingOrFormulationSafety && hasNacSafety && hasHepaticFailureSafety;
+  const hasNacStoppingSafety = ACETAMINOPHEN_NAC_STOPPING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHepaticFailureSafety = ACETAMINOPHEN_HEPATIC_FAILURE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSevereEscalationSafety = ACETAMINOPHEN_SEVERE_ESCALATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasHistorySafety &&
+    hasFormulationOrCoingestionSafety &&
+    hasNomogramLimitSafety &&
+    hasDecontaminationSafety &&
+    hasNacDosingSafety &&
+    hasNacDelaySafety &&
+    hasNacStoppingSafety &&
+    hasHepaticFailureSafety &&
+    hasSevereEscalationSafety
+  );
 }
 
 function requiresValproateToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -32476,7 +32639,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcetaminophenToxicityTimeCriticalActions,
       issue:
-        "acetaminophen toxicity time-critical actions must include a timed acetaminophen level with Rumack-Matthew nomogram planning, N-acetylcysteine treatment planning, and explicit hepatic injury labs such as AST, ALT, INR, PT, bilirubin, or LFT monitoring",
+        "acetaminophen toxicity time-critical actions must include a timed acetaminophen level drawn at or after 4 hours with Rumack-Matthew nomogram planning, N-acetylcysteine treatment planning, explicit hepatic injury labs such as AST, ALT, bilirubin, or LFT monitoring, coagulation monitoring with INR, PT, or prothrombin time, metabolic or renal labs such as creatinine, glucose, lactate, acidosis, CMP, or electrolytes, and poison-center or toxicologist escalation",
     },
     {
       name: "acetaminophen_toxicity_treatment_safety",
@@ -32485,7 +32648,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAcetaminophenToxicityTreatmentSafetyCheck,
       issue:
-        "acetaminophen toxicity safety checks must include ingestion timing or formulation limits for nomogram use, N-acetylcysteine dosing or infusion safety, and hepatic failure or transplant-risk monitoring",
+        "acetaminophen toxicity safety checks must include ingestion timing and dose-history reliability, formulation, co-ingestion, staggered, or repeated supratherapeutic ingestion limits for nomogram use, a warning that pre-4-hour levels, unreliable timing, extended-release, or repeated ingestion may require repeat levels or non-nomogram management, activated-charcoal/decontamination airway safety, N-acetylcysteine dosing or infusion safety, no-delay NAC safeguards when treatment would start after 8 hours or while levels are pending, NAC continuation or stopping criteria, hepatic failure monitoring, and transplant, hemodialysis, extracorporeal, massive-ingestion, or severe metabolic-acidosis escalation",
     },
     {
       name: "valproate_toxicity_time_critical_actions",
