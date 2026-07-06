@@ -14609,48 +14609,74 @@ const LITHIUM_TOXICITY_RISK_CONTEXT_TERMS = [
   "tremor",
 ];
 
-const LITHIUM_TOXICITY_LEVEL_MONITORING_ACTION_TERMS = [
+const LITHIUM_TOXICITY_SERIAL_LEVEL_ACTION_TERMS = [
   "6 hours",
-  "lithium concentration",
-  "lithium level",
+  "every 6 hours",
   "repeat level",
   "serial level",
+];
+
+const LITHIUM_TOXICITY_LITHIUM_LEVEL_ACTION_TERMS = [
+  "lithium concentration",
+  "lithium level",
   "serum lithium",
 ];
 
-const LITHIUM_TOXICITY_RENAL_CARDIAC_ACTION_TERMS = [
+const LITHIUM_TOXICITY_RENAL_FUNCTION_ACTION_TERMS = [
   "bun",
-  "cardiac monitoring",
   "creatinine",
-  "ecg",
-  "electrolyte",
   "renal function",
+];
+
+const LITHIUM_TOXICITY_ELECTROLYTE_ACTION_TERMS = [
+  "calcium",
+  "electrolyte",
+  "glucose",
   "sodium",
+  "tsh",
+];
+
+const LITHIUM_TOXICITY_CARDIAC_ACTION_TERMS = [
+  "cardiac monitoring",
+  "ecg",
+  "ekg",
+];
+
+const LITHIUM_TOXICITY_URINE_OUTPUT_ACTION_TERMS = [
   "urine output",
 ];
 
-const LITHIUM_TOXICITY_VOLUME_STOP_ACTION_TERMS = [
-  "dehydration",
+const LITHIUM_TOXICITY_STOP_ACTION_TERMS = [
   "hold lithium",
+  "stop lithium",
+];
+
+const LITHIUM_TOXICITY_VOLUME_ACTION_TERMS = [
+  "dehydration",
   "isotonic saline",
   "iv fluids",
   "normal saline",
-  "stop lithium",
   "volume depletion",
 ];
 
-const LITHIUM_TOXICITY_WBI_ACTION_TERMS = [
-  "massive ingestion",
-  "sustained release",
-  "sustained-release",
+const LITHIUM_TOXICITY_WBI_PLANNING_ACTION_TERMS = [
   "whole bowel irrigation",
   "whole-bowel irrigation",
 ];
 
-const LITHIUM_TOXICITY_CHARCOAL_LIMITATION_ACTION_TERMS = [
+const LITHIUM_TOXICITY_WBI_TRIGGER_ACTION_TERMS = [
+  "massive ingestion",
+  "sustained release",
+  "sustained-release",
+];
+
+const LITHIUM_TOXICITY_CHARCOAL_INEFFECTIVE_ACTION_TERMS = [
   "activated charcoal not effective",
   "charcoal ineffective",
   "charcoal not effective",
+];
+
+const LITHIUM_TOXICITY_COINGESTANT_ACTION_TERMS = [
   "co-ingestant",
   "coingestant",
   "unknown co-ingestant",
@@ -14670,55 +14696,97 @@ const LITHIUM_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = [
   "hemodialysis",
 ];
 
-const LITHIUM_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS = [
-  "36 hours",
+const LITHIUM_TOXICITY_DIALYSIS_REVIEW_SAFETY_TERMS = [
+  "dialysis indication",
+  "dialysis criteria",
+  "ectr criteria",
+  "ectr indication",
+];
+
+const LITHIUM_TOXICITY_RENAL_THRESHOLD_SAFETY_TERMS = [
+  "impaired kidney",
+  "impaired renal",
+  "kidney function",
+  "li > 4",
+  "lithium > 4",
+  "renal failure",
+];
+
+const LITHIUM_TOXICITY_LEVEL_THRESHOLD_SAFETY_TERMS = [
+  "level > 5",
+  "li > 5",
+  "lithium > 5",
+];
+
+const LITHIUM_TOXICITY_NEURO_CARDIAC_ECTR_SAFETY_TERMS = [
   "confusion",
   "decreased level of consciousness",
-  "dialysis indication",
   "dysrhythmia",
-  "ectr",
-  "impaired kidney",
-  "kidney function",
-  "level > 5",
-  "li > 4",
-  "renal failure",
+  "life-threatening dysrhythmia",
   "seizure",
 ];
 
-const LITHIUM_TOXICITY_REBOUND_CESSATION_SAFETY_TERMS = [
+const LITHIUM_TOXICITY_EXPECTED_TIME_SAFETY_TERMS = [
+  "36 hours",
+  "expected time",
+  "time to level",
+];
+
+const LITHIUM_TOXICITY_POST_ECTR_MONITORING_SAFETY_TERMS = [
   "12 hours",
-  "clinical improvement",
-  "level < 1.0",
+  "post-ectr",
   "rebound",
   "repeat level",
   "serial level",
   "subsequent ectr",
 ];
 
-const LITHIUM_TOXICITY_PRECIPITANT_SAFETY_TERMS = [
+const LITHIUM_TOXICITY_ECTR_CESSATION_SAFETY_TERMS = [
+  "clinical improvement",
+  "level < 1.0",
+  "lithium < 1.0",
+  "stop dialysis",
+  "stop ectr",
+];
+
+const LITHIUM_TOXICITY_INTERACTING_DRUG_SAFETY_TERMS = [
   "ace inhibitor",
   "arb",
-  "dehydration",
   "diuretic",
-  "low sodium",
-  "nephrogenic diabetes insipidus",
   "nsaid",
+  "thiazide",
+];
+
+const LITHIUM_TOXICITY_VOLUME_SODIUM_SAFETY_TERMS = [
+  "dehydration",
+  "low sodium",
   "renal insufficiency",
   "sodium depletion",
-  "thiazide",
   "volume depletion",
 ];
 
-const LITHIUM_TOXICITY_DISPOSITION_CLINICAL_SAFETY_TERMS = [
-  "admit",
-  "asymptomatic",
+const LITHIUM_TOXICITY_NDI_SAFETY_TERMS = [
+  "nephrogenic diabetes insipidus",
+];
+
+const LITHIUM_TOXICITY_CLINICAL_DISPOSITION_SAFETY_TERMS = [
   "clinical status",
-  "icu",
-  "less than 1.5",
-  "moderate",
-  "severe",
   "signs do not conform",
   "symptomatic despite normal",
+];
+
+const LITHIUM_TOXICITY_ADMISSION_SAFETY_TERMS = [
+  "admit",
+  "icu",
+  "moderate",
+  "severe",
+];
+
+const LITHIUM_TOXICITY_DISCHARGE_SAFETY_TERMS = [
+  "asymptomatic",
+  "less than 1.5",
+  "level < 1.5",
+  "lithium < 1.5",
 ];
 
 const SALICYLATE_TOXICITY_CONTEXT_TERMS = [
@@ -27946,19 +28014,40 @@ function requiresLithiumToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): b
 
 function hasLithiumToxicityTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasLevelMonitoring = LITHIUM_TOXICITY_LEVEL_MONITORING_ACTION_TERMS.some((term) =>
+  const hasSerialLevelMonitoring = LITHIUM_TOXICITY_SERIAL_LEVEL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasRenalCardiacMonitoring = LITHIUM_TOXICITY_RENAL_CARDIAC_ACTION_TERMS.some(
+  const hasLithiumLevelMonitoring = LITHIUM_TOXICITY_LITHIUM_LEVEL_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasVolumeStopManagement = LITHIUM_TOXICITY_VOLUME_STOP_ACTION_TERMS.some((term) =>
+  const hasRenalFunctionMonitoring = LITHIUM_TOXICITY_RENAL_FUNCTION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasElectrolyteMonitoring = LITHIUM_TOXICITY_ELECTROLYTE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasWbiPlanning = LITHIUM_TOXICITY_WBI_ACTION_TERMS.some((term) =>
+  const hasCardiacMonitoring = LITHIUM_TOXICITY_CARDIAC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasCharcoalLimitation = LITHIUM_TOXICITY_CHARCOAL_LIMITATION_ACTION_TERMS.some(
+  const hasUrineOutputMonitoring = LITHIUM_TOXICITY_URINE_OUTPUT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasStopLithiumManagement = LITHIUM_TOXICITY_STOP_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVolumeManagement = LITHIUM_TOXICITY_VOLUME_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasWbiPlanning = LITHIUM_TOXICITY_WBI_PLANNING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasWbiTrigger = LITHIUM_TOXICITY_WBI_TRIGGER_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCharcoalLimitation = LITHIUM_TOXICITY_CHARCOAL_INEFFECTIVE_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCoingestantLimitation = LITHIUM_TOXICITY_COINGESTANT_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   const hasToxicologyEscalation = LITHIUM_TOXICITY_TOXICOLOGY_ESCALATION_ACTION_TERMS.some(
@@ -27968,11 +28057,18 @@ function hasLithiumToxicityTimeCriticalActions(actions: string[]): boolean {
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasLevelMonitoring &&
-    hasRenalCardiacMonitoring &&
-    hasVolumeStopManagement &&
+    hasSerialLevelMonitoring &&
+    hasLithiumLevelMonitoring &&
+    hasRenalFunctionMonitoring &&
+    hasElectrolyteMonitoring &&
+    hasCardiacMonitoring &&
+    hasUrineOutputMonitoring &&
+    hasStopLithiumManagement &&
+    hasVolumeManagement &&
     hasWbiPlanning &&
+    hasWbiTrigger &&
     hasCharcoalLimitation &&
+    hasCoingestantLimitation &&
     hasToxicologyEscalation &&
     hasDialysisEscalation
   );
@@ -27980,26 +28076,61 @@ function hasLithiumToxicityTimeCriticalActions(actions: string[]): boolean {
 
 function hasLithiumToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasDialysisIndicationSafety =
-    LITHIUM_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
-  const hasReboundCessationSafety =
-    LITHIUM_TOXICITY_REBOUND_CESSATION_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
-  const hasPrecipitantSafety = LITHIUM_TOXICITY_PRECIPITANT_SAFETY_TERMS.some((term) =>
+  const hasDialysisReviewSafety = LITHIUM_TOXICITY_DIALYSIS_REVIEW_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRenalThresholdSafety = LITHIUM_TOXICITY_RENAL_THRESHOLD_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLevelThresholdSafety = LITHIUM_TOXICITY_LEVEL_THRESHOLD_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNeuroCardiacEctrSafety = LITHIUM_TOXICITY_NEURO_CARDIAC_ECTR_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasExpectedTimeSafety = LITHIUM_TOXICITY_EXPECTED_TIME_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDispositionClinicalSafety =
-    LITHIUM_TOXICITY_DISPOSITION_CLINICAL_SAFETY_TERMS.some((term) =>
+  const hasPostEctrMonitoringSafety =
+    LITHIUM_TOXICITY_POST_ECTR_MONITORING_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
+  const hasEctrCessationSafety = LITHIUM_TOXICITY_ECTR_CESSATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInteractingDrugSafety = LITHIUM_TOXICITY_INTERACTING_DRUG_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasVolumeSodiumSafety = LITHIUM_TOXICITY_VOLUME_SODIUM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNdiSafety = LITHIUM_TOXICITY_NDI_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasClinicalDispositionSafety =
+    LITHIUM_TOXICITY_CLINICAL_DISPOSITION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAdmissionSafety = LITHIUM_TOXICITY_ADMISSION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDischargeSafety = LITHIUM_TOXICITY_DISCHARGE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
-    hasDialysisIndicationSafety &&
-    hasReboundCessationSafety &&
-    hasPrecipitantSafety &&
-    hasDispositionClinicalSafety
+    hasDialysisReviewSafety &&
+    hasRenalThresholdSafety &&
+    hasLevelThresholdSafety &&
+    hasNeuroCardiacEctrSafety &&
+    hasExpectedTimeSafety &&
+    hasPostEctrMonitoringSafety &&
+    hasEctrCessationSafety &&
+    hasInteractingDrugSafety &&
+    hasVolumeSodiumSafety &&
+    hasNdiSafety &&
+    hasClinicalDispositionSafety &&
+    hasAdmissionSafety &&
+    hasDischargeSafety
   );
 }
 
@@ -32338,7 +32469,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasLithiumToxicityTimeCriticalActions,
       issue:
-        "lithium toxicity time-critical actions must include serial serum lithium level or concentration monitoring, renal function, creatinine, BUN, electrolyte, sodium, ECG, cardiac monitoring, or urine-output assessment, isotonic saline, normal saline, IV fluids, dehydration, volume-depletion, hold-lithium, or stop-lithium management, whole-bowel irrigation planning for sustained-release or massive ingestion, activated-charcoal-not-effective or co-ingestant-only decontamination limitation review, poison-center or toxicologist consultation, and hemodialysis, ECTR, or extracorporeal-treatment escalation",
+        "lithium toxicity time-critical actions must include serial serum lithium level or concentration monitoring with repeat level timing such as every 6 hours, renal function, creatinine, or BUN assessment plus electrolyte, sodium, calcium, glucose, or TSH assessment, ECG, EKG, or cardiac monitoring plus urine-output assessment, hold-lithium or stop-lithium management plus isotonic saline, normal saline, IV fluids, dehydration, or volume-depletion management, whole-bowel irrigation planning plus sustained-release or massive-ingestion trigger review, activated-charcoal-not-effective limitation plus co-ingestant-only review, poison-center or toxicologist consultation, and hemodialysis, ECTR, or extracorporeal-treatment escalation",
     },
     {
       name: "lithium_toxicity_treatment_safety",
@@ -32347,7 +32478,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasLithiumToxicityTreatmentSafetyCheck,
       issue:
-        "lithium toxicity safety checks must include dialysis indication review for impaired kidney function, Li >4, level >5, decreased level of consciousness, seizure, dysrhythmia, confusion, or expected time >36 hours, rebound or post-ECTR serial-level monitoring with level <1.0 or clinical-improvement stopping criteria, precipitant review for NSAID, ACE-inhibitor, ARB, diuretic, thiazide, dehydration, sodium-depletion, low-sodium, renal-insufficiency, or nephrogenic-diabetes-insipidus risk, and clinical-status disposition because signs may not conform to lithium level, including admit, ICU, symptomatic despite normal level, asymptomatic, or less-than-1.5 discharge criteria",
+        "lithium toxicity safety checks must include dialysis indication or ECTR criteria review plus impaired kidney function with Li >4 or renal failure, level >5 review, decreased level of consciousness, seizure, dysrhythmia, or confusion criteria, expected time to level <1.0 greater than 36 hours review, post-ECTR or rebound serial-level monitoring for 12 hours plus level <1.0 or clinical-improvement stopping criteria, precipitant review for NSAID, ACE-inhibitor, ARB, diuretic, or thiazide plus dehydration, sodium-depletion, low-sodium, volume-depletion, or renal-insufficiency risk plus nephrogenic-diabetes-insipidus risk, and clinical-status disposition because signs may not conform to lithium level plus admit or ICU criteria and asymptomatic with less-than-1.5 discharge criteria",
     },
     {
       name: "salicylate_toxicity_time_critical_actions",
