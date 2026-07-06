@@ -12653,21 +12653,41 @@ const HYPONATREMIA_SEVERE_RISK_TERMS = [
   "somnolence",
 ];
 
-const HYPONATREMIA_SODIUM_OSM_ACTION_TERMS = [
+const HYPONATREMIA_SODIUM_ACTION_TERMS = [
+  "na ",
+  "na+",
+  "serum sodium",
+  "sodium",
+  "나트륨",
+];
+
+const HYPONATREMIA_HYPOTONIC_OSM_ACTION_TERMS = [
+  "effective osmolality",
   "hypotonic",
   "osmolality",
   "osmolar",
-  "serum sodium",
-  "sodium",
+  "pseudohyponatremia",
+  "translocational",
 ];
 
 const HYPONATREMIA_HYPERTONIC_ACTION_TERMS = [
+  "3% hypertonic",
+  "3% saline",
+  "3% sodium chloride",
   "3 percent",
   "3%",
   "hypertonic saline",
   "hypertonic sodium chloride",
-  "sodium chloride bolus",
   "고장성 식염수",
+];
+
+const HYPONATREMIA_HYPERTONIC_BOLUS_ACTION_TERMS = [
+  "100 ml",
+  "100-150",
+  "150 ml",
+  "bolus",
+  "repeat bolus",
+  "반복 bolus",
 ];
 
 const HYPONATREMIA_NEURO_ESCALATION_ACTION_TERMS = [
@@ -12681,12 +12701,15 @@ const HYPONATREMIA_NEURO_ESCALATION_ACTION_TERMS = [
 ];
 
 const HYPONATREMIA_MONITORING_ACTION_TERMS = [
-  "correction",
   "every 2",
+  "every two",
   "frequent sodium",
   "q2",
+  "q 2",
+  "q2h",
   "repeat sodium",
   "serial sodium",
+  "sodium correction trajectory",
 ];
 
 const HYPONATREMIA_CAUSE_EVALUATION_ACTION_TERMS = [
@@ -12699,21 +12722,35 @@ const HYPONATREMIA_CAUSE_EVALUATION_ACTION_TERMS = [
   "volume status",
 ];
 
-const HYPONATREMIA_CORRECTION_LIMIT_SAFETY_TERMS = [
+const HYPONATREMIA_CORRECTION_NUMERIC_SAFETY_TERMS = [
   "6-8",
   "6 to 8",
+  "4 to 6",
+  "4-6",
   "8 mmol",
   "10 mmol",
-  "24 hours",
   "no more than 8",
   "no more than 10",
+  "≤ 8",
+];
+
+const HYPONATREMIA_CORRECTION_TIMING_SAFETY_TERMS = [
+  "24 hours",
+  "24-hour",
+  "first 24",
+  "per day",
+];
+
+const HYPONATREMIA_ODS_SAFETY_TERMS = [
   "ods",
   "osmotic demyelination",
+  "overly rapid correction",
+  "rapid correction",
 ];
 
 const HYPONATREMIA_HIGH_RISK_SAFETY_TERMS = [
   "alcohol",
-  "chronic",
+  "chronic hyponatremia",
   "hypokalemia",
   "liver disease",
   "malnutrition",
@@ -12725,8 +12762,13 @@ const HYPONATREMIA_OVERCORRECTION_RESCUE_SAFETY_TERMS = [
   "ddavp",
   "desmopressin",
   "hypotonic fluid",
+];
+
+const HYPONATREMIA_OVERCORRECTION_TRIGGER_SAFETY_TERMS = [
   "overcorrection",
+  "over-correction",
   "relowering",
+  "water diuresis",
 ];
 
 const HYPONATREMIA_VOLUME_CAUSE_SAFETY_TERMS = [
@@ -12740,11 +12782,11 @@ const HYPONATREMIA_VOLUME_CAUSE_SAFETY_TERMS = [
 ];
 
 const HYPONATREMIA_DISPOSITION_MONITORING_SAFETY_TERMS = [
-  "close monitoring",
   "frequent sodium",
   "high dependency",
   "icu",
   "q2",
+  "q2h",
   "serial sodium",
 ];
 
@@ -26601,10 +26643,16 @@ function requiresHyponatremiaSafetyCheck(detail: ClinicalCaseReviewDetail): bool
 
 function hasHyponatremiaTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasSodiumOsm = HYPONATREMIA_SODIUM_OSM_ACTION_TERMS.some((term) =>
+  const hasSodium = HYPONATREMIA_SODIUM_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHypotonicOsm = HYPONATREMIA_HYPOTONIC_OSM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasHypertonic = HYPONATREMIA_HYPERTONIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHypertonicBolus = HYPONATREMIA_HYPERTONIC_BOLUS_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasNeuroEscalation = HYPONATREMIA_NEURO_ESCALATION_ACTION_TERMS.some((term) =>
@@ -26617,8 +26665,10 @@ function hasHyponatremiaTimeCriticalActions(actions: string[]): boolean {
     containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasSodiumOsm &&
+    hasSodium &&
+    hasHypotonicOsm &&
     hasHypertonic &&
+    hasHypertonicBolus &&
     hasNeuroEscalation &&
     hasMonitoring &&
     hasCauseEvaluation
@@ -26627,13 +26677,22 @@ function hasHyponatremiaTimeCriticalActions(actions: string[]): boolean {
 
 function hasHyponatremiaTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasCorrectionLimit = HYPONATREMIA_CORRECTION_LIMIT_SAFETY_TERMS.some((term) =>
+  const hasCorrectionNumeric = HYPONATREMIA_CORRECTION_NUMERIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCorrectionTiming = HYPONATREMIA_CORRECTION_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOdsSafety = HYPONATREMIA_ODS_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasHighRiskReview = HYPONATREMIA_HIGH_RISK_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasOvercorrectionRescue = HYPONATREMIA_OVERCORRECTION_RESCUE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOvercorrectionTrigger = HYPONATREMIA_OVERCORRECTION_TRIGGER_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasVolumeCauseSafety = HYPONATREMIA_VOLUME_CAUSE_SAFETY_TERMS.some((term) =>
@@ -26643,9 +26702,12 @@ function hasHyponatremiaTreatmentSafetyCheck(checks: string[]): boolean {
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasCorrectionLimit &&
+    hasCorrectionNumeric &&
+    hasCorrectionTiming &&
+    hasOdsSafety &&
     hasHighRiskReview &&
     hasOvercorrectionRescue &&
+    hasOvercorrectionTrigger &&
     hasVolumeCauseSafety &&
     hasDispositionMonitoring
   );
@@ -31773,7 +31835,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasHyponatremiaTimeCriticalActions,
       issue:
-        "severe hyponatremia time-critical actions must include serum sodium, osmolality, hypotonic, or osmolar confirmation, hypertonic saline, 3% sodium chloride, or sodium-chloride bolus planning, seizure, coma, airway, neurologic, ICU, or high-dependency escalation, frequent, serial, repeat, q2, or every-2 sodium correction monitoring, and urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, or diuretic cause evaluation",
+        "severe hyponatremia time-critical actions must include serum sodium plus hypotonic, osmolality, osmolar, pseudo-, or translocational confirmation, 3% hypertonic saline or 3% sodium chloride with bolus planning, seizure, coma, airway, neurologic, ICU, or high-dependency escalation, frequent, serial, repeat, q2, or every-2 sodium correction monitoring, and urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, or diuretic cause evaluation",
     },
     {
       name: "hyponatremia_treatment_safety",
@@ -31782,7 +31844,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasHyponatremiaTreatmentSafetyCheck,
       issue:
-        "severe hyponatremia safety checks must include correction limit review such as 6-8 mmol/L, 8 mmol/L, 10 mmol/L, 24-hour, ODS, or osmotic-demyelination safeguards, high-risk review for chronic or unknown duration, alcohol use, malnutrition, liver disease, or hypokalemia, overcorrection rescue with DDAVP, desmopressin, D5W, hypotonic fluid, or relowering planning, hypovolemic, euvolemic, hypervolemic, fluid-restriction, normal-saline, stop-thiazide, or offending-medication cause safety, and ICU, high-dependency, close, frequent, q2, or serial sodium monitoring disposition",
+        "severe hyponatremia safety checks must include correction limit review with a numeric target or maximum such as 4-6, 6-8, 8 mmol/L, or 10 mmol/L plus 24-hour or daily timing and ODS, osmotic-demyelination, or rapid-correction safeguards, high-risk review for chronic hyponatremia or unknown duration, alcohol use, malnutrition, liver disease, or hypokalemia, overcorrection rescue with DDAVP, desmopressin, D5W, or hypotonic fluid plus overcorrection, relowering, or water-diuresis planning, hypovolemic, euvolemic, hypervolemic, fluid-restriction, normal-saline, stop-thiazide, or offending-medication cause safety, and ICU, high-dependency, frequent, q2, or serial sodium monitoring disposition",
     },
     {
       name: "rhabdomyolysis_time_critical_actions",

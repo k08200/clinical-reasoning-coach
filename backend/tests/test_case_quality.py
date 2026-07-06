@@ -23614,6 +23614,82 @@ def test_quality_gate_requires_hyponatremia_sodium_hypertonic_seizure_monitoring
     )
 
 
+def test_quality_gate_requires_hyponatremia_3_percent_hypertonic_bolus():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe symptomatic hyponatremia with seizure"
+    case["chief_complaint"] = "Seizure and confusion with low sodium"
+    case["history_of_present_illness"] = (
+        "Patient presents with severe hyponatremia, sodium 112 mmol/L, serum "
+        "osmolality 250 mOsm/kg, confusion, and a generalized seizure after "
+        "thiazide use and high water intake."
+    )
+    case["past_medical_history"] = "Hypertension on thiazide diuretic"
+    case["initial_labs"] = {
+        "sodium": "112 mmol/L",
+        "serum_osmolality": "250 mOsm/kg",
+        "glucose": "96 mg/dL",
+        "potassium": "3.1 mmol/L",
+        "creatinine": "0.9 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Severe hyponatremia with seizure can cause cerebral edema and coma",
+        "Urgent treatment aims to reverse severe neurologic symptoms without normalizing sodium",
+        "Overly rapid correction can cause osmotic demyelination syndrome",
+    ]
+    case["clinical_red_flags"] = [
+        "Seizure, coma, altered mental status, or sodium 112 mmol/L",
+        "Hypokalemia, thiazide exposure, or unknown duration increases overcorrection risk",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm serum sodium, hypotonic osmolality, and osmolar status",
+        "Give sodium chloride bolus for seizure and severe neurologic symptoms",
+        "Protect airway, treat seizure, and escalate to ICU high dependency neurologic monitoring",
+        "Check serial sodium every 2 hours with repeat sodium correction trajectory",
+        "Send urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation",
+    ]
+    case["contraindication_checks"] = [
+        "Limit correction to 6-8 mmol/L and no more than 8 to 10 mmol/L in 24 hours to prevent ODS osmotic demyelination",
+        "Review high-risk chronic hyponatremia or unknown duration, alcohol use, malnutrition, liver disease, and hypokalemia",
+        "Prepare DDAVP desmopressin and D5W hypotonic fluid relowering rescue if overcorrection occurs",
+        "Match therapy to hypovolemic, euvolemic, or hypervolemic cause: normal saline for hypovolemic, fluid restriction for SIADH, and stop thiazide or offending medication",
+        "Disposition to ICU high dependency monitoring with q2 serial sodium checks",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hyponatremia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/nephrology/electrolyte-disorders/hyponatremia",
+            "supports": [
+                "severe symptomatic hyponatremia with seizure diagnosis and risk stratification",
+                "severe hyponatremia, sodium 112 mmol/L, serum osmolality 250 mOsm/kg, confusion, and generalized seizure after thiazide use and high water intake",
+                "severe hyponatremia with seizure can cause cerebral edema and coma",
+                "urgent treatment aims to reverse severe neurologic symptoms without normalizing sodium",
+                "overly rapid correction can cause osmotic demyelination syndrome",
+                "seizure, coma, altered mental status, or sodium 112 mmol/L as red flags",
+                "hypokalemia, thiazide exposure, or unknown duration increases overcorrection risk",
+                "serum sodium, hypotonic osmolality, and osmolar status confirmation",
+                "sodium chloride bolus for seizure and severe neurologic symptoms",
+                "airway protection, seizure treatment, and ICU high dependency neurologic monitoring",
+                "serial sodium every 2 hours with repeat sodium correction trajectory",
+                "urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation",
+                "correction limit to 6-8 mmol/L and no more than 8 to 10 mmol/L in 24 hours to prevent ODS osmotic demyelination",
+                "high-risk chronic hyponatremia or unknown duration, alcohol use, malnutrition, liver disease, and hypokalemia review",
+                "DDAVP desmopressin and D5W hypotonic fluid relowering rescue if overcorrection occurs",
+                "hypovolemic, euvolemic, or hypervolemic cause: normal saline for hypovolemic, fluid restriction for SIADH, and stop thiazide or offending medication",
+                "ICU high dependency monitoring with q2 serial sodium checks",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hyponatremia time-critical actions must include serum sodium" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_hyponatremia_correction_limits_overcorrection_rescue_and_cause_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Severe symptomatic hyponatremia with seizure"
@@ -23670,6 +23746,81 @@ def test_quality_gate_requires_hyponatremia_correction_limits_overcorrection_res
                 "urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation",
                 "medication allergy before antiemetics",
                 "renal function before contrast imaging",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hyponatremia safety checks must include correction limit" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_hyponatremia_specific_correction_and_rescue_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe symptomatic hyponatremia with seizure"
+    case["chief_complaint"] = "Seizure and confusion with low sodium"
+    case["history_of_present_illness"] = (
+        "Patient presents with severe hyponatremia, sodium 115 mmol/L, serum "
+        "osmolality 252 mOsm/kg, confusion, and seizure with unknown duration."
+    )
+    case["past_medical_history"] = "Alcohol use disorder and malnutrition"
+    case["initial_labs"] = {
+        "sodium": "115 mmol/L",
+        "serum_osmolality": "252 mOsm/kg",
+        "glucose": "91 mg/dL",
+        "potassium": "2.9 mmol/L",
+        "creatinine": "0.8 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Severe hyponatremia with seizure can cause cerebral edema and coma",
+        "Use hypertonic saline for severe neurologic symptoms while monitoring sodium closely",
+        "Unknown duration, malnutrition, alcohol use, and hypokalemia increase ODS risk",
+    ]
+    case["clinical_red_flags"] = [
+        "Seizure, coma, altered mental status, or sodium 115 mmol/L",
+        "High-risk overcorrection physiology from alcohol use, malnutrition, and hypokalemia",
+    ]
+    case["time_critical_actions"] = [
+        "Confirm serum sodium, hypotonic osmolality, and osmolar status",
+        "Give 3% hypertonic saline sodium chloride bolus for seizure and severe neurologic symptoms",
+        "Protect airway, treat seizure, and escalate to ICU high dependency neurologic monitoring",
+        "Check serial sodium every 2 hours with repeat sodium correction trajectory",
+        "Send urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation",
+    ]
+    case["contraindication_checks"] = [
+        "Review correction in the first 24 hours",
+        "Review chronic illness history",
+        "Prepare overcorrection plan",
+        "Match therapy to hypovolemic, euvolemic, or hypervolemic cause and stop thiazide or offending medication",
+        "Disposition to close monitoring",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hyponatremia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/nephrology/electrolyte-disorders/hyponatremia",
+            "supports": [
+                "severe symptomatic hyponatremia with seizure diagnosis and risk stratification",
+                "severe hyponatremia, sodium 115 mmol/L, serum osmolality 252 mOsm/kg, confusion, and seizure with unknown duration",
+                "severe hyponatremia with seizure can cause cerebral edema and coma",
+                "hypertonic saline for severe neurologic symptoms while monitoring sodium closely",
+                "unknown duration, malnutrition, alcohol use, and hypokalemia increase ODS risk",
+                "seizure, coma, altered mental status, or sodium 115 mmol/L as red flags",
+                "high-risk overcorrection physiology from alcohol use, malnutrition, and hypokalemia",
+                "serum sodium, hypotonic osmolality, and osmolar status confirmation",
+                "3% hypertonic saline sodium chloride bolus for seizure and severe neurologic symptoms",
+                "airway protection, seizure treatment, and ICU high dependency neurologic monitoring",
+                "serial sodium every 2 hours with repeat sodium correction trajectory",
+                "urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation",
+                "correction in the first 24 hours",
+                "chronic illness history review",
+                "overcorrection plan",
+                "hypovolemic, euvolemic, or hypervolemic cause and stop thiazide or offending medication",
+                "close monitoring disposition",
             ],
         }
     ]

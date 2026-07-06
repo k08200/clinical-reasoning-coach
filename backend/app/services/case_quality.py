@@ -11401,20 +11401,38 @@ HYPONATREMIA_SEVERE_RISK_TERMS = (
     "seizure",
     "somnolence",
 )
-HYPONATREMIA_SODIUM_OSM_ACTION_TERMS = (
+HYPONATREMIA_SODIUM_ACTION_TERMS = (
+    "na ",
+    "na+",
+    "serum sodium",
+    "sodium",
+    "나트륨",
+)
+HYPONATREMIA_HYPOTONIC_OSM_ACTION_TERMS = (
+    "effective osmolality",
     "hypotonic",
     "osmolality",
     "osmolar",
-    "serum sodium",
-    "sodium",
+    "pseudohyponatremia",
+    "translocational",
 )
 HYPONATREMIA_HYPERTONIC_ACTION_TERMS = (
+    "3% hypertonic",
+    "3% saline",
+    "3% sodium chloride",
     "3 percent",
     "3%",
     "hypertonic saline",
     "hypertonic sodium chloride",
-    "sodium chloride bolus",
     "고장성 식염수",
+)
+HYPONATREMIA_HYPERTONIC_BOLUS_ACTION_TERMS = (
+    "100 ml",
+    "100-150",
+    "150 ml",
+    "bolus",
+    "repeat bolus",
+    "반복 bolus",
 )
 HYPONATREMIA_NEURO_ESCALATION_ACTION_TERMS = (
     "airway",
@@ -11426,12 +11444,15 @@ HYPONATREMIA_NEURO_ESCALATION_ACTION_TERMS = (
     "seizure",
 )
 HYPONATREMIA_MONITORING_ACTION_TERMS = (
-    "correction",
     "every 2",
+    "every two",
     "frequent sodium",
     "q2",
+    "q 2",
+    "q2h",
     "repeat sodium",
     "serial sodium",
+    "sodium correction trajectory",
 )
 HYPONATREMIA_CAUSE_EVALUATION_ACTION_TERMS = (
     "adrenal",
@@ -11442,20 +11463,32 @@ HYPONATREMIA_CAUSE_EVALUATION_ACTION_TERMS = (
     "urine sodium",
     "volume status",
 )
-HYPONATREMIA_CORRECTION_LIMIT_SAFETY_TERMS = (
+HYPONATREMIA_CORRECTION_NUMERIC_SAFETY_TERMS = (
     "6-8",
     "6 to 8",
+    "4 to 6",
+    "4-6",
     "8 mmol",
     "10 mmol",
-    "24 hours",
     "no more than 8",
     "no more than 10",
+    "≤ 8",
+)
+HYPONATREMIA_CORRECTION_TIMING_SAFETY_TERMS = (
+    "24 hours",
+    "24-hour",
+    "first 24",
+    "per day",
+)
+HYPONATREMIA_ODS_SAFETY_TERMS = (
     "ods",
     "osmotic demyelination",
+    "overly rapid correction",
+    "rapid correction",
 )
 HYPONATREMIA_HIGH_RISK_SAFETY_TERMS = (
     "alcohol",
-    "chronic",
+    "chronic hyponatremia",
     "hypokalemia",
     "liver disease",
     "malnutrition",
@@ -11466,8 +11499,12 @@ HYPONATREMIA_OVERCORRECTION_RESCUE_SAFETY_TERMS = (
     "ddavp",
     "desmopressin",
     "hypotonic fluid",
+)
+HYPONATREMIA_OVERCORRECTION_TRIGGER_SAFETY_TERMS = (
     "overcorrection",
+    "over-correction",
     "relowering",
+    "water diuresis",
 )
 HYPONATREMIA_VOLUME_CAUSE_SAFETY_TERMS = (
     "euvolemic",
@@ -11479,11 +11516,11 @@ HYPONATREMIA_VOLUME_CAUSE_SAFETY_TERMS = (
     "stop thiazide",
 )
 HYPONATREMIA_DISPOSITION_MONITORING_SAFETY_TERMS = (
-    "close monitoring",
     "frequent sodium",
     "high dependency",
     "icu",
     "q2",
+    "q2h",
     "serial sodium",
 )
 RHABDOMYOLYSIS_CONTEXT_TERMS = (
@@ -20059,13 +20096,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_hyponatremia_time_critical_actions,
             issue=(
                 "severe hyponatremia time-critical actions must include serum "
-                "sodium, osmolality, hypotonic, or osmolar confirmation, "
-                "hypertonic saline, 3% sodium chloride, or sodium-chloride bolus "
-                "planning, seizure, coma, airway, neurologic, ICU, or high-"
-                "dependency escalation, frequent, serial, repeat, q2, or every-2 "
-                "sodium correction monitoring, and urine osmolality, urine sodium, "
-                "volume status, SIADH, adrenal, thyroid, or diuretic cause "
-                "evaluation"
+                "sodium plus hypotonic, osmolality, osmolar, pseudo-, or "
+                "translocational confirmation, 3% hypertonic saline or 3% "
+                "sodium chloride with bolus planning, seizure, coma, airway, "
+                "neurologic, ICU, or high-dependency escalation, frequent, serial, "
+                "repeat, q2, or every-2 sodium correction monitoring, and urine "
+                "osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, "
+                "or diuretic cause evaluation"
             ),
         ),
         DomainSafetyGate(
@@ -20075,14 +20112,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_hyponatremia_treatment_safety_check,
             issue=(
                 "severe hyponatremia safety checks must include correction limit "
-                "review such as 6-8 mmol/L, 8 mmol/L, 10 mmol/L, 24-hour, ODS, "
-                "or osmotic-demyelination safeguards, high-risk review for "
-                "chronic or unknown duration, alcohol use, malnutrition, liver "
-                "disease, or hypokalemia, overcorrection rescue with DDAVP, "
-                "desmopressin, D5W, hypotonic fluid, or relowering planning, "
+                "review with a numeric target or maximum such as 4-6, 6-8, "
+                "8 mmol/L, or 10 mmol/L plus 24-hour or daily timing and ODS, "
+                "osmotic-demyelination, or rapid-correction safeguards, high-risk "
+                "review for chronic hyponatremia or unknown duration, alcohol use, "
+                "malnutrition, liver disease, or hypokalemia, overcorrection rescue "
+                "with DDAVP, desmopressin, D5W, or hypotonic fluid plus "
+                "overcorrection, relowering, or water-diuresis planning, "
                 "hypovolemic, euvolemic, hypervolemic, fluid-restriction, normal-"
                 "saline, stop-thiazide, or offending-medication cause safety, and "
-                "ICU, high-dependency, close, frequent, q2, or serial sodium "
+                "ICU, high-dependency, frequent, q2, or serial sodium "
                 "monitoring disposition"
             ),
         ),
@@ -31284,13 +31323,21 @@ def _requires_hyponatremia_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_hyponatremia_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_sodium_osm = any(
+    has_sodium = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HYPONATREMIA_SODIUM_OSM_ACTION_TERMS
+        for term in HYPONATREMIA_SODIUM_ACTION_TERMS
+    )
+    has_hypotonic_osm = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPONATREMIA_HYPOTONIC_OSM_ACTION_TERMS
     )
     has_hypertonic = any(
         _contains_safety_term(normalized_actions, term)
         for term in HYPONATREMIA_HYPERTONIC_ACTION_TERMS
+    )
+    has_hypertonic_bolus = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPONATREMIA_HYPERTONIC_BOLUS_ACTION_TERMS
     )
     has_neuro_escalation = any(
         _contains_safety_term(normalized_actions, term)
@@ -31305,8 +31352,10 @@ def _has_hyponatremia_time_critical_actions(actions: list[Any]) -> bool:
         for term in HYPONATREMIA_CAUSE_EVALUATION_ACTION_TERMS
     )
     return (
-        has_sodium_osm
+        has_sodium
+        and has_hypotonic_osm
         and has_hypertonic
+        and has_hypertonic_bolus
         and has_neuro_escalation
         and has_monitoring
         and has_cause_evaluation
@@ -31315,9 +31364,17 @@ def _has_hyponatremia_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_hyponatremia_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_correction_limit = any(
+    has_correction_numeric = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HYPONATREMIA_CORRECTION_LIMIT_SAFETY_TERMS
+        for term in HYPONATREMIA_CORRECTION_NUMERIC_SAFETY_TERMS
+    )
+    has_correction_timing = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPONATREMIA_CORRECTION_TIMING_SAFETY_TERMS
+    )
+    has_ods_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPONATREMIA_ODS_SAFETY_TERMS
     )
     has_high_risk_review = any(
         _contains_safety_term(normalized_checks, term)
@@ -31326,6 +31383,10 @@ def _has_hyponatremia_treatment_safety_check(checks: list[Any]) -> bool:
     has_overcorrection_rescue = any(
         _contains_safety_term(normalized_checks, term)
         for term in HYPONATREMIA_OVERCORRECTION_RESCUE_SAFETY_TERMS
+    )
+    has_overcorrection_trigger = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPONATREMIA_OVERCORRECTION_TRIGGER_SAFETY_TERMS
     )
     has_volume_cause_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -31336,9 +31397,12 @@ def _has_hyponatremia_treatment_safety_check(checks: list[Any]) -> bool:
         for term in HYPONATREMIA_DISPOSITION_MONITORING_SAFETY_TERMS
     )
     return (
-        has_correction_limit
+        has_correction_numeric
+        and has_correction_timing
+        and has_ods_safety
         and has_high_risk_review
         and has_overcorrection_rescue
+        and has_overcorrection_trigger
         and has_volume_cause_safety
         and has_disposition_monitoring
     )
