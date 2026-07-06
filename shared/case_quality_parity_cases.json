@@ -5800,6 +5800,141 @@
     }
   },
   {
+    "name": "hypocalcemia_requires_iv_route_serial_monitoring_and_full_cause_evaluation",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "severe hypocalcemia time-critical actions must include serum"
+    ],
+    "overrides": {
+      "diagnosis": "Severe hypocalcemia after parathyroid surgery",
+      "chief_complaint": "Tetany and prolonged QT",
+      "history_of_present_illness": "Patient after parathyroid surgery presents with symptomatic hypocalcemia, carpopedal spasm, tetany, seizure, corrected calcium 6.0 mg/dL, ionized calcium 0.80 mmol/L, and prolonged QT.",
+      "initial_labs": {
+        "corrected_calcium": "6.0 mg/dL",
+        "ionized_calcium": "0.80 mmol/L",
+        "magnesium": "1.2 mg/dL"
+      },
+      "key_teaching_points": [
+        "Acute severe hypocalcemia with tetany, seizure, or prolonged QT can be life-threatening",
+        "Corrected or ionized calcium should be confirmed while ECG and telemetry monitor QT prolongation",
+        "Symptomatic hypocalcemia needs calcium salt therapy, repeat dosing, serial monitoring, and cause evaluation"
+      ],
+      "clinical_red_flags": [
+        "Tetany, carpopedal spasm, seizure, prolonged QT, arrhythmia, laryngospasm, or paresthesia",
+        "Postoperative hypoparathyroidism, hypomagnesemia, renal disease, hyperphosphatemia, or vitamin D deficiency"
+      ],
+      "time_critical_actions": [
+        "Confirm serum calcium with repeat calcium and ionized calcium",
+        "Obtain ECG for prolonged QT and place on telemetry cardiac monitoring",
+        "Give calcium gluconate for symptomatic hypocalcemia",
+        "Repeat bolus if symptoms persist",
+        "Check magnesium"
+      ],
+      "contraindication_checks": [
+        "Give calcium slowly with continuous ECG monitoring, especially with digoxin exposure, and correct hypokalemia first",
+        "Use calcium chloride only through central line and review local irritation, extravasation, and soft tissue injury",
+        "Check phosphate and calcium-phosphate product to prevent hyperphosphatemia-related soft tissue calcification",
+        "Replete magnesium with magnesium sulfate because hypomagnesemia and PTH resistance can prevent calcium correction",
+        "Transition to oral calcium, vitamin D, calcitriol, or chronic hypoparathyroidism therapy once stable"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hypocalcemia: Diagnosis and Treatment",
+          "organization": "Endotext / NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK279022/",
+          "supports": [
+            "severe hypocalcemia after parathyroid surgery diagnosis and risk stratification",
+            "symptomatic hypocalcemia, carpopedal spasm, tetany, seizure, corrected calcium 6.0 mg/dL, ionized calcium 0.80 mmol/L, and prolonged QT",
+            "acute severe hypocalcemia with tetany, seizure, or prolonged QT can be life-threatening",
+            "corrected or ionized calcium confirmation with ECG and telemetry QT monitoring",
+            "calcium salt therapy, repeat dosing, serial monitoring, and cause evaluation",
+            "tetany, carpopedal spasm, seizure, prolonged QT, arrhythmia, laryngospasm, or paresthesia as red flags",
+            "postoperative hypoparathyroidism, hypomagnesemia, renal disease, hyperphosphatemia, or vitamin D deficiency",
+            "serum calcium with repeat calcium and ionized calcium",
+            "ECG for prolonged QT and telemetry cardiac monitoring",
+            "calcium gluconate for symptomatic hypocalcemia",
+            "repeat bolus if symptoms persist",
+            "magnesium check",
+            "calcium slowly with continuous ECG monitoring, digoxin exposure, and hypokalemia correction",
+            "calcium chloride through central line with local irritation, extravasation, and soft tissue injury review",
+            "phosphate and calcium-phosphate product to prevent hyperphosphatemia-related soft tissue calcification",
+            "magnesium sulfate repletion because hypomagnesemia and PTH resistance can prevent calcium correction",
+            "oral calcium, vitamin D, calcitriol, or chronic hypoparathyroidism therapy once stable"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "hypocalcemia_requires_specific_route_phosphate_magnesium_and_transition_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "severe hypocalcemia safety checks must include continuous ECG"
+    ],
+    "overrides": {
+      "diagnosis": "Acute hypocalcemia with laryngospasm",
+      "chief_complaint": "Laryngospasm and seizure",
+      "history_of_present_illness": "Patient after pancreatitis and massive transfusion has acute hypocalcemia, laryngospasm, seizure, tetany, corrected calcium 6.2 mg/dL, ionized calcium 0.84 mmol/L, hypomagnesemia, hyperphosphatemia, and prolonged QT.",
+      "initial_labs": {
+        "corrected_calcium": "6.2 mg/dL",
+        "ionized_calcium": "0.84 mmol/L",
+        "magnesium": "0.8 mg/dL",
+        "phosphate": "6.6 mg/dL",
+        "pth": "low-normal",
+        "creatinine": "1.6 mg/dL"
+      },
+      "key_teaching_points": [
+        "Severe hypocalcemia with laryngospasm, seizure, tetany, arrhythmia, or prolonged QT can be life-threatening",
+        "IV calcium may require repeat bolus or continuous infusion with serial ionized calcium monitoring",
+        "Durable correction requires magnesium and cause evaluation"
+      ],
+      "clinical_red_flags": [
+        "Laryngospasm, seizure, tetany, carpopedal spasm, paresthesia, prolonged QT, or arrhythmia",
+        "Massive transfusion citrate load, pancreatitis, hypomagnesemia, hyperphosphatemia, renal disease, or vitamin D deficiency"
+      ],
+      "time_critical_actions": [
+        "Confirm serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+        "Obtain ECG or EKG for prolonged QT and start telemetry cardiac monitor",
+        "Give IV calcium gluconate or intravenous calcium chloride for symptomatic hypocalcemia",
+        "Repeat bolus and start calcium infusion continuous infusion drip with serial ionized calcium monitoring if symptoms persist",
+        "Check magnesium, phosphate, PTH, vitamin D, renal function, and alkaline phosphatase causes"
+      ],
+      "contraindication_checks": [
+        "Review digoxin exposure before calcium therapy",
+        "Review calcium chloride route",
+        "Review phosphate",
+        "Review hypomagnesemia",
+        "Review vitamin D transition"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hypocalcemia: Diagnosis and Treatment",
+          "organization": "Endotext / NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK279022/",
+          "supports": [
+            "acute hypocalcemia with laryngospasm diagnosis and risk stratification",
+            "acute hypocalcemia, laryngospasm, seizure, tetany, corrected calcium 6.2 mg/dL, ionized calcium 0.84 mmol/L, hypomagnesemia, hyperphosphatemia, and prolonged QT",
+            "severe hypocalcemia with laryngospasm, seizure, tetany, arrhythmia, or prolonged QT can be life-threatening",
+            "IV calcium may require repeat bolus or continuous infusion with serial ionized calcium monitoring",
+            "durable correction requires magnesium and cause evaluation",
+            "laryngospasm, seizure, tetany, carpopedal spasm, paresthesia, prolonged QT, or arrhythmia as red flags",
+            "massive transfusion citrate load, pancreatitis, hypomagnesemia, hyperphosphatemia, renal disease, or vitamin D deficiency",
+            "serum calcium with repeat calcium, albumin-corrected calcium, and ionized calcium",
+            "ECG or EKG for prolonged QT and telemetry cardiac monitor",
+            "IV calcium gluconate or intravenous calcium chloride for symptomatic hypocalcemia",
+            "repeat bolus and calcium infusion continuous infusion drip with serial ionized calcium monitoring",
+            "magnesium, phosphate, PTH, vitamin D, renal function, and alkaline phosphatase causes",
+            "digoxin exposure review",
+            "calcium chloride route review",
+            "phosphate review",
+            "hypomagnesemia review",
+            "vitamin D transition review"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "tumor_lysis_requires_labs_hydration_urate_electrolytes_and_renal_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [
