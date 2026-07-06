@@ -11940,6 +11940,24 @@ HYPERKALEMIA_CALCIUM_ACTION_TERMS = (
     "iv calcium",
     "칼슘",
 )
+HYPERKALEMIA_CALCIUM_REASSESSMENT_ACTION_TERMS = (
+    "additional calcium",
+    "calcium repeat",
+    "if ecg changes persist",
+    "if qrs remains wide",
+    "persistent ecg",
+    "reassess ecg after calcium",
+    "reassess qrs",
+    "redose calcium",
+    "redose iv calcium",
+    "repeat calcium",
+    "repeat calcium chloride",
+    "repeat calcium gluconate",
+    "repeat iv calcium",
+    "second dose calcium",
+    "칼슘 반복",
+    "칼슘 재투여",
+)
 HYPERKALEMIA_INSULIN_SHIFT_ACTION_TERMS = (
     "insulin",
     "인슐린",
@@ -11961,23 +11979,49 @@ HYPERKALEMIA_REMOVAL_ACTION_TERMS = (
     "칼륨 제거",
     "투석",
 )
+HYPERKALEMIA_DIALYSIS_ESCALATION_ACTION_TERMS = (
+    "crrt",
+    "dialysis",
+    "hemodialysis",
+    "nephrology",
+    "renal replacement",
+    "신장내과",
+    "투석",
+)
 HYPERKALEMIA_ECG_MONITORING_SAFETY_TERMS = (
-    "arrhythmia",
+    "arrhythmia monitoring",
     "cardiac monitor",
+    "continuous cardiac",
     "ecg",
-    "repeat potassium",
+    "ekg",
     "telemetry",
     "심전도",
+)
+HYPERKALEMIA_POTASSIUM_RECHECK_SAFETY_TERMS = (
+    "k recheck",
+    "potassium monitoring",
+    "potassium trend",
+    "recheck potassium",
+    "repeat k",
+    "repeat potassium",
+    "serial potassium",
     "재검",
+    "칼륨 재검",
+    "칼륨 추적",
 )
 HYPERKALEMIA_GLUCOSE_SAFETY_TERMS = (
     "blood glucose",
-    "dextrose",
-    "glucose",
+    "fingerstick",
+    "glucose check",
+    "glucose monitoring",
     "hypoglycemia",
-    "포도당",
-    "저혈당",
+    "point-of-care glucose",
+    "poc glucose",
+    "serial glucose",
     "혈당",
+    "혈당 재검",
+    "혈당 확인",
+    "저혈당",
 )
 HYPERKALEMIA_RECURRENCE_SAFETY_TERMS = (
     "ace inhibitor",
@@ -20185,10 +20229,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_hyperkalemia_time_critical_actions,
             issue=(
                 "severe hyperkalemia time-critical actions must include IV calcium "
-                "gluconate, calcium chloride, or equivalent IV calcium, insulin-"
-                "based potassium shifting with dextrose or glucose co-therapy, "
-                "and concrete potassium removal planning such as dialysis, "
-                "diuretic, or potassium-binder therapy"
+                "gluconate, calcium chloride, or equivalent IV calcium with "
+                "reassessment or repeat dosing for persistent ECG changes, "
+                "insulin-based potassium shifting with dextrose or glucose "
+                "co-therapy, concrete potassium removal planning such as "
+                "dialysis, diuretic, or potassium-binder therapy, and "
+                "nephrology or dialysis escalation for refractory severe "
+                "hyperkalemia, AKI, ESRD, or missed dialysis"
             ),
         ),
         DomainSafetyGate(
@@ -20197,9 +20244,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="contraindication_checks",
             validator=_has_hyperkalemia_treatment_safety_check,
             issue=(
-                "severe hyperkalemia safety checks must include ECG or telemetry "
-                "with repeat potassium monitoring, hypoglycemia or glucose "
-                "monitoring after insulin, and renal or medication recurrence review"
+                "severe hyperkalemia safety checks must include ECG, EKG, cardiac "
+                "monitoring, or telemetry, repeat potassium monitoring, "
+                "hypoglycemia or blood-glucose monitoring after insulin, and "
+                "renal or medication recurrence review"
             ),
         ),
         DomainSafetyGate(
@@ -31712,6 +31760,10 @@ def _has_hyperkalemia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in HYPERKALEMIA_CALCIUM_ACTION_TERMS
     )
+    has_calcium_reassessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERKALEMIA_CALCIUM_REASSESSMENT_ACTION_TERMS
+    )
     has_insulin_shift = any(
         _contains_safety_term(normalized_actions, term)
         for term in HYPERKALEMIA_INSULIN_SHIFT_ACTION_TERMS
@@ -31724,7 +31776,18 @@ def _has_hyperkalemia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in HYPERKALEMIA_REMOVAL_ACTION_TERMS
     )
-    return has_calcium and has_insulin_shift and has_glucose_cotherapy and has_removal
+    has_dialysis_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HYPERKALEMIA_DIALYSIS_ESCALATION_ACTION_TERMS
+    )
+    return (
+        has_calcium
+        and has_calcium_reassessment
+        and has_insulin_shift
+        and has_glucose_cotherapy
+        and has_removal
+        and has_dialysis_escalation
+    )
 
 
 def _has_hyperkalemia_treatment_safety_check(checks: list[Any]) -> bool:
@@ -31732,6 +31795,10 @@ def _has_hyperkalemia_treatment_safety_check(checks: list[Any]) -> bool:
     has_ecg_monitoring = any(
         _contains_safety_term(normalized_checks, term)
         for term in HYPERKALEMIA_ECG_MONITORING_SAFETY_TERMS
+    )
+    has_potassium_recheck = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HYPERKALEMIA_POTASSIUM_RECHECK_SAFETY_TERMS
     )
     has_glucose_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -31741,7 +31808,12 @@ def _has_hyperkalemia_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in HYPERKALEMIA_RECURRENCE_SAFETY_TERMS
     )
-    return has_ecg_monitoring and has_glucose_safety and has_recurrence_review
+    return (
+        has_ecg_monitoring
+        and has_potassium_recheck
+        and has_glucose_safety
+        and has_recurrence_review
+    )
 
 
 def _requires_status_epilepticus_safety_check(data: dict[str, Any]) -> bool:

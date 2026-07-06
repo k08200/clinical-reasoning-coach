@@ -13256,6 +13256,25 @@ const HYPERKALEMIA_CALCIUM_ACTION_TERMS = [
   "칼슘",
 ];
 
+const HYPERKALEMIA_CALCIUM_REASSESSMENT_ACTION_TERMS = [
+  "additional calcium",
+  "calcium repeat",
+  "if ecg changes persist",
+  "if qrs remains wide",
+  "persistent ecg",
+  "reassess ecg after calcium",
+  "reassess qrs",
+  "redose calcium",
+  "redose iv calcium",
+  "repeat calcium",
+  "repeat calcium chloride",
+  "repeat calcium gluconate",
+  "repeat iv calcium",
+  "second dose calcium",
+  "칼슘 반복",
+  "칼슘 재투여",
+];
+
 const HYPERKALEMIA_INSULIN_SHIFT_ACTION_TERMS = [
   "insulin",
   "인슐린",
@@ -13280,24 +13299,52 @@ const HYPERKALEMIA_REMOVAL_ACTION_TERMS = [
   "투석",
 ];
 
+const HYPERKALEMIA_DIALYSIS_ESCALATION_ACTION_TERMS = [
+  "crrt",
+  "dialysis",
+  "hemodialysis",
+  "nephrology",
+  "renal replacement",
+  "신장내과",
+  "투석",
+];
+
 const HYPERKALEMIA_ECG_MONITORING_SAFETY_TERMS = [
-  "arrhythmia",
+  "arrhythmia monitoring",
   "cardiac monitor",
+  "continuous cardiac",
   "ecg",
-  "repeat potassium",
+  "ekg",
   "telemetry",
   "심전도",
+];
+
+const HYPERKALEMIA_POTASSIUM_RECHECK_SAFETY_TERMS = [
+  "k recheck",
+  "potassium monitoring",
+  "potassium trend",
+  "recheck potassium",
+  "repeat k",
+  "repeat potassium",
+  "serial potassium",
   "재검",
+  "칼륨 재검",
+  "칼륨 추적",
 ];
 
 const HYPERKALEMIA_GLUCOSE_SAFETY_TERMS = [
   "blood glucose",
-  "dextrose",
-  "glucose",
+  "fingerstick",
+  "glucose check",
+  "glucose monitoring",
   "hypoglycemia",
-  "포도당",
-  "저혈당",
+  "point-of-care glucose",
+  "poc glucose",
+  "serial glucose",
   "혈당",
+  "혈당 재검",
+  "혈당 확인",
+  "저혈당",
 ];
 
 const HYPERKALEMIA_RECURRENCE_SAFETY_TERMS = [
@@ -26953,6 +27000,9 @@ function hasHyperkalemiaTimeCriticalActions(actions: string[]): boolean {
   const hasCalcium = HYPERKALEMIA_CALCIUM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasCalciumReassessment = HYPERKALEMIA_CALCIUM_REASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasInsulinShift = HYPERKALEMIA_INSULIN_SHIFT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -26962,12 +27012,25 @@ function hasHyperkalemiaTimeCriticalActions(actions: string[]): boolean {
   const hasRemoval = HYPERKALEMIA_REMOVAL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasCalcium && hasInsulinShift && hasGlucoseCotherapy && hasRemoval;
+  const hasDialysisEscalation = HYPERKALEMIA_DIALYSIS_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasCalcium &&
+    hasCalciumReassessment &&
+    hasInsulinShift &&
+    hasGlucoseCotherapy &&
+    hasRemoval &&
+    hasDialysisEscalation
+  );
 }
 
 function hasHyperkalemiaTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
   const hasEcgMonitoring = HYPERKALEMIA_ECG_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPotassiumRecheck = HYPERKALEMIA_POTASSIUM_RECHECK_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasGlucoseSafety = HYPERKALEMIA_GLUCOSE_SAFETY_TERMS.some((term) =>
@@ -26976,7 +27039,7 @@ function hasHyperkalemiaTreatmentSafetyCheck(checks: string[]): boolean {
   const hasRecurrenceReview = HYPERKALEMIA_RECURRENCE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasEcgMonitoring && hasGlucoseSafety && hasRecurrenceReview;
+  return hasEcgMonitoring && hasPotassiumRecheck && hasGlucoseSafety && hasRecurrenceReview;
 }
 
 function requiresStatusEpilepticusSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -31800,7 +31863,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasHyperkalemiaTimeCriticalActions,
       issue:
-        "severe hyperkalemia time-critical actions must include IV calcium gluconate, calcium chloride, or equivalent IV calcium, insulin-based potassium shifting with dextrose or glucose co-therapy, and concrete potassium removal planning such as dialysis, diuretic, or potassium-binder therapy",
+        "severe hyperkalemia time-critical actions must include IV calcium gluconate, calcium chloride, or equivalent IV calcium with reassessment or repeat dosing for persistent ECG changes, insulin-based potassium shifting with dextrose or glucose co-therapy, concrete potassium removal planning such as dialysis, diuretic, or potassium-binder therapy, and nephrology or dialysis escalation for refractory severe hyperkalemia, AKI, ESRD, or missed dialysis",
     },
     {
       name: "hyperkalemia_treatment_safety",
@@ -31809,7 +31872,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasHyperkalemiaTreatmentSafetyCheck,
       issue:
-        "severe hyperkalemia safety checks must include ECG or telemetry with repeat potassium monitoring, hypoglycemia or glucose monitoring after insulin, and renal or medication recurrence review",
+        "severe hyperkalemia safety checks must include ECG, EKG, cardiac monitoring, or telemetry, repeat potassium monitoring, hypoglycemia or blood-glucose monitoring after insulin, and renal or medication recurrence review",
     },
     {
       name: "status_epilepticus_time_critical_actions",

@@ -24692,6 +24692,61 @@ def test_quality_gate_requires_hyperkalemia_dextrose_with_insulin_shift():
     )
 
 
+def test_quality_gate_requires_hyperkalemia_repeat_calcium_and_dialysis_escalation():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe hyperkalemia with ECG changes"
+    case["chief_complaint"] = "Weakness and palpitations"
+    case["history_of_present_illness"] = (
+        "Patient with kidney disease presents with progressive weakness, palpitations, "
+        "wide QRS, peaked T waves, K 7.1 mmol/L, and missed dialysis."
+    )
+    case["key_teaching_points"] = [
+        "Severe hyperkalemia with ECG changes can cause fatal arrhythmia",
+        "Cardiac membrane stabilization precedes potassium shifting and removal",
+        "Insulin-based shifting requires glucose monitoring and repeat potassium checks",
+    ]
+    case["clinical_red_flags"] = [
+        "Peaked T waves and wide QRS on ECG",
+        "K 7.1 mmol/L with missed dialysis and palpitations",
+    ]
+    case["time_critical_actions"] = [
+        "Give IV calcium gluconate for cardiac membrane stabilization",
+        "Give insulin with dextrose and nebulized albuterol to shift potassium intracellularly",
+        "Give furosemide and sodium zirconium potassium binder for potassium removal",
+    ]
+    case["contraindication_checks"] = [
+        "Continuous ECG telemetry and repeat potassium monitoring after therapy",
+        "Blood glucose and hypoglycemia monitoring after insulin and dextrose",
+        "Renal failure, missed dialysis, ACE inhibitor, ARB, spironolactone, and potassium supplement medication review",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hyperkalemia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/nephrology/electrolyte-disorders/hyperkalemia",
+            "supports": [
+                "severe hyperkalemia with ECG changes diagnosis and risk stratification",
+                "peaked T waves and wide QRS on ECG as red flags",
+                "K 7.1 mmol/L with missed dialysis and palpitations as severity markers",
+                "IV calcium gluconate for cardiac membrane stabilization",
+                "insulin with dextrose and nebulized albuterol to shift potassium intracellularly",
+                "furosemide and sodium zirconium potassium binder for potassium removal",
+                "continuous ECG telemetry and repeat potassium monitoring after therapy",
+                "blood glucose and hypoglycemia monitoring after insulin and dextrose",
+                "renal failure, missed dialysis, ACE inhibitor, ARB, spironolactone, and potassium supplement medication review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hyperkalemia time-critical actions must include IV calcium" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_hyperkalemia_ecg_glucose_and_recurrence_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Severe hyperkalemia with ECG changes"
@@ -24711,8 +24766,9 @@ def test_quality_gate_requires_hyperkalemia_ecg_glucose_and_recurrence_safety():
     ]
     case["time_critical_actions"] = [
         "Give IV calcium gluconate for cardiac membrane stabilization",
+        "Repeat IV calcium if ECG changes or QRS widening persist after the first dose",
         "Give insulin with dextrose and nebulized albuterol to shift potassium intracellularly",
-        "Arrange urgent hemodialysis for potassium removal",
+        "Arrange urgent nephrology consultation and hemodialysis for potassium removal",
     ]
     case["contraindication_checks"] = [
         "Medication allergy before nebulized therapy",
@@ -24740,7 +24796,64 @@ def test_quality_gate_requires_hyperkalemia_ecg_glucose_and_recurrence_safety():
 
     assert not report.passed
     assert any(
-        "severe hyperkalemia safety checks must include ECG or telemetry" in issue
+        "severe hyperkalemia safety checks must include ECG" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_hyperkalemia_separate_ecg_potassium_and_glucose_monitoring():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Severe hyperkalemia with ECG changes"
+    case["chief_complaint"] = "Weakness and palpitations"
+    case["history_of_present_illness"] = (
+        "Patient with kidney disease presents with progressive weakness, palpitations, "
+        "wide QRS, peaked T waves, K 7.1 mmol/L, and missed dialysis."
+    )
+    case["key_teaching_points"] = [
+        "Severe hyperkalemia with ECG changes can cause fatal arrhythmia",
+        "Cardiac membrane stabilization precedes potassium shifting and removal",
+        "Insulin-based shifting requires glucose monitoring and repeat potassium checks",
+    ]
+    case["clinical_red_flags"] = [
+        "Peaked T waves and wide QRS on ECG",
+        "K 7.1 mmol/L with missed dialysis and palpitations",
+    ]
+    case["time_critical_actions"] = [
+        "Give IV calcium gluconate for cardiac membrane stabilization",
+        "Repeat IV calcium if ECG changes or QRS widening persist after the first dose",
+        "Give insulin with dextrose and nebulized albuterol to shift potassium intracellularly",
+        "Arrange urgent nephrology consultation and hemodialysis for potassium removal",
+    ]
+    case["contraindication_checks"] = [
+        "Repeat potassium monitoring after therapy",
+        "Dextrose co-therapy after insulin",
+        "Renal failure, missed dialysis, ACE inhibitor, ARB, spironolactone, and potassium supplement medication review",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hyperkalemia",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/nephrology/electrolyte-disorders/hyperkalemia",
+            "supports": [
+                "severe hyperkalemia with ECG changes diagnosis and risk stratification",
+                "peaked T waves and wide QRS on ECG as red flags",
+                "K 7.1 mmol/L with missed dialysis and palpitations as severity markers",
+                "IV calcium gluconate for cardiac membrane stabilization",
+                "repeat IV calcium if ECG changes or QRS widening persist",
+                "insulin with dextrose and nebulized albuterol to shift potassium intracellularly",
+                "urgent nephrology consultation and hemodialysis for potassium removal",
+                "repeat potassium monitoring after therapy",
+                "dextrose co-therapy after insulin",
+                "renal failure, missed dialysis, ACE inhibitor, ARB, spironolactone, and potassium supplement medication review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "severe hyperkalemia safety checks must include ECG" in issue
         for issue in report.critical_issues
     )
 
