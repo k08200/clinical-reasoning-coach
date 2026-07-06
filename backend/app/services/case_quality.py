@@ -13984,43 +13984,77 @@ MAJOR_BURN_SEVERITY_TERMS = (
     "shock",
     "singed nasal hairs",
 )
-MAJOR_BURN_AIRWAY_ACTION_TERMS = (
-    "100% oxygen",
+MAJOR_BURN_AIRWAY_ASSESSMENT_ACTION_TERMS = (
     "airway",
-    "early intubation",
-    "intubation",
+    "carbonaceous sputum",
+    "inhalation injury",
+    "perioral burns",
+    "singed nasal hairs",
     "smoke inhalation",
+)
+MAJOR_BURN_OXYGEN_VENTILATION_ACTION_TERMS = (
+    "100% oxygen",
+    "oxygen",
     "ventilation",
 )
-MAJOR_BURN_STOP_IRRIGATION_ACTION_TERMS = (
-    "brush off",
-    "chemical",
-    "cool",
+MAJOR_BURN_EARLY_INTUBATION_ACTION_TERMS = (
+    "early intubation",
+    "intubation",
+)
+MAJOR_BURN_STOP_BURNING_ACTION_TERMS = (
     "extinguish",
-    "flush",
-    "irrigate",
     "remove clothing",
     "smoldering",
 )
-MAJOR_BURN_TBSA_DEPTH_ACTION_TERMS = (
-    "depth",
-    "full thickness",
-    "full-thickness",
+MAJOR_BURN_CHEMICAL_IRRIGATION_ACTION_TERMS = (
+    "brush off",
+    "chemical",
+    "cool",
+    "flush",
+    "irrigate",
+    "water",
+)
+MAJOR_BURN_TBSA_ACTION_TERMS = (
     "lund-browder",
-    "partial thickness",
-    "partial-thickness",
     "rule of nines",
     "tbsa",
 )
-MAJOR_BURN_FLUID_URINE_ACTION_TERMS = (
+MAJOR_BURN_DEPTH_ACTION_TERMS = (
+    "depth",
+    "full thickness",
+    "full-thickness",
+    "partial thickness",
+    "partial-thickness",
+)
+MAJOR_BURN_LARGE_BORE_IV_ACTION_TERMS = (
     "14 gauge",
     "16 gauge",
-    "fluid resuscitation",
-    "iv fluid",
-    "lactated ringer",
+    "iv access",
     "large-bore",
+)
+MAJOR_BURN_LR_PARKLAND_ACTION_TERMS = (
+    "fluid resuscitation",
+    "lactated ringer",
     "parkland",
+)
+MAJOR_BURN_URINE_OUTPUT_ACTION_TERMS = (
+    "foley",
+    "indwelling catheter",
     "urine output",
+)
+MAJOR_BURN_ADMISSION_LAB_ACTION_TERMS = (
+    "albumin",
+    "bun",
+    "chest radiograph",
+    "chest x-ray",
+    "creatinine",
+    "ecg",
+    "electrolyte",
+    "hemoglobin",
+    "hematocrit",
+    "myoglobin",
+    "phosphate",
+    "urinalysis",
 )
 MAJOR_BURN_CENTER_ACTION_TERMS = (
     "burn center",
@@ -14038,12 +14072,23 @@ MAJOR_BURN_HYPOTHERMIA_SAFETY_TERMS = (
 )
 MAJOR_BURN_FLUID_TITRATION_SAFETY_TERMS = (
     "0.5 ml/kg/hr",
+    "0.5 ml/kg/hour",
     "1.0 ml/kg/hour",
+    "first 8 hours",
+    "first 24 hours",
     "compartment syndrome",
     "fluid overload",
     "heart failure",
     "hourly",
     "urine output",
+)
+MAJOR_BURN_PEDIATRIC_FLUID_SAFETY_TERMS = (
+    "children",
+    "dextrose",
+    "glucose",
+    "hypoglycemia",
+    "maintenance fluid",
+    "pediatric",
 )
 MAJOR_BURN_ESCHAROTOMY_SAFETY_TERMS = (
     "circumferential",
@@ -14056,6 +14101,12 @@ MAJOR_BURN_ESCHAROTOMY_SAFETY_TERMS = (
 MAJOR_BURN_TETANUS_SAFETY_TERMS = (
     "tdap",
     "tetanus",
+)
+MAJOR_BURN_TRANSFER_DRESSING_SAFETY_TERMS = (
+    "burn cream",
+    "clean dry dressing",
+    "dry dressing",
+    "transfer",
 )
 MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = (
     "avoid prophylactic",
@@ -21155,12 +21206,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_major_burn_time_critical_actions,
             issue=(
                 "major burn time-critical actions must include airway assessment "
-                "or early intubation with 100% oxygen or ventilation support for "
-                "inhalation injury, extinguishing ongoing burning plus clothing "
-                "removal or chemical irrigation, TBSA and burn-depth assessment "
-                "with rule-of-nines or Lund-Browder planning, large-bore IV "
-                "lactated-Ringer or Parkland fluid resuscitation with urine-output "
-                "monitoring, and burn center consultation, referral, or transfer"
+                "for inhalation injury clues, 100% oxygen or ventilation support, "
+                "early intubation planning, extinguishing ongoing burning and "
+                "removing clothing or smoldering material, chemical-burn cooling, "
+                "water flushing, irrigation, or powder brush-off, TBSA assessment "
+                "with rule-of-nines or Lund-Browder, burn-depth assessment, "
+                "large-bore 14- or 16-gauge IV access, lactated-Ringer or Parkland "
+                "fluid resuscitation, urine-output or Foley monitoring, admitted-"
+                "patient labs such as ECG, chest x-ray, electrolytes, BUN, "
+                "creatinine, albumin, phosphate, urinalysis, or myoglobin testing, "
+                "and burn-center consultation, referral, or transfer"
             ),
         ),
         DomainSafetyGate(
@@ -21171,10 +21226,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "major burn safety checks must include hypothermia prevention "
                 "with warming, dry coverings, or temperature monitoring, fluid "
-                "titration to urine output with hourly reassessment and fluid-"
-                "overload, heart-failure, or compartment-syndrome monitoring, "
+                "titration to urine output with hourly reassessment, first-8-hour "
+                "or first-24-hour resuscitation timing, and fluid-overload, "
+                "heart-failure, or compartment-syndrome monitoring, pediatric "
+                "dextrose, glucose, hypoglycemia, or maintenance-fluid planning, "
                 "circumferential eschar or escharotomy review for perfusion or "
                 "ventilation restriction, tetanus status or Tdap review, and "
+                "clean dry dressing or avoiding burn cream before transfer, plus "
                 "antibiotic stewardship such as avoiding routine prophylactic "
                 "systemic antibiotics or using topical antimicrobials when indicated"
             ),
@@ -33934,31 +33992,66 @@ def _requires_major_burn_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_major_burn_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_airway_action = any(
+    has_airway_assessment = any(
         _contains_safety_term(normalized_actions, term)
-        for term in MAJOR_BURN_AIRWAY_ACTION_TERMS
+        for term in MAJOR_BURN_AIRWAY_ASSESSMENT_ACTION_TERMS
     )
-    has_stop_irrigation_action = any(
+    has_oxygen_ventilation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in MAJOR_BURN_STOP_IRRIGATION_ACTION_TERMS
+        for term in MAJOR_BURN_OXYGEN_VENTILATION_ACTION_TERMS
     )
-    has_tbsa_depth_action = any(
+    has_early_intubation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in MAJOR_BURN_TBSA_DEPTH_ACTION_TERMS
+        for term in MAJOR_BURN_EARLY_INTUBATION_ACTION_TERMS
     )
-    has_fluid_urine_action = any(
+    has_stop_burning = any(
         _contains_safety_term(normalized_actions, term)
-        for term in MAJOR_BURN_FLUID_URINE_ACTION_TERMS
+        for term in MAJOR_BURN_STOP_BURNING_ACTION_TERMS
+    )
+    has_chemical_irrigation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_CHEMICAL_IRRIGATION_ACTION_TERMS
+    )
+    has_tbsa_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_TBSA_ACTION_TERMS
+    )
+    has_depth_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_DEPTH_ACTION_TERMS
+    )
+    has_large_bore_iv = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_LARGE_BORE_IV_ACTION_TERMS
+    )
+    has_lr_parkland = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_LR_PARKLAND_ACTION_TERMS
+    )
+    has_urine_output = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_URINE_OUTPUT_ACTION_TERMS
+    )
+    has_admission_labs = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_ADMISSION_LAB_ACTION_TERMS
     )
     has_burn_center_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in MAJOR_BURN_CENTER_ACTION_TERMS
     )
     return (
-        has_airway_action
-        and has_stop_irrigation_action
-        and has_tbsa_depth_action
-        and has_fluid_urine_action
+        has_airway_assessment
+        and has_oxygen_ventilation
+        and has_early_intubation
+        and has_stop_burning
+        and has_chemical_irrigation
+        and has_tbsa_action
+        and has_depth_action
+        and has_large_bore_iv
+        and has_lr_parkland
+        and has_urine_output
+        and has_admission_labs
         and has_burn_center_action
     )
 
@@ -33973,6 +34066,10 @@ def _has_major_burn_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in MAJOR_BURN_FLUID_TITRATION_SAFETY_TERMS
     )
+    has_pediatric_fluid_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MAJOR_BURN_PEDIATRIC_FLUID_SAFETY_TERMS
+    )
     has_escharotomy_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in MAJOR_BURN_ESCHAROTOMY_SAFETY_TERMS
@@ -33981,6 +34078,10 @@ def _has_major_burn_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in MAJOR_BURN_TETANUS_SAFETY_TERMS
     )
+    has_transfer_dressing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MAJOR_BURN_TRANSFER_DRESSING_SAFETY_TERMS
+    )
     has_antibiotic_stewardship = any(
         _contains_safety_term(normalized_checks, term)
         for term in MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS
@@ -33988,8 +34089,10 @@ def _has_major_burn_treatment_safety_check(checks: list[Any]) -> bool:
     return (
         has_hypothermia_safety
         and has_fluid_titration_safety
+        and has_pediatric_fluid_safety
         and has_escharotomy_safety
         and has_tetanus_safety
+        and has_transfer_dressing_safety
         and has_antibiotic_stewardship
     )
 

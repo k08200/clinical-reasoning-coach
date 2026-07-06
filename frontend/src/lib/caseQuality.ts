@@ -15549,46 +15549,87 @@ const MAJOR_BURN_SEVERITY_TERMS = [
   "singed nasal hairs",
 ];
 
-const MAJOR_BURN_AIRWAY_ACTION_TERMS = [
-  "100% oxygen",
+const MAJOR_BURN_AIRWAY_ASSESSMENT_ACTION_TERMS = [
   "airway",
-  "early intubation",
-  "intubation",
+  "carbonaceous sputum",
+  "inhalation injury",
+  "perioral burns",
+  "singed nasal hairs",
   "smoke inhalation",
+];
+
+const MAJOR_BURN_OXYGEN_VENTILATION_ACTION_TERMS = [
+  "100% oxygen",
+  "oxygen",
   "ventilation",
 ];
 
-const MAJOR_BURN_STOP_IRRIGATION_ACTION_TERMS = [
-  "brush off",
-  "chemical",
-  "cool",
+const MAJOR_BURN_EARLY_INTUBATION_ACTION_TERMS = [
+  "early intubation",
+  "intubation",
+];
+
+const MAJOR_BURN_STOP_BURNING_ACTION_TERMS = [
   "extinguish",
-  "flush",
-  "irrigate",
   "remove clothing",
   "smoldering",
 ];
 
-const MAJOR_BURN_TBSA_DEPTH_ACTION_TERMS = [
-  "depth",
-  "full thickness",
-  "full-thickness",
+const MAJOR_BURN_CHEMICAL_IRRIGATION_ACTION_TERMS = [
+  "brush off",
+  "chemical",
+  "cool",
+  "flush",
+  "irrigate",
+  "water",
+];
+
+const MAJOR_BURN_TBSA_ACTION_TERMS = [
   "lund-browder",
-  "partial thickness",
-  "partial-thickness",
   "rule of nines",
   "tbsa",
 ];
 
-const MAJOR_BURN_FLUID_URINE_ACTION_TERMS = [
+const MAJOR_BURN_DEPTH_ACTION_TERMS = [
+  "depth",
+  "full thickness",
+  "full-thickness",
+  "partial thickness",
+  "partial-thickness",
+];
+
+const MAJOR_BURN_LARGE_BORE_IV_ACTION_TERMS = [
   "14 gauge",
   "16 gauge",
-  "fluid resuscitation",
-  "iv fluid",
-  "lactated ringer",
+  "iv access",
   "large-bore",
+];
+
+const MAJOR_BURN_LR_PARKLAND_ACTION_TERMS = [
+  "fluid resuscitation",
+  "lactated ringer",
   "parkland",
+];
+
+const MAJOR_BURN_URINE_OUTPUT_ACTION_TERMS = [
+  "foley",
+  "indwelling catheter",
   "urine output",
+];
+
+const MAJOR_BURN_ADMISSION_LAB_ACTION_TERMS = [
+  "albumin",
+  "bun",
+  "chest radiograph",
+  "chest x-ray",
+  "creatinine",
+  "ecg",
+  "electrolyte",
+  "hemoglobin",
+  "hematocrit",
+  "myoglobin",
+  "phosphate",
+  "urinalysis",
 ];
 
 const MAJOR_BURN_CENTER_ACTION_TERMS = [
@@ -15609,12 +15650,24 @@ const MAJOR_BURN_HYPOTHERMIA_SAFETY_TERMS = [
 
 const MAJOR_BURN_FLUID_TITRATION_SAFETY_TERMS = [
   "0.5 ml/kg/hr",
+  "0.5 ml/kg/hour",
   "1.0 ml/kg/hour",
+  "first 8 hours",
+  "first 24 hours",
   "compartment syndrome",
   "fluid overload",
   "heart failure",
   "hourly",
   "urine output",
+];
+
+const MAJOR_BURN_PEDIATRIC_FLUID_SAFETY_TERMS = [
+  "children",
+  "dextrose",
+  "glucose",
+  "hypoglycemia",
+  "maintenance fluid",
+  "pediatric",
 ];
 
 const MAJOR_BURN_ESCHAROTOMY_SAFETY_TERMS = [
@@ -15629,6 +15682,13 @@ const MAJOR_BURN_ESCHAROTOMY_SAFETY_TERMS = [
 const MAJOR_BURN_TETANUS_SAFETY_TERMS = [
   "tdap",
   "tetanus",
+];
+
+const MAJOR_BURN_TRANSFER_DRESSING_SAFETY_TERMS = [
+  "burn cream",
+  "clean dry dressing",
+  "dry dressing",
+  "transfer",
 ];
 
 const MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = [
@@ -28881,26 +28941,54 @@ function requiresMajorBurnSafetyCheck(detail: ClinicalCaseReviewDetail): boolean
 
 function hasMajorBurnTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasAirwayAction = MAJOR_BURN_AIRWAY_ACTION_TERMS.some((term) =>
+  const hasAirwayAssessment = MAJOR_BURN_AIRWAY_ASSESSMENT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasStopIrrigationAction = MAJOR_BURN_STOP_IRRIGATION_ACTION_TERMS.some((term) =>
+  const hasOxygenVentilation = MAJOR_BURN_OXYGEN_VENTILATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasTbsaDepthAction = MAJOR_BURN_TBSA_DEPTH_ACTION_TERMS.some((term) =>
+  const hasEarlyIntubation = MAJOR_BURN_EARLY_INTUBATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasFluidUrineAction = MAJOR_BURN_FLUID_URINE_ACTION_TERMS.some((term) =>
+  const hasStopBurning = MAJOR_BURN_STOP_BURNING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasChemicalIrrigation = MAJOR_BURN_CHEMICAL_IRRIGATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTbsaAction = MAJOR_BURN_TBSA_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDepthAction = MAJOR_BURN_DEPTH_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLargeBoreIv = MAJOR_BURN_LARGE_BORE_IV_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLrParkland = MAJOR_BURN_LR_PARKLAND_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasUrineOutput = MAJOR_BURN_URINE_OUTPUT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAdmissionLabs = MAJOR_BURN_ADMISSION_LAB_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasBurnCenterAction = MAJOR_BURN_CENTER_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasAirwayAction &&
-    hasStopIrrigationAction &&
-    hasTbsaDepthAction &&
-    hasFluidUrineAction &&
+    hasAirwayAssessment &&
+    hasOxygenVentilation &&
+    hasEarlyIntubation &&
+    hasStopBurning &&
+    hasChemicalIrrigation &&
+    hasTbsaAction &&
+    hasDepthAction &&
+    hasLargeBoreIv &&
+    hasLrParkland &&
+    hasUrineOutput &&
+    hasAdmissionLabs &&
     hasBurnCenterAction
   );
 }
@@ -28913,10 +29001,16 @@ function hasMajorBurnTreatmentSafetyCheck(checks: string[]): boolean {
   const hasFluidTitrationSafety = MAJOR_BURN_FLUID_TITRATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasPediatricFluidSafety = MAJOR_BURN_PEDIATRIC_FLUID_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasEscharotomySafety = MAJOR_BURN_ESCHAROTOMY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasTetanusSafety = MAJOR_BURN_TETANUS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTransferDressingSafety = MAJOR_BURN_TRANSFER_DRESSING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasAntibioticStewardship = MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS.some((term) =>
@@ -28925,8 +29019,10 @@ function hasMajorBurnTreatmentSafetyCheck(checks: string[]): boolean {
   return (
     hasHypothermiaSafety &&
     hasFluidTitrationSafety &&
+    hasPediatricFluidSafety &&
     hasEscharotomySafety &&
     hasTetanusSafety &&
+    hasTransferDressingSafety &&
     hasAntibioticStewardship
   );
 }
@@ -32993,7 +33089,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasMajorBurnTimeCriticalActions,
       issue:
-        "major burn time-critical actions must include airway assessment or early intubation with 100% oxygen or ventilation support for inhalation injury, extinguishing ongoing burning plus clothing removal or chemical irrigation, TBSA and burn-depth assessment with rule-of-nines or Lund-Browder planning, large-bore IV lactated-Ringer or Parkland fluid resuscitation with urine-output monitoring, and burn center consultation, referral, or transfer",
+        "major burn time-critical actions must include airway assessment for inhalation injury clues, 100% oxygen or ventilation support, early intubation planning, extinguishing ongoing burning and removing clothing or smoldering material, chemical-burn cooling, water flushing, irrigation, or powder brush-off, TBSA assessment with rule-of-nines or Lund-Browder, burn-depth assessment, large-bore 14- or 16-gauge IV access, lactated-Ringer or Parkland fluid resuscitation, urine-output or Foley monitoring, admitted-patient labs such as ECG, chest x-ray, electrolytes, BUN, creatinine, albumin, phosphate, urinalysis, or myoglobin testing, and burn-center consultation, referral, or transfer",
     },
     {
       name: "major_burn_treatment_safety",
@@ -33002,7 +33098,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasMajorBurnTreatmentSafetyCheck,
       issue:
-        "major burn safety checks must include hypothermia prevention with warming, dry coverings, or temperature monitoring, fluid titration to urine output with hourly reassessment and fluid-overload, heart-failure, or compartment-syndrome monitoring, circumferential eschar or escharotomy review for perfusion or ventilation restriction, tetanus status or Tdap review, and antibiotic stewardship such as avoiding routine prophylactic systemic antibiotics or using topical antimicrobials when indicated",
+        "major burn safety checks must include hypothermia prevention with warming, dry coverings, or temperature monitoring, fluid titration to urine output with hourly reassessment, first-8-hour or first-24-hour resuscitation timing, and fluid-overload, heart-failure, or compartment-syndrome monitoring, pediatric dextrose, glucose, hypoglycemia, or maintenance-fluid planning, circumferential eschar or escharotomy review for perfusion or ventilation restriction, tetanus status or Tdap review, clean dry dressing or avoiding burn cream before transfer, plus antibiotic stewardship such as avoiding routine prophylactic systemic antibiotics or using topical antimicrobials when indicated",
     },
     {
       name: "sjs_ten_time_critical_actions",
