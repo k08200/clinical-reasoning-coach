@@ -10303,37 +10303,62 @@ const NECROTIZING_ENTEROCOLITIS_DECOMPRESSION_ACTION_TERMS = [
   "suction",
 ];
 
-const NECROTIZING_ENTEROCOLITIS_SUPPORT_ACTION_TERMS = [
+const NECROTIZING_ENTEROCOLITIS_FLUID_RESUSCITATION_ACTION_TERMS = [
   "crystalloid",
   "fluid",
   "fluids",
+  "resuscitation",
+];
+
+const NECROTIZING_ENTEROCOLITIS_NICU_SUPPORT_ACTION_TERMS = [
   "nicu",
+];
+
+const NECROTIZING_ENTEROCOLITIS_PARENTERAL_NUTRITION_ACTION_TERMS = [
   "parenteral nutrition",
   "pn",
-  "resuscitation",
   "tpn",
 ];
 
-const NECROTIZING_ENTEROCOLITIS_ANTIBIOTIC_ACTION_TERMS = [
-  "ampicillin",
+const NECROTIZING_ENTEROCOLITIS_BROAD_ANTIBIOTIC_ACTION_TERMS = [
   "antibiotic",
   "broad-spectrum",
+];
+
+const NECROTIZING_ENTEROCOLITIS_GRAM_NEGATIVE_ANTIBIOTIC_ACTION_TERMS = [
+  "ampicillin",
   "gentamicin",
-  "metronidazole",
   "piperacillin",
   "tazobactam",
 ];
 
-const NECROTIZING_ENTEROCOLITIS_MONITORING_ACTION_TERMS = [
+const NECROTIZING_ENTEROCOLITIS_ANAEROBIC_ANTIBIOTIC_ACTION_TERMS = [
+  "anaerobic",
+  "metronidazole",
+];
+
+const NECROTIZING_ENTEROCOLITIS_RADIOGRAPH_MONITORING_ACTION_TERMS = [
   "abdominal radiograph",
   "abdominal x-ray",
+  "serial x-ray",
+];
+
+const NECROTIZING_ENTEROCOLITIS_LAB_CULTURE_MONITORING_ACTION_TERMS = [
   "blood culture",
   "cbc",
   "complete blood count",
   "platelet",
+];
+
+const NECROTIZING_ENTEROCOLITIS_BLOOD_GAS_MONITORING_ACTION_TERMS = [
+  "blood gas",
+  "crp",
+  "c-reactive",
+];
+
+const NECROTIZING_ENTEROCOLITIS_EXAM_MONITORING_ACTION_TERMS = [
   "serial abdominal",
   "serial exam",
-  "serial x-ray",
 ];
 
 const NECROTIZING_ENTEROCOLITIS_SURGERY_SAFETY_TERMS = [
@@ -10348,18 +10373,31 @@ const NECROTIZING_ENTEROCOLITIS_PERFORATION_SAFETY_TERMS = [
   "free air",
   "intestinal perforation",
   "perforation",
-  "peritonitis",
   "pneumoperitoneum",
+];
+
+const NECROTIZING_ENTEROCOLITIS_PERITONITIS_SAFETY_TERMS = [
+  "abdominal wall erythema",
+  "guarding",
+  "peritonitis",
+  "purulent",
+  "tenderness",
+];
+
+const NECROTIZING_ENTEROCOLITIS_PORTAL_GAS_SAFETY_TERMS = [
   "portal venous gas",
 ];
 
-const NECROTIZING_ENTEROCOLITIS_WORSENING_SAFETY_TERMS = [
+const NECROTIZING_ENTEROCOLITIS_LAB_WORSENING_SAFETY_TERMS = [
   "acidosis",
   "blood gas",
-  "clinical deterioration",
   "lactate",
-  "shock",
   "thrombocytopenia",
+];
+
+const NECROTIZING_ENTEROCOLITIS_CLINICAL_WORSENING_SAFETY_TERMS = [
+  "clinical deterioration",
+  "shock",
   "worsening",
 ];
 
@@ -10373,9 +10411,12 @@ const NECROTIZING_ENTEROCOLITIS_ISOLATION_SAFETY_TERMS = [
 
 const NECROTIZING_ENTEROCOLITIS_COMPLICATION_FOLLOWUP_SAFETY_TERMS = [
   "intestinal failure",
-  "parenteral nutrition",
   "short bowel",
   "stricture",
+];
+
+const NECROTIZING_ENTEROCOLITIS_NUTRITION_FOLLOWUP_SAFETY_TERMS = [
+  "parenteral nutrition",
   "trophic feeds",
 ];
 
@@ -26393,16 +26434,56 @@ function hasNecrotizingEnterocolitisTimeCriticalActions(actions: string[]): bool
   const hasDecompression = NECROTIZING_ENTEROCOLITIS_DECOMPRESSION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSupport = NECROTIZING_ENTEROCOLITIS_SUPPORT_ACTION_TERMS.some((term) =>
+  const hasFluidResuscitation = NECROTIZING_ENTEROCOLITIS_FLUID_RESUSCITATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntibiotics = NECROTIZING_ENTEROCOLITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+  const hasNicuSupport = NECROTIZING_ENTEROCOLITIS_NICU_SUPPORT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasMonitoring = NECROTIZING_ENTEROCOLITIS_MONITORING_ACTION_TERMS.some((term) =>
+  const hasParenteralNutrition =
+    NECROTIZING_ENTEROCOLITIS_PARENTERAL_NUTRITION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasBroadAntibiotics = NECROTIZING_ENTEROCOLITIS_BROAD_ANTIBIOTIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasFeedingStop && hasDecompression && hasSupport && hasAntibiotics && hasMonitoring;
+  const hasGramNegativeAntibiotics =
+    NECROTIZING_ENTEROCOLITIS_GRAM_NEGATIVE_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasAnaerobicAntibiotics =
+    NECROTIZING_ENTEROCOLITIS_ANAEROBIC_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasRadiographMonitoring =
+    NECROTIZING_ENTEROCOLITIS_RADIOGRAPH_MONITORING_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasLabCultureMonitoring =
+    NECROTIZING_ENTEROCOLITIS_LAB_CULTURE_MONITORING_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasBloodGasMonitoring =
+    NECROTIZING_ENTEROCOLITIS_BLOOD_GAS_MONITORING_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasExamMonitoring = NECROTIZING_ENTEROCOLITIS_EXAM_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasFeedingStop &&
+    hasDecompression &&
+    hasFluidResuscitation &&
+    hasNicuSupport &&
+    hasParenteralNutrition &&
+    hasBroadAntibiotics &&
+    hasGramNegativeAntibiotics &&
+    hasAnaerobicAntibiotics &&
+    hasRadiographMonitoring &&
+    hasLabCultureMonitoring &&
+    hasBloodGasMonitoring &&
+    hasExamMonitoring
+  );
 }
 
 function hasNecrotizingEnterocolitisTreatmentSafetyCheck(checks: string[]): boolean {
@@ -26413,9 +26494,19 @@ function hasNecrotizingEnterocolitisTreatmentSafetyCheck(checks: string[]): bool
   const hasPerforationSafety = NECROTIZING_ENTEROCOLITIS_PERFORATION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasWorseningSafety = NECROTIZING_ENTEROCOLITIS_WORSENING_SAFETY_TERMS.some((term) =>
+  const hasPeritonitisSafety = NECROTIZING_ENTEROCOLITIS_PERITONITIS_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasPortalGasSafety = NECROTIZING_ENTEROCOLITIS_PORTAL_GAS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLabWorseningSafety = NECROTIZING_ENTEROCOLITIS_LAB_WORSENING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasClinicalWorseningSafety =
+    NECROTIZING_ENTEROCOLITIS_CLINICAL_WORSENING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasIsolationSafety = NECROTIZING_ENTEROCOLITIS_ISOLATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -26423,12 +26514,19 @@ function hasNecrotizingEnterocolitisTreatmentSafetyCheck(checks: string[]): bool
     NECROTIZING_ENTEROCOLITIS_COMPLICATION_FOLLOWUP_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
+  const hasNutritionFollowup = NECROTIZING_ENTEROCOLITIS_NUTRITION_FOLLOWUP_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   return (
     hasSurgerySafety &&
     hasPerforationSafety &&
-    hasWorseningSafety &&
+    hasPeritonitisSafety &&
+    hasPortalGasSafety &&
+    hasLabWorseningSafety &&
+    hasClinicalWorseningSafety &&
     hasIsolationSafety &&
-    hasComplicationFollowup
+    hasComplicationFollowup &&
+    hasNutritionFollowup
   );
 }
 
@@ -33487,7 +33585,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasNecrotizingEnterocolitisTimeCriticalActions,
       issue:
-        "necrotizing enterocolitis time-critical actions must include immediate feeding cessation, bowel rest, NPO, or stopping enteral feeds, gastric decompression with NG/OG tube, nasogastric, or suction, IV fluid resuscitation, NICU support, parenteral nutrition, PN, or TPN planning, broad-spectrum antibiotics such as ampicillin/gentamicin, piperacillin-tazobactam, or anaerobic coverage, and serial abdominal radiographs, CBC/platelets, blood culture, blood gas, or serial abdominal exam monitoring",
+        "necrotizing enterocolitis time-critical actions must include immediate feeding cessation, bowel rest, NPO, or stopping enteral feeds, gastric decompression with NG/OG tube, nasogastric, or suction, IV fluid/crystalloid resuscitation plus NICU support and parenteral nutrition/PN/TPN planning, broad-spectrum antibiotics plus ampicillin/gentamicin or piperacillin-tazobactam gram-negative coverage and anaerobic or metronidazole coverage, and serial abdominal radiographs/x-rays plus CBC/platelets or blood culture, blood gas/CRP, and serial abdominal exam monitoring",
     },
     {
       name: "necrotizing_enterocolitis_treatment_safety",
@@ -33496,7 +33594,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasNecrotizingEnterocolitisTreatmentSafetyCheck,
       issue:
-        "necrotizing enterocolitis safety checks must include early pediatric or neonatal surgery consultation, perforation, pneumoperitoneum, free air, peritonitis, or portal venous gas surgery triggers, worsening acidosis, thrombocytopenia, blood gas, shock, lactate, or clinical deterioration despite support, isolation, infection-control, cluster, or outbreak precautions, and stricture, short bowel, intestinal failure, parenteral nutrition, or trophic-feed follow-up planning",
+        "necrotizing enterocolitis safety checks must include early pediatric or neonatal surgery consultation, perforation, pneumoperitoneum, or free-air surgery triggers plus peritonitis, guarding, tenderness, abdominal-wall erythema, or purulent peritoneal fluid triggers and portal venous gas escalation, worsening acidosis, thrombocytopenia, blood gas, or lactate plus shock, worsening, or clinical deterioration despite support, isolation, infection-control, cluster, or outbreak precautions, and stricture, short bowel, or intestinal failure follow-up plus parenteral nutrition or trophic-feed reintroduction planning",
     },
     {
       name: "acute_appendicitis_time_critical_actions",

@@ -9230,35 +9230,53 @@ NECROTIZING_ENTEROCOLITIS_DECOMPRESSION_ACTION_TERMS = (
     "orogastric",
     "suction",
 )
-NECROTIZING_ENTEROCOLITIS_SUPPORT_ACTION_TERMS = (
+NECROTIZING_ENTEROCOLITIS_FLUID_RESUSCITATION_ACTION_TERMS = (
     "crystalloid",
     "fluid",
     "fluids",
+    "resuscitation",
+)
+NECROTIZING_ENTEROCOLITIS_NICU_SUPPORT_ACTION_TERMS = (
     "nicu",
+)
+NECROTIZING_ENTEROCOLITIS_PARENTERAL_NUTRITION_ACTION_TERMS = (
     "parenteral nutrition",
     "pn",
-    "resuscitation",
     "tpn",
 )
-NECROTIZING_ENTEROCOLITIS_ANTIBIOTIC_ACTION_TERMS = (
-    "ampicillin",
+NECROTIZING_ENTEROCOLITIS_BROAD_ANTIBIOTIC_ACTION_TERMS = (
     "antibiotic",
     "broad-spectrum",
+)
+NECROTIZING_ENTEROCOLITIS_GRAM_NEGATIVE_ANTIBIOTIC_ACTION_TERMS = (
+    "ampicillin",
     "gentamicin",
-    "metronidazole",
     "piperacillin",
     "tazobactam",
 )
-NECROTIZING_ENTEROCOLITIS_MONITORING_ACTION_TERMS = (
+NECROTIZING_ENTEROCOLITIS_ANAEROBIC_ANTIBIOTIC_ACTION_TERMS = (
+    "anaerobic",
+    "metronidazole",
+)
+NECROTIZING_ENTEROCOLITIS_RADIOGRAPH_MONITORING_ACTION_TERMS = (
     "abdominal radiograph",
     "abdominal x-ray",
+    "serial x-ray",
+)
+NECROTIZING_ENTEROCOLITIS_LAB_CULTURE_MONITORING_ACTION_TERMS = (
     "blood culture",
     "cbc",
     "complete blood count",
     "platelet",
+)
+NECROTIZING_ENTEROCOLITIS_BLOOD_GAS_MONITORING_ACTION_TERMS = (
+    "blood gas",
+    "crp",
+    "c-reactive",
+)
+NECROTIZING_ENTEROCOLITIS_EXAM_MONITORING_ACTION_TERMS = (
     "serial abdominal",
     "serial exam",
-    "serial x-ray",
 )
 NECROTIZING_ENTEROCOLITIS_SURGERY_SAFETY_TERMS = (
     "neonatal surgery",
@@ -9271,17 +9289,27 @@ NECROTIZING_ENTEROCOLITIS_PERFORATION_SAFETY_TERMS = (
     "free air",
     "intestinal perforation",
     "perforation",
-    "peritonitis",
     "pneumoperitoneum",
+)
+NECROTIZING_ENTEROCOLITIS_PERITONITIS_SAFETY_TERMS = (
+    "abdominal wall erythema",
+    "guarding",
+    "peritonitis",
+    "purulent",
+    "tenderness",
+)
+NECROTIZING_ENTEROCOLITIS_PORTAL_GAS_SAFETY_TERMS = (
     "portal venous gas",
 )
-NECROTIZING_ENTEROCOLITIS_WORSENING_SAFETY_TERMS = (
+NECROTIZING_ENTEROCOLITIS_LAB_WORSENING_SAFETY_TERMS = (
     "acidosis",
     "blood gas",
-    "clinical deterioration",
     "lactate",
-    "shock",
     "thrombocytopenia",
+)
+NECROTIZING_ENTEROCOLITIS_CLINICAL_WORSENING_SAFETY_TERMS = (
+    "clinical deterioration",
+    "shock",
     "worsening",
 )
 NECROTIZING_ENTEROCOLITIS_ISOLATION_SAFETY_TERMS = (
@@ -9293,9 +9321,11 @@ NECROTIZING_ENTEROCOLITIS_ISOLATION_SAFETY_TERMS = (
 )
 NECROTIZING_ENTEROCOLITIS_COMPLICATION_FOLLOWUP_SAFETY_TERMS = (
     "intestinal failure",
-    "parenteral nutrition",
     "short bowel",
     "stricture",
+)
+NECROTIZING_ENTEROCOLITIS_NUTRITION_FOLLOWUP_SAFETY_TERMS = (
+    "parenteral nutrition",
     "trophic feeds",
 )
 ACUTE_APPENDICITIS_CONTEXT_TERMS = (
@@ -20434,12 +20464,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "necrotizing enterocolitis time-critical actions must include "
                 "immediate feeding cessation, bowel rest, NPO, or stopping "
                 "enteral feeds, gastric decompression with NG/OG tube, "
-                "nasogastric, or suction, IV fluid resuscitation, NICU support, "
-                "parenteral nutrition, PN, or TPN planning, broad-spectrum "
-                "antibiotics such as ampicillin/gentamicin, piperacillin-"
-                "tazobactam, or anaerobic coverage, and serial abdominal "
-                "radiographs, CBC/platelets, blood culture, blood gas, or "
-                "serial abdominal exam monitoring"
+                "nasogastric, or suction, IV fluid/crystalloid resuscitation "
+                "plus NICU support and parenteral nutrition/PN/TPN planning, "
+                "broad-spectrum antibiotics plus ampicillin/gentamicin or "
+                "piperacillin-tazobactam gram-negative coverage and anaerobic "
+                "or metronidazole coverage, and serial abdominal radiographs/"
+                "x-rays plus CBC/platelets or blood culture, blood gas/CRP, "
+                "and serial abdominal exam monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -20450,12 +20481,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "necrotizing enterocolitis safety checks must include early "
                 "pediatric or neonatal surgery consultation, perforation, "
-                "pneumoperitoneum, free air, peritonitis, or portal venous gas "
-                "surgery triggers, worsening acidosis, thrombocytopenia, blood "
-                "gas, shock, lactate, or clinical deterioration despite support, "
+                "pneumoperitoneum, or free-air surgery triggers plus "
+                "peritonitis, guarding, tenderness, abdominal-wall erythema, or "
+                "purulent peritoneal fluid triggers and portal venous gas "
+                "escalation, worsening acidosis, thrombocytopenia, blood gas, "
+                "or lactate plus shock, worsening, or clinical deterioration "
+                "despite support, "
                 "isolation, infection-control, cluster, or outbreak precautions, "
-                "and stricture, short bowel, intestinal failure, parenteral "
-                "nutrition, or trophic-feed follow-up planning"
+                "and stricture, short bowel, or intestinal failure follow-up "
+                "plus parenteral nutrition or trophic-feed reintroduction "
+                "planning"
             ),
         ),
         DomainSafetyGate(
@@ -30633,24 +30668,59 @@ def _has_necrotizing_enterocolitis_time_critical_actions(
         _contains_safety_term(normalized_actions, term)
         for term in NECROTIZING_ENTEROCOLITIS_DECOMPRESSION_ACTION_TERMS
     )
-    has_support = any(
+    has_fluid_resuscitation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NECROTIZING_ENTEROCOLITIS_SUPPORT_ACTION_TERMS
+        for term in NECROTIZING_ENTEROCOLITIS_FLUID_RESUSCITATION_ACTION_TERMS
     )
-    has_antibiotics = any(
+    has_nicu_support = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NECROTIZING_ENTEROCOLITIS_ANTIBIOTIC_ACTION_TERMS
+        for term in NECROTIZING_ENTEROCOLITIS_NICU_SUPPORT_ACTION_TERMS
     )
-    has_monitoring = any(
+    has_parenteral_nutrition = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NECROTIZING_ENTEROCOLITIS_MONITORING_ACTION_TERMS
+        for term in NECROTIZING_ENTEROCOLITIS_PARENTERAL_NUTRITION_ACTION_TERMS
+    )
+    has_broad_antibiotics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_ENTEROCOLITIS_BROAD_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_gram_negative_antibiotics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_ENTEROCOLITIS_GRAM_NEGATIVE_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_anaerobic_antibiotics = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_ENTEROCOLITIS_ANAEROBIC_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_radiograph_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_ENTEROCOLITIS_RADIOGRAPH_MONITORING_ACTION_TERMS
+    )
+    has_lab_culture_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_ENTEROCOLITIS_LAB_CULTURE_MONITORING_ACTION_TERMS
+    )
+    has_blood_gas_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_ENTEROCOLITIS_BLOOD_GAS_MONITORING_ACTION_TERMS
+    )
+    has_exam_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_ENTEROCOLITIS_EXAM_MONITORING_ACTION_TERMS
     )
     return (
         has_feeding_stop
         and has_decompression
-        and has_support
-        and has_antibiotics
-        and has_monitoring
+        and has_fluid_resuscitation
+        and has_nicu_support
+        and has_parenteral_nutrition
+        and has_broad_antibiotics
+        and has_gram_negative_antibiotics
+        and has_anaerobic_antibiotics
+        and has_radiograph_monitoring
+        and has_lab_culture_monitoring
+        and has_blood_gas_monitoring
+        and has_exam_monitoring
     )
 
 
@@ -30666,9 +30736,21 @@ def _has_necrotizing_enterocolitis_treatment_safety_check(
         _contains_safety_term(normalized_checks, term)
         for term in NECROTIZING_ENTEROCOLITIS_PERFORATION_SAFETY_TERMS
     )
-    has_worsening_safety = any(
+    has_peritonitis_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in NECROTIZING_ENTEROCOLITIS_WORSENING_SAFETY_TERMS
+        for term in NECROTIZING_ENTEROCOLITIS_PERITONITIS_SAFETY_TERMS
+    )
+    has_portal_gas_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NECROTIZING_ENTEROCOLITIS_PORTAL_GAS_SAFETY_TERMS
+    )
+    has_lab_worsening_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NECROTIZING_ENTEROCOLITIS_LAB_WORSENING_SAFETY_TERMS
+    )
+    has_clinical_worsening_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NECROTIZING_ENTEROCOLITIS_CLINICAL_WORSENING_SAFETY_TERMS
     )
     has_isolation_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -30678,12 +30760,20 @@ def _has_necrotizing_enterocolitis_treatment_safety_check(
         _contains_safety_term(normalized_checks, term)
         for term in NECROTIZING_ENTEROCOLITIS_COMPLICATION_FOLLOWUP_SAFETY_TERMS
     )
+    has_nutrition_followup = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NECROTIZING_ENTEROCOLITIS_NUTRITION_FOLLOWUP_SAFETY_TERMS
+    )
     return (
         has_surgery_safety
         and has_perforation_safety
-        and has_worsening_safety
+        and has_peritonitis_safety
+        and has_portal_gas_safety
+        and has_lab_worsening_safety
+        and has_clinical_worsening_safety
         and has_isolation_safety
         and has_complication_followup
+        and has_nutrition_followup
     )
 
 

@@ -20172,6 +20172,164 @@ def test_quality_gate_requires_necrotizing_enterocolitis_surgery_perforation_wor
     )
 
 
+def test_quality_gate_requires_necrotizing_enterocolitis_distinct_pn_anaerobic_imaging_labs_and_exam_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Necrotizing enterocolitis"
+    case["patient_demographics"] = {
+        "age": 1,
+        "sex": "male",
+        "weight_kg": 1.1,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Preterm neonate with feeding intolerance and bloody stool"
+    case["history_of_present_illness"] = (
+        "Very low birth weight preterm neonate has feeding intolerance, abdominal "
+        "distension, bilious gastric residuals, bloody stool, lethargy, "
+        "thrombocytopenia, metabolic acidosis, pneumatosis intestinalis, and "
+        "portal venous gas concerning for suspected NEC."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "60/34", "hr": 182, "rr": 60, "temp_c": 36.0, "spo2": 92},
+        "general": "Ill premature neonate",
+        "cardiovascular": "Delayed capillary refill",
+        "pulmonary": "Apnea spells on NICU support",
+        "abdomen": "Distended and tender abdomen with discoloration",
+        "neuro": "Lethargic",
+    }
+    case["initial_labs"] = {
+        "platelets": "71000/uL",
+        "blood_gas": "metabolic acidosis",
+        "lactate": "4.8 mmol/L",
+        "abdominal_xray": "pneumatosis intestinalis and portal venous gas",
+    }
+    case["key_teaching_points"] = [
+        "NEC treatment requires immediate feeding cessation, bowel rest, decompression, antibiotics, and supportive care",
+        "MSD Manual recommends parenteral fluids, parenteral nutrition, and broad-spectrum antibiotics when NEC is suspected",
+        "Serial abdominal radiographs, CBC with platelets, blood gas, and repeated abdominal exams monitor deterioration",
+    ]
+    case["clinical_red_flags"] = [
+        "Feeding intolerance, abdominal distension, bilious emesis, bloody stool, lethargy, or abdominal discoloration",
+        "Pneumatosis, portal venous gas, free air, peritonitis, acidosis, thrombocytopenia, shock, or clinical deterioration",
+    ]
+    case["time_critical_actions"] = [
+        "Stop enteral feeds, keep NPO, and start bowel rest",
+        "Place NG tube for nasogastric suction and gastric decompression",
+        "Give IV crystalloid fluids for resuscitation and manage in the NICU",
+        "Start broad-spectrum antibiotics with ampicillin and gentamicin",
+    ]
+    case["contraindication_checks"] = [
+        "Call pediatric surgery or neonatal surgery early for surgical consult",
+        "Escalate for intestinal perforation, pneumoperitoneum, free air, peritonitis, portal venous gas, guarding, tenderness, abdominal wall erythema, or purulent peritoneal fluid",
+        "Track worsening acidosis, blood gas, lactate, thrombocytopenia, shock, and clinical deterioration despite support",
+        "Use isolation, contact precautions, infection control, cluster, and outbreak review",
+        "Plan follow-up for stricture, short bowel, intestinal failure, parenteral nutrition, and trophic feeds reintroduction",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Necrotizing Enterocolitis",
+            "organization": "MSD Manual Professional Edition",
+            "url": "https://www.msdmanuals.com/professional/pediatrics/gastrointestinal-disorders-in-neonates-and-infants/necrotizing-enterocolitis",
+            "supports": [
+                "feedings must be stopped immediately if NEC is suspected",
+                "the intestine should be decompressed with a nasogastric tube attached to intermittent suction",
+                "parenteral fluids and parenteral nutrition support circulation and healing",
+                "systemic antibiotics should include broad-spectrum and anaerobic coverage when considered",
+                "serial abdominal radiographs, CBC with platelets, blood gas, and frequent reevaluation are required",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "parenteral nutrition/PN/TPN" in issue
+        and "anaerobic or metronidazole coverage" in issue
+        and "serial abdominal radiographs/x-rays plus CBC/platelets or blood culture"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_necrotizing_enterocolitis_peritonitis_worsening_and_nutrition_followup_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Suspected NEC with pneumatosis"
+    case["patient_demographics"] = {
+        "age": 1,
+        "sex": "female",
+        "weight_kg": 1.0,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Premature neonate with abdominal distention and bilious emesis"
+    case["history_of_present_illness"] = (
+        "Extremely low birth weight premature neonate develops feeding "
+        "intolerance, abdominal distention, bilious emesis, bloody stool, "
+        "lethargy, thrombocytopenia, acidosis, pneumatosis, and portal venous "
+        "gas concerning for necrotizing enterocolitis."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "55/30", "hr": 190, "rr": 64, "temp_c": 35.8, "spo2": 90},
+        "general": "Toxic premature newborn",
+        "cardiovascular": "Poor perfusion",
+        "pulmonary": "Recurrent apnea",
+        "abdomen": "Distended abdomen",
+        "neuro": "Lethargic",
+    }
+    case["initial_labs"] = {
+        "platelets": "64000/uL",
+        "blood_gas": "pH 7.16",
+        "lactate": "5.6 mmol/L",
+        "abdominal_xray": "pneumatosis and portal venous gas",
+    }
+    case["key_teaching_points"] = [
+        "NEC can progress to perforation, peritonitis, sepsis, shock, intestinal failure, and death",
+        "Surgery is required for pneumoperitoneum or clinical worsening despite nonsurgical support",
+        "Survivors need follow-up for strictures, short bowel syndrome, and nutrition reintroduction",
+    ]
+    case["clinical_red_flags"] = [
+        "Feeding intolerance, abdominal distention, bilious emesis, bloody stool, apnea, lethargy, or abdominal discoloration",
+        "Pneumatosis, portal venous gas, pneumoperitoneum, peritonitis, metabolic acidosis, thrombocytopenia, shock, or worsening status",
+    ]
+    case["time_critical_actions"] = [
+        "Stop feeds, withhold feeds, keep NPO, and start bowel rest immediately",
+        "Place orogastric or nasogastric NG tube for gastric decompression and suction",
+        "Give IV fluids crystalloid resuscitation, NICU support, and parenteral nutrition PN or TPN planning",
+        "Start broad-spectrum antibiotics with ampicillin, gentamicin, and metronidazole anaerobic coverage",
+        "Obtain blood culture, CBC with platelet count, blood gas, CRP, serial abdominal radiograph, serial x-ray, and serial abdominal exam monitoring",
+    ]
+    case["contraindication_checks"] = [
+        "Call pediatric surgery or neonatal surgery early for surgical consult",
+        "Escalate for intestinal perforation, pneumoperitoneum, free air, and portal venous gas",
+        "Monitor acidosis, blood gas, lactate, and thrombocytopenia",
+        "Use isolation, contact precautions, infection control, cluster, and outbreak review",
+        "Plan follow-up for stricture and short bowel risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Necrotizing Enterocolitis",
+            "organization": "MSD Manual Professional Edition",
+            "url": "https://www.msdmanuals.com/professional/pediatrics/gastrointestinal-disorders-in-neonates-and-infants/necrotizing-enterocolitis",
+            "supports": [
+                "absolute surgery indications include pneumoperitoneum and signs of peritonitis",
+                "surgery should be considered when clinical and laboratory conditions worsen despite nonsurgical support",
+                "NEC complications include strictures, short bowel syndrome, intestinal failure, and neurodevelopmental disability",
+                "parenteral nutrition is needed while the intestine heals and feeds are reintroduced cautiously",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "peritonitis, guarding, tenderness, abdominal-wall erythema, or purulent"
+        in issue
+        and "shock, worsening, or clinical deterioration" in issue
+        and "parenteral nutrition or trophic-feed reintroduction" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acute_appendicitis_imaging_surgery_antibiotics_and_complication_assessment():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute appendicitis"
