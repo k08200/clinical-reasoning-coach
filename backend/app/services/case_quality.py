@@ -8481,14 +8481,19 @@ ACUTE_CHOLECYSTITIS_CONTEXT_TERMS = (
     "급성 담낭염",
 )
 ACUTE_CHOLECYSTITIS_SEVERITY_ACTION_TERMS = (
-    "asa",
-    "cci",
-    "charlson",
     "grade",
     "organ dysfunction",
     "severity",
     "tokyo",
     "중증도",
+)
+ACUTE_CHOLECYSTITIS_SURGICAL_RISK_ACTION_TERMS = (
+    "asa",
+    "asa-ps",
+    "cci",
+    "charlson",
+    "frailty",
+    "high risk",
 )
 ACUTE_CHOLECYSTITIS_ANTIBIOTIC_ACTION_TERMS = (
     "antibiotic",
@@ -8503,9 +8508,8 @@ ACUTE_CHOLECYSTITIS_CULTURE_ACTION_TERMS = (
     "culture",
     "배양",
 )
-ACUTE_CHOLECYSTITIS_IMAGING_MODALITY_TERMS = (
-    "ct",
-    "hidascan",
+ACUTE_CHOLECYSTITIS_INITIAL_ULTRASOUND_ACTION_TERMS = (
+    "abdominal ultrasound",
     "ruq ultrasound",
     "ultrasound",
     "초음파",
@@ -8519,6 +8523,14 @@ ACUTE_CHOLECYSTITIS_IMAGING_GALLBLADDER_TERMS = (
     "right upper quadrant",
     "ruq",
     "sonographic",
+)
+ACUTE_CHOLECYSTITIS_ADDITIONAL_IMAGING_TERMS = (
+    "ct",
+    "hidascan",
+    "hida scan",
+    "mri",
+    "mrcp",
+    "unclear",
 )
 ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_SPECIFIC_TERMS = (
     "cholecystectomy",
@@ -8539,13 +8551,17 @@ ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_TARGET_TERMS = (
     "source control",
     "surgery",
 )
-ACUTE_CHOLECYSTITIS_HIGH_RISK_DRAINAGE_SAFETY_TERMS = (
+ACUTE_CHOLECYSTITIS_HIGH_RISK_ASSESSMENT_SAFETY_TERMS = (
     "asa-ps",
     "charlson",
-    "cholecystostomy",
-    "drainage",
-    "gallbladder drainage",
     "high risk",
+    "not suitable for surgery",
+    "surgery-ineligible",
+    "unfit for surgery",
+)
+ACUTE_CHOLECYSTITIS_DRAINAGE_ALTERNATIVE_SAFETY_TERMS = (
+    "cholecystostomy",
+    "gallbladder drainage",
     "percutaneous",
     "ptgbd",
 )
@@ -8558,15 +8574,22 @@ ACUTE_CHOLECYSTITIS_COMPLICATION_SAFETY_TERMS = (
     "shock",
     "심한",
 )
-ACUTE_CHOLECYSTITIS_BILE_DUCT_SAFETY_TERMS = (
+ACUTE_CHOLECYSTITIS_CRITICAL_VIEW_SAFETY_TERMS = (
     "bile duct injury",
-    "bile leak",
-    "bail-out",
-    "common bile duct",
     "critical view",
-    "subtotal cholecystectomy",
-    "conversion",
     "cvs",
+)
+ACUTE_CHOLECYSTITIS_BAILOUT_SAFETY_TERMS = (
+    "bail-out",
+    "bailout",
+    "conversion",
+    "subtotal cholecystectomy",
+)
+ACUTE_CHOLECYSTITIS_BILE_DUCT_COMPLICATION_SAFETY_TERMS = (
+    "bile leak",
+    "common bile duct",
+    "cbd",
+    "choledocholithiasis",
 )
 ACUTE_CHOLECYSTITIS_DIFFERENTIAL_SAFETY_TERMS = (
     "cholangitis",
@@ -20113,14 +20136,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acute_cholecystitis_time_critical_actions,
             issue=(
                 "acute cholecystitis time-critical actions must include Tokyo, "
-                "severity, grade, organ dysfunction, Charlson, CCI, ASA, or "
-                "ASA-PS risk assessment, broad-spectrum antibiotics plus blood "
-                "culture, bile culture, ceftriaxone, piperacillin, or culture "
-                "planning, RUQ ultrasound, CT, HIDA scan, sonographic Murphy, "
-                "gallbladder wall, or pericholecystic imaging assessment, and "
-                "early laparoscopic cholecystectomy, Lap-C, cholecystectomy, "
-                "gallbladder drainage, cholecystostomy, PTGBD, percutaneous, or "
-                "drainage source-control planning"
+                "severity, grade, or organ-dysfunction assessment plus surgical "
+                "risk review such as Charlson, CCI, ASA, ASA-PS, frailty, or high "
+                "risk, broad-spectrum antibiotics plus blood or bile culture "
+                "planning, initial RUQ or abdominal ultrasound with gallbladder "
+                "findings such as sonographic Murphy sign, gallbladder wall, "
+                "gallstones, or pericholecystic fluid, selected CT, HIDA, MRI, "
+                "MRCP, or unclear-case additional imaging review, and early "
+                "laparoscopic cholecystectomy, Lap-C, cholecystectomy, surgery, "
+                "gallbladder drainage, cholecystostomy, PTGBD, percutaneous "
+                "drainage, or source-control planning"
             ),
         ),
         DomainSafetyGate(
@@ -20130,12 +20155,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acute_cholecystitis_treatment_safety_check,
             issue=(
                 "acute cholecystitis safety checks must include high-risk "
-                "surgery or drainage planning for ASA-PS, Charlson, high risk, "
-                "percutaneous gallbladder drainage, PTGBD, or cholecystostomy, "
+                "surgery assessment for ASA-PS, Charlson, high risk, frailty, "
+                "surgery-ineligible, unfit-for-surgery, or not-suitable-for-surgery "
+                "status plus percutaneous gallbladder drainage, PTGBD, or "
+                "cholecystostomy alternative planning, "
                 "complication review for emphysematous, gangrenous, perforation, "
                 "peritonitis, sepsis, or shock, bile-duct injury prevention with "
-                "critical view of safety, CVS, bail-out, subtotal cholecystectomy, "
-                "conversion, bile leak, or common bile duct review, and "
+                "critical view of safety or CVS plus bail-out, subtotal "
+                "cholecystectomy, or conversion planning and bile leak, common "
+                "bile duct, CBD, or choledocholithiasis review, and "
                 "differential review for cholangitis, choledocholithiasis, "
                 "gallstone pancreatitis, pancreatitis, hepatitis, peptic ulcer, "
                 "or myocardial infarction"
@@ -29729,10 +29757,20 @@ def _has_acute_cholecystitis_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_CHOLECYSTITIS_SEVERITY_ACTION_TERMS
     )
+    has_surgical_risk = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLECYSTITIS_SURGICAL_RISK_ACTION_TERMS
+    )
     has_antibiotic_culture = _has_acute_cholecystitis_antibiotic_culture_action(actions)
     has_imaging = _has_acute_cholecystitis_imaging_action(actions)
     has_source_control = _has_acute_cholecystitis_source_control_action(actions)
-    return has_severity and has_antibiotic_culture and has_imaging and has_source_control
+    return (
+        has_severity
+        and has_surgical_risk
+        and has_antibiotic_culture
+        and has_imaging
+        and has_source_control
+    )
 
 
 def _has_acute_cholecystitis_antibiotic_culture_action(actions: list[Any]) -> bool:
@@ -29749,19 +29787,20 @@ def _has_acute_cholecystitis_antibiotic_culture_action(actions: list[Any]) -> bo
 
 
 def _has_acute_cholecystitis_imaging_action(actions: list[Any]) -> bool:
-    for action in actions:
-        normalized_action = str(action).lower()
-        has_modality = any(
-            _contains_safety_term(normalized_action, term)
-            for term in ACUTE_CHOLECYSTITIS_IMAGING_MODALITY_TERMS
-        )
-        has_gallbladder_context = any(
-            _contains_safety_term(normalized_action, term)
-            for term in ACUTE_CHOLECYSTITIS_IMAGING_GALLBLADDER_TERMS
-        )
-        if has_modality and has_gallbladder_context:
-            return True
-    return False
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_initial_ultrasound = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLECYSTITIS_INITIAL_ULTRASOUND_ACTION_TERMS
+    )
+    has_gallbladder_context = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLECYSTITIS_IMAGING_GALLBLADDER_TERMS
+    )
+    has_additional_imaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_CHOLECYSTITIS_ADDITIONAL_IMAGING_TERMS
+    )
+    return has_initial_ultrasound and has_gallbladder_context and has_additional_imaging
 
 
 def _has_acute_cholecystitis_source_control_action(actions: list[Any]) -> bool:
@@ -29786,26 +29825,41 @@ def _has_acute_cholecystitis_source_control_action(actions: list[Any]) -> bool:
 
 def _has_acute_cholecystitis_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_high_risk_drainage = any(
+    has_high_risk_assessment = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_CHOLECYSTITIS_HIGH_RISK_DRAINAGE_SAFETY_TERMS
+        for term in ACUTE_CHOLECYSTITIS_HIGH_RISK_ASSESSMENT_SAFETY_TERMS
+    )
+    has_drainage_alternative = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHOLECYSTITIS_DRAINAGE_ALTERNATIVE_SAFETY_TERMS
     )
     has_complication = any(
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_CHOLECYSTITIS_COMPLICATION_SAFETY_TERMS
     )
-    has_bile_duct_safety = any(
+    has_critical_view_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_CHOLECYSTITIS_BILE_DUCT_SAFETY_TERMS
+        for term in ACUTE_CHOLECYSTITIS_CRITICAL_VIEW_SAFETY_TERMS
+    )
+    has_bailout_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHOLECYSTITIS_BAILOUT_SAFETY_TERMS
+    )
+    has_bile_duct_complication = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_CHOLECYSTITIS_BILE_DUCT_COMPLICATION_SAFETY_TERMS
     )
     has_differential = any(
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_CHOLECYSTITIS_DIFFERENTIAL_SAFETY_TERMS
     )
     return (
-        has_high_risk_drainage
+        has_high_risk_assessment
+        and has_drainage_alternative
         and has_complication
-        and has_bile_duct_safety
+        and has_critical_view_safety
+        and has_bailout_safety
+        and has_bile_duct_complication
         and has_differential
     )
 

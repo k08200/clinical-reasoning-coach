@@ -18488,6 +18488,131 @@ def test_quality_gate_rejects_acute_cholecystitis_generic_culture_ct_and_drainag
     )
 
 
+def test_quality_gate_requires_acute_cholecystitis_initial_ultrasound_and_additional_imaging_review():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute calculous cholecystitis"
+    case["patient_demographics"] = {
+        "age": 71,
+        "sex": "male",
+        "weight_kg": 79,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Right upper quadrant pain and fever after fatty meal"
+    case["history_of_present_illness"] = (
+        "Older patient presents with persistent right upper quadrant pain, fever, "
+        "positive Murphy sign, leukocytosis, gallstones, gallbladder wall thickening, "
+        "and suspected acute cholecystitis."
+    )
+    case["key_teaching_points"] = [
+        "Acute cholecystitis requires severity grading and early source-control planning",
+        "Abdominal ultrasound is the preferred initial imaging test for suspected acute calculous cholecystitis",
+        "Early laparoscopic cholecystectomy is recommended whenever possible",
+    ]
+    case["clinical_red_flags"] = [
+        "Sepsis, shock, organ dysfunction, gangrenous, emphysematous, perforation, or peritonitis",
+        "High CCI or ASA-PS, jaundice, neurologic dysfunction, respiratory dysfunction, or advanced-center need",
+    ]
+    case["time_critical_actions"] = [
+        "Apply Tokyo severity grade with organ dysfunction review and Charlson CCI plus ASA-PS high risk assessment",
+        "Start broad-spectrum antibiotics such as ceftriaxone or piperacillin tazobactam and obtain blood culture; collect bile culture if an intervention occurs",
+        "Order CT to assess gallbladder wall thickening, pericholecystic fluid, and gallstones",
+        "Consult surgery for early laparoscopic cholecystectomy or source control",
+    ]
+    case["contraindication_checks"] = [
+        "Assess high-risk surgery status using ASA-PS, Charlson, high risk, and need for percutaneous gallbladder drainage, PTGBD, or cholecystostomy",
+        "Review complications including emphysematous cholecystitis, gangrenous gallbladder, perforation, peritonitis, sepsis, and shock",
+        "Prevent bile duct injury with critical view of safety CVS, bail-out, subtotal cholecystectomy, conversion, bile leak, and common bile duct review",
+        "Review differentials including cholangitis, choledocholithiasis, gallstone pancreatitis, pancreatitis, hepatitis, peptic ulcer disease, and myocardial infarction",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "2020 WSES guidelines for acute calculus cholecystitis",
+            "organization": "World Society of Emergency Surgery",
+            "url": "https://wjes.biomedcentral.com/articles/10.1186/s13017-020-00336-x",
+            "supports": [
+                "acute cholecystitis diagnosis and risk stratification",
+                "do not rely on a single clinical or laboratory finding",
+                "combine detailed history, complete clinical examination, laboratory tests, and imaging investigations",
+                "abdominal ultrasound is the preferred initial imaging technique",
+                "HIDA scan, CT, MRI, or MRCP can be used in selected patients depending on local expertise and availability",
+                "early laparoscopic cholecystectomy should be the standard of care whenever possible",
+                "subtotal cholecystectomy is a valuable option for difficult gallbladder removal",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "initial RUQ or abdominal ultrasound" in issue
+        and "selected CT, HIDA, MRI, MRCP" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_cholecystitis_critical_view_bailout_and_bile_duct_review_separately():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute calculous cholecystitis"
+    case["patient_demographics"] = {
+        "age": 71,
+        "sex": "male",
+        "weight_kg": 79,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Right upper quadrant pain and fever after fatty meal"
+    case["history_of_present_illness"] = (
+        "Older patient presents with persistent right upper quadrant pain, fever, "
+        "positive Murphy sign, leukocytosis, gallstones, gallbladder wall thickening, "
+        "and suspected acute cholecystitis."
+    )
+    case["key_teaching_points"] = [
+        "Acute cholecystitis requires severity grading and early source-control planning",
+        "Early laparoscopic cholecystectomy is recommended whenever possible",
+        "Difficult gallbladder surgery needs bile duct injury prevention and bail-out planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Sepsis, shock, organ dysfunction, gangrenous, emphysematous, perforation, or peritonitis",
+        "High CCI or ASA-PS, jaundice, neurologic dysfunction, respiratory dysfunction, or advanced-center need",
+    ]
+    case["time_critical_actions"] = [
+        "Apply Tokyo severity grade with organ dysfunction review and Charlson CCI plus ASA-PS high risk assessment",
+        "Start broad-spectrum antibiotics such as ceftriaxone or piperacillin tazobactam and obtain blood culture; collect bile culture if an intervention occurs",
+        "Order RUQ ultrasound to assess sonographic Murphy sign, gallbladder wall thickening, pericholecystic fluid, and gallstones; use HIDA scan or CT if unclear",
+        "Consult surgery for early laparoscopic cholecystectomy, Lap-C, cholecystectomy, or gallbladder drainage with cholecystostomy, PTGBD, or percutaneous drainage source control",
+    ]
+    case["contraindication_checks"] = [
+        "Assess high-risk surgery status using ASA-PS, Charlson, high risk, and need for percutaneous gallbladder drainage, PTGBD, or cholecystostomy",
+        "Review complications including emphysematous cholecystitis, gangrenous gallbladder, perforation, peritonitis, sepsis, and shock",
+        "Review common bile duct anatomy before surgery",
+        "Review differentials including cholangitis, choledocholithiasis, gallstone pancreatitis, pancreatitis, hepatitis, peptic ulcer disease, and myocardial infarction",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "2020 WSES guidelines for acute calculus cholecystitis",
+            "organization": "World Society of Emergency Surgery",
+            "url": "https://wjes.biomedcentral.com/articles/10.1186/s13017-020-00336-x",
+            "supports": [
+                "acute cholecystitis diagnosis and risk stratification",
+                "early laparoscopic cholecystectomy should be the standard of care whenever possible",
+                "high-risk patients and patients not suitable for surgery should be distinguished",
+                "subtotal cholecystectomy is a valuable option for difficult gallbladder removal",
+                "local policies for safe laparoscopic cholecystectomy are recommended",
+                "common bile duct and choledocholithiasis should be reviewed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "critical view of safety" in issue
+        and "bail-out, subtotal cholecystectomy, or conversion" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acute_cholecystitis_high_risk_complication_bile_duct_and_differential_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute calculous cholecystitis"

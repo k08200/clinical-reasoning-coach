@@ -9444,14 +9444,20 @@ const ACUTE_CHOLECYSTITIS_CONTEXT_TERMS = [
 ];
 
 const ACUTE_CHOLECYSTITIS_SEVERITY_ACTION_TERMS = [
-  "asa",
-  "cci",
-  "charlson",
   "grade",
   "organ dysfunction",
   "severity",
   "tokyo",
   "중증도",
+];
+
+const ACUTE_CHOLECYSTITIS_SURGICAL_RISK_ACTION_TERMS = [
+  "asa",
+  "asa-ps",
+  "cci",
+  "charlson",
+  "frailty",
+  "high risk",
 ];
 
 const ACUTE_CHOLECYSTITIS_ANTIBIOTIC_ACTION_TERMS = [
@@ -9469,9 +9475,8 @@ const ACUTE_CHOLECYSTITIS_CULTURE_ACTION_TERMS = [
   "배양",
 ];
 
-const ACUTE_CHOLECYSTITIS_IMAGING_MODALITY_TERMS = [
-  "ct",
-  "hidascan",
+const ACUTE_CHOLECYSTITIS_INITIAL_ULTRASOUND_ACTION_TERMS = [
+  "abdominal ultrasound",
   "ruq ultrasound",
   "ultrasound",
   "초음파",
@@ -9486,6 +9491,15 @@ const ACUTE_CHOLECYSTITIS_IMAGING_GALLBLADDER_TERMS = [
   "right upper quadrant",
   "ruq",
   "sonographic",
+];
+
+const ACUTE_CHOLECYSTITIS_ADDITIONAL_IMAGING_TERMS = [
+  "ct",
+  "hidascan",
+  "hida scan",
+  "mri",
+  "mrcp",
+  "unclear",
 ];
 
 const ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_SPECIFIC_TERMS = [
@@ -9510,13 +9524,18 @@ const ACUTE_CHOLECYSTITIS_SOURCE_CONTROL_TARGET_TERMS = [
   "surgery",
 ];
 
-const ACUTE_CHOLECYSTITIS_HIGH_RISK_DRAINAGE_SAFETY_TERMS = [
+const ACUTE_CHOLECYSTITIS_HIGH_RISK_ASSESSMENT_SAFETY_TERMS = [
   "asa-ps",
   "charlson",
-  "cholecystostomy",
-  "drainage",
-  "gallbladder drainage",
   "high risk",
+  "not suitable for surgery",
+  "surgery-ineligible",
+  "unfit for surgery",
+];
+
+const ACUTE_CHOLECYSTITIS_DRAINAGE_ALTERNATIVE_SAFETY_TERMS = [
+  "cholecystostomy",
+  "gallbladder drainage",
   "percutaneous",
   "ptgbd",
 ];
@@ -9531,15 +9550,24 @@ const ACUTE_CHOLECYSTITIS_COMPLICATION_SAFETY_TERMS = [
   "심한",
 ];
 
-const ACUTE_CHOLECYSTITIS_BILE_DUCT_SAFETY_TERMS = [
+const ACUTE_CHOLECYSTITIS_CRITICAL_VIEW_SAFETY_TERMS = [
   "bile duct injury",
-  "bile leak",
-  "bail-out",
-  "common bile duct",
   "critical view",
-  "subtotal cholecystectomy",
-  "conversion",
   "cvs",
+];
+
+const ACUTE_CHOLECYSTITIS_BAILOUT_SAFETY_TERMS = [
+  "bail-out",
+  "bailout",
+  "conversion",
+  "subtotal cholecystectomy",
+];
+
+const ACUTE_CHOLECYSTITIS_BILE_DUCT_COMPLICATION_SAFETY_TERMS = [
+  "bile leak",
+  "common bile duct",
+  "cbd",
+  "choledocholithiasis",
 ];
 
 const ACUTE_CHOLECYSTITIS_DIFFERENTIAL_SAFETY_TERMS = [
@@ -25617,10 +25645,13 @@ function hasAcuteCholecystitisTimeCriticalActions(actions: string[]): boolean {
   const hasSeverity = ACUTE_CHOLECYSTITIS_SEVERITY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasSurgicalRisk = ACUTE_CHOLECYSTITIS_SURGICAL_RISK_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasAntibioticCulture = hasAcuteCholecystitisAntibioticCultureAction(actions);
   const hasImaging = hasAcuteCholecystitisImagingAction(actions);
   const hasSourceControl = hasAcuteCholecystitisSourceControlAction(actions);
-  return hasSeverity && hasAntibioticCulture && hasImaging && hasSourceControl;
+  return hasSeverity && hasSurgicalRisk && hasAntibioticCulture && hasImaging && hasSourceControl;
 }
 
 function hasAcuteCholecystitisAntibioticCultureAction(actions: string[]): boolean {
@@ -25635,16 +25666,17 @@ function hasAcuteCholecystitisAntibioticCultureAction(actions: string[]): boolea
 }
 
 function hasAcuteCholecystitisImagingAction(actions: string[]): boolean {
-  return actions.some((action) => {
-    const normalizedAction = String(action).toLowerCase();
-    const hasModality = ACUTE_CHOLECYSTITIS_IMAGING_MODALITY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedAction, term),
-    );
-    const hasGallbladderContext = ACUTE_CHOLECYSTITIS_IMAGING_GALLBLADDER_TERMS.some((term) =>
-      containsSafetyTerm(normalizedAction, term),
-    );
-    return hasModality && hasGallbladderContext;
-  });
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasInitialUltrasound = ACUTE_CHOLECYSTITIS_INITIAL_ULTRASOUND_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasGallbladderContext = ACUTE_CHOLECYSTITIS_IMAGING_GALLBLADDER_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAdditionalImaging = ACUTE_CHOLECYSTITIS_ADDITIONAL_IMAGING_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasInitialUltrasound && hasGallbladderContext && hasAdditionalImaging;
 }
 
 function hasAcuteCholecystitisSourceControlAction(actions: string[]): boolean {
@@ -25665,19 +25697,36 @@ function hasAcuteCholecystitisSourceControlAction(actions: string[]): boolean {
 
 function hasAcuteCholecystitisTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasHighRiskDrainage = ACUTE_CHOLECYSTITIS_HIGH_RISK_DRAINAGE_SAFETY_TERMS.some(
+  const hasHighRiskAssessment = ACUTE_CHOLECYSTITIS_HIGH_RISK_ASSESSMENT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDrainageAlternative = ACUTE_CHOLECYSTITIS_DRAINAGE_ALTERNATIVE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasComplication = ACUTE_CHOLECYSTITIS_COMPLICATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasBileDuctSafety = ACUTE_CHOLECYSTITIS_BILE_DUCT_SAFETY_TERMS.some((term) =>
+  const hasCriticalViewSafety = ACUTE_CHOLECYSTITIS_CRITICAL_VIEW_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBailoutSafety = ACUTE_CHOLECYSTITIS_BAILOUT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBileDuctComplication = ACUTE_CHOLECYSTITIS_BILE_DUCT_COMPLICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasDifferential = ACUTE_CHOLECYSTITIS_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasHighRiskDrainage && hasComplication && hasBileDuctSafety && hasDifferential;
+  return (
+    hasHighRiskAssessment &&
+    hasDrainageAlternative &&
+    hasComplication &&
+    hasCriticalViewSafety &&
+    hasBailoutSafety &&
+    hasBileDuctComplication &&
+    hasDifferential
+  );
 }
 
 function requiresAcuteCholangitisSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -33058,7 +33107,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcuteCholecystitisTimeCriticalActions,
       issue:
-        "acute cholecystitis time-critical actions must include Tokyo, severity, grade, organ dysfunction, Charlson, CCI, ASA, or ASA-PS risk assessment, broad-spectrum antibiotics plus blood culture, bile culture, ceftriaxone, piperacillin, or culture planning, RUQ ultrasound, CT, HIDA scan, sonographic Murphy, gallbladder wall, or pericholecystic imaging assessment, and early laparoscopic cholecystectomy, Lap-C, cholecystectomy, gallbladder drainage, cholecystostomy, PTGBD, percutaneous, or drainage source-control planning",
+        "acute cholecystitis time-critical actions must include Tokyo, severity, grade, or organ-dysfunction assessment plus surgical risk review such as Charlson, CCI, ASA, ASA-PS, frailty, or high risk, broad-spectrum antibiotics plus blood or bile culture planning, initial RUQ or abdominal ultrasound with gallbladder findings such as sonographic Murphy sign, gallbladder wall, gallstones, or pericholecystic fluid, selected CT, HIDA, MRI, MRCP, or unclear-case additional imaging review, and early laparoscopic cholecystectomy, Lap-C, cholecystectomy, surgery, gallbladder drainage, cholecystostomy, PTGBD, percutaneous drainage, or source-control planning",
     },
     {
       name: "acute_cholecystitis_treatment_safety",
@@ -33067,7 +33116,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAcuteCholecystitisTreatmentSafetyCheck,
       issue:
-        "acute cholecystitis safety checks must include high-risk surgery or drainage planning for ASA-PS, Charlson, high risk, percutaneous gallbladder drainage, PTGBD, or cholecystostomy, complication review for emphysematous, gangrenous, perforation, peritonitis, sepsis, or shock, bile-duct injury prevention with critical view of safety, CVS, bail-out, subtotal cholecystectomy, conversion, bile leak, or common bile duct review, and differential review for cholangitis, choledocholithiasis, gallstone pancreatitis, pancreatitis, hepatitis, peptic ulcer, or myocardial infarction",
+        "acute cholecystitis safety checks must include high-risk surgery assessment for ASA-PS, Charlson, high risk, frailty, surgery-ineligible, unfit-for-surgery, or not-suitable-for-surgery status plus percutaneous gallbladder drainage, PTGBD, or cholecystostomy alternative planning, complication review for emphysematous, gangrenous, perforation, peritonitis, sepsis, or shock, bile-duct injury prevention with critical view of safety or CVS plus bail-out, subtotal cholecystectomy, or conversion planning and bile leak, common bile duct, CBD, or choledocholithiasis review, and differential review for cholangitis, choledocholithiasis, gallstone pancreatitis, pancreatitis, hepatitis, peptic ulcer, or myocardial infarction",
     },
     {
       name: "acute_cholangitis_time_critical_actions",
