@@ -24898,7 +24898,7 @@
     "name": "ssss_requires_source_admission_antibiotic_fluid_and_wound_actions",
     "expected_passed": false,
     "expected_issue_substrings": [
-      "staphylococcal scalded skin syndrome time-critical actions must include diagnostic/source evaluation"
+      "staphylococcal scalded skin syndrome time-critical actions must include suspected source-site evaluation"
     ],
     "overrides": {
       "diagnosis": "Staphylococcal scalded skin syndrome",
@@ -24950,6 +24950,73 @@
             "differential diagnosis for mucosa-sparing SSSS versus SJS/TEN, toxic epidermal necrolysis, bullous impetigo, or AGEP",
             "monitor dehydration, electrolyte imbalance, hypothermia, sepsis, pneumonia, and renal failure complications",
             "Staph aureus carrier state, decolonization, nursery outbreak or outbreak control, and hand washing prevention planning"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "ssss_requires_separate_source_culture_biopsy_fluid_temperature_wound_and_pain_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "culture/swab evaluation",
+      "separate temperature",
+      "pain relief"
+    ],
+    "overrides": {
+      "diagnosis": "Staphylococcal scalded skin syndrome from conjunctival source",
+      "patient_demographics": {
+        "age": 3,
+        "sex": "female",
+        "weight_kg": 15,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Fever, painful erythema, and flaccid bullae",
+      "history_of_present_illness": "Child has SSSS/Ritter disease with fever, irritability, tender erythema, flaccid bullae, positive Nikolsky sign, desquamation, skin sloughing, perioral crusting, and suspected Staphylococcus aureus exfoliative toxin.",
+      "key_teaching_points": [
+        "SSSS is a dermatologic emergency caused by toxin-producing Staphylococcus aureus",
+        "Source sites may include the conjunctiva, nasopharynx, ears, throat, perianal area, or wounds"
+      ],
+      "clinical_red_flags": [
+        "Fever, skin tenderness, flaccid bullae, Nikolsky sign, desquamation, dehydration, electrolyte imbalance, hypothermia, sepsis, pneumonia, or renal failure"
+      ],
+      "time_critical_actions": [
+        "Evaluate the conjunctiva and nasopharynx as source of infection and send skin swab plus blood culture for Staph aureus",
+        "Admit for hospitalization with dermatology and burn unit escalation",
+        "Start prompt IV antibiotic anti-staphylococcal therapy with cefazolin or nafcillin",
+        "Give IV fluids for dehydration and electrolyte support",
+        "Apply petroleum jelly and emollient wound care"
+      ],
+      "contraindication_checks": [
+        "Review MRSA risk including healthcare exposure, recent hospitalization, skilled nursing residence, high MRSA prevalence, and vancomycin",
+        "Avoid silver sulfadiazine because systemic absorption can cause toxicity",
+        "Avoid NSAID/ibuprofen with kidney impairment or renal impairment risk",
+        "Avoid clindamycin monotherapy when clindamycin resistance is possible",
+        "Review mucosal sparing and differential diagnosis for SJS/TEN, toxic epidermal necrolysis, bullous impetigo, drug reaction, and AGEP",
+        "Monitor dehydration, fluid deficit, electrolyte imbalance, hypothermia, temperature, heat loss, secondary infection, cellulitis, sepsis, pneumonia, acute kidney injury, and renal failure",
+        "Assess Staph aureus carrier state, decolonization, chlorhexidine, mupirocin, nursery outbreak or outbreak control, and hand washing prevention planning"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Staphylococcal scalded skin syndrome",
+          "organization": "DermNet",
+          "url": "https://dermnetnz.org/topics/staphylococcal-scalded-skin-syndrome",
+          "supports": [
+            "staphylococcal scalded skin syndrome from conjunctival source diagnosis and risk stratification",
+            "SSSS is a dermatologic emergency caused by toxin-producing Staphylococcus aureus",
+            "source sites may include the conjunctiva, nasopharynx, ears, throat, perianal area, or wounds",
+            "conjunctiva and nasopharynx as source of infection with skin swab and blood culture for Staph aureus",
+            "hospitalization with dermatology and burn unit escalation",
+            "prompt IV antibiotic anti-staphylococcal therapy with cefazolin or nafcillin",
+            "IV fluids for dehydration and electrolyte support",
+            "petroleum jelly and emollient wound care",
+            "MRSA risk including healthcare exposure, recent hospitalization, skilled nursing residence, high MRSA prevalence, and vancomycin",
+            "avoid silver sulfadiazine because systemic absorption can cause toxicity",
+            "avoid NSAID/ibuprofen with kidney impairment or renal impairment risk",
+            "avoid clindamycin monotherapy when clindamycin resistance is possible",
+            "mucosal sparing and differential diagnosis for SJS/TEN, toxic epidermal necrolysis, bullous impetigo, drug reaction, and AGEP",
+            "dehydration, fluid deficit, electrolyte imbalance, hypothermia, temperature, heat loss, secondary infection, cellulitis, sepsis, pneumonia, acute kidney injury, and renal failure monitoring",
+            "Staph aureus carrier state, decolonization, chlorhexidine, mupirocin, nursery outbreak or outbreak control, and hand washing prevention planning"
           ]
         }
       ]
@@ -25008,6 +25075,77 @@
             "wound care with nonadherent dressing, burn dressing, emollient or petroleum jelly, plus pain control/pain relief",
             "medication allergy review before analgesia",
             "renal function before contrast imaging"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "ssss_requires_separate_medication_harm_complication_and_outbreak_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "clindamycin-resistance",
+      "secondary infection",
+      "acute kidney injury"
+    ],
+    "overrides": {
+      "diagnosis": "Adult SSSS in renal impairment",
+      "patient_demographics": {
+        "age": 74,
+        "sex": "male",
+        "weight_kg": 66,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Diffuse erythema, bullae, and desquamation",
+      "history_of_present_illness": "Older immunosuppressed adult with severe renal impairment has adult staphylococcal scalded skin syndrome with fever, hypotension, flaccid bullae, Nikolsky sign, epidermal detachment, and skin sloughing after a suspected wound source.",
+      "key_teaching_points": [
+        "Adult SSSS has much higher mortality because renal impairment and immunosuppression increase complications",
+        "Management requires inpatient antibiotics, wound care, fluid replacement, and close monitoring"
+      ],
+      "clinical_red_flags": [
+        "Adult SSSS, renal impairment, immunosuppression, hypotension, sepsis, dehydration, electrolyte imbalance, hypothermia, pneumonia, or renal failure"
+      ],
+      "time_critical_actions": [
+        "Evaluate wound source, conjunctiva, nasopharynx, and perianal source sites",
+        "Send skin swab, blister fluid culture, blood culture, and Staphylococcus aureus testing",
+        "Use skin biopsy or frozen section for intra-epidermal split and serious blistering differential review if uncertain",
+        "Admit for hospitalization/inpatient emergency department management with dermatology, ICU/intensive care, and burn center escalation",
+        "Start prompt IV anti-staphylococcal penicillinase-resistant antibiotic therapy with cefazolin, nafcillin, oxacillin, or vancomycin",
+        "Give IV fluids, hydration, and electrolyte support; monitor temperature, nutrition, and hypothermia risk",
+        "Provide gentle washing with soap substitute, saline-soaked gauze, non-adherent dressings, burn dressing, emollient, and petroleum jelly wound care",
+        "Provide paracetamol/acetaminophen analgesia, morphine if needed, and pain control"
+      ],
+      "contraindication_checks": [
+        "Review MRSA risk and vancomycin need with healthcare exposure",
+        "Avoid silver sulfadiazine due to systemic absorption and toxicity",
+        "Avoid NSAID/ibuprofen with kidney impairment",
+        "Review mucosal sparing versus SJS/TEN, toxic epidermal necrolysis, and bullous impetigo",
+        "Monitor dehydration and electrolyte imbalance",
+        "Assess carrier state and hand washing prevention planning"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Staphylococcal Scalded Skin Syndrome",
+          "organization": "NCBI Bookshelf / StatPearls",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK448135/",
+          "supports": [
+            "adult SSSS in renal impairment diagnosis and risk stratification",
+            "adult SSSS has much higher mortality because renal impairment and immunosuppression increase complications",
+            "inpatient antibiotics, wound care, fluid replacement, and close monitoring",
+            "wound source, conjunctiva, nasopharynx, and perianal source sites",
+            "skin swab, blister fluid culture, blood culture, and Staphylococcus aureus testing",
+            "skin biopsy or frozen section for intra-epidermal split and serious blistering differential review if uncertain",
+            "hospitalization/inpatient emergency department management with dermatology, ICU/intensive care, and burn center escalation",
+            "prompt IV anti-staphylococcal penicillinase-resistant antibiotic therapy with cefazolin, nafcillin, oxacillin, or vancomycin",
+            "IV fluids, hydration, electrolyte support, temperature, nutrition, and hypothermia monitoring",
+            "gentle washing with soap substitute, saline-soaked gauze, non-adherent dressings, burn dressing, emollient, and petroleum jelly wound care",
+            "paracetamol/acetaminophen analgesia, morphine, and pain control",
+            "MRSA risk and vancomycin need with healthcare exposure",
+            "avoid silver sulfadiazine due to systemic absorption and toxicity",
+            "avoid NSAID/ibuprofen with kidney impairment",
+            "mucosal sparing versus SJS/TEN, toxic epidermal necrolysis, and bullous impetigo",
+            "dehydration and electrolyte imbalance monitoring",
+            "carrier state and hand washing prevention planning"
           ]
         }
       ]

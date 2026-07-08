@@ -16162,22 +16162,50 @@ const SSSS_RISK_TERMS = [
   "staphylococcus aureus",
 ];
 
-const SSSS_DIAGNOSTIC_SOURCE_ACTION_TERMS = [
-  "blood culture",
+const SSSS_SOURCE_SITE_ACTION_TERMS = [
   "conjunctiva",
+  "ear",
+  "ears",
   "nasopharynx",
+  "perianal",
+  "pyogenic foci",
   "source of infection",
-  "skin biopsy",
-  "skin swab",
+  "throat",
+  "upper respiratory",
+  "wound source",
+];
+
+const SSSS_CULTURE_ACTION_TERMS = [
+  "blood culture",
+  "blister fluid culture",
+  "culture",
   "staph aureus",
+  "staphylococcus aureus",
+  "skin swab",
   "swab",
 ];
 
+const SSSS_BIOPSY_DIFFERENTIAL_ACTION_TERMS = [
+  "biopsy",
+  "frozen section",
+  "intra-epidermal",
+  "intraepidermal",
+  "skin biopsy",
+];
+
 const SSSS_ADMISSION_ESCALATION_ACTION_TERMS = [
-  "burn unit",
-  "dermatology",
+  "admission",
+  "admit",
+  "emergency department",
   "hospitalisation",
   "hospitalization",
+  "inpatient",
+];
+
+const SSSS_SPECIALIST_ESCALATION_ACTION_TERMS = [
+  "burn unit",
+  "burn center",
+  "dermatology",
   "icu",
   "intensive care",
 ];
@@ -16185,70 +16213,126 @@ const SSSS_ADMISSION_ESCALATION_ACTION_TERMS = [
 const SSSS_ANTISTAPH_ANTIBIOTIC_ACTION_TERMS = [
   "anti-staphylococcal",
   "cefazolin",
+  "ceftriaxone",
+  "dicloxacillin",
   "flucloxacillin",
   "iv antibiotic",
   "nafcillin",
   "oxacillin",
+  "penicillinase-resistant",
   "vancomycin",
 ];
 
-const SSSS_FLUID_TEMP_ACTION_TERMS = [
+const SSSS_FLUID_ELECTROLYTE_ACTION_TERMS = [
   "dehydration",
   "electrolyte",
   "fluid",
-  "hypothermia",
-  "temperature",
+  "hydration",
+  "iv fluids",
 ];
 
-const SSSS_WOUND_PAIN_ACTION_TERMS = [
+const SSSS_TEMP_NUTRITION_ACTION_TERMS = [
+  "hypothermia",
+  "nutrition",
+  "temperature",
+  "thermal",
+];
+
+const SSSS_SKIN_WOUND_ACTION_TERMS = [
   "burn dressing",
+  "dressings",
   "emollient",
+  "gentle washing",
+  "non-adherent dressing",
   "nonadherent dressing",
+  "petroleum jelly",
+  "saline-soaked gauze",
+  "soap substitute",
+  "wound care",
+];
+
+const SSSS_PAIN_ACTION_TERMS = [
+  "acetaminophen",
+  "analgesia",
+  "morphine",
   "pain control",
   "pain relief",
-  "petroleum jelly",
-  "wound care",
+  "paracetamol",
 ];
 
 const SSSS_MRSA_VANCOMYCIN_SAFETY_TERMS = [
   "healthcare exposure",
+  "high mrsa prevalence",
   "mrsa",
+  "recent hospitalization",
   "skilled nursing",
   "vancomycin",
 ];
 
-const SSSS_MEDICATION_HARM_SAFETY_TERMS = [
+const SSSS_SILVER_SULFADIAZINE_SAFETY_TERMS = [
+  "avoid silver sulfadiazine",
+  "silver sulfadiazine",
+  "systemic absorption",
+  "toxicity",
+];
+
+const SSSS_NSAID_RENAL_SAFETY_TERMS = [
   "avoid ibuprofen",
   "avoid nsaid",
-  "avoid silver sulfadiazine",
+  "kidney impairment",
+  "nsaid",
+  "renal impairment",
+];
+
+const SSSS_CLINDAMYCIN_RESISTANCE_SAFETY_TERMS = [
   "clindamycin resistance",
   "clindamycin monotherapy",
-  "kidney impairment",
-  "silver sulfadiazine",
+  "monotherapy",
+  "resistance",
 ];
 
 const SSSS_DIFFERENTIAL_SAFETY_TERMS = [
   "agep",
   "bullous impetigo",
+  "drug reaction",
   "mucosa",
+  "mucosal sparing",
   "sjs/ten",
   "stevens-johnson",
   "toxic epidermal necrolysis",
 ];
 
-const SSSS_COMPLICATION_MONITORING_SAFETY_TERMS = [
+const SSSS_FLUID_COMPLICATION_SAFETY_TERMS = [
   "dehydration",
   "electrolyte imbalance",
+  "fluid deficit",
+];
+
+const SSSS_TEMP_COMPLICATION_SAFETY_TERMS = [
+  "heat loss",
   "hypothermia",
+  "temperature",
+];
+
+const SSSS_INFECTION_COMPLICATION_SAFETY_TERMS = [
+  "cellulitis",
   "pneumonia",
-  "renal failure",
+  "secondary infection",
   "sepsis",
+];
+
+const SSSS_RENAL_COMPLICATION_SAFETY_TERMS = [
+  "acute kidney injury",
+  "renal failure",
+  "renal impairment",
 ];
 
 const SSSS_CARRIER_OUTBREAK_SAFETY_TERMS = [
   "carrier",
+  "chlorhexidine",
   "decolonization",
   "hand washing",
+  "mupirocin",
   "nursery outbreak",
   "outbreak",
   "staph aureus carrier",
@@ -29498,27 +29582,47 @@ function requiresSsssSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
 
 function hasSsssTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasDiagnosticSource = SSSS_DIAGNOSTIC_SOURCE_ACTION_TERMS.some((term) =>
+  const hasSourceSite = SSSS_SOURCE_SITE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCultureAction = SSSS_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBiopsyDifferentialAction = SSSS_BIOPSY_DIFFERENTIAL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasAdmissionEscalation = SSSS_ADMISSION_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasSpecialistEscalation = SSSS_SPECIALIST_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasAntistaphAntibiotic = SSSS_ANTISTAPH_ANTIBIOTIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasFluidTemp = SSSS_FLUID_TEMP_ACTION_TERMS.some((term) =>
+  const hasFluidElectrolyte = SSSS_FLUID_ELECTROLYTE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasWoundPain = SSSS_WOUND_PAIN_ACTION_TERMS.some((term) =>
+  const hasTempNutrition = SSSS_TEMP_NUTRITION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSkinWound = SSSS_SKIN_WOUND_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPainAction = SSSS_PAIN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasDiagnosticSource &&
+    hasSourceSite &&
+    hasCultureAction &&
+    hasBiopsyDifferentialAction &&
     hasAdmissionEscalation &&
+    hasSpecialistEscalation &&
     hasAntistaphAntibiotic &&
-    hasFluidTemp &&
-    hasWoundPain
+    hasFluidElectrolyte &&
+    hasTempNutrition &&
+    hasSkinWound &&
+    hasPainAction
   );
 }
 
@@ -29527,13 +29631,28 @@ function hasSsssTreatmentSafetyCheck(checks: string[]): boolean {
   const hasMrsaVancomycinSafety = SSSS_MRSA_VANCOMYCIN_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasMedicationHarmSafety = SSSS_MEDICATION_HARM_SAFETY_TERMS.some((term) =>
+  const hasSilverSulfadiazineSafety = SSSS_SILVER_SULFADIAZINE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNsaidRenalSafety = SSSS_NSAID_RENAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasClindamycinResistanceSafety = SSSS_CLINDAMYCIN_RESISTANCE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasDifferentialSafety = SSSS_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasComplicationMonitoring = SSSS_COMPLICATION_MONITORING_SAFETY_TERMS.some((term) =>
+  const hasFluidComplication = SSSS_FLUID_COMPLICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTempComplication = SSSS_TEMP_COMPLICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInfectionComplication = SSSS_INFECTION_COMPLICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRenalComplication = SSSS_RENAL_COMPLICATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasCarrierOutbreakSafety = SSSS_CARRIER_OUTBREAK_SAFETY_TERMS.some((term) =>
@@ -29541,9 +29660,14 @@ function hasSsssTreatmentSafetyCheck(checks: string[]): boolean {
   );
   return (
     hasMrsaVancomycinSafety &&
-    hasMedicationHarmSafety &&
+    hasSilverSulfadiazineSafety &&
+    hasNsaidRenalSafety &&
+    hasClindamycinResistanceSafety &&
     hasDifferentialSafety &&
-    hasComplicationMonitoring &&
+    hasFluidComplication &&
+    hasTempComplication &&
+    hasInfectionComplication &&
+    hasRenalComplication &&
     hasCarrierOutbreakSafety
   );
 }
@@ -33445,7 +33569,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSsssTimeCriticalActions,
       issue:
-        "staphylococcal scalded skin syndrome time-critical actions must include diagnostic/source evaluation with skin swab, blood culture, source of infection, nasopharynx, conjunctiva, Staph aureus, or skin-biopsy review, hospitalisation/hospitalization, dermatology, ICU, intensive-care, or burn-unit escalation, prompt IV anti-staphylococcal antibiotics such as flucloxacillin, cefazolin, nafcillin, oxacillin, or vancomycin, fluid, dehydration, electrolyte, temperature, or hypothermia support, and wound-care, nonadherent-dressing, burn-dressing, emollient, petroleum-jelly, pain-control, or pain-relief planning",
+        "staphylococcal scalded skin syndrome time-critical actions must include suspected source-site evaluation such as nasopharynx, conjunctiva, ears, throat, perianal area, wound source, or pyogenic focus review, culture/swab evaluation such as skin swab, blister fluid culture, blood culture, Staph aureus, or S. aureus review, skin biopsy, frozen-section, intra-epidermal split, or serious blistering differential review when uncertain, hospitalisation/hospitalization, admission, inpatient, or emergency-department management, dermatology, ICU, intensive-care, burn-unit, or burn-center escalation for severe disease, prompt IV anti-staphylococcal or penicillinase-resistant antibiotics such as flucloxacillin, cefazolin, ceftriaxone, nafcillin, oxacillin, dicloxacillin, or vancomycin, separate fluid/hydration/electrolyte or IV-fluid support, separate temperature, hypothermia, thermal, or nutrition support, skin/wound care with gentle washing, soap substitute, saline-soaked gauze, non-adherent dressings, burns dressings, emollient, or petroleum jelly, and pain relief with paracetamol/acetaminophen, analgesia, morphine, pain control, or pain relief",
     },
     {
       name: "ssss_treatment_safety",
@@ -33454,7 +33578,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSsssTreatmentSafetyCheck,
       issue:
-        "staphylococcal scalded skin syndrome safety checks must include MRSA, vancomycin, healthcare-exposure, or skilled-nursing review, medication harm review such as avoiding silver sulfadiazine, avoiding NSAIDs/ibuprofen with kidney impairment risk, and avoiding clindamycin monotherapy when resistance is possible, differential review for mucosal sparing versus SJS/TEN, toxic epidermal necrolysis, bullous impetigo, or AGEP, complication monitoring for dehydration, electrolyte imbalance, hypothermia, sepsis, pneumonia, or renal failure, and carrier, decolonization, nursery outbreak, outbreak, Staph aureus carrier, or hand-washing prevention planning",
+        "staphylococcal scalded skin syndrome safety checks must include MRSA/vancomycin risk review such as healthcare exposure, recent hospitalization, skilled-nursing residence, or high-MRSA-prevalence setting, silver-sulfadiazine avoidance or toxicity/systemic-absorption review, NSAID/ibuprofen avoidance with kidney or renal impairment review, clindamycin-resistance or clindamycin-monotherapy avoidance, serious differential review for mucosal sparing versus SJS/TEN, toxic epidermal necrolysis, bullous impetigo, drug reaction, or AGEP, separate dehydration/fluid-deficit/electrolyte-imbalance monitoring, separate hypothermia/temperature/heat-loss monitoring, secondary infection, cellulitis, sepsis, or pneumonia monitoring, acute kidney injury/renal-failure monitoring, and carrier, decolonization, chlorhexidine, mupirocin, nursery outbreak, outbreak, Staph aureus carrier, or hand-washing prevention planning",
     },
     {
       name: "toxic_shock_time_critical_actions",
