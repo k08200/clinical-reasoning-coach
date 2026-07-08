@@ -30003,6 +30003,76 @@ def test_quality_gate_requires_dress_drug_stop_labs_severity_cardiopulmonary_and
     )
 
 
+def test_quality_gate_requires_dress_separate_organ_labs_cardiopulmonary_and_supportive_steroid_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "DRESS syndrome from phenytoin"
+    case["patient_demographics"] = {
+        "age": 36,
+        "sex": "male",
+        "weight_kg": 78,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "High fever, facial swelling, and rash after phenytoin"
+    case["history_of_present_illness"] = (
+        "Patient started phenytoin 4 weeks ago and now has DIHS/DRESS with fever, "
+        "morbilliform rash, facial swelling, lymphadenopathy, eosinophilia, "
+        "hepatitis, renal function change, cough, dyspnea, and concern for "
+        "myocarditis."
+    )
+    case["key_teaching_points"] = [
+        "DRESS requires drug causality review because onset can be delayed for weeks",
+        "Internal organ involvement may include hepatitis, kidney injury, pneumonitis, and myocarditis",
+    ]
+    case["clinical_red_flags"] = [
+        "High fever, facial swelling, morbilliform rash, lymphadenopathy, eosinophilia, hepatitis, renal function change, myocarditis, or pneumonitis",
+    ]
+    case["time_critical_actions"] = [
+        "Immediately discontinue all suspect medicines and stop the culprit/offending drug",
+        "Obtain CBC and eosinophil count",
+        "Arrange hospitalization and RegiSCAR severity assessment with drug timeline and temporal association review",
+        "Evaluate cardiopulmonary involvement with ECG for myocarditis",
+        "Provide supportive care with fluid and warm environment",
+    ]
+    case["contraindication_checks"] = [
+        "Review severe organ complications including acute liver failure, multiorgan failure, fulminant myocarditis, and hemophagocytosis or haemophagocytosis",
+        "Plan steroid taper relapse monitoring with slow taper or withdraw very slowly because recurrence can occur as dose reduces",
+        "Send viral serology for HHV-6/human herpesvirus, EBV, CMV, and plan thyroid or autoimmune follow-up",
+        "Document drug allergy, avoid rechallenge, avoid causative drug, review cross-reaction, avoid all three aromatic anticonvulsants, and warn first-degree relatives",
+        "Review alternative immunomodulators such as cyclosporine/ciclosporin, IVIG, plasmapheresis, mycophenolate, rituximab, or cyclophosphamide if steroid response is inadequate",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Drug hypersensitivity syndrome",
+            "organization": "DermNet",
+            "url": "https://dermnetnz.org/topics/drug-hypersensitivity-syndrome",
+            "supports": [
+                "DRESS syndrome from phenytoin diagnosis and risk stratification",
+                "DRESS requires drug causality review because onset can be delayed for weeks",
+                "internal organ involvement may include hepatitis, kidney injury, pneumonitis, and myocarditis",
+                "immediate discontinuation of all suspect medicines and the culprit/offending drug",
+                "CBC and eosinophil count",
+                "hospitalization, RegiSCAR severity assessment, drug timeline, and temporal association review",
+                "ECG for myocarditis",
+                "supportive care with fluid and warm environment",
+                "severe organ complications including acute liver failure, multiorgan failure, fulminant myocarditis, and hemophagocytosis",
+                "steroid taper relapse monitoring with slow taper or withdraw very slowly",
+                "viral serology for HHV-6/human herpesvirus, EBV, CMV, and thyroid or autoimmune follow-up",
+                "drug allergy, avoid rechallenge, avoid causative drug, cross-reaction, avoid all three aromatic anticonvulsants, and first-degree relatives warning",
+                "alternative immunomodulators such as cyclosporine/ciclosporin, IVIG, plasmapheresis, mycophenolate, rituximab, or cyclophosphamide",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "separate hematology/CBC/eosinophil testing" in issue
+        and "separate pulmonary evaluation" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_dress_organ_relapse_viral_rechallenge_and_immunomodulator_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Drug induced hypersensitivity syndrome from allopurinol"
@@ -30064,8 +30134,79 @@ def test_quality_gate_requires_dress_organ_relapse_viral_rechallenge_and_immunom
 
     assert not report.passed
     assert any(
-        "DRESS/DIHS safety checks must include severe organ complication review"
+        "DRESS/DIHS safety checks must include separate severe organ complication review"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_dress_separate_relapse_viral_endocrine_cross_reaction_and_family_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "DRESS syndrome from lamotrigine"
+    case["patient_demographics"] = {
+        "age": 29,
+        "sex": "female",
+        "weight_kg": 58,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, rash, and facial edema after lamotrigine"
+    case["history_of_present_illness"] = (
+        "Patient started lamotrigine 5 weeks ago and now has drug reaction with "
+        "eosinophilia and systemic symptoms, morbilliform eruption, facial edema, "
+        "lymphadenopathy, hepatitis, renal function change, cough, dyspnea, and "
+        "possible myocarditis or pneumonitis."
+    )
+    case["key_teaching_points"] = [
+        "DRESS can relapse and can be associated with viral reactivation and later autoimmune disease",
+        "Cross-reactions occur among aromatic anticonvulsants and relatives may have elevated risk",
+    ]
+    case["clinical_red_flags"] = [
+        "Hepatitis, acute liver failure, myocarditis, pneumonitis, multiorgan failure, or hemophagocytosis",
+    ]
+    case["time_critical_actions"] = [
+        "Immediately discontinue all suspect medicines, stop medication, withdraw lamotrigine, and document it as the culprit/offending drug",
+        "Obtain CBC/blood count with eosinophil count, coagulation studies, liver function/LFT, renal function testing, and urinalysis",
+        "Admit for hospitalization and assess RegiSCAR criteria with drug timeline, temporal association, and skin biopsy",
+        "Evaluate cardiac involvement with ECG, troponin, echocardiogram, myocarditis, and pericarditis review",
+        "Evaluate pulmonary involvement with chest X-ray/CXR for pneumonitis, cough, dyspnea, and ARDS risk",
+        "Provide supportive care with fluid, electrolytes, nutrition/calories, warm environment, expert nursing, dressings, emollients, and topical steroid",
+        "Plan corticosteroid or prednisone therapy with slow taper when severe organ involvement is present",
+    ]
+    case["contraindication_checks"] = [
+        "Review acute liver failure risk",
+        "Monitor relapse",
+        "Send HHV-6 viral serology",
+        "Avoid rechallenge and document drug allergy",
+        "Consider cyclosporine if steroid response is inadequate",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Drug hypersensitivity syndrome",
+            "organization": "DermNet",
+            "url": "https://dermnetnz.org/topics/drug-hypersensitivity-syndrome",
+            "supports": [
+                "DRESS syndrome from lamotrigine diagnosis and risk stratification",
+                "DRESS can relapse and can be associated with viral reactivation and later autoimmune disease",
+                "cross-reactions occur among aromatic anticonvulsants and relatives may have elevated risk",
+                "immediate discontinuation of all suspect medicines and withdrawal of lamotrigine as the culprit/offending drug",
+                "CBC/blood count with eosinophil count, coagulation studies, liver function/LFT, renal function testing, and urinalysis",
+                "hospitalization, RegiSCAR criteria, drug timeline, temporal association, and skin biopsy",
+                "ECG, troponin, echocardiogram, myocarditis, and pericarditis review",
+                "chest X-ray/CXR for pneumonitis, cough, dyspnea, and ARDS risk",
+                "supportive care with fluid, electrolytes, nutrition/calories, warm environment, expert nursing, dressings, emollients, and topical steroid",
+                "corticosteroid or prednisone therapy with slow taper when severe organ involvement is present",
+                "acute liver failure risk, relapse monitoring, HHV-6 viral serology, avoid rechallenge, drug allergy, and cyclosporine review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "separate severe organ complication review" in issue
+        and "endocrine/autoimmune follow-up" in issue
+        and "first-degree-relative" in issue
         for issue in report.critical_issues
     )
 

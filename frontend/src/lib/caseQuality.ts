@@ -15937,77 +15937,198 @@ const DRESS_CULPRIT_DRUG_ACTION_TERMS = [
   "withdraw",
 ];
 
-const DRESS_LAB_ORGAN_ACTION_TERMS = [
+const DRESS_HEMATOLOGY_ACTION_TERMS = [
+  "anaemia",
+  "anemia",
   "blood count",
   "cbc",
-  "coagulation",
   "eosinophil",
-  "lft",
-  "liver function",
-  "renal function",
+  "haematologic",
+  "hematologic",
+  "platelet",
+  "thrombocytopenia",
+  "white count",
 ];
 
-const DRESS_DIAGNOSTIC_SEVERITY_ACTION_TERMS = [
+const DRESS_COAGULATION_ACTION_TERMS = [
+  "aptt",
+  "coagulation",
+  "inr",
+  "prothrombin",
+  "ptt",
+];
+
+const DRESS_HEPATIC_ACTION_TERMS = [
+  "bilirubin",
+  "hepatic",
+  "hepatitis",
+  "lft",
+  "liver function",
+  "transaminase",
+];
+
+const DRESS_RENAL_ACTION_TERMS = [
+  "creatinine",
+  "interstitial nephritis",
+  "kidney",
+  "renal function",
+  "urinalysis",
+  "urine",
+];
+
+const DRESS_DIAGNOSTIC_CAUSALITY_ACTION_TERMS = [
+  "causative drug",
   "drug timeline",
-  "hospitalisation",
-  "hospitalization",
-  "regiscar",
-  "skin biopsy",
+  "responsible medicine",
+  "suspect medicine",
   "temporal association",
 ];
 
-const DRESS_CARDIOPULMONARY_ACTION_TERMS = [
-  "chest x-ray",
+const DRESS_SEVERITY_ADMISSION_ACTION_TERMS = [
+  "admission",
+  "admit",
+  "hospitalisation",
+  "hospitalization",
+  "regiscar",
+  "severity",
+];
+
+const DRESS_BIOPSY_ACTION_TERMS = [
+  "biopsy",
+  "skin biopsy",
+];
+
+const DRESS_CARDIAC_ACTION_TERMS = [
+  "chest pain",
   "ecg",
   "echocardiogram",
+  "lowered blood pressure",
   "myocarditis",
-  "pneumonitis",
+  "pericarditis",
   "troponin",
 ];
 
-const DRESS_SUPPORTIVE_STEROID_ACTION_TERMS = [
-  "corticosteroid",
+const DRESS_PULMONARY_ACTION_TERMS = [
+  "acute respiratory distress",
+  "ards",
+  "breathlessness",
+  "chest x-ray",
+  "cough",
+  "cxr",
+  "dyspnea",
+  "pleuritis",
+  "pneumonia",
+  "pneumonitis",
+];
+
+const DRESS_SUPPORTIVE_ACTION_TERMS = [
+  "calorie",
+  "calories",
+  "dressings",
   "electrolytes",
+  "emollients",
+  "expert nursing",
   "fluid",
-  "prednisone",
-  "slow taper",
+  "nutrition",
   "supportive care",
+  "topical steroid",
   "warm environment",
 ];
 
-const DRESS_SEVERE_ORGAN_SAFETY_TERMS = [
-  "acute liver failure",
-  "fulminant myocarditis",
-  "haemophagocytosis",
-  "hemophagocytosis",
-  "multiorgan failure",
+const DRESS_STEROID_ACTION_TERMS = [
+  "corticosteroid",
+  "methylprednisolone",
+  "oral steroid",
+  "prednisolone",
+  "prednisone",
+  "slow taper",
+  "steroid taper",
+  "systemic steroid",
 ];
 
-const DRESS_STEROID_TAPER_RELAPSE_SAFETY_TERMS = [
+const DRESS_LIVER_FAILURE_SAFETY_TERMS = [
+  "acute liver failure",
+  "coagulation problems",
+  "hepatic necrosis",
+  "impaired consciousness",
+  "jaundice",
+  "liver failure",
+];
+
+const DRESS_CARDIAC_FAILURE_SAFETY_TERMS = [
+  "breathlessness",
+  "chest pain",
+  "fulminant myocarditis",
+  "lowered blood pressure",
+  "myocarditis",
+  "pericarditis",
+];
+
+const DRESS_MULTIORGAN_HLH_SAFETY_TERMS = [
+  "haemophagocytosis",
+  "hemophagocytic",
+  "hemophagocytosis",
+  "multiorgan failure",
+  "organ failure",
+];
+
+const DRESS_STEROID_RELAPSE_SAFETY_TERMS = [
+  "recur",
+  "recurrence",
   "relapse",
+  "symptoms may worsen",
+];
+
+const DRESS_STEROID_SLOW_TAPER_SAFETY_TERMS = [
+  "taper slowly",
   "slow taper",
   "steroid taper",
   "withdraw very slowly",
 ];
 
-const DRESS_VIRAL_AUTOIMMUNE_SAFETY_TERMS = [
-  "autoimmune",
+const DRESS_VIRAL_FOLLOWUP_SAFETY_TERMS = [
   "cmv",
   "ebv",
+  "hepatitis b",
+  "hepatitis c",
   "hhv-6",
   "human herpesvirus",
-  "thyroid",
   "viral serology",
 ];
 
-const DRESS_RECHALLENGE_CROSS_REACTION_SAFETY_TERMS = [
-  "avoid all three",
+const DRESS_ENDOCRINE_AUTOIMMUNE_SAFETY_TERMS = [
+  "autoimmune",
+  "diabetes",
+  "endocrine",
+  "glucose",
+  "thyroid",
+];
+
+const DRESS_RECHALLENGE_SAFETY_TERMS = [
   "avoid causative",
   "avoid rechallenge",
-  "cross-reaction",
+  "avoid taking",
+  "causative medicine",
   "drug allergy",
-  "first-degree relatives",
   "rechallenge",
+];
+
+const DRESS_CROSS_REACTION_SAFETY_TERMS = [
+  "aromatic anticonvulsant",
+  "avoid all three",
+  "carbamazepine",
+  "cross-reaction",
+  "phenobarbital",
+  "phenobarbitone",
+  "phenytoin",
+];
+
+const DRESS_FAMILY_GENETIC_SAFETY_TERMS = [
+  "elevated risk",
+  "first-degree relatives",
+  "genetic",
+  "hla",
+  "relatives",
 ];
 
 const DRESS_ALTERNATIVE_IMMUNOMODULATOR_SAFETY_TERMS = [
@@ -29255,49 +29376,101 @@ function hasDressTimeCriticalActions(actions: string[]): boolean {
   const hasCulpritDrugAction = DRESS_CULPRIT_DRUG_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasLabOrganAction = DRESS_LAB_ORGAN_ACTION_TERMS.some((term) =>
+  const hasHematologyAction = DRESS_HEMATOLOGY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDiagnosticSeverityAction = DRESS_DIAGNOSTIC_SEVERITY_ACTION_TERMS.some((term) =>
+  const hasCoagulationAction = DRESS_COAGULATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasCardiopulmonaryAction = DRESS_CARDIOPULMONARY_ACTION_TERMS.some((term) =>
+  const hasHepaticAction = DRESS_HEPATIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSupportiveSteroidAction = DRESS_SUPPORTIVE_STEROID_ACTION_TERMS.some((term) =>
+  const hasRenalAction = DRESS_RENAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDiagnosticCausalityAction = DRESS_DIAGNOSTIC_CAUSALITY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSeverityAdmissionAction = DRESS_SEVERITY_ADMISSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBiopsyAction = DRESS_BIOPSY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCardiacAction = DRESS_CARDIAC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPulmonaryAction = DRESS_PULMONARY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSupportiveAction = DRESS_SUPPORTIVE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSteroidAction = DRESS_STEROID_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
     hasCulpritDrugAction &&
-    hasLabOrganAction &&
-    hasDiagnosticSeverityAction &&
-    hasCardiopulmonaryAction &&
-    hasSupportiveSteroidAction
+    hasHematologyAction &&
+    hasCoagulationAction &&
+    hasHepaticAction &&
+    hasRenalAction &&
+    hasDiagnosticCausalityAction &&
+    hasSeverityAdmissionAction &&
+    hasBiopsyAction &&
+    hasCardiacAction &&
+    hasPulmonaryAction &&
+    hasSupportiveAction &&
+    hasSteroidAction
   );
 }
 
 function hasDressTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasSevereOrganSafety = DRESS_SEVERE_ORGAN_SAFETY_TERMS.some((term) =>
+  const hasLiverFailureSafety = DRESS_LIVER_FAILURE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasSteroidTaperRelapseSafety = DRESS_STEROID_TAPER_RELAPSE_SAFETY_TERMS.some((term) =>
+  const hasCardiacFailureSafety = DRESS_CARDIAC_FAILURE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasViralAutoimmuneSafety = DRESS_VIRAL_AUTOIMMUNE_SAFETY_TERMS.some((term) =>
+  const hasMultiorganHlhSafety = DRESS_MULTIORGAN_HLH_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasRechallengeCrossReactionSafety = DRESS_RECHALLENGE_CROSS_REACTION_SAFETY_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
+  const hasSteroidRelapseSafety = DRESS_STEROID_RELAPSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidSlowTaperSafety = DRESS_STEROID_SLOW_TAPER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasViralFollowupSafety = DRESS_VIRAL_FOLLOWUP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEndocrineAutoimmuneSafety = DRESS_ENDOCRINE_AUTOIMMUNE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRechallengeSafety = DRESS_RECHALLENGE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCrossReactionSafety = DRESS_CROSS_REACTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFamilyGeneticSafety = DRESS_FAMILY_GENETIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
   );
   const hasAlternativeImmunomodulatorSafety = DRESS_ALTERNATIVE_IMMUNOMODULATOR_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasSevereOrganSafety &&
-    hasSteroidTaperRelapseSafety &&
-    hasViralAutoimmuneSafety &&
-    hasRechallengeCrossReactionSafety &&
+    hasLiverFailureSafety &&
+    hasCardiacFailureSafety &&
+    hasMultiorganHlhSafety &&
+    hasSteroidRelapseSafety &&
+    hasSteroidSlowTaperSafety &&
+    hasViralFollowupSafety &&
+    hasEndocrineAutoimmuneSafety &&
+    hasRechallengeSafety &&
+    hasCrossReactionSafety &&
+    hasFamilyGeneticSafety &&
     hasAlternativeImmunomodulatorSafety
   );
 }
@@ -33254,7 +33427,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasDressTimeCriticalActions,
       issue:
-        "DRESS/DIHS time-critical actions must include immediate cessation, withdrawal, or discontinuation of all suspect/culprit/offending medicines, CBC, blood-count, eosinophil, coagulation, liver-function, LFT, or renal-function testing, diagnostic severity assessment with hospitalisation/hospitalization, RegiSCAR, skin biopsy, drug timeline, or temporal-association review, cardiac or pulmonary evaluation with ECG, troponin, echocardiogram, myocarditis, chest X-ray, or pneumonitis review, and supportive care with fluid, electrolytes, warm environment, corticosteroid, prednisone, or slow-taper planning when severe organ involvement is present",
+        "DRESS/DIHS time-critical actions must include immediate cessation, withdrawal, or discontinuation of all suspect/culprit/offending medicines, separate hematology/CBC/eosinophil testing, coagulation testing, liver-function/LFT/hepatitis assessment, renal-function/urinalysis assessment, drug-timeline or temporal-causality review, hospitalisation/hospitalization, admission, RegiSCAR, or severity assessment, skin biopsy, separate cardiac evaluation with ECG, troponin, echocardiogram, myocarditis, or pericarditis review, separate pulmonary evaluation with chest X-ray/CXR, pneumonitis, ARDS, dyspnea, or cough review, supportive care with fluid, electrolytes, nutrition/calories, warm environment, expert nursing, dressings, emollients, or topical steroids, and corticosteroid/prednisone or slow-taper planning when severe organ involvement is present",
     },
     {
       name: "dress_treatment_safety",
@@ -33263,7 +33436,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasDressTreatmentSafetyCheck,
       issue:
-        "DRESS/DIHS safety checks must include severe organ complication review for acute liver failure, multiorgan failure, fulminant myocarditis, or hemophagocytosis/haemophagocytosis, steroid taper or relapse monitoring with slow taper or withdraw-very-slowly planning, viral or autoimmune follow-up with HHV-6, human herpesvirus, EBV, CMV, viral serology, thyroid, or autoimmune review, rechallenge/cross-reaction prevention with drug-allergy, avoid-causative, avoid-rechallenge, avoid-all-three aromatic anticonvulsants, cross-reaction, or first-degree-relative warning, and alternative immunomodulator review such as cyclosporine/ciclosporin, IVIG, plasmapheresis, mycophenolate, rituximab, or cyclophosphamide when corticosteroid response is inadequate",
+        "DRESS/DIHS safety checks must include separate severe organ complication review for acute liver failure/hepatic necrosis/jaundice, fulminant myocarditis/pericarditis, and multiorgan failure or hemophagocytosis/haemophagocytosis, relapse or recurrence monitoring plus slow-taper or withdraw-very-slowly planning, viral follow-up with HHV-6, human herpesvirus, EBV, CMV, hepatitis B/C, or viral serology, endocrine/autoimmune follow-up with thyroid, glucose, diabetes, or autoimmune review, rechallenge prevention with drug-allergy documentation or avoid-causative/avoid-rechallenge planning, cross-reaction prevention such as avoid-all-three aromatic anticonvulsants, phenytoin, carbamazepine, phenobarbital, or cross-reaction review, first-degree-relative, HLA, genetic, or family-risk warning, and alternative immunomodulator review such as cyclosporine/ciclosporin, IVIG, plasmapheresis, mycophenolate, rituximab, or cyclophosphamide when corticosteroid response is inadequate",
     },
     {
       name: "ssss_time_critical_actions",
