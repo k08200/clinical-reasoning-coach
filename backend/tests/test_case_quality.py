@@ -30583,6 +30583,81 @@ def test_quality_gate_requires_toxic_shock_icu_cultures_antibiotics_source_contr
     )
 
 
+def test_quality_gate_requires_toxic_shock_separate_circulatory_organ_culture_imaging_antibiotic_source_and_monitoring_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Group A strep toxic shock syndrome with necrotizing fasciitis"
+    case["patient_demographics"] = {
+        "age": 62,
+        "sex": "female",
+        "weight_kg": 72,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Shock, fever, severe arm pain, and rash"
+    case["history_of_present_illness"] = (
+        "Patient has group A strep toxic shock syndrome with necrotizing fasciitis, "
+        "septic shock, hypotension, tachypnea, diffuse rash, severe soft tissue pain, "
+        "renal injury, hepatic dysfunction, thrombocytopenia, elevated CK, ARDS, and "
+        "multiorgan failure."
+    )
+    case["key_teaching_points"] = [
+        "STSS can rapidly progress to shock and multi-organ failure",
+        "Treatment requires shock stabilization, early antibiotics, source removal, and surgery when deep tissue infection is present",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension, septic shock, tachypnea, necrotizing fasciitis, renal failure, hepatic dysfunction, thrombocytopenia, coagulopathy, ARDS, elevated CK, or multiorgan failure",
+    ]
+    case["time_critical_actions"] = [
+        "Hospitalize immediately in ICU/intensive care and start aggressive fluid resuscitation with vasopressor circulatory support",
+        "Obtain blood culture and wound culture",
+        "Start clindamycin toxin suppression plus penicillin beta-lactam therapy",
+        "Remove foreign body if present and perform source control with drainage and irrigation",
+        "Monitor renal, hepatic/liver, platelet, coagulation, CK, and cardiopulmonary function",
+    ]
+    case["contraindication_checks"] = [
+        "Tailor confirmed group A strep or streptococcal regimen to penicillin or beta-lactam plus clindamycin or linezolid toxin suppression",
+        "Review staphylococcal/MSSA regimen including nafcillin or oxacillin and review MRSA coverage with vancomycin, daptomycin, or ceftaroline",
+        "Consider IVIG or IV immune globulin for severe or refractory shock in severely ill patients",
+        "Review differential diagnoses including Kawasaki disease, scarlet fever, SSSS/staphylococcal scalded skin, Stevens-Johnson syndrome, meningococcemia, Rocky Mountain spotted fever, and leptospirosis",
+        "Prevent recurrence with tampon, menstrual cup, avoid hyperabsorbent tampon, change tampons, diaphragm, cervical cap, pessary, contraceptive sponge, or intrauterine device guidance",
+        "Plan mupirocin or chlorhexidine decolonization for nasal carriage when indicated",
+        "Review household contact prophylaxis and screening; CDC does not routinely recommend prophylaxis but standard infection control is needed",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Clinical Guidance for Streptococcal Toxic Shock Syndrome",
+            "organization": "CDC",
+            "url": "https://www.cdc.gov/group-a-strep/hcp/clinical-guidance/streptococcal-toxic-shock-syndrome.html",
+            "supports": [
+                "group A strep toxic shock syndrome with necrotizing fasciitis diagnosis and risk stratification",
+                "STSS can rapidly progress to shock and multi-organ failure",
+                "shock stabilization, early antibiotics, source removal, and surgery when deep tissue infection is present",
+                "hospitalize immediately in ICU/intensive care and aggressive fluid resuscitation with vasopressor circulatory support",
+                "blood culture and wound culture",
+                "clindamycin toxin suppression plus penicillin beta-lactam therapy",
+                "foreign body removal and source control with drainage and irrigation",
+                "renal, hepatic/liver, platelet, coagulation, CK, and cardiopulmonary monitoring",
+                "penicillin or beta-lactam plus clindamycin or linezolid toxin suppression",
+                "nafcillin, oxacillin, vancomycin, daptomycin, or ceftaroline regimen review",
+                "IVIG or IV immune globulin for severe or refractory shock in severely ill patients",
+                "Kawasaki disease, scarlet fever, SSSS/staphylococcal scalded skin, Stevens-Johnson syndrome, meningococcemia, Rocky Mountain spotted fever, and leptospirosis differential",
+                "tampon, menstrual cup, avoid hyperabsorbent tampon, change tampons, diaphragm, cervical cap, pessary, contraceptive sponge, or intrauterine device recurrence prevention",
+                "mupirocin or chlorhexidine decolonization for nasal carriage",
+                "household contact prophylaxis and screening are not routinely recommended but standard infection control is needed",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "separate organ-support planning" in issue
+        and "soft-tissue imaging" in issue
+        and "surgical control" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_toxic_shock_regimen_ivig_differential_recurrence_and_contact_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Staphylococcal toxic shock syndrome after retained tampon"
@@ -30645,6 +30720,87 @@ def test_quality_gate_requires_toxic_shock_regimen_ivig_differential_recurrence_
     assert not report.passed
     assert any(
         "toxic shock syndrome safety checks must include group-A-strep" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_toxic_shock_separate_regimen_ivig_recurrence_decolonization_and_contact_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Staphylococcal toxic shock syndrome from menstrual cup"
+    case["patient_demographics"] = {
+        "age": 31,
+        "sex": "female",
+        "weight_kg": 63,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "High fever, vomiting, rash, hypotension, and confusion"
+    case["history_of_present_illness"] = (
+        "Patient has staphylococcal toxic shock syndrome after menstrual cup use with "
+        "high fever, vomiting, diarrhea, erythroderma rash, hypotension, shock, "
+        "confusion, renal impairment, thrombocytopenia, elevated CK, and later "
+        "desquamation risk from Staphylococcus aureus toxin."
+    )
+    case["key_teaching_points"] = [
+        "TSS may recur when tampon or vaginal device risks continue",
+        "Severe TSS needs intensive support, source decontamination, toxin-suppressing antibiotics, and possible IVIG",
+    ]
+    case["clinical_red_flags"] = [
+        "Shock, hypotension, erythroderma rash, mucosal hyperemia, renal impairment, thrombocytopenia, elevated CK, ARDS, or multiorgan failure",
+    ]
+    case["time_critical_actions"] = [
+        "Hospitalize immediately in ICU/intensive care",
+        "Give aggressive fluid resuscitation, fluids and electrolytes, and vasopressor circulatory support",
+        "Plan ventilation or ventilatory support plus renal replacement/hemodialysis organ support",
+        "Obtain blood culture and site cultures from vagina, throat, nose, wound, lesion, or local site",
+        "Use CT/MRI or soft tissue imaging to identify source",
+        "Start toxin-suppressing clindamycin or linezolid plus empiric beta-lactam, vancomycin, daptomycin, or ceftaroline coverage",
+        "Remove menstrual cup or tampon/foreign body/device and perform source decontamination with drainage, irrigation, and source control",
+        "Perform debridement, repeated debridement, necrotizing fasciitis surgery, or surgery if deep infection is present",
+        "Monitor renal/kidney and hepatic/liver function, platelet, coagulation, thrombocytopenia, cardiopulmonary/ARDS/lung status, CK, creatine kinase, and myalgia",
+    ]
+    case["contraindication_checks"] = [
+        "Review penicillin plus clindamycin regimen for streptococcal disease",
+        "Review staphylococcal MSSA regimen with nafcillin or oxacillin",
+        "Consider IVIG for severe shock",
+        "Review differential diagnosis for Kawasaki, scarlet fever, SSSS, Stevens-Johnson, and meningococcemia",
+        "Advise avoiding hyperabsorbent tampon and change tampons frequently",
+        "Use standard infection control",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Toxic Shock Syndrome",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/infectious-diseases/gram-positive-cocci/toxic-shock-syndrome-tss",
+            "supports": [
+                "staphylococcal toxic shock syndrome from menstrual cup diagnosis and risk stratification",
+                "TSS may recur when tampon or vaginal device risks continue",
+                "severe TSS needs intensive support, source decontamination, toxin-suppressing antibiotics, and possible IVIG",
+                "hospitalize immediately in ICU/intensive care",
+                "aggressive fluid resuscitation, fluids and electrolytes, and vasopressor circulatory support",
+                "ventilation, ventilatory support, renal replacement, hemodialysis, and organ support",
+                "blood culture and site cultures from vagina, throat, nose, wound, lesion, or local site",
+                "CT/MRI or soft tissue imaging to identify source",
+                "toxin-suppressing clindamycin or linezolid plus empiric beta-lactam, vancomycin, daptomycin, or ceftaroline coverage",
+                "menstrual cup, tampon, foreign body, or device removal and source decontamination with drainage, irrigation, and source control",
+                "debridement, repeated debridement, necrotizing fasciitis surgery, or surgery",
+                "renal/kidney and hepatic/liver function, platelet, coagulation, thrombocytopenia, cardiopulmonary/ARDS/lung status, CK, creatine kinase, and myalgia monitoring",
+                "penicillin plus clindamycin regimen for streptococcal disease",
+                "staphylococcal MSSA regimen with nafcillin or oxacillin",
+                "IVIG for severe shock",
+                "Kawasaki, scarlet fever, SSSS, Stevens-Johnson, and meningococcemia differential",
+                "avoid hyperabsorbent tampon and change tampons frequently",
+                "standard infection control",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "MRSA coverage review" in issue
+        and "decolonization" in issue
+        and "household-contact prophylaxis" in issue
         for issue in report.critical_issues
     )
 

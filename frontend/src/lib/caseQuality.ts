@@ -16363,83 +16363,151 @@ const TOXIC_SHOCK_RISK_TERMS = [
   "tampon",
 ];
 
-const TOXIC_SHOCK_RESUSCITATION_ACTION_TERMS = [
-  "fluid resuscitation",
-  "hemodialysis",
+const TOXIC_SHOCK_HOSPITAL_ICU_ACTION_TERMS = [
   "hospitalization",
+  "hospitalize",
   "icu",
   "intensive care",
+];
+
+const TOXIC_SHOCK_FLUID_CIRCULATORY_ACTION_TERMS = [
+  "aggressive fluid",
+  "circulatory support",
+  "fluid resuscitation",
+  "fluids and electrolytes",
+  "hypovolemia",
+  "vasopressor",
+];
+
+const TOXIC_SHOCK_ORGAN_SUPPORT_ACTION_TERMS = [
+  "hemodialysis",
   "organ support",
   "renal replacement",
-  "vasopressor",
+  "ventilatory support",
   "ventilation",
 ];
 
-const TOXIC_SHOCK_CULTURE_SOURCE_ACTION_TERMS = [
+const TOXIC_SHOCK_BLOOD_CULTURE_ACTION_TERMS = [
   "blood culture",
+];
+
+const TOXIC_SHOCK_SITE_CULTURE_ACTION_TERMS = [
   "culture",
-  "ct",
-  "mri",
+  "lesion",
+  "local site",
   "nose",
-  "soft tissue imaging",
   "throat",
   "vagina",
   "wound",
 ];
 
-const TOXIC_SHOCK_TOXIN_ANTIBIOTIC_ACTION_TERMS = [
+const TOXIC_SHOCK_SOURCE_IMAGING_ACTION_TERMS = [
+  "ct",
+  "mri",
+  "soft tissue imaging",
+];
+
+const TOXIC_SHOCK_TOXIN_SUPPRESSION_ACTION_TERMS = [
+  "clindamycin",
+  "linezolid",
+  "protein inhibitor",
+  "toxin suppression",
+  "toxin-suppressing",
+];
+
+const TOXIC_SHOCK_EMPIRIC_COVERAGE_ACTION_TERMS = [
   "beta-lactam",
   "ceftaroline",
-  "clindamycin",
   "daptomycin",
-  "linezolid",
   "penicillin",
-  "toxin suppression",
   "vancomycin",
 ];
 
-const TOXIC_SHOCK_SOURCE_CONTROL_ACTION_TERMS = [
-  "debridement",
+const TOXIC_SHOCK_FOREIGN_BODY_REMOVAL_ACTION_TERMS = [
   "device removal",
-  "drainage",
   "foreign body",
-  "irrigation",
   "remove tampon",
+  "tampon removal",
+];
+
+const TOXIC_SHOCK_SOURCE_DECONTAMINATION_ACTION_TERMS = [
+  "decontamination",
+  "drainage",
+  "irrigation",
   "source control",
+];
+
+const TOXIC_SHOCK_SURGICAL_CONTROL_ACTION_TERMS = [
+  "debridement",
+  "necrotizing fasciitis",
+  "repeated debridement",
   "surgery",
 ];
 
-const TOXIC_SHOCK_ORGAN_MONITORING_ACTION_TERMS = [
-  "cardiopulmonary",
-  "coagulation",
-  "ck",
+const TOXIC_SHOCK_RENAL_HEPATIC_MONITORING_ACTION_TERMS = [
   "hepatic",
+  "kidney",
   "liver",
-  "platelet",
   "renal",
 ];
 
-const TOXIC_SHOCK_GAS_REGIMEN_SAFETY_TERMS = [
+const TOXIC_SHOCK_HEMATOLOGIC_MONITORING_ACTION_TERMS = [
+  "bone marrow",
+  "coagulation",
+  "disseminated coagulation",
+  "platelet",
+  "thrombocytopenia",
+];
+
+const TOXIC_SHOCK_CARDIOPULMONARY_MONITORING_ACTION_TERMS = [
+  "ards",
+  "cardiopulmonary",
+  "lung",
+  "tachypnea",
+];
+
+const TOXIC_SHOCK_MUSCLE_CK_MONITORING_ACTION_TERMS = [
+  "coagulation",
+  "ck",
+  "creatine kinase",
+  "myalgia",
+];
+
+const TOXIC_SHOCK_GAS_BETA_LACTAM_SAFETY_TERMS = [
+  "beta-lactam",
+  "penicillin",
+];
+
+const TOXIC_SHOCK_GAS_TOXIN_SUPPRESSION_SAFETY_TERMS = [
   "clindamycin",
   "group a strep",
-  "penicillin",
+  "linezolid",
   "streptococcal",
 ];
 
-const TOXIC_SHOCK_STAPH_MRSA_SAFETY_TERMS = [
+const TOXIC_SHOCK_STAPH_MSSA_SAFETY_TERMS = [
   "mssa",
-  "mrsa",
   "nafcillin",
   "oxacillin",
   "staphylococcal",
+];
+
+const TOXIC_SHOCK_MRSA_COVERAGE_SAFETY_TERMS = [
+  "ceftaroline",
+  "daptomycin",
+  "mrsa",
   "vancomycin",
 ];
 
-const TOXIC_SHOCK_IVIG_SEVERE_SAFETY_TERMS = [
+const TOXIC_SHOCK_IVIG_CONSIDERATION_SAFETY_TERMS = [
   "iv immune globulin",
   "ivig",
+];
+
+const TOXIC_SHOCK_SEVERE_REFRACTORY_SAFETY_TERMS = [
   "refractory shock",
   "severe",
+  "severely ill",
 ];
 
 const TOXIC_SHOCK_DIFFERENTIAL_SAFETY_TERMS = [
@@ -16453,13 +16521,24 @@ const TOXIC_SHOCK_DIFFERENTIAL_SAFETY_TERMS = [
   "stevens-johnson",
 ];
 
-const TOXIC_SHOCK_RECURRENCE_PREVENTION_SAFETY_TERMS = [
+const TOXIC_SHOCK_DEVICE_RECURRENCE_SAFETY_TERMS = [
   "avoid hyperabsorbent tampon",
-  "chlorhexidine",
+  "change tampons",
+  "cervical cap",
+  "contraceptive sponge",
+  "diaphragm",
+  "intrauterine device",
   "menstrual cup",
-  "mupirocin",
+  "pessary",
   "recurrence",
   "tampon",
+];
+
+const TOXIC_SHOCK_DECOLONIZATION_SAFETY_TERMS = [
+  "chlorhexidine",
+  "decolonization",
+  "mupirocin",
+  "nasal carriage",
 ];
 
 const TOXIC_SHOCK_CONTACT_PROPHYLAXIS_SAFETY_TERMS = [
@@ -29697,56 +29776,113 @@ function requiresToxicShockSafetyCheck(detail: ClinicalCaseReviewDetail): boolea
 
 function hasToxicShockTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasResuscitation = TOXIC_SHOCK_RESUSCITATION_ACTION_TERMS.some((term) =>
+  const hasHospitalIcuAction = TOXIC_SHOCK_HOSPITAL_ICU_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasCultureSource = TOXIC_SHOCK_CULTURE_SOURCE_ACTION_TERMS.some((term) =>
+  const hasFluidCirculatoryAction = TOXIC_SHOCK_FLUID_CIRCULATORY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasToxinAntibiotic = TOXIC_SHOCK_TOXIN_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+  const hasOrganSupportAction = TOXIC_SHOCK_ORGAN_SUPPORT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSourceControl = TOXIC_SHOCK_SOURCE_CONTROL_ACTION_TERMS.some((term) =>
+  const hasBloodCultureAction = TOXIC_SHOCK_BLOOD_CULTURE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasOrganMonitoring = TOXIC_SHOCK_ORGAN_MONITORING_ACTION_TERMS.some((term) =>
+  const hasSiteCultureAction = TOXIC_SHOCK_SITE_CULTURE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSourceImagingAction = TOXIC_SHOCK_SOURCE_IMAGING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasToxinSuppressionAction = TOXIC_SHOCK_TOXIN_SUPPRESSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEmpiricCoverageAction = TOXIC_SHOCK_EMPIRIC_COVERAGE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasForeignBodyRemovalAction = TOXIC_SHOCK_FOREIGN_BODY_REMOVAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSourceDecontaminationAction = TOXIC_SHOCK_SOURCE_DECONTAMINATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSurgicalControlAction = TOXIC_SHOCK_SURGICAL_CONTROL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRenalHepaticMonitoring = TOXIC_SHOCK_RENAL_HEPATIC_MONITORING_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHematologicMonitoring = TOXIC_SHOCK_HEMATOLOGIC_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCardiopulmonaryMonitoring =
+    TOXIC_SHOCK_CARDIOPULMONARY_MONITORING_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasMuscleCkMonitoring = TOXIC_SHOCK_MUSCLE_CK_MONITORING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasResuscitation &&
-    hasCultureSource &&
-    hasToxinAntibiotic &&
-    hasSourceControl &&
-    hasOrganMonitoring
+    hasHospitalIcuAction &&
+    hasFluidCirculatoryAction &&
+    hasOrganSupportAction &&
+    hasBloodCultureAction &&
+    hasSiteCultureAction &&
+    hasSourceImagingAction &&
+    hasToxinSuppressionAction &&
+    hasEmpiricCoverageAction &&
+    hasForeignBodyRemovalAction &&
+    hasSourceDecontaminationAction &&
+    hasSurgicalControlAction &&
+    hasRenalHepaticMonitoring &&
+    hasHematologicMonitoring &&
+    hasCardiopulmonaryMonitoring &&
+    hasMuscleCkMonitoring
   );
 }
 
 function hasToxicShockTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasGasRegimenSafety = TOXIC_SHOCK_GAS_REGIMEN_SAFETY_TERMS.some((term) =>
+  const hasGasBetaLactamSafety = TOXIC_SHOCK_GAS_BETA_LACTAM_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasStaphMrsaSafety = TOXIC_SHOCK_STAPH_MRSA_SAFETY_TERMS.some((term) =>
+  const hasGasToxinSuppressionSafety = TOXIC_SHOCK_GAS_TOXIN_SUPPRESSION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasStaphMssaSafety = TOXIC_SHOCK_STAPH_MSSA_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasIvigSevereSafety = TOXIC_SHOCK_IVIG_SEVERE_SAFETY_TERMS.some((term) =>
+  const hasMrsaCoverageSafety = TOXIC_SHOCK_MRSA_COVERAGE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasIvigConsiderationSafety = TOXIC_SHOCK_IVIG_CONSIDERATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSevereRefractorySafety = TOXIC_SHOCK_SEVERE_REFRACTORY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasDifferentialSafety = TOXIC_SHOCK_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasRecurrencePreventionSafety = TOXIC_SHOCK_RECURRENCE_PREVENTION_SAFETY_TERMS.some(
+  const hasDeviceRecurrenceSafety = TOXIC_SHOCK_DEVICE_RECURRENCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDecolonizationSafety = TOXIC_SHOCK_DECOLONIZATION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasContactProphylaxisSafety = TOXIC_SHOCK_CONTACT_PROPHYLAXIS_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasGasRegimenSafety &&
-    hasStaphMrsaSafety &&
-    hasIvigSevereSafety &&
+    hasGasBetaLactamSafety &&
+    hasGasToxinSuppressionSafety &&
+    hasStaphMssaSafety &&
+    hasMrsaCoverageSafety &&
+    hasIvigConsiderationSafety &&
+    hasSevereRefractorySafety &&
     hasDifferentialSafety &&
-    hasRecurrencePreventionSafety &&
+    hasDeviceRecurrenceSafety &&
+    hasDecolonizationSafety &&
     hasContactProphylaxisSafety
   );
 }
@@ -33587,7 +33723,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasToxicShockTimeCriticalActions,
       issue:
-        "toxic shock syndrome time-critical actions must include immediate hospitalization, ICU/intensive-care, fluid resuscitation, vasopressor, ventilation, renal-replacement, hemodialysis, or organ-support planning, blood culture or cultures from wound, vagina, throat, nose, CT, MRI, or soft-tissue imaging to identify the organism/source, empiric toxin-suppressing antibiotics with clindamycin or linezolid plus beta-lactam, penicillin, vancomycin, daptomycin, or ceftaroline, source control with tampon/foreign-body/device removal, drainage, irrigation, debridement, or surgery, and renal, hepatic/liver, platelet, coagulation, CK, or cardiopulmonary monitoring",
+        "toxic shock syndrome time-critical actions must include immediate hospitalization, hospitalize, ICU, or intensive-care management, separate aggressive fluid resuscitation/fluids-electrolytes plus vasopressor or circulatory-support planning, separate organ-support planning such as ventilation, ventilatory support, renal replacement, hemodialysis, or organ support, blood culture, site culture from wound, vagina, throat, nose, lesion, or local site, CT, MRI, or soft-tissue imaging to identify source, toxin-suppressing antibiotic such as clindamycin, linezolid, protein inhibitor, or toxin-suppression plus empiric coverage such as beta-lactam, penicillin, vancomycin, daptomycin, or ceftaroline, tampon/foreign-body/device removal, source decontamination with drainage, irrigation, or source control, surgical control with debridement, repeated debridement, necrotizing-fasciitis surgery, or surgery, and separate renal/hepatic, hematologic/platelet/coagulation, cardiopulmonary/ARDS, and CK/creatine-kinase/myalgia monitoring",
     },
     {
       name: "toxic_shock_treatment_safety",
@@ -33596,7 +33732,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasToxicShockTreatmentSafetyCheck,
       issue:
-        "toxic shock syndrome safety checks must include group-A-strep/streptococcal regimen tailoring with penicillin plus clindamycin, staphylococcal/MSSA/MRSA regimen review with nafcillin, oxacillin, vancomycin, or MRSA coverage, IVIG or IV immune globulin consideration for severe or refractory shock, differential review for Kawasaki, scarlet fever, SSSS, staphylococcal scalded skin, Stevens-Johnson, meningococcemia, Rocky Mountain spotted fever, or leptospirosis, recurrence prevention with tampon, menstrual-cup, avoid-hyperabsorbent-tampon, mupirocin, or chlorhexidine guidance, and household-contact, prophylaxis, screening, not-routinely-recommend, or standard infection control review",
+        "toxic shock syndrome safety checks must include group-A-strep/streptococcal regimen tailoring with penicillin or beta-lactam plus clindamycin or linezolid toxin suppression, staphylococcal/MSSA regimen review with nafcillin, oxacillin, or MSSA coverage, MRSA coverage review with vancomycin, daptomycin, ceftaroline, or MRSA coverage, IVIG or IV immune globulin consideration for severe, severely ill, or refractory shock, differential review for Kawasaki, scarlet fever, SSSS, staphylococcal scalded skin, Stevens-Johnson, meningococcemia, Rocky Mountain spotted fever, or leptospirosis, device recurrence prevention with tampon, menstrual cup, avoid-hyperabsorbent tampon, change-tampon, diaphragm, cervical cap, pessary, contraceptive sponge, or intrauterine-device guidance, decolonization with mupirocin, chlorhexidine, nasal-carriage, or decolonization planning, and household-contact prophylaxis/screening or not-routinely-recommend plus standard infection-control review",
     },
     {
       name: "methemoglobinemia_time_critical_actions",
