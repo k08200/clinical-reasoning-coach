@@ -20871,6 +20871,132 @@ def test_quality_gate_requires_acute_mesenteric_ischemia_anticoagulation_viabili
     )
 
 
+def test_quality_gate_requires_acute_mesenteric_ischemia_separate_vascular_revascularization_and_laparotomy_source_control_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute mesenteric ischemia from SMA embolus"
+    case["patient_demographics"] = {
+        "age": 82,
+        "sex": "male",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe abdominal pain out of proportion"
+    case["history_of_present_illness"] = (
+        "Older patient with atrial fibrillation has sudden severe abdominal pain "
+        "out of proportion to exam, vomiting, metabolic acidosis, rising lactate, "
+        "shock, and concern for acute mesenteric ischemia from SMA embolus."
+    )
+    case["key_teaching_points"] = [
+        "WSES recommends CTA without delay when acute mesenteric ischemia is suspected",
+        "AMI management requires resuscitation, antibiotics, anticoagulation, and rapid multidisciplinary source-control planning",
+        "Revascularization and laparotomy or bowel resection planning are distinct decisions when bowel infarction is possible",
+    ]
+    case["clinical_red_flags"] = [
+        "Pain out of proportion, atrial fibrillation, vomiting, metabolic acidosis, lactate elevation, or shock",
+        "Peritonitis, bowel infarction, pneumatosis, portal venous gas, organ failure, or GI bleeding",
+    ]
+    case["time_critical_actions"] = [
+        "Order CTA abdomen pelvis or CT angiography without delay",
+        "Give IV fluid resuscitation and monitor lactate, metabolic acidosis, shock, and organ perfusion",
+        "Start early broad-spectrum antibiotics such as piperacillin tazobactam",
+        "Start therapeutic unfractionated heparin anticoagulation unless contraindicated",
+        "Escalate to acute care surgery and vascular surgery with interventional radiology involvement",
+    ]
+    case["contraindication_checks"] = [
+        "Review heparin anticoagulation plan with bleeding, platelet, intracranial hemorrhage, and recent surgery contraindications",
+        "Assess bowel viability, necrotic bowel, peritonitis, damage control laparotomy, second look operation, and short bowel risk",
+        "Review embolic atrial fibrillation source, SMA arterial thrombosis, venous thrombosis, low-flow shock, NOMI, and nonocclusive mesenteric ischemia causes",
+        "Normal lactate does not exclude AMI and pain out of proportion should not delay CTA or intervention",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute mesenteric ischemia: updated guidelines of the World Society of Emergency Surgery",
+            "organization": "World Journal of Emergency Surgery",
+            "url": "https://link.springer.com/article/10.1186/s13017-022-00443-x",
+            "supports": [
+                "computed tomography angiography should be performed without delay in suspected acute mesenteric ischemia",
+                "every 6 hours of delay in diagnosis or CTA doubles mortality",
+                "revascularization can include endovascular intervention, embolectomy, thrombectomy, bypass, or stent planning",
+                "peritonitis or necrotic bowel requires exploratory laparotomy and bowel resection source-control planning",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "vascular surgery or interventional-radiology" in issue
+        and "specific revascularization, endovascular intervention" in issue
+        and "exploratory laparotomy, damage-control laparotomy" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_mesenteric_ischemia_second_look_short_bowel_venous_nomi_and_no_delay_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute mesenteric ischemia"
+    case["patient_demographics"] = {
+        "age": 82,
+        "sex": "male",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe abdominal pain out of proportion"
+    case["history_of_present_illness"] = (
+        "Older patient with atrial fibrillation has sudden severe abdominal pain "
+        "out of proportion to exam, vomiting, metabolic acidosis, rising lactate, "
+        "shock, and concern for acute mesenteric ischemia from SMA embolus."
+    )
+    case["key_teaching_points"] = [
+        "Laboratory tests including lactate cannot reliably exclude early AMI",
+        "AMI phenotypes include embolic, arterial thrombotic, venous thrombosis, and nonocclusive low-flow disease",
+        "Bowel viability, second-look strategy, and short bowel risk should be addressed when resection may be needed",
+    ]
+    case["clinical_red_flags"] = [
+        "Pain out of proportion, atrial fibrillation, vomiting, metabolic acidosis, lactate elevation, or shock",
+        "Peritonitis, bowel infarction, pneumatosis, portal venous gas, organ failure, or GI bleeding",
+    ]
+    case["time_critical_actions"] = [
+        "Order CTA abdomen pelvis or CT angiography without delay",
+        "Give IV fluid resuscitation and monitor lactate, metabolic acidosis, shock, and organ perfusion",
+        "Start early broad-spectrum antibiotics such as piperacillin tazobactam",
+        "Start therapeutic unfractionated heparin anticoagulation unless contraindicated",
+        "Escalate to acute care surgery, vascular surgery, and interventional radiology for endovascular revascularization, embolectomy, SMA thrombectomy, and exploratory laparotomy or bowel resection planning",
+    ]
+    case["contraindication_checks"] = [
+        "Review heparin anticoagulation plan with bleeding and platelet contraindications",
+        "Assess bowel viability and necrotic bowel or peritonitis",
+        "Review embolic atrial fibrillation source and SMA thrombosis",
+        "Normal lactate should be interpreted cautiously",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Acute mesenteric ischemia: updated guidelines of the World Society of Emergency Surgery",
+            "organization": "World Journal of Emergency Surgery",
+            "url": "https://link.springer.com/article/10.1186/s13017-022-00443-x",
+            "supports": [
+                "lactate alone is not reliable to distinguish early ischemia from irreversible bowel injury",
+                "AMI etiologies include embolic, arterial thrombotic, nonocclusive low-flow, and mesenteric venous thrombosis",
+                "damage-control surgery and second-look operations may be needed to reassess bowel viability",
+                "short bowel risk should be considered when extensive intestinal resection is possible",
+                "CTA and intervention should not be delayed by laboratory uncertainty",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "damage-control or second-look" in issue
+        and "short-bowel risk" in issue
+        and "venous thrombosis, and low-flow/nonocclusive/NOMI" in issue
+        and "do-not-delay CTA or intervention" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_necrotizing_soft_tissue_infection_surgery_antibiotics_resuscitation_and_no_delay():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Necrotizing fasciitis"

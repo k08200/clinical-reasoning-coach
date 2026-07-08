@@ -19960,6 +19960,118 @@
     }
   },
   {
+    "name": "acute_mesenteric_ischemia_requires_separate_vascular_revascularization_and_laparotomy_source_control_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "vascular surgery or interventional-radiology",
+      "specific revascularization, endovascular intervention",
+      "exploratory laparotomy, damage-control laparotomy"
+    ],
+    "overrides": {
+      "diagnosis": "Acute mesenteric ischemia from SMA embolus",
+      "patient_demographics": {
+        "age": 82,
+        "sex": "male",
+        "weight_kg": 70,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Severe abdominal pain out of proportion",
+      "history_of_present_illness": "Older patient with atrial fibrillation has sudden severe abdominal pain out of proportion to exam, vomiting, metabolic acidosis, rising lactate, shock, and concern for acute mesenteric ischemia from SMA embolus.",
+      "key_teaching_points": [
+        "WSES recommends CTA without delay when acute mesenteric ischemia is suspected",
+        "AMI management requires resuscitation, antibiotics, anticoagulation, and rapid multidisciplinary source-control planning",
+        "Revascularization and laparotomy or bowel resection planning are distinct decisions when bowel infarction is possible"
+      ],
+      "clinical_red_flags": [
+        "Pain out of proportion, atrial fibrillation, vomiting, metabolic acidosis, lactate elevation, or shock",
+        "Peritonitis, bowel infarction, pneumatosis, portal venous gas, organ failure, or GI bleeding"
+      ],
+      "time_critical_actions": [
+        "Order CTA abdomen pelvis or CT angiography without delay",
+        "Give IV fluid resuscitation and monitor lactate, metabolic acidosis, shock, and organ perfusion",
+        "Start early broad-spectrum antibiotics such as piperacillin tazobactam",
+        "Start therapeutic unfractionated heparin anticoagulation unless contraindicated",
+        "Escalate to acute care surgery and vascular surgery with interventional radiology involvement"
+      ],
+      "contraindication_checks": [
+        "Review heparin anticoagulation plan with bleeding, platelet, intracranial hemorrhage, and recent surgery contraindications",
+        "Assess bowel viability, necrotic bowel, peritonitis, damage control laparotomy, second look operation, and short bowel risk",
+        "Review embolic atrial fibrillation source, SMA arterial thrombosis, venous thrombosis, low-flow shock, NOMI, and nonocclusive mesenteric ischemia causes",
+        "Normal lactate does not exclude AMI and pain out of proportion should not delay CTA or intervention"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Acute mesenteric ischemia: updated guidelines of the World Society of Emergency Surgery",
+          "organization": "World Journal of Emergency Surgery",
+          "url": "https://link.springer.com/article/10.1186/s13017-022-00443-x",
+          "supports": [
+            "computed tomography angiography should be performed without delay in suspected acute mesenteric ischemia",
+            "every 6 hours of delay in diagnosis or CTA doubles mortality",
+            "revascularization can include endovascular intervention, embolectomy, thrombectomy, bypass, or stent planning",
+            "peritonitis or necrotic bowel requires exploratory laparotomy and bowel resection source-control planning"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "acute_mesenteric_ischemia_requires_second_look_short_bowel_venous_nomi_and_no_delay_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "damage-control or second-look",
+      "short-bowel risk",
+      "venous thrombosis, and low-flow/nonocclusive/NOMI",
+      "do-not-delay CTA or intervention"
+    ],
+    "overrides": {
+      "diagnosis": "Acute mesenteric ischemia",
+      "patient_demographics": {
+        "age": 82,
+        "sex": "male",
+        "weight_kg": 70,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Severe abdominal pain out of proportion",
+      "history_of_present_illness": "Older patient with atrial fibrillation has sudden severe abdominal pain out of proportion to exam, vomiting, metabolic acidosis, rising lactate, shock, and concern for acute mesenteric ischemia from SMA embolus.",
+      "key_teaching_points": [
+        "Laboratory tests including lactate cannot reliably exclude early AMI",
+        "AMI phenotypes include embolic, arterial thrombotic, venous thrombosis, and nonocclusive low-flow disease",
+        "Bowel viability, second-look strategy, and short bowel risk should be addressed when resection may be needed"
+      ],
+      "clinical_red_flags": [
+        "Pain out of proportion, atrial fibrillation, vomiting, metabolic acidosis, lactate elevation, or shock",
+        "Peritonitis, bowel infarction, pneumatosis, portal venous gas, organ failure, or GI bleeding"
+      ],
+      "time_critical_actions": [
+        "Order CTA abdomen pelvis or CT angiography without delay",
+        "Give IV fluid resuscitation and monitor lactate, metabolic acidosis, shock, and organ perfusion",
+        "Start early broad-spectrum antibiotics such as piperacillin tazobactam",
+        "Start therapeutic unfractionated heparin anticoagulation unless contraindicated",
+        "Escalate to acute care surgery, vascular surgery, and interventional radiology for endovascular revascularization, embolectomy, SMA thrombectomy, and exploratory laparotomy or bowel resection planning"
+      ],
+      "contraindication_checks": [
+        "Review heparin anticoagulation plan with bleeding and platelet contraindications",
+        "Assess bowel viability and necrotic bowel or peritonitis",
+        "Review embolic atrial fibrillation source and SMA thrombosis",
+        "Normal lactate should be interpreted cautiously"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Acute mesenteric ischemia: updated guidelines of the World Society of Emergency Surgery",
+          "organization": "World Journal of Emergency Surgery",
+          "url": "https://link.springer.com/article/10.1186/s13017-022-00443-x",
+          "supports": [
+            "lactate alone is not reliable to distinguish early ischemia from irreversible bowel injury",
+            "AMI etiologies include embolic, arterial thrombotic, nonocclusive low-flow, and mesenteric venous thrombosis",
+            "damage-control surgery and second-look operations may be needed to reassess bowel viability",
+            "short bowel risk should be considered when extensive intestinal resection is possible",
+            "CTA and intervention should not be delayed by laboratory uncertainty"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "necrotizing_soft_tissue_infection_requires_surgery_antibiotics_resuscitation_and_no_delay",
     "expected_passed": false,
     "expected_issue_substrings": [

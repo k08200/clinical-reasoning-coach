@@ -9476,14 +9476,17 @@ ACUTE_MESENTERIC_ISCHEMIA_CTA_ACTION_TERMS = (
     "multidetector ct",
     "복부 ct",
 )
-ACUTE_MESENTERIC_ISCHEMIA_RESUSCITATION_ACTION_TERMS = (
+ACUTE_MESENTERIC_ISCHEMIA_FLUID_RESUSCITATION_ACTION_TERMS = (
     "fluid",
     "fluids",
+    "resuscitation",
+    "수액",
+)
+ACUTE_MESENTERIC_ISCHEMIA_METABOLIC_SHOCK_MONITORING_ACTION_TERMS = (
     "lactate",
     "metabolic acidosis",
-    "resuscitation",
+    "organ perfusion",
     "shock",
-    "수액",
     "젖산",
 )
 ACUTE_MESENTERIC_ISCHEMIA_ANTIBIOTIC_ACTION_TERMS = (
@@ -9506,25 +9509,21 @@ ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_ACTION_TERMS = (
 ACUTE_MESENTERIC_ISCHEMIA_SURGERY_TEAM_ACTION_TERMS = (
     "acute care surgery",
     "general surgery",
-    "interventional radiology",
     "surgeon",
     "surgical consult",
+)
+ACUTE_MESENTERIC_ISCHEMIA_VASCULAR_IR_TEAM_ACTION_TERMS = (
+    "interventional radiology",
     "vascular surgery",
     "vascular surgeon",
     "혈관외과",
 )
-ACUTE_MESENTERIC_ISCHEMIA_REVASCULARIZATION_SOURCE_CONTROL_ACTION_TERMS = (
-    "bowel resection",
-    "damage control laparotomy",
+ACUTE_MESENTERIC_ISCHEMIA_REVASCULARIZATION_ACTION_TERMS = (
     "embolectomy",
     "endovascular intervention",
     "endovascular revascularization",
     "endovascular therapy",
-    "exploratory laparotomy",
-    "ischemic bowel resection",
-    "laparotomy",
     "mesenteric revascularization",
-    "necrotic bowel resection",
     "revascularisation",
     "revascularization",
     "sma bypass",
@@ -9532,8 +9531,16 @@ ACUTE_MESENTERIC_ISCHEMIA_REVASCULARIZATION_SOURCE_CONTROL_ACTION_TERMS = (
     "sma thrombectomy",
     "thrombectomy",
     "thrombolysis",
-    "장 절제",
     "재관류",
+)
+ACUTE_MESENTERIC_ISCHEMIA_LAPAROTOMY_SOURCE_CONTROL_ACTION_TERMS = (
+    "bowel resection",
+    "damage control laparotomy",
+    "exploratory laparotomy",
+    "ischemic bowel resection",
+    "laparotomy",
+    "necrotic bowel resection",
+    "장 절제",
 )
 ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_SAFETY_TERMS = (
     "anticoagulation",
@@ -9547,35 +9554,50 @@ ACUTE_MESENTERIC_ISCHEMIA_ANTICOAGULATION_SAFETY_TERMS = (
 )
 ACUTE_MESENTERIC_ISCHEMIA_BOWEL_VIABILITY_SAFETY_TERMS = (
     "bowel viability",
-    "damage control",
     "necrotic bowel",
     "peritonitis",
-    "re-look",
-    "second look",
-    "short bowel",
     "viability",
     "복막염",
 )
-ACUTE_MESENTERIC_ISCHEMIA_CAUSE_TYPE_SAFETY_TERMS = (
+ACUTE_MESENTERIC_ISCHEMIA_SECOND_LOOK_DAMAGE_CONTROL_SAFETY_TERMS = (
+    "damage control",
+    "re-look",
+    "second look",
+)
+ACUTE_MESENTERIC_ISCHEMIA_SHORT_BOWEL_SAFETY_TERMS = (
+    "short bowel",
+)
+ACUTE_MESENTERIC_ISCHEMIA_EMBOLIC_AF_SAFETY_TERMS = (
     "atrial fibrillation",
     "embol",
-    "low-flow",
-    "nomas",
-    "nonocclusive",
+    "심방세동",
+)
+ACUTE_MESENTERIC_ISCHEMIA_ARTERIAL_THROMBOTIC_SAFETY_TERMS = (
     "sma",
     "thrombosis",
-    "venous thrombosis",
-    "심방세동",
     "혈전",
 )
+ACUTE_MESENTERIC_ISCHEMIA_VENOUS_THROMBOSIS_SAFETY_TERMS = (
+    "venous thrombosis",
+)
+ACUTE_MESENTERIC_ISCHEMIA_NOMI_LOWFLOW_SAFETY_TERMS = (
+    "low-flow",
+    "nomi",
+    "nonocclusive",
+)
 ACUTE_MESENTERIC_ISCHEMIA_LACTATE_LIMITATION_SAFETY_TERMS = (
-    "do not delay",
     "lactate",
     "normal lactate",
     "not exclude",
     "not rule out",
-    "pain out of proportion",
     "젖산",
+)
+ACUTE_MESENTERIC_ISCHEMIA_DO_NOT_DELAY_SAFETY_TERMS = (
+    "do not delay",
+    "intervention",
+    "lactate",
+    "pain out of proportion",
+    "cta",
 )
 NECROTIZING_SOFT_TISSUE_INFECTION_CONTEXT_TERMS = (
     "fournier gangrene",
@@ -20561,14 +20583,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acute_mesenteric_ischemia_time_critical_actions,
             issue=(
                 "acute mesenteric ischemia time-critical actions must include "
-                "CTA or CT angiography, resuscitation with lactate, acidosis, "
-                "shock, or fluid monitoring, early broad-spectrum antibiotics, "
-                "therapeutic heparin or anticoagulation, urgent surgery, "
-                "vascular surgery, interventional radiology, surgeon, or "
-                "surgical consultation escalation, and specific "
+                "CTA or CT angiography without delay, IV fluid resuscitation "
+                "plus lactate, metabolic acidosis, shock, or organ-perfusion "
+                "monitoring, early broad-spectrum antibiotics, therapeutic "
+                "heparin or anticoagulation, urgent surgery/surgeon/surgical "
+                "consultation escalation plus vascular surgery or "
+                "interventional-radiology involvement, specific "
                 "revascularization, endovascular intervention, embolectomy, "
-                "laparotomy, thrombectomy, thrombolysis, SMA bypass or stent, "
-                "or bowel-resection source-control planning"
+                "thrombectomy, thrombolysis, SMA bypass, or SMA stent planning, "
+                "and exploratory laparotomy, damage-control laparotomy, or "
+                "ischemic/necrotic bowel-resection source-control planning"
             ),
         ),
         DomainSafetyGate(
@@ -20579,10 +20603,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "acute mesenteric ischemia safety checks must include heparin "
                 "or anticoagulation bleeding contraindication review, bowel "
-                "viability, necrosis, peritonitis, damage-control, second-look, "
-                "or short-bowel planning, embolic, thrombotic, SMA, venous, "
-                "atrial-fibrillation, low-flow, or nonocclusive cause review, "
-                "and lactate limitation or do-not-delay CTA/intervention safety"
+                "viability, necrotic bowel, or peritonitis review plus "
+                "damage-control or second-look planning and short-bowel risk "
+                "planning, embolic/atrial-fibrillation, SMA/arterial thrombosis, "
+                "venous thrombosis, and low-flow/nonocclusive/NOMI cause review, "
+                "and lactate limitation review plus do-not-delay CTA or "
+                "intervention safety"
             ),
         ),
         DomainSafetyGate(
@@ -30963,9 +30989,13 @@ def _has_acute_mesenteric_ischemia_time_critical_actions(actions: list[Any]) -> 
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_MESENTERIC_ISCHEMIA_CTA_ACTION_TERMS
     )
-    has_resuscitation = any(
+    has_fluid_resuscitation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_MESENTERIC_ISCHEMIA_RESUSCITATION_ACTION_TERMS
+        for term in ACUTE_MESENTERIC_ISCHEMIA_FLUID_RESUSCITATION_ACTION_TERMS
+    )
+    has_metabolic_shock_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_METABOLIC_SHOCK_MONITORING_ACTION_TERMS
     )
     has_antibiotic = any(
         _contains_safety_term(normalized_actions, term)
@@ -30979,17 +31009,28 @@ def _has_acute_mesenteric_ischemia_time_critical_actions(actions: list[Any]) -> 
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_MESENTERIC_ISCHEMIA_SURGERY_TEAM_ACTION_TERMS
     )
-    has_revascularization_source_control = any(
+    has_vascular_ir_team = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_MESENTERIC_ISCHEMIA_REVASCULARIZATION_SOURCE_CONTROL_ACTION_TERMS
+        for term in ACUTE_MESENTERIC_ISCHEMIA_VASCULAR_IR_TEAM_ACTION_TERMS
+    )
+    has_revascularization = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_REVASCULARIZATION_ACTION_TERMS
+    )
+    has_laparotomy_source_control = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_LAPAROTOMY_SOURCE_CONTROL_ACTION_TERMS
     )
     return (
         has_cta
-        and has_resuscitation
+        and has_fluid_resuscitation
+        and has_metabolic_shock_monitoring
         and has_antibiotic
         and has_anticoagulation
         and has_surgery_team
-        and has_revascularization_source_control
+        and has_vascular_ir_team
+        and has_revascularization
+        and has_laparotomy_source_control
     )
 
 
@@ -31003,19 +31044,49 @@ def _has_acute_mesenteric_ischemia_treatment_safety_check(checks: list[Any]) -> 
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_MESENTERIC_ISCHEMIA_BOWEL_VIABILITY_SAFETY_TERMS
     )
-    has_cause_type_safety = any(
+    has_second_look_damage_control_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_MESENTERIC_ISCHEMIA_CAUSE_TYPE_SAFETY_TERMS
+        for term in ACUTE_MESENTERIC_ISCHEMIA_SECOND_LOOK_DAMAGE_CONTROL_SAFETY_TERMS
+    )
+    has_short_bowel_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_SHORT_BOWEL_SAFETY_TERMS
+    )
+    has_embolic_af_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_EMBOLIC_AF_SAFETY_TERMS
+    )
+    has_arterial_thrombotic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_ARTERIAL_THROMBOTIC_SAFETY_TERMS
+    )
+    has_venous_thrombosis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_VENOUS_THROMBOSIS_SAFETY_TERMS
+    )
+    has_nomi_lowflow_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_NOMI_LOWFLOW_SAFETY_TERMS
     )
     has_lactate_limitation_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_MESENTERIC_ISCHEMIA_LACTATE_LIMITATION_SAFETY_TERMS
     )
+    has_do_not_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_MESENTERIC_ISCHEMIA_DO_NOT_DELAY_SAFETY_TERMS
+    )
     return (
         has_anticoagulation_safety
         and has_bowel_viability_safety
-        and has_cause_type_safety
+        and has_second_look_damage_control_safety
+        and has_short_bowel_safety
+        and has_embolic_af_safety
+        and has_arterial_thrombotic_safety
+        and has_venous_thrombosis_safety
+        and has_nomi_lowflow_safety
         and has_lactate_limitation_safety
+        and has_do_not_delay_safety
     )
 
 
