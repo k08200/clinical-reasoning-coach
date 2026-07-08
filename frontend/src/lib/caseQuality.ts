@@ -9603,28 +9603,44 @@ const ACUTE_CHOLANGITIS_ANTIBIOTIC_ACTION_TERMS = [
   "항생제",
 ];
 
-const ACUTE_CHOLANGITIS_CULTURE_ACTION_TERMS = [
+const ACUTE_CHOLANGITIS_BLOOD_CULTURE_ACTION_TERMS = [
   "blood culture",
   "blood cultures",
-  "bile culture",
   "배양",
 ];
 
-const ACUTE_CHOLANGITIS_LAB_ACTION_TERMS = [
-  "bilirubin",
+const ACUTE_CHOLANGITIS_BILE_CULTURE_ACTION_TERMS = [
+  "bile culture",
+  "bile specimen",
+  "biliary culture",
+  "ercp specimen",
+];
+
+const ACUTE_CHOLANGITIS_INFLAMMATION_LAB_ACTION_TERMS = [
   "crp",
   "inflammatory",
+  "leukocytosis",
+  "wbc",
+];
+
+const ACUTE_CHOLANGITIS_CHOLESTASIS_LAB_ACTION_TERMS = [
+  "alkaline phosphatase",
+  "bilirubin",
+  "ggt",
   "lft",
   "liver function",
-  "wbc",
   "빌리루빈",
 ];
 
-const ACUTE_CHOLANGITIS_IMAGING_MODALITY_TERMS = [
-  "ct",
-  "mrcp",
+const ACUTE_CHOLANGITIS_INITIAL_ULTRASOUND_ACTION_TERMS = [
+  "abdominal ultrasound",
   "ultrasound",
   "초음파",
+];
+
+const ACUTE_CHOLANGITIS_ADDITIONAL_IMAGING_MODALITY_TERMS = [
+  "ct",
+  "mrcp",
 ];
 
 const ACUTE_CHOLANGITIS_OBSTRUCTION_TARGET_TERMS = [
@@ -9636,13 +9652,16 @@ const ACUTE_CHOLANGITIS_OBSTRUCTION_TARGET_TERMS = [
   "stricture",
 ];
 
-const ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS = [
-  "advanced center",
+const ACUTE_CHOLANGITIS_ERCP_ACCESS_ACTION_TERMS = [
   "endoscopic",
   "endoscopy",
   "ercp",
   "gastroenterology",
   "gi",
+];
+
+const ACUTE_CHOLANGITIS_FALLBACK_ACCESS_ACTION_TERMS = [
+  "advanced center",
   "interventional radiology",
   "ivr",
   "percutaneous transhepatic",
@@ -9692,9 +9711,6 @@ const ACUTE_CHOLANGITIS_ORGAN_SUPPORT_ACTION_TERMS = [
 ];
 
 const ACUTE_CHOLANGITIS_SEVERITY_SAFETY_TERMS = [
-  "acute dyspnea",
-  "dic",
-  "disturbance of consciousness",
   "organ dysfunction",
   "renal dysfunction",
   "severity",
@@ -9704,16 +9720,29 @@ const ACUTE_CHOLANGITIS_SEVERITY_SAFETY_TERMS = [
   "장기부전",
 ];
 
+const ACUTE_CHOLANGITIS_RESPIRATORY_NEURO_COAG_SAFETY_TERMS = [
+  "acute dyspnea",
+  "dic",
+  "disturbance of consciousness",
+  "respiratory",
+  "의식",
+];
+
 const ACUTE_CHOLANGITIS_DRAINAGE_TIMING_SAFETY_TERMS = [
   "48 hours",
-  "advanced center",
   "do not delay",
   "early drainage",
   "emergency biliary drainage",
-  "transfer",
   "within 24",
   "within 48",
   "지연",
+];
+
+const ACUTE_CHOLANGITIS_TRANSFER_SAFETY_TERMS = [
+  "advanced center",
+  "advanced-centre",
+  "transfer",
+  "전원",
 ];
 
 const ACUTE_CHOLANGITIS_PROCEDURE_RISK_SAFETY_TERMS = [
@@ -9722,10 +9751,14 @@ const ACUTE_CHOLANGITIS_PROCEDURE_RISK_SAFETY_TERMS = [
   "coagulopathy",
   "failed ercp",
   "pancreatitis",
-  "percutaneous drainage",
-  "ptbd",
   "sphincterotomy",
   "항응고",
+];
+
+const ACUTE_CHOLANGITIS_PERCUTANEOUS_ALTERNATIVE_SAFETY_TERMS = [
+  "percutaneous drainage",
+  "percutaneous transhepatic",
+  "ptbd",
 ];
 
 const ACUTE_CHOLANGITIS_DIFFERENTIAL_SOURCE_SAFETY_TERMS = [
@@ -25753,7 +25786,10 @@ function hasAcuteCholangitisTimeCriticalActions(actions: string[]): boolean {
   const hasAntibioticSupport = hasAcuteCholangitisAntibioticAction(actions);
   const hasCultureLab = hasAcuteCholangitisCultureLabAction(actions);
   const hasImagingObstruction = hasAcuteCholangitisImagingObstructionAction(actions);
-  const hasBiliaryAccess = ACUTE_CHOLANGITIS_BILIARY_ACCESS_ACTION_TERMS.some((term) =>
+  const hasErcpAccess = ACUTE_CHOLANGITIS_ERCP_ACCESS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFallbackAccess = ACUTE_CHOLANGITIS_FALLBACK_ACCESS_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasDrainageRoute = hasAcuteCholangitisDrainageRouteAction(actions);
@@ -25764,7 +25800,8 @@ function hasAcuteCholangitisTimeCriticalActions(actions: string[]): boolean {
     hasAntibioticSupport &&
     hasCultureLab &&
     hasImagingObstruction &&
-    hasBiliaryAccess &&
+    hasErcpAccess &&
+    hasFallbackAccess &&
     hasDrainageRoute &&
     hasOrganSupport
   );
@@ -25779,26 +25816,33 @@ function hasAcuteCholangitisAntibioticAction(actions: string[]): boolean {
 
 function hasAcuteCholangitisCultureLabAction(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasCulture = ACUTE_CHOLANGITIS_CULTURE_ACTION_TERMS.some((term) =>
+  const hasBloodCulture = ACUTE_CHOLANGITIS_BLOOD_CULTURE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasLab = ACUTE_CHOLANGITIS_LAB_ACTION_TERMS.some((term) =>
+  const hasBileCulture = ACUTE_CHOLANGITIS_BILE_CULTURE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasCulture && hasLab;
+  const hasInflammationLab = ACUTE_CHOLANGITIS_INFLAMMATION_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCholestasisLab = ACUTE_CHOLANGITIS_CHOLESTASIS_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasBloodCulture && hasBileCulture && hasInflammationLab && hasCholestasisLab;
 }
 
 function hasAcuteCholangitisImagingObstructionAction(actions: string[]): boolean {
-  return actions.some((action) => {
-    const normalizedAction = String(action).toLowerCase();
-    const hasModality = ACUTE_CHOLANGITIS_IMAGING_MODALITY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedAction, term),
-    );
-    const hasObstructionTarget = ACUTE_CHOLANGITIS_OBSTRUCTION_TARGET_TERMS.some((term) =>
-      containsSafetyTerm(normalizedAction, term),
-    );
-    return hasModality && hasObstructionTarget;
-  });
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasInitialUltrasound = ACUTE_CHOLANGITIS_INITIAL_ULTRASOUND_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAdditionalImaging = ACUTE_CHOLANGITIS_ADDITIONAL_IMAGING_MODALITY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasObstructionTarget = ACUTE_CHOLANGITIS_OBSTRUCTION_TARGET_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasInitialUltrasound && hasAdditionalImaging && hasObstructionTarget;
 }
 
 function hasAcuteCholangitisDrainageRouteAction(actions: string[]): boolean {
@@ -25822,19 +25866,33 @@ function hasAcuteCholangitisTreatmentSafetyCheck(checks: string[]): boolean {
   const hasSeveritySafety = ACUTE_CHOLANGITIS_SEVERITY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasRespiratoryNeuroCoagSafety =
+    ACUTE_CHOLANGITIS_RESPIRATORY_NEURO_COAG_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasDrainageTimingSafety = ACUTE_CHOLANGITIS_DRAINAGE_TIMING_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTransferSafety = ACUTE_CHOLANGITIS_TRANSFER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
   );
   const hasProcedureRiskSafety = ACUTE_CHOLANGITIS_PROCEDURE_RISK_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasPercutaneousAlternativeSafety =
+    ACUTE_CHOLANGITIS_PERCUTANEOUS_ALTERNATIVE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasDifferentialSourceSafety = ACUTE_CHOLANGITIS_DIFFERENTIAL_SOURCE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   return (
     hasSeveritySafety &&
+    hasRespiratoryNeuroCoagSafety &&
     hasDrainageTimingSafety &&
+    hasTransferSafety &&
     hasProcedureRiskSafety &&
+    hasPercutaneousAlternativeSafety &&
     hasDifferentialSourceSafety
   );
 }
@@ -33125,7 +33183,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcuteCholangitisTimeCriticalActions,
       issue:
-        "acute cholangitis time-critical actions must include immediate broad-spectrum antibiotics and supportive care, blood culture, bile culture, WBC, CRP, bilirubin, LFT, or liver function assessment, ultrasound, CT, MRCP, biliary dilation, common bile duct, stone, stricture, or obstruction imaging, gastroenterology, endoscopy, ERCP, interventional radiology, PTBD, percutaneous transhepatic, transfer, or advanced-center access planning, specific ERCP, endoscopic biliary drainage, endoscopic nasobiliary drainage, biliary decompression, biliary stent, PTBD, or percutaneous transhepatic biliary drainage route planning, and sepsis, shock, fluid, vasopressor, respiratory, circulatory, organ-support, or ICU escalation",
+        "acute cholangitis time-critical actions must include immediate broad-spectrum antibiotics and supportive care, blood culture plus bile culture, biliary culture, bile specimen, or ERCP specimen planning, inflammatory labs such as WBC, CRP, leukocytosis, or inflammatory markers plus cholestasis labs such as bilirubin, ALP, GGT, LFT, or liver function assessment, initial abdominal or biliary ultrasound plus CT or MRCP review for biliary dilation, common bile duct, stone, stricture, or obstruction, ERCP/gastroenterology access planning plus transfer, advanced-center, interventional radiology, PTBD, or percutaneous transhepatic fallback access planning, specific ERCP, endoscopic biliary drainage, endoscopic nasobiliary drainage, biliary decompression, biliary stent, PTBD, or percutaneous transhepatic biliary drainage route planning, and sepsis, shock, fluid, vasopressor, respiratory, circulatory, organ-support, or ICU escalation",
     },
     {
       name: "acute_cholangitis_treatment_safety",
@@ -33134,7 +33192,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAcuteCholangitisTreatmentSafetyCheck,
       issue:
-        "acute cholangitis safety checks must include Tokyo severity or organ dysfunction review for shock, disturbance of consciousness, acute dyspnea, renal dysfunction, DIC, or severe disease, early or emergency biliary drainage timing with do-not-delay, within-24 or within-48-hours, transfer, or advanced-center planning, ERCP procedure-risk review for anticoagulant, coagulopathy, sphincterotomy, pancreatitis, failed ERCP, altered anatomy, PTBD, or percutaneous drainage alternatives, and source-control or differential review for cholecystitis, pancreatitis, gallstone pancreatitis, malignant obstruction, stone, or bile culture",
+        "acute cholangitis safety checks must include Tokyo severity or organ dysfunction review for shock, disturbance of consciousness, acute dyspnea, respiratory failure, renal dysfunction, DIC, or severe disease, early or emergency biliary drainage timing with do-not-delay, within-24 or within-48-hours planning plus transfer or advanced-center planning, ERCP procedure-risk review for anticoagulant, coagulopathy, sphincterotomy, pancreatitis, failed ERCP, or altered anatomy, PTBD, percutaneous transhepatic, or percutaneous drainage alternatives, and source-control or differential review for cholecystitis, pancreatitis, gallstone pancreatitis, malignant obstruction, stone, or bile culture",
     },
     {
       name: "acute_pancreatitis_time_critical_actions",

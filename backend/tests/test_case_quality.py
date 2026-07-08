@@ -18705,8 +18705,8 @@ def test_quality_gate_requires_acute_cholangitis_antibiotics_labs_imaging_draina
     ]
     case["time_critical_actions"] = [
         "Start broad-spectrum antibiotics such as piperacillin tazobactam or ceftriaxone and supportive care",
-        "Obtain blood cultures before antibiotics when feasible plus WBC, CRP, bilirubin, LFT, and liver function tests",
-        "Perform RUQ ultrasound or CT/MRCP to assess biliary dilation, common bile duct stone, stricture, and obstruction",
+        "Obtain blood cultures before antibiotics when feasible plus WBC, CRP, bilirubin, LFT, and liver function tests; collect bile culture or ERCP specimen during drainage",
+        "Perform abdominal ultrasound plus CT or MRCP to assess biliary dilation, common bile duct stone, stricture, and obstruction",
         "Treat sepsis and shock with fluid resuscitation, vasopressor support, respiratory and circulatory organ support, and ICU escalation",
     ]
     case["contraindication_checks"] = [
@@ -18848,7 +18848,7 @@ def test_quality_gate_requires_acute_cholangitis_specific_biliary_drainage_route
     case["time_critical_actions"] = [
         "Start broad-spectrum antibiotics such as piperacillin tazobactam or ceftriaxone and supportive care",
         "Obtain blood cultures before antibiotics when feasible plus WBC, CRP, bilirubin, LFT, and liver function tests; collect bile culture during drainage",
-        "Perform RUQ ultrasound or CT/MRCP to assess biliary dilation, common bile duct stone, stricture, and obstruction",
+        "Perform abdominal ultrasound plus CT or MRCP to assess biliary dilation, common bile duct stone, stricture, and obstruction",
         "Consult gastroenterology, endoscopy, interventional radiology, and an advanced center for urgent biliary source-control access planning",
         "Treat sepsis and shock with fluid resuscitation, vasopressor support, respiratory and circulatory organ support, and ICU escalation",
     ]
@@ -18920,7 +18920,7 @@ def test_quality_gate_requires_acute_cholangitis_severity_drainage_timing_proced
     case["time_critical_actions"] = [
         "Start broad-spectrum antibiotics such as piperacillin tazobactam or ceftriaxone and supportive care",
         "Obtain blood cultures before antibiotics when feasible plus WBC, CRP, bilirubin, LFT, and liver function tests; collect bile culture during drainage",
-        "Perform RUQ ultrasound or CT/MRCP to assess biliary dilation, common bile duct stone, stricture, and obstruction",
+        "Perform abdominal ultrasound plus CT or MRCP to assess biliary dilation, common bile duct stone, stricture, and obstruction",
         "Arrange urgent ERCP with biliary drainage, biliary decompression, stent, nasobiliary drainage, PTBD, or percutaneous transhepatic drainage",
         "Treat sepsis and shock with fluid resuscitation, vasopressor support, respiratory and circulatory organ support, and ICU escalation",
     ]
@@ -18957,6 +18957,131 @@ def test_quality_gate_requires_acute_cholangitis_severity_drainage_timing_proced
     assert any(
         "acute cholangitis safety checks must include Tokyo severity"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_cholangitis_blood_and_bile_cultures_with_inflammation_and_cholestasis_labs():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute cholangitis from infected biliary obstruction"
+    case["patient_demographics"] = {
+        "age": 76,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, jaundice, and right upper quadrant pain"
+    case["history_of_present_illness"] = (
+        "Patient with known choledocholithiasis presents with fever, rigors, jaundice, "
+        "right upper quadrant pain, hypotension, confusion, elevated bilirubin, and "
+        "suspected acute cholangitis with biliary sepsis."
+    )
+    case["key_teaching_points"] = [
+        "Acute cholangitis requires immediate antibiotics and supportive care",
+        "Tokyo criteria combine systemic inflammation, cholestasis, and biliary imaging evidence",
+        "Moderate or severe cholangitis needs early ERCP or biliary drainage for source control",
+    ]
+    case["clinical_red_flags"] = [
+        "Shock, hypotension, disturbance of consciousness, acute dyspnea, renal dysfunction, hepatic dysfunction, or DIC",
+        "Biliary dilatation, common bile duct stone, obstruction, jaundice, fever, or sepsis",
+    ]
+    case["time_critical_actions"] = [
+        "Start broad-spectrum antibiotics such as piperacillin tazobactam or ceftriaxone and supportive care",
+        "Obtain blood cultures before antibiotics and send WBC and CRP",
+        "Perform abdominal ultrasound plus CT or MRCP to assess biliary dilation, common bile duct stone, stricture, and obstruction",
+        "Consult gastroenterology for ERCP and transfer to an advanced center with PTBD interventional radiology backup",
+        "Arrange urgent ERCP with biliary drainage, biliary decompression, stent, nasobiliary drainage, PTBD, or percutaneous transhepatic drainage",
+        "Treat sepsis and shock with fluid resuscitation, vasopressor support, respiratory and circulatory organ support, and ICU escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Apply Tokyo severity grading and organ dysfunction review for shock, disturbance of consciousness, acute dyspnea, renal dysfunction, DIC, or severe cholangitis",
+        "Do not delay early drainage; arrange emergency biliary drainage within 24 to 48 hours, transfer to an advanced center if ERCP or drainage is unavailable",
+        "Review ERCP procedure risks including anticoagulant use, coagulopathy, sphincterotomy bleeding, pancreatitis, failed ERCP, altered anatomy, PTBD, or percutaneous drainage alternatives",
+        "Review source control and differentials including acute cholecystitis, gallstone pancreatitis, malignant obstruction, stone disease, pancreatitis, and bile culture results",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Cholangitis",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK558946/",
+            "supports": [
+                "acute cholangitis diagnosis combines clinical presentation, abnormal laboratory results, and imaging suggesting infection and biliary obstruction",
+                "laboratory tests include CBC, liver function tests, reactive proteins, blood cultures, and other workup",
+                "ERCP can retrieve biopsy and culture specimens from the biliary system",
+                "early antibiotics, supportive care, and biliary drainage are mainstays of management",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "blood culture plus bile culture" in issue
+        and "cholestasis labs" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_cholangitis_ultrasound_plus_additional_imaging_and_fallback_access():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute cholangitis from infected biliary obstruction"
+    case["patient_demographics"] = {
+        "age": 76,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, jaundice, and right upper quadrant pain"
+    case["history_of_present_illness"] = (
+        "Patient with known choledocholithiasis presents with fever, rigors, jaundice, "
+        "right upper quadrant pain, hypotension, confusion, elevated bilirubin, and "
+        "suspected acute cholangitis with biliary sepsis."
+    )
+    case["key_teaching_points"] = [
+        "Acute cholangitis requires immediate antibiotics and supportive care",
+        "Ultrasound is first-line but CT or MRCP may help identify obstruction cause and level",
+        "Moderate or severe cholangitis needs early ERCP or biliary drainage for source control",
+    ]
+    case["clinical_red_flags"] = [
+        "Shock, hypotension, disturbance of consciousness, acute dyspnea, renal dysfunction, hepatic dysfunction, or DIC",
+        "Biliary dilatation, common bile duct stone, obstruction, jaundice, fever, or sepsis",
+    ]
+    case["time_critical_actions"] = [
+        "Start broad-spectrum antibiotics such as piperacillin tazobactam or ceftriaxone and supportive care",
+        "Obtain blood cultures before antibiotics when feasible plus WBC, CRP, bilirubin, LFT, and liver function tests; collect bile culture during drainage",
+        "Perform CT to assess biliary dilation, common bile duct stone, stricture, and obstruction",
+        "Consult gastroenterology for ERCP",
+        "Arrange urgent ERCP with biliary drainage, biliary decompression, stent, or nasobiliary drainage",
+        "Treat sepsis and shock with fluid resuscitation, vasopressor support, respiratory and circulatory organ support, and ICU escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Apply Tokyo severity grading and organ dysfunction review for shock, disturbance of consciousness, acute dyspnea, renal dysfunction, DIC, or severe cholangitis",
+        "Do not delay early drainage; arrange emergency biliary drainage within 24 to 48 hours, transfer to an advanced center if ERCP or drainage is unavailable",
+        "Review ERCP procedure risks including anticoagulant use, coagulopathy, sphincterotomy bleeding, pancreatitis, failed ERCP, altered anatomy, PTBD, or percutaneous drainage alternatives",
+        "Review source control and differentials including acute cholecystitis, gallstone pancreatitis, malignant obstruction, stone disease, pancreatitis, and bile culture results",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Cholangitis",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK558946/",
+            "supports": [
+                "abdominal ultrasonography is the first-line imaging study of choice",
+                "CT can be performed as an adjunct to investigate co-existing pathology",
+                "MRCP can detect the cause and level of biliary obstruction",
+                "severely ill patients need immediate or emergent biliary drainage",
+                "biliary decompression can be achieved by ERCP, percutaneous transhepatic cholangiography, EUS-guided drainage, or surgical drainage",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "initial abdominal or biliary ultrasound plus CT or MRCP" in issue
+        and "fallback access planning" in issue
         for issue in report.critical_issues
     )
 
