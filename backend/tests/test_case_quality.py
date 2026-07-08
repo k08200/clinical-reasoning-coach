@@ -19288,6 +19288,127 @@ def test_quality_gate_rejects_acute_pancreatitis_generic_ercp_antibiotic_tpn_and
     )
 
 
+def test_quality_gate_requires_acute_pancreatitis_separate_lipase_biliary_metabolic_and_organ_monitoring():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute gallstone pancreatitis"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "female",
+        "weight_kg": 69,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe epigastric pain radiating to the back"
+    case["history_of_present_illness"] = (
+        "Patient presents with acute epigastric pain radiating to the back, vomiting, "
+        "elevated lipase, gallstones on prior ultrasound, jaundice, rising BUN, and "
+        "concern for acute pancreatitis with possible biliary pancreatitis."
+    )
+    case["key_teaching_points"] = [
+        "Acute pancreatitis needs early goal-directed fluid resuscitation and reassessment",
+        "Gallstone pancreatitis requires biliary evaluation and ERCP only when cholangitis or obstruction is present",
+        "Severe pancreatitis can cause pancreatic necrosis, shock, renal failure, respiratory failure, and organ failure",
+    ]
+    case["clinical_red_flags"] = [
+        "Persistent SIRS, hypotension, hypoxemia, renal dysfunction, rising BUN, high hematocrit, shock, or organ failure",
+        "Jaundice, cholangitis, biliary obstruction, infected necrosis, sepsis, or worsening pain",
+    ]
+    case["time_critical_actions"] = [
+        "Start early goal-directed crystalloid fluid resuscitation and reassess volume status",
+        "Provide analgesia with opioid pain control plus antiemetic support for nausea and vomiting",
+        "Check lipase only",
+        "Trend BUN only",
+    ]
+    case["contraindication_checks"] = [
+        "Review ERCP and biliary obstruction indications: urgent ERCP for cholangitis or jaundice with obstruction, but no routine early ERCP without cholangitis",
+        "Avoid prophylactic antibiotics for sterile necrosis; reserve antibiotics for infected necrosis or extrapancreatic infection",
+        "Use early oral feeding within 24 hours as tolerated or enteral NG tube feeding; avoid parenteral TPN unless enteral nutrition is not possible",
+        "For infected necrosis, plan delayed drainage when possible until walled-off necrosis after about 4 weeks and use a step-up approach",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Initial management of acute pancreatitis",
+            "organization": "American Gastroenterological Association",
+            "url": "https://gastro.org/clinical-guidance/initial-management-of-acute-pancreatitis-ap/",
+            "supports": [
+                "goal-directed therapy for fluid management",
+                "acute biliary pancreatitis without cholangitis should not receive routine urgent ERCP",
+                "early oral nutrition within 24 hours as tolerated",
+                "enteral rather than parenteral nutrition when oral feeding is not possible",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "biliary etiology assessment" in issue
+        and "metabolic etiology assessment" in issue
+        and "oxygen, shock, renal" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_pancreatitis_early_oral_feeding_not_enteral_label_only():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute gallstone pancreatitis"
+    case["patient_demographics"] = {
+        "age": 58,
+        "sex": "female",
+        "weight_kg": 69,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Severe epigastric pain radiating to the back"
+    case["history_of_present_illness"] = (
+        "Patient presents with acute epigastric pain radiating to the back, vomiting, "
+        "elevated lipase, gallstones on prior ultrasound, jaundice, rising BUN, and "
+        "concern for acute pancreatitis with possible biliary pancreatitis."
+    )
+    case["key_teaching_points"] = [
+        "Acute pancreatitis needs early goal-directed fluid resuscitation and reassessment",
+        "Gallstone pancreatitis requires biliary evaluation and ERCP only when cholangitis or obstruction is present",
+        "Severe pancreatitis can cause pancreatic necrosis, shock, renal failure, respiratory failure, and organ failure",
+    ]
+    case["clinical_red_flags"] = [
+        "Persistent SIRS, hypotension, hypoxemia, renal dysfunction, rising BUN, high hematocrit, shock, or organ failure",
+        "Jaundice, cholangitis, biliary obstruction, infected necrosis, sepsis, or worsening pain",
+    ]
+    case["time_critical_actions"] = [
+        "Start early goal-directed crystalloid fluid resuscitation with lactated Ringer LR and reassess volume status",
+        "Provide analgesia with opioid pain control plus antiemetic support for nausea and vomiting",
+        "Check lipase, ALT, LFTs, calcium, triglycerides, and RUQ ultrasound for gallstone etiology",
+        "Trend BUN, hematocrit, oxygen needs, renal function, shock, severity, organ failure, and ICU need",
+    ]
+    case["contraindication_checks"] = [
+        "Review ERCP and biliary obstruction indications: urgent ERCP for cholangitis or jaundice with obstruction, but no routine early ERCP without cholangitis",
+        "Avoid prophylactic antibiotics for sterile necrosis; reserve antibiotics for infected necrosis or extrapancreatic infection",
+        "Use enteral NG tube feeding; avoid parenteral TPN unless enteral nutrition is not possible",
+        "For infected necrosis, plan delayed drainage when possible until walled-off necrosis after about 4 weeks and use a step-up approach",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Initial management of acute pancreatitis",
+            "organization": "American Gastroenterological Association",
+            "url": "https://gastro.org/clinical-guidance/initial-management-of-acute-pancreatitis-ap/",
+            "supports": [
+                "goal-directed therapy for fluid management",
+                "prophylactic antibiotics are discouraged in predicted severe or necrotizing pancreatitis",
+                "early oral nutrition within 24 hours as tolerated",
+                "enteral rather than parenteral nutrition when oral feeding is not possible",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "early oral feeding within 24 hours" in issue
+        and "enteral tube feeding route" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_small_bowel_obstruction_npo_fluids_ct_and_surgical_escalation():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Closed-loop small bowel obstruction"

@@ -8780,37 +8780,52 @@ ACUTE_PANCREATITIS_CONTEXT_TERMS = (
     "severe pancreatitis",
     "췌장염",
 )
-ACUTE_PANCREATITIS_FLUID_ACTION_TERMS = (
+ACUTE_PANCREATITIS_FLUID_GOAL_ACTION_TERMS = (
+    "goal-directed",
+    "reassess",
+    "urine output",
+    "volume status",
+)
+ACUTE_PANCREATITIS_FLUID_TYPE_ACTION_TERMS = (
     "crystalloid",
     "fluid",
     "fluids",
-    "goal-directed",
+    "fluid resuscitation",
     "lactated ringer",
     "lr",
     "resuscitation",
     "수액",
 )
-ACUTE_PANCREATITIS_ANALGESIA_SUPPORT_ACTION_TERMS = (
+ACUTE_PANCREATITIS_ANALGESIA_ACTION_TERMS = (
     "analgesia",
-    "antiemetic",
-    "nausea",
     "opioid",
     "pain control",
     "통증",
 )
-ACUTE_PANCREATITIS_DIAGNOSTIC_ETIOLOGY_ACTION_TERMS = (
-    "alt",
-    "calcium",
-    "gallstone",
-    "lft",
+ACUTE_PANCREATITIS_ANTIEMETIC_ACTION_TERMS = (
+    "antiemetic",
+    "nausea",
+    "vomiting",
+)
+ACUTE_PANCREATITIS_LIPASE_DIAGNOSTIC_ACTION_TERMS = (
     "lipase",
-    "triglyceride",
-    "ultrasound",
     "췌장효소",
 )
-ACUTE_PANCREATITIS_SEVERITY_ORGAN_ACTION_TERMS = (
+ACUTE_PANCREATITIS_BILIARY_ETIOLOGY_ACTION_TERMS = (
+    "alt",
+    "gallstone",
+    "lft",
+    "ultrasound",
+)
+ACUTE_PANCREATITIS_METABOLIC_ETIOLOGY_ACTION_TERMS = (
+    "calcium",
+    "triglyceride",
+)
+ACUTE_PANCREATITIS_SEVERITY_LAB_ACTION_TERMS = (
     "bun",
     "hematocrit",
+)
+ACUTE_PANCREATITIS_ORGAN_MONITORING_ACTION_TERMS = (
     "icu",
     "organ failure",
     "oxygen",
@@ -8852,12 +8867,18 @@ ACUTE_PANCREATITIS_ANTIBIOTIC_INFECTION_TERMS = (
     "infected pancreatic necrosis",
     "reserve antibiotics",
 )
-ACUTE_PANCREATITIS_ENTERAL_NUTRITION_TERMS = (
-    "enteral",
+ACUTE_PANCREATITIS_ORAL_FEEDING_TERMS = (
+    "early oral",
     "feeding as tolerated",
+    "oral feeding",
+    "within 24",
+)
+ACUTE_PANCREATITIS_ENTERAL_ROUTE_TERMS = (
+    "enteral",
     "ng tube",
     "nasoenteric",
-    "oral feeding",
+    "nasogastric",
+    "nasojejunal",
 )
 ACUTE_PANCREATITIS_PARENTERAL_LIMIT_TERMS = (
     "avoid parenteral",
@@ -20245,11 +20266,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acute_pancreatitis_time_critical_actions,
             issue=(
                 "acute pancreatitis time-critical actions must include early "
-                "goal-directed crystalloid or lactated Ringer fluid resuscitation, "
-                "analgesia, antiemetic, nausea, opioid, or pain-control support, "
-                "lipase, ALT, LFT, ultrasound, gallstone, triglyceride, or calcium "
-                "etiology assessment, and BUN, hematocrit, severity, oxygen, shock, "
-                "renal, organ-failure, or ICU monitoring"
+                "goal-directed fluid management with crystalloid or lactated "
+                "Ringer fluid resuscitation and reassessment of volume status or "
+                "urine output, analgesia/opioid pain control plus antiemetic, "
+                "nausea, or vomiting support, lipase confirmation plus biliary "
+                "etiology assessment with ALT, LFT, ultrasound, or gallstone "
+                "review and metabolic etiology assessment with triglyceride or "
+                "calcium, and BUN or hematocrit severity labs plus oxygen, shock, "
+                "renal, organ-failure, severity, or ICU monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -20262,10 +20286,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "obstruction review for cholangitis, jaundice, no-cholangitis, "
                 "or without-cholangitis scenarios, avoidance of prophylactic "
                 "antibiotics in sterile necrosis with antibiotic use reserved "
-                "for infected necrosis or extrapancreatic infection, oral or "
-                "enteral feeding, NG tube, TPN, parenteral, or nutrition planning, "
-                "and infected necrosis, walled-off necrosis, delayed drainage, "
-                "4-week, or step-up procedure timing review"
+                "for infected necrosis or extrapancreatic infection, early oral "
+                "feeding within 24 hours or as tolerated plus enteral tube feeding "
+                "route planning when oral feeding is not possible, parenteral/TPN "
+                "limitation unless enteral nutrition is not possible, and infected "
+                "necrosis, walled-off necrosis, delayed drainage, 4-week timing, "
+                "and step-up procedure planning"
             ),
         ),
         DomainSafetyGate(
@@ -30092,23 +30118,53 @@ def _requires_acute_pancreatitis_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_acute_pancreatitis_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_fluid = any(
+    has_fluid_goal = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_PANCREATITIS_FLUID_ACTION_TERMS
+        for term in ACUTE_PANCREATITIS_FLUID_GOAL_ACTION_TERMS
     )
-    has_analgesia_support = any(
+    has_fluid_type = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_PANCREATITIS_ANALGESIA_SUPPORT_ACTION_TERMS
+        for term in ACUTE_PANCREATITIS_FLUID_TYPE_ACTION_TERMS
     )
-    has_diagnostic_etiology = any(
+    has_analgesia = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_PANCREATITIS_DIAGNOSTIC_ETIOLOGY_ACTION_TERMS
+        for term in ACUTE_PANCREATITIS_ANALGESIA_ACTION_TERMS
     )
-    has_severity_organ = any(
+    has_antiemetic = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_PANCREATITIS_SEVERITY_ORGAN_ACTION_TERMS
+        for term in ACUTE_PANCREATITIS_ANTIEMETIC_ACTION_TERMS
     )
-    return has_fluid and has_analgesia_support and has_diagnostic_etiology and has_severity_organ
+    has_lipase_diagnostic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_PANCREATITIS_LIPASE_DIAGNOSTIC_ACTION_TERMS
+    )
+    has_biliary_etiology = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_PANCREATITIS_BILIARY_ETIOLOGY_ACTION_TERMS
+    )
+    has_metabolic_etiology = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_PANCREATITIS_METABOLIC_ETIOLOGY_ACTION_TERMS
+    )
+    has_severity_labs = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_PANCREATITIS_SEVERITY_LAB_ACTION_TERMS
+    )
+    has_organ_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_PANCREATITIS_ORGAN_MONITORING_ACTION_TERMS
+    )
+    return (
+        has_fluid_goal
+        and has_fluid_type
+        and has_analgesia
+        and has_antiemetic
+        and has_lipase_diagnostic
+        and has_biliary_etiology
+        and has_metabolic_etiology
+        and has_severity_labs
+        and has_organ_monitoring
+    )
 
 
 def _has_acute_pancreatitis_treatment_safety_check(checks: list[Any]) -> bool:
@@ -30133,9 +30189,13 @@ def _has_acute_pancreatitis_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_PANCREATITIS_ANTIBIOTIC_INFECTION_TERMS
     )
-    has_enteral_nutrition = any(
+    has_oral_feeding = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_PANCREATITIS_ENTERAL_NUTRITION_TERMS
+        for term in ACUTE_PANCREATITIS_ORAL_FEEDING_TERMS
+    )
+    has_enteral_route = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_PANCREATITIS_ENTERAL_ROUTE_TERMS
     )
     has_parenteral_limit = any(
         _contains_safety_term(normalized_checks, term)
@@ -30159,7 +30219,8 @@ def _has_acute_pancreatitis_treatment_safety_check(checks: list[Any]) -> bool:
         and has_ercp_nonroutine_limit
         and has_antibiotic_avoidance
         and has_antibiotic_infection_limit
-        and has_enteral_nutrition
+        and has_oral_feeding
+        and has_enteral_route
         and has_parenteral_limit
         and has_necrosis_target
         and has_necrosis_timing

@@ -9783,40 +9783,60 @@ const ACUTE_PANCREATITIS_CONTEXT_TERMS = [
   "췌장염",
 ];
 
-const ACUTE_PANCREATITIS_FLUID_ACTION_TERMS = [
+const ACUTE_PANCREATITIS_FLUID_GOAL_ACTION_TERMS = [
+  "goal-directed",
+  "reassess",
+  "urine output",
+  "volume status",
+];
+
+const ACUTE_PANCREATITIS_FLUID_TYPE_ACTION_TERMS = [
   "crystalloid",
   "fluid",
   "fluids",
-  "goal-directed",
+  "fluid resuscitation",
   "lactated ringer",
   "lr",
   "resuscitation",
   "수액",
 ];
 
-const ACUTE_PANCREATITIS_ANALGESIA_SUPPORT_ACTION_TERMS = [
+const ACUTE_PANCREATITIS_ANALGESIA_ACTION_TERMS = [
   "analgesia",
-  "antiemetic",
-  "nausea",
   "opioid",
   "pain control",
   "통증",
 ];
 
-const ACUTE_PANCREATITIS_DIAGNOSTIC_ETIOLOGY_ACTION_TERMS = [
-  "alt",
-  "calcium",
-  "gallstone",
-  "lft",
+const ACUTE_PANCREATITIS_ANTIEMETIC_ACTION_TERMS = [
+  "antiemetic",
+  "nausea",
+  "vomiting",
+];
+
+const ACUTE_PANCREATITIS_LIPASE_DIAGNOSTIC_ACTION_TERMS = [
   "lipase",
-  "triglyceride",
-  "ultrasound",
   "췌장효소",
 ];
 
-const ACUTE_PANCREATITIS_SEVERITY_ORGAN_ACTION_TERMS = [
+const ACUTE_PANCREATITIS_BILIARY_ETIOLOGY_ACTION_TERMS = [
+  "alt",
+  "gallstone",
+  "lft",
+  "ultrasound",
+];
+
+const ACUTE_PANCREATITIS_METABOLIC_ETIOLOGY_ACTION_TERMS = [
+  "calcium",
+  "triglyceride",
+];
+
+const ACUTE_PANCREATITIS_SEVERITY_LAB_ACTION_TERMS = [
   "bun",
   "hematocrit",
+];
+
+const ACUTE_PANCREATITIS_ORGAN_MONITORING_ACTION_TERMS = [
   "icu",
   "organ failure",
   "oxygen",
@@ -9864,12 +9884,19 @@ const ACUTE_PANCREATITIS_ANTIBIOTIC_INFECTION_TERMS = [
   "reserve antibiotics",
 ];
 
-const ACUTE_PANCREATITIS_ENTERAL_NUTRITION_TERMS = [
-  "enteral",
+const ACUTE_PANCREATITIS_ORAL_FEEDING_TERMS = [
+  "early oral",
   "feeding as tolerated",
+  "oral feeding",
+  "within 24",
+];
+
+const ACUTE_PANCREATITIS_ENTERAL_ROUTE_TERMS = [
+  "enteral",
   "ng tube",
   "nasoenteric",
-  "oral feeding",
+  "nasogastric",
+  "nasojejunal",
 ];
 
 const ACUTE_PANCREATITIS_PARENTERAL_LIMIT_TERMS = [
@@ -25918,19 +25945,44 @@ function requiresAcutePancreatitisSafetyCheck(detail: ClinicalCaseReviewDetail):
 
 function hasAcutePancreatitisTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasFluid = ACUTE_PANCREATITIS_FLUID_ACTION_TERMS.some((term) =>
+  const hasFluidGoal = ACUTE_PANCREATITIS_FLUID_GOAL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAnalgesiaSupport = ACUTE_PANCREATITIS_ANALGESIA_SUPPORT_ACTION_TERMS.some((term) =>
+  const hasFluidType = ACUTE_PANCREATITIS_FLUID_TYPE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDiagnosticEtiology = ACUTE_PANCREATITIS_DIAGNOSTIC_ETIOLOGY_ACTION_TERMS.some(
-    (term) => containsSafetyTerm(normalizedActions, term),
-  );
-  const hasSeverityOrgan = ACUTE_PANCREATITIS_SEVERITY_ORGAN_ACTION_TERMS.some((term) =>
+  const hasAnalgesia = ACUTE_PANCREATITIS_ANALGESIA_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasFluid && hasAnalgesiaSupport && hasDiagnosticEtiology && hasSeverityOrgan;
+  const hasAntiemetic = ACUTE_PANCREATITIS_ANTIEMETIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasLipaseDiagnostic = ACUTE_PANCREATITIS_LIPASE_DIAGNOSTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBiliaryEtiology = ACUTE_PANCREATITIS_BILIARY_ETIOLOGY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMetabolicEtiology = ACUTE_PANCREATITIS_METABOLIC_ETIOLOGY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSeverityLabs = ACUTE_PANCREATITIS_SEVERITY_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOrganMonitoring = ACUTE_PANCREATITIS_ORGAN_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasFluidGoal &&
+    hasFluidType &&
+    hasAnalgesia &&
+    hasAntiemetic &&
+    hasLipaseDiagnostic &&
+    hasBiliaryEtiology &&
+    hasMetabolicEtiology &&
+    hasSeverityLabs &&
+    hasOrganMonitoring
+  );
 }
 
 function hasAcutePancreatitisTreatmentSafetyCheck(checks: string[]): boolean {
@@ -25950,7 +26002,10 @@ function hasAcutePancreatitisTreatmentSafetyCheck(checks: string[]): boolean {
   const hasAntibioticInfectionLimit = ACUTE_PANCREATITIS_ANTIBIOTIC_INFECTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasEnteralNutrition = ACUTE_PANCREATITIS_ENTERAL_NUTRITION_TERMS.some((term) =>
+  const hasOralFeeding = ACUTE_PANCREATITIS_ORAL_FEEDING_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEnteralRoute = ACUTE_PANCREATITIS_ENTERAL_ROUTE_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasParenteralLimit = ACUTE_PANCREATITIS_PARENTERAL_LIMIT_TERMS.some((term) =>
@@ -25971,7 +26026,8 @@ function hasAcutePancreatitisTreatmentSafetyCheck(checks: string[]): boolean {
     hasErcpNonroutineLimit &&
     hasAntibioticAvoidance &&
     hasAntibioticInfectionLimit &&
-    hasEnteralNutrition &&
+    hasOralFeeding &&
+    hasEnteralRoute &&
     hasParenteralLimit &&
     hasNecrosisTarget &&
     hasNecrosisTiming &&
@@ -33201,7 +33257,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcutePancreatitisTimeCriticalActions,
       issue:
-        "acute pancreatitis time-critical actions must include early goal-directed crystalloid or lactated Ringer fluid resuscitation, analgesia, antiemetic, nausea, opioid, or pain-control support, lipase, ALT, LFT, ultrasound, gallstone, triglyceride, or calcium etiology assessment, and BUN, hematocrit, severity, oxygen, shock, renal, organ-failure, or ICU monitoring",
+        "acute pancreatitis time-critical actions must include early goal-directed fluid management with crystalloid or lactated Ringer fluid resuscitation and reassessment of volume status or urine output, analgesia/opioid pain control plus antiemetic, nausea, or vomiting support, lipase confirmation plus biliary etiology assessment with ALT, LFT, ultrasound, or gallstone review and metabolic etiology assessment with triglyceride or calcium, and BUN or hematocrit severity labs plus oxygen, shock, renal, organ-failure, severity, or ICU monitoring",
     },
     {
       name: "acute_pancreatitis_treatment_safety",
@@ -33210,7 +33266,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAcutePancreatitisTreatmentSafetyCheck,
       issue:
-        "acute pancreatitis safety checks must include ERCP or biliary obstruction review for cholangitis, jaundice, no-cholangitis, or without-cholangitis scenarios, avoidance of prophylactic antibiotics in sterile necrosis with antibiotic use reserved for infected necrosis or extrapancreatic infection, oral or enteral feeding, NG tube, TPN, parenteral, or nutrition planning, and infected necrosis, walled-off necrosis, delayed drainage, 4-week, or step-up procedure timing review",
+        "acute pancreatitis safety checks must include ERCP or biliary obstruction review for cholangitis, jaundice, no-cholangitis, or without-cholangitis scenarios, avoidance of prophylactic antibiotics in sterile necrosis with antibiotic use reserved for infected necrosis or extrapancreatic infection, early oral feeding within 24 hours or as tolerated plus enteral tube feeding route planning when oral feeding is not possible, parenteral/TPN limitation unless enteral nutrition is not possible, and infected necrosis, walled-off necrosis, delayed drainage, 4-week timing, and step-up procedure planning",
     },
     {
       name: "small_bowel_obstruction_time_critical_actions",
