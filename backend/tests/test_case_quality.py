@@ -21194,8 +21194,153 @@ def test_quality_gate_requires_necrotizing_soft_tissue_infection_toxin_repeat_de
 
     assert not report.passed
     assert any(
-        "necrotizing soft tissue infection safety checks must include clindamycin"
+        "necrotizing soft tissue infection safety checks must include toxin suppression"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_necrotizing_soft_tissue_infection_separate_mrsa_gram_negative_anaerobic_resuscitation_and_delay_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Necrotizing soft tissue infection"
+    case["patient_demographics"] = {
+        "age": 57,
+        "sex": "female",
+        "weight_kg": 74,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Rapidly progressive thigh pain with shock"
+    case["history_of_present_illness"] = (
+        "Patient with diabetes has profound pain out of proportion, rapidly "
+        "progressive swelling, bullae, ecchymosis, dusky skin, hypotension, "
+        "lactate elevation, and suspected necrotizing soft tissue infection."
+    )
+    case["key_teaching_points"] = [
+        "NSTI needs prompt surgical consultation and operative exploration",
+        "Empiric therapy must be broad and cover MRSA, gram-negative, and anaerobic pathogens",
+        "LRINEC, CT, or imaging should not delay debridement and source control",
+    ]
+    case["clinical_red_flags"] = [
+        "Pain out of proportion, profound pain, rapidly progressive swelling, bullae, ecchymosis, dusky skin, decreased sensation, and systemic toxicity",
+        "Shock, lactate elevation, organ failure, diabetes, immunocompromised state, or amputation risk",
+    ]
+    case["time_critical_actions"] = [
+        "Call acute care surgery immediately for surgical consultation",
+        "Perform operative exploration with fascial exploration and surgical debridement",
+        "Start broad-spectrum empiric antibiotics",
+        "Document that management is urgent and source control is time critical",
+    ]
+    case["contraindication_checks"] = [
+        "Plan toxin suppression with clindamycin or linezolid for group A strep, streptococcal NSTI, clostridial infection, or gas gangrene",
+        "Plan repeat debridement, re-look, second look, or 24 to 48 hour source control reassessment",
+        "Do not let LRINEC, CT, imaging, or diagnostic testing exclude NSTI or delay surgical exploration",
+        "Monitor shock, AKI renal injury, coagulopathy, organ failure, amputation risk, diabetes, and immunocompromised host risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "IDSA Skin and Soft Tissue Infection Guidelines",
+            "organization": "Infectious Diseases Society of America",
+            "url": "https://www.idsociety.org/practice-guideline/skin-and-soft-tissue-infections/",
+            "supports": [
+                "prompt surgical consultation is recommended for suspected necrotizing fasciitis or gas gangrene",
+                "empiric antibiotic therapy should be broad with MRSA, gram-negative, and anaerobic coverage",
+                "penicillin plus clindamycin is recommended for documented group A streptococcal necrotizing fasciitis",
+                "urgent surgical exploration and debridement are required when gas gangrene is suspected",
+            ],
+        },
+        {
+            "title": "Necrotizing Fasciitis",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK430756/",
+            "supports": [
+                "no lab or imaging test should delay surgical intervention",
+                "patients need ICU care, aggressive fluid resuscitation, and vasopressor support when unstable",
+                "wide debridement and repeat operations may be needed until necrotic tissue is removed",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "MRSA coverage with vancomycin, linezolid, or daptomycin" in issue
+        and "gram-negative coverage with piperacillin-tazobactam" in issue
+        and "anaerobic coverage with metronidazole" in issue
+        and "IV fluid resuscitation plus sepsis" in issue
+        and "do-not-delay surgical management" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_necrotizing_soft_tissue_infection_separate_toxin_repeat_diagnostic_limb_and_host_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Necrotizing fasciitis"
+    case["patient_demographics"] = {
+        "age": 57,
+        "sex": "female",
+        "weight_kg": 74,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Rapidly progressive thigh pain with shock"
+    case["history_of_present_illness"] = (
+        "Patient with diabetes has profound pain out of proportion, rapidly "
+        "progressive swelling, bullae, ecchymosis, dusky skin, hypotension, "
+        "lactate elevation, and suspected necrotizing soft tissue infection."
+    )
+    case["key_teaching_points"] = [
+        "NSTI needs prompt surgical consultation and operative exploration",
+        "Empiric therapy must be broad and cover MRSA, gram-negative, and anaerobic pathogens",
+        "LRINEC, CT, or imaging should not delay debridement and source control",
+    ]
+    case["clinical_red_flags"] = [
+        "Pain out of proportion, profound pain, rapidly progressive swelling, bullae, ecchymosis, dusky skin, decreased sensation, and systemic toxicity",
+        "Shock, lactate elevation, organ failure, diabetes, immunocompromised state, or amputation risk",
+    ]
+    case["time_critical_actions"] = [
+        "Call acute care surgery immediately for surgical consultation",
+        "Perform operative exploration with fascial exploration and surgical debridement",
+        "Start broad-spectrum empiric antibiotics with vancomycin plus piperacillin tazobactam and metronidazole",
+        "Give IV fluid resuscitation and monitor sepsis, shock, lactate, ICU need, and vasopressor support",
+        "Do not delay surgical management and keep immediate source control time critical",
+    ]
+    case["contraindication_checks"] = [
+        "Use clindamycin for toxin suppression",
+        "Plan repeat debridement and source control",
+        "Review LRINEC and CT findings",
+        "Monitor shock and renal injury",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "IDSA Skin and Soft Tissue Infection Guidelines",
+            "organization": "Infectious Diseases Society of America",
+            "url": "https://www.idsociety.org/practice-guideline/skin-and-soft-tissue-infections/",
+            "supports": [
+                "prompt surgical consultation is recommended for suspected necrotizing fasciitis or gas gangrene",
+                "empiric antibiotic therapy should be broad with MRSA, gram-negative, and anaerobic coverage",
+                "penicillin plus clindamycin is recommended for documented group A streptococcal necrotizing fasciitis",
+            ],
+        },
+        {
+            "title": "Necrotizing Fasciitis",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK430756/",
+            "supports": [
+                "no lab or imaging test should delay surgical intervention",
+                "repeat operations may be needed to remove necrotic tissue",
+                "complications include multiorgan failure, septic shock, and loss of extremity",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "group A strep, streptococcal, clostridial, or gas-gangrene" in issue
+        and "24-to-48-hour reassessment plus repeat debridement" in issue
+        and "not excluding NSTI or delaying surgical exploration" in issue
+        and "amputation/limb-loss risk and diabetes or immunocompromised" in issue
         for issue in report.critical_issues
     )
 

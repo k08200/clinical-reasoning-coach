@@ -10785,102 +10785,131 @@ const NECROTIZING_SOFT_TISSUE_INFECTION_DEBRIDEMENT_ACTION_TERMS = [
   "수술적 탐색",
 ];
 
-const NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS = [
+const NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_EMPIRIC_ACTION_TERMS = [
   "antibiotic",
   "antibiotics",
   "broad-spectrum",
-  "carbapenem",
-  "clindamycin",
-  "linezolid",
-  "piperacillin",
-  "tazobactam",
-  "vancomycin",
+  "empiric",
   "항생제",
 ];
 
-const NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_COVERAGE_ACTION_TERMS = [
-  "anaerobe",
-  "anaerobic",
+const NECROTIZING_SOFT_TISSUE_INFECTION_MRSA_ACTION_TERMS = [
+  "daptomycin",
+  "linezolid",
+  "mrsa",
+  "vancomycin",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_GRAM_NEGATIVE_ACTION_TERMS = [
   "carbapenem",
   "cefepime",
   "gram-negative",
   "meropenem",
-  "metronidazole",
-  "mrsa",
   "piperacillin",
   "tazobactam",
-  "vancomycin",
 ];
 
-const NECROTIZING_SOFT_TISSUE_INFECTION_RESUSCITATION_ACTION_TERMS = [
+const NECROTIZING_SOFT_TISSUE_INFECTION_ANAEROBIC_ACTION_TERMS = [
+  "anaerobe",
+  "anaerobic",
+  "carbapenem",
+  "meropenem",
+  "metronidazole",
+  "piperacillin",
+  "tazobactam",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_FLUID_RESUSCITATION_ACTION_TERMS = [
   "fluid",
   "fluids",
+  "resuscitation",
+  "수액",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_SHOCK_ICU_ACTION_TERMS = [
   "icu",
   "lactate",
-  "resuscitation",
   "sepsis",
   "shock",
   "vasopressor",
-  "수액",
   "패혈증",
 ];
 
-const NECROTIZING_SOFT_TISSUE_INFECTION_DELAY_ACTION_TERMS = [
+const NECROTIZING_SOFT_TISSUE_INFECTION_DO_NOT_DELAY_ACTION_TERMS = [
   "do not delay",
-  "immediate",
   "not delay",
-  "not postpone",
+  "지연",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_IMMEDIATE_SOURCE_CONTROL_ACTION_TERMS = [
+  "immediate",
   "source control",
   "time critical",
   "urgent",
-  "지연",
   "즉시",
 ];
 
-const NECROTIZING_SOFT_TISSUE_INFECTION_TOXIN_SAFETY_TERMS = [
+const NECROTIZING_SOFT_TISSUE_INFECTION_TOXIN_SUPPRESSION_SAFETY_TERMS = [
   "clindamycin",
-  "gas gangrene",
-  "group a strep",
   "linezolid",
-  "strep",
-  "streptococcal",
   "toxin",
   "독소",
 ];
 
-const NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_SOURCE_SAFETY_TERMS = [
+const NECROTIZING_SOFT_TISSUE_INFECTION_STREP_CLOSTRIDIAL_SAFETY_TERMS = [
+  "clostridial",
+  "gas gangrene",
+  "group a strep",
+  "strep",
+  "streptococcal",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_TIMING_SAFETY_TERMS = [
   "24",
   "48",
-  "debridement",
   "repeat",
   "re-look",
   "second look",
-  "source control",
   "재수술",
 ];
 
-const NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_LIMITATION_SAFETY_TERMS = [
-  "ct should not delay",
-  "do not delay",
+const NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_SOURCE_SAFETY_TERMS = [
+  "debridement",
+  "source control",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_TOOL_SAFETY_TERMS = [
+  "ct",
+  "diagnostic testing",
   "imaging",
   "lrinec",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_DELAY_SAFETY_TERMS = [
+  "do not delay",
   "not exclude",
   "not rule out",
   "surgical exploration",
   "지연",
 ];
 
-const NECROTIZING_SOFT_TISSUE_INFECTION_ORGAN_RISK_SAFETY_TERMS = [
+const NECROTIZING_SOFT_TISSUE_INFECTION_SHOCK_ORGAN_SAFETY_TERMS = [
   "aki",
-  "amputation",
   "coagulopathy",
-  "diabetes",
-  "immunocompromised",
   "organ failure",
   "renal",
   "shock",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_LIMB_RISK_SAFETY_TERMS = [
+  "amputation",
   "괴사",
   "절단",
+];
+
+const NECROTIZING_SOFT_TISSUE_INFECTION_HOST_RISK_SAFETY_TERMS = [
+  "diabetes",
+  "immunocompromised",
 ];
 
 const FOURNIER_GAS_GANGRENE_CONTEXT_TERMS = [
@@ -26882,48 +26911,92 @@ function hasNecrotizingSoftTissueInfectionTimeCriticalActions(actions: string[])
   const hasDebridement = NECROTIZING_SOFT_TISSUE_INFECTION_DEBRIDEMENT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntibiotic = NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+  const hasBroadEmpiricAntibiotic =
+    NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_EMPIRIC_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasMrsaCoverage = NECROTIZING_SOFT_TISSUE_INFECTION_MRSA_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasBroadCoverage = NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_COVERAGE_ACTION_TERMS.some(
+  const hasGramNegativeCoverage =
+    NECROTIZING_SOFT_TISSUE_INFECTION_GRAM_NEGATIVE_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasAnaerobicCoverage = NECROTIZING_SOFT_TISSUE_INFECTION_ANAEROBIC_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasResuscitation = NECROTIZING_SOFT_TISSUE_INFECTION_RESUSCITATION_ACTION_TERMS.some(
+  const hasFluidResuscitation =
+    NECROTIZING_SOFT_TISSUE_INFECTION_FLUID_RESUSCITATION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasShockIcuMonitoring = NECROTIZING_SOFT_TISSUE_INFECTION_SHOCK_ICU_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasDelayPrevention = NECROTIZING_SOFT_TISSUE_INFECTION_DELAY_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
+  const hasDelayPrevention = NECROTIZING_SOFT_TISSUE_INFECTION_DO_NOT_DELAY_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
   );
+  const hasImmediateSourceControl =
+    NECROTIZING_SOFT_TISSUE_INFECTION_IMMEDIATE_SOURCE_CONTROL_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
   return (
     hasSurgeryTeam &&
     hasDebridement &&
-    hasAntibiotic &&
-    hasBroadCoverage &&
-    hasResuscitation &&
-    hasDelayPrevention
+    hasBroadEmpiricAntibiotic &&
+    hasMrsaCoverage &&
+    hasGramNegativeCoverage &&
+    hasAnaerobicCoverage &&
+    hasFluidResuscitation &&
+    hasShockIcuMonitoring &&
+    hasDelayPrevention &&
+    hasImmediateSourceControl
   );
 }
 
 function hasNecrotizingSoftTissueInfectionTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasToxinSafety = NECROTIZING_SOFT_TISSUE_INFECTION_TOXIN_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
-  );
+  const hasToxinSuppressionSafety =
+    NECROTIZING_SOFT_TISSUE_INFECTION_TOXIN_SUPPRESSION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasStrepClostridialSafety =
+    NECROTIZING_SOFT_TISSUE_INFECTION_STREP_CLOSTRIDIAL_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasRepeatTimingSafety =
+    NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_TIMING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasRepeatSourceSafety = NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_SOURCE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDiagnosticLimitationSafety =
-    NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_LIMITATION_SAFETY_TERMS.some((term) =>
+  const hasDiagnosticToolSafety =
+    NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_TOOL_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasOrganRiskSafety = NECROTIZING_SOFT_TISSUE_INFECTION_ORGAN_RISK_SAFETY_TERMS.some(
+  const hasDiagnosticDelaySafety =
+    NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_DELAY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasShockOrganSafety = NECROTIZING_SOFT_TISSUE_INFECTION_SHOCK_ORGAN_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasLimbRiskSafety = NECROTIZING_SOFT_TISSUE_INFECTION_LIMB_RISK_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHostRiskSafety = NECROTIZING_SOFT_TISSUE_INFECTION_HOST_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
-    hasToxinSafety &&
+    hasToxinSuppressionSafety &&
+    hasStrepClostridialSafety &&
+    hasRepeatTimingSafety &&
     hasRepeatSourceSafety &&
-    hasDiagnosticLimitationSafety &&
-    hasOrganRiskSafety
+    hasDiagnosticToolSafety &&
+    hasDiagnosticDelaySafety &&
+    hasShockOrganSafety &&
+    hasLimbRiskSafety &&
+    hasHostRiskSafety
   );
 }
 
@@ -33791,7 +33864,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasNecrotizingSoftTissueInfectionTimeCriticalActions,
       issue:
-        "necrotizing soft tissue infection time-critical actions must include immediate surgery, surgeon, acute-care surgery, or surgical consultation escalation, specific surgical exploration, operative debridement, fascial exploration, fasciotomy, wide excision, or necrotic-tissue excision, broad-spectrum empiric antibiotics with MRSA, gram-negative, anaerobic, vancomycin, piperacillin-tazobactam, carbapenem, cefepime, or metronidazole coverage, sepsis, shock, lactate, ICU, vasopressor, or fluid resuscitation, and explicit do-not-delay source-control or immediate time-critical management",
+        "necrotizing soft tissue infection time-critical actions must include immediate surgery, surgeon, acute-care surgery, or surgical consultation escalation, specific surgical exploration, operative debridement, fascial exploration, fasciotomy, wide excision, or necrotic-tissue excision, broad-spectrum empiric antibiotics plus MRSA coverage with vancomycin, linezolid, or daptomycin, gram-negative coverage with piperacillin-tazobactam, cefepime, carbapenem, or meropenem, anaerobic coverage with metronidazole, piperacillin-tazobactam, or carbapenem, IV fluid resuscitation plus sepsis, shock, lactate, ICU, or vasopressor monitoring, and explicit do-not-delay surgical management plus immediate source-control or time-critical management",
     },
     {
       name: "necrotizing_soft_tissue_infection_red_flags",
@@ -33809,7 +33882,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasNecrotizingSoftTissueInfectionTreatmentSafetyCheck,
       issue:
-        "necrotizing soft tissue infection safety checks must include clindamycin, linezolid, group A strep, clostridial gas gangrene, or toxin-suppression planning, repeat, second-look, 24-to-48-hour debridement or source-control reassessment, LRINEC, imaging, or diagnostic testing not delaying surgical exploration, and shock, renal injury, coagulopathy, organ failure, amputation, diabetes, or immunocompromised risk monitoring",
+        "necrotizing soft tissue infection safety checks must include toxin suppression with clindamycin or linezolid plus group A strep, streptococcal, clostridial, or gas-gangrene review, repeat, re-look, second-look, or 24-to-48-hour reassessment plus repeat debridement or source-control planning, LRINEC, CT, imaging, or diagnostic-testing limitation review plus not excluding NSTI or delaying surgical exploration, and shock, renal injury, coagulopathy, or organ-failure monitoring plus amputation/limb-loss risk and diabetes or immunocompromised host-risk monitoring",
     },
     {
       name: "fournier_gas_gangrene_treatment_safety",

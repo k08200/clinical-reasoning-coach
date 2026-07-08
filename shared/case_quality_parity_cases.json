@@ -20194,6 +20194,137 @@
     }
   },
   {
+    "name": "necrotizing_soft_tissue_infection_requires_separate_mrsa_gram_negative_anaerobic_resuscitation_and_delay_actions",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "MRSA coverage with vancomycin, linezolid, or daptomycin",
+      "gram-negative coverage with piperacillin-tazobactam",
+      "anaerobic coverage with metronidazole",
+      "IV fluid resuscitation plus sepsis",
+      "do-not-delay surgical management"
+    ],
+    "overrides": {
+      "diagnosis": "Necrotizing soft tissue infection",
+      "patient_demographics": {
+        "age": 57,
+        "sex": "female",
+        "weight_kg": 74,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Rapidly progressive thigh pain with shock",
+      "history_of_present_illness": "Patient with diabetes has profound pain out of proportion, rapidly progressive swelling, bullae, ecchymosis, dusky skin, hypotension, lactate elevation, and suspected necrotizing soft tissue infection.",
+      "key_teaching_points": [
+        "NSTI needs prompt surgical consultation and operative exploration",
+        "Empiric therapy must be broad and cover MRSA, gram-negative, and anaerobic pathogens",
+        "LRINEC, CT, or imaging should not delay debridement and source control"
+      ],
+      "clinical_red_flags": [
+        "Pain out of proportion, profound pain, rapidly progressive swelling, bullae, ecchymosis, dusky skin, decreased sensation, and systemic toxicity",
+        "Shock, lactate elevation, organ failure, diabetes, immunocompromised state, or amputation risk"
+      ],
+      "time_critical_actions": [
+        "Call acute care surgery immediately for surgical consultation",
+        "Perform operative exploration with fascial exploration and surgical debridement",
+        "Start broad-spectrum empiric antibiotics",
+        "Document that management is urgent and source control is time critical"
+      ],
+      "contraindication_checks": [
+        "Plan toxin suppression with clindamycin or linezolid for group A strep, streptococcal NSTI, clostridial infection, or gas gangrene",
+        "Plan repeat debridement, re-look, second look, or 24 to 48 hour source control reassessment",
+        "Do not let LRINEC, CT, imaging, or diagnostic testing exclude NSTI or delay surgical exploration",
+        "Monitor shock, AKI renal injury, coagulopathy, organ failure, amputation risk, diabetes, and immunocompromised host risk"
+      ],
+      "clinical_sources": [
+        {
+          "title": "IDSA Skin and Soft Tissue Infection Guidelines",
+          "organization": "Infectious Diseases Society of America",
+          "url": "https://www.idsociety.org/practice-guideline/skin-and-soft-tissue-infections/",
+          "supports": [
+            "prompt surgical consultation is recommended for suspected necrotizing fasciitis or gas gangrene",
+            "empiric antibiotic therapy should be broad with MRSA, gram-negative, and anaerobic coverage",
+            "penicillin plus clindamycin is recommended for documented group A streptococcal necrotizing fasciitis",
+            "urgent surgical exploration and debridement are required when gas gangrene is suspected"
+          ]
+        },
+        {
+          "title": "Necrotizing Fasciitis",
+          "organization": "NCBI Bookshelf / StatPearls",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK430756/",
+          "supports": [
+            "no lab or imaging test should delay surgical intervention",
+            "patients need ICU care, aggressive fluid resuscitation, and vasopressor support when unstable",
+            "wide debridement and repeat operations may be needed until necrotic tissue is removed"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "necrotizing_soft_tissue_infection_requires_separate_toxin_repeat_diagnostic_limb_and_host_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "group A strep, streptococcal, clostridial, or gas-gangrene",
+      "24-to-48-hour reassessment plus repeat debridement",
+      "not excluding NSTI or delaying surgical exploration",
+      "amputation/limb-loss risk and diabetes or immunocompromised"
+    ],
+    "overrides": {
+      "diagnosis": "Necrotizing fasciitis",
+      "patient_demographics": {
+        "age": 57,
+        "sex": "female",
+        "weight_kg": 74,
+        "ethnicity": "Korean"
+      },
+      "chief_complaint": "Rapidly progressive thigh pain with shock",
+      "history_of_present_illness": "Patient with diabetes has profound pain out of proportion, rapidly progressive swelling, bullae, ecchymosis, dusky skin, hypotension, lactate elevation, and suspected necrotizing soft tissue infection.",
+      "key_teaching_points": [
+        "NSTI needs prompt surgical consultation and operative exploration",
+        "Empiric therapy must be broad and cover MRSA, gram-negative, and anaerobic pathogens",
+        "LRINEC, CT, or imaging should not delay debridement and source control"
+      ],
+      "clinical_red_flags": [
+        "Pain out of proportion, profound pain, rapidly progressive swelling, bullae, ecchymosis, dusky skin, decreased sensation, and systemic toxicity",
+        "Shock, lactate elevation, organ failure, diabetes, immunocompromised state, or amputation risk"
+      ],
+      "time_critical_actions": [
+        "Call acute care surgery immediately for surgical consultation",
+        "Perform operative exploration with fascial exploration and surgical debridement",
+        "Start broad-spectrum empiric antibiotics with vancomycin plus piperacillin tazobactam and metronidazole",
+        "Give IV fluid resuscitation and monitor sepsis, shock, lactate, ICU need, and vasopressor support",
+        "Do not delay surgical management and keep immediate source control time critical"
+      ],
+      "contraindication_checks": [
+        "Use clindamycin for toxin suppression",
+        "Plan repeat debridement and source control",
+        "Review LRINEC and CT findings",
+        "Monitor shock and renal injury"
+      ],
+      "clinical_sources": [
+        {
+          "title": "IDSA Skin and Soft Tissue Infection Guidelines",
+          "organization": "Infectious Diseases Society of America",
+          "url": "https://www.idsociety.org/practice-guideline/skin-and-soft-tissue-infections/",
+          "supports": [
+            "prompt surgical consultation is recommended for suspected necrotizing fasciitis or gas gangrene",
+            "empiric antibiotic therapy should be broad with MRSA, gram-negative, and anaerobic coverage",
+            "penicillin plus clindamycin is recommended for documented group A streptococcal necrotizing fasciitis"
+          ]
+        },
+        {
+          "title": "Necrotizing Fasciitis",
+          "organization": "NCBI Bookshelf / StatPearls",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK430756/",
+          "supports": [
+            "no lab or imaging test should delay surgical intervention",
+            "repeat operations may be needed to remove necrotic tissue",
+            "complications include multiorgan failure, septic shock, and loss of extremity"
+          ]
+        }
+      ]
+    }
+  },
+  {
     "name": "necrotizing_soft_tissue_infection_requires_specific_red_flags",
     "expected_passed": false,
     "expected_issue_substrings": [

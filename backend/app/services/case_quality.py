@@ -9648,94 +9648,115 @@ NECROTIZING_SOFT_TISSUE_INFECTION_DEBRIDEMENT_ACTION_TERMS = (
     "수술적 변연절제",
     "수술적 탐색",
 )
-NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS = (
+NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_EMPIRIC_ACTION_TERMS = (
     "antibiotic",
     "antibiotics",
     "broad-spectrum",
-    "carbapenem",
-    "clindamycin",
-    "linezolid",
-    "piperacillin",
-    "tazobactam",
-    "vancomycin",
+    "empiric",
     "항생제",
 )
-NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_COVERAGE_ACTION_TERMS = (
-    "anaerobe",
-    "anaerobic",
+NECROTIZING_SOFT_TISSUE_INFECTION_MRSA_ACTION_TERMS = (
+    "daptomycin",
+    "linezolid",
+    "mrsa",
+    "vancomycin",
+)
+NECROTIZING_SOFT_TISSUE_INFECTION_GRAM_NEGATIVE_ACTION_TERMS = (
     "carbapenem",
     "cefepime",
     "gram-negative",
     "meropenem",
-    "metronidazole",
-    "mrsa",
     "piperacillin",
     "tazobactam",
-    "vancomycin",
 )
-NECROTIZING_SOFT_TISSUE_INFECTION_RESUSCITATION_ACTION_TERMS = (
+NECROTIZING_SOFT_TISSUE_INFECTION_ANAEROBIC_ACTION_TERMS = (
+    "anaerobe",
+    "anaerobic",
+    "carbapenem",
+    "meropenem",
+    "metronidazole",
+    "piperacillin",
+    "tazobactam",
+)
+NECROTIZING_SOFT_TISSUE_INFECTION_FLUID_RESUSCITATION_ACTION_TERMS = (
     "fluid",
     "fluids",
+    "resuscitation",
+    "수액",
+)
+NECROTIZING_SOFT_TISSUE_INFECTION_SHOCK_ICU_ACTION_TERMS = (
     "icu",
     "lactate",
-    "resuscitation",
     "sepsis",
     "shock",
     "vasopressor",
-    "수액",
     "패혈증",
 )
-NECROTIZING_SOFT_TISSUE_INFECTION_DELAY_ACTION_TERMS = (
+NECROTIZING_SOFT_TISSUE_INFECTION_DO_NOT_DELAY_ACTION_TERMS = (
     "do not delay",
-    "immediate",
     "not delay",
+    "지연",
+)
+NECROTIZING_SOFT_TISSUE_INFECTION_IMMEDIATE_SOURCE_CONTROL_ACTION_TERMS = (
+    "immediate",
     "source control",
     "time critical",
     "urgent",
-    "지연",
     "즉시",
 )
-NECROTIZING_SOFT_TISSUE_INFECTION_TOXIN_SAFETY_TERMS = (
+NECROTIZING_SOFT_TISSUE_INFECTION_TOXIN_SUPPRESSION_SAFETY_TERMS = (
     "clindamycin",
-    "gas gangrene",
-    "group a strep",
     "linezolid",
-    "strep",
-    "streptococcal",
     "toxin",
     "독소",
 )
-NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_SOURCE_SAFETY_TERMS = (
+NECROTIZING_SOFT_TISSUE_INFECTION_STREP_CLOSTRIDIAL_SAFETY_TERMS = (
+    "clostridial",
+    "gas gangrene",
+    "group a strep",
+    "strep",
+    "streptococcal",
+)
+NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_TIMING_SAFETY_TERMS = (
     "24",
     "48",
-    "debridement",
     "repeat",
     "re-look",
     "second look",
-    "source control",
     "재수술",
 )
-NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_LIMITATION_SAFETY_TERMS = (
-    "ct should not delay",
-    "do not delay",
+NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_SOURCE_SAFETY_TERMS = (
+    "debridement",
+    "source control",
+)
+NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_TOOL_SAFETY_TERMS = (
+    "ct",
+    "diagnostic testing",
     "imaging",
     "lrinec",
+)
+NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_DELAY_SAFETY_TERMS = (
+    "do not delay",
     "not exclude",
     "not rule out",
     "surgical exploration",
     "지연",
 )
-NECROTIZING_SOFT_TISSUE_INFECTION_ORGAN_RISK_SAFETY_TERMS = (
+NECROTIZING_SOFT_TISSUE_INFECTION_SHOCK_ORGAN_SAFETY_TERMS = (
     "aki",
-    "amputation",
     "coagulopathy",
-    "diabetes",
-    "immunocompromised",
     "organ failure",
     "renal",
     "shock",
+)
+NECROTIZING_SOFT_TISSUE_INFECTION_LIMB_RISK_SAFETY_TERMS = (
+    "amputation",
     "괴사",
     "절단",
+)
+NECROTIZING_SOFT_TISSUE_INFECTION_HOST_RISK_SAFETY_TERMS = (
+    "diabetes",
+    "immunocompromised",
 )
 FOURNIER_GAS_GANGRENE_CONTEXT_TERMS = (
     "clostridial",
@@ -20622,11 +20643,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "surgical consultation escalation, specific surgical exploration, "
                 "operative debridement, fascial exploration, fasciotomy, wide "
                 "excision, or necrotic-tissue excision, broad-spectrum empiric "
-                "antibiotics with MRSA, gram-negative, anaerobic, vancomycin, "
-                "piperacillin-tazobactam, carbapenem, cefepime, or metronidazole "
-                "coverage, sepsis, shock, lactate, ICU, vasopressor, or fluid "
-                "resuscitation, and explicit do-not-delay source-control or "
-                "immediate time-critical management"
+                "antibiotics plus MRSA coverage with vancomycin, linezolid, or "
+                "daptomycin, gram-negative coverage with piperacillin-tazobactam, "
+                "cefepime, carbapenem, or meropenem, anaerobic coverage with "
+                "metronidazole, piperacillin-tazobactam, or carbapenem, IV fluid "
+                "resuscitation plus sepsis, shock, lactate, ICU, or vasopressor "
+                "monitoring, and explicit do-not-delay surgical management plus "
+                "immediate source-control or time-critical management"
             ),
         ),
         DomainSafetyGate(
@@ -20648,12 +20671,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_necrotizing_soft_tissue_infection_treatment_safety_check,
             issue=(
                 "necrotizing soft tissue infection safety checks must include "
-                "clindamycin, linezolid, group A strep, clostridial gas gangrene, "
-                "or toxin-suppression planning, repeat, second-look, 24-to-48-hour "
-                "debridement or source-control reassessment, LRINEC, imaging, "
-                "or diagnostic testing not delaying surgical exploration, and "
-                "shock, renal injury, coagulopathy, organ failure, amputation, "
-                "diabetes, or immunocompromised risk monitoring"
+                "toxin suppression with clindamycin or linezolid plus group A "
+                "strep, streptococcal, clostridial, or gas-gangrene review, "
+                "repeat, re-look, second-look, or 24-to-48-hour reassessment "
+                "plus repeat debridement or source-control planning, LRINEC, CT, "
+                "imaging, or diagnostic-testing limitation review plus not "
+                "excluding NSTI or delaying surgical exploration, and shock, "
+                "renal injury, coagulopathy, or organ-failure monitoring plus "
+                "amputation/limb-loss risk and diabetes or immunocompromised "
+                "host-risk monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -31164,55 +31190,100 @@ def _has_necrotizing_soft_tissue_infection_time_critical_actions(actions: list[A
         _contains_safety_term(normalized_actions, term)
         for term in NECROTIZING_SOFT_TISSUE_INFECTION_DEBRIDEMENT_ACTION_TERMS
     )
-    has_antibiotic = any(
+    has_broad_empiric_antibiotic = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NECROTIZING_SOFT_TISSUE_INFECTION_ANTIBIOTIC_ACTION_TERMS
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_EMPIRIC_ACTION_TERMS
     )
-    has_broad_coverage = any(
+    has_mrsa_coverage = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NECROTIZING_SOFT_TISSUE_INFECTION_BROAD_COVERAGE_ACTION_TERMS
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_MRSA_ACTION_TERMS
     )
-    has_resuscitation = any(
+    has_gram_negative_coverage = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NECROTIZING_SOFT_TISSUE_INFECTION_RESUSCITATION_ACTION_TERMS
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_GRAM_NEGATIVE_ACTION_TERMS
+    )
+    has_anaerobic_coverage = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_ANAEROBIC_ACTION_TERMS
+    )
+    has_fluid_resuscitation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_FLUID_RESUSCITATION_ACTION_TERMS
+    )
+    has_shock_icu_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_SHOCK_ICU_ACTION_TERMS
     )
     has_delay_prevention = any(
         _contains_safety_term(normalized_actions, term)
-        for term in NECROTIZING_SOFT_TISSUE_INFECTION_DELAY_ACTION_TERMS
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_DO_NOT_DELAY_ACTION_TERMS
+    )
+    has_immediate_source_control = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_IMMEDIATE_SOURCE_CONTROL_ACTION_TERMS
     )
     return (
         has_surgery_team
         and has_debridement
-        and has_antibiotic
-        and has_broad_coverage
-        and has_resuscitation
+        and has_broad_empiric_antibiotic
+        and has_mrsa_coverage
+        and has_gram_negative_coverage
+        and has_anaerobic_coverage
+        and has_fluid_resuscitation
+        and has_shock_icu_monitoring
         and has_delay_prevention
+        and has_immediate_source_control
     )
 
 
 def _has_necrotizing_soft_tissue_infection_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_toxin_safety = any(
+    has_toxin_suppression_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in NECROTIZING_SOFT_TISSUE_INFECTION_TOXIN_SAFETY_TERMS
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_TOXIN_SUPPRESSION_SAFETY_TERMS
+    )
+    has_strep_clostridial_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_STREP_CLOSTRIDIAL_SAFETY_TERMS
+    )
+    has_repeat_timing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_TIMING_SAFETY_TERMS
     )
     has_repeat_source_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in NECROTIZING_SOFT_TISSUE_INFECTION_REPEAT_SOURCE_SAFETY_TERMS
     )
-    has_diagnostic_limitation_safety = any(
+    has_diagnostic_tool_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_LIMITATION_SAFETY_TERMS
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_TOOL_SAFETY_TERMS
     )
-    has_organ_risk_safety = any(
+    has_diagnostic_delay_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in NECROTIZING_SOFT_TISSUE_INFECTION_ORGAN_RISK_SAFETY_TERMS
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_DIAGNOSTIC_DELAY_SAFETY_TERMS
+    )
+    has_shock_organ_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_SHOCK_ORGAN_SAFETY_TERMS
+    )
+    has_limb_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_LIMB_RISK_SAFETY_TERMS
+    )
+    has_host_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in NECROTIZING_SOFT_TISSUE_INFECTION_HOST_RISK_SAFETY_TERMS
     )
     return (
-        has_toxin_safety
+        has_toxin_suppression_safety
+        and has_strep_clostridial_safety
+        and has_repeat_timing_safety
         and has_repeat_source_safety
-        and has_diagnostic_limitation_safety
-        and has_organ_risk_safety
+        and has_diagnostic_tool_safety
+        and has_diagnostic_delay_safety
+        and has_shock_organ_safety
+        and has_limb_risk_safety
+        and has_host_risk_safety
     )
 
 
