@@ -14205,94 +14205,133 @@ const ADRENAL_CRISIS_CONTEXT_TERMS = [
   "부신기능부전",
 ];
 
-const ADRENAL_CRISIS_STEROID_ACTION_TERMS = [
-  "100 mg hydrocortisone",
-  "hydrocortisone 100 mg",
+const ADRENAL_CRISIS_HYDROCORTISONE_ACTION_TERMS = [
+  "hydrocortisone",
+  "solu-cortef",
+  "하이드로코르티손",
+];
+
+const ADRENAL_CRISIS_ROUTE_ACTION_TERMS = [
   "hydrocortisone im",
   "hydrocortisone iv",
-  "hydrocortisone sodium succinate",
-  "hydrocortisone stress dose",
   "im hydrocortisone",
   "intramuscular hydrocortisone",
   "intravenous hydrocortisone",
   "iv hydrocortisone",
   "parenteral hydrocortisone",
-  "parenteral steroid",
-  "solu-cortef",
-  "stress dose hydrocortisone",
-  "stress dose steroid",
-  "stress-dose hydrocortisone",
-  "stress-dose steroid",
+  "parenteral",
   "iv 하이드로코르티손",
   "im 하이드로코르티손",
   "근육 하이드로코르티손",
   "정맥 하이드로코르티손",
-  "스트레스 용량 하이드로코르티손",
-  "하이드로코르티손 근육",
-  "하이드로코르티손 정맥",
 ];
 
-const ADRENAL_CRISIS_FLUID_GLUCOSE_ACTION_TERMS = [
+const ADRENAL_CRISIS_INITIAL_DOSE_ACTION_TERMS = [
+  "100 mg hydrocortisone",
+  "hydrocortisone 100 mg",
+  "hydrocortisone stress dose",
+  "stress dose hydrocortisone",
+  "stress-dose hydrocortisone",
+  "스트레스 용량 하이드로코르티손",
+];
+
+const ADRENAL_CRISIS_CONTINUATION_ACTION_TERMS = [
+  "200 mg",
+  "24 hours",
+  "24-hour",
+  "50 mg",
+  "continuous infusion",
+  "every 6 hours",
+  "q6",
+  "q6h",
+];
+
+const ADRENAL_CRISIS_SALINE_ACTION_TERMS = [
   "0.9% saline",
-  "dextrose",
   "fluid resuscitation",
-  "glucose",
   "isotonic saline",
   "normal saline",
   "saline",
   "수액",
   "생리식염수",
+];
+
+const ADRENAL_CRISIS_DEXTROSE_GLUCOSE_ACTION_TERMS = [
+  "dextrose",
+  "glucose",
+  "hypoglycemia",
   "포도당",
 ];
 
-const ADRENAL_CRISIS_MONITORING_ACTION_TERMS = [
+const ADRENAL_CRISIS_HEMODYNAMIC_ACTION_TERMS = [
   "blood pressure",
-  "electrolyte",
-  "glucose",
   "hemodynamic",
-  "hypoglycemia",
+  "hypotension",
+  "shock",
+  "혈압",
+];
+
+const ADRENAL_CRISIS_GLUCOSE_MONITORING_ACTION_TERMS = ["glucose", "hypoglycemia", "혈당"];
+
+const ADRENAL_CRISIS_ELECTROLYTE_MONITORING_ACTION_TERMS = [
+  "electrolyte",
+  "hyponatremia",
+  "hyperkalemia",
   "potassium",
   "sodium",
-  "shock",
   "전해질",
-  "혈당",
-  "혈압",
 ];
 
 const ADRENAL_CRISIS_DO_NOT_DELAY_SAFETY_TERMS = [
-  "before cortisol",
-  "cortisol",
   "do not delay",
-  "draw cortisol",
   "immediate hydrocortisone",
   "not delay",
   "지연",
+];
+
+const ADRENAL_CRISIS_CORTISOL_TESTING_SAFETY_TERMS = [
+  "before cortisol",
+  "cortisol",
+  "draw cortisol",
   "코르티솔",
 ];
 
-const ADRENAL_CRISIS_MONITORING_SAFETY_TERMS = [
+const ADRENAL_CRISIS_HEMODYNAMIC_SAFETY_TERMS = [
   "blood pressure",
-  "electrolyte",
+  "hemodynamic",
+  "hypotension",
+  "shock",
+  "혈압",
+];
+
+const ADRENAL_CRISIS_GLUCOSE_SAFETY_TERMS = [
   "glucose",
   "hypoglycemia",
+  "혈당",
+];
+
+const ADRENAL_CRISIS_ELECTROLYTE_SAFETY_TERMS = [
+  "electrolyte",
+  "hyperkalemia",
   "hyponatremia",
   "potassium",
   "sodium",
-  "혈당",
-  "혈압",
   "전해질",
 ];
 
-const ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS = [
+const ADRENAL_CRISIS_INFECTION_PRECIPITANT_SAFETY_TERMS = [
   "infection",
-  "missed steroid",
   "precipitant",
   "sepsis",
-  "steroid withdrawal",
-  "stress dosing",
   "trigger",
   "감염",
   "유발",
+];
+
+const ADRENAL_CRISIS_STEROID_TRIGGER_SAFETY_TERMS = [
+  "missed steroid",
+  "steroid withdrawal",
+  "stress dosing",
   "중단",
 ];
 
@@ -29178,16 +29217,44 @@ function requiresAdrenalCrisisSafetyCheck(detail: ClinicalCaseReviewDetail): boo
 
 function hasAdrenalCrisisTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasSteroid = ADRENAL_CRISIS_STEROID_ACTION_TERMS.some((term) =>
+  const hasHydrocortisone = ADRENAL_CRISIS_HYDROCORTISONE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasFluidOrGlucose = ADRENAL_CRISIS_FLUID_GLUCOSE_ACTION_TERMS.some((term) =>
+  const hasRoute = ADRENAL_CRISIS_ROUTE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasMonitoring = ADRENAL_CRISIS_MONITORING_ACTION_TERMS.some((term) =>
+  const hasInitialDose = ADRENAL_CRISIS_INITIAL_DOSE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasSteroid && hasFluidOrGlucose && hasMonitoring;
+  const hasContinuation = ADRENAL_CRISIS_CONTINUATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSaline = ADRENAL_CRISIS_SALINE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDextroseGlucose = ADRENAL_CRISIS_DEXTROSE_GLUCOSE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHemodynamic = ADRENAL_CRISIS_HEMODYNAMIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasGlucoseMonitoring = ADRENAL_CRISIS_GLUCOSE_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasElectrolyteMonitoring = ADRENAL_CRISIS_ELECTROLYTE_MONITORING_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasHydrocortisone &&
+    hasRoute &&
+    hasInitialDose &&
+    hasContinuation &&
+    hasSaline &&
+    hasDextroseGlucose &&
+    hasHemodynamic &&
+    hasGlucoseMonitoring &&
+    hasElectrolyteMonitoring
+  );
 }
 
 function hasAdrenalCrisisTreatmentSafetyCheck(checks: string[]): boolean {
@@ -29195,13 +29262,33 @@ function hasAdrenalCrisisTreatmentSafetyCheck(checks: string[]): boolean {
   const hasDoNotDelaySafety = ADRENAL_CRISIS_DO_NOT_DELAY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasMonitoringSafety = ADRENAL_CRISIS_MONITORING_SAFETY_TERMS.some((term) =>
+  const hasCortisolTestingSafety = ADRENAL_CRISIS_CORTISOL_TESTING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasPrecipitantReview = ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS.some((term) =>
+  const hasHemodynamicSafety = ADRENAL_CRISIS_HEMODYNAMIC_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasDoNotDelaySafety && hasMonitoringSafety && hasPrecipitantReview;
+  const hasGlucoseSafety = ADRENAL_CRISIS_GLUCOSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasElectrolyteSafety = ADRENAL_CRISIS_ELECTROLYTE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInfectionPrecipitant = ADRENAL_CRISIS_INFECTION_PRECIPITANT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidTrigger = ADRENAL_CRISIS_STEROID_TRIGGER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasDoNotDelaySafety &&
+    hasCortisolTestingSafety &&
+    hasHemodynamicSafety &&
+    hasGlucoseSafety &&
+    hasElectrolyteSafety &&
+    hasInfectionPrecipitant &&
+    hasSteroidTrigger
+  );
 }
 
 function requiresButtonBatterySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
@@ -34452,7 +34539,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAdrenalCrisisTimeCriticalActions,
       issue:
-        "adrenal crisis time-critical actions must include immediate hydrocortisone by IV, IM, or parenteral route or stress-dose steroid, isotonic saline or dextrose resuscitation, and glucose, electrolyte, or hemodynamic monitoring",
+        "adrenal crisis time-critical actions must include immediate hydrocortisone by IV, IM, or parenteral route, 100 mg or stress-dose initial dosing, continuation dosing such as 200 mg/24 hours, continuous infusion, or 50 mg every 6 hours, 0.9% saline, isotonic saline, normal saline, fluid resuscitation, or volume support, dextrose or hypoglycemia/glucose correction, and separate hemodynamic, glucose, and electrolyte monitoring",
     },
     {
       name: "adrenal_crisis_treatment_safety",
@@ -34461,7 +34548,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAdrenalCrisisTreatmentSafetyCheck,
       issue:
-        "adrenal crisis safety checks must include not delaying hydrocortisone for cortisol testing, glucose and electrolyte monitoring, and precipitant, infection, or missed-steroid review",
+        "adrenal crisis safety checks must include not delaying hydrocortisone plus cortisol/ACTH testing review, hemodynamic shock or blood-pressure monitoring, hypoglycemia or glucose monitoring, sodium, potassium, hyperkalemia, hyponatremia, or electrolyte monitoring, infection, sepsis, precipitant, or trigger review, and missed-steroid, steroid-withdrawal, or stress-dosing review",
     },
     {
       name: "button_battery_ingestion_time_critical_actions",

@@ -27879,7 +27879,7 @@ def test_quality_gate_requires_adrenal_crisis_do_not_delay_monitoring_and_trigge
         "Hyponatremia, hyperkalemia, and hypoglycemia with missed steroid doses",
     ]
     case["time_critical_actions"] = [
-        "Give immediate IV hydrocortisone stress dose",
+        "Give immediate IV hydrocortisone 100 mg stress dose, then continue hydrocortisone 200 mg over 24 hours or 50 mg q6h",
         "Start isotonic saline fluid resuscitation with dextrose if hypoglycemia is present",
         "Monitor blood pressure, glucose, sodium, potassium, and shock response",
     ]
@@ -27910,6 +27910,129 @@ def test_quality_gate_requires_adrenal_crisis_do_not_delay_monitoring_and_trigge
     assert not report.passed
     assert any(
         "adrenal crisis safety checks must include not delaying hydrocortisone" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_adrenal_crisis_continuation_hydrocortisone_and_dextrose_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Adrenal crisis"
+    case["chief_complaint"] = "Vomiting, weakness, hypotension, and confusion"
+    case["history_of_present_illness"] = (
+        "Patient with adrenal insufficiency and missed steroid doses presents "
+        "with vomiting, abdominal pain, confusion, fever, hypotension, "
+        "hyponatremia, hyperkalemia, and hypoglycemia."
+    )
+    case["key_teaching_points"] = [
+        "Adrenal crisis requires immediate hydrocortisone and fluid resuscitation",
+        "Hydrocortisone should continue after the initial bolus",
+        "Hypoglycemia requires glucose or dextrose correction with electrolyte monitoring",
+    ]
+    case["clinical_red_flags"] = [
+        "Hypotension, shock, vomiting, confusion, fever, or severe dehydration",
+        "Hyponatremia, hyperkalemia, hypoglycemia, missed steroid doses, infection, or sepsis",
+    ]
+    case["time_critical_actions"] = [
+        "Give immediate IV hydrocortisone 100 mg stress dose for suspected adrenal crisis",
+        "Start 0.9% normal saline isotonic fluid resuscitation for hypotension and shock",
+        "Monitor blood pressure, glucose, sodium, potassium, and electrolytes",
+    ]
+    case["contraindication_checks"] = [
+        "Draw cortisol and ACTH if feasible but do not delay immediate hydrocortisone",
+        "Monitor hemodynamic shock and blood pressure, hypoglycemia glucose, sodium, potassium, hyperkalemia, hyponatremia, and electrolytes",
+        "Review infection, sepsis, precipitant triggers, missed steroid doses, steroid withdrawal, and stress dosing",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Adrenal crisis",
+            "organization": "Society for Endocrinology",
+            "url": "https://www.endocrinology.org/clinical-practice/clinical-guidance/adrenal-crisis/",
+            "supports": [
+                "adrenal crisis diagnosis and risk stratification",
+                "vomiting, abdominal pain, confusion, fever, hypotension, hyponatremia, hyperkalemia, and hypoglycemia after missed steroid doses",
+                "immediate hydrocortisone and fluid resuscitation are required",
+                "hydrocortisone should continue after the initial bolus",
+                "hypoglycemia requires glucose or dextrose correction with electrolyte monitoring",
+                "hypotension, shock, vomiting, confusion, fever, or severe dehydration as red flags",
+                "hyponatremia, hyperkalemia, hypoglycemia, missed steroid doses, infection, or sepsis as severity markers",
+                "immediate IV hydrocortisone 100 mg stress dose for suspected adrenal crisis",
+                "0.9% normal saline isotonic fluid resuscitation for hypotension and shock",
+                "blood pressure, glucose, sodium, potassium, and electrolyte monitoring",
+                "cortisol and ACTH if feasible but do not delay immediate hydrocortisone",
+                "hemodynamic shock and blood pressure, hypoglycemia glucose, sodium, potassium, hyperkalemia, hyponatremia, and electrolyte monitoring",
+                "infection, sepsis, precipitant triggers, missed steroid doses, steroid withdrawal, and stress dosing review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "continuation dosing such as 200 mg/24 hours" in issue
+        and "dextrose or hypoglycemia/glucose correction" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_adrenal_crisis_separate_hemodynamic_glucose_and_electrolyte_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Adrenal crisis"
+    case["chief_complaint"] = "Shock and confusion after missed steroid doses"
+    case["history_of_present_illness"] = (
+        "Patient with adrenal insufficiency has vomiting, fever, hypotension, "
+        "shock, hypoglycemia, hyponatremia, hyperkalemia, and suspected infection "
+        "after steroid withdrawal."
+    )
+    case["key_teaching_points"] = [
+        "Treatment must not wait for cortisol testing",
+        "Initial hydrocortisone requires ongoing replacement dosing",
+        "Glucose, sodium, potassium, and hemodynamic response require close monitoring",
+    ]
+    case["clinical_red_flags"] = [
+        "Shock, hypotension, vomiting, fever, confusion, or severe weakness",
+        "Hypoglycemia, hyponatremia, hyperkalemia, missed steroid doses, steroid withdrawal, infection, or sepsis",
+    ]
+    case["time_critical_actions"] = [
+        "Give immediate IV hydrocortisone 100 mg stress dose, then continue hydrocortisone 200 mg over 24 hours or 50 mg q6h",
+        "Start 0.9% normal saline isotonic fluid resuscitation and add dextrose for hypoglycemia or glucose correction",
+        "Monitor blood pressure and shock response, glucose and hypoglycemia, sodium, potassium, hyperkalemia, hyponatremia, and electrolytes",
+    ]
+    case["contraindication_checks"] = [
+        "Draw cortisol if feasible but do not delay immediate hydrocortisone for testing",
+        "Monitor glucose and electrolytes during treatment",
+        "Review infection, sepsis, precipitant triggers, missed steroid doses, steroid withdrawal, and stress dosing",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Adrenal crisis",
+            "organization": "Society for Endocrinology",
+            "url": "https://www.endocrinology.org/clinical-practice/clinical-guidance/adrenal-crisis/",
+            "supports": [
+                "adrenal crisis diagnosis and risk stratification",
+                "vomiting, fever, hypotension, shock, hypoglycemia, hyponatremia, hyperkalemia, and suspected infection after steroid withdrawal",
+                "treatment must not wait for cortisol testing",
+                "initial hydrocortisone requires ongoing replacement dosing",
+                "glucose, sodium, potassium, and hemodynamic response require close monitoring",
+                "shock, hypotension, vomiting, fever, confusion, or severe weakness as red flags",
+                "hypoglycemia, hyponatremia, hyperkalemia, missed steroid doses, steroid withdrawal, infection, or sepsis as severity markers",
+                "immediate IV hydrocortisone 100 mg stress dose, then hydrocortisone 200 mg over 24 hours or 50 mg q6h",
+                "0.9% normal saline isotonic fluid resuscitation and dextrose for hypoglycemia or glucose correction",
+                "blood pressure and shock response, glucose and hypoglycemia, sodium, potassium, hyperkalemia, hyponatremia, and electrolyte monitoring",
+                "cortisol if feasible but do not delay immediate hydrocortisone for testing",
+                "glucose and electrolyte monitoring during treatment",
+                "infection, sepsis, precipitant triggers, missed steroid doses, steroid withdrawal, and stress dosing review",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "hemodynamic shock or blood-pressure monitoring" in issue
+        and "hypoglycemia or glucose monitoring" in issue
+        and "sodium, potassium, hyperkalemia, hyponatremia" in issue
         for issue in report.critical_issues
     )
 

@@ -12751,89 +12751,122 @@ ADRENAL_CRISIS_CONTEXT_TERMS = (
     "부신 위기",
     "부신기능부전",
 )
-ADRENAL_CRISIS_STEROID_ACTION_TERMS = (
-    "100 mg hydrocortisone",
-    "hydrocortisone 100 mg",
+ADRENAL_CRISIS_HYDROCORTISONE_ACTION_TERMS = (
+    "hydrocortisone",
+    "solu-cortef",
+    "하이드로코르티손",
+)
+ADRENAL_CRISIS_ROUTE_ACTION_TERMS = (
     "hydrocortisone im",
     "hydrocortisone iv",
-    "hydrocortisone sodium succinate",
-    "hydrocortisone stress dose",
     "im hydrocortisone",
     "intramuscular hydrocortisone",
     "intravenous hydrocortisone",
     "iv hydrocortisone",
     "parenteral hydrocortisone",
-    "parenteral steroid",
-    "solu-cortef",
-    "stress dose hydrocortisone",
-    "stress dose steroid",
-    "stress-dose hydrocortisone",
-    "stress-dose steroid",
+    "parenteral",
     "iv 하이드로코르티손",
     "im 하이드로코르티손",
     "근육 하이드로코르티손",
     "정맥 하이드로코르티손",
-    "스트레스 용량 하이드로코르티손",
-    "하이드로코르티손 근육",
-    "하이드로코르티손 정맥",
 )
-ADRENAL_CRISIS_FLUID_GLUCOSE_ACTION_TERMS = (
+ADRENAL_CRISIS_INITIAL_DOSE_ACTION_TERMS = (
+    "100 mg hydrocortisone",
+    "hydrocortisone 100 mg",
+    "hydrocortisone stress dose",
+    "stress dose hydrocortisone",
+    "stress-dose hydrocortisone",
+    "스트레스 용량 하이드로코르티손",
+)
+ADRENAL_CRISIS_CONTINUATION_ACTION_TERMS = (
+    "200 mg",
+    "24 hours",
+    "24-hour",
+    "50 mg",
+    "continuous infusion",
+    "every 6 hours",
+    "q6",
+    "q6h",
+)
+ADRENAL_CRISIS_SALINE_ACTION_TERMS = (
     "0.9% saline",
-    "dextrose",
     "fluid resuscitation",
-    "glucose",
     "isotonic saline",
     "normal saline",
     "saline",
     "수액",
     "생리식염수",
+)
+ADRENAL_CRISIS_DEXTROSE_GLUCOSE_ACTION_TERMS = (
+    "dextrose",
+    "glucose",
+    "hypoglycemia",
     "포도당",
 )
-ADRENAL_CRISIS_MONITORING_ACTION_TERMS = (
+ADRENAL_CRISIS_HEMODYNAMIC_ACTION_TERMS = (
     "blood pressure",
-    "electrolyte",
-    "glucose",
     "hemodynamic",
-    "hypoglycemia",
-    "potassium",
-    "sodium",
+    "hypotension",
     "shock",
-    "전해질",
-    "혈당",
     "혈압",
 )
+ADRENAL_CRISIS_GLUCOSE_MONITORING_ACTION_TERMS = (
+    "glucose",
+    "hypoglycemia",
+    "혈당",
+)
+ADRENAL_CRISIS_ELECTROLYTE_MONITORING_ACTION_TERMS = (
+    "electrolyte",
+    "hyponatremia",
+    "hyperkalemia",
+    "potassium",
+    "sodium",
+    "전해질",
+)
 ADRENAL_CRISIS_DO_NOT_DELAY_SAFETY_TERMS = (
-    "before cortisol",
-    "cortisol",
     "do not delay",
-    "draw cortisol",
     "immediate hydrocortisone",
     "not delay",
     "지연",
+)
+ADRENAL_CRISIS_CORTISOL_TESTING_SAFETY_TERMS = (
+    "before cortisol",
+    "cortisol",
+    "draw cortisol",
     "코르티솔",
 )
-ADRENAL_CRISIS_MONITORING_SAFETY_TERMS = (
+ADRENAL_CRISIS_HEMODYNAMIC_SAFETY_TERMS = (
     "blood pressure",
-    "electrolyte",
+    "hemodynamic",
+    "hypotension",
+    "shock",
+    "혈압",
+)
+ADRENAL_CRISIS_GLUCOSE_SAFETY_TERMS = (
     "glucose",
     "hypoglycemia",
+    "혈당",
+)
+ADRENAL_CRISIS_ELECTROLYTE_SAFETY_TERMS = (
+    "electrolyte",
+    "hyperkalemia",
     "hyponatremia",
     "potassium",
     "sodium",
-    "혈당",
-    "혈압",
     "전해질",
 )
-ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS = (
+ADRENAL_CRISIS_INFECTION_PRECIPITANT_SAFETY_TERMS = (
     "infection",
-    "missed steroid",
     "precipitant",
     "sepsis",
-    "steroid withdrawal",
-    "stress dosing",
     "trigger",
     "감염",
     "유발",
+)
+ADRENAL_CRISIS_STEROID_TRIGGER_SAFETY_TERMS = (
+    "missed steroid",
+    "steroid withdrawal",
+    "stress dosing",
     "중단",
 )
 BUTTON_BATTERY_CONTEXT_TERMS = (
@@ -21573,9 +21606,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_adrenal_crisis_time_critical_actions,
             issue=(
                 "adrenal crisis time-critical actions must include immediate "
-                "hydrocortisone by IV, IM, or parenteral route or stress-dose "
-                "steroid, isotonic saline or dextrose resuscitation, and glucose, "
-                "electrolyte, or hemodynamic monitoring"
+                "hydrocortisone by IV, IM, or parenteral route, 100 mg or "
+                "stress-dose initial dosing, continuation dosing such as "
+                "200 mg/24 hours, continuous infusion, or 50 mg every 6 hours, "
+                "0.9% saline, isotonic saline, normal saline, fluid resuscitation, "
+                "or volume support, dextrose or hypoglycemia/glucose correction, "
+                "and separate hemodynamic, glucose, and electrolyte monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -21585,8 +21621,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_adrenal_crisis_treatment_safety_check,
             issue=(
                 "adrenal crisis safety checks must include not delaying "
-                "hydrocortisone for cortisol testing, glucose and electrolyte "
-                "monitoring, and precipitant, infection, or missed-steroid review"
+                "hydrocortisone plus cortisol/ACTH testing review, hemodynamic "
+                "shock or blood-pressure monitoring, hypoglycemia or glucose "
+                "monitoring, sodium, potassium, hyperkalemia, hyponatremia, or "
+                "electrolyte monitoring, infection, sepsis, precipitant, or "
+                "trigger review, and missed-steroid, steroid-withdrawal, or "
+                "stress-dosing review"
             ),
         ),
         DomainSafetyGate(
@@ -34031,19 +34071,53 @@ def _requires_adrenal_crisis_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_adrenal_crisis_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_steroid = any(
+    has_hydrocortisone = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ADRENAL_CRISIS_STEROID_ACTION_TERMS
+        for term in ADRENAL_CRISIS_HYDROCORTISONE_ACTION_TERMS
     )
-    has_fluid_or_glucose = any(
+    has_route = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ADRENAL_CRISIS_FLUID_GLUCOSE_ACTION_TERMS
+        for term in ADRENAL_CRISIS_ROUTE_ACTION_TERMS
     )
-    has_monitoring = any(
+    has_initial_dose = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ADRENAL_CRISIS_MONITORING_ACTION_TERMS
+        for term in ADRENAL_CRISIS_INITIAL_DOSE_ACTION_TERMS
     )
-    return has_steroid and has_fluid_or_glucose and has_monitoring
+    has_continuation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADRENAL_CRISIS_CONTINUATION_ACTION_TERMS
+    )
+    has_saline = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADRENAL_CRISIS_SALINE_ACTION_TERMS
+    )
+    has_dextrose_glucose = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADRENAL_CRISIS_DEXTROSE_GLUCOSE_ACTION_TERMS
+    )
+    has_hemodynamic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADRENAL_CRISIS_HEMODYNAMIC_ACTION_TERMS
+    )
+    has_glucose_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADRENAL_CRISIS_GLUCOSE_MONITORING_ACTION_TERMS
+    )
+    has_electrolyte_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ADRENAL_CRISIS_ELECTROLYTE_MONITORING_ACTION_TERMS
+    )
+    return (
+        has_hydrocortisone
+        and has_route
+        and has_initial_dose
+        and has_continuation
+        and has_saline
+        and has_dextrose_glucose
+        and has_hemodynamic
+        and has_glucose_monitoring
+        and has_electrolyte_monitoring
+    )
 
 
 def _has_adrenal_crisis_treatment_safety_check(checks: list[Any]) -> bool:
@@ -34052,15 +34126,39 @@ def _has_adrenal_crisis_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in ADRENAL_CRISIS_DO_NOT_DELAY_SAFETY_TERMS
     )
-    has_monitoring_safety = any(
+    has_cortisol_testing_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ADRENAL_CRISIS_MONITORING_SAFETY_TERMS
+        for term in ADRENAL_CRISIS_CORTISOL_TESTING_SAFETY_TERMS
     )
-    has_precipitant_review = any(
+    has_hemodynamic_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ADRENAL_CRISIS_PRECIPITANT_SAFETY_TERMS
+        for term in ADRENAL_CRISIS_HEMODYNAMIC_SAFETY_TERMS
     )
-    return has_do_not_delay_safety and has_monitoring_safety and has_precipitant_review
+    has_glucose_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ADRENAL_CRISIS_GLUCOSE_SAFETY_TERMS
+    )
+    has_electrolyte_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ADRENAL_CRISIS_ELECTROLYTE_SAFETY_TERMS
+    )
+    has_infection_precipitant = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ADRENAL_CRISIS_INFECTION_PRECIPITANT_SAFETY_TERMS
+    )
+    has_steroid_trigger = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ADRENAL_CRISIS_STEROID_TRIGGER_SAFETY_TERMS
+    )
+    return (
+        has_do_not_delay_safety
+        and has_cortisol_testing_safety
+        and has_hemodynamic_safety
+        and has_glucose_safety
+        and has_electrolyte_safety
+        and has_infection_precipitant
+        and has_steroid_trigger
+    )
 
 
 def _requires_button_battery_safety_check(data: dict[str, Any]) -> bool:
