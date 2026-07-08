@@ -9938,96 +9938,128 @@ const SMALL_BOWEL_OBSTRUCTION_CONTEXT_TERMS = [
   "장폐색",
 ];
 
-const SMALL_BOWEL_OBSTRUCTION_NPO_NG_ACTION_TERMS = [
+const SMALL_BOWEL_OBSTRUCTION_NPO_ACTION_TERMS = [
   "bowel rest",
-  "decompression",
-  "ng tube",
   "nil per os",
   "npo",
-  "nasogastric",
-  "suction",
   "금식",
 ];
 
-const SMALL_BOWEL_OBSTRUCTION_FLUID_ELECTROLYTE_ACTION_TERMS = [
+const SMALL_BOWEL_OBSTRUCTION_NG_DECOMPRESSION_ACTION_TERMS = [
+  "decompression",
+  "ng tube",
+  "nasogastric",
+  "suction",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_FLUID_RESUSCITATION_ACTION_TERMS = [
   "crystalloid",
   "dehydration",
-  "electrolyte",
   "fluid",
   "fluids",
+  "수액",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_ELECTROLYTE_MONITORING_ACTION_TERMS = [
+  "electrolyte",
   "potassium",
   "urine output",
-  "수액",
   "전해질",
 ];
 
-const SMALL_BOWEL_OBSTRUCTION_CT_TRANSITION_ACTION_TERMS = [
-  "closed-loop",
+const SMALL_BOWEL_OBSTRUCTION_CT_ACTION_TERMS = [
   "ct",
   "ct abdomen",
-  "free fluid",
-  "ischemia",
-  "strangulation",
-  "transition point",
+  "computed tomography",
   "복부 ct",
 ];
 
-const SMALL_BOWEL_OBSTRUCTION_SURGERY_ACTION_TERMS = [
-  "exploration",
-  "laparotomy",
-  "operative",
+const SMALL_BOWEL_OBSTRUCTION_TRANSITION_ACTION_TERMS = [
+  "transition point",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_CT_COMPLICATION_ACTION_TERMS = [
+  "closed-loop",
+  "free fluid",
+  "ischemia",
+  "strangulation",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_SURGICAL_CONSULT_ACTION_TERMS = [
   "surgery",
   "surgical consult",
   "surgeon",
   "외과",
 ];
 
-const SMALL_BOWEL_OBSTRUCTION_STRANGULATION_SAFETY_TERMS = [
-  "acidosis",
-  "closed-loop",
+const SMALL_BOWEL_OBSTRUCTION_OPERATIVE_ACTION_TERMS = [
+  "exploration",
+  "laparotomy",
+  "operative",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_CLINICAL_STRANGULATION_SAFETY_TERMS = [
   "continuous pain",
   "fever",
-  "ischemia",
-  "lactate",
-  "leukocytosis",
   "peritonitis",
   "strangulation",
   "복막염",
 ];
 
-const SMALL_BOWEL_OBSTRUCTION_NONOPERATIVE_LIMITS_SAFETY_TERMS = [
+const SMALL_BOWEL_OBSTRUCTION_LAB_ISCHEMIA_SAFETY_TERMS = [
+  "acidosis",
+  "closed-loop",
+  "ischemia",
+  "lactate",
+  "leukocytosis",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_SERIAL_EXAM_SAFETY_TERMS = [
+  "serial exam",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_CONTRAST_CHALLENGE_SAFETY_TERMS = [
+  "gastrografin",
+  "water-soluble contrast",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_NONOPERATIVE_LIMIT_SAFETY_TERMS = [
   "72 hours",
   "complete obstruction",
   "conservative",
   "failure to resolve",
-  "gastrografin",
   "nonoperative",
-  "serial exam",
-  "water-soluble contrast",
   "관찰",
 ];
 
-const SMALL_BOWEL_OBSTRUCTION_PERFORATION_SEPSIS_SAFETY_TERMS = [
-  "antibiotic",
-  "broad-spectrum",
+const SMALL_BOWEL_OBSTRUCTION_PERFORATION_SOURCE_SAFETY_TERMS = [
   "free air",
   "gangrene",
   "infarction",
   "perforation",
   "sepsis",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_ANTIBIOTIC_SOURCE_SAFETY_TERMS = [
+  "antibiotic",
+  "broad-spectrum",
+  "source control",
   "항생제",
 ];
 
-const SMALL_BOWEL_OBSTRUCTION_ASPIRATION_ETIOLOGY_SAFETY_TERMS = [
-  "adhesion",
+const SMALL_BOWEL_OBSTRUCTION_ASPIRATION_SAFETY_TERMS = [
   "aspiration",
+  "vomiting",
+  "흡인",
+];
+
+const SMALL_BOWEL_OBSTRUCTION_ETIOLOGY_SAFETY_TERMS = [
+  "adhesion",
   "hernia",
   "incarcerated hernia",
   "malignancy",
   "tumor",
   "volvulus",
-  "vomiting",
-  "흡인",
 ];
 
 const PEDIATRIC_MIDGUT_VOLVULUS_CONTEXT_TERMS = [
@@ -26058,41 +26090,86 @@ function requiresSmallBowelObstructionSafetyCheck(detail: ClinicalCaseReviewDeta
 
 function hasSmallBowelObstructionTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasNpoNg = SMALL_BOWEL_OBSTRUCTION_NPO_NG_ACTION_TERMS.some((term) =>
+  const hasNpo = SMALL_BOWEL_OBSTRUCTION_NPO_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasFluidElectrolyte = SMALL_BOWEL_OBSTRUCTION_FLUID_ELECTROLYTE_ACTION_TERMS.some(
+  const hasNgDecompression = SMALL_BOWEL_OBSTRUCTION_NG_DECOMPRESSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFluidResuscitation = SMALL_BOWEL_OBSTRUCTION_FLUID_RESUSCITATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasCtTransition = SMALL_BOWEL_OBSTRUCTION_CT_TRANSITION_ACTION_TERMS.some((term) =>
+  const hasElectrolyteMonitoring = SMALL_BOWEL_OBSTRUCTION_ELECTROLYTE_MONITORING_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCt = SMALL_BOWEL_OBSTRUCTION_CT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSurgery = SMALL_BOWEL_OBSTRUCTION_SURGERY_ACTION_TERMS.some((term) =>
+  const hasTransition = SMALL_BOWEL_OBSTRUCTION_TRANSITION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasNpoNg && hasFluidElectrolyte && hasCtTransition && hasSurgery;
+  const hasCtComplication = SMALL_BOWEL_OBSTRUCTION_CT_COMPLICATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSurgicalConsult = SMALL_BOWEL_OBSTRUCTION_SURGICAL_CONSULT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOperativeEscalation = SMALL_BOWEL_OBSTRUCTION_OPERATIVE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasNpo &&
+    hasNgDecompression &&
+    hasFluidResuscitation &&
+    hasElectrolyteMonitoring &&
+    hasCt &&
+    hasTransition &&
+    hasCtComplication &&
+    hasSurgicalConsult &&
+    hasOperativeEscalation
+  );
 }
 
 function hasSmallBowelObstructionTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasStrangulationSafety = SMALL_BOWEL_OBSTRUCTION_STRANGULATION_SAFETY_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
-  );
-  const hasNonoperativeLimits = SMALL_BOWEL_OBSTRUCTION_NONOPERATIVE_LIMITS_SAFETY_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
-  );
-  const hasPerforationSepsis = SMALL_BOWEL_OBSTRUCTION_PERFORATION_SEPSIS_SAFETY_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
-  );
-  const hasAspirationEtiology =
-    SMALL_BOWEL_OBSTRUCTION_ASPIRATION_ETIOLOGY_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
+  const hasClinicalStrangulationSafety =
+    SMALL_BOWEL_OBSTRUCTION_CLINICAL_STRANGULATION_SAFETY_TERMS.some(
+      (term) => containsSafetyTerm(normalizedChecks, term),
     );
+  const hasLabIschemiaSafety = SMALL_BOWEL_OBSTRUCTION_LAB_ISCHEMIA_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSerialExamSafety = SMALL_BOWEL_OBSTRUCTION_SERIAL_EXAM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasContrastChallengeSafety = SMALL_BOWEL_OBSTRUCTION_CONTRAST_CHALLENGE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNonoperativeLimitSafety = SMALL_BOWEL_OBSTRUCTION_NONOPERATIVE_LIMIT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPerforationSourceSafety = SMALL_BOWEL_OBSTRUCTION_PERFORATION_SOURCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntibioticSourceSafety = SMALL_BOWEL_OBSTRUCTION_ANTIBIOTIC_SOURCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAspirationSafety = SMALL_BOWEL_OBSTRUCTION_ASPIRATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEtiologySafety = SMALL_BOWEL_OBSTRUCTION_ETIOLOGY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
-    hasStrangulationSafety &&
-    hasNonoperativeLimits &&
-    hasPerforationSepsis &&
-    hasAspirationEtiology
+    hasClinicalStrangulationSafety &&
+    hasLabIschemiaSafety &&
+    hasSerialExamSafety &&
+    hasContrastChallengeSafety &&
+    hasNonoperativeLimitSafety &&
+    hasPerforationSourceSafety &&
+    hasAntibioticSourceSafety &&
+    hasAspirationSafety &&
+    hasEtiologySafety
   );
 }
 
@@ -33275,7 +33352,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSmallBowelObstructionTimeCriticalActions,
       issue:
-        "small bowel obstruction time-critical actions must include bowel rest, NPO, nil per os, NG tube, nasogastric suction, or decompression planning, IV crystalloid, fluid, dehydration, electrolyte, potassium, or urine output resuscitation, CT abdomen, transition point, closed-loop, free fluid, ischemia, or strangulation assessment, and urgent surgery, surgeon, surgical consult, operative, exploration, or laparotomy escalation",
+        "small bowel obstruction time-critical actions must include bowel rest/NPO plus NG tube, nasogastric suction, or decompression planning, IV crystalloid/fluid resuscitation for dehydration plus electrolyte, potassium, or urine-output monitoring, CT abdomen or computed tomography assessment with transition point and closed-loop, free-fluid, ischemia, or strangulation complication review, and urgent surgery/surgeon/surgical consult plus operative, exploration, or laparotomy escalation",
     },
     {
       name: "small_bowel_obstruction_treatment_safety",
@@ -33284,7 +33361,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSmallBowelObstructionTreatmentSafetyCheck,
       issue:
-        "small bowel obstruction safety checks must include strangulation or ischemia red-flag review for peritonitis, continuous pain, fever, leukocytosis, acidosis, lactate, or closed-loop obstruction, nonoperative management limits with serial exams, water-soluble contrast or Gastrografin, complete obstruction, failure to resolve, conservative management, or 72-hour reassessment, perforation, free air, infarction, gangrene, sepsis, broad-spectrum antibiotics, or antibiotic planning, and aspiration or etiology review for vomiting, adhesions, hernia, incarcerated hernia, volvulus, tumor, or malignancy",
+        "small bowel obstruction safety checks must include strangulation or ischemia red-flag review for peritonitis, continuous pain, fever, or strangulation plus lab/imaging ischemia review for leukocytosis, acidosis, lactate, ischemia, or closed-loop obstruction, nonoperative management limits with serial exams, water-soluble contrast or Gastrografin challenge, and complete obstruction, failure-to-resolve, conservative management, or 72-hour reassessment, perforation/free-air/infarction/gangrene/sepsis review plus broad-spectrum antibiotics or source-control planning, and aspiration risk from vomiting plus etiology review for adhesions, hernia, incarcerated hernia, volvulus, tumor, or malignancy",
     },
     {
       name: "pediatric_midgut_volvulus_time_critical_actions",
