@@ -14148,48 +14148,87 @@ SJS_TEN_CULPRIT_DRUG_ACTION_TERMS = (
     "stop the drug",
     "withdraw",
 )
-SJS_TEN_ADMISSION_ESCALATION_ACTION_TERMS = (
+SJS_TEN_HOSPITAL_ADMISSION_ACTION_TERMS = (
+    "admit",
+    "hospital admission",
+    "hospitalize",
+)
+SJS_TEN_SPECIALTY_ESCALATION_ACTION_TERMS = (
     "burn center",
     "burn unit",
     "dermatology",
-    "hospital admission",
     "icu",
     "intensive care",
 )
-SJS_TEN_BSA_SCORTEN_ACTION_TERMS = (
-    "abcd-10",
+SJS_TEN_BSA_DETACHMENT_ACTION_TERMS = (
     "body surface area",
     "bsa",
     "epidermal detachment",
-    "scorten",
     "skin detachment",
 )
-SJS_TEN_SUPPORTIVE_CARE_ACTION_TERMS = (
+SJS_TEN_SEVERITY_SCORE_ACTION_TERMS = (
+    "abcd-10",
+    "bicarbonate",
+    "bun",
+    "glucose",
+    "heart rate",
+    "malignancy",
+    "scorten",
+    "urea",
+)
+SJS_TEN_BIOPSY_DIFFERENTIAL_ACTION_TERMS = (
+    "biopsy",
+    "dress",
+    "erythema multiforme",
+    "rime",
+    "skin biopsy",
+    "ssss",
+)
+SJS_TEN_FLUID_ACTION_TERMS = (
+    "fluid",
     "fluid replacement",
     "fluid resuscitation",
+)
+SJS_TEN_NUTRITION_ACTION_TERMS = (
+    "enteral",
+    "nutrition",
     "nutritional support",
-    "pain control",
-    "pain relief",
+)
+SJS_TEN_TEMPERATURE_ACTION_TERMS = (
     "temperature",
     "warm room",
+    "warming",
 )
-SJS_TEN_MUCOSAL_EYE_ACTION_TERMS = (
+SJS_TEN_PAIN_ACTION_TERMS = (
+    "pain control",
+    "pain relief",
+)
+SJS_TEN_OPHTHALMOLOGY_ACTION_TERMS = (
+    "daily eye",
     "eye care",
-    "mucosal",
     "ophthalmology",
     "ophthalmologist",
-    "oral care",
 )
-SJS_TEN_WOUND_INFECTION_SAFETY_TERMS = (
+SJS_TEN_MUCOSAL_ACTION_TERMS = (
+    "genital",
+    "mouth",
+    "mucosal",
+    "oral care",
+    "urology",
+)
+SJS_TEN_WOUND_HANDLING_SAFETY_TERMS = (
     "avoid adhesive",
-    "bacterial culture",
-    "infection monitoring",
-    "infection surveillance",
     "non-adherent",
     "reverse isolation",
     "sterile handling",
-    "swab",
     "wound care",
+)
+SJS_TEN_INFECTION_SURVEILLANCE_SAFETY_TERMS = (
+    "bacterial culture",
+    "infection monitoring",
+    "infection surveillance",
+    "sepsis",
+    "swab",
 )
 SJS_TEN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = (
     "avoid prophylactic antibiotic",
@@ -14198,16 +14237,36 @@ SJS_TEN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = (
     "prophylactic antibiotics are not recommended",
     "systemic antibiotics only if infection",
 )
-SJS_TEN_AIRWAY_ORGAN_SAFETY_TERMS = (
+SJS_TEN_AIRWAY_LUNG_SAFETY_TERMS = (
     "acute respiratory distress",
     "airway",
     "ards",
     "intubation",
+    "pneumonia",
+    "respiratory distress",
+)
+SJS_TEN_RENAL_HEPATIC_ORGAN_SAFETY_TERMS = (
+    "acute kidney",
+    "electrolyte",
     "kidney",
     "liver",
     "organ failure",
-    "pneumonia",
-    "respiratory distress",
+    "renal",
+)
+SJS_TEN_THROMBOEMBOLISM_SAFETY_TERMS = (
+    "anticoagulation",
+    "dvt",
+    "pulmonary embolism",
+    "thromboembolism",
+    "venous thromboembolism",
+    "vte",
+)
+SJS_TEN_OCULAR_SEQUELAE_SAFETY_TERMS = (
+    "corneal",
+    "daily ophthalmology",
+    "ocular sequelae",
+    "ophthalmology",
+    "symblepharon",
 )
 SJS_TEN_MEDICATION_RECHALLENGE_SAFETY_TERMS = (
     "avoid related medicines",
@@ -14218,13 +14277,18 @@ SJS_TEN_MEDICATION_RECHALLENGE_SAFETY_TERMS = (
     "recurrence",
     "rechallenge",
 )
-SJS_TEN_ADJUNCT_RISK_SAFETY_TERMS = (
-    "ciclosporin",
-    "cyclosporine",
+SJS_TEN_STEROID_IVIG_RISK_SAFETY_TERMS = (
     "infection risk",
     "ivig",
-    "renal impairment",
     "steroid",
+)
+SJS_TEN_CYCLOSPORINE_RISK_SAFETY_TERMS = (
+    "ciclosporin",
+    "cyclosporine",
+    "renal impairment",
+)
+SJS_TEN_THALIDOMIDE_AVOIDANCE_SAFETY_TERMS = (
+    "mortality",
     "thalidomide",
 )
 DRESS_CONTEXT_TERMS = (
@@ -21245,13 +21309,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "SJS/TEN time-critical actions must include immediate cessation, "
                 "withdrawal, or discontinuation of the culprit/offending drug, "
-                "hospital admission with dermatology, ICU, intensive-care, burn-"
-                "unit, or burn-center escalation, BSA, body-surface-area, skin-"
-                "detachment, epidermal-detachment, SCORTEN, or ABCD-10 severity "
-                "assessment, supportive care with fluid replacement/resuscitation, "
-                "nutrition, temperature/warm-room maintenance, and pain control, "
-                "and mucosal, oral, eye-care, ophthalmology, or ophthalmologist "
-                "assessment"
+                "hospital admission plus dermatology, ICU, intensive-care, burn-"
+                "unit, or burn-center escalation, BSA or epidermal/skin detachment "
+                "assessment plus SCORTEN, ABCD-10, bicarbonate, BUN, urea, glucose, "
+                "heart-rate, or malignancy severity scoring, skin biopsy or serious-"
+                "mimic differential review such as DRESS, SSSS, RIME, or erythema "
+                "multiforme, separate fluid replacement/resuscitation, nutrition, "
+                "temperature or warm-room maintenance, and pain-control actions, "
+                "urgent daily eye-care or ophthalmology assessment, and mucosal, "
+                "oral, genital, or urologic care"
             ),
         ),
         DomainSafetyGate(
@@ -21261,15 +21327,19 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_sjs_ten_treatment_safety_check,
             issue=(
                 "SJS/TEN safety checks must include sterile handling, reverse "
-                "isolation, non-adherent dressings, avoid-adhesive, wound-care, "
-                "or infection surveillance, antibiotic stewardship such as avoiding "
+                "isolation, non-adherent dressings, avoid-adhesive, or wound-care "
+                "handling plus infection surveillance, swab, bacterial-culture, "
+                "or sepsis monitoring, antibiotic stewardship such as avoiding "
                 "prophylactic systemic antibiotics or using systemic antibiotics "
                 "only if infection develops, airway, respiratory distress, ARDS, "
-                "pneumonia, kidney, liver, or organ-failure monitoring, avoidance "
-                "of rechallenge or structurally related medicines with drug-allergy/"
-                "cross-reaction documentation, and adjunct therapy risk review "
-                "including steroid, IVIG, cyclosporine/ciclosporin, renal "
-                "impairment, infection risk, or thalidomide avoidance"
+                "pneumonia, kidney, renal, electrolyte, liver, or organ-failure "
+                "monitoring, thromboembolism/VTE/DVT/PE prevention or anticoagulation "
+                "review, ocular-sequelae monitoring with daily ophthalmology, corneal, "
+                "or symblepharon review, avoidance of rechallenge or structurally "
+                "related medicines with drug-allergy/cross-reaction documentation, "
+                "steroid or IVIG infection-risk/uncertainty review, cyclosporine/"
+                "ciclosporin renal-impairment review, and thalidomide mortality "
+                "or avoidance review"
             ),
         ),
         DomainSafetyGate(
@@ -34135,59 +34205,124 @@ def _has_sjs_ten_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SJS_TEN_CULPRIT_DRUG_ACTION_TERMS
     )
-    has_admission_escalation = any(
+    has_hospital_admission = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SJS_TEN_ADMISSION_ESCALATION_ACTION_TERMS
+        for term in SJS_TEN_HOSPITAL_ADMISSION_ACTION_TERMS
     )
-    has_bsa_scorten = any(
+    has_specialty_escalation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SJS_TEN_BSA_SCORTEN_ACTION_TERMS
+        for term in SJS_TEN_SPECIALTY_ESCALATION_ACTION_TERMS
     )
-    has_supportive_care = any(
+    has_bsa_detachment = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SJS_TEN_SUPPORTIVE_CARE_ACTION_TERMS
+        for term in SJS_TEN_BSA_DETACHMENT_ACTION_TERMS
     )
-    has_mucosal_eye = any(
+    has_severity_score = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SJS_TEN_MUCOSAL_EYE_ACTION_TERMS
+        for term in SJS_TEN_SEVERITY_SCORE_ACTION_TERMS
+    )
+    has_biopsy_differential = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_BIOPSY_DIFFERENTIAL_ACTION_TERMS
+    )
+    has_fluid = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_FLUID_ACTION_TERMS
+    )
+    has_nutrition = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_NUTRITION_ACTION_TERMS
+    )
+    has_temperature = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_TEMPERATURE_ACTION_TERMS
+    )
+    has_pain = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_PAIN_ACTION_TERMS
+    )
+    has_ophthalmology = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_OPHTHALMOLOGY_ACTION_TERMS
+    )
+    has_mucosal = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_MUCOSAL_ACTION_TERMS
     )
     return (
         has_culprit_drug_action
-        and has_admission_escalation
-        and has_bsa_scorten
-        and has_supportive_care
-        and has_mucosal_eye
+        and has_hospital_admission
+        and has_specialty_escalation
+        and has_bsa_detachment
+        and has_severity_score
+        and has_biopsy_differential
+        and has_fluid
+        and has_nutrition
+        and has_temperature
+        and has_pain
+        and has_ophthalmology
+        and has_mucosal
     )
 
 
 def _has_sjs_ten_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_wound_infection_safety = any(
+    has_wound_handling_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SJS_TEN_WOUND_INFECTION_SAFETY_TERMS
+        for term in SJS_TEN_WOUND_HANDLING_SAFETY_TERMS
+    )
+    has_infection_surveillance = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_INFECTION_SURVEILLANCE_SAFETY_TERMS
     )
     has_antibiotic_stewardship = any(
         _contains_safety_term(normalized_checks, term)
         for term in SJS_TEN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS
     )
-    has_airway_organ_safety = any(
+    has_airway_lung_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SJS_TEN_AIRWAY_ORGAN_SAFETY_TERMS
+        for term in SJS_TEN_AIRWAY_LUNG_SAFETY_TERMS
+    )
+    has_renal_hepatic_organ_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_RENAL_HEPATIC_ORGAN_SAFETY_TERMS
+    )
+    has_thromboembolism_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_THROMBOEMBOLISM_SAFETY_TERMS
+    )
+    has_ocular_sequelae_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_OCULAR_SEQUELAE_SAFETY_TERMS
     )
     has_medication_rechallenge = any(
         _contains_safety_term(normalized_checks, term)
         for term in SJS_TEN_MEDICATION_RECHALLENGE_SAFETY_TERMS
     )
-    has_adjunct_risk_safety = any(
+    has_steroid_ivig_risk = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SJS_TEN_ADJUNCT_RISK_SAFETY_TERMS
+        for term in SJS_TEN_STEROID_IVIG_RISK_SAFETY_TERMS
+    )
+    has_cyclosporine_risk = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_CYCLOSPORINE_RISK_SAFETY_TERMS
+    )
+    has_thalidomide_avoidance = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_THALIDOMIDE_AVOIDANCE_SAFETY_TERMS
     )
     return (
-        has_wound_infection_safety
+        has_wound_handling_safety
+        and has_infection_surveillance
         and has_antibiotic_stewardship
-        and has_airway_organ_safety
+        and has_airway_lung_safety
+        and has_renal_hepatic_organ_safety
+        and has_thromboembolism_safety
+        and has_ocular_sequelae_safety
         and has_medication_rechallenge
-        and has_adjunct_risk_safety
+        and has_steroid_ivig_risk
+        and has_cyclosporine_risk
+        and has_thalidomide_avoidance
     )
 
 

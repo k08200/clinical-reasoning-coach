@@ -29805,9 +29805,14 @@ def test_quality_gate_requires_sjs_ten_wound_antibiotic_organ_rechallenge_and_ad
     case["time_critical_actions"] = [
         "Immediately discontinue the culprit drug, stop the drug, and withdraw allopurinol as the offending drug",
         "Admit to hospital with dermatology, ICU intensive care, burn unit, and burn center escalation",
-        "Estimate BSA/body surface area and skin detachment with SCORTEN and ABCD-10 severity assessment",
-        "Provide supportive care with fluid replacement/resuscitation, nutritional support, warm room temperature maintenance, and pain control",
-        "Assess mucosal surfaces with oral care plus eye care and urgent ophthalmology/ophthalmologist evaluation",
+        "Estimate BSA/body surface area and skin detachment with SCORTEN and ABCD-10 severity assessment including bicarbonate, BUN urea, glucose, heart rate, and malignancy criteria",
+        "Perform skin biopsy and review serious mimics including DRESS, SSSS, RIME, and erythema multiforme",
+        "Provide fluid replacement and fluid resuscitation",
+        "Provide enteral nutrition and nutritional support",
+        "Maintain warm room temperature and active warming",
+        "Provide pain control and pain relief",
+        "Arrange daily eye care with urgent ophthalmology/ophthalmologist evaluation",
+        "Assess mucosal surfaces with oral care, genital care, and urology support as needed",
     ]
     case["contraindication_checks"] = [
         "Medication allergy review before analgesia",
@@ -29823,9 +29828,14 @@ def test_quality_gate_requires_sjs_ten_wound_antibiotic_organ_rechallenge_and_ad
                 "TEN has extensive epidermal detachment and can cause dehydration, infection, ARDS, shock, kidney failure, and multiple organ failure",
                 "immediate culprit drug cessation improves outcomes when performed early",
                 "hospital admission to ICU, burn unit, or burn center with specialist care improves survival",
-                "BSA/body surface area and skin detachment with SCORTEN and ABCD-10 severity assessment",
-                "supportive care with fluid replacement/resuscitation, nutritional support, warm room temperature maintenance, and pain control",
-                "mucosal surfaces with oral care plus eye care and urgent ophthalmology/ophthalmologist evaluation",
+                "BSA/body surface area and skin detachment with SCORTEN and ABCD-10 severity assessment including bicarbonate, BUN urea, glucose, heart rate, and malignancy criteria",
+                "skin biopsy and serious mimics including DRESS, SSSS, RIME, and erythema multiforme",
+                "fluid replacement and fluid resuscitation",
+                "enteral nutrition and nutritional support",
+                "warm room temperature and active warming",
+                "pain control and pain relief",
+                "daily eye care with urgent ophthalmology/ophthalmologist evaluation",
+                "mucosal surfaces with oral care, genital care, and urology support",
                 "medication allergy review before analgesia",
                 "renal function before contrast imaging",
             ],
@@ -29837,6 +29847,88 @@ def test_quality_gate_requires_sjs_ten_wound_antibiotic_organ_rechallenge_and_ad
     assert not report.passed
     assert any(
         "SJS/TEN safety checks must include sterile handling" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_sjs_ten_severity_biopsy_and_separate_support_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Stevens-Johnson syndrome / toxic epidermal necrolysis overlap"
+    case["patient_demographics"] = {
+        "age": 38,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Painful rash with mouth ulcers and red eyes after lamotrigine"
+    case["history_of_present_illness"] = (
+        "Patient recently started lamotrigine and now has suspected SJS/TEN with "
+        "fever, conjunctivitis, painful targetoid rash, flaccid blistering, "
+        "positive Nikolsky sign, mucosal erosions, skin pain, and epidermal "
+        "detachment involving 12% body surface area."
+    )
+    case["key_teaching_points"] = [
+        "SJS/TEN requires immediate culprit drug withdrawal and admission for specialist supportive care",
+        "Severity is assessed by BSA/body surface area skin detachment and SCORTEN or ABCD-10 criteria",
+        "Skin biopsy and review of serious mimics help confirm the diagnosis",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever, skin pain, targetoid rash, blister, Nikolsky sign, desquamation, epidermal detachment, or skin sloughing",
+        "Mucosal involvement, mouth ulcers, conjunctivitis, red eyes, respiratory distress, infection, sepsis, kidney injury, liver injury, shock, or organ failure",
+    ]
+    case["time_critical_actions"] = [
+        "Immediately discontinue lamotrigine and stop the culprit offending drug",
+        "Admit to hospital with dermatology, ICU, burn unit, and burn center escalation",
+        "Estimate BSA/body surface area and skin detachment",
+        "Provide supportive care with fluid replacement/resuscitation",
+        "Arrange ophthalmology eye care and oral mucosal care",
+    ]
+    case["contraindication_checks"] = [
+        "Use sterile handling, reverse isolation, non-adherent dressings, avoid adhesive tape, and wound care",
+        "Monitor infection surveillance with swab, bacterial culture, and sepsis monitoring",
+        "Avoid prophylactic antibiotic use; systemic antibiotics only if infection develops",
+        "Monitor airway, respiratory distress, ARDS, pneumonia, kidney, renal, electrolyte, liver, and organ failure complications",
+        "Review VTE, DVT, pulmonary embolism, thromboembolism, and anticoagulation prevention",
+        "Arrange daily ophthalmology review for corneal injury, ocular sequelae, and symblepharon",
+        "Document drug allergy, avoid rechallenge, avoid structurally related medicines, and review cross-reaction or recurrence risk",
+        "Review steroid infection risk and IVIG uncertainty",
+        "Review cyclosporine or ciclosporin renal impairment risk",
+        "Avoid thalidomide because of mortality risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Stevens-Johnson syndrome / toxic epidermal necrolysis",
+            "organization": "DermNet",
+            "url": "https://dermnetnz.org/topics/stevens-johnson-syndrome-toxic-epidermal-necrolysis",
+            "supports": [
+                "SJS/TEN diagnosis and risk stratification",
+                "immediate culprit drug withdrawal and admission for specialist supportive care",
+                "BSA/body surface area skin detachment and SCORTEN or ABCD-10 criteria",
+                "skin biopsy and review of serious mimics",
+                "immediately discontinue lamotrigine and stop the culprit offending drug",
+                "admit to hospital with dermatology, ICU, burn unit, and burn center escalation",
+                "BSA/body surface area and skin detachment",
+                "supportive care with fluid replacement/resuscitation",
+                "ophthalmology eye care and oral mucosal care",
+                "sterile handling, reverse isolation, non-adherent dressings, avoid adhesive tape, and wound care",
+                "infection surveillance with swab, bacterial culture, and sepsis monitoring",
+                "avoid prophylactic antibiotic use and use systemic antibiotics only if infection develops",
+                "airway, respiratory distress, ARDS, pneumonia, kidney, renal, electrolyte, liver, and organ failure complication monitoring",
+                "VTE, DVT, pulmonary embolism, thromboembolism, and anticoagulation prevention",
+                "daily ophthalmology review for corneal injury, ocular sequelae, and symblepharon",
+                "drug allergy, avoid rechallenge, avoid structurally related medicines, cross-reaction, or recurrence risk",
+                "steroid infection risk and IVIG uncertainty",
+                "cyclosporine or ciclosporin renal impairment risk",
+                "thalidomide mortality risk",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "skin biopsy" in issue and "separate fluid" in issue
         for issue in report.critical_issues
     )
 
