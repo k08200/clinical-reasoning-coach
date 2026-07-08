@@ -30876,6 +30876,81 @@ def test_quality_gate_requires_methemoglobinemia_oxygen_source_coox_methylene_an
     )
 
 
+def test_quality_gate_requires_methemoglobinemia_separate_blood_gas_coox_methylene_indication_and_dose_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acquired methemoglobinemia from sodium nitrite ingestion"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Cyanosis, headache, and dyspnea after nitrite exposure"
+    case["history_of_present_illness"] = (
+        "Patient has acquired methemoglobinemia after sodium nitrite exposure with "
+        "refractory hypoxemia, cyanosis, pulse oximetry near 85%, saturation gap, "
+        "chocolate brown blood, dyspnea, confusion, and methemoglobin level 32%."
+    )
+    case["key_teaching_points"] = [
+        "Methemoglobinemia should be suspected when hypoxemia is refractory to supplemental oxygen",
+        "Co-oximetry confirms methemoglobin percentage because routine pulse oximetry is unreliable",
+    ]
+    case["clinical_red_flags"] = [
+        "Cyanosis, refractory hypoxemia, saturation gap, chocolate brown blood, confusion, dyspnea, dysrhythmia, seizure, coma, nitrite, nitrate, benzocaine, or dapsone exposure",
+    ]
+    case["time_critical_actions"] = [
+        "Give high-flow oxygen and airway support",
+        "Stop nitrite exposure and remove the offending oxidizing source",
+        "Send ABG blood gas",
+        "Plan methylene blue treatment because the patient is symptomatic with methemoglobin > 30",
+        "Call poison center and toxicology",
+    ]
+    case["contraindication_checks"] = [
+        "Review pulse oximetry unreliable saturation gap with SpO2 near 85%, falsely normal calculated SaO2, and PaO2 comparison",
+        "Use G6PD and NADPH caution before methylene blue and review hemolysis or high-dose >5 mg/kg methylene-blue risk",
+        "Review serotonergic medication, SSRI, MAOI, monoamine oxidase, linezolid, serotonin syndrome, or serotonin toxicity interaction risk",
+        "Review treatment threshold for symptomatic patients, end-organ damage, cardiac ischemia, altered mental status, or methemoglobin > 20 to 30%",
+        "Plan repeat dose or second dose after 30 to 60 minutes if symptoms persist or levels remain above treatment threshold",
+        "Monitor rebound with serial methemoglobin and repeat co-oximetry especially after dapsone or prolonged monitoring needs",
+        "Plan ascorbic acid/vitamin C, exchange transfusion, or hyperbaric oxygen/HBOT if methylene blue is contraindicated or refractory",
+        "Review ascorbic acid renal risk including oxalate, hyperoxaluria, renal insufficiency, and renal failure",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Methemoglobinemia",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK537317/",
+            "supports": [
+                "acquired methemoglobinemia from sodium nitrite ingestion diagnosis and risk stratification",
+                "hypoxemia refractory to supplemental oxygen",
+                "co-oximetry confirms methemoglobin percentage because routine pulse oximetry is unreliable",
+                "high-flow oxygen and airway support",
+                "stop nitrite exposure and remove the offending oxidizing source",
+                "ABG blood gas",
+                "methylene blue treatment because the patient is symptomatic with methemoglobin > 30",
+                "poison center and toxicology consultation",
+                "pulse oximetry unreliable saturation gap with SpO2 near 85%, falsely normal calculated SaO2, and PaO2 comparison",
+                "G6PD and NADPH caution before methylene blue and hemolysis or high-dose >5 mg/kg methylene-blue risk",
+                "serotonergic medication, SSRI, MAOI, monoamine oxidase, linezolid, serotonin syndrome, or serotonin toxicity interaction risk",
+                "treatment threshold for symptomatic patients, end-organ damage, cardiac ischemia, altered mental status, or methemoglobin > 20 to 30%",
+                "repeat dose or second dose after 30 to 60 minutes if symptoms persist or levels remain above treatment threshold",
+                "rebound serial methemoglobin and repeat co-oximetry especially after dapsone or prolonged monitoring needs",
+                "ascorbic acid/vitamin C, exchange transfusion, or hyperbaric oxygen/HBOT if methylene blue is contraindicated or refractory",
+                "ascorbic acid renal risk including oxalate, hyperoxaluria, renal insufficiency, and renal failure",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "separate co-oximetry" in issue
+        and "methylene blue dosing" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_methemoglobinemia_pulse_ox_g6pd_interaction_rebound_and_alternative_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acquired methemoglobinemia after benzocaine exposure"
@@ -30905,7 +30980,7 @@ def test_quality_gate_requires_methemoglobinemia_pulse_ox_g6pd_interaction_rebou
         "Give high-flow oxygen with airway and ventilation respiratory support if needed",
         "Stop benzocaine and remove the offending agent; assess dapsone, nitrite, nitrate, and oxidizing source exposure",
         "Send ABG or VBG blood gas with co-oximetry and methemoglobin level MetHb confirmation",
-        "Give methylene blue treatment when symptomatic or significantly elevated",
+        "Give methylene blue treatment when symptomatic or significantly elevated, using 1 to 2 mg/kg IV over 5 minutes with 0.1 to 0.2 mL/kg of 1% solution",
         "Call poison center, toxicology, toxicologist, and ICU for escalation",
     ]
     case["contraindication_checks"] = [
@@ -30924,7 +30999,7 @@ def test_quality_gate_requires_methemoglobinemia_pulse_ox_g6pd_interaction_rebou
                 "high-flow oxygen with airway and ventilation respiratory support if needed",
                 "stop benzocaine and remove the offending agent; assess dapsone, nitrite, nitrate, and oxidizing source exposure",
                 "ABG or VBG blood gas with co-oximetry and methemoglobin level MetHb confirmation",
-                "methylene blue treatment when symptomatic or significantly elevated",
+                "methylene blue treatment when symptomatic or significantly elevated using 1 to 2 mg/kg IV over 5 minutes with 0.1 to 0.2 mL/kg of 1% solution",
                 "poison center, toxicology, toxicologist, and ICU escalation",
                 "medication allergy review before antiemetics",
                 "renal function before contrast imaging",
@@ -30938,6 +31013,80 @@ def test_quality_gate_requires_methemoglobinemia_pulse_ox_g6pd_interaction_rebou
     assert any(
         "methemoglobinemia safety checks must include pulse oximetry unreliability"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_methemoglobinemia_separate_g6pd_hemolysis_serotonin_rebound_alternative_and_renal_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Dapsone-induced acquired methemoglobinemia"
+    case["patient_demographics"] = {
+        "age": 45,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Persistent cyanosis and confusion after dapsone"
+    case["history_of_present_illness"] = (
+        "Patient took dapsone and now has methemoglobinemia with refractory hypoxemia, "
+        "pulse oximetry near 85%, saturation gap, chocolate brown blood, dyspnea, "
+        "altered mental status, and methemoglobin level 38%."
+    )
+    case["key_teaching_points"] = [
+        "Dapsone can cause prolonged or rebound methemoglobinemia",
+        "Methylene blue requires attention to G6PD/NADPH, hemolysis risk, and serotonergic interactions",
+    ]
+    case["clinical_red_flags"] = [
+        "Cyanosis, refractory hypoxemia, saturation gap, altered mental status, dysrhythmia, seizure, dapsone exposure, or methemoglobin above 30%",
+    ]
+    case["time_critical_actions"] = [
+        "Give high-flow oxygen with airway and ventilation respiratory support if needed",
+        "Stop dapsone and remove the offending agent; assess benzocaine, nitrite, nitrate, and oxidizing source exposure",
+        "Send ABG or VBG blood gas with co-oximetry and methemoglobin level MetHb percentage confirmation",
+        "Give methylene blue when symptomatic or methemoglobin > 30 using 1 to 2 mg/kg IV over 5 minutes with 0.1 to 0.2 mL/kg of 1% solution",
+        "Call poison center, toxicology, toxicologist, and ICU for escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Review pulse oximetry unreliable saturation gap",
+        "Review G6PD before methylene blue",
+        "Review SSRI medication interaction before methylene blue",
+        "Treat if symptomatic or methemoglobin > 20 to 30%",
+        "Repeat dose after 30 to 60 minutes if symptoms persist",
+        "Monitor serial methemoglobin after dapsone rebound",
+        "Use exchange transfusion or hyperbaric oxygen if refractory",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Methemoglobinemia",
+            "organization": "NCBI Bookshelf / StatPearls",
+            "url": "https://www.ncbi.nlm.nih.gov/books/NBK537317/",
+            "supports": [
+                "dapsone-induced acquired methemoglobinemia diagnosis and risk stratification",
+                "dapsone can cause prolonged or rebound methemoglobinemia",
+                "methylene blue requires attention to G6PD/NADPH, hemolysis risk, and serotonergic interactions",
+                "high-flow oxygen with airway and ventilation respiratory support if needed",
+                "stop dapsone and remove the offending agent; assess benzocaine, nitrite, nitrate, and oxidizing source exposure",
+                "ABG or VBG blood gas with co-oximetry and methemoglobin level MetHb percentage confirmation",
+                "methylene blue when symptomatic or methemoglobin > 30 using 1 to 2 mg/kg IV over 5 minutes with 0.1 to 0.2 mL/kg of 1% solution",
+                "poison center, toxicology, toxicologist, and ICU escalation",
+                "pulse oximetry unreliable saturation gap",
+                "G6PD before methylene blue",
+                "SSRI medication interaction before methylene blue",
+                "symptomatic or methemoglobin > 20 to 30%",
+                "repeat dose after 30 to 60 minutes if symptoms persist",
+                "serial methemoglobin after dapsone rebound",
+                "exchange transfusion or hyperbaric oxygen if refractory",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "NADPH-related caution" in issue
+        and "serotonin-syndrome" in issue
+        and "ascorbic-acid renal risk" in issue
         for issue in report.critical_issues
     )
 

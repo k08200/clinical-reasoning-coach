@@ -14907,16 +14907,33 @@ METHEMOGLOBINEMIA_SOURCE_REMOVAL_ACTION_TERMS = (
     "remove",
     "stop",
 )
-METHEMOGLOBINEMIA_COOX_LEVEL_ACTION_TERMS = (
+METHEMOGLOBINEMIA_BLOOD_GAS_ACTION_TERMS = (
     "abg",
     "blood gas",
+    "vbg",
+)
+METHEMOGLOBINEMIA_COOX_CONFIRMATION_ACTION_TERMS = (
+    "co-oximeter",
     "co-oximetry",
     "methemoglobin level",
     "methb",
-    "vbg",
+    "percentage",
 )
-METHEMOGLOBINEMIA_METHYLENE_BLUE_ACTION_TERMS = (
+METHEMOGLOBINEMIA_METHYLENE_INDICATION_ACTION_TERMS = (
+    "20% to 30%",
+    "end-organ damage",
+    "methemoglobin > 20",
+    "methemoglobin > 30",
     "methylene blue",
+    "significantly elevated",
+    "symptomatic",
+)
+METHEMOGLOBINEMIA_METHYLENE_DOSE_ACTION_TERMS = (
+    "0.1 to 0.2 ml/kg",
+    "1 to 2 mg/kg",
+    "1% solution",
+    "5 minutes",
+    "iv over 5",
 )
 METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS = (
     "icu",
@@ -14928,19 +14945,30 @@ METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS = (
 METHEMOGLOBINEMIA_PULSE_OX_GAP_SAFETY_TERMS = (
     "85%",
     "calculated sao2",
+    "falsely normal sao2",
+    "near 85",
     "pulse ox unreliable",
     "pulse oximetry unreliable",
     "saturation gap",
     "spo2 unreliable",
 )
-METHEMOGLOBINEMIA_G6PD_HEMOLYSIS_SAFETY_TERMS = (
+METHEMOGLOBINEMIA_G6PD_SAFETY_TERMS = (
     "g6pd",
+    "nadph",
+)
+METHEMOGLOBINEMIA_HEMOLYSIS_HIGH_DOSE_SAFETY_TERMS = (
+    "5 mg/kg",
+    "high dose",
     "hemolysis",
     "hemolytic",
+    "oxidizing agent",
 )
 METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS = (
     "linezolid",
     "maoi",
+    "monoamine oxidase",
+    "serotonin syndrome",
+    "serotonin toxicity",
     "serotonergic medication",
     "ssri",
 )
@@ -14966,6 +14994,7 @@ METHEMOGLOBINEMIA_REPEAT_DOSE_SAFETY_TERMS = (
 )
 METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS = (
     "dapsone",
+    "prolonged monitoring",
     "rebound",
     "repeat co-oximetry",
     "serial co-oximetry",
@@ -14974,8 +15003,16 @@ METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS = (
 METHEMOGLOBINEMIA_ALTERNATIVE_THERAPY_SAFETY_TERMS = (
     "ascorbic acid",
     "exchange transfusion",
+    "hbot",
     "hyperbaric oxygen",
     "refractory",
+)
+METHEMOGLOBINEMIA_ASCORBIC_RENAL_SAFETY_TERMS = (
+    "hyperoxaluria",
+    "oxalate",
+    "renal failure",
+    "renal insufficiency",
+    "vitamin c",
 )
 CAUSTIC_INGESTION_CONTEXT_TERMS = (
     "acid ingestion",
@@ -21741,10 +21778,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "methemoglobinemia time-critical actions must include oxygen or "
                 "airway/ventilation support, removal or discontinuation of an "
                 "offending benzocaine, dapsone, nitrate, nitrite, or oxidizing "
-                "source, blood gas with co-oximetry or methemoglobin level "
-                "confirmation, methylene blue treatment planning when symptomatic "
-                "or significantly elevated, and poison center, toxicology, ICU, "
-                "or toxicologist escalation"
+                "source, blood gas such as ABG or VBG, separate co-oximetry, "
+                "co-oximeter, MetHb, methemoglobin-level, or percentage "
+                "confirmation, methylene blue indication planning for symptomatic "
+                "patients, end-organ damage, significantly elevated level, or "
+                "methemoglobin above 20% to 30%, methylene blue dosing such as "
+                "1 to 2 mg/kg, 0.1 to 0.2 mL/kg of 1% solution, or IV over "
+                "5 minutes, and poison center, toxicology, ICU, or toxicologist "
+                "escalation"
             ),
         ),
         DomainSafetyGate(
@@ -21754,16 +21795,22 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_methemoglobinemia_treatment_safety_check,
             issue=(
                 "methemoglobinemia safety checks must include pulse oximetry "
-                "unreliability or saturation-gap review, G6PD deficiency or "
-                "hemolysis risk before methylene blue, serotonergic medication, "
-                "SSRI, MAOI, or linezolid interaction review before methylene "
-                "blue, treatment-threshold review for symptoms, end-organ damage, "
-                "or methemoglobin above 20% to 30%, repeat-dose review after "
-                "30 to 60 minutes if symptoms persist or levels remain above "
-                "threshold, rebound or serial methemoglobin/co-oximetry monitoring "
-                "especially after dapsone, and alternative therapy planning such "
-                "as ascorbic acid, exchange transfusion, or hyperbaric oxygen "
-                "when methylene blue is contraindicated or refractory"
+                "unreliability or saturation-gap review with SpO2 near 85%, "
+                "falsely normal calculated SaO2, or PaO2 comparison, G6PD or "
+                "NADPH-related caution before methylene blue, hemolysis/high-dose "
+                "or >5 mg/kg methylene-blue risk review, serotonergic medication, "
+                "SSRI, MAOI, monoamine-oxidase, linezolid, serotonin-syndrome, or "
+                "serotonin-toxicity interaction review before methylene blue, "
+                "treatment-threshold review for symptoms, end-organ damage, "
+                "cardiac ischemia, altered mental status, or methemoglobin above "
+                "20% to 30%, repeat-dose review after 30 to 60 minutes if "
+                "symptoms persist or levels remain above threshold, rebound or "
+                "serial methemoglobin/co-oximetry monitoring especially after "
+                "dapsone or prolonged monitoring needs, alternative therapy "
+                "planning such as ascorbic acid/vitamin C, exchange transfusion, "
+                "or hyperbaric oxygen/HBOT when methylene blue is contraindicated "
+                "or refractory, and ascorbic-acid renal risk such as oxalate, "
+                "hyperoxaluria, renal insufficiency, or renal failure"
             ),
         ),
         DomainSafetyGate(
@@ -35118,13 +35165,21 @@ def _has_methemoglobinemia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in METHEMOGLOBINEMIA_SOURCE_REMOVAL_ACTION_TERMS
     )
-    has_coox_level = any(
+    has_blood_gas = any(
         _contains_safety_term(normalized_actions, term)
-        for term in METHEMOGLOBINEMIA_COOX_LEVEL_ACTION_TERMS
+        for term in METHEMOGLOBINEMIA_BLOOD_GAS_ACTION_TERMS
     )
-    has_methylene_blue = any(
+    has_coox_confirmation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in METHEMOGLOBINEMIA_METHYLENE_BLUE_ACTION_TERMS
+        for term in METHEMOGLOBINEMIA_COOX_CONFIRMATION_ACTION_TERMS
+    )
+    has_methylene_indication = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METHEMOGLOBINEMIA_METHYLENE_INDICATION_ACTION_TERMS
+    )
+    has_methylene_dose = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METHEMOGLOBINEMIA_METHYLENE_DOSE_ACTION_TERMS
     )
     has_tox_escalation = any(
         _contains_safety_term(normalized_actions, term)
@@ -35133,8 +35188,10 @@ def _has_methemoglobinemia_time_critical_actions(actions: list[Any]) -> bool:
     return (
         has_oxygen_support
         and has_source_removal
-        and has_coox_level
-        and has_methylene_blue
+        and has_blood_gas
+        and has_coox_confirmation
+        and has_methylene_indication
+        and has_methylene_dose
         and has_tox_escalation
     )
 
@@ -35145,9 +35202,13 @@ def _has_methemoglobinemia_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in METHEMOGLOBINEMIA_PULSE_OX_GAP_SAFETY_TERMS
     )
-    has_g6pd_hemolysis_safety = any(
+    has_g6pd_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in METHEMOGLOBINEMIA_G6PD_HEMOLYSIS_SAFETY_TERMS
+        for term in METHEMOGLOBINEMIA_G6PD_SAFETY_TERMS
+    )
+    has_hemolysis_high_dose_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_HEMOLYSIS_HIGH_DOSE_SAFETY_TERMS
     )
     has_methylene_interaction_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -35169,14 +35230,20 @@ def _has_methemoglobinemia_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in METHEMOGLOBINEMIA_ALTERNATIVE_THERAPY_SAFETY_TERMS
     )
+    has_ascorbic_renal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_ASCORBIC_RENAL_SAFETY_TERMS
+    )
     return (
         has_pulse_ox_gap_safety
-        and has_g6pd_hemolysis_safety
+        and has_g6pd_safety
+        and has_hemolysis_high_dose_safety
         and has_methylene_interaction_safety
         and has_treatment_threshold_safety
         and has_repeat_dose_safety
         and has_rebound_monitoring_safety
         and has_alternative_therapy_safety
+        and has_ascorbic_renal_safety
     )
 
 
