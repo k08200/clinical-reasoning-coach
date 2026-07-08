@@ -8305,6 +8305,14 @@ UPPER_GI_BLEED_CONTEXT_TERMS = (
     "토혈",
     "흑색변",
 )
+UPPER_GI_BLEED_VARICEAL_CONTEXT_TERMS = (
+    "cirrhosis",
+    "esophageal variceal bleeding",
+    "portal hypertension",
+    "variceal bleeding",
+    "variceal hemorrhage",
+    "varices",
+)
 UPPER_GI_BLEED_RESUSCITATION_INTERVENTION_TERMS = (
     "hemodynamic",
     "iv access",
@@ -8316,18 +8324,30 @@ UPPER_GI_BLEED_RESUSCITATION_INTERVENTION_TERMS = (
     "수액",
     "쇼크",
 )
-UPPER_GI_BLEED_LAB_ACTION_TERMS = (
+UPPER_GI_BLEED_CBC_HEMOGLOBIN_ACTION_TERMS = (
     "cbc",
     "hemoglobin",
-    "inr",
+    "hgb",
 )
-UPPER_GI_BLEED_BLOOD_PRODUCT_ACTION_TERMS = (
+UPPER_GI_BLEED_COAGULATION_LAB_ACTION_TERMS = (
+    "coagulation",
+    "inr",
+    "pt",
+    "ptt",
+)
+UPPER_GI_BLEED_BLOOD_BANK_ACTION_TERMS = (
+    "blood bank",
     "crossmatch",
+    "type and screen",
+)
+UPPER_GI_BLEED_TRANSFUSION_STRATEGY_ACTION_TERMS = (
+    "hemoglobin 7",
+    "hgb 7",
     "packed red blood",
     "prbc",
     "restrictive transfusion",
+    "transfusion threshold",
     "transfusion",
-    "type and screen",
     "수혈",
 )
 UPPER_GI_BLEED_ENDOSCOPY_PROCEDURE_TERMS = (
@@ -8361,25 +8381,31 @@ UPPER_GI_BLEED_VARICEAL_ANTIBIOTIC_ACTION_TERMS = (
     "ceftriaxone",
     "항생제",
 )
-UPPER_GI_BLEED_AIRWAY_ASPIRATION_SAFETY_TERMS = (
-    "airway",
+UPPER_GI_BLEED_ACTIVE_AIRWAY_RISK_SAFETY_TERMS = (
     "altered mental status",
-    "aspiration",
     "active hematemesis",
-    "intubation",
     "vomiting blood",
+)
+UPPER_GI_BLEED_AIRWAY_INTERVENTION_SAFETY_TERMS = (
+    "airway",
+    "aspiration",
+    "intubation",
     "기도",
 )
-UPPER_GI_BLEED_ANTITHROMBOTIC_REVERSAL_SAFETY_TERMS = (
+UPPER_GI_BLEED_ANTITHROMBOTIC_EXPOSURE_SAFETY_TERMS = (
     "anticoagulant",
     "antiplatelet",
-    "coagulopathy",
     "doac",
-    "inr",
-    "platelet",
-    "reversal",
     "warfarin",
     "항응고",
+)
+UPPER_GI_BLEED_REVERSAL_COAGULATION_SAFETY_TERMS = (
+    "coagulopathy",
+    "ffp",
+    "inr",
+    "pcc",
+    "platelet",
+    "reversal",
 )
 UPPER_GI_BLEED_VARICEAL_RESCUE_SAFETY_TERMS = (
     "balloon tamponade",
@@ -20025,13 +20051,26 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "upper GI bleeding time-critical actions must include hemodynamic "
                 "resuscitation with large-bore IV access, shock, or massive "
-                "transfusion planning, CBC, hemoglobin, INR, type and screen, "
-                "crossmatch, PRBC, restrictive transfusion, or transfusion "
-                "assessment, early endoscopy, EGD, endoscopic hemostasis, "
+                "transfusion planning, separate CBC or hemoglobin, coagulation "
+                "labs such as INR/PT/PTT, blood bank type-and-screen or "
+                "crossmatch, restrictive PRBC or transfusion-threshold planning, "
+                "early endoscopy, EGD, endoscopic hemostasis, "
                 "gastroenterology, GI consult, or within-24-hours endoscopy "
                 "planning, and PPI, proton pump inhibitor, octreotide, "
                 "terlipressin, somatostatin, vasoactive therapy, ceftriaxone, "
                 "or antibiotic planning for ulcer or suspected variceal bleeding"
+            ),
+        ),
+        DomainSafetyGate(
+            name="upper_gi_bleed_variceal_time_critical_actions",
+            applies=_requires_upper_gi_bleed_variceal_safety_check,
+            field_name="time_critical_actions",
+            validator=_has_upper_gi_bleed_variceal_time_critical_actions,
+            issue=(
+                "suspected variceal upper GI bleeding time-critical actions must "
+                "include vasoactive therapy such as octreotide, terlipressin, or "
+                "somatostatin and antibiotic prophylaxis such as ceftriaxone or "
+                "antibiotics, in addition to resuscitation and endoscopy planning"
             ),
         ),
         DomainSafetyGate(
@@ -20042,11 +20081,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "upper GI bleeding safety checks must include airway, aspiration, "
                 "active hematemesis, vomiting blood, intubation, or altered "
-                "mental status planning, anticoagulant, antiplatelet, warfarin, "
-                "DOAC, INR, platelet, coagulopathy, or reversal review, variceal, "
-                "cirrhosis, portal hypertension, TIPS, balloon tamponade, stent, "
-                "or rescue therapy review, and rebleeding, repeat endoscopy, ICU, "
-                "unstable, shock, or risk-stratification disposition monitoring"
+                "mental status planning, antithrombotic exposure review for "
+                "anticoagulant, antiplatelet, warfarin, or DOAC use plus separate "
+                "INR, platelet, coagulopathy, PCC, FFP, or reversal planning, "
+                "variceal, cirrhosis, portal hypertension, TIPS, balloon "
+                "tamponade, stent, or rescue therapy review, and rebleeding, "
+                "repeat endoscopy, ICU, unstable, shock, or risk-stratification "
+                "disposition monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -29465,6 +29506,35 @@ def _requires_upper_gi_bleed_safety_check(data: dict[str, Any]) -> bool:
     )
 
 
+def _requires_upper_gi_bleed_variceal_safety_check(data: dict[str, Any]) -> bool:
+    if not _requires_upper_gi_bleed_safety_check(data):
+        return False
+    risk_text_fields = [
+        "chief_complaint",
+        "history_of_present_illness",
+        "past_medical_history",
+        "diagnosis",
+        "coach_guidance",
+    ]
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in risk_text_fields
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in UPPER_GI_BLEED_VARICEAL_CONTEXT_TERMS
+    )
+
+
 def _has_upper_gi_bleed_time_critical_actions(actions: list[Any]) -> bool:
     has_resuscitation = _has_upper_gi_bleed_resuscitation_action(actions)
     has_transfusion_lab = _has_upper_gi_bleed_transfusion_lab_action(actions)
@@ -29490,15 +29560,28 @@ def _has_upper_gi_bleed_resuscitation_action(actions: list[Any]) -> bool:
 
 def _has_upper_gi_bleed_transfusion_lab_action(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_lab = any(
+    has_cbc_hemoglobin = any(
         _contains_safety_term(normalized_actions, term)
-        for term in UPPER_GI_BLEED_LAB_ACTION_TERMS
+        for term in UPPER_GI_BLEED_CBC_HEMOGLOBIN_ACTION_TERMS
     )
-    has_blood_product = any(
+    has_coagulation_lab = any(
         _contains_safety_term(normalized_actions, term)
-        for term in UPPER_GI_BLEED_BLOOD_PRODUCT_ACTION_TERMS
+        for term in UPPER_GI_BLEED_COAGULATION_LAB_ACTION_TERMS
     )
-    return has_lab and has_blood_product
+    has_blood_bank = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UPPER_GI_BLEED_BLOOD_BANK_ACTION_TERMS
+    )
+    has_transfusion_strategy = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UPPER_GI_BLEED_TRANSFUSION_STRATEGY_ACTION_TERMS
+    )
+    return (
+        has_cbc_hemoglobin
+        and has_coagulation_lab
+        and has_blood_bank
+        and has_transfusion_strategy
+    )
 
 
 def _has_upper_gi_bleed_endoscopy_action(actions: list[Any]) -> bool:
@@ -29541,15 +29624,36 @@ def _has_upper_gi_bleed_medication_action(actions: list[Any]) -> bool:
     return False
 
 
+def _has_upper_gi_bleed_variceal_time_critical_actions(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    has_variceal_vasoactive = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UPPER_GI_BLEED_VARICEAL_VASOACTIVE_ACTION_TERMS
+    )
+    has_variceal_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in UPPER_GI_BLEED_VARICEAL_ANTIBIOTIC_ACTION_TERMS
+    )
+    return has_variceal_vasoactive and has_variceal_antibiotic
+
+
 def _has_upper_gi_bleed_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_airway_aspiration_safety = any(
+    has_active_airway_risk_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in UPPER_GI_BLEED_AIRWAY_ASPIRATION_SAFETY_TERMS
+        for term in UPPER_GI_BLEED_ACTIVE_AIRWAY_RISK_SAFETY_TERMS
     )
-    has_antithrombotic_reversal_safety = any(
+    has_airway_intervention_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in UPPER_GI_BLEED_ANTITHROMBOTIC_REVERSAL_SAFETY_TERMS
+        for term in UPPER_GI_BLEED_AIRWAY_INTERVENTION_SAFETY_TERMS
+    )
+    has_antithrombotic_exposure_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UPPER_GI_BLEED_ANTITHROMBOTIC_EXPOSURE_SAFETY_TERMS
+    )
+    has_reversal_coagulation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in UPPER_GI_BLEED_REVERSAL_COAGULATION_SAFETY_TERMS
     )
     has_variceal_rescue_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -29560,8 +29664,10 @@ def _has_upper_gi_bleed_treatment_safety_check(checks: list[Any]) -> bool:
         for term in UPPER_GI_BLEED_REBLEED_DISPOSITION_SAFETY_TERMS
     )
     return (
-        has_airway_aspiration_safety
-        and has_antithrombotic_reversal_safety
+        has_active_airway_risk_safety
+        and has_airway_intervention_safety
+        and has_antithrombotic_exposure_safety
+        and has_reversal_coagulation_safety
         and has_variceal_rescue_safety
         and has_rebleed_disposition_safety
     )

@@ -9244,6 +9244,15 @@ const UPPER_GI_BLEED_CONTEXT_TERMS = [
   "흑색변",
 ];
 
+const UPPER_GI_BLEED_VARICEAL_CONTEXT_TERMS = [
+  "cirrhosis",
+  "esophageal variceal bleeding",
+  "portal hypertension",
+  "variceal bleeding",
+  "variceal hemorrhage",
+  "varices",
+];
+
 const UPPER_GI_BLEED_RESUSCITATION_INTERVENTION_TERMS = [
   "hemodynamic",
   "iv access",
@@ -9256,19 +9265,33 @@ const UPPER_GI_BLEED_RESUSCITATION_INTERVENTION_TERMS = [
   "쇼크",
 ];
 
-const UPPER_GI_BLEED_LAB_ACTION_TERMS = [
+const UPPER_GI_BLEED_CBC_HEMOGLOBIN_ACTION_TERMS = [
   "cbc",
   "hemoglobin",
-  "inr",
+  "hgb",
 ];
 
-const UPPER_GI_BLEED_BLOOD_PRODUCT_ACTION_TERMS = [
+const UPPER_GI_BLEED_COAGULATION_LAB_ACTION_TERMS = [
+  "coagulation",
+  "inr",
+  "pt",
+  "ptt",
+];
+
+const UPPER_GI_BLEED_BLOOD_BANK_ACTION_TERMS = [
+  "blood bank",
   "crossmatch",
+  "type and screen",
+];
+
+const UPPER_GI_BLEED_TRANSFUSION_STRATEGY_ACTION_TERMS = [
+  "hemoglobin 7",
+  "hgb 7",
   "packed red blood",
   "prbc",
   "restrictive transfusion",
+  "transfusion threshold",
   "transfusion",
-  "type and screen",
   "수혈",
 ];
 
@@ -9309,26 +9332,34 @@ const UPPER_GI_BLEED_VARICEAL_ANTIBIOTIC_ACTION_TERMS = [
   "항생제",
 ];
 
-const UPPER_GI_BLEED_AIRWAY_ASPIRATION_SAFETY_TERMS = [
-  "airway",
+const UPPER_GI_BLEED_ACTIVE_AIRWAY_RISK_SAFETY_TERMS = [
   "altered mental status",
-  "aspiration",
   "active hematemesis",
-  "intubation",
   "vomiting blood",
+];
+
+const UPPER_GI_BLEED_AIRWAY_INTERVENTION_SAFETY_TERMS = [
+  "airway",
+  "aspiration",
+  "intubation",
   "기도",
 ];
 
-const UPPER_GI_BLEED_ANTITHROMBOTIC_REVERSAL_SAFETY_TERMS = [
+const UPPER_GI_BLEED_ANTITHROMBOTIC_EXPOSURE_SAFETY_TERMS = [
   "anticoagulant",
   "antiplatelet",
-  "coagulopathy",
   "doac",
-  "inr",
-  "platelet",
-  "reversal",
   "warfarin",
   "항응고",
+];
+
+const UPPER_GI_BLEED_REVERSAL_COAGULATION_SAFETY_TERMS = [
+  "coagulopathy",
+  "ffp",
+  "inr",
+  "pcc",
+  "platelet",
+  "reversal",
 ];
 
 const UPPER_GI_BLEED_VARICEAL_RESCUE_SAFETY_TERMS = [
@@ -25411,6 +25442,28 @@ function requiresUpperGiBleedSafetyCheck(detail: ClinicalCaseReviewDetail): bool
   return UPPER_GI_BLEED_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
 }
 
+function requiresUpperGiBleedVaricealSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
+  if (!requiresUpperGiBleedSafetyCheck(detail)) {
+    return false;
+  }
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.past_medical_history,
+    detail.diagnosis,
+    detail.coach_guidance,
+    ...nestedStrings(detail.key_teaching_points),
+    ...nestedStrings(detail.time_critical_actions),
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.clinical_sources),
+    ...nestedStrings(detail.physical_exam),
+    ...nestedStrings(detail.initial_labs),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return UPPER_GI_BLEED_VARICEAL_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
 function hasUpperGiBleedTimeCriticalActions(actions: string[]): boolean {
   const hasResuscitation = hasUpperGiBleedResuscitationAction(actions);
   const hasTransfusionLab = hasUpperGiBleedTransfusionLabAction(actions);
@@ -25430,13 +25483,19 @@ function hasUpperGiBleedResuscitationAction(actions: string[]): boolean {
 
 function hasUpperGiBleedTransfusionLabAction(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasLab = UPPER_GI_BLEED_LAB_ACTION_TERMS.some((term) =>
+  const hasCbcHemoglobin = UPPER_GI_BLEED_CBC_HEMOGLOBIN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasBloodProduct = UPPER_GI_BLEED_BLOOD_PRODUCT_ACTION_TERMS.some((term) =>
+  const hasCoagulationLab = UPPER_GI_BLEED_COAGULATION_LAB_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasLab && hasBloodProduct;
+  const hasBloodBank = UPPER_GI_BLEED_BLOOD_BANK_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTransfusionStrategy = UPPER_GI_BLEED_TRANSFUSION_STRATEGY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasCbcHemoglobin && hasCoagulationLab && hasBloodBank && hasTransfusionStrategy;
 }
 
 function hasUpperGiBleedEndoscopyAction(actions: string[]): boolean {
@@ -25471,15 +25530,31 @@ function hasUpperGiBleedMedicationAction(actions: string[]): boolean {
   });
 }
 
+function hasUpperGiBleedVaricealTimeCriticalActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasVaricealVasoactive = UPPER_GI_BLEED_VARICEAL_VASOACTIVE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVaricealAntibiotic = UPPER_GI_BLEED_VARICEAL_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasVaricealVasoactive && hasVaricealAntibiotic;
+}
+
 function hasUpperGiBleedTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasAirwayAspirationSafety = UPPER_GI_BLEED_AIRWAY_ASPIRATION_SAFETY_TERMS.some(
+  const hasActiveAirwayRiskSafety = UPPER_GI_BLEED_ACTIVE_AIRWAY_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAirwayInterventionSafety = UPPER_GI_BLEED_AIRWAY_INTERVENTION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasAntithromboticReversalSafety =
-    UPPER_GI_BLEED_ANTITHROMBOTIC_REVERSAL_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
+  const hasAntithromboticExposureSafety = UPPER_GI_BLEED_ANTITHROMBOTIC_EXPOSURE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasReversalCoagulationSafety = UPPER_GI_BLEED_REVERSAL_COAGULATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   const hasVaricealRescueSafety = UPPER_GI_BLEED_VARICEAL_RESCUE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -25488,8 +25563,10 @@ function hasUpperGiBleedTreatmentSafetyCheck(checks: string[]): boolean {
       containsSafetyTerm(normalizedChecks, term),
     );
   return (
-    hasAirwayAspirationSafety &&
-    hasAntithromboticReversalSafety &&
+    hasActiveAirwayRiskSafety &&
+    hasAirwayInterventionSafety &&
+    hasAntithromboticExposureSafety &&
+    hasReversalCoagulationSafety &&
     hasVaricealRescueSafety &&
     hasRebleedDispositionSafety
   );
@@ -32945,7 +33022,16 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasUpperGiBleedTimeCriticalActions,
       issue:
-        "upper GI bleeding time-critical actions must include hemodynamic resuscitation with large-bore IV access, shock, or massive transfusion planning, CBC, hemoglobin, INR, type and screen, crossmatch, PRBC, restrictive transfusion, or transfusion assessment, early endoscopy, EGD, endoscopic hemostasis, gastroenterology, GI consult, or within-24-hours endoscopy planning, and PPI, proton pump inhibitor, octreotide, terlipressin, somatostatin, vasoactive therapy, ceftriaxone, or antibiotic planning for ulcer or suspected variceal bleeding",
+        "upper GI bleeding time-critical actions must include hemodynamic resuscitation with large-bore IV access, shock, or massive transfusion planning, separate CBC or hemoglobin, coagulation labs such as INR/PT/PTT, blood bank type-and-screen or crossmatch, restrictive PRBC or transfusion-threshold planning, early endoscopy, EGD, endoscopic hemostasis, gastroenterology, GI consult, or within-24-hours endoscopy planning, and PPI, proton pump inhibitor, octreotide, terlipressin, somatostatin, vasoactive therapy, ceftriaxone, or antibiotic planning for ulcer or suspected variceal bleeding",
+    },
+    {
+      name: "upper_gi_bleed_variceal_time_critical_actions",
+      label: "Upper GI bleed variceal medication actions",
+      applies: requiresUpperGiBleedVaricealSafetyCheck,
+      fieldName: "time_critical_actions",
+      validator: hasUpperGiBleedVaricealTimeCriticalActions,
+      issue:
+        "suspected variceal upper GI bleeding time-critical actions must include vasoactive therapy such as octreotide, terlipressin, or somatostatin and antibiotic prophylaxis such as ceftriaxone or antibiotics, in addition to resuscitation and endoscopy planning",
     },
     {
       name: "upper_gi_bleed_treatment_safety",
@@ -32954,7 +33040,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasUpperGiBleedTreatmentSafetyCheck,
       issue:
-        "upper GI bleeding safety checks must include airway, aspiration, active hematemesis, vomiting blood, intubation, or altered mental status planning, anticoagulant, antiplatelet, warfarin, DOAC, INR, platelet, coagulopathy, or reversal review, variceal, cirrhosis, portal hypertension, TIPS, balloon tamponade, stent, or rescue therapy review, and rebleeding, repeat endoscopy, ICU, unstable, shock, or risk-stratification disposition monitoring",
+        "upper GI bleeding safety checks must include airway, aspiration, active hematemesis, vomiting blood, intubation, or altered mental status planning, antithrombotic exposure review for anticoagulant, antiplatelet, warfarin, or DOAC use plus separate INR, platelet, coagulopathy, PCC, FFP, or reversal planning, variceal, cirrhosis, portal hypertension, TIPS, balloon tamponade, stent, or rescue therapy review, and rebleeding, repeat endoscopy, ICU, unstable, shock, or risk-stratification disposition monitoring",
     },
     {
       name: "upper_gi_bleed_risk_endoscopy_medication_safety",
