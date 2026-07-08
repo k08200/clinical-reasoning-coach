@@ -10100,12 +10100,23 @@ const PEDIATRIC_MIDGUT_VOLVULUS_SEVERITY_TERMS = [
   "shock",
 ];
 
-const PEDIATRIC_MIDGUT_VOLVULUS_UGI_ACTION_TERMS = [
-  "duodenal jejunal",
+const PEDIATRIC_MIDGUT_VOLVULUS_UGI_MODALITY_ACTION_TERMS = [
   "fluoroscopy",
-  "ligament of treitz",
   "upper gi",
   "ugi",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_DJ_TARGET_ACTION_TERMS = [
+  "duodenal jejunal",
+  "duodenal-jejunal",
+  "duodenojejunal",
+  "ligament of treitz",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_MALROTATION_ASSESSMENT_ACTION_TERMS = [
+  "corkscrew",
+  "malrotation",
+  "volvulus",
 ];
 
 const PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_SPECIALIST_ACTION_TERMS = [
@@ -10117,46 +10128,65 @@ const PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_SPECIALIST_ACTION_TERMS = [
   "소아외과",
 ];
 
-const PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_ACTION_TERMS = [
-  "bowel detorsion",
-  "bowel resection",
-  "counterclockwise detorsion",
-  "divide ladd",
+const PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_EXPLORATION_ACTION_TERMS = [
   "exploratory laparotomy",
-  "ladd",
-  "ladd procedure",
-  "ladd's",
   "laparotomy",
   "operative exploration",
   "surgical exploration",
-  "volvulus detorsion",
-  "장염전 정복",
-  "장 회전 정복",
-  "래드 술식",
   "복강경 탐색",
   "수술적 탐색",
 ];
 
-const PEDIATRIC_MIDGUT_VOLVULUS_RESUSCITATION_ACTION_TERMS = [
-  "decompression",
+const PEDIATRIC_MIDGUT_VOLVULUS_LADD_ACTION_TERMS = [
+  "divide ladd",
+  "ladd",
+  "ladd procedure",
+  "ladd's",
+  "래드 술식",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_DETORSION_RESECTION_ACTION_TERMS = [
+  "bowel detorsion",
+  "bowel resection",
+  "counterclockwise detorsion",
+  "detorsion",
+  "nonviable bowel",
+  "volvulus detorsion",
+  "장염전 정복",
+  "장 회전 정복",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_NPO_ACTION_TERMS = [
+  "bowel rest",
+  "npo",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_IV_FLUID_ACTION_TERMS = [
+  "bolus",
   "fluid",
   "fluids",
   "iv access",
-  "nasogastric",
-  "ng tube",
-  "npo",
-  "orogastric",
   "resuscitation",
 ];
 
-const PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ACTION_TERMS = [
-  "abdominal exam",
+const PEDIATRIC_MIDGUT_VOLVULUS_GASTRIC_DECOMPRESSION_ACTION_TERMS = [
+  "decompression",
+  "nasogastric",
+  "ng tube",
+  "orogastric",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_LAB_SHOCK_ACTION_TERMS = [
   "acidosis",
+  "lactate",
+  "shock",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_ABDOMINAL_ISCHEMIA_ACTION_TERMS = [
+  "abdominal exam",
   "bowel ischemia",
   "bowel necrosis",
-  "lactate",
   "peritonitis",
-  "shock",
   "serial exam",
 ];
 
@@ -10169,34 +10199,52 @@ const PEDIATRIC_MIDGUT_VOLVULUS_REFLUX_REASSURANCE_SAFETY_TERMS = [
 ];
 
 const PEDIATRIC_MIDGUT_VOLVULUS_NORMAL_XRAY_SAFETY_TERMS = [
-  "does not exclude",
   "normal abdominal radiograph",
   "normal radiograph",
   "normal x-ray",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_NOT_EXCLUDED_SAFETY_TERMS = [
+  "does not exclude",
   "not exclude",
 ];
 
-const PEDIATRIC_MIDGUT_VOLVULUS_IMAGING_LIMITATION_SAFETY_TERMS = [
-  "contrast enema",
+const PEDIATRIC_MIDGUT_VOLVULUS_UGI_LIMITATION_SAFETY_TERMS = [
   "equivocal ugi",
   "false negative",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_ALTERNATE_IMAGING_SAFETY_TERMS = [
+  "contrast enema",
   "less direct",
   "smv/sma",
+  "ultrasound",
   "whirlpool",
 ];
 
-const PEDIATRIC_MIDGUT_VOLVULUS_DELAY_SAFETY_TERMS = [
-  "bowel ischemia",
-  "bowel necrosis",
+const PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_DELAY_SAFETY_TERMS = [
   "do not delay",
   "emergent surgery",
   "urgent surgery",
 ];
 
-const PEDIATRIC_MIDGUT_VOLVULUS_METABOLIC_ASPIRATION_SAFETY_TERMS = [
+const PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ESCALATION_SAFETY_TERMS = [
+  "bowel ischemia",
+  "bowel necrosis",
+  "peritonitis",
+  "shock",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_ASPIRATION_SAFETY_TERMS = [
   "aspiration",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_DEHYDRATION_ELECTROLYTE_SAFETY_TERMS = [
   "dehydration",
   "electrolyte",
+];
+
+const PEDIATRIC_MIDGUT_VOLVULUS_GLUCOSE_SAFETY_TERMS = [
   "glucose",
   "hypoglycemia",
 ];
@@ -26206,27 +26254,57 @@ function requiresPediatricMidgutVolvulusSafetyCheck(detail: ClinicalCaseReviewDe
 
 function hasPediatricMidgutVolvulusTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasUgi = PEDIATRIC_MIDGUT_VOLVULUS_UGI_ACTION_TERMS.some((term) =>
+  const hasUgiModality = PEDIATRIC_MIDGUT_VOLVULUS_UGI_MODALITY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDjTarget = PEDIATRIC_MIDGUT_VOLVULUS_DJ_TARGET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMalrotationAssessment = PEDIATRIC_MIDGUT_VOLVULUS_MALROTATION_ASSESSMENT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasSurgerySpecialist = PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_SPECIALIST_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasOperativeCorrection = PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
-  const hasResuscitation = PEDIATRIC_MIDGUT_VOLVULUS_RESUSCITATION_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
-  const hasIschemiaMonitoring = PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ACTION_TERMS.some(
+  const hasOperativeExploration = PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_EXPLORATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
+  const hasLaddPlan = PEDIATRIC_MIDGUT_VOLVULUS_LADD_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasDetorsionOrResection = PEDIATRIC_MIDGUT_VOLVULUS_DETORSION_RESECTION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNpo = PEDIATRIC_MIDGUT_VOLVULUS_NPO_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIvFluids = PEDIATRIC_MIDGUT_VOLVULUS_IV_FLUID_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasGastricDecompression =
+    PEDIATRIC_MIDGUT_VOLVULUS_GASTRIC_DECOMPRESSION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasLabShockMonitoring = PEDIATRIC_MIDGUT_VOLVULUS_LAB_SHOCK_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAbdominalIschemiaMonitoring =
+    PEDIATRIC_MIDGUT_VOLVULUS_ABDOMINAL_ISCHEMIA_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
   return (
-    hasUgi &&
+    hasUgiModality &&
+    hasDjTarget &&
+    hasMalrotationAssessment &&
     hasSurgerySpecialist &&
-    hasOperativeCorrection &&
-    hasResuscitation &&
-    hasIschemiaMonitoring
+    hasOperativeExploration &&
+    hasLaddPlan &&
+    hasDetorsionOrResection &&
+    hasNpo &&
+    hasIvFluids &&
+    hasGastricDecompression &&
+    hasLabShockMonitoring &&
+    hasAbdominalIschemiaMonitoring
   );
 }
 
@@ -26239,23 +26317,44 @@ function hasPediatricMidgutVolvulusTreatmentSafetyCheck(checks: string[]): boole
   const hasNormalXraySafety = PEDIATRIC_MIDGUT_VOLVULUS_NORMAL_XRAY_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasImagingLimitationSafety =
-    PEDIATRIC_MIDGUT_VOLVULUS_IMAGING_LIMITATION_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
-  const hasDelaySafety = PEDIATRIC_MIDGUT_VOLVULUS_DELAY_SAFETY_TERMS.some((term) =>
+  const hasNotExcludedSafety = PEDIATRIC_MIDGUT_VOLVULUS_NOT_EXCLUDED_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasMetabolicAspirationSafety =
-    PEDIATRIC_MIDGUT_VOLVULUS_METABOLIC_ASPIRATION_SAFETY_TERMS.some((term) =>
+  const hasUgiLimitationSafety = PEDIATRIC_MIDGUT_VOLVULUS_UGI_LIMITATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAlternateImagingSafety =
+    PEDIATRIC_MIDGUT_VOLVULUS_ALTERNATE_IMAGING_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
+  const hasSurgeryDelaySafety = PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_DELAY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasIschemiaEscalationSafety =
+    PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ESCALATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAspirationSafety = PEDIATRIC_MIDGUT_VOLVULUS_ASPIRATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDehydrationElectrolyteSafety =
+    PEDIATRIC_MIDGUT_VOLVULUS_DEHYDRATION_ELECTROLYTE_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasGlucoseSafety = PEDIATRIC_MIDGUT_VOLVULUS_GLUCOSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
     hasRefluxReassuranceSafety &&
     hasNormalXraySafety &&
-    hasImagingLimitationSafety &&
-    hasDelaySafety &&
-    hasMetabolicAspirationSafety
+    hasNotExcludedSafety &&
+    hasUgiLimitationSafety &&
+    hasAlternateImagingSafety &&
+    hasSurgeryDelaySafety &&
+    hasIschemiaEscalationSafety &&
+    hasAspirationSafety &&
+    hasDehydrationElectrolyteSafety &&
+    hasGlucoseSafety
   );
 }
 
@@ -33370,7 +33469,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasPediatricMidgutVolvulusTimeCriticalActions,
       issue:
-        "pediatric midgut volvulus time-critical actions must include urgent fluoroscopy upper GI, UGI, duodenal-jejunal junction, or ligament-of-Treitz imaging to evaluate malrotation, immediate pediatric surgery or pediatric surgeon escalation, specific Ladd procedure, operative exploration, laparotomy, bowel or volvulus detorsion, or bowel-resection planning, NPO, IV fluids, resuscitation, NG tube, nasogastric, or orogastric decompression planning, and bowel ischemia, bowel necrosis, lactate, acidosis, peritonitis, shock, serial abdominal exam, or complication monitoring",
+        "pediatric midgut volvulus time-critical actions must include urgent fluoroscopy upper GI/UGI imaging plus duodenal-jejunal junction or ligament-of-Treitz target and malrotation, corkscrew, or volvulus assessment, immediate pediatric surgery or pediatric surgeon escalation, operative exploration or laparotomy planning plus specific Ladd procedure and bowel/volvulus detorsion or bowel-resection planning, NPO or bowel rest plus IV access/fluids/resuscitation and NG, nasogastric, or orogastric decompression planning, and lactate, acidosis, or shock monitoring plus serial abdominal exam, peritonitis, bowel ischemia, or bowel necrosis monitoring",
     },
     {
       name: "pediatric_midgut_volvulus_treatment_safety",
@@ -33379,7 +33478,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasPediatricMidgutVolvulusTreatmentSafetyCheck,
       issue:
-        "pediatric midgut volvulus safety checks must include avoiding reassurance or treatment as benign reflux or gastroenteritis, recognition that a normal abdominal radiograph or x-ray does not exclude malrotation, imaging-limitation review for false negative, equivocal UGI, SMV/SMA, whirlpool, contrast enema, or less-direct imaging findings, do-not-delay urgent surgery or bowel ischemia/necrosis escalation, and aspiration, dehydration, electrolyte, glucose, or hypoglycemia safeguards",
+        "pediatric midgut volvulus safety checks must include avoiding reassurance or treatment as benign reflux or gastroenteritis, recognition that a normal abdominal radiograph or x-ray does not exclude malrotation, imaging-limitation review for false negative or equivocal UGI plus SMV/SMA, whirlpool, ultrasound, contrast enema, or less-direct imaging findings, do-not-delay urgent surgery or emergent surgery plus bowel ischemia, bowel necrosis, peritonitis, or shock escalation, and aspiration risk plus dehydration/electrolyte and glucose/hypoglycemia safeguards",
     },
     {
       name: "necrotizing_enterocolitis_time_critical_actions",

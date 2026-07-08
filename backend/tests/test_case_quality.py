@@ -19877,6 +19877,134 @@ def test_quality_gate_requires_pediatric_midgut_volvulus_reflux_xray_imaging_del
     )
 
 
+def test_quality_gate_requires_pediatric_midgut_volvulus_anatomic_ugi_detorsion_and_decompression_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Intestinal malrotation with midgut volvulus"
+    case["patient_demographics"] = {
+        "age": 1,
+        "sex": "female",
+        "weight_kg": 8,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Bilious vomiting in an infant"
+    case["history_of_present_illness"] = (
+        "Young infant has green bilious vomiting, abdominal distension, "
+        "dehydration, elevated lactate, acidosis, and suspected malrotation "
+        "with midgut volvulus causing bowel obstruction."
+    )
+    case["key_teaching_points"] = [
+        "Bilious vomiting in an infant is concerning for malrotation with volvulus",
+        "ACR rates fluoroscopy upper GI series as usually appropriate for suspected malrotation with bilious vomiting",
+        "Midgut volvulus requires urgent pediatric surgical planning because bowel ischemia and bowel necrosis can occur",
+    ]
+    case["clinical_red_flags"] = [
+        "Abdominal distension, dehydration, lactate elevation, acidosis, peritonitis, shock, or bloody stool",
+        "Delay can lead to bowel ischemia, bowel necrosis, and short bowel syndrome",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain urgent fluoroscopy upper GI imaging to evaluate malrotation and possible volvulus",
+        "Call pediatric surgery and pediatric surgeon for immediate surgical consult",
+        "Prepare for laparotomy and Ladd procedure",
+        "Keep NPO and give IV fluids for resuscitation",
+        "Trend lactate, acidosis, shock, and serial abdominal exam for bowel ischemia",
+    ]
+    case["contraindication_checks"] = [
+        "Do not treat as reflux or gastroenteritis and do not reassure when infant bilious emesis is present",
+        "Recognize a normal abdominal radiograph or normal x-ray does not exclude malrotation",
+        "Review imaging limitations including false negative or equivocal UGI, SMV/SMA relationship, whirlpool sign, ultrasound, and contrast enema being less direct",
+        "Do not delay urgent surgery or emergent surgery when bowel ischemia or bowel necrosis is suspected",
+        "Safeguard aspiration risk plus dehydration, electrolyte, glucose, and hypoglycemia issues",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "ACR Appropriateness Criteria: Vomiting in Infants",
+            "organization": "American College of Radiology",
+            "url": "https://acsearch.acr.org/docs/69445/Narrative/",
+            "supports": [
+                "fluoroscopy upper GI series is usually appropriate for bilious vomiting in infants with suspected malrotation",
+                "bilious vomiting in a young infant raises concern for intestinal obstruction and malrotation with volvulus",
+                "UGI evaluation should assess the duodenal-jejunal junction and ligament of Treitz",
+                "pediatric surgery, Ladd procedure, detorsion, and bowel resection planning are needed when volvulus is suspected",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "duodenal-jejunal junction or ligament-of-Treitz" in issue
+        and "bowel/volvulus detorsion or bowel-resection" in issue
+        and "NG, nasogastric, or orogastric" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_pediatric_midgut_volvulus_xray_ugi_limit_delay_ischemia_and_metabolic_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Intestinal malrotation with midgut volvulus"
+    case["patient_demographics"] = {
+        "age": 1,
+        "sex": "female",
+        "weight_kg": 8,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Bilious vomiting in an infant"
+    case["history_of_present_illness"] = (
+        "Young infant has green bilious vomiting, abdominal distension, "
+        "dehydration, elevated lactate, acidosis, and suspected malrotation "
+        "with midgut volvulus causing bowel obstruction."
+    )
+    case["key_teaching_points"] = [
+        "Bilious vomiting in an infant is concerning for malrotation with volvulus",
+        "Upper GI imaging evaluates the duodenal-jejunal junction and ligament of Treitz",
+        "Midgut volvulus can progress to bowel ischemia, necrosis, peritonitis, or shock",
+    ]
+    case["clinical_red_flags"] = [
+        "Abdominal distension, dehydration, lactate elevation, acidosis, peritonitis, shock, or bloody stool",
+        "Delay can lead to bowel ischemia, bowel necrosis, and short bowel syndrome",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain urgent fluoroscopy upper GI UGI to assess duodenal-jejunal junction, ligament of Treitz, malrotation, and volvulus",
+        "Call pediatric surgery and pediatric surgeon for immediate surgical consult",
+        "Prepare operative exploration with laparotomy, Ladd procedure, and bowel detorsion or bowel resection if nonviable bowel is found",
+        "Keep NPO, establish IV access, give IV fluid resuscitation, and place NG tube for nasogastric decompression",
+        "Trend lactate, acidosis, shock, peritonitis, serial abdominal exam, bowel ischemia, and bowel necrosis",
+    ]
+    case["contraindication_checks"] = [
+        "Do not treat as reflux or gastroenteritis and do not reassure when infant bilious emesis is present",
+        "Document that normal abdominal radiograph should prompt clinical reassessment",
+        "Review false negative UGI possibility",
+        "Do not delay urgent surgery",
+        "Address aspiration risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "ACR Appropriateness Criteria: Vomiting in Infants",
+            "organization": "American College of Radiology",
+            "url": "https://acsearch.acr.org/docs/69445/Narrative/",
+            "supports": [
+                "fluoroscopy upper GI series is usually appropriate for bilious vomiting in infants with suspected malrotation",
+                "radiography may be normal or nonclassic in bilious vomiting variants and should not delay appropriate imaging",
+                "imaging limitations include false negative or equivocal UGI and adjunctive SMV/SMA or whirlpool ultrasound signs",
+                "aspiration, dehydration, electrolyte abnormalities, glucose, and hypoglycemia require safeguards in ill infants",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "normal abdominal radiograph or x-ray does not exclude malrotation"
+        in issue
+        and "false negative or equivocal UGI plus SMV/SMA" in issue
+        and "aspiration risk plus dehydration/electrolyte and glucose/hypoglycemia"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_necrotizing_enterocolitis_bowel_rest_decompression_antibiotics_and_monitoring_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Necrotizing enterocolitis"

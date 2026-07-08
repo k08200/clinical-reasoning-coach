@@ -9054,12 +9054,21 @@ PEDIATRIC_MIDGUT_VOLVULUS_SEVERITY_TERMS = (
     "peritonitis",
     "shock",
 )
-PEDIATRIC_MIDGUT_VOLVULUS_UGI_ACTION_TERMS = (
-    "duodenal jejunal",
+PEDIATRIC_MIDGUT_VOLVULUS_UGI_MODALITY_ACTION_TERMS = (
     "fluoroscopy",
-    "ligament of treitz",
     "upper gi",
     "ugi",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_DJ_TARGET_ACTION_TERMS = (
+    "duodenal jejunal",
+    "duodenal-jejunal",
+    "duodenojejunal",
+    "ligament of treitz",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_MALROTATION_ASSESSMENT_ACTION_TERMS = (
+    "corkscrew",
+    "malrotation",
+    "volvulus",
 )
 PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_SPECIALIST_ACTION_TERMS = (
     "pediatric surgery",
@@ -9069,44 +9078,58 @@ PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_SPECIALIST_ACTION_TERMS = (
     "surgeon",
     "소아외과",
 )
-PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_ACTION_TERMS = (
-    "bowel detorsion",
-    "bowel resection",
-    "counterclockwise detorsion",
-    "divide ladd",
+PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_EXPLORATION_ACTION_TERMS = (
     "exploratory laparotomy",
-    "ladd",
-    "ladd procedure",
-    "ladd's",
     "laparotomy",
     "operative exploration",
     "surgical exploration",
-    "volvulus detorsion",
-    "장염전 정복",
-    "장 회전 정복",
-    "래드 술식",
     "복강경 탐색",
     "수술적 탐색",
 )
-PEDIATRIC_MIDGUT_VOLVULUS_RESUSCITATION_ACTION_TERMS = (
-    "decompression",
+PEDIATRIC_MIDGUT_VOLVULUS_LADD_ACTION_TERMS = (
+    "divide ladd",
+    "ladd",
+    "ladd procedure",
+    "ladd's",
+    "래드 술식",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_DETORSION_RESECTION_ACTION_TERMS = (
+    "bowel detorsion",
+    "bowel resection",
+    "counterclockwise detorsion",
+    "detorsion",
+    "nonviable bowel",
+    "volvulus detorsion",
+    "장염전 정복",
+    "장 회전 정복",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_NPO_ACTION_TERMS = (
+    "bowel rest",
+    "npo",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_IV_FLUID_ACTION_TERMS = (
+    "bolus",
     "fluid",
     "fluids",
     "iv access",
-    "nasogastric",
-    "ng tube",
-    "npo",
-    "orogastric",
     "resuscitation",
 )
-PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ACTION_TERMS = (
-    "abdominal exam",
+PEDIATRIC_MIDGUT_VOLVULUS_GASTRIC_DECOMPRESSION_ACTION_TERMS = (
+    "decompression",
+    "nasogastric",
+    "ng tube",
+    "orogastric",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_LAB_SHOCK_ACTION_TERMS = (
     "acidosis",
+    "lactate",
+    "shock",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_ABDOMINAL_ISCHEMIA_ACTION_TERMS = (
+    "abdominal exam",
     "bowel ischemia",
     "bowel necrosis",
-    "lactate",
     "peritonitis",
-    "shock",
     "serial exam",
 )
 PEDIATRIC_MIDGUT_VOLVULUS_REFLUX_REASSURANCE_SAFETY_TERMS = (
@@ -9117,31 +9140,44 @@ PEDIATRIC_MIDGUT_VOLVULUS_REFLUX_REASSURANCE_SAFETY_TERMS = (
     "not reflux",
 )
 PEDIATRIC_MIDGUT_VOLVULUS_NORMAL_XRAY_SAFETY_TERMS = (
-    "does not exclude",
     "normal abdominal radiograph",
     "normal radiograph",
     "normal x-ray",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_NOT_EXCLUDED_SAFETY_TERMS = (
+    "does not exclude",
     "not exclude",
 )
-PEDIATRIC_MIDGUT_VOLVULUS_IMAGING_LIMITATION_SAFETY_TERMS = (
-    "contrast enema",
+PEDIATRIC_MIDGUT_VOLVULUS_UGI_LIMITATION_SAFETY_TERMS = (
     "equivocal ugi",
     "false negative",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_ALTERNATE_IMAGING_SAFETY_TERMS = (
+    "contrast enema",
     "less direct",
     "smv/sma",
+    "ultrasound",
     "whirlpool",
 )
-PEDIATRIC_MIDGUT_VOLVULUS_DELAY_SAFETY_TERMS = (
-    "bowel ischemia",
-    "bowel necrosis",
+PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_DELAY_SAFETY_TERMS = (
     "do not delay",
     "emergent surgery",
     "urgent surgery",
 )
-PEDIATRIC_MIDGUT_VOLVULUS_METABOLIC_ASPIRATION_SAFETY_TERMS = (
+PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ESCALATION_SAFETY_TERMS = (
+    "bowel ischemia",
+    "bowel necrosis",
+    "peritonitis",
+    "shock",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_ASPIRATION_SAFETY_TERMS = (
     "aspiration",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_DEHYDRATION_ELECTROLYTE_SAFETY_TERMS = (
     "dehydration",
     "electrolyte",
+)
+PEDIATRIC_MIDGUT_VOLVULUS_GLUCOSE_SAFETY_TERMS = (
     "glucose",
     "hypoglycemia",
 )
@@ -20359,16 +20395,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_pediatric_midgut_volvulus_time_critical_actions,
             issue=(
                 "pediatric midgut volvulus time-critical actions must include "
-                "urgent fluoroscopy upper GI, UGI, duodenal-jejunal junction, "
-                "or ligament-of-Treitz imaging to evaluate malrotation, "
+                "urgent fluoroscopy upper GI/UGI imaging plus "
+                "duodenal-jejunal junction or ligament-of-Treitz target and "
+                "malrotation, corkscrew, or volvulus assessment, "
                 "immediate pediatric surgery or pediatric surgeon escalation, "
-                "specific Ladd procedure, operative exploration, laparotomy, "
-                "bowel or volvulus detorsion, or bowel-resection planning, "
-                "NPO, IV fluids, "
-                "resuscitation, NG tube, nasogastric, or orogastric "
-                "decompression planning, and bowel ischemia, bowel necrosis, "
-                "lactate, acidosis, peritonitis, shock, serial abdominal exam, "
-                "or complication monitoring"
+                "operative exploration or laparotomy planning plus specific "
+                "Ladd procedure and bowel/volvulus detorsion or bowel-resection "
+                "planning, NPO or bowel rest plus IV access/fluids/resuscitation "
+                "and NG, nasogastric, or orogastric decompression planning, and "
+                "lactate, acidosis, or shock monitoring plus serial abdominal "
+                "exam, peritonitis, bowel ischemia, or bowel necrosis monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -20381,10 +20417,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "reassurance or treatment as benign reflux or gastroenteritis, "
                 "recognition that a normal abdominal radiograph or x-ray does "
                 "not exclude malrotation, imaging-limitation review for false "
-                "negative, equivocal UGI, SMV/SMA, whirlpool, contrast enema, "
-                "or less-direct imaging findings, do-not-delay urgent surgery "
-                "or bowel ischemia/necrosis escalation, and aspiration, "
-                "dehydration, electrolyte, glucose, or hypoglycemia safeguards"
+                "negative or equivocal UGI plus SMV/SMA, whirlpool, ultrasound, "
+                "contrast enema, or less-direct imaging findings, do-not-delay "
+                "urgent surgery or emergent surgery plus bowel ischemia, bowel "
+                "necrosis, peritonitis, or shock escalation, and aspiration "
+                "risk plus dehydration/electrolyte and glucose/hypoglycemia "
+                "safeguards"
             ),
         ),
         DomainSafetyGate(
@@ -30426,32 +30464,67 @@ def _has_pediatric_midgut_volvulus_time_critical_actions(
     actions: list[Any],
 ) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_ugi = any(
+    has_ugi_modality = any(
         _contains_safety_term(normalized_actions, term)
-        for term in PEDIATRIC_MIDGUT_VOLVULUS_UGI_ACTION_TERMS
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_UGI_MODALITY_ACTION_TERMS
+    )
+    has_dj_target = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_DJ_TARGET_ACTION_TERMS
+    )
+    has_malrotation_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_MALROTATION_ASSESSMENT_ACTION_TERMS
     )
     has_surgery_specialist = any(
         _contains_safety_term(normalized_actions, term)
         for term in PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_SPECIALIST_ACTION_TERMS
     )
-    has_operative_correction = any(
+    has_operative_exploration = any(
         _contains_safety_term(normalized_actions, term)
-        for term in PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_ACTION_TERMS
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_OPERATIVE_EXPLORATION_ACTION_TERMS
     )
-    has_resuscitation = any(
+    has_ladd_plan = any(
         _contains_safety_term(normalized_actions, term)
-        for term in PEDIATRIC_MIDGUT_VOLVULUS_RESUSCITATION_ACTION_TERMS
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_LADD_ACTION_TERMS
     )
-    has_ischemia_monitoring = any(
+    has_detorsion_or_resection = any(
         _contains_safety_term(normalized_actions, term)
-        for term in PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ACTION_TERMS
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_DETORSION_RESECTION_ACTION_TERMS
+    )
+    has_npo = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_NPO_ACTION_TERMS
+    )
+    has_iv_fluids = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_IV_FLUID_ACTION_TERMS
+    )
+    has_gastric_decompression = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_GASTRIC_DECOMPRESSION_ACTION_TERMS
+    )
+    has_lab_shock_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_LAB_SHOCK_ACTION_TERMS
+    )
+    has_abdominal_ischemia_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_ABDOMINAL_ISCHEMIA_ACTION_TERMS
     )
     return (
-        has_ugi
+        has_ugi_modality
+        and has_dj_target
+        and has_malrotation_assessment
         and has_surgery_specialist
-        and has_operative_correction
-        and has_resuscitation
-        and has_ischemia_monitoring
+        and has_operative_exploration
+        and has_ladd_plan
+        and has_detorsion_or_resection
+        and has_npo
+        and has_iv_fluids
+        and has_gastric_decompression
+        and has_lab_shock_monitoring
+        and has_abdominal_ischemia_monitoring
     )
 
 
@@ -30467,24 +30540,49 @@ def _has_pediatric_midgut_volvulus_treatment_safety_check(
         _contains_safety_term(normalized_checks, term)
         for term in PEDIATRIC_MIDGUT_VOLVULUS_NORMAL_XRAY_SAFETY_TERMS
     )
-    has_imaging_limitation_safety = any(
+    has_not_excluded_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in PEDIATRIC_MIDGUT_VOLVULUS_IMAGING_LIMITATION_SAFETY_TERMS
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_NOT_EXCLUDED_SAFETY_TERMS
     )
-    has_delay_safety = any(
+    has_ugi_limitation_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in PEDIATRIC_MIDGUT_VOLVULUS_DELAY_SAFETY_TERMS
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_UGI_LIMITATION_SAFETY_TERMS
     )
-    has_metabolic_aspiration_safety = any(
+    has_alternate_imaging_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in PEDIATRIC_MIDGUT_VOLVULUS_METABOLIC_ASPIRATION_SAFETY_TERMS
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_ALTERNATE_IMAGING_SAFETY_TERMS
+    )
+    has_surgery_delay_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_SURGERY_DELAY_SAFETY_TERMS
+    )
+    has_ischemia_escalation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_ISCHEMIA_ESCALATION_SAFETY_TERMS
+    )
+    has_aspiration_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_ASPIRATION_SAFETY_TERMS
+    )
+    has_dehydration_electrolyte_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_DEHYDRATION_ELECTROLYTE_SAFETY_TERMS
+    )
+    has_glucose_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in PEDIATRIC_MIDGUT_VOLVULUS_GLUCOSE_SAFETY_TERMS
     )
     return (
         has_reflux_reassurance_safety
         and has_normal_xray_safety
-        and has_imaging_limitation_safety
-        and has_delay_safety
-        and has_metabolic_aspiration_safety
+        and has_not_excluded_safety
+        and has_ugi_limitation_safety
+        and has_alternate_imaging_safety
+        and has_surgery_delay_safety
+        and has_ischemia_escalation_safety
+        and has_aspiration_safety
+        and has_dehydration_electrolyte_safety
+        and has_glucose_safety
     )
 
 
