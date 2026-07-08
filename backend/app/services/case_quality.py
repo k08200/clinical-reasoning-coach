@@ -11571,61 +11571,105 @@ HHS_GLUCOSE_KETONE_ACIDBASE_ACTION_TERMS = (
     "ketone",
     "ph",
 )
-HHS_INSULIN_POTASSIUM_ACTION_TERMS = (
-    "0.05",
-    "insulin",
-    "potassium",
-    "defer insulin",
+HHS_POTASSIUM_BEFORE_INSULIN_ACTION_TERMS = (
+    "k before insulin",
+    "potassium before insulin",
+    "potassium review",
+    "potassium threshold",
+    "review potassium",
 )
-HHS_PRECIPITANT_ESCALATION_ACTION_TERMS = (
+HHS_DEFERRED_INSULIN_ACTION_TERMS = (
+    "cautious insulin",
+    "defer insulin",
+    "deferred insulin",
+    "delayed insulin",
+    "fluids first",
+    "glucose stops falling",
+    "insulin after fluids",
+)
+HHS_INSULIN_RATE_ACTION_TERMS = (
+    "0.05",
+    "low-dose insulin",
+    "conservative insulin",
+)
+HHS_PRECIPITANT_ACTION_TERMS = (
     "culture",
     "infection",
-    "icu",
     "myocardial infarction",
     "precipitant",
     "sepsis",
     "stroke",
 )
-HHS_OSMOLAR_CORRECTION_SAFETY_TERMS = (
+HHS_HIGH_ACUITY_ESCALATION_ACTION_TERMS = (
+    "coma",
+    "critical care",
+    "icu",
+    "shock",
+)
+HHS_OSMOLALITY_RATE_SAFETY_TERMS = (
     "3 and 8",
+    "3-8",
+    "3 to 8",
+    "mosm/kg/hour",
+    "mosm/kg/hr",
+    "osmolality fall",
+)
+HHS_SODIUM_CORRECTION_SAFETY_TERMS = (
+    "10 mmol",
+    "no more than 10",
+    "sodium fall",
+    "sodium reduction",
+)
+HHS_OSMOTIC_NEURO_SAFETY_TERMS = (
     "cerebral edema",
     "glucose fall",
-    "no more than 10",
-    "osmolality",
+    "neurologic",
+    "neurological",
+    "osmotic shift",
     "rapid correction",
-    "sodium",
 )
-HHS_INSULIN_TIMING_SAFETY_TERMS = (
-    "0.05",
+HHS_FLUIDS_FIRST_INSULIN_SAFETY_TERMS = (
     "defer insulin",
     "fluids first",
     "glucose stops falling",
     "insulin after fluids",
     "osmotic shift",
 )
-HHS_POTASSIUM_RENAL_FLUID_SAFETY_TERMS = (
+HHS_INSULIN_RATE_SAFETY_TERMS = (
+    "0.05",
+    "low-dose insulin",
+    "conservative insulin",
+)
+HHS_POTASSIUM_SAFETY_TERMS = (
+    "defer insulin",
+    "potassium",
+)
+HHS_RENAL_FLUID_RISK_SAFETY_TERMS = (
     "cardiac failure",
     "ckd",
-    "defer insulin",
     "frailty",
     "kidney",
-    "potassium",
     "renal",
 )
-HHS_THROMBOSIS_PRECIPITANT_SAFETY_TERMS = (
+HHS_THROMBOSIS_SAFETY_TERMS = (
+    "thrombosis",
+    "vte",
+)
+HHS_PRECIPITANT_SAFETY_TERMS = (
     "infection",
     "mi",
     "myocardial infarction",
     "precipitant",
     "stroke",
-    "thrombosis",
-    "vte",
 )
-HHS_RESOLUTION_DISPOSITION_SAFETY_TERMS = (
+HHS_RESOLUTION_SAFETY_TERMS = (
+    "glucose below 250",
+    "osmolality below 300",
+)
+HHS_DISPOSITION_RECOVERY_SAFETY_TERMS = (
     "cognitive status",
     "euglycemia",
     "icu",
-    "osmolality below 300",
     "urine output",
 )
 HYPONATREMIA_CONTEXT_TERMS = (
@@ -21211,9 +21255,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "normal saline, fluid, volume, or perfusion resuscitation, "
                 "osmolality plus sodium monitoring, glucose, ketone, beta-"
                 "hydroxybutyrate, blood-gas, pH, or bicarbonate assessment, "
-                "potassium review with cautious or deferred insulin such as 0.05 "
-                "units/kg/h, and precipitant or ICU escalation for infection, "
-                "culture, sepsis, stroke, or myocardial infarction"
+                "separate potassium review before insulin, fluids-first, "
+                "glucose-stops-falling, cautious, or deferred insulin timing, "
+                "low-dose 0.05 units/kg/h insulin if needed, precipitant search "
+                "for infection, culture, sepsis, stroke, or myocardial "
+                "infarction, and ICU, shock, coma, or critical-care escalation"
             ),
         ),
         DomainSafetyGate(
@@ -21224,13 +21270,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "HHS safety checks must include controlled osmolality, sodium, "
                 "glucose-fall, rapid-correction, cerebral-edema, 3-to-8 "
-                "mOsm/kg/hour, or sodium no-more-than-10 mmol/L/day review, "
+                "mOsm/kg/hour, and sodium no-more-than-10 mmol/L/day review, "
                 "fluids-first insulin timing with insulin after glucose stops "
-                "falling, 0.05 units/kg/h, defer-insulin, or osmotic-shift review, "
-                "potassium plus renal, CKD, frailty, cardiac-failure, or fluid "
-                "safety review, thrombosis, VTE, infection, stroke, myocardial "
-                "infarction, or precipitant review, and resolution or disposition "
-                "review for osmolality below 300, urine output, cognitive status, "
+                "falling plus low-dose 0.05 units/kg/h insulin review, separate "
+                "potassium review plus renal, CKD, frailty, cardiac-failure, or "
+                "fluid safety review, thrombosis/VTE plus infection, stroke, "
+                "myocardial infarction, or precipitant review, and resolution "
+                "criteria plus disposition/recovery review for osmolality below "
+                "300, glucose below 250, urine output, cognitive status, "
                 "euglycemia, or ICU"
             ),
         ),
@@ -32956,51 +33003,96 @@ def _has_hhs_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in HHS_GLUCOSE_KETONE_ACIDBASE_ACTION_TERMS
     )
-    has_insulin_potassium = any(
+    has_potassium_before_insulin = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HHS_INSULIN_POTASSIUM_ACTION_TERMS
+        for term in HHS_POTASSIUM_BEFORE_INSULIN_ACTION_TERMS
     )
-    has_precipitant_escalation = any(
+    has_deferred_insulin = any(
         _contains_safety_term(normalized_actions, term)
-        for term in HHS_PRECIPITANT_ESCALATION_ACTION_TERMS
+        for term in HHS_DEFERRED_INSULIN_ACTION_TERMS
+    )
+    has_insulin_rate = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HHS_INSULIN_RATE_ACTION_TERMS
+    )
+    has_precipitant = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HHS_PRECIPITANT_ACTION_TERMS
+    )
+    has_high_acuity_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in HHS_HIGH_ACUITY_ESCALATION_ACTION_TERMS
     )
     return (
         has_fluid_perfusion
         and has_osmolality_sodium
         and has_glucose_ketone_acidbase
-        and has_insulin_potassium
-        and has_precipitant_escalation
+        and has_potassium_before_insulin
+        and has_deferred_insulin
+        and has_insulin_rate
+        and has_precipitant
+        and has_high_acuity_escalation
     )
 
 
 def _has_hhs_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_osmolar_correction_safety = any(
+    has_osmolality_rate_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HHS_OSMOLAR_CORRECTION_SAFETY_TERMS
+        for term in HHS_OSMOLALITY_RATE_SAFETY_TERMS
     )
-    has_insulin_timing_safety = any(
+    has_sodium_correction_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HHS_INSULIN_TIMING_SAFETY_TERMS
+        for term in HHS_SODIUM_CORRECTION_SAFETY_TERMS
     )
-    has_potassium_renal_fluid_safety = any(
+    has_osmotic_neuro_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HHS_POTASSIUM_RENAL_FLUID_SAFETY_TERMS
+        for term in HHS_OSMOTIC_NEURO_SAFETY_TERMS
     )
-    has_thrombosis_precipitant_safety = any(
+    has_fluids_first_insulin_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HHS_THROMBOSIS_PRECIPITANT_SAFETY_TERMS
+        for term in HHS_FLUIDS_FIRST_INSULIN_SAFETY_TERMS
     )
-    has_resolution_disposition_safety = any(
+    has_insulin_rate_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in HHS_RESOLUTION_DISPOSITION_SAFETY_TERMS
+        for term in HHS_INSULIN_RATE_SAFETY_TERMS
+    )
+    has_potassium_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HHS_POTASSIUM_SAFETY_TERMS
+    )
+    has_renal_fluid_risk_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HHS_RENAL_FLUID_RISK_SAFETY_TERMS
+    )
+    has_thrombosis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HHS_THROMBOSIS_SAFETY_TERMS
+    )
+    has_precipitant_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HHS_PRECIPITANT_SAFETY_TERMS
+    )
+    has_resolution_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HHS_RESOLUTION_SAFETY_TERMS
+    )
+    has_disposition_recovery_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in HHS_DISPOSITION_RECOVERY_SAFETY_TERMS
     )
     return (
-        has_osmolar_correction_safety
-        and has_insulin_timing_safety
-        and has_potassium_renal_fluid_safety
-        and has_thrombosis_precipitant_safety
-        and has_resolution_disposition_safety
+        has_osmolality_rate_safety
+        and has_sodium_correction_safety
+        and has_osmotic_neuro_safety
+        and has_fluids_first_insulin_safety
+        and has_insulin_rate_safety
+        and has_potassium_safety
+        and has_renal_fluid_risk_safety
+        and has_thrombosis_safety
+        and has_precipitant_safety
+        and has_resolution_safety
+        and has_disposition_recovery_safety
     )
 
 

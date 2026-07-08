@@ -12898,35 +12898,67 @@ const HHS_GLUCOSE_KETONE_ACIDBASE_ACTION_TERMS = [
   "ph",
 ];
 
-const HHS_INSULIN_POTASSIUM_ACTION_TERMS = [
-  "0.05",
-  "insulin",
-  "potassium",
-  "defer insulin",
+const HHS_POTASSIUM_BEFORE_INSULIN_ACTION_TERMS = [
+  "k before insulin",
+  "potassium before insulin",
+  "potassium review",
+  "potassium threshold",
+  "review potassium",
 ];
 
-const HHS_PRECIPITANT_ESCALATION_ACTION_TERMS = [
+const HHS_DEFERRED_INSULIN_ACTION_TERMS = [
+  "cautious insulin",
+  "defer insulin",
+  "deferred insulin",
+  "delayed insulin",
+  "fluids first",
+  "glucose stops falling",
+  "insulin after fluids",
+];
+
+const HHS_INSULIN_RATE_ACTION_TERMS = [
+  "0.05",
+  "low-dose insulin",
+  "conservative insulin",
+];
+
+const HHS_PRECIPITANT_ACTION_TERMS = [
   "culture",
   "infection",
-  "icu",
   "myocardial infarction",
   "precipitant",
   "sepsis",
   "stroke",
 ];
 
-const HHS_OSMOLAR_CORRECTION_SAFETY_TERMS = [
+const HHS_HIGH_ACUITY_ESCALATION_ACTION_TERMS = ["coma", "critical care", "icu", "shock"];
+
+const HHS_OSMOLALITY_RATE_SAFETY_TERMS = [
   "3 and 8",
-  "cerebral edema",
-  "glucose fall",
-  "no more than 10",
-  "osmolality",
-  "rapid correction",
-  "sodium",
+  "3-8",
+  "3 to 8",
+  "mosm/kg/hour",
+  "mosm/kg/hr",
+  "osmolality fall",
 ];
 
-const HHS_INSULIN_TIMING_SAFETY_TERMS = [
-  "0.05",
+const HHS_SODIUM_CORRECTION_SAFETY_TERMS = [
+  "10 mmol",
+  "no more than 10",
+  "sodium fall",
+  "sodium reduction",
+];
+
+const HHS_OSMOTIC_NEURO_SAFETY_TERMS = [
+  "cerebral edema",
+  "glucose fall",
+  "neurologic",
+  "neurological",
+  "osmotic shift",
+  "rapid correction",
+];
+
+const HHS_FLUIDS_FIRST_INSULIN_SAFETY_TERMS = [
   "defer insulin",
   "fluids first",
   "glucose stops falling",
@@ -12934,31 +12966,34 @@ const HHS_INSULIN_TIMING_SAFETY_TERMS = [
   "osmotic shift",
 ];
 
-const HHS_POTASSIUM_RENAL_FLUID_SAFETY_TERMS = [
+const HHS_INSULIN_RATE_SAFETY_TERMS = ["0.05", "low-dose insulin", "conservative insulin"];
+
+const HHS_POTASSIUM_SAFETY_TERMS = ["defer insulin", "potassium"];
+
+const HHS_RENAL_FLUID_RISK_SAFETY_TERMS = [
   "cardiac failure",
   "ckd",
-  "defer insulin",
   "frailty",
   "kidney",
-  "potassium",
   "renal",
 ];
 
-const HHS_THROMBOSIS_PRECIPITANT_SAFETY_TERMS = [
+const HHS_THROMBOSIS_SAFETY_TERMS = ["thrombosis", "vte"];
+
+const HHS_PRECIPITANT_SAFETY_TERMS = [
   "infection",
   "mi",
   "myocardial infarction",
   "precipitant",
   "stroke",
-  "thrombosis",
-  "vte",
 ];
 
-const HHS_RESOLUTION_DISPOSITION_SAFETY_TERMS = [
+const HHS_RESOLUTION_SAFETY_TERMS = ["glucose below 250", "osmolality below 300"];
+
+const HHS_DISPOSITION_RECOVERY_SAFETY_TERMS = [
   "cognitive status",
   "euglycemia",
   "icu",
-  "osmolality below 300",
   "urine output",
 ];
 
@@ -28310,44 +28345,80 @@ function hasHhsTimeCriticalActions(actions: string[]): boolean {
   const hasGlucoseKetoneAcidbase = HHS_GLUCOSE_KETONE_ACIDBASE_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasInsulinPotassium = HHS_INSULIN_POTASSIUM_ACTION_TERMS.some((term) =>
+  const hasPotassiumBeforeInsulin = HHS_POTASSIUM_BEFORE_INSULIN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasPrecipitantEscalation = HHS_PRECIPITANT_ESCALATION_ACTION_TERMS.some((term) =>
+  const hasDeferredInsulin = HHS_DEFERRED_INSULIN_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasInsulinRate = HHS_INSULIN_RATE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPrecipitant = HHS_PRECIPITANT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHighAcuityEscalation = HHS_HIGH_ACUITY_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
     hasFluidPerfusion &&
     hasOsmolalitySodium &&
     hasGlucoseKetoneAcidbase &&
-    hasInsulinPotassium &&
-    hasPrecipitantEscalation
+    hasPotassiumBeforeInsulin &&
+    hasDeferredInsulin &&
+    hasInsulinRate &&
+    hasPrecipitant &&
+    hasHighAcuityEscalation
   );
 }
 
 function hasHhsTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasOsmolarCorrectionSafety = HHS_OSMOLAR_CORRECTION_SAFETY_TERMS.some((term) =>
+  const hasOsmolalityRateSafety = HHS_OSMOLALITY_RATE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasInsulinTimingSafety = HHS_INSULIN_TIMING_SAFETY_TERMS.some((term) =>
+  const hasSodiumCorrectionSafety = HHS_SODIUM_CORRECTION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasPotassiumRenalFluidSafety = HHS_POTASSIUM_RENAL_FLUID_SAFETY_TERMS.some(
+  const hasOsmoticNeuroSafety = HHS_OSMOTIC_NEURO_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFluidsFirstInsulinSafety = HHS_FLUIDS_FIRST_INSULIN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasInsulinRateSafety = HHS_INSULIN_RATE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPotassiumSafety = HHS_POTASSIUM_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasRenalFluidRiskSafety = HHS_RENAL_FLUID_RISK_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasThrombosisPrecipitantSafety = HHS_THROMBOSIS_PRECIPITANT_SAFETY_TERMS.some(
+  const hasThrombosisSafety = HHS_THROMBOSIS_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasResolutionDispositionSafety = HHS_RESOLUTION_DISPOSITION_SAFETY_TERMS.some(
+  const hasPrecipitantSafety = HHS_PRECIPITANT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasResolutionSafety = HHS_RESOLUTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDispositionRecoverySafety = HHS_DISPOSITION_RECOVERY_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasOsmolarCorrectionSafety &&
-    hasInsulinTimingSafety &&
-    hasPotassiumRenalFluidSafety &&
-    hasThrombosisPrecipitantSafety &&
-    hasResolutionDispositionSafety
+    hasOsmolalityRateSafety &&
+    hasSodiumCorrectionSafety &&
+    hasOsmoticNeuroSafety &&
+    hasFluidsFirstInsulinSafety &&
+    hasInsulinRateSafety &&
+    hasPotassiumSafety &&
+    hasRenalFluidRiskSafety &&
+    hasThrombosisSafety &&
+    hasPrecipitantSafety &&
+    hasResolutionSafety &&
+    hasDispositionRecoverySafety
   );
 }
 
@@ -34188,7 +34259,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasHhsTimeCriticalActions,
       issue:
-        "HHS time-critical actions must include isotonic crystalloid, normal saline, fluid, volume, or perfusion resuscitation, osmolality plus sodium monitoring, glucose, ketone, beta-hydroxybutyrate, blood-gas, pH, or bicarbonate assessment, potassium review with cautious or deferred insulin such as 0.05 units/kg/h, and precipitant or ICU escalation for infection, culture, sepsis, stroke, or myocardial infarction",
+        "HHS time-critical actions must include isotonic crystalloid, normal saline, fluid, volume, or perfusion resuscitation, osmolality plus sodium monitoring, glucose, ketone, beta-hydroxybutyrate, blood-gas, pH, or bicarbonate assessment, separate potassium review before insulin, fluids-first, glucose-stops-falling, cautious, or deferred insulin timing, low-dose 0.05 units/kg/h insulin if needed, precipitant search for infection, culture, sepsis, stroke, or myocardial infarction, and ICU, shock, coma, or critical-care escalation",
     },
     {
       name: "hhs_treatment_safety",
@@ -34197,7 +34268,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasHhsTreatmentSafetyCheck,
       issue:
-        "HHS safety checks must include controlled osmolality, sodium, glucose-fall, rapid-correction, cerebral-edema, 3-to-8 mOsm/kg/hour, or sodium no-more-than-10 mmol/L/day review, fluids-first insulin timing with insulin after glucose stops falling, 0.05 units/kg/h, defer-insulin, or osmotic-shift review, potassium plus renal, CKD, frailty, cardiac-failure, or fluid safety review, thrombosis, VTE, infection, stroke, myocardial infarction, or precipitant review, and resolution or disposition review for osmolality below 300, urine output, cognitive status, euglycemia, or ICU",
+        "HHS safety checks must include controlled osmolality, sodium, glucose-fall, rapid-correction, cerebral-edema, 3-to-8 mOsm/kg/hour, and sodium no-more-than-10 mmol/L/day review, fluids-first insulin timing with insulin after glucose stops falling plus low-dose 0.05 units/kg/h insulin review, separate potassium review plus renal, CKD, frailty, cardiac-failure, or fluid safety review, thrombosis/VTE plus infection, stroke, myocardial infarction, or precipitant review, and resolution criteria plus disposition/recovery review for osmolality below 300, glucose below 250, urine output, cognitive status, euglycemia, or ICU",
     },
     {
       name: "hyponatremia_time_critical_actions",
