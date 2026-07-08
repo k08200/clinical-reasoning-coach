@@ -13090,11 +13090,18 @@ const HYPONATREMIA_CAUSE_EVALUATION_ACTION_TERMS = [
   "volume status",
 ];
 
-const HYPONATREMIA_CORRECTION_NUMERIC_SAFETY_TERMS = [
-  "6-8",
-  "6 to 8",
+const HYPONATREMIA_INITIAL_TARGET_SAFETY_TERMS = [
   "4 to 6",
   "4-6",
+  "cessation of seizures",
+  "clinical target",
+  "seizure symptoms improve",
+  "symptoms improve",
+];
+
+const HYPONATREMIA_DAILY_LIMIT_SAFETY_TERMS = [
+  "6-8",
+  "6 to 8",
   "8 mmol",
   "10 mmol",
   "no more than 8",
@@ -13107,6 +13114,15 @@ const HYPONATREMIA_CORRECTION_TIMING_SAFETY_TERMS = [
   "24-hour",
   "first 24",
   "per day",
+];
+
+const HYPONATREMIA_NORMALIZATION_AVOIDANCE_SAFETY_TERMS = [
+  "avoid normalizing",
+  "avoid normalising",
+  "do not normalize",
+  "do not normalise",
+  "not normalize",
+  "not normalise",
 ];
 
 const HYPONATREMIA_ODS_SAFETY_TERMS = [
@@ -13125,10 +13141,13 @@ const HYPONATREMIA_HIGH_RISK_SAFETY_TERMS = [
   "unknown duration",
 ];
 
-const HYPONATREMIA_OVERCORRECTION_RESCUE_SAFETY_TERMS = [
-  "d5w",
+const HYPONATREMIA_DDAVP_RESCUE_SAFETY_TERMS = [
   "ddavp",
   "desmopressin",
+];
+
+const HYPONATREMIA_HYPOTONIC_RELOWERING_SAFETY_TERMS = [
+  "d5w",
   "hypotonic fluid",
 ];
 
@@ -28484,11 +28503,17 @@ function hasHyponatremiaTimeCriticalActions(actions: string[]): boolean {
 
 function hasHyponatremiaTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasCorrectionNumeric = HYPONATREMIA_CORRECTION_NUMERIC_SAFETY_TERMS.some((term) =>
+  const hasInitialTarget = HYPONATREMIA_INITIAL_TARGET_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDailyLimit = HYPONATREMIA_DAILY_LIMIT_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasCorrectionTiming = HYPONATREMIA_CORRECTION_TIMING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNormalizationAvoidance = HYPONATREMIA_NORMALIZATION_AVOIDANCE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasOdsSafety = HYPONATREMIA_ODS_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
@@ -28496,7 +28521,10 @@ function hasHyponatremiaTreatmentSafetyCheck(checks: string[]): boolean {
   const hasHighRiskReview = HYPONATREMIA_HIGH_RISK_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasOvercorrectionRescue = HYPONATREMIA_OVERCORRECTION_RESCUE_SAFETY_TERMS.some(
+  const hasDdavpRescue = HYPONATREMIA_DDAVP_RESCUE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHypotonicRelowering = HYPONATREMIA_HYPOTONIC_RELOWERING_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasOvercorrectionTrigger = HYPONATREMIA_OVERCORRECTION_TRIGGER_SAFETY_TERMS.some(
@@ -28509,11 +28537,14 @@ function hasHyponatremiaTreatmentSafetyCheck(checks: string[]): boolean {
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasCorrectionNumeric &&
+    hasInitialTarget &&
+    hasDailyLimit &&
     hasCorrectionTiming &&
+    hasNormalizationAvoidance &&
     hasOdsSafety &&
     hasHighRiskReview &&
-    hasOvercorrectionRescue &&
+    hasDdavpRescue &&
+    hasHypotonicRelowering &&
     hasOvercorrectionTrigger &&
     hasVolumeCauseSafety &&
     hasDispositionMonitoring
@@ -34286,7 +34317,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasHyponatremiaTreatmentSafetyCheck,
       issue:
-        "severe hyponatremia safety checks must include correction limit review with a numeric target or maximum such as 4-6, 6-8, 8 mmol/L, or 10 mmol/L plus 24-hour or daily timing and ODS, osmotic-demyelination, or rapid-correction safeguards, high-risk review for chronic hyponatremia or unknown duration, alcohol use, malnutrition, liver disease, or hypokalemia, overcorrection rescue with DDAVP, desmopressin, D5W, or hypotonic fluid plus overcorrection, relowering, or water-diuresis planning, hypovolemic, euvolemic, hypervolemic, fluid-restriction, normal-saline, stop-thiazide, or offending-medication cause safety, and ICU, high-dependency, frequent, q2, or serial sodium monitoring disposition",
+        "severe hyponatremia safety checks must include correction limit review with an initial 4-6 mmol/L or symptom-improvement target plus explicit avoid-normalizing-sodium language, daily correction maximum such as 6-8, 8 mmol/L, 10 mmol/L, no-more-than-8, or no-more-than-10 plus 24-hour or daily timing and ODS, osmotic-demyelination, or rapid-correction safeguards, high-risk review for chronic hyponatremia or unknown duration, alcohol use, malnutrition, liver disease, or hypokalemia, overcorrection rescue with DDAVP/desmopressin plus D5W or hypotonic-fluid relowering and overcorrection, relowering, or water-diuresis planning, hypovolemic, euvolemic, hypervolemic, fluid-restriction, normal-saline, stop-thiazide, or offending-medication cause safety, and ICU, high-dependency, frequent, q2, or serial sodium monitoring disposition",
     },
     {
       name: "rhabdomyolysis_time_critical_actions",

@@ -5151,7 +5151,7 @@
         "Send urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation"
       ],
       "contraindication_checks": [
-        "Limit correction to 6-8 mmol/L and no more than 8 to 10 mmol/L in 24 hours to prevent ODS osmotic demyelination",
+        "Use 3% saline only to raise sodium 4-6 mmol/L or until seizure symptoms improve, do not normalize sodium, then limit correction to 6-8 mmol/L and no more than 8 to 10 mmol/L in 24 hours to prevent ODS osmotic demyelination",
         "Review high-risk chronic or unknown duration, alcohol use, malnutrition, liver disease, and hypokalemia",
         "Prepare DDAVP desmopressin and D5W hypotonic fluid relowering rescue if overcorrection occurs",
         "Match therapy to hypovolemic, euvolemic, or hypervolemic cause: normal saline for hypovolemic, fluid restriction for SIADH, and stop thiazide or offending medication",
@@ -5174,7 +5174,7 @@
             "airway protection, seizure treatment, and ICU high dependency neurologic monitoring",
             "serial sodium every 2 hours with repeat sodium correction trajectory",
             "urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation",
-            "correction limit to 6-8 mmol/L and no more than 8 to 10 mmol/L in 24 hours to prevent ODS osmotic demyelination",
+            "raise sodium 4-6 mmol/L or until seizure symptoms improve without normalizing sodium, then correction limit to 6-8 mmol/L and no more than 8 to 10 mmol/L in 24 hours to prevent ODS osmotic demyelination",
             "high-risk chronic or unknown duration, alcohol use, malnutrition, liver disease, and hypokalemia review",
             "DDAVP desmopressin and D5W hypotonic fluid relowering rescue if overcorrection occurs",
             "hypovolemic, euvolemic, or hypervolemic cause: normal saline for hypovolemic, fluid restriction for SIADH, and stop thiazide or offending medication",
@@ -5219,7 +5219,7 @@
         "Send urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation"
       ],
       "contraindication_checks": [
-        "Limit correction to 6-8 mmol/L and no more than 8 to 10 mmol/L in 24 hours to prevent ODS osmotic demyelination",
+        "Use 3% saline only to raise sodium 4-6 mmol/L or until seizure symptoms improve, do not normalize sodium, then limit correction to 6-8 mmol/L and no more than 8 to 10 mmol/L in 24 hours to prevent ODS osmotic demyelination",
         "Review high-risk chronic hyponatremia or unknown duration, alcohol use, malnutrition, liver disease, and hypokalemia",
         "Prepare DDAVP desmopressin and D5W hypotonic fluid relowering rescue if overcorrection occurs",
         "Match therapy to hypovolemic, euvolemic, or hypervolemic cause: normal saline for hypovolemic, fluid restriction for SIADH, and stop thiazide or offending medication",
@@ -5243,7 +5243,7 @@
             "airway protection, seizure treatment, and ICU high dependency neurologic monitoring",
             "serial sodium every 2 hours with repeat sodium correction trajectory",
             "urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation",
-            "correction limit to 6-8 mmol/L and no more than 8 to 10 mmol/L in 24 hours to prevent ODS osmotic demyelination",
+            "raise sodium 4-6 mmol/L or until seizure symptoms improve without normalizing sodium, then correction limit to 6-8 mmol/L and no more than 8 to 10 mmol/L in 24 hours to prevent ODS osmotic demyelination",
             "high-risk chronic hyponatremia or unknown duration, alcohol use, malnutrition, liver disease, and hypokalemia review",
             "DDAVP desmopressin and D5W hypotonic fluid relowering rescue if overcorrection occurs",
             "hypovolemic, euvolemic, or hypervolemic cause: normal saline for hypovolemic, fluid restriction for SIADH, and stop thiazide or offending medication",
@@ -5317,6 +5317,147 @@
             "overcorrection plan",
             "hypovolemic, euvolemic, or hypervolemic cause and stop thiazide or offending medication",
             "close monitoring disposition"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "severe_hyponatremia_requires_initial_symptom_target_and_no_normalization_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "initial 4-6 mmol/L or symptom-improvement target",
+      "avoid-normalizing-sodium"
+    ],
+    "overrides": {
+      "diagnosis": "Severe symptomatic hyponatremia with seizure",
+      "chief_complaint": "Seizure and confusion with sodium 112",
+      "history_of_present_illness": "Patient has severe hyponatremia with seizure, sodium 112 mmol/L, hypotonic serum osmolality 248 mOsm/kg, confusion, thiazide exposure, alcohol use disorder, malnutrition, and hypokalemia.",
+      "past_medical_history": "Alcohol use disorder, malnutrition, and thiazide use",
+      "initial_labs": {
+        "sodium": "112 mmol/L",
+        "serum_osmolality": "248 mOsm/kg",
+        "glucose": "88 mg/dL",
+        "potassium": "2.8 mmol/L",
+        "creatinine": "0.7 mg/dL"
+      },
+      "key_teaching_points": [
+        "Severe symptomatic hyponatremia requires hypertonic saline for seizures",
+        "Treatment should improve symptoms without normalizing sodium rapidly",
+        "Alcohol use, malnutrition, hypokalemia, and unknown duration increase ODS risk"
+      ],
+      "clinical_red_flags": [
+        "Seizure, confusion, coma, or severe sodium 112 mmol/L",
+        "High-risk ODS setting with alcohol use, malnutrition, hypokalemia, and unknown duration"
+      ],
+      "time_critical_actions": [
+        "Confirm serum sodium, hypotonic osmolality, and osmolar status",
+        "Give 3% hypertonic saline sodium chloride 100 mL bolus for seizure",
+        "Protect airway, treat seizure, and escalate to ICU high dependency neurologic monitoring",
+        "Check serial sodium every 2 hours with repeat sodium correction trajectory",
+        "Send urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation"
+      ],
+      "contraindication_checks": [
+        "Limit correction to 6-8 mmol/L and no more than 8 mmol/L in 24 hours to prevent ODS osmotic demyelination",
+        "Review chronic hyponatremia or unknown duration, alcohol use, malnutrition, liver disease, and hypokalemia",
+        "Prepare DDAVP desmopressin and D5W hypotonic fluid relowering rescue if overcorrection or water diuresis occurs",
+        "Match therapy to hypovolemic, euvolemic, or hypervolemic cause with normal saline, fluid restriction, and stop thiazide or offending medication",
+        "Disposition to ICU high dependency with q2 serial sodium monitoring"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hyponatremia",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/nephrology/electrolyte-disorders/hyponatremia",
+          "supports": [
+            "severe symptomatic hyponatremia with seizure diagnosis and risk stratification",
+            "severe hyponatremia with seizure, sodium 112 mmol/L, hypotonic serum osmolality 248 mOsm/kg, confusion, thiazide exposure, alcohol use disorder, malnutrition, and hypokalemia",
+            "severe symptomatic hyponatremia requires hypertonic saline for seizures",
+            "treatment should improve symptoms without normalizing sodium rapidly",
+            "alcohol use, malnutrition, hypokalemia, and unknown duration increase ODS risk",
+            "seizure, confusion, coma, or severe sodium 112 mmol/L as red flags",
+            "high-risk ODS setting with alcohol use, malnutrition, hypokalemia, and unknown duration",
+            "serum sodium, hypotonic osmolality, and osmolar status confirmation",
+            "3% hypertonic saline sodium chloride 100 mL bolus for seizure",
+            "airway protection, seizure treatment, and ICU high dependency neurologic monitoring",
+            "serial sodium every 2 hours with repeat sodium correction trajectory",
+            "urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation",
+            "correction limit to 6-8 mmol/L and no more than 8 mmol/L in 24 hours to prevent ODS osmotic demyelination",
+            "chronic hyponatremia or unknown duration, alcohol use, malnutrition, liver disease, and hypokalemia review",
+            "DDAVP desmopressin and D5W hypotonic fluid relowering rescue if overcorrection or water diuresis occurs",
+            "hypovolemic, euvolemic, or hypervolemic cause with normal saline, fluid restriction, and stop thiazide or offending medication",
+            "ICU high dependency with q2 serial sodium monitoring"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "severe_hyponatremia_requires_ddavp_plus_d5w_relowering_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "DDAVP/desmopressin plus D5W or hypotonic-fluid relowering"
+    ],
+    "overrides": {
+      "diagnosis": "Severe symptomatic hyponatremia with seizure",
+      "chief_complaint": "Seizure and severe hyponatremia",
+      "history_of_present_illness": "Patient has severe symptomatic hyponatremia, sodium 114 mmol/L, hypotonic osmolality 250 mOsm/kg, seizure, confusion, vomiting, unknown duration, alcohol use, and hypokalemia.",
+      "past_medical_history": "Alcohol use disorder and recent vomiting",
+      "initial_labs": {
+        "sodium": "114 mmol/L",
+        "serum_osmolality": "250 mOsm/kg",
+        "glucose": "92 mg/dL",
+        "potassium": "2.7 mmol/L",
+        "creatinine": "0.8 mg/dL"
+      },
+      "key_teaching_points": [
+        "Hypertonic saline treats severe neurologic symptoms in hyponatremia",
+        "Initial correction should stop at symptom improvement rather than sodium normalization",
+        "Overcorrection requires active relowering planning"
+      ],
+      "clinical_red_flags": [
+        "Seizure, coma, altered mental status, or sodium 114 mmol/L",
+        "Alcohol use, hypokalemia, and unknown duration increase osmotic demyelination risk"
+      ],
+      "time_critical_actions": [
+        "Confirm serum sodium, hypotonic osmolality, and osmolar status",
+        "Give 3% hypertonic saline sodium chloride 100-150 mL bolus for seizure symptoms",
+        "Protect airway, treat seizure, and escalate to ICU high dependency neurologic monitoring",
+        "Check serial sodium every 2 hours with repeat sodium correction trajectory",
+        "Send urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation"
+      ],
+      "contraindication_checks": [
+        "Raise sodium 4-6 mmol/L or until seizure symptoms improve and do not normalize sodium",
+        "Limit correction to 6-8 mmol/L and no more than 8 mmol/L in 24 hours to prevent ODS osmotic demyelination",
+        "Review chronic hyponatremia or unknown duration, alcohol use, malnutrition, liver disease, and hypokalemia",
+        "Prepare DDAVP desmopressin relowering rescue if overcorrection or water diuresis occurs",
+        "Match therapy to hypovolemic, euvolemic, or hypervolemic cause with normal saline, fluid restriction, and stop thiazide or offending medication",
+        "Disposition to ICU high dependency with q2 serial sodium monitoring"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Hyponatremia",
+          "organization": "Merck Manual Professional Edition",
+          "url": "https://www.merckmanuals.com/professional/nephrology/electrolyte-disorders/hyponatremia",
+          "supports": [
+            "severe symptomatic hyponatremia with seizure diagnosis and risk stratification",
+            "severe symptomatic hyponatremia, sodium 114 mmol/L, hypotonic osmolality 250 mOsm/kg, seizure, confusion, vomiting, unknown duration, alcohol use, and hypokalemia",
+            "hypertonic saline treats severe neurologic symptoms in hyponatremia",
+            "initial correction should stop at symptom improvement rather than sodium normalization",
+            "overcorrection requires active relowering planning",
+            "seizure, coma, altered mental status, or sodium 114 mmol/L as red flags",
+            "alcohol use, hypokalemia, and unknown duration increase osmotic demyelination risk",
+            "serum sodium, hypotonic osmolality, and osmolar status confirmation",
+            "3% hypertonic saline sodium chloride 100-150 mL bolus for seizure symptoms",
+            "airway protection, seizure treatment, and ICU high dependency neurologic monitoring",
+            "serial sodium every 2 hours with repeat sodium correction trajectory",
+            "urine osmolality, urine sodium, volume status, SIADH, adrenal, thyroid, and diuretic cause evaluation",
+            "raise sodium 4-6 mmol/L or until seizure symptoms improve and do not normalize sodium",
+            "correction limit to 6-8 mmol/L and no more than 8 mmol/L in 24 hours to prevent ODS osmotic demyelination",
+            "chronic hyponatremia or unknown duration, alcohol use, malnutrition, liver disease, and hypokalemia review",
+            "DDAVP desmopressin relowering rescue if overcorrection or water diuresis occurs",
+            "hypovolemic, euvolemic, or hypervolemic cause with normal saline, fluid restriction, and stop thiazide or offending medication",
+            "ICU high dependency with q2 serial sodium monitoring"
           ]
         }
       ]
