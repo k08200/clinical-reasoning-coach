@@ -16752,15 +16752,31 @@ const CAUSTIC_AIRWAY_STABILIZATION_ACTION_TERMS = [
   "ventilation",
 ];
 
-const CAUSTIC_EXPOSURE_HISTORY_ACTION_TERMS = [
-  "5 ws",
+const CAUSTIC_AIRWAY_THREAT_ACTION_TERMS = [
+  "airway edema",
+  "drooling",
+  "hypoxia",
+  "respiratory distress",
+  "secretions",
+  "stridor",
+  "vocal changes",
+];
+
+const CAUSTIC_EXPOSURE_PRODUCT_ACTION_TERMS = [
+  "acid",
+  "alkali",
   "amount",
-  "co-ingestion",
   "concentration",
-  "intentional",
-  "intentionality",
+  "ph",
   "product",
   "substance",
+];
+
+const CAUSTIC_EXPOSURE_TIMING_INTENT_ACTION_TERMS = [
+  "5 ws",
+  "co-ingestion",
+  "intentional",
+  "intentionality",
   "time",
   "what",
   "when",
@@ -16784,56 +16800,96 @@ const CAUSTIC_CT_PERFORATION_ACTION_TERMS = [
   "surgical abdomen",
 ];
 
-const CAUSTIC_ESCALATION_ACTION_TERMS = [
+const CAUSTIC_TOXICOLOGY_ESCALATION_ACTION_TERMS = [
   "poison center",
   "poison control",
-  "surgery",
-  "surgical consult",
   "toxicologist",
   "toxicology",
 ];
 
-const CAUSTIC_EMESIS_NEUTRALIZATION_SAFETY_TERMS = [
-  "activated charcoal",
-  "charcoal",
-  "dilution",
-  "emesis",
-  "induced vomiting",
+const CAUSTIC_SURGICAL_ESCALATION_ACTION_TERMS = [
+  "surgery",
+  "surgical consult",
+  "surgical consultation",
+  "surgeon",
+];
+
+const CAUSTIC_NEUTRALIZATION_SAFETY_TERMS = [
   "neutralization",
   "neutralize",
+  "weak acid",
+  "weak base",
+];
+
+const CAUSTIC_DILUTION_SAFETY_TERMS = [
+  "dilution",
+  "dilute",
+  "milk",
+  "water",
+];
+
+const CAUSTIC_CHARCOAL_SAFETY_TERMS = [
+  "activated charcoal",
+  "charcoal",
+];
+
+const CAUSTIC_EMESIS_SAFETY_TERMS = [
+  "emesis",
+  "induce vomiting",
+  "induced vomiting",
   "vomiting",
 ];
 
 const CAUSTIC_BLIND_TUBE_SAFETY_TERMS = [
   "blind nasogastric",
   "blind ng",
+  "direct endoscopic",
+  "endoscopic visualization",
   "nasogastric",
   "ng tube",
   "orogastric",
+  "specialist-guided",
 ];
 
-const CAUSTIC_ENDOSCOPY_TIMING_SAFETY_TERMS = [
+const CAUSTIC_EARLY_ENDOSCOPY_TIMING_SAFETY_TERMS = [
+  "12 to 24",
   "12 hours",
   "24 hours",
-  "48 hours",
   "early endoscopy",
   "endoscopy timing",
+];
+
+const CAUSTIC_HIGH_RISK_ENDOSCOPY_SAFETY_TERMS = [
+  "48 hours",
+  "96 hours",
+  "delayed endoscopy",
+  "high-risk endoscopy",
+  "perforation",
   "perforation contraindication",
 ];
 
-const CAUSTIC_STEROID_ANTIBIOTIC_SAFETY_TERMS = [
-  "antibiotics only",
+const CAUSTIC_STEROID_SAFETY_TERMS = [
   "corticosteroid",
-  "infection",
-  "perforation",
+  "methylprednisolone",
   "steroid",
 ];
 
-const CAUSTIC_LONG_TERM_COMPLICATION_SAFETY_TERMS = [
-  "carcinoma",
+const CAUSTIC_ANTIBIOTIC_SAFETY_TERMS = [
+  "antibiotic",
+  "antibiotics only",
+  "infection",
+  "perforation",
+];
+
+const CAUSTIC_STRICTURE_FOLLOW_UP_SAFETY_TERMS = [
   "dysphagia follow-up",
-  "esophageal cancer",
+  "stenosis",
   "stricture",
+];
+
+const CAUSTIC_CANCER_SURVEILLANCE_SAFETY_TERMS = [
+  "carcinoma",
+  "esophageal cancer",
   "surveillance",
 ];
 
@@ -30059,7 +30115,13 @@ function hasCausticIngestionTimeCriticalActions(actions: string[]): boolean {
   const hasAirwayStabilization = CAUSTIC_AIRWAY_STABILIZATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasExposureHistory = CAUSTIC_EXPOSURE_HISTORY_ACTION_TERMS.some((term) =>
+  const hasAirwayThreatReview = CAUSTIC_AIRWAY_THREAT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasExposureProductDetails = CAUSTIC_EXPOSURE_PRODUCT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasExposureTimingIntent = CAUSTIC_EXPOSURE_TIMING_INTENT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasEndoscopy = CAUSTIC_ENDOSCOPY_ACTION_TERMS.some((term) =>
@@ -30068,41 +30130,71 @@ function hasCausticIngestionTimeCriticalActions(actions: string[]): boolean {
   const hasCtPerforation = CAUSTIC_CT_PERFORATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasEscalation = CAUSTIC_ESCALATION_ACTION_TERMS.some((term) =>
+  const hasToxicologyEscalation = CAUSTIC_TOXICOLOGY_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSurgicalEscalation = CAUSTIC_SURGICAL_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
     hasAirwayStabilization &&
-    hasExposureHistory &&
+    hasAirwayThreatReview &&
+    hasExposureProductDetails &&
+    hasExposureTimingIntent &&
     hasEndoscopy &&
     hasCtPerforation &&
-    hasEscalation
+    hasToxicologyEscalation &&
+    hasSurgicalEscalation
   );
 }
 
 function hasCausticIngestionTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasEmesisNeutralizationSafety = CAUSTIC_EMESIS_NEUTRALIZATION_SAFETY_TERMS.some((term) =>
+  const hasNeutralizationSafety = CAUSTIC_NEUTRALIZATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDilutionSafety = CAUSTIC_DILUTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCharcoalSafety = CAUSTIC_CHARCOAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEmesisSafety = CAUSTIC_EMESIS_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasBlindTubeSafety = CAUSTIC_BLIND_TUBE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasEndoscopyTimingSafety = CAUSTIC_ENDOSCOPY_TIMING_SAFETY_TERMS.some((term) =>
+  const hasEarlyEndoscopyTimingSafety = CAUSTIC_EARLY_ENDOSCOPY_TIMING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasSteroidAntibioticSafety = CAUSTIC_STEROID_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
+  const hasHighRiskEndoscopySafety = CAUSTIC_HIGH_RISK_ENDOSCOPY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasLongTermComplicationSafety = CAUSTIC_LONG_TERM_COMPLICATION_SAFETY_TERMS.some((term) =>
+  const hasSteroidSafety = CAUSTIC_STEROID_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntibioticSafety = CAUSTIC_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasStrictureFollowUpSafety = CAUSTIC_STRICTURE_FOLLOW_UP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCancerSurveillanceSafety = CAUSTIC_CANCER_SURVEILLANCE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasEmesisNeutralizationSafety &&
+    hasNeutralizationSafety &&
+    hasDilutionSafety &&
+    hasCharcoalSafety &&
+    hasEmesisSafety &&
     hasBlindTubeSafety &&
-    hasEndoscopyTimingSafety &&
-    hasSteroidAntibioticSafety &&
-    hasLongTermComplicationSafety
+    hasEarlyEndoscopyTimingSafety &&
+    hasHighRiskEndoscopySafety &&
+    hasSteroidSafety &&
+    hasAntibioticSafety &&
+    hasStrictureFollowUpSafety &&
+    hasCancerSurveillanceSafety
   );
 }
 
@@ -33816,7 +33908,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasCausticIngestionTimeCriticalActions,
       issue:
-        "caustic ingestion time-critical actions must include ABC airway, breathing, circulation, intubation, ventilation, resuscitation, or stabilization planning, exposure history for product, substance, amount, concentration, time, intentionality, or co-ingestion, early EGD, upper endoscopy, endoscopic, gastroenterology, or GI consultation planning, CT, computed tomography, perforation, mediastinitis, peritonitis, surgical-abdomen, or surgical evaluation, and poison center, toxicology, toxicologist, surgery, or surgical consultation escalation",
+        "caustic ingestion time-critical actions must include ABC airway, breathing, circulation, intubation, ventilation, resuscitation, or stabilization planning plus airway-threat review for drooling, hypoxia, stridor, vocal changes, respiratory distress, secretions, or airway edema; separate exposure history for product/substance, amount, concentration, acid/alkali or pH and timing, intentionality, or co-ingestion; early EGD, upper endoscopy, endoscopic, gastroenterology, or GI consultation planning; CT/computed tomography review for perforation, mediastinitis, peritonitis, or surgical abdomen; and both poison center/toxicology escalation and surgery/surgical consultation",
     },
     {
       name: "caustic_ingestion_treatment_safety",
@@ -33825,7 +33917,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasCausticIngestionTreatmentSafetyCheck,
       issue:
-        "caustic ingestion safety checks must include avoidance of neutralization, dilution, activated charcoal, induced vomiting, or emesis, avoidance or specialist-guided review of blind NG, nasogastric, or orogastric tube placement, endoscopy timing or contraindication review for early endoscopy within 12 to 24 hours and avoiding high-risk endoscopy around 48 hours or when perforation is suspected, steroid or antibiotic stewardship with corticosteroids or antibiotics reserved for selected injury, infection, or perforation contexts, and long-term stricture, dysphagia follow-up, esophageal cancer, carcinoma, or surveillance planning",
+        "caustic ingestion safety checks must include avoidance of neutralization and dilution, activated-charcoal exception review, avoidance of induced vomiting or emesis, avoidance or specialist/endoscopic review of blind NG, nasogastric, or orogastric tube placement, early endoscopy timing within 12 to 24 hours plus delayed/high-risk endoscopy or perforation contraindication review, separate steroid and antibiotic stewardship, long-term stricture or dysphagia follow-up, and esophageal cancer, carcinoma, or surveillance planning",
     },
     {
       name: "opioid_toxicity_time_critical_actions",

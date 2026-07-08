@@ -15050,15 +15050,29 @@ CAUSTIC_AIRWAY_STABILIZATION_ACTION_TERMS = (
     "stabilize",
     "ventilation",
 )
-CAUSTIC_EXPOSURE_HISTORY_ACTION_TERMS = (
-    "5 ws",
+CAUSTIC_AIRWAY_THREAT_ACTION_TERMS = (
+    "airway edema",
+    "drooling",
+    "hypoxia",
+    "respiratory distress",
+    "secretions",
+    "stridor",
+    "vocal changes",
+)
+CAUSTIC_EXPOSURE_PRODUCT_ACTION_TERMS = (
+    "acid",
+    "alkali",
     "amount",
-    "co-ingestion",
     "concentration",
-    "intentional",
-    "intentionality",
+    "ph",
     "product",
     "substance",
+)
+CAUSTIC_EXPOSURE_TIMING_INTENT_ACTION_TERMS = (
+    "5 ws",
+    "co-ingestion",
+    "intentional",
+    "intentionality",
     "time",
     "what",
     "when",
@@ -15079,51 +15093,84 @@ CAUSTIC_CT_PERFORATION_ACTION_TERMS = (
     "peritonitis",
     "surgical abdomen",
 )
-CAUSTIC_ESCALATION_ACTION_TERMS = (
+CAUSTIC_TOXICOLOGY_ESCALATION_ACTION_TERMS = (
     "poison center",
     "poison control",
-    "surgery",
-    "surgical consult",
     "toxicologist",
     "toxicology",
 )
-CAUSTIC_EMESIS_NEUTRALIZATION_SAFETY_TERMS = (
-    "activated charcoal",
-    "charcoal",
-    "dilution",
-    "emesis",
-    "induced vomiting",
+CAUSTIC_SURGICAL_ESCALATION_ACTION_TERMS = (
+    "surgery",
+    "surgical consult",
+    "surgical consultation",
+    "surgeon",
+)
+CAUSTIC_NEUTRALIZATION_SAFETY_TERMS = (
     "neutralization",
     "neutralize",
+    "weak acid",
+    "weak base",
+)
+CAUSTIC_DILUTION_SAFETY_TERMS = (
+    "dilution",
+    "dilute",
+    "milk",
+    "water",
+)
+CAUSTIC_CHARCOAL_SAFETY_TERMS = (
+    "activated charcoal",
+    "charcoal",
+)
+CAUSTIC_EMESIS_SAFETY_TERMS = (
+    "emesis",
+    "induced vomiting",
+    "induce vomiting",
     "vomiting",
 )
 CAUSTIC_BLIND_TUBE_SAFETY_TERMS = (
     "blind nasogastric",
     "blind ng",
+    "direct endoscopic",
+    "endoscopic visualization",
     "nasogastric",
     "ng tube",
     "orogastric",
+    "specialist-guided",
 )
-CAUSTIC_ENDOSCOPY_TIMING_SAFETY_TERMS = (
+CAUSTIC_EARLY_ENDOSCOPY_TIMING_SAFETY_TERMS = (
+    "12 to 24",
     "12 hours",
     "24 hours",
-    "48 hours",
     "early endoscopy",
     "endoscopy timing",
+)
+CAUSTIC_HIGH_RISK_ENDOSCOPY_SAFETY_TERMS = (
+    "48 hours",
+    "96 hours",
+    "delayed endoscopy",
+    "high-risk endoscopy",
+    "perforation",
     "perforation contraindication",
 )
-CAUSTIC_STEROID_ANTIBIOTIC_SAFETY_TERMS = (
-    "antibiotics only",
+CAUSTIC_STEROID_SAFETY_TERMS = (
     "corticosteroid",
-    "infection",
-    "perforation",
+    "methylprednisolone",
     "steroid",
 )
-CAUSTIC_LONG_TERM_COMPLICATION_SAFETY_TERMS = (
-    "carcinoma",
+CAUSTIC_ANTIBIOTIC_SAFETY_TERMS = (
+    "antibiotic",
+    "antibiotics only",
+    "infection",
+    "perforation",
+)
+CAUSTIC_STRICTURE_FOLLOW_UP_SAFETY_TERMS = (
     "dysphagia follow-up",
-    "esophageal cancer",
+    "stenosis",
     "stricture",
+)
+CAUSTIC_CANCER_SURVEILLANCE_SAFETY_TERMS = (
+    "carcinoma",
+    "esophageal cancer",
     "surveillance",
 )
 OPIOID_TOXICITY_CONTEXT_TERMS = (
@@ -21821,14 +21868,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "caustic ingestion time-critical actions must include ABC airway, "
                 "breathing, circulation, intubation, ventilation, resuscitation, "
-                "or stabilization planning, exposure history for product, "
-                "substance, amount, concentration, time, intentionality, or "
-                "co-ingestion, early EGD, upper endoscopy, endoscopic, "
-                "gastroenterology, or GI consultation planning, CT, computed "
-                "tomography, perforation, mediastinitis, peritonitis, "
-                "surgical-abdomen, or surgical evaluation, and poison center, "
-                "toxicology, toxicologist, surgery, or surgical consultation "
-                "escalation"
+                "or stabilization planning plus airway-threat review for "
+                "drooling, hypoxia, stridor, vocal changes, respiratory distress, "
+                "secretions, or airway edema; separate exposure history for "
+                "product/substance, amount, concentration, acid/alkali or pH and "
+                "timing, intentionality, or co-ingestion; early EGD, upper "
+                "endoscopy, endoscopic, gastroenterology, or GI consultation "
+                "planning; CT/computed tomography review for perforation, "
+                "mediastinitis, peritonitis, or surgical abdomen; and both poison "
+                "center/toxicology escalation and surgery/surgical consultation"
             ),
         ),
         DomainSafetyGate(
@@ -21838,16 +21886,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_caustic_ingestion_treatment_safety_check,
             issue=(
                 "caustic ingestion safety checks must include avoidance of "
-                "neutralization, dilution, activated charcoal, induced vomiting, "
-                "or emesis, avoidance or specialist-guided review of blind NG, "
-                "nasogastric, or orogastric tube placement, endoscopy timing or "
-                "contraindication review for early endoscopy within 12 to 24 "
-                "hours and avoiding high-risk endoscopy around 48 hours or when "
-                "perforation is suspected, steroid or antibiotic stewardship "
-                "with corticosteroids or antibiotics reserved for selected "
-                "injury, infection, or perforation contexts, and long-term "
-                "stricture, dysphagia follow-up, esophageal cancer, carcinoma, "
-                "or surveillance planning"
+                "neutralization and dilution, activated-charcoal exception review, "
+                "avoidance of induced vomiting or emesis, avoidance or "
+                "specialist/endoscopic review of blind NG, nasogastric, or "
+                "orogastric tube placement, early endoscopy timing within 12 to "
+                "24 hours plus delayed/high-risk endoscopy or perforation "
+                "contraindication review, separate steroid and antibiotic "
+                "stewardship, long-term stricture or dysphagia follow-up, and "
+                "esophageal cancer, carcinoma, or surveillance planning"
             ),
         ),
         DomainSafetyGate(
@@ -35285,9 +35331,17 @@ def _has_caustic_ingestion_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in CAUSTIC_AIRWAY_STABILIZATION_ACTION_TERMS
     )
-    has_exposure_history = any(
+    has_airway_threat_review = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CAUSTIC_EXPOSURE_HISTORY_ACTION_TERMS
+        for term in CAUSTIC_AIRWAY_THREAT_ACTION_TERMS
+    )
+    has_exposure_product_details = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CAUSTIC_EXPOSURE_PRODUCT_ACTION_TERMS
+    )
+    has_exposure_timing_intent = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CAUSTIC_EXPOSURE_TIMING_INTENT_ACTION_TERMS
     )
     has_endoscopy = any(
         _contains_safety_term(normalized_actions, term)
@@ -35297,47 +35351,84 @@ def _has_caustic_ingestion_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in CAUSTIC_CT_PERFORATION_ACTION_TERMS
     )
-    has_escalation = any(
+    has_toxicology_escalation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CAUSTIC_ESCALATION_ACTION_TERMS
+        for term in CAUSTIC_TOXICOLOGY_ESCALATION_ACTION_TERMS
+    )
+    has_surgical_escalation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CAUSTIC_SURGICAL_ESCALATION_ACTION_TERMS
     )
     return (
         has_airway_stabilization
-        and has_exposure_history
+        and has_airway_threat_review
+        and has_exposure_product_details
+        and has_exposure_timing_intent
         and has_endoscopy
         and has_ct_perforation
-        and has_escalation
+        and has_toxicology_escalation
+        and has_surgical_escalation
     )
 
 
 def _has_caustic_ingestion_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_emesis_neutralization_safety = any(
+    has_neutralization_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in CAUSTIC_EMESIS_NEUTRALIZATION_SAFETY_TERMS
+        for term in CAUSTIC_NEUTRALIZATION_SAFETY_TERMS
+    )
+    has_dilution_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CAUSTIC_DILUTION_SAFETY_TERMS
+    )
+    has_charcoal_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CAUSTIC_CHARCOAL_SAFETY_TERMS
+    )
+    has_emesis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CAUSTIC_EMESIS_SAFETY_TERMS
     )
     has_blind_tube_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in CAUSTIC_BLIND_TUBE_SAFETY_TERMS
     )
-    has_endoscopy_timing_safety = any(
+    has_early_endoscopy_timing_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in CAUSTIC_ENDOSCOPY_TIMING_SAFETY_TERMS
+        for term in CAUSTIC_EARLY_ENDOSCOPY_TIMING_SAFETY_TERMS
     )
-    has_steroid_antibiotic_safety = any(
+    has_high_risk_endoscopy_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in CAUSTIC_STEROID_ANTIBIOTIC_SAFETY_TERMS
+        for term in CAUSTIC_HIGH_RISK_ENDOSCOPY_SAFETY_TERMS
     )
-    has_long_term_complication_safety = any(
+    has_steroid_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in CAUSTIC_LONG_TERM_COMPLICATION_SAFETY_TERMS
+        for term in CAUSTIC_STEROID_SAFETY_TERMS
+    )
+    has_antibiotic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CAUSTIC_ANTIBIOTIC_SAFETY_TERMS
+    )
+    has_stricture_follow_up_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CAUSTIC_STRICTURE_FOLLOW_UP_SAFETY_TERMS
+    )
+    has_cancer_surveillance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CAUSTIC_CANCER_SURVEILLANCE_SAFETY_TERMS
     )
     return (
-        has_emesis_neutralization_safety
+        has_neutralization_safety
+        and has_dilution_safety
+        and has_charcoal_safety
+        and has_emesis_safety
         and has_blind_tube_safety
-        and has_endoscopy_timing_safety
-        and has_steroid_antibiotic_safety
-        and has_long_term_complication_safety
+        and has_early_endoscopy_timing_safety
+        and has_high_risk_endoscopy_safety
+        and has_steroid_safety
+        and has_antibiotic_safety
+        and has_stricture_follow_up_safety
+        and has_cancer_surveillance_safety
     )
 
 
