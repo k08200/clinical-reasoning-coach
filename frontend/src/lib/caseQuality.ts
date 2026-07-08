@@ -10430,16 +10430,19 @@ const ACUTE_APPENDICITIS_CONTEXT_TERMS = [
   "충수염",
 ];
 
-const ACUTE_APPENDICITIS_RISK_IMAGING_ACTION_TERMS = [
+const ACUTE_APPENDICITIS_RISK_SCORE_ACTION_TERMS = [
   "aas",
   "adult appendicitis score",
   "air score",
   "alvarado",
   "clinical score",
+  "risk score",
+];
+
+const ACUTE_APPENDICITIS_IMAGING_ACTION_TERMS = [
   "ct",
   "imaging",
   "mri",
-  "risk score",
   "ultrasound",
   "초음파",
 ];
@@ -10466,73 +10469,103 @@ const ACUTE_APPENDICITIS_APPENDICECTOMY_ACTION_TERMS = [
   "충수절제술",
 ];
 
-const ACUTE_APPENDICITIS_ANTIBIOTIC_ACTION_TERMS = [
+const ACUTE_APPENDICITIS_PREOPERATIVE_ANTIBIOTIC_ACTION_TERMS = [
   "antibiotic",
   "broad-spectrum",
-  "ceftriaxone",
-  "cefoxitin",
-  "metronidazole",
   "perioperative",
-  "piperacillin",
   "preoperative",
   "항생제",
 ];
 
-const ACUTE_APPENDICITIS_COMPLICATION_ACTION_TERMS = [
-  "abscess",
-  "complicated",
-  "drainage",
+const ACUTE_APPENDICITIS_GRAM_NEGATIVE_ANTIBIOTIC_ACTION_TERMS = [
+  "ceftriaxone",
+  "cefoxitin",
+  "piperacillin",
+];
+
+const ACUTE_APPENDICITIS_ANAEROBIC_ANTIBIOTIC_ACTION_TERMS = [
+  "metronidazole",
+];
+
+const ACUTE_APPENDICITIS_PERFORATION_PERITONITIS_ACTION_TERMS = [
   "perforation",
   "peritonitis",
-  "phlegmon",
-  "sepsis",
-  "source control",
   "복막염",
 ];
 
-const ACUTE_APPENDICITIS_NONOPERATIVE_SELECTION_SAFETY_TERMS = [
+const ACUTE_APPENDICITIS_ABSCESS_PHLEGMON_ACTION_TERMS = [
+  "abscess",
+  "complicated",
+  "drainage",
+  "phlegmon",
+];
+
+const ACUTE_APPENDICITIS_SEPSIS_SOURCE_CONTROL_ACTION_TERMS = [
+  "sepsis",
+  "source control",
+];
+
+const ACUTE_APPENDICITIS_NONOPERATIVE_UNCOMPLICATED_SAFETY_TERMS = [
   "antibiotics-first",
-  "appendicolith",
-  "recurrence",
   "selected",
-  "shared decision",
   "uncomplicated",
   "nonoperative",
   "비수술",
 ];
 
-const ACUTE_APPENDICITIS_SOURCE_CONTROL_SAFETY_TERMS = [
-  "2-3 days",
+const ACUTE_APPENDICITIS_APPENDICOLITH_EXCLUSION_SAFETY_TERMS = [
+  "appendicolith",
+];
+
+const ACUTE_APPENDICITIS_SHARED_RECURRENCE_SAFETY_TERMS = [
+  "recurrence",
+  "shared decision",
+];
+
+const ACUTE_APPENDICITIS_ABSCESS_DRAINAGE_SAFETY_TERMS = [
   "abscess drainage",
-  "complicated",
   "drainage",
   "percutaneous",
-  "postoperative antibiotic",
-  "short course",
+];
+
+const ACUTE_APPENDICITIS_SOURCE_CONTROL_SAFETY_TERMS = [
+  "complicated",
   "source control",
 ];
 
-const ACUTE_APPENDICITIS_SPECIAL_POPULATION_DIFFERENTIAL_SAFETY_TERMS = [
-  "ectopic",
-  "gynecologic",
+const ACUTE_APPENDICITIS_POSTOPERATIVE_ANTIBIOTIC_SAFETY_TERMS = [
+  "2-3 days",
+  "postoperative antibiotic",
+  "short course",
+];
+
+const ACUTE_APPENDICITIS_SPECIAL_POPULATION_SAFETY_TERMS = [
   "immunocompromised",
   "older",
   "pediatric",
   "pregnancy",
-  "renal colic",
-  "terminal ileitis",
   "임신",
 ];
 
-const ACUTE_APPENDICITIS_PERITONITIS_SEPSIS_SAFETY_TERMS = [
+const ACUTE_APPENDICITIS_DIFFERENTIAL_SAFETY_TERMS = [
+  "ectopic",
+  "gynecologic",
+  "renal colic",
+  "terminal ileitis",
+];
+
+const ACUTE_APPENDICITIS_PERITONITIS_ESCALATION_SAFETY_TERMS = [
   "diffuse peritonitis",
   "generalized peritonitis",
-  "perforation",
   "peritonitis",
+  "복막염",
+];
+
+const ACUTE_APPENDICITIS_PERFORATION_SEPSIS_SAFETY_TERMS = [
+  "perforation",
   "rupture",
   "sepsis",
   "shock",
-  "복막염",
 ];
 
 const ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = [
@@ -26544,7 +26577,10 @@ function requiresAcuteAppendicitisSafetyCheck(detail: ClinicalCaseReviewDetail):
 
 function hasAcuteAppendicitisTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasRiskImaging = ACUTE_APPENDICITIS_RISK_IMAGING_ACTION_TERMS.some((term) =>
+  const hasRiskScore = ACUTE_APPENDICITIS_RISK_SCORE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImaging = ACUTE_APPENDICITIS_IMAGING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasSurgeryTeam = ACUTE_APPENDICITIS_SURGERY_TEAM_ACTION_TERMS.some((term) =>
@@ -26553,42 +26589,87 @@ function hasAcuteAppendicitisTimeCriticalActions(actions: string[]): boolean {
   const hasAppendectomyPathway = ACUTE_APPENDICITIS_APPENDICECTOMY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntibiotic = ACUTE_APPENDICITIS_ANTIBIOTIC_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
+  const hasPreoperativeAntibiotic = ACUTE_APPENDICITIS_PREOPERATIVE_ANTIBIOTIC_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasComplicationAssessment = ACUTE_APPENDICITIS_COMPLICATION_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
+  const hasGramNegativeAntibiotic =
+    ACUTE_APPENDICITIS_GRAM_NEGATIVE_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasAnaerobicAntibiotic = ACUTE_APPENDICITIS_ANAEROBIC_ANTIBIOTIC_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
   );
+  const hasPerforationPeritonitisAssessment =
+    ACUTE_APPENDICITIS_PERFORATION_PERITONITIS_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasAbscessPhlegmonAssessment = ACUTE_APPENDICITIS_ABSCESS_PHLEGMON_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSepsisSourceControlAssessment =
+    ACUTE_APPENDICITIS_SEPSIS_SOURCE_CONTROL_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
   return (
-    hasRiskImaging &&
+    hasRiskScore &&
+    hasImaging &&
     hasSurgeryTeam &&
     hasAppendectomyPathway &&
-    hasAntibiotic &&
-    hasComplicationAssessment
+    hasPreoperativeAntibiotic &&
+    hasGramNegativeAntibiotic &&
+    hasAnaerobicAntibiotic &&
+    hasPerforationPeritonitisAssessment &&
+    hasAbscessPhlegmonAssessment &&
+    hasSepsisSourceControlAssessment
   );
 }
 
 function hasAcuteAppendicitisTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasNonoperativeSelection =
-    ACUTE_APPENDICITIS_NONOPERATIVE_SELECTION_SAFETY_TERMS.some((term) =>
+  const hasNonoperativeUncomplicated =
+    ACUTE_APPENDICITIS_NONOPERATIVE_UNCOMPLICATED_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
+  const hasAppendicolithExclusion =
+    ACUTE_APPENDICITIS_APPENDICOLITH_EXCLUSION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasSharedRecurrence = ACUTE_APPENDICITIS_SHARED_RECURRENCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAbscessDrainage = ACUTE_APPENDICITIS_ABSCESS_DRAINAGE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasSourceControl = ACUTE_APPENDICITIS_SOURCE_CONTROL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasSpecialPopulationDifferential =
-    ACUTE_APPENDICITIS_SPECIAL_POPULATION_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+  const hasPostoperativeAntibiotic =
+    ACUTE_APPENDICITIS_POSTOPERATIVE_ANTIBIOTIC_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasPeritonitisSepsis = ACUTE_APPENDICITIS_PERITONITIS_SEPSIS_SAFETY_TERMS.some(
+  const hasSpecialPopulation = ACUTE_APPENDICITIS_SPECIAL_POPULATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDifferential = ACUTE_APPENDICITIS_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPeritonitisEscalation = ACUTE_APPENDICITIS_PERITONITIS_ESCALATION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasPerforationSepsis = ACUTE_APPENDICITIS_PERFORATION_SEPSIS_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
-    hasNonoperativeSelection &&
+    hasNonoperativeUncomplicated &&
+    hasAppendicolithExclusion &&
+    hasSharedRecurrence &&
+    hasAbscessDrainage &&
     hasSourceControl &&
-    hasSpecialPopulationDifferential &&
-    hasPeritonitisSepsis
+    hasPostoperativeAntibiotic &&
+    hasSpecialPopulation &&
+    hasDifferential &&
+    hasPeritonitisEscalation &&
+    hasPerforationSepsis
   );
 }
 
@@ -33603,7 +33684,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcuteAppendicitisTimeCriticalActions,
       issue:
-        "acute appendicitis time-critical actions must include clinical risk score, Alvarado, AIR score, Adult Appendicitis Score, ultrasound, CT, MRI, or imaging assessment, urgent surgery, surgeon, acute-care surgery, or surgical consultation escalation, specific appendectomy, appendicectomy, laparoscopic appendectomy, laparoscopy, or appendiceal source-control pathway, perioperative, preoperative, broad-spectrum, ceftriaxone, metronidazole, cefoxitin, piperacillin, or antibiotic planning, and complicated appendicitis assessment for perforation, peritonitis, abscess, phlegmon, drainage, sepsis, or source control",
+        "acute appendicitis time-critical actions must include clinical risk score, Alvarado, AIR score, Adult Appendicitis Score, or AAS assessment plus ultrasound, CT, MRI, or imaging assessment, urgent surgery/surgeon/acute-care surgery or surgical consultation escalation, specific appendectomy, appendicectomy, laparoscopic appendectomy, laparoscopy, or appendiceal source-control pathway, preoperative/perioperative broad-spectrum antibiotic planning plus ceftriaxone, cefoxitin, or piperacillin gram-negative coverage and metronidazole anaerobic coverage, and complicated appendicitis assessment for perforation/peritonitis plus abscess/phlegmon/drainage and sepsis/source-control needs",
     },
     {
       name: "acute_appendicitis_treatment_safety",
@@ -33612,7 +33693,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAcuteAppendicitisTreatmentSafetyCheck,
       issue:
-        "acute appendicitis safety checks must include nonoperative selection limits for uncomplicated disease, appendicolith, antibiotics-first, selected patients, shared decision, or recurrence risk, complicated appendicitis source-control or antibiotic safety for abscess drainage, percutaneous drainage, postoperative antibiotic short course, 2-3 days, or source control, special population or differential review for pregnancy, pediatric, older, immunocompromised, gynecologic, ectopic, terminal ileitis, or renal colic scenarios, and peritonitis, perforation, rupture, sepsis, shock, diffuse, or generalized peritonitis escalation",
+        "acute appendicitis safety checks must include nonoperative selection limits for uncomplicated antibiotics-first or selected nonoperative disease, appendicolith exclusion, and shared decision or recurrence-risk counseling, complicated appendicitis source-control safety with abscess/percutaneous drainage, source control, and postoperative antibiotic short-course or 2-3 day planning, special-population review for pregnancy, pediatric, older, or immunocompromised patients plus gynecologic, ectopic, terminal ileitis, or renal colic differential review, and diffuse/generalized peritonitis escalation plus perforation, rupture, sepsis, or shock escalation",
     },
     {
       name: "acute_mesenteric_ischemia_time_critical_actions",

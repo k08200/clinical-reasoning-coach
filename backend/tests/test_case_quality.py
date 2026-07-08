@@ -20537,6 +20537,133 @@ def test_quality_gate_requires_acute_appendicitis_nonoperative_source_control_po
     )
 
 
+def test_quality_gate_requires_acute_appendicitis_separate_score_imaging_antibiotic_coverage_and_complication_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute appendicitis with suspected perforation"
+    case["patient_demographics"] = {
+        "age": 41,
+        "sex": "female",
+        "weight_kg": 68,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Right lower quadrant pain with fever and vomiting"
+    case["history_of_present_illness"] = (
+        "Patient has migratory abdominal pain now localized to the right lower "
+        "quadrant with anorexia, vomiting, fever, guarding, leukocytosis, and "
+        "suspected acute appendicitis with possible perforation."
+    )
+    case["key_teaching_points"] = [
+        "Clinical scores such as AIR score or Adult Appendicitis Score support risk stratification but do not replace imaging when indicated",
+        "Appendectomy is the usual operative pathway, while complicated appendicitis requires antibiotic and source-control planning",
+        "Perforation, peritonitis, abscess, phlegmon, sepsis, or shock should trigger urgent escalation",
+    ]
+    case["clinical_red_flags"] = [
+        "Generalized peritonitis, perforation, rupture, sepsis, shock, abscess, phlegmon, or worsening pain",
+        "Pregnancy, gynecologic mimics, terminal ileitis, renal colic, older age, pediatric age, or immunocompromised state can change strategy",
+    ]
+    case["time_critical_actions"] = [
+        "Use AIR score and Adult Appendicitis Score to risk-stratify suspected appendicitis",
+        "Consult acute care surgery urgently for surgeon evaluation",
+        "Plan laparoscopic appendectomy for appendiceal source control",
+        "Start broad-spectrum preoperative antibiotics with ceftriaxone",
+        "Assess perforation and peritonitis risk",
+    ]
+    case["contraindication_checks"] = [
+        "Discuss antibiotics-first nonoperative management only for selected uncomplicated appendicitis, exclude appendicolith, use shared decision-making, and counsel recurrence risk",
+        "For complicated appendicitis, review abscess drainage or percutaneous drainage, source control, and postoperative antibiotic short course such as 2-3 days",
+        "Review pregnancy, pediatric, older, immunocompromised, gynecologic, ectopic, terminal ileitis, and renal colic scenarios",
+        "Escalate immediately for diffuse peritonitis, generalized peritonitis, perforation, rupture, sepsis, or shock",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Diagnosis and treatment of acute appendicitis: 2020 update of the WSES Jerusalem guidelines",
+            "organization": "World Society of Emergency Surgery",
+            "url": "https://link.springer.com/article/10.1186/s13017-020-00306-3",
+            "supports": [
+                "clinical scores help stratify suspected acute appendicitis and identify patients needing imaging",
+                "ultrasound, CT, or MRI imaging should be used as part of a tailored diagnostic pathway",
+                "laparoscopic appendectomy is the most effective surgical treatment for acute appendicitis",
+                "perioperative broad-spectrum antibiotics and source control are needed for complicated appendicitis",
+                "nonoperative management is limited to selected uncomplicated cases and requires appendicolith exclusion and recurrence counseling",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "AAS assessment plus ultrasound, CT, MRI, or imaging" in issue
+        and "metronidazole anaerobic coverage" in issue
+        and "abscess/phlegmon/drainage and sepsis/source-control" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_acute_appendicitis_appendicolith_source_control_population_differential_and_escalation_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acute appendicitis"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 62,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Right lower quadrant abdominal pain"
+    case["history_of_present_illness"] = (
+        "Patient has migratory periumbilical pain now localized to the right "
+        "lower quadrant with anorexia, nausea, fever, guarding, leukocytosis, "
+        "and suspected acute appendicitis."
+    )
+    case["key_teaching_points"] = [
+        "Appendicitis care requires risk stratification, appropriate imaging, surgical pathway planning, and antibiotics",
+        "Nonoperative antibiotics-first care is limited to selected uncomplicated appendicitis and must address recurrence risk",
+        "Complicated appendicitis requires source-control and postoperative antibiotic planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Diffuse or generalized peritonitis, perforation, rupture, sepsis, shock, abscess, or phlegmon",
+        "Pregnancy, gynecologic mimics, ectopic pregnancy, terminal ileitis, renal colic, pediatric, older, or immunocompromised scenarios",
+    ]
+    case["time_critical_actions"] = [
+        "Use Alvarado score, AIR score, Adult Appendicitis Score, and CT or ultrasound imaging to risk-stratify suspected appendicitis",
+        "Consult surgery for urgent surgeon evaluation and appendectomy, appendicectomy, laparoscopic laparoscopy, or appendiceal source-control pathway",
+        "Start preoperative broad-spectrum antibiotics such as ceftriaxone plus metronidazole or cefoxitin; use piperacillin tazobactam if severe sepsis is suspected",
+        "Assess for complicated appendicitis including perforation, peritonitis, abscess, phlegmon, drainage need, sepsis, and source control",
+    ]
+    case["contraindication_checks"] = [
+        "Discuss antibiotics-first nonoperative management only for selected uncomplicated appendicitis",
+        "Review source control for complicated appendicitis",
+        "Review pregnancy or pediatric special population considerations",
+        "Escalate for peritonitis",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Diagnosis and treatment of acute appendicitis: 2020 update of the WSES Jerusalem guidelines",
+            "organization": "World Society of Emergency Surgery",
+            "url": "https://link.springer.com/article/10.1186/s13017-020-00306-3",
+            "supports": [
+                "nonoperative management is recommended only in selected uncomplicated acute appendicitis without appendicolith",
+                "patients need shared decision-making and recurrence-risk counseling when antibiotics-first management is considered",
+                "complicated appendicitis with abscess or phlegmon requires drainage or source-control planning",
+                "pregnancy, pediatric, older, immunocompromised, gynecologic, ectopic, terminal ileitis, and renal colic scenarios require differential review",
+                "diffuse peritonitis, perforation, rupture, sepsis, and shock require escalation",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "appendicolith exclusion" in issue
+        and "abscess/percutaneous drainage, source control, and postoperative antibiotic"
+        in issue
+        and "gynecologic, ectopic, terminal ileitis, or renal colic" in issue
+        and "perforation, rupture, sepsis, or shock" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acute_mesenteric_ischemia_cta_resuscitation_antibiotics_and_surgery():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute mesenteric ischemia"

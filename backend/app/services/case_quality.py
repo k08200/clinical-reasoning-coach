@@ -9337,16 +9337,18 @@ ACUTE_APPENDICITIS_CONTEXT_TERMS = (
     "rlq pain migrating",
     "충수염",
 )
-ACUTE_APPENDICITIS_RISK_IMAGING_ACTION_TERMS = (
+ACUTE_APPENDICITIS_RISK_SCORE_ACTION_TERMS = (
     "aas",
     "adult appendicitis score",
     "air score",
     "alvarado",
     "clinical score",
+    "risk score",
+)
+ACUTE_APPENDICITIS_IMAGING_ACTION_TERMS = (
     "ct",
     "imaging",
     "mri",
-    "risk score",
     "ultrasound",
     "초음파",
 )
@@ -9370,68 +9372,88 @@ ACUTE_APPENDICITIS_APPENDICECTOMY_ACTION_TERMS = (
     "충수절제",
     "충수절제술",
 )
-ACUTE_APPENDICITIS_ANTIBIOTIC_ACTION_TERMS = (
+ACUTE_APPENDICITIS_PREOPERATIVE_ANTIBIOTIC_ACTION_TERMS = (
     "antibiotic",
     "broad-spectrum",
-    "ceftriaxone",
-    "cefoxitin",
-    "metronidazole",
     "perioperative",
-    "piperacillin",
     "preoperative",
     "항생제",
 )
-ACUTE_APPENDICITIS_COMPLICATION_ACTION_TERMS = (
+ACUTE_APPENDICITIS_GRAM_NEGATIVE_ANTIBIOTIC_ACTION_TERMS = (
+    "ceftriaxone",
+    "cefoxitin",
+    "piperacillin",
+)
+ACUTE_APPENDICITIS_ANAEROBIC_ANTIBIOTIC_ACTION_TERMS = (
+    "metronidazole",
+)
+ACUTE_APPENDICITIS_PERFORATION_PERITONITIS_ACTION_TERMS = (
+    "perforation",
+    "peritonitis",
+    "복막염",
+)
+ACUTE_APPENDICITIS_ABSCESS_PHLEGMON_ACTION_TERMS = (
     "abscess",
     "complicated",
     "drainage",
-    "perforation",
-    "peritonitis",
     "phlegmon",
+)
+ACUTE_APPENDICITIS_SEPSIS_SOURCE_CONTROL_ACTION_TERMS = (
     "sepsis",
     "source control",
-    "복막염",
 )
-ACUTE_APPENDICITIS_NONOPERATIVE_SELECTION_SAFETY_TERMS = (
+ACUTE_APPENDICITIS_NONOPERATIVE_UNCOMPLICATED_SAFETY_TERMS = (
     "antibiotics-first",
-    "appendicolith",
-    "recurrence",
     "selected",
-    "shared decision",
     "uncomplicated",
     "nonoperative",
     "비수술",
 )
-ACUTE_APPENDICITIS_SOURCE_CONTROL_SAFETY_TERMS = (
-    "2-3 days",
+ACUTE_APPENDICITIS_APPENDICOLITH_EXCLUSION_SAFETY_TERMS = (
+    "appendicolith",
+)
+ACUTE_APPENDICITIS_SHARED_RECURRENCE_SAFETY_TERMS = (
+    "recurrence",
+    "shared decision",
+)
+ACUTE_APPENDICITIS_ABSCESS_DRAINAGE_SAFETY_TERMS = (
     "abscess drainage",
-    "complicated",
     "drainage",
     "percutaneous",
-    "postoperative antibiotic",
-    "short course",
+)
+ACUTE_APPENDICITIS_SOURCE_CONTROL_SAFETY_TERMS = (
+    "complicated",
     "source control",
 )
-ACUTE_APPENDICITIS_SPECIAL_POPULATION_DIFFERENTIAL_SAFETY_TERMS = (
-    "ectopic",
-    "gynecologic",
+ACUTE_APPENDICITIS_POSTOPERATIVE_ANTIBIOTIC_SAFETY_TERMS = (
+    "2-3 days",
+    "postoperative antibiotic",
+    "short course",
+)
+ACUTE_APPENDICITIS_SPECIAL_POPULATION_SAFETY_TERMS = (
     "immunocompromised",
     "older",
     "pediatric",
     "pregnancy",
-    "renal colic",
-    "terminal ileitis",
     "임신",
 )
-ACUTE_APPENDICITIS_PERITONITIS_SEPSIS_SAFETY_TERMS = (
+ACUTE_APPENDICITIS_DIFFERENTIAL_SAFETY_TERMS = (
+    "ectopic",
+    "gynecologic",
+    "renal colic",
+    "terminal ileitis",
+)
+ACUTE_APPENDICITIS_PERITONITIS_ESCALATION_SAFETY_TERMS = (
     "diffuse peritonitis",
     "generalized peritonitis",
-    "perforation",
     "peritonitis",
+    "복막염",
+)
+ACUTE_APPENDICITIS_PERFORATION_SEPSIS_SAFETY_TERMS = (
+    "perforation",
     "rupture",
     "sepsis",
     "shock",
-    "복막염",
 )
 ACUTE_MESENTERIC_ISCHEMIA_CONTEXT_TERMS = (
     "acute bowel ischemia",
@@ -20501,14 +20523,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "acute appendicitis time-critical actions must include clinical "
                 "risk score, Alvarado, AIR score, Adult Appendicitis Score, "
-                "ultrasound, CT, MRI, or imaging assessment, urgent surgery, "
-                "surgeon, acute-care surgery, or surgical consultation escalation, "
-                "specific appendectomy, appendicectomy, laparoscopic appendectomy, "
-                "laparoscopy, or appendiceal source-control pathway, perioperative, "
-                "preoperative, broad-spectrum, ceftriaxone, metronidazole, "
-                "cefoxitin, piperacillin, or antibiotic planning, and complicated "
-                "appendicitis assessment for perforation, peritonitis, abscess, "
-                "phlegmon, drainage, sepsis, or source control"
+                "or AAS assessment plus ultrasound, CT, MRI, or imaging "
+                "assessment, urgent surgery/surgeon/acute-care surgery or "
+                "surgical consultation escalation, specific appendectomy, "
+                "appendicectomy, laparoscopic appendectomy, laparoscopy, or "
+                "appendiceal source-control pathway, preoperative/perioperative "
+                "broad-spectrum antibiotic planning plus ceftriaxone, cefoxitin, "
+                "or piperacillin gram-negative coverage and metronidazole "
+                "anaerobic coverage, and complicated appendicitis assessment for "
+                "perforation/peritonitis plus abscess/phlegmon/drainage and "
+                "sepsis/source-control needs"
             ),
         ),
         DomainSafetyGate(
@@ -20518,16 +20542,16 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acute_appendicitis_treatment_safety_check,
             issue=(
                 "acute appendicitis safety checks must include nonoperative "
-                "selection limits for uncomplicated disease, appendicolith, "
-                "antibiotics-first, selected patients, shared decision, or "
-                "recurrence risk, complicated appendicitis source-control or "
-                "antibiotic safety for abscess drainage, percutaneous drainage, "
-                "postoperative antibiotic short course, 2-3 days, or source "
-                "control, special population or differential review for "
-                "pregnancy, pediatric, older, immunocompromised, gynecologic, "
-                "ectopic, terminal ileitis, or renal colic scenarios, and "
-                "peritonitis, perforation, rupture, sepsis, shock, diffuse, or "
-                "generalized peritonitis escalation"
+                "selection limits for uncomplicated antibiotics-first or selected "
+                "nonoperative disease, appendicolith exclusion, and shared "
+                "decision or recurrence-risk counseling, complicated appendicitis "
+                "source-control safety with abscess/percutaneous drainage, source "
+                "control, and postoperative antibiotic short-course or 2-3 day "
+                "planning, special-population review for pregnancy, pediatric, "
+                "older, or immunocompromised patients plus gynecologic, ectopic, "
+                "terminal ileitis, or renal colic differential review, and "
+                "diffuse/generalized peritonitis escalation plus perforation, "
+                "rupture, sepsis, or shock escalation"
             ),
         ),
         DomainSafetyGate(
@@ -30796,9 +30820,13 @@ def _requires_acute_appendicitis_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_acute_appendicitis_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_risk_imaging = any(
+    has_risk_score = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_APPENDICITIS_RISK_IMAGING_ACTION_TERMS
+        for term in ACUTE_APPENDICITIS_RISK_SCORE_ACTION_TERMS
+    )
+    has_imaging = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_APPENDICITIS_IMAGING_ACTION_TERMS
     )
     has_surgery_team = any(
         _contains_safety_term(normalized_actions, term)
@@ -30808,46 +30836,97 @@ def _has_acute_appendicitis_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_APPENDICITIS_APPENDICECTOMY_ACTION_TERMS
     )
-    has_antibiotic = any(
+    has_preoperative_antibiotic = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_APPENDICITIS_ANTIBIOTIC_ACTION_TERMS
+        for term in ACUTE_APPENDICITIS_PREOPERATIVE_ANTIBIOTIC_ACTION_TERMS
     )
-    has_complication_assessment = any(
+    has_gram_negative_antibiotic = any(
         _contains_safety_term(normalized_actions, term)
-        for term in ACUTE_APPENDICITIS_COMPLICATION_ACTION_TERMS
+        for term in ACUTE_APPENDICITIS_GRAM_NEGATIVE_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_anaerobic_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_APPENDICITIS_ANAEROBIC_ANTIBIOTIC_ACTION_TERMS
+    )
+    has_perforation_peritonitis_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_APPENDICITIS_PERFORATION_PERITONITIS_ACTION_TERMS
+    )
+    has_abscess_phlegmon_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_APPENDICITIS_ABSCESS_PHLEGMON_ACTION_TERMS
+    )
+    has_sepsis_source_control_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_APPENDICITIS_SEPSIS_SOURCE_CONTROL_ACTION_TERMS
     )
     return (
-        has_risk_imaging
+        has_risk_score
+        and has_imaging
         and has_surgery_team
         and has_appendectomy_pathway
-        and has_antibiotic
-        and has_complication_assessment
+        and has_preoperative_antibiotic
+        and has_gram_negative_antibiotic
+        and has_anaerobic_antibiotic
+        and has_perforation_peritonitis_assessment
+        and has_abscess_phlegmon_assessment
+        and has_sepsis_source_control_assessment
     )
 
 
 def _has_acute_appendicitis_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_nonoperative_selection = any(
+    has_nonoperative_uncomplicated = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_APPENDICITIS_NONOPERATIVE_SELECTION_SAFETY_TERMS
+        for term in ACUTE_APPENDICITIS_NONOPERATIVE_UNCOMPLICATED_SAFETY_TERMS
+    )
+    has_appendicolith_exclusion = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_APPENDICITIS_APPENDICOLITH_EXCLUSION_SAFETY_TERMS
+    )
+    has_shared_recurrence = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_APPENDICITIS_SHARED_RECURRENCE_SAFETY_TERMS
+    )
+    has_abscess_drainage = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_APPENDICITIS_ABSCESS_DRAINAGE_SAFETY_TERMS
     )
     has_source_control = any(
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_APPENDICITIS_SOURCE_CONTROL_SAFETY_TERMS
     )
-    has_special_population_differential = any(
+    has_postoperative_antibiotic = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_APPENDICITIS_SPECIAL_POPULATION_DIFFERENTIAL_SAFETY_TERMS
+        for term in ACUTE_APPENDICITIS_POSTOPERATIVE_ANTIBIOTIC_SAFETY_TERMS
     )
-    has_peritonitis_sepsis = any(
+    has_special_population = any(
         _contains_safety_term(normalized_checks, term)
-        for term in ACUTE_APPENDICITIS_PERITONITIS_SEPSIS_SAFETY_TERMS
+        for term in ACUTE_APPENDICITIS_SPECIAL_POPULATION_SAFETY_TERMS
+    )
+    has_differential = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_APPENDICITIS_DIFFERENTIAL_SAFETY_TERMS
+    )
+    has_peritonitis_escalation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_APPENDICITIS_PERITONITIS_ESCALATION_SAFETY_TERMS
+    )
+    has_perforation_sepsis = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_APPENDICITIS_PERFORATION_SEPSIS_SAFETY_TERMS
     )
     return (
-        has_nonoperative_selection
+        has_nonoperative_uncomplicated
+        and has_appendicolith_exclusion
+        and has_shared_recurrence
+        and has_abscess_drainage
         and has_source_control
-        and has_special_population_differential
-        and has_peritonitis_sepsis
+        and has_postoperative_antibiotic
+        and has_special_population
+        and has_differential
+        and has_peritonitis_escalation
+        and has_perforation_sepsis
     )
 
 
