@@ -14012,6 +14012,16 @@ SALICYLATE_PH_PRESERVATION_SAFETY_TERMS = (
     "ph",
     "respiratory alkalosis",
 )
+SALICYLATE_INTUBATED_DIALYSIS_SAFETY_TERMS = (
+    "intubated patients should probably be dialyzed",
+    "intubated patients should be dialyzed",
+    "intubation should trigger dialysis",
+    "mechanical ventilation should trigger dialysis",
+)
+SALICYLATE_CRITICAL_CARE_MONITORING_SAFETY_TERMS = (
+    "critical care",
+    "critical-care",
+)
 SALICYLATE_SERUM_PH_SAFETY_TERMS = (
     "serum ph",
 )
@@ -22075,7 +22085,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "pulmonary edema, or very high salicylate level criteria, "
                 "intubation or mechanical-ventilation planning plus pH "
                 "preservation with hyperventilation, respiratory alkalosis, or "
-                "bicarbonate safeguards, serum pH monitoring plus urine pH 7.5 "
+                "bicarbonate safeguards plus intubated-patient dialysis and "
+                "critical-care monitoring, serum pH monitoring plus urine pH 7.5 "
                 "to 8 or urinary-pH target monitoring plus urine-output "
                 "monitoring, and potassium or hypokalemia monitoring plus "
                 "glucose or hypoglycemia monitoring plus temperature, pulmonary "
@@ -35427,6 +35438,14 @@ def _has_salicylate_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in SALICYLATE_PH_PRESERVATION_SAFETY_TERMS
     )
+    has_intubated_dialysis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SALICYLATE_INTUBATED_DIALYSIS_SAFETY_TERMS
+    )
+    has_critical_care_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SALICYLATE_CRITICAL_CARE_MONITORING_SAFETY_TERMS
+    )
     has_serum_ph_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in SALICYLATE_SERUM_PH_SAFETY_TERMS
@@ -35456,6 +35475,8 @@ def _has_salicylate_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         and has_dialysis_severity_safety
         and has_airway_ventilation_safety
         and has_ph_preservation_safety
+        and has_intubated_dialysis_safety
+        and has_critical_care_monitoring_safety
         and has_serum_ph_safety
         and has_urine_ph_target_safety
         and has_urine_output_safety

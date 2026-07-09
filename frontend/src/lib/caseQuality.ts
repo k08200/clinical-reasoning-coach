@@ -15620,6 +15620,18 @@ const SALICYLATE_PH_PRESERVATION_SAFETY_TERMS = [
   "respiratory alkalosis",
 ];
 
+const SALICYLATE_INTUBATED_DIALYSIS_SAFETY_TERMS = [
+  "intubated patients should probably be dialyzed",
+  "intubated patients should be dialyzed",
+  "intubation should trigger dialysis",
+  "mechanical ventilation should trigger dialysis",
+];
+
+const SALICYLATE_CRITICAL_CARE_MONITORING_SAFETY_TERMS = [
+  "critical care",
+  "critical-care",
+];
+
 const SALICYLATE_SERUM_PH_SAFETY_TERMS = [
   "serum ph",
 ];
@@ -30370,6 +30382,13 @@ function hasSalicylateToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   const hasPhPreservationSafety = SALICYLATE_PH_PRESERVATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasIntubatedDialysisSafety = SALICYLATE_INTUBATED_DIALYSIS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCriticalCareMonitoringSafety =
+    SALICYLATE_CRITICAL_CARE_MONITORING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasSerumPhSafety = SALICYLATE_SERUM_PH_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -30393,6 +30412,8 @@ function hasSalicylateToxicityTreatmentSafetyCheck(checks: string[]): boolean {
     hasDialysisSeveritySafety &&
     hasAirwayVentilationSafety &&
     hasPhPreservationSafety &&
+    hasIntubatedDialysisSafety &&
+    hasCriticalCareMonitoringSafety &&
     hasSerumPhSafety &&
     hasUrinePhTargetSafety &&
     hasUrineOutputSafety &&
@@ -35058,7 +35079,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSalicylateToxicityTreatmentSafetyCheck,
       issue:
-        "salicylate toxicity safety checks must include hemodialysis indication review plus acidemia, severe acidosis, altered mental status, seizure, renal failure, kidney failure, pulmonary edema, or very high salicylate level criteria, intubation or mechanical-ventilation planning plus pH preservation with hyperventilation, respiratory alkalosis, or bicarbonate safeguards, serum pH monitoring plus urine pH 7.5 to 8 or urinary-pH target monitoring plus urine-output monitoring, and potassium or hypokalemia monitoring plus glucose or hypoglycemia monitoring plus temperature, pulmonary edema, or cerebral-edema monitoring",
+        "salicylate toxicity safety checks must include hemodialysis indication review plus acidemia, severe acidosis, altered mental status, seizure, renal failure, kidney failure, pulmonary edema, or very high salicylate level criteria, intubation or mechanical-ventilation planning plus pH preservation with hyperventilation, respiratory alkalosis, or bicarbonate safeguards plus intubated-patient dialysis and critical-care monitoring, serum pH monitoring plus urine pH 7.5 to 8 or urinary-pH target monitoring plus urine-output monitoring, and potassium or hypokalemia monitoring plus glucose or hypoglycemia monitoring plus temperature, pulmonary edema, or cerebral-edema monitoring",
     },
     {
       name: "carbon_monoxide_poisoning_time_critical_actions",
