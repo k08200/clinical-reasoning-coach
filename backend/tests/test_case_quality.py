@@ -31346,10 +31346,10 @@ def test_quality_gate_requires_cyanide_source_oxygen_antidote_lactate_and_poison
     ]
     case["contraindication_checks"] = [
         "Do not wait for cyanide level; give empiric antidote when clinical suspicion is high and do not delay treatment",
-        "Assess smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and avoid nitrite-induced methemoglobinemia when oxygen delivery is impaired",
+        "Assess smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and avoid nitrite-induced methemoglobinemia when oxygen delivery is impaired; prefer hydroxocobalamin over sodium nitrite for smoke inhalation, pregnancy, young children, poor oxygenation, cardiopulmonary disease, or carbon monoxide co-toxicity",
         "Monitor shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status",
         "Use enclosed-space fire plus severe lactic acidosis, lactate above 8 to 10, or smoke inhalation with lactate elevation as a trigger for empiric treatment",
-        "Monitor hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference",
+        "Monitor hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference; avoid same intravenous line with sodium thiosulfate, sodium nitrite, or blood products by using separate intravenous line or flush the single line",
     ]
     case["clinical_sources"] = [
         {
@@ -31367,10 +31367,10 @@ def test_quality_gate_requires_cyanide_source_oxygen_antidote_lactate_and_poison
                 "lactate, ABG or VBG blood gas, pH, anion gap, and metabolic acidosis severity assessment",
                 "poison center, toxicologist, ICU, and burn center escalation",
                 "do not wait for cyanide level and give empiric antidote when clinical suspicion is high",
-                "smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and nitrite-induced methemoglobinemia review",
+                "smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, nitrite-induced methemoglobinemia review, and hydroxocobalamin over sodium nitrite planning",
                 "shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status monitoring",
                 "enclosed-space fire plus severe lactic acidosis, lactate above 8 to 10, or smoke inhalation with lactate elevation as empiric treatment trigger",
-                "hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference monitoring",
+                "hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, dialysis interference monitoring, and same intravenous line incompatibility with sodium thiosulfate, sodium nitrite, or blood products",
             ],
         }
     ]
@@ -31417,10 +31417,10 @@ def test_quality_gate_requires_cyanide_hydroxocobalamin_not_thiosulfate_alone():
     ]
     case["contraindication_checks"] = [
         "Do not wait for cyanide level; give empiric antidote when clinical suspicion is high and do not delay treatment",
-        "Assess smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and avoid nitrite-induced methemoglobinemia when oxygen delivery is impaired",
+        "Assess smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and avoid nitrite-induced methemoglobinemia when oxygen delivery is impaired; prefer hydroxocobalamin over sodium nitrite for smoke inhalation, pregnancy, young children, poor oxygenation, cardiopulmonary disease, or carbon monoxide co-toxicity",
         "Monitor shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status",
         "Use enclosed-space fire plus severe lactic acidosis, lactate above 8 to 10, or smoke inhalation with lactate elevation as a trigger for empiric treatment",
-        "Monitor hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference",
+        "Monitor hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference; avoid same intravenous line with sodium thiosulfate, sodium nitrite, or blood products by using separate intravenous line or flush the single line",
     ]
     case["clinical_sources"] = [
         {
@@ -31439,10 +31439,10 @@ def test_quality_gate_requires_cyanide_hydroxocobalamin_not_thiosulfate_alone():
                 "lactate, ABG or VBG blood gas, pH, anion gap, and metabolic acidosis severity assessment",
                 "poison center, toxicologist, ICU, and burn center escalation",
                 "do not wait for cyanide level and give empiric antidote when clinical suspicion is high",
-                "smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and nitrite-induced methemoglobinemia review",
+                "smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, nitrite-induced methemoglobinemia review, and hydroxocobalamin over sodium nitrite planning",
                 "shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status monitoring",
                 "enclosed-space fire plus severe lactic acidosis, lactate above 8 to 10, or smoke inhalation with lactate elevation as empiric treatment trigger",
-                "hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference monitoring",
+                "hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, dialysis interference monitoring, and same intravenous line incompatibility with sodium thiosulfate, sodium nitrite, or blood products",
             ],
         }
     ]
@@ -31489,10 +31489,10 @@ def test_quality_gate_requires_cyanide_blood_gas_acid_base_and_co_toxicity_actio
     ]
     case["contraindication_checks"] = [
         "Do not wait for cyanide level; give empiric antidote when clinical suspicion is high and do not delay treatment",
-        "Assess smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and avoid nitrite-induced methemoglobinemia when oxygen delivery is impaired",
+        "Assess smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and avoid nitrite-induced methemoglobinemia when oxygen delivery is impaired; prefer hydroxocobalamin over sodium nitrite for smoke inhalation, pregnancy, young children, poor oxygenation, cardiopulmonary disease, or carbon monoxide co-toxicity",
         "Monitor shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status",
         "Use enclosed-space fire plus severe lactic acidosis, lactate above 8 to 10, or smoke inhalation with lactate elevation as a trigger for empiric treatment",
-        "Monitor hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference",
+        "Monitor hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference; avoid same intravenous line with sodium thiosulfate, sodium nitrite, or blood products by using separate intravenous line or flush the single line",
     ]
     case["clinical_sources"] = [
         {
@@ -31511,10 +31511,10 @@ def test_quality_gate_requires_cyanide_blood_gas_acid_base_and_co_toxicity_actio
                 "lactate urgently",
                 "poison center, toxicologist, ICU, and burn center escalation",
                 "do not wait for cyanide level and give empiric antidote when clinical suspicion is high",
-                "smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and nitrite-induced methemoglobinemia review",
+                "smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, nitrite-induced methemoglobinemia review, and hydroxocobalamin over sodium nitrite planning",
                 "shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status monitoring",
                 "enclosed-space fire plus severe lactic acidosis, lactate above 8 to 10, or smoke inhalation with lactate elevation as empiric treatment trigger",
-                "hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference monitoring",
+                "hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, dialysis interference monitoring, and same intravenous line incompatibility with sodium thiosulfate, sodium nitrite, or blood products",
             ],
         }
     ]
@@ -31592,6 +31592,80 @@ def test_quality_gate_requires_cyanide_level_smoke_shock_and_hydroxocobalamin_sa
     assert any(
         "cyanide poisoning safety checks must include empiric antidote"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_cyanide_hydroxocobalamin_preferred_nitrite_and_iv_compatibility_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Cyanide poisoning from smoke inhalation"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 63,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Coma and shock after enclosed-space fire"
+    case["history_of_present_illness"] = (
+        "Patient rescued from enclosed-space fire has soot exposure, coma, hypotension, "
+        "severe lactic acidosis, high anion gap metabolic acidosis, and suspected cyanide poisoning."
+    )
+    case["key_teaching_points"] = [
+        "Cyanide poisoning after smoke inhalation can cause rapid coma, shock, and severe lactic acidosis",
+        "Hydroxocobalamin or Cyanokit should be given empirically when severe cyanide poisoning is suspected",
+        "Cyanide levels are not rapidly available and treatment should not wait for confirmation",
+    ]
+    case["clinical_red_flags"] = [
+        "Smoke inhalation with coma, altered mental status, hypotension, shock, seizure, or cardiac arrest",
+        "Severe lactic acidosis, high anion gap metabolic acidosis, cardiovascular collapse, or soot exposure",
+    ]
+    case["time_critical_actions"] = [
+        "Remove from source and give 100% oxygen with respiratory support and circulatory support",
+        "Give immediate empiric hydroxocobalamin Cyanokit antidote",
+        "Check lactate, ABG or VBG blood gas, pH, anion gap, and metabolic acidosis severity",
+        "Assess smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin, COHb, and co-oximetry",
+        "Call poison center, toxicologist, ICU, and burn center for escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Do not wait for cyanide level; give empiric antidote when clinical suspicion is high and do not delay treatment",
+        "Assess smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and nitrite review",
+        "Monitor shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status",
+        "Use enclosed-space fire plus severe lactic acidosis, lactate above 8 to 10, or smoke inhalation with lactate elevation as a trigger for empiric treatment",
+        "Monitor hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Hydrogen Cyanide - Emergency Department/Hospital Management",
+            "organization": "CHEMM / HHS",
+            "url": "https://chemm.hhs.gov/cyanide_hospital_mmg.htm",
+            "supports": [
+                "cyanide poisoning diagnosis and risk stratification",
+                "cyanide poisoning after smoke inhalation can cause rapid coma, shock, and severe lactic acidosis",
+                "hydroxocobalamin or Cyanokit should be given empirically when severe cyanide poisoning is suspected",
+                "cyanide levels are not rapidly available and treatment should not wait for confirmation",
+                "smoke inhalation with coma, altered mental status, hypotension, shock, seizure, or cardiac arrest as red flags",
+                "severe lactic acidosis, high anion gap metabolic acidosis, cardiovascular collapse, or soot exposure as severity markers",
+                "remove from source and give 100% oxygen with respiratory support and circulatory support",
+                "immediate empiric hydroxocobalamin Cyanokit antidote",
+                "lactate, ABG or VBG blood gas, pH, anion gap, and metabolic acidosis severity assessment",
+                "smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin, COHb, and co-oximetry assessment",
+                "poison center, toxicologist, ICU, and burn center escalation",
+                "do not wait for cyanide level and give empiric antidote when clinical suspicion is high",
+                "smoke inhalation with carbon monoxide co poisoning, carboxyhemoglobin COHb, and nitrite review",
+                "shock, hypotension, cardiac arrest, coma, seizure, syncope, and altered mental status monitoring",
+                "enclosed-space fire plus severe lactic acidosis, lactate above 8 to 10, or smoke inhalation with lactate elevation as empiric treatment trigger",
+                "hydroxocobalamin effects including blood pressure hypertension, red urine chromaturia, lab interference, and dialysis interference monitoring",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "hydroxocobalamin-preferred planning" in issue
+        and "nitrite/methemoglobinemia risk" in issue
+        and "same-line incompatibility" in issue
         for issue in report.critical_issues
     )
 

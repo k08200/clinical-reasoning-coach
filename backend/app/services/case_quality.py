@@ -14282,6 +14282,21 @@ CYANIDE_SMOKE_CO_NITRITE_SAFETY_TERMS = (
     "시안화",
     "일산화탄소",
 )
+CYANIDE_HYDROXOCOBALAMIN_PREFERRED_SAFETY_TERMS = (
+    "hydroxocobalamin is recommended vs sodium nitrite",
+    "hydroxocobalamin over sodium nitrite",
+    "hydroxocobalamin preferred",
+    "hydroxocobalamin rather than sodium nitrite",
+    "initial treatment with hydroxocobalamin",
+    "prefer hydroxocobalamin",
+)
+CYANIDE_NITRITE_METHEMOGLOBIN_SAFETY_TERMS = (
+    "increased methemoglobin",
+    "methemoglobin level",
+    "methemoglobinemia",
+    "nitrite-induced methemoglobinemia",
+    "not oxygenating well",
+)
 CYANIDE_SHOCK_NEURO_SAFETY_TERMS = (
     "altered mental status",
     "cardiac arrest",
@@ -14310,6 +14325,13 @@ CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS = (
     "lab interference",
     "red urine",
     "혈압",
+)
+CYANIDE_HYDROXOCOBALAMIN_IV_COMPATIBILITY_SAFETY_TERMS = (
+    "chemically incompatible",
+    "flush the single line",
+    "same intravenous line",
+    "separate intravenous line",
+    "separate iv line",
 )
 SNAKEBITE_CONTEXT_TERMS = (
     "copperhead",
@@ -22176,12 +22198,18 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "cyanide poisoning safety checks must include empiric antidote "
                 "or do-not-wait cyanide-level planning, smoke inhalation, carbon "
                 "monoxide, COHb, carboxyhemoglobin, or nitrite-avoidance review, "
+                "hydroxocobalamin-preferred planning over sodium nitrite for "
+                "smoke inhalation, pregnancy, young children, poor oxygenation, "
+                "cardiopulmonary disease, or carbon-monoxide co-toxicity plus "
+                "nitrite/methemoglobinemia risk monitoring, "
                 "shock, hypotension, cardiac arrest, coma, seizure, syncope, or "
                 "altered mental status monitoring, enclosed-space fire, severe "
                 "lactic acidosis, lactate above 8 to 10, or smoke-inhalation "
                 "lactate trigger review for empiric treatment, and hydroxocobalamin "
                 "blood pressure, red urine, chromaturia, lab-interference, or "
-                "dialysis interference safety"
+                "dialysis interference safety plus same-line incompatibility "
+                "avoidance with sodium thiosulfate, sodium nitrite, and blood "
+                "products or separate-line/flush planning"
             ),
         ),
         DomainSafetyGate(
@@ -35716,6 +35744,14 @@ def _has_cyanide_poisoning_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in CYANIDE_SMOKE_CO_NITRITE_SAFETY_TERMS
     )
+    has_hydroxocobalamin_preferred_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CYANIDE_HYDROXOCOBALAMIN_PREFERRED_SAFETY_TERMS
+    )
+    has_nitrite_methemoglobin_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CYANIDE_NITRITE_METHEMOGLOBIN_SAFETY_TERMS
+    )
     has_shock_neuro_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in CYANIDE_SHOCK_NEURO_SAFETY_TERMS
@@ -35728,12 +35764,19 @@ def _has_cyanide_poisoning_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS
     )
+    has_hydroxocobalamin_iv_compatibility_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CYANIDE_HYDROXOCOBALAMIN_IV_COMPATIBILITY_SAFETY_TERMS
+    )
     return (
         has_do_not_wait_level_safety
         and has_smoke_co_nitrite_safety
+        and has_hydroxocobalamin_preferred_safety
+        and has_nitrite_methemoglobin_safety
         and has_shock_neuro_safety
         and has_lactate_trigger_safety
         and has_hydroxocobalamin_effect_safety
+        and has_hydroxocobalamin_iv_compatibility_safety
     )
 
 

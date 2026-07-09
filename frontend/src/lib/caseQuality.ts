@@ -15927,6 +15927,23 @@ const CYANIDE_SMOKE_CO_NITRITE_SAFETY_TERMS = [
   "일산화탄소",
 ];
 
+const CYANIDE_HYDROXOCOBALAMIN_PREFERRED_SAFETY_TERMS = [
+  "hydroxocobalamin is recommended vs sodium nitrite",
+  "hydroxocobalamin over sodium nitrite",
+  "hydroxocobalamin preferred",
+  "hydroxocobalamin rather than sodium nitrite",
+  "initial treatment with hydroxocobalamin",
+  "prefer hydroxocobalamin",
+];
+
+const CYANIDE_NITRITE_METHEMOGLOBIN_SAFETY_TERMS = [
+  "increased methemoglobin",
+  "methemoglobin level",
+  "methemoglobinemia",
+  "nitrite-induced methemoglobinemia",
+  "not oxygenating well",
+];
+
 const CYANIDE_SHOCK_NEURO_SAFETY_TERMS = [
   "altered mental status",
   "cardiac arrest",
@@ -15957,6 +15974,14 @@ const CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS = [
   "lab interference",
   "red urine",
   "혈압",
+];
+
+const CYANIDE_HYDROXOCOBALAMIN_IV_COMPATIBILITY_SAFETY_TERMS = [
+  "chemically incompatible",
+  "flush the single line",
+  "same intravenous line",
+  "separate intravenous line",
+  "separate iv line",
 ];
 
 const SNAKEBITE_CONTEXT_TERMS = [
@@ -30616,6 +30641,14 @@ function hasCyanidePoisoningTreatmentSafetyCheck(checks: string[]): boolean {
   const hasSmokeCoNitriteSafety = CYANIDE_SMOKE_CO_NITRITE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasHydroxocobalaminPreferredSafety =
+    CYANIDE_HYDROXOCOBALAMIN_PREFERRED_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasNitriteMethemoglobinSafety =
+    CYANIDE_NITRITE_METHEMOGLOBIN_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasShockNeuroSafety = CYANIDE_SHOCK_NEURO_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -30625,12 +30658,19 @@ function hasCyanidePoisoningTreatmentSafetyCheck(checks: string[]): boolean {
   const hasHydroxocobalaminEffectSafety = CYANIDE_HYDROXOCOBALAMIN_EFFECT_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasHydroxocobalaminIvCompatibilitySafety =
+    CYANIDE_HYDROXOCOBALAMIN_IV_COMPATIBILITY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   return (
     hasDoNotWaitLevelSafety &&
     hasSmokeCoNitriteSafety &&
+    hasHydroxocobalaminPreferredSafety &&
+    hasNitriteMethemoglobinSafety &&
     hasShockNeuroSafety &&
     hasLactateTriggerSafety &&
-    hasHydroxocobalaminEffectSafety
+    hasHydroxocobalaminEffectSafety &&
+    hasHydroxocobalaminIvCompatibilitySafety
   );
 }
 
@@ -35158,7 +35198,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasCyanidePoisoningTreatmentSafetyCheck,
       issue:
-        "cyanide poisoning safety checks must include empiric antidote or do-not-wait cyanide-level planning, smoke inhalation, carbon monoxide, COHb, carboxyhemoglobin, or nitrite-avoidance review, shock, hypotension, cardiac arrest, coma, seizure, syncope, or altered mental status monitoring, enclosed-space fire, severe lactic acidosis, lactate above 8 to 10, or smoke-inhalation lactate trigger review for empiric treatment, and hydroxocobalamin blood pressure, red urine, chromaturia, lab-interference, or dialysis interference safety",
+        "cyanide poisoning safety checks must include empiric antidote or do-not-wait cyanide-level planning, smoke inhalation, carbon monoxide, COHb, carboxyhemoglobin, or nitrite-avoidance review, hydroxocobalamin-preferred planning over sodium nitrite for smoke inhalation, pregnancy, young children, poor oxygenation, cardiopulmonary disease, or carbon-monoxide co-toxicity plus nitrite/methemoglobinemia risk monitoring, shock, hypotension, cardiac arrest, coma, seizure, syncope, or altered mental status monitoring, enclosed-space fire, severe lactic acidosis, lactate above 8 to 10, or smoke-inhalation lactate trigger review for empiric treatment, and hydroxocobalamin blood pressure, red urine, chromaturia, lab-interference, or dialysis interference safety plus same-line incompatibility avoidance with sodium thiosulfate, sodium nitrite, and blood products or separate-line/flush planning",
     },
     {
       name: "snakebite_envenomation_time_critical_actions",
