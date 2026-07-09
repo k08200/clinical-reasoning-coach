@@ -32077,12 +32077,12 @@ def test_quality_gate_requires_major_burn_airway_tbsa_fluids_and_transfer_action
         "Arrange outpatient dressing follow-up",
     ]
     case["contraindication_checks"] = [
-        "Prevent hypothermia with warm room, warming blankets, dry coverings, and temperature monitoring",
+        "Prevent hypothermia with warm room, warming blankets, dry coverings, and temperature monitoring; cool or irrigate with water for at least 20 minutes when indicated and avoid ice or ice water",
         "Titrate fluid to urine output with hourly reassessment, first 8 hours and first 24 hours burn resuscitation timing, and monitor for fluid overload, heart failure, and compartment syndrome",
         "For pediatric burns plan dextrose, glucose, hypoglycemia prevention, and maintenance fluid needs",
         "Review circumferential eschar and escharotomy need for limb perfusion or ventilation restriction",
         "Check tetanus status and update Tdap if indicated",
-        "Apply clean dry dressing for transfer and avoid burn cream before burn center assessment",
+        "Apply clean dry dressing for transfer and avoid burn cream before burn center assessment; review burn-center referral criteria including partial thickness >=10% TBSA, full thickness or deep partial burns, face, hands, genitalia, feet, perineum, joints, inhalation injury, pediatric, comorbidity, trauma, chemical, or electrical triggers",
         "Avoid prophylactic systemic antibiotics; use topical antimicrobial wound care when indicated",
     ]
     case["clinical_sources"] = [
@@ -32096,12 +32096,12 @@ def test_quality_gate_requires_major_burn_airway_tbsa_fluids_and_transfer_action
                 "inhalation injury signs such as perioral burns, singed nasal hairs, or carbonaceous sputum require airway assessment and early intubation planning",
                 "large partial-thickness and full-thickness burns require lactated Ringer fluid resuscitation adjusted to urine output",
                 "burn center consultation, referral, or transfer for large or severe burns",
-                "prevent hypothermia with warm environment, dry coverings, and temperature monitoring",
+                "prevent hypothermia with warm environment, dry coverings, and temperature monitoring plus cool or irrigate with water for at least 20 minutes and avoid ice or ice water",
                 "titrate fluid to urine output with hourly reassessment, first 8 hours and first 24 hours burn resuscitation timing, and monitor for fluid overload, heart failure, and compartment syndrome",
                 "pediatric burn dextrose, glucose, hypoglycemia prevention, and maintenance fluid needs",
                 "circumferential eschar and escharotomy need for limb perfusion or ventilation restriction",
                 "tetanus status and Tdap review",
-                "clean dry dressing for transfer and avoid burn cream before burn center assessment",
+                "clean dry dressing for transfer and avoid burn cream before burn center assessment plus burn-center referral criteria including partial thickness >=10% TBSA, full thickness or deep partial burns, face, hands, genitalia, feet, perineum, joints, inhalation injury, pediatric, comorbidity, trauma, chemical, or electrical triggers",
                 "avoid prophylactic systemic antibiotics and use topical antimicrobial wound care when indicated",
             ],
         }
@@ -32143,7 +32143,7 @@ def test_quality_gate_requires_major_burn_hypothermia_fluid_eschar_tetanus_and_a
         "Perioral burns, singed nasal hairs, carbonaceous sputum, smoke inhalation, circumferential eschar, or inhalation injury",
     ]
     case["time_critical_actions"] = [
-        "Assess airway and give 100% oxygen with early intubation and ventilation support for smoke inhalation or inhalation injury",
+        "Assess airway and give 100% oxygen with early intubation and ventilation support for smoke inhalation or inhalation injury; check carbon monoxide co poisoning with carboxyhemoglobin COHb and co-oximetry, and assess cyanide toxicity with lactate when enclosed-space fire is possible",
         "Extinguish ongoing burning, remove clothing, cool the burn, and flush or irrigate chemical exposure after brush off if powder is present",
         "Estimate TBSA and depth using rule of nines or Lund-Browder with partial thickness and full thickness burn mapping",
         "Place large-bore 14 gauge or 16 gauge IV access and start lactated Ringer Parkland fluid resuscitation with urine output monitoring",
@@ -32162,7 +32162,7 @@ def test_quality_gate_requires_major_burn_hypothermia_fluid_eschar_tetanus_and_a
             "supports": [
                 "major burn diagnosis and risk stratification",
                 "burns are classified by depth and percentage TBSA involved",
-                "airway assessment, 100% oxygen, early intubation, and ventilation support for smoke inhalation or inhalation injury",
+                "airway assessment, 100% oxygen, early intubation, and ventilation support for smoke inhalation or inhalation injury plus carbon monoxide co poisoning with carboxyhemoglobin COHb and co-oximetry, and cyanide toxicity with lactate when enclosed-space fire is possible",
                 "extinguish ongoing burning, remove clothing, cool the burn, and flush or irrigate chemical exposure after brush off if powder is present",
                 "TBSA and depth estimation using rule of nines or Lund-Browder with partial thickness and full thickness burn mapping",
                 "large-bore 14 gauge or 16 gauge IV access and lactated Ringer Parkland fluid resuscitation with urine output monitoring",
@@ -32210,10 +32210,84 @@ def test_quality_gate_requires_major_burn_admission_labs_not_resuscitation_alone
         "Perioral burns, singed nasal hairs, carbonaceous sputum, smoke inhalation, circumferential eschar, or inhalation injury",
     ]
     case["time_critical_actions"] = [
+        "Assess airway and give 100% oxygen with early intubation and ventilation support for smoke inhalation or inhalation injury; check carbon monoxide co poisoning with carboxyhemoglobin COHb and co-oximetry, and assess cyanide toxicity with lactate when enclosed-space fire is possible",
+        "Extinguish ongoing burning, remove clothing, cool the burn, and flush or irrigate chemical exposure after brush off if powder is present",
+        "Estimate TBSA and depth using rule of nines or Lund-Browder with partial thickness and full thickness burn mapping",
+        "Place large-bore 14 gauge or 16 gauge IV access and start lactated Ringer Parkland fluid resuscitation with urine output monitoring",
+        "Consult burn center and arrange burn specialist referral or transfer",
+    ]
+    case["contraindication_checks"] = [
+        "Prevent hypothermia with warm room, warming blankets, dry coverings, and temperature monitoring; cool or irrigate with water for at least 20 minutes when indicated and avoid ice or ice water",
+        "Titrate fluid to urine output with hourly reassessment, first 8 hours and first 24 hours burn resuscitation timing, and monitor for fluid overload, heart failure, and compartment syndrome",
+        "For pediatric burns plan dextrose, glucose, hypoglycemia prevention, and maintenance fluid needs",
+        "Review circumferential eschar and escharotomy need for limb perfusion or ventilation restriction",
+        "Check tetanus status and update Tdap if indicated",
+        "Apply clean dry dressing for transfer and avoid burn cream before burn center assessment; review burn-center referral criteria including partial thickness >=10% TBSA, full thickness or deep partial burns, face, hands, genitalia, feet, perineum, joints, inhalation injury, pediatric, comorbidity, trauma, chemical, or electrical triggers",
+        "Avoid prophylactic systemic antibiotics; use topical antimicrobial wound care when indicated",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Burns",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/burns/burns",
+            "supports": [
+                "major burn diagnosis and risk stratification",
+                "burns are classified by depth and percentage TBSA involved",
+                "airway assessment, 100% oxygen, early intubation, and ventilation support for smoke inhalation or inhalation injury plus carbon monoxide co poisoning with carboxyhemoglobin COHb and co-oximetry, and cyanide toxicity with lactate when enclosed-space fire is possible",
+                "extinguish ongoing burning, remove clothing, cool the burn, and flush or irrigate chemical exposure after brush off if powder is present",
+                "TBSA and depth estimation using rule of nines or Lund-Browder with partial thickness and full thickness burn mapping",
+                "large-bore 14 gauge or 16 gauge IV access and lactated Ringer Parkland fluid resuscitation with urine output monitoring",
+                "burn center consultation, referral, or transfer",
+                "prevent hypothermia with warm environment, dry coverings, and temperature monitoring plus cool or irrigate with water for at least 20 minutes and avoid ice or ice water",
+                "titrate fluid to urine output with hourly reassessment, first 8 hours and first 24 hours burn resuscitation timing, and monitor for fluid overload, heart failure, and compartment syndrome",
+                "pediatric burn dextrose, glucose, hypoglycemia prevention, and maintenance fluid needs",
+                "circumferential eschar and escharotomy need for limb perfusion or ventilation restriction",
+                "tetanus status and Tdap review",
+                "clean dry dressing for transfer and avoid burn cream before burn center assessment plus burn-center referral criteria including partial thickness >=10% TBSA, full thickness or deep partial burns, face, hands, genitalia, feet, perineum, joints, inhalation injury, pediatric, comorbidity, trauma, chemical, or electrical triggers",
+                "avoid prophylactic systemic antibiotics and use topical antimicrobial wound care when indicated",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "admitted-patient labs" in issue for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_major_burn_inhalation_toxicity_cooling_ice_and_referral_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Major thermal burn with inhalation injury"
+    case["patient_demographics"] = {
+        "age": 42,
+        "sex": "male",
+        "weight_kg": 82,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Flame burn after apartment fire"
+    case["history_of_present_illness"] = (
+        "Patient rescued from enclosed apartment fire has major thermal burn with "
+        "deep partial-thickness burn and full-thickness burn over 25% TBSA, "
+        "perioral burns, singed nasal hairs, carbonaceous sputum, circumferential "
+        "forearm eschar, tachycardia, and hypovolemic shock concern."
+    )
+    case["key_teaching_points"] = [
+        "Major burns are classified by depth and percentage TBSA involved",
+        "Inhalation injury signs such as perioral burns, singed nasal hairs, or carbonaceous sputum require airway assessment, early intubation planning, and carbon monoxide or cyanide co-toxicity assessment",
+        "Large partial-thickness and full-thickness burns require lactated Ringer fluid resuscitation adjusted to urine output and burn center consultation",
+    ]
+    case["clinical_red_flags"] = [
+        "Deep partial-thickness burn, full-thickness burn, 25% TBSA, hypovolemic shock, or large burn",
+        "Perioral burns, singed nasal hairs, carbonaceous sputum, smoke inhalation, circumferential eschar, or inhalation injury",
+    ]
+    case["time_critical_actions"] = [
         "Assess airway and give 100% oxygen with early intubation and ventilation support for smoke inhalation or inhalation injury",
         "Extinguish ongoing burning, remove clothing, cool the burn, and flush or irrigate chemical exposure after brush off if powder is present",
         "Estimate TBSA and depth using rule of nines or Lund-Browder with partial thickness and full thickness burn mapping",
         "Place large-bore 14 gauge or 16 gauge IV access and start lactated Ringer Parkland fluid resuscitation with urine output monitoring",
+        "Obtain admitted burn labs and studies including ECG, chest x-ray, electrolytes, BUN, creatinine, albumin, phosphate, urinalysis, and myoglobin testing",
         "Consult burn center and arrange burn specialist referral or transfer",
     ]
     case["contraindication_checks"] = [
@@ -32234,16 +32308,18 @@ def test_quality_gate_requires_major_burn_admission_labs_not_resuscitation_alone
                 "major burn diagnosis and risk stratification",
                 "burns are classified by depth and percentage TBSA involved",
                 "airway assessment, 100% oxygen, early intubation, and ventilation support for smoke inhalation or inhalation injury",
+                "carbon monoxide co poisoning with carboxyhemoglobin COHb and co-oximetry, and cyanide toxicity with lactate when enclosed-space fire is possible",
                 "extinguish ongoing burning, remove clothing, cool the burn, and flush or irrigate chemical exposure after brush off if powder is present",
                 "TBSA and depth estimation using rule of nines or Lund-Browder with partial thickness and full thickness burn mapping",
                 "large-bore 14 gauge or 16 gauge IV access and lactated Ringer Parkland fluid resuscitation with urine output monitoring",
+                "admitted burn labs and studies including ECG, chest x-ray, electrolytes, BUN, creatinine, albumin, phosphate, urinalysis, and myoglobin testing",
                 "burn center consultation, referral, or transfer",
-                "prevent hypothermia with warm environment, dry coverings, and temperature monitoring",
+                "prevent hypothermia with warm environment, dry coverings, and temperature monitoring plus cool or irrigate with water for at least 20 minutes and avoid ice or ice water",
                 "titrate fluid to urine output with hourly reassessment, first 8 hours and first 24 hours burn resuscitation timing, and monitor for fluid overload, heart failure, and compartment syndrome",
                 "pediatric burn dextrose, glucose, hypoglycemia prevention, and maintenance fluid needs",
                 "circumferential eschar and escharotomy need for limb perfusion or ventilation restriction",
                 "tetanus status and Tdap review",
-                "clean dry dressing for transfer and avoid burn cream before burn center assessment",
+                "clean dry dressing for transfer and avoid burn cream before burn center assessment plus burn-center referral criteria including partial thickness >=10% TBSA, full thickness or deep partial burns, face, hands, genitalia, feet, perineum, joints, inhalation injury, pediatric, comorbidity, trauma, chemical, or electrical triggers",
                 "avoid prophylactic systemic antibiotics and use topical antimicrobial wound care when indicated",
             ],
         }
@@ -32253,7 +32329,15 @@ def test_quality_gate_requires_major_burn_admission_labs_not_resuscitation_alone
 
     assert not report.passed
     assert any(
-        "admitted-patient labs" in issue for issue in report.critical_issues
+        "carbon-monoxide or cyanide co-toxicity" in issue
+        and "carboxyhemoglobin" in issue
+        for issue in report.critical_issues
+    )
+    assert any(
+        "at least 20 minutes" in issue
+        and "avoiding ice" in issue
+        and "burn-center referral criteria" in issue
+        for issue in report.critical_issues
     )
 
 

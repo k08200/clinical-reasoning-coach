@@ -16264,6 +16264,15 @@ const MAJOR_BURN_EARLY_INTUBATION_ACTION_TERMS = [
   "intubation",
 ];
 
+const MAJOR_BURN_INHALATION_TOXICITY_ACTION_TERMS = [
+  "carbon monoxide",
+  "carboxyhemoglobin",
+  "co-oximetry",
+  "cohb",
+  "cyanide",
+  "lactate",
+];
+
 const MAJOR_BURN_STOP_BURNING_ACTION_TERMS = [
   "extinguish",
   "remove clothing",
@@ -16343,6 +16352,19 @@ const MAJOR_BURN_HYPOTHERMIA_SAFETY_TERMS = [
   "warming",
 ];
 
+const MAJOR_BURN_COOLING_DURATION_SAFETY_TERMS = [
+  "20 min",
+  "20 minutes",
+  "at least 20",
+];
+
+const MAJOR_BURN_ICE_AVOIDANCE_SAFETY_TERMS = [
+  "avoid ice",
+  "ice water",
+  "no ice",
+  "not ice",
+];
+
 const MAJOR_BURN_FLUID_TITRATION_SAFETY_TERMS = [
   "0.5 ml/kg/hr",
   "0.5 ml/kg/hour",
@@ -16384,6 +16406,20 @@ const MAJOR_BURN_TRANSFER_DRESSING_SAFETY_TERMS = [
   "clean dry dressing",
   "dry dressing",
   "transfer",
+];
+
+const MAJOR_BURN_REFERRAL_CRITERIA_SAFETY_TERMS = [
+  "deep partial",
+  "face",
+  "full thickness",
+  "full-thickness",
+  "genitalia",
+  "hands",
+  "inhalation injury",
+  "joints",
+  "partial thickness >=10",
+  "partial thickness 10",
+  "perineum",
 ];
 
 const MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = [
@@ -30862,6 +30898,9 @@ function hasMajorBurnTimeCriticalActions(actions: string[]): boolean {
   const hasEarlyIntubation = MAJOR_BURN_EARLY_INTUBATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasInhalationToxicity = MAJOR_BURN_INHALATION_TOXICITY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasStopBurning = MAJOR_BURN_STOP_BURNING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -30893,6 +30932,7 @@ function hasMajorBurnTimeCriticalActions(actions: string[]): boolean {
     hasAirwayAssessment &&
     hasOxygenVentilation &&
     hasEarlyIntubation &&
+    hasInhalationToxicity &&
     hasStopBurning &&
     hasChemicalIrrigation &&
     hasTbsaAction &&
@@ -30910,6 +30950,12 @@ function hasMajorBurnTreatmentSafetyCheck(checks: string[]): boolean {
   const hasHypothermiaSafety = MAJOR_BURN_HYPOTHERMIA_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasCoolingDurationSafety = MAJOR_BURN_COOLING_DURATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasIceAvoidanceSafety = MAJOR_BURN_ICE_AVOIDANCE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasFluidTitrationSafety = MAJOR_BURN_FLUID_TITRATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -30925,16 +30971,22 @@ function hasMajorBurnTreatmentSafetyCheck(checks: string[]): boolean {
   const hasTransferDressingSafety = MAJOR_BURN_TRANSFER_DRESSING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasReferralCriteriaSafety = MAJOR_BURN_REFERRAL_CRITERIA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasAntibioticStewardship = MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
     hasHypothermiaSafety &&
+    hasCoolingDurationSafety &&
+    hasIceAvoidanceSafety &&
     hasFluidTitrationSafety &&
     hasPediatricFluidSafety &&
     hasEscharotomySafety &&
     hasTetanusSafety &&
     hasTransferDressingSafety &&
+    hasReferralCriteriaSafety &&
     hasAntibioticStewardship
   );
 }
@@ -35263,7 +35315,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasMajorBurnTimeCriticalActions,
       issue:
-        "major burn time-critical actions must include airway assessment for inhalation injury clues, 100% oxygen or ventilation support, early intubation planning, extinguishing ongoing burning and removing clothing or smoldering material, chemical-burn cooling, water flushing, irrigation, or powder brush-off, TBSA assessment with rule-of-nines or Lund-Browder, burn-depth assessment, large-bore 14- or 16-gauge IV access, lactated-Ringer or Parkland fluid resuscitation, urine-output or Foley monitoring, admitted-patient labs such as ECG, chest x-ray, electrolytes, BUN, creatinine, albumin, phosphate, urinalysis, or myoglobin testing, and burn-center consultation, referral, or transfer",
+        "major burn time-critical actions must include airway assessment for inhalation injury clues, 100% oxygen or ventilation support, early intubation planning, carbon-monoxide or cyanide co-toxicity assessment using carboxyhemoglobin, COHb, co-oximetry, cyanide, or lactate testing when smoke inhalation or enclosed-space fire is possible, extinguishing ongoing burning and removing clothing or smoldering material, chemical-burn cooling, water flushing, irrigation, or powder brush-off, TBSA assessment with rule-of-nines or Lund-Browder, burn-depth assessment, large-bore 14- or 16-gauge IV access, lactated-Ringer or Parkland fluid resuscitation, urine-output or Foley monitoring, admitted-patient labs such as ECG, chest x-ray, electrolytes, BUN, creatinine, albumin, phosphate, urinalysis, or myoglobin testing, and burn-center consultation, referral, or transfer",
     },
     {
       name: "major_burn_treatment_safety",
@@ -35272,7 +35324,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasMajorBurnTreatmentSafetyCheck,
       issue:
-        "major burn safety checks must include hypothermia prevention with warming, dry coverings, or temperature monitoring, fluid titration to urine output with hourly reassessment, first-8-hour or first-24-hour resuscitation timing, and fluid-overload, heart-failure, or compartment-syndrome monitoring, pediatric dextrose, glucose, hypoglycemia, or maintenance-fluid planning, circumferential eschar or escharotomy review for perfusion or ventilation restriction, tetanus status or Tdap review, clean dry dressing or avoiding burn cream before transfer, plus antibiotic stewardship such as avoiding routine prophylactic systemic antibiotics or using topical antimicrobials when indicated",
+        "major burn safety checks must include hypothermia prevention with warming, dry coverings, or temperature monitoring, cooling or irrigating with water for at least 20 minutes when indicated while avoiding ice or ice-water injury, fluid titration to urine output with hourly reassessment, first-8-hour or first-24-hour resuscitation timing, and fluid-overload, heart-failure, or compartment-syndrome monitoring, pediatric dextrose, glucose, hypoglycemia, or maintenance-fluid planning, circumferential eschar or escharotomy review for perfusion or ventilation restriction, tetanus status or Tdap review, clean dry dressing or avoiding burn cream before transfer, burn-center referral criteria such as partial-thickness >=10% TBSA, full-thickness or deep partial-thickness burns, face, hands, genitalia, feet, perineum, joint, inhalation-injury, pediatric, comorbidity, trauma, chemical, or electrical triggers, plus antibiotic stewardship such as avoiding routine prophylactic systemic antibiotics or using topical antimicrobials when indicated",
     },
     {
       name: "sjs_ten_time_critical_actions",

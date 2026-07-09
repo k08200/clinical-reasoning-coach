@@ -14583,6 +14583,14 @@ MAJOR_BURN_EARLY_INTUBATION_ACTION_TERMS = (
     "early intubation",
     "intubation",
 )
+MAJOR_BURN_INHALATION_TOXICITY_ACTION_TERMS = (
+    "carbon monoxide",
+    "carboxyhemoglobin",
+    "co-oximetry",
+    "cohb",
+    "cyanide",
+    "lactate",
+)
 MAJOR_BURN_STOP_BURNING_ACTION_TERMS = (
     "extinguish",
     "remove clothing",
@@ -14652,6 +14660,17 @@ MAJOR_BURN_HYPOTHERMIA_SAFETY_TERMS = (
     "warm",
     "warming",
 )
+MAJOR_BURN_COOLING_DURATION_SAFETY_TERMS = (
+    "20 min",
+    "20 minutes",
+    "at least 20",
+)
+MAJOR_BURN_ICE_AVOIDANCE_SAFETY_TERMS = (
+    "avoid ice",
+    "ice water",
+    "no ice",
+    "not ice",
+)
 MAJOR_BURN_FLUID_TITRATION_SAFETY_TERMS = (
     "0.5 ml/kg/hr",
     "0.5 ml/kg/hour",
@@ -14689,6 +14708,19 @@ MAJOR_BURN_TRANSFER_DRESSING_SAFETY_TERMS = (
     "clean dry dressing",
     "dry dressing",
     "transfer",
+)
+MAJOR_BURN_REFERRAL_CRITERIA_SAFETY_TERMS = (
+    "deep partial",
+    "face",
+    "full thickness",
+    "full-thickness",
+    "genitalia",
+    "hands",
+    "inhalation injury",
+    "joints",
+    "partial thickness >=10",
+    "partial thickness 10",
+    "perineum",
 )
 MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS = (
     "avoid prophylactic",
@@ -22285,7 +22317,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "major burn time-critical actions must include airway assessment "
                 "for inhalation injury clues, 100% oxygen or ventilation support, "
-                "early intubation planning, extinguishing ongoing burning and "
+                "early intubation planning, carbon-monoxide or cyanide co-toxicity "
+                "assessment using carboxyhemoglobin, COHb, co-oximetry, cyanide, "
+                "or lactate testing when smoke inhalation or enclosed-space fire "
+                "is possible, extinguishing ongoing burning and "
                 "removing clothing or smoldering material, chemical-burn cooling, "
                 "water flushing, irrigation, or powder brush-off, TBSA assessment "
                 "with rule-of-nines or Lund-Browder, burn-depth assessment, "
@@ -22303,14 +22338,20 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_major_burn_treatment_safety_check,
             issue=(
                 "major burn safety checks must include hypothermia prevention "
-                "with warming, dry coverings, or temperature monitoring, fluid "
+                "with warming, dry coverings, or temperature monitoring, cooling "
+                "or irrigating with water for at least 20 minutes when indicated "
+                "while avoiding ice or ice-water injury, fluid "
                 "titration to urine output with hourly reassessment, first-8-hour "
                 "or first-24-hour resuscitation timing, and fluid-overload, "
                 "heart-failure, or compartment-syndrome monitoring, pediatric "
                 "dextrose, glucose, hypoglycemia, or maintenance-fluid planning, "
                 "circumferential eschar or escharotomy review for perfusion or "
                 "ventilation restriction, tetanus status or Tdap review, and "
-                "clean dry dressing or avoiding burn cream before transfer, plus "
+                "clean dry dressing or avoiding burn cream before transfer, burn-center "
+                "referral criteria such as partial-thickness >=10% TBSA, full-thickness "
+                "or deep partial-thickness burns, face, hands, genitalia, feet, "
+                "perineum, joint, inhalation-injury, pediatric, comorbidity, trauma, "
+                "chemical, or electrical triggers, plus "
                 "antibiotic stewardship such as avoiding routine prophylactic "
                 "systemic antibiotics or using topical antimicrobials when indicated"
             ),
@@ -36009,6 +36050,10 @@ def _has_major_burn_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in MAJOR_BURN_EARLY_INTUBATION_ACTION_TERMS
     )
+    has_inhalation_toxicity = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in MAJOR_BURN_INHALATION_TOXICITY_ACTION_TERMS
+    )
     has_stop_burning = any(
         _contains_safety_term(normalized_actions, term)
         for term in MAJOR_BURN_STOP_BURNING_ACTION_TERMS
@@ -36049,6 +36094,7 @@ def _has_major_burn_time_critical_actions(actions: list[Any]) -> bool:
         has_airway_assessment
         and has_oxygen_ventilation
         and has_early_intubation
+        and has_inhalation_toxicity
         and has_stop_burning
         and has_chemical_irrigation
         and has_tbsa_action
@@ -36066,6 +36112,14 @@ def _has_major_burn_treatment_safety_check(checks: list[Any]) -> bool:
     has_hypothermia_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in MAJOR_BURN_HYPOTHERMIA_SAFETY_TERMS
+    )
+    has_cooling_duration_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MAJOR_BURN_COOLING_DURATION_SAFETY_TERMS
+    )
+    has_ice_avoidance_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MAJOR_BURN_ICE_AVOIDANCE_SAFETY_TERMS
     )
     has_fluid_titration_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -36087,17 +36141,24 @@ def _has_major_burn_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in MAJOR_BURN_TRANSFER_DRESSING_SAFETY_TERMS
     )
+    has_referral_criteria_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in MAJOR_BURN_REFERRAL_CRITERIA_SAFETY_TERMS
+    )
     has_antibiotic_stewardship = any(
         _contains_safety_term(normalized_checks, term)
         for term in MAJOR_BURN_ANTIBIOTIC_STEWARDSHIP_SAFETY_TERMS
     )
     return (
         has_hypothermia_safety
+        and has_cooling_duration_safety
+        and has_ice_avoidance_safety
         and has_fluid_titration_safety
         and has_pediatric_fluid_safety
         and has_escharotomy_safety
         and has_tetanus_safety
         and has_transfer_dressing_safety
+        and has_referral_criteria_safety
         and has_antibiotic_stewardship
     )
 
