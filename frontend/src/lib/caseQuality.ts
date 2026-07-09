@@ -16487,6 +16487,15 @@ const SJS_TEN_BSA_DETACHMENT_ACTION_TERMS = [
   "skin detachment",
 ];
 
+const SJS_TEN_BSA_CLASSIFICATION_ACTION_TERMS = [
+  "10% to 30%",
+  "10-30%",
+  "less than 10%",
+  "more than 30%",
+  "over 30%",
+  "sjs/ten overlap",
+];
+
 const SJS_TEN_SEVERITY_SCORE_ACTION_TERMS = [
   "abcd-10",
   "bicarbonate",
@@ -16602,6 +16611,39 @@ const SJS_TEN_OCULAR_SEQUELAE_SAFETY_TERMS = [
   "ocular sequelae",
   "ophthalmology",
   "symblepharon",
+];
+
+const SJS_TEN_EYE_SURFACE_THERAPY_SAFETY_TERMS = [
+  "corticosteroid eye",
+  "eye drops",
+  "eye ointment",
+  "frequent eye",
+  "lubricating",
+  "ocular surface",
+];
+
+const SJS_TEN_BLISTER_DEBRIDEMENT_SAFETY_TERMS = [
+  "avoid debridement",
+  "avoid unnecessary removal",
+  "biological dressing",
+  "blister roof",
+  "leave blister",
+  "leave the blister",
+];
+
+const SJS_TEN_GENITAL_ADHESION_SAFETY_TERMS = [
+  "dilator",
+  "genital adhesion",
+  "intravaginal steroid",
+  "phimosis",
+  "vaginal adhesion",
+];
+
+const SJS_TEN_SILVER_SULFADIAZINE_AVOIDANCE_TERMS = [
+  "avoid silver sulfadiazine",
+  "no silver sulfadiazine",
+  "not silver sulfadiazine",
+  "sulfa drug",
 ];
 
 const SJS_TEN_MEDICATION_RECHALLENGE_SAFETY_TERMS = [
@@ -31026,6 +31068,9 @@ function hasSjsTenTimeCriticalActions(actions: string[]): boolean {
   const hasBsaDetachment = SJS_TEN_BSA_DETACHMENT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasBsaClassification = SJS_TEN_BSA_CLASSIFICATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasSeverityScore = SJS_TEN_SEVERITY_SCORE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -31055,6 +31100,7 @@ function hasSjsTenTimeCriticalActions(actions: string[]): boolean {
     hasHospitalAdmission &&
     hasSpecialtyEscalation &&
     hasBsaDetachment &&
+    hasBsaClassification &&
     hasSeverityScore &&
     hasBiopsyDifferential &&
     hasFluid &&
@@ -31089,6 +31135,18 @@ function hasSjsTenTreatmentSafetyCheck(checks: string[]): boolean {
   const hasOcularSequelaeSafety = SJS_TEN_OCULAR_SEQUELAE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasEyeSurfaceTherapy = SJS_TEN_EYE_SURFACE_THERAPY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBlisterDebridementSafety = SJS_TEN_BLISTER_DEBRIDEMENT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasGenitalAdhesionSafety = SJS_TEN_GENITAL_ADHESION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSilverSulfadiazineAvoidance = SJS_TEN_SILVER_SULFADIAZINE_AVOIDANCE_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   const hasMedicationRechallenge = SJS_TEN_MEDICATION_RECHALLENGE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -31109,6 +31167,10 @@ function hasSjsTenTreatmentSafetyCheck(checks: string[]): boolean {
     hasRenalHepaticOrganSafety &&
     hasThromboembolismSafety &&
     hasOcularSequelaeSafety &&
+    hasEyeSurfaceTherapy &&
+    hasBlisterDebridementSafety &&
+    hasGenitalAdhesionSafety &&
+    hasSilverSulfadiazineAvoidance &&
     hasMedicationRechallenge &&
     hasSteroidIvigRisk &&
     hasCyclosporineRisk &&
@@ -35333,7 +35395,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSjsTenTimeCriticalActions,
       issue:
-        "SJS/TEN time-critical actions must include immediate cessation, withdrawal, or discontinuation of the culprit/offending drug, hospital admission plus dermatology, ICU, intensive-care, burn-unit, or burn-center escalation, BSA or epidermal/skin detachment assessment plus SCORTEN, ABCD-10, bicarbonate, BUN, urea, glucose, heart-rate, or malignancy severity scoring, skin biopsy or serious-mimic differential review such as DRESS, SSSS, RIME, or erythema multiforme, separate fluid replacement/resuscitation, nutrition, temperature or warm-room maintenance, and pain-control actions, urgent daily eye-care or ophthalmology assessment, and mucosal, oral, genital, or urologic care",
+        "SJS/TEN time-critical actions must include immediate cessation, withdrawal, or discontinuation of the culprit/offending drug, hospital admission plus dermatology, ICU, intensive-care, burn-unit, or burn-center escalation, BSA or epidermal/skin detachment assessment plus classification thresholds such as SJS <10%, SJS/TEN overlap 10-30%, or TEN >30%, SCORTEN, ABCD-10, bicarbonate, BUN, urea, glucose, heart-rate, or malignancy severity scoring, skin biopsy or serious-mimic differential review such as DRESS, SSSS, RIME, or erythema multiforme, separate fluid replacement/resuscitation, nutrition, temperature or warm-room maintenance, and pain-control actions, urgent daily eye-care or ophthalmology assessment, and mucosal, oral, genital, or urologic care",
     },
     {
       name: "sjs_ten_treatment_safety",
@@ -35342,7 +35404,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSjsTenTreatmentSafetyCheck,
       issue:
-        "SJS/TEN safety checks must include sterile handling, reverse isolation, non-adherent dressings, avoid-adhesive, or wound-care handling plus infection surveillance, swab, bacterial-culture, or sepsis monitoring, antibiotic stewardship such as avoiding prophylactic systemic antibiotics or using systemic antibiotics only if infection develops, airway, respiratory distress, ARDS, pneumonia, kidney, renal, electrolyte, liver, or organ-failure monitoring, thromboembolism/VTE/DVT/PE prevention or anticoagulation review, ocular-sequelae monitoring with daily ophthalmology, corneal, or symblepharon review, avoidance of rechallenge or structurally related medicines with drug-allergy/cross-reaction documentation, steroid or IVIG infection-risk/uncertainty review, cyclosporine/ciclosporin renal-impairment review, and thalidomide mortality or avoidance review",
+        "SJS/TEN safety checks must include sterile handling, reverse isolation, non-adherent dressings, avoid-adhesive, or wound-care handling plus infection surveillance, swab, bacterial-culture, or sepsis monitoring, antibiotic stewardship such as avoiding prophylactic systemic antibiotics or using systemic antibiotics only if infection develops, airway, respiratory distress, ARDS, pneumonia, kidney, renal, electrolyte, liver, or organ-failure monitoring, thromboembolism/VTE/DVT/PE prevention or anticoagulation review, ocular-sequelae monitoring with daily ophthalmology, corneal, or symblepharon review plus frequent eye drops/ointment or ocular-surface therapy, blister-roof preservation or avoidance of unnecessary debridement, genital-adhesion prevention with intravaginal steroid, dilator, phimosis, or vaginal-adhesion review, silver-sulfadiazine avoidance because it is a sulfa drug, avoidance of rechallenge or structurally related medicines with drug-allergy/cross-reaction documentation, steroid or IVIG infection-risk/uncertainty review, cyclosporine/ciclosporin renal-impairment review, and thalidomide mortality or avoidance review",
     },
     {
       name: "dress_time_critical_actions",

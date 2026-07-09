@@ -14780,6 +14780,14 @@ SJS_TEN_BSA_DETACHMENT_ACTION_TERMS = (
     "epidermal detachment",
     "skin detachment",
 )
+SJS_TEN_BSA_CLASSIFICATION_ACTION_TERMS = (
+    "10% to 30%",
+    "10-30%",
+    "less than 10%",
+    "more than 30%",
+    "over 30%",
+    "sjs/ten overlap",
+)
 SJS_TEN_SEVERITY_SCORE_ACTION_TERMS = (
     "abcd-10",
     "bicarbonate",
@@ -14895,6 +14903,35 @@ SJS_TEN_STEROID_IVIG_RISK_SAFETY_TERMS = (
     "infection risk",
     "ivig",
     "steroid",
+)
+SJS_TEN_EYE_SURFACE_THERAPY_SAFETY_TERMS = (
+    "corticosteroid eye",
+    "eye drops",
+    "eye ointment",
+    "frequent eye",
+    "lubricating",
+    "ocular surface",
+)
+SJS_TEN_BLISTER_DEBRIDEMENT_SAFETY_TERMS = (
+    "avoid debridement",
+    "avoid unnecessary removal",
+    "biological dressing",
+    "blister roof",
+    "leave blister",
+    "leave the blister",
+)
+SJS_TEN_GENITAL_ADHESION_SAFETY_TERMS = (
+    "dilator",
+    "genital adhesion",
+    "intravaginal steroid",
+    "phimosis",
+    "vaginal adhesion",
+)
+SJS_TEN_SILVER_SULFADIAZINE_AVOIDANCE_TERMS = (
+    "avoid silver sulfadiazine",
+    "no silver sulfadiazine",
+    "not silver sulfadiazine",
+    "sulfa drug",
 )
 SJS_TEN_CYCLOSPORINE_RISK_SAFETY_TERMS = (
     "ciclosporin",
@@ -22366,8 +22403,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "withdrawal, or discontinuation of the culprit/offending drug, "
                 "hospital admission plus dermatology, ICU, intensive-care, burn-"
                 "unit, or burn-center escalation, BSA or epidermal/skin detachment "
-                "assessment plus SCORTEN, ABCD-10, bicarbonate, BUN, urea, glucose, "
-                "heart-rate, or malignancy severity scoring, skin biopsy or serious-"
+                "assessment plus classification thresholds such as SJS <10%, "
+                "SJS/TEN overlap 10-30%, or TEN >30%, SCORTEN, ABCD-10, bicarbonate, "
+                "BUN, urea, glucose, heart-rate, or malignancy severity scoring, skin biopsy or serious-"
                 "mimic differential review such as DRESS, SSSS, RIME, or erythema "
                 "multiforme, separate fluid replacement/resuscitation, nutrition, "
                 "temperature or warm-room maintenance, and pain-control actions, "
@@ -22390,7 +22428,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "pneumonia, kidney, renal, electrolyte, liver, or organ-failure "
                 "monitoring, thromboembolism/VTE/DVT/PE prevention or anticoagulation "
                 "review, ocular-sequelae monitoring with daily ophthalmology, corneal, "
-                "or symblepharon review, avoidance of rechallenge or structurally "
+                "or symblepharon review plus frequent eye drops/ointment or ocular-"
+                "surface therapy, blister-roof preservation or avoidance of unnecessary "
+                "debridement, genital-adhesion prevention with intravaginal steroid, "
+                "dilator, phimosis, or vaginal-adhesion review, silver-sulfadiazine "
+                "avoidance because it is a sulfa drug, avoidance of rechallenge or structurally "
                 "related medicines with drug-allergy/cross-reaction documentation, "
                 "steroid or IVIG infection-risk/uncertainty review, cyclosporine/"
                 "ciclosporin renal-impairment review, and thalidomide mortality "
@@ -36213,6 +36255,10 @@ def _has_sjs_ten_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SJS_TEN_BSA_DETACHMENT_ACTION_TERMS
     )
+    has_bsa_classification = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SJS_TEN_BSA_CLASSIFICATION_ACTION_TERMS
+    )
     has_severity_score = any(
         _contains_safety_term(normalized_actions, term)
         for term in SJS_TEN_SEVERITY_SCORE_ACTION_TERMS
@@ -36250,6 +36296,7 @@ def _has_sjs_ten_time_critical_actions(actions: list[Any]) -> bool:
         and has_hospital_admission
         and has_specialty_escalation
         and has_bsa_detachment
+        and has_bsa_classification
         and has_severity_score
         and has_biopsy_differential
         and has_fluid
@@ -36291,6 +36338,22 @@ def _has_sjs_ten_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in SJS_TEN_OCULAR_SEQUELAE_SAFETY_TERMS
     )
+    has_eye_surface_therapy = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_EYE_SURFACE_THERAPY_SAFETY_TERMS
+    )
+    has_blister_debridement_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_BLISTER_DEBRIDEMENT_SAFETY_TERMS
+    )
+    has_genital_adhesion_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_GENITAL_ADHESION_SAFETY_TERMS
+    )
+    has_silver_sulfadiazine_avoidance = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SJS_TEN_SILVER_SULFADIAZINE_AVOIDANCE_TERMS
+    )
     has_medication_rechallenge = any(
         _contains_safety_term(normalized_checks, term)
         for term in SJS_TEN_MEDICATION_RECHALLENGE_SAFETY_TERMS
@@ -36315,6 +36378,10 @@ def _has_sjs_ten_treatment_safety_check(checks: list[Any]) -> bool:
         and has_renal_hepatic_organ_safety
         and has_thromboembolism_safety
         and has_ocular_sequelae_safety
+        and has_eye_surface_therapy
+        and has_blister_debridement_safety
+        and has_genital_adhesion_safety
+        and has_silver_sulfadiazine_avoidance
         and has_medication_rechallenge
         and has_steroid_ivig_risk
         and has_cyclosporine_risk

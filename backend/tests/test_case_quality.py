@@ -32375,6 +32375,10 @@ def test_quality_gate_requires_sjs_ten_drug_stop_bsa_support_and_eye_actions():
         "Use sterile handling, reverse isolation, non-adherent dressings, avoid adhesive tape, wound care, and infection surveillance",
         "Avoid prophylactic antibiotic use; systemic antibiotics only if infection develops",
         "Monitor airway, respiratory distress, ARDS, pneumonia, kidney, liver, and organ failure complications",
+        "Arrange daily ophthalmology review for corneal injury, ocular sequelae, symblepharon, frequent eye drops, eye ointment, and ocular surface therapy",
+        "Leave the blister roof as a biological dressing, avoid unnecessary removal of dead skin, and avoid debridement unless clearly indicated",
+        "Prevent genital adhesion with intravaginal steroid, soft vaginal dilator, vaginal adhesion review, and phimosis monitoring",
+        "Avoid silver sulfadiazine because it is a sulfa drug",
         "Document drug allergy, avoid rechallenge, avoid structurally related medicines, and review cross-reaction or recurrence risk",
         "Review adjunct therapy risks including steroid infection risk, IVIG uncertainty, cyclosporine/ciclosporin renal impairment, and thalidomide avoidance",
     ]
@@ -32396,6 +32400,10 @@ def test_quality_gate_requires_sjs_ten_drug_stop_bsa_support_and_eye_actions():
                 "sterile handling, reverse isolation, non-adherent dressings, avoid adhesive tape, wound care, and infection surveillance",
                 "avoid prophylactic antibiotic use and use systemic antibiotics only if infection develops",
                 "airway, respiratory distress, ARDS, pneumonia, kidney, liver, and organ failure complication monitoring",
+                "daily ophthalmology review for corneal injury, ocular sequelae, symblepharon, frequent eye drops, eye ointment, and ocular surface therapy",
+                "leave the blister roof as a biological dressing, avoid unnecessary removal of dead skin, and avoid debridement unless clearly indicated",
+                "prevent genital adhesion with intravaginal steroid, soft vaginal dilator, vaginal adhesion review, and phimosis monitoring",
+                "avoid silver sulfadiazine because it is a sulfa drug",
                 "drug allergy, avoid rechallenge, avoid structurally related medicines, cross-reaction, or recurrence risk",
                 "adjunct therapy risks including steroid infection risk, IVIG uncertainty, cyclosporine/ciclosporin renal impairment, and thalidomide avoidance",
             ],
@@ -32440,7 +32448,7 @@ def test_quality_gate_requires_sjs_ten_wound_antibiotic_organ_rechallenge_and_ad
     case["time_critical_actions"] = [
         "Immediately discontinue the culprit drug, stop the drug, and withdraw allopurinol as the offending drug",
         "Admit to hospital with dermatology, ICU intensive care, burn unit, and burn center escalation",
-        "Estimate BSA/body surface area and skin detachment with SCORTEN and ABCD-10 severity assessment including bicarbonate, BUN urea, glucose, heart rate, and malignancy criteria",
+        "Estimate BSA/body surface area and skin detachment with SJS less than 10%, SJS/TEN overlap 10-30%, and TEN over 30% classification plus SCORTEN and ABCD-10 severity assessment including bicarbonate, BUN urea, glucose, heart rate, and malignancy criteria",
         "Perform skin biopsy and review serious mimics including DRESS, SSSS, RIME, and erythema multiforme",
         "Provide fluid replacement and fluid resuscitation",
         "Provide enteral nutrition and nutritional support",
@@ -32463,7 +32471,7 @@ def test_quality_gate_requires_sjs_ten_wound_antibiotic_organ_rechallenge_and_ad
                 "TEN has extensive epidermal detachment and can cause dehydration, infection, ARDS, shock, kidney failure, and multiple organ failure",
                 "immediate culprit drug cessation improves outcomes when performed early",
                 "hospital admission to ICU, burn unit, or burn center with specialist care improves survival",
-                "BSA/body surface area and skin detachment with SCORTEN and ABCD-10 severity assessment including bicarbonate, BUN urea, glucose, heart rate, and malignancy criteria",
+                "BSA/body surface area and skin detachment with SJS less than 10%, SJS/TEN overlap 10-30%, and TEN over 30% classification plus SCORTEN and ABCD-10 severity assessment including bicarbonate, BUN urea, glucose, heart rate, and malignancy criteria",
                 "skin biopsy and serious mimics including DRESS, SSSS, RIME, and erythema multiforme",
                 "fluid replacement and fluid resuscitation",
                 "enteral nutrition and nutritional support",
@@ -32524,7 +32532,10 @@ def test_quality_gate_requires_sjs_ten_severity_biopsy_and_separate_support_acti
         "Avoid prophylactic antibiotic use; systemic antibiotics only if infection develops",
         "Monitor airway, respiratory distress, ARDS, pneumonia, kidney, renal, electrolyte, liver, and organ failure complications",
         "Review VTE, DVT, pulmonary embolism, thromboembolism, and anticoagulation prevention",
-        "Arrange daily ophthalmology review for corneal injury, ocular sequelae, and symblepharon",
+        "Arrange daily ophthalmology review for corneal injury, ocular sequelae, symblepharon, frequent eye drops, eye ointment, and ocular surface therapy",
+        "Leave the blister roof as a biological dressing, avoid unnecessary removal of dead skin, and avoid debridement unless clearly indicated",
+        "Prevent genital adhesion with intravaginal steroid, soft vaginal dilator, vaginal adhesion review, and phimosis monitoring",
+        "Avoid silver sulfadiazine because it is a sulfa drug",
         "Document drug allergy, avoid rechallenge, avoid structurally related medicines, and review cross-reaction or recurrence risk",
         "Review steroid infection risk and IVIG uncertainty",
         "Review cyclosporine or ciclosporin renal impairment risk",
@@ -32550,7 +32561,10 @@ def test_quality_gate_requires_sjs_ten_severity_biopsy_and_separate_support_acti
                 "avoid prophylactic antibiotic use and use systemic antibiotics only if infection develops",
                 "airway, respiratory distress, ARDS, pneumonia, kidney, renal, electrolyte, liver, and organ failure complication monitoring",
                 "VTE, DVT, pulmonary embolism, thromboembolism, and anticoagulation prevention",
-                "daily ophthalmology review for corneal injury, ocular sequelae, and symblepharon",
+                "daily ophthalmology review for corneal injury, ocular sequelae, symblepharon, frequent eye drops, eye ointment, and ocular surface therapy",
+                "leave the blister roof as a biological dressing, avoid unnecessary removal of dead skin, and avoid debridement unless clearly indicated",
+                "prevent genital adhesion with intravaginal steroid, soft vaginal dilator, vaginal adhesion review, and phimosis monitoring",
+                "avoid silver sulfadiazine because it is a sulfa drug",
                 "drug allergy, avoid rechallenge, avoid structurally related medicines, cross-reaction, or recurrence risk",
                 "steroid infection risk and IVIG uncertainty",
                 "cyclosporine or ciclosporin renal impairment risk",
@@ -32564,6 +32578,105 @@ def test_quality_gate_requires_sjs_ten_severity_biopsy_and_separate_support_acti
     assert not report.passed
     assert any(
         "skin biopsy" in issue and "separate fluid" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_sjs_ten_bsa_classification_ocular_skin_genital_and_sulfa_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Stevens-Johnson syndrome / toxic epidermal necrolysis overlap"
+    case["patient_demographics"] = {
+        "age": 38,
+        "sex": "female",
+        "weight_kg": 61,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Painful rash with mouth ulcers and red eyes after lamotrigine"
+    case["history_of_present_illness"] = (
+        "Patient recently started lamotrigine and now has suspected SJS/TEN with "
+        "fever, conjunctivitis, painful targetoid rash, flaccid blistering, "
+        "positive Nikolsky sign, mucosal erosions, skin pain, and epidermal "
+        "detachment involving 12% body surface area."
+    )
+    case["key_teaching_points"] = [
+        "SJS/TEN is a potentially fatal medication-associated reaction with sheet-like skin and mucosal loss",
+        "Severity is assessed by BSA/body surface area skin detachment and SCORTEN or ABCD-10 criteria",
+        "Care requires stopping the culprit drug, hospital admission with dermatology and burn unit or ICU escalation, supportive fluid/nutrition/temperature/pain care, and ophthalmology assessment",
+    ]
+    case["clinical_red_flags"] = [
+        "Fever, skin pain, targetoid rash, blister, Nikolsky sign, desquamation, epidermal detachment, or skin sloughing",
+        "Mucosal involvement, mouth ulcers, conjunctivitis, red eyes, respiratory distress, infection, sepsis, kidney injury, liver injury, shock, or organ failure",
+    ]
+    case["time_critical_actions"] = [
+        "Immediately discontinue lamotrigine and stop the culprit offending drug",
+        "Admit to hospital with dermatology, ICU, burn unit, and burn center escalation",
+        "Estimate BSA/body surface area and skin detachment with SCORTEN and ABCD-10 severity assessment including bicarbonate, BUN urea, glucose, heart rate, and malignancy criteria",
+        "Perform skin biopsy and review serious mimics including DRESS, SSSS, RIME, and erythema multiforme",
+        "Provide fluid replacement and fluid resuscitation",
+        "Provide enteral nutrition and nutritional support",
+        "Maintain warm room temperature and active warming",
+        "Provide pain control and pain relief",
+        "Arrange daily eye care with urgent ophthalmology/ophthalmologist evaluation",
+        "Assess mucosal surfaces with oral care, genital care, and urology support as needed",
+    ]
+    case["contraindication_checks"] = [
+        "Use sterile handling, reverse isolation, non-adherent dressings, avoid adhesive tape, wound care, and infection surveillance",
+        "Monitor infection surveillance with swab, bacterial culture, and sepsis monitoring",
+        "Avoid prophylactic antibiotic use; systemic antibiotics only if infection develops",
+        "Monitor airway, respiratory distress, ARDS, pneumonia, kidney, renal, electrolyte, liver, and organ failure complications",
+        "Review VTE, DVT, pulmonary embolism, thromboembolism, and anticoagulation prevention",
+        "Arrange daily ophthalmology review for corneal injury, ocular sequelae, and symblepharon",
+        "Document drug allergy, avoid rechallenge, avoid structurally related medicines, and review cross-reaction or recurrence risk",
+        "Review steroid infection risk and IVIG uncertainty",
+        "Review cyclosporine or ciclosporin renal impairment risk",
+        "Avoid thalidomide because of mortality risk",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Stevens-Johnson syndrome / toxic epidermal necrolysis",
+            "organization": "DermNet",
+            "url": "https://dermnetnz.org/topics/stevens-johnson-syndrome-toxic-epidermal-necrolysis",
+            "supports": [
+                "SJS/TEN diagnosis and risk stratification",
+                "SJS/TEN is a potentially fatal medication-associated reaction with sheet-like skin and mucosal loss",
+                "BSA/body surface area skin detachment with SJS less than 10%, SJS/TEN overlap 10-30%, and TEN over 30% classification plus SCORTEN or ABCD-10 criteria",
+                "immediately discontinue lamotrigine and stop the culprit offending drug",
+                "admit to hospital with dermatology, ICU, burn unit, and burn center escalation",
+                "skin biopsy and review serious mimics including DRESS, SSSS, RIME, and erythema multiforme",
+                "fluid replacement and fluid resuscitation",
+                "enteral nutrition and nutritional support",
+                "warm room temperature and active warming",
+                "pain control and pain relief",
+                "ophthalmology eye care and oral mucosal care",
+                "sterile handling, reverse isolation, non-adherent dressings, avoid adhesive tape, wound care, and infection surveillance",
+                "avoid prophylactic antibiotic use and use systemic antibiotics only if infection develops",
+                "airway, respiratory distress, ARDS, pneumonia, kidney, renal, electrolyte, liver, and organ failure complication monitoring",
+                "VTE, DVT, pulmonary embolism, thromboembolism, and anticoagulation prevention",
+                "daily ophthalmology review for corneal injury, ocular sequelae, symblepharon, frequent eye drops, eye ointment, and ocular surface therapy",
+                "leave the blister roof as a biological dressing, avoid unnecessary removal of dead skin, and avoid debridement unless clearly indicated",
+                "prevent genital adhesion with intravaginal steroid, soft vaginal dilator, vaginal adhesion review, and phimosis monitoring",
+                "avoid silver sulfadiazine because it is a sulfa drug",
+                "drug allergy, avoid rechallenge, avoid structurally related medicines, cross-reaction, or recurrence risk",
+                "steroid infection risk and IVIG uncertainty",
+                "cyclosporine or ciclosporin renal impairment risk",
+                "thalidomide mortality risk",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "classification thresholds" in issue
+        and "SJS/TEN overlap 10-30%" in issue
+        for issue in report.critical_issues
+    )
+    assert any(
+        "frequent eye drops" in issue
+        and "blister-roof preservation" in issue
+        and "genital-adhesion prevention" in issue
+        and "silver-sulfadiazine avoidance" in issue
         for issue in report.critical_issues
     )
 
