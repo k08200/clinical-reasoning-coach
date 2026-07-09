@@ -15175,18 +15175,63 @@ const TOXIC_ALCOHOL_DIALYSIS_REVIEW_SAFETY_TERMS = [
   "hemodialysis criteria",
 ];
 
-const TOXIC_ALCOHOL_DIALYSIS_SEVERITY_SAFETY_TERMS = [
+const TOXIC_ALCOHOL_METHANOL_CLINICAL_DIALYSIS_SAFETY_TERMS = [
+  "anion gap >24",
   "coma",
-  "high-risk level",
-  "high level",
-  "kidney failure",
-  "renal failure",
+  "persistent metabolic acidosis",
+  "ph <=7.15",
   "seizure",
-  "severe acidosis",
   "visual symptom",
   "visual symptoms",
-  "투석",
-  "시력",
+];
+
+const TOXIC_ALCOHOL_METHANOL_LEVEL_DIALYSIS_SAFETY_TERMS = [
+  "500",
+  "600",
+  "700",
+  "impaired kidney",
+  "methanol concentration",
+  "osmol gap",
+];
+
+const TOXIC_ALCOHOL_METHANOL_ECTR_STOP_MODALITY_SAFETY_TERMS = [
+  "<200",
+  "clinical improvement",
+  "continuous modalities",
+  "intermittent hemodialysis",
+];
+
+const TOXIC_ALCOHOL_EG_LEVEL_OSMOL_DIALYSIS_SAFETY_TERMS = [
+  "10 mmol",
+  "20-50",
+  "310",
+  "50 mmol",
+  "62",
+  "ethylene glycol concentration",
+  "osmol gap",
+];
+
+const TOXIC_ALCOHOL_EG_GLYCOLATE_ANION_DIALYSIS_SAFETY_TERMS = [
+  "anion gap >27",
+  "anion gap 23-27",
+  "glycolate",
+];
+
+const TOXIC_ALCOHOL_EG_CLINICAL_KIDNEY_DIALYSIS_SAFETY_TERMS = [
+  "aki",
+  "coma",
+  "egfr",
+  "kidney impairment",
+  "kdigo",
+  "seizure",
+];
+
+const TOXIC_ALCOHOL_EG_ECTR_STOP_MODALITY_SAFETY_TERMS = [
+  "<18",
+  "<25",
+  "acid-base",
+  "ckrt",
+  "intermittent hd",
 ];
 
 const TOXIC_ALCOHOL_OPTIC_INJURY_SAFETY_TERMS = [
@@ -30007,9 +30052,33 @@ function hasToxicAlcoholTreatmentSafetyCheck(checks: string[]): boolean {
   const hasDialysisReviewSafety = TOXIC_ALCOHOL_DIALYSIS_REVIEW_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDialysisSeveritySafety = TOXIC_ALCOHOL_DIALYSIS_SEVERITY_SAFETY_TERMS.some(
+  const hasMethanolClinicalDialysisSafety =
+    TOXIC_ALCOHOL_METHANOL_CLINICAL_DIALYSIS_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasMethanolLevelDialysisSafety =
+    TOXIC_ALCOHOL_METHANOL_LEVEL_DIALYSIS_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasMethanolEctrStopModalitySafety =
+    TOXIC_ALCOHOL_METHANOL_ECTR_STOP_MODALITY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasEgLevelOsmolDialysisSafety = TOXIC_ALCOHOL_EG_LEVEL_OSMOL_DIALYSIS_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasEgGlycolateAnionDialysisSafety =
+    TOXIC_ALCOHOL_EG_GLYCOLATE_ANION_DIALYSIS_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasEgClinicalKidneyDialysisSafety =
+    TOXIC_ALCOHOL_EG_CLINICAL_KIDNEY_DIALYSIS_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasEgEctrStopModalitySafety =
+    TOXIC_ALCOHOL_EG_ECTR_STOP_MODALITY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasOpticInjurySafety = TOXIC_ALCOHOL_OPTIC_INJURY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -30037,7 +30106,13 @@ function hasToxicAlcoholTreatmentSafetyCheck(checks: string[]): boolean {
   );
   return (
     hasDialysisReviewSafety &&
-    hasDialysisSeveritySafety &&
+    hasMethanolClinicalDialysisSafety &&
+    hasMethanolLevelDialysisSafety &&
+    hasMethanolEctrStopModalitySafety &&
+    hasEgLevelOsmolDialysisSafety &&
+    hasEgGlycolateAnionDialysisSafety &&
+    hasEgClinicalKidneyDialysisSafety &&
+    hasEgEctrStopModalitySafety &&
     hasOpticInjurySafety &&
     hasRenalOxalateInjurySafety &&
     hasAlcoholDifferentialSafety &&
@@ -34937,7 +35012,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasToxicAlcoholTreatmentSafetyCheck,
       issue:
-        "toxic alcohol safety checks must include hemodialysis indication review plus severe acidosis, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level criteria, optic or vision monitoring plus renal, kidney, urine, hypocalcemia, or calcium-oxalate monitoring, ethanol or isopropanol differential review plus salicylate, ketoacidosis, lactic acidosis, late-presentation, or co-ingestion review, urgency not to wait for confirmatory levels plus empiric fomepizole, antidote, or alcohol-dehydrogenase blockade, and folinic acid or folate plus thiamine, pyridoxine, or vitamin B6 cofactor planning",
+        "toxic alcohol safety checks must include hemodialysis indication review plus methanol ECTR criteria for coma, seizure, new visual deficit, pH <=7.15, persistent metabolic acidosis, anion gap >24, methanol concentration thresholds such as 700, 600, or 500 mg/L, osmol gap use when concentration is unavailable, kidney impairment, methanol ECTR stopping at concentration <200 mg/L with clinical improvement, and intermittent hemodialysis or continuous-modality planning; ethylene glycol ECTR criteria for concentration/osmol gap thresholds, glycolate or anion gap >27 or 23-27 review, coma, seizure, AKI, KDIGO stage, eGFR, or kidney impairment, stopping criteria such as anion gap <18, ethylene glycol <25 mg/dL, or acid-base correction, and intermittent HD or CKRT planning, optic or vision monitoring plus renal, kidney, urine, hypocalcemia, or calcium-oxalate monitoring, ethanol or isopropanol differential review plus salicylate, ketoacidosis, lactic acidosis, late-presentation, or co-ingestion review, urgency not to wait for confirmatory levels plus empiric fomepizole, antidote, or alcohol-dehydrogenase blockade, and folinic acid or folate plus thiamine, pyridoxine, or vitamin B6 cofactor planning",
     },
     {
       name: "lithium_toxicity_time_critical_actions",

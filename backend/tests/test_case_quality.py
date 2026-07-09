@@ -29463,7 +29463,7 @@ def test_quality_gate_requires_toxic_alcohol_gap_antidote_dialysis_and_acidosis_
         "Treat severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
     ]
     case["contraindication_checks"] = [
-        "Review hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+        "Review hemodialysis indications and ECTR criteria: methanol coma, seizure, new visual deficit, pH <=7.15, persistent metabolic acidosis, anion gap >24, methanol concentration 700, 600, or 500 mg/L thresholds, osmol gap when concentration unavailable, impaired kidney function, methanol stopping concentration <200 mg/L with clinical improvement, intermittent hemodialysis or continuous modalities; ethylene glycol concentration 50 mmol/L, 20-50 mmol/L, 10 mmol/L, 310, 62 mg/dL thresholds, osmol gap thresholds, glycolate 12 or 8-12 mmol/L, anion gap >27 or anion gap 23-27, coma, seizure, AKI, KDIGO, eGFR kidney impairment, anion gap <18, ethylene glycol <25 mg/dL, acid-base correction, intermittent HD, or CKRT",
         "Monitor vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury",
         "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
         "Do not wait for confirmatory levels when suspicion is high; give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
@@ -29533,7 +29533,7 @@ def test_quality_gate_requires_toxic_alcohol_specific_level_not_gap_labs_alone()
         "Treat severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
     ]
     case["contraindication_checks"] = [
-        "Review hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+        "Review hemodialysis indications and ECTR criteria: methanol coma, seizure, new visual deficit, pH <=7.15, persistent metabolic acidosis, anion gap >24, methanol concentration 700, 600, or 500 mg/L thresholds, osmol gap when concentration unavailable, impaired kidney function, methanol stopping concentration <200 mg/L with clinical improvement, intermittent hemodialysis or continuous modalities; ethylene glycol concentration 50 mmol/L, 20-50 mmol/L, 10 mmol/L, 310, 62 mg/dL thresholds, osmol gap thresholds, glycolate 12 or 8-12 mmol/L, anion gap >27 or anion gap 23-27, coma, seizure, AKI, KDIGO, eGFR kidney impairment, anion gap <18, ethylene glycol <25 mg/dL, acid-base correction, intermittent HD, or CKRT",
         "Monitor vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury",
         "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
         "Do not wait for confirmatory levels when suspicion is high; give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
@@ -29605,7 +29605,7 @@ def test_quality_gate_requires_toxic_alcohol_measured_osmolality_gap_and_specifi
         "Treat severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
     ]
     case["contraindication_checks"] = [
-        "Review hemodialysis indications including severe acidosis, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+        "Review hemodialysis indications and ECTR criteria: methanol coma, seizure, new visual deficit, pH <=7.15, persistent metabolic acidosis, anion gap >24, methanol concentration 700, 600, or 500 mg/L thresholds, osmol gap when concentration unavailable, impaired kidney function, methanol stopping concentration <200 mg/L with clinical improvement, intermittent hemodialysis or continuous modalities; ethylene glycol concentration 50 mmol/L, 20-50 mmol/L, 10 mmol/L, 310, 62 mg/dL thresholds, osmol gap thresholds, glycolate 12 or 8-12 mmol/L, anion gap >27 or anion gap 23-27, coma, seizure, AKI, KDIGO, eGFR kidney impairment, anion gap <18, ethylene glycol <25 mg/dL, acid-base correction, intermittent HD, or CKRT",
         "Monitor vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury",
         "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
         "Do not wait for confirmatory levels when suspicion is high; give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
@@ -29676,7 +29676,7 @@ def test_quality_gate_requires_toxic_alcohol_explicit_antidote_not_enzyme_mentio
         "Treat severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
     ]
     case["contraindication_checks"] = [
-        "Review hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+        "Review hemodialysis indications and ECTR criteria: methanol coma, seizure, new visual deficit, pH <=7.15, persistent metabolic acidosis, anion gap >24, methanol concentration 700, 600, or 500 mg/L thresholds, osmol gap when concentration unavailable, impaired kidney function, methanol stopping concentration <200 mg/L with clinical improvement, intermittent hemodialysis or continuous modalities; ethylene glycol concentration 50 mmol/L, 20-50 mmol/L, 10 mmol/L, 310, 62 mg/dL thresholds, osmol gap thresholds, glycolate 12 or 8-12 mmol/L, anion gap >27 or anion gap 23-27, coma, seizure, AKI, KDIGO, eGFR kidney impairment, anion gap <18, ethylene glycol <25 mg/dL, acid-base correction, intermittent HD, or CKRT",
         "Monitor vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury",
         "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
         "Do not wait for confirmatory levels when suspicion is high; give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
@@ -29747,7 +29747,7 @@ def test_quality_gate_requires_toxic_alcohol_specific_ectr_not_generic_dialysis_
         "Treat severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
     ]
     case["contraindication_checks"] = [
-        "Review hemodialysis indications including severe acidosis, anion gap, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+        "Review hemodialysis indications and ECTR criteria: methanol coma, seizure, new visual deficit, pH <=7.15, persistent metabolic acidosis, anion gap >24, methanol concentration 700, 600, or 500 mg/L thresholds, osmol gap when concentration unavailable, impaired kidney function, methanol stopping concentration <200 mg/L with clinical improvement, intermittent hemodialysis or continuous modalities; ethylene glycol concentration 50 mmol/L, 20-50 mmol/L, 10 mmol/L, 310, 62 mg/dL thresholds, osmol gap thresholds, glycolate 12 or 8-12 mmol/L, anion gap >27 or anion gap 23-27, coma, seizure, AKI, KDIGO, eGFR kidney impairment, anion gap <18, ethylene glycol <25 mg/dL, acid-base correction, intermittent HD, or CKRT",
         "Monitor vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury",
         "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
         "Do not wait for confirmatory levels when suspicion is high; give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
@@ -29921,6 +29921,89 @@ def test_quality_gate_requires_toxic_alcohol_specific_dialysis_organ_differentia
     assert any(
         "toxic alcohol safety checks must include hemodialysis indication"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_toxic_alcohol_extrip_thresholds_and_stopping_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Toxic alcohol ingestion with methanol and ethylene glycol concern"
+    case["patient_demographics"] = {
+        "age": 45,
+        "sex": "male",
+        "weight_kg": 76,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Visual blurring, confusion, and flank pain after solvent ingestion"
+    case["history_of_present_illness"] = (
+        "Patient presents after suspected methanol and ethylene glycol toxic alcohol "
+        "ingestion with vomiting, visual symptoms, high anion gap metabolic acidosis, "
+        "elevated osmol gap, hypocalcemia, calcium oxalate crystalluria, and AKI."
+    )
+    case["key_teaching_points"] = [
+        "Methanol ECTR criteria include neurologic or visual findings, severe acidosis, anion gap, and concentration thresholds",
+        "Ethylene glycol ECTR criteria include concentration, osmol gap, glycolate, anion gap, coma, seizure, and kidney injury thresholds",
+        "Fomepizole or ethanol should start before confirmatory levels when suspicion is high",
+    ]
+    case["clinical_red_flags"] = [
+        "Visual symptoms, coma, seizure, pH <=7.15, persistent metabolic acidosis, or anion gap >24 after methanol exposure",
+        "AKI, KDIGO kidney injury, eGFR decline, hypocalcemia, calcium oxalate crystals, glycolate elevation, or anion gap >27 after ethylene glycol exposure",
+    ]
+    case["time_critical_actions"] = [
+        "Calculate anion gap and osmolar gap with measured serum osmolality and send methanol and ethylene glycol levels",
+        "Start fomepizole immediately or ethanol antidote if fomepizole is unavailable",
+        "Call poison center, toxicologist, and nephrology for hemodialysis, ECTR, or extracorporeal treatment escalation",
+        "Treat severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
+    ]
+    case["contraindication_checks"] = [
+        "Review hemodialysis indications including severe acidosis, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+        "Monitor vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury",
+        "Assess ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+        "Do not wait for confirmatory levels when suspicion is high; give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+        "Plan cofactors with folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Methanol",
+            "organization": "EXTRIP Workgroup",
+            "url": "https://www.extrip-workgroup.org/methanol",
+            "supports": [
+                "toxic alcohol ingestion with methanol and ethylene glycol concern diagnosis and risk stratification",
+                "suspected methanol and ethylene glycol toxic alcohol ingestion can present with vomiting, visual symptoms, high anion gap metabolic acidosis, elevated osmol gap, hypocalcemia, calcium oxalate crystalluria, and AKI",
+                "methanol ECTR criteria include neurologic or visual findings, severe acidosis, anion gap, and concentration thresholds",
+                "ethylene glycol ECTR criteria include concentration, osmol gap, glycolate, anion gap, coma, seizure, and kidney injury thresholds",
+                "fomepizole or ethanol should start before confirmatory levels when suspicion is high",
+                "visual symptoms, coma, seizure, pH <=7.15, persistent metabolic acidosis, or anion gap >24 after methanol exposure as red flags",
+                "AKI, KDIGO kidney injury, eGFR decline, hypocalcemia, calcium oxalate crystals, glycolate elevation, or anion gap >27 after ethylene glycol exposure as severity markers",
+                "anion gap and osmolar gap with measured serum osmolality and methanol and ethylene glycol levels",
+                "fomepizole immediately or ethanol antidote if fomepizole is unavailable",
+                "poison center, toxicologist, and nephrology for hemodialysis, ECTR, or extracorporeal treatment escalation",
+                "severe metabolic acidosis with blood gas monitoring, pH reassessment, and sodium bicarbonate support",
+                "hemodialysis indications including severe acidosis, coma, seizure, visual symptoms, renal failure, kidney failure, or high-risk level",
+                "vision, optic injury, renal function, urine calcium oxalate crystals, hypocalcemia, and kidney injury monitoring",
+                "ethanol co-ingestion, isopropanol, salicylate, diabetic ketoacidosis, alcoholic ketoacidosis, lactic acidosis, and late presentation with normal osmolar gap",
+                "do not wait for confirmatory levels when suspicion is high and give empiric fomepizole or alcohol dehydrogenase blockade while awaiting confirmation",
+                "folinic acid or folate for methanol and thiamine plus pyridoxine vitamin B6 for ethylene glycol cofactor planning",
+            ],
+        },
+        {
+            "title": "Ethylene glycol",
+            "organization": "EXTRIP Workgroup",
+            "url": "https://www.extrip-workgroup.org/ethylene-glycol",
+            "supports": [
+                "ethylene glycol ECTR criteria include concentration, osmol gap, glycolate, anion gap, coma, seizure, and kidney injury thresholds",
+                "AKI, KDIGO kidney injury, eGFR decline, hypocalcemia, calcium oxalate crystals, glycolate elevation, or anion gap >27 after ethylene glycol exposure as severity markers",
+            ],
+        },
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "methanol concentration thresholds such as 700, 600, or 500 mg/L" in issue
+        and "ethylene glycol ECTR criteria for concentration/osmol gap thresholds" in issue
+        and "stopping criteria such as anion gap <18" in issue
         for issue in report.critical_issues
     )
 

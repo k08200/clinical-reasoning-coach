@@ -13629,18 +13629,57 @@ TOXIC_ALCOHOL_DIALYSIS_REVIEW_SAFETY_TERMS = (
     "hemodialysis indication",
     "hemodialysis criteria",
 )
-TOXIC_ALCOHOL_DIALYSIS_SEVERITY_SAFETY_TERMS = (
+TOXIC_ALCOHOL_METHANOL_CLINICAL_DIALYSIS_SAFETY_TERMS = (
+    "anion gap >24",
     "coma",
-    "high-risk level",
-    "high level",
-    "kidney failure",
-    "renal failure",
+    "persistent metabolic acidosis",
+    "ph <=7.15",
     "seizure",
-    "severe acidosis",
     "visual symptom",
     "visual symptoms",
-    "투석",
-    "시력",
+)
+TOXIC_ALCOHOL_METHANOL_LEVEL_DIALYSIS_SAFETY_TERMS = (
+    "500",
+    "600",
+    "700",
+    "impaired kidney",
+    "methanol concentration",
+    "osmol gap",
+)
+TOXIC_ALCOHOL_METHANOL_ECTR_STOP_MODALITY_SAFETY_TERMS = (
+    "<200",
+    "clinical improvement",
+    "continuous modalities",
+    "intermittent hemodialysis",
+)
+TOXIC_ALCOHOL_EG_LEVEL_OSMOL_DIALYSIS_SAFETY_TERMS = (
+    "10 mmol",
+    "20-50",
+    "310",
+    "50 mmol",
+    "62",
+    "ethylene glycol concentration",
+    "osmol gap",
+)
+TOXIC_ALCOHOL_EG_GLYCOLATE_ANION_DIALYSIS_SAFETY_TERMS = (
+    "anion gap >27",
+    "anion gap 23-27",
+    "glycolate",
+)
+TOXIC_ALCOHOL_EG_CLINICAL_KIDNEY_DIALYSIS_SAFETY_TERMS = (
+    "aki",
+    "coma",
+    "egfr",
+    "kidney impairment",
+    "kdigo",
+    "seizure",
+)
+TOXIC_ALCOHOL_EG_ECTR_STOP_MODALITY_SAFETY_TERMS = (
+    "<18",
+    "<25",
+    "acid-base",
+    "ckrt",
+    "intermittent hd",
 )
 TOXIC_ALCOHOL_OPTIC_INJURY_SAFETY_TERMS = (
     "optic",
@@ -21936,8 +21975,17 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_toxic_alcohol_treatment_safety_check,
             issue=(
                 "toxic alcohol safety checks must include hemodialysis indication "
-                "review plus severe acidosis, coma, seizure, visual symptoms, "
-                "renal failure, kidney failure, or high-risk level criteria, "
+                "review plus methanol ECTR criteria for coma, seizure, new visual "
+                "deficit, pH <=7.15, persistent metabolic acidosis, anion gap >24, "
+                "methanol concentration thresholds such as 700, 600, or 500 mg/L, "
+                "osmol gap use when concentration is unavailable, kidney impairment, "
+                "methanol ECTR stopping at concentration <200 mg/L with clinical "
+                "improvement, and intermittent hemodialysis or continuous-modality "
+                "planning; ethylene glycol ECTR criteria for concentration/osmol "
+                "gap thresholds, glycolate or anion gap >27 or 23-27 review, coma, "
+                "seizure, AKI, KDIGO stage, eGFR, or kidney impairment, stopping "
+                "criteria such as anion gap <18, ethylene glycol <25 mg/dL, or "
+                "acid-base correction, and intermittent HD or CKRT planning, "
                 "optic or vision monitoring plus renal, kidney, urine, "
                 "hypocalcemia, or calcium-oxalate monitoring, ethanol or "
                 "isopropanol differential review plus salicylate, ketoacidosis, "
@@ -34997,9 +35045,33 @@ def _has_toxic_alcohol_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in TOXIC_ALCOHOL_DIALYSIS_REVIEW_SAFETY_TERMS
     )
-    has_dialysis_severity_safety = any(
+    has_methanol_clinical_dialysis_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in TOXIC_ALCOHOL_DIALYSIS_SEVERITY_SAFETY_TERMS
+        for term in TOXIC_ALCOHOL_METHANOL_CLINICAL_DIALYSIS_SAFETY_TERMS
+    )
+    has_methanol_level_dialysis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_METHANOL_LEVEL_DIALYSIS_SAFETY_TERMS
+    )
+    has_methanol_ectr_stop_modality_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_METHANOL_ECTR_STOP_MODALITY_SAFETY_TERMS
+    )
+    has_eg_level_osmol_dialysis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_EG_LEVEL_OSMOL_DIALYSIS_SAFETY_TERMS
+    )
+    has_eg_glycolate_anion_dialysis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_EG_GLYCOLATE_ANION_DIALYSIS_SAFETY_TERMS
+    )
+    has_eg_clinical_kidney_dialysis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_EG_CLINICAL_KIDNEY_DIALYSIS_SAFETY_TERMS
+    )
+    has_eg_ectr_stop_modality_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_ALCOHOL_EG_ECTR_STOP_MODALITY_SAFETY_TERMS
     )
     has_optic_injury_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -35035,7 +35107,13 @@ def _has_toxic_alcohol_treatment_safety_check(checks: list[Any]) -> bool:
     )
     return (
         has_dialysis_review_safety
-        and has_dialysis_severity_safety
+        and has_methanol_clinical_dialysis_safety
+        and has_methanol_level_dialysis_safety
+        and has_methanol_ectr_stop_modality_safety
+        and has_eg_level_osmol_dialysis_safety
+        and has_eg_glycolate_anion_dialysis_safety
+        and has_eg_clinical_kidney_dialysis_safety
+        and has_eg_ectr_stop_modality_safety
         and has_optic_injury_safety
         and has_renal_oxalate_injury_safety
         and has_alcohol_differential_safety
