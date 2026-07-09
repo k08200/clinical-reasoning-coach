@@ -14725,40 +14725,69 @@ const VALPROATE_TOXICITY_LEVEL_ACTION_TERMS = [
   "valproate concentration",
 ];
 
-const VALPROATE_TOXICITY_AMMONIA_FREE_ACTION_TERMS = [
+const VALPROATE_TOXICITY_AMMONIA_ACTION_TERMS = [
   "ammonia",
+  "hyperammonemia",
+];
+
+const VALPROATE_TOXICITY_FREE_UNBOUND_ACTION_TERMS = [
   "free valproate",
   "unbound valproate",
 ];
 
-const VALPROATE_TOXICITY_ORGAN_LAB_ACTION_TERMS = [
-  "acetaminophen",
+const VALPROATE_TOXICITY_HEPATIC_LAB_ACTION_TERMS = [
+  "alt",
+  "ast",
+  "hepatic",
+  "lft",
+  "liver function",
+];
+
+const VALPROATE_TOXICITY_CBC_PLATELET_ACTION_TERMS = [
   "cbc",
-  "co-ingestant",
-  "coingestant",
+  "platelet",
+  "thrombocytopenia",
+];
+
+const VALPROATE_TOXICITY_METABOLIC_LAB_ACTION_TERMS = [
   "cmp",
   "electrolyte",
   "glucose",
-  "lft",
-  "liver function",
+];
+
+const VALPROATE_TOXICITY_COINGESTANT_PREGNANCY_ACTION_TERMS = [
+  "acetaminophen",
+  "co-ingestant",
+  "coingestant",
   "pregnancy",
   "salicylate",
 ];
 
-const VALPROATE_TOXICITY_STABILIZATION_ACTION_TERMS = [
+const VALPROATE_TOXICITY_AIRWAY_STABILIZATION_ACTION_TERMS = [
   "airway",
-  "benzodiazepine",
   "breathing",
-  "circulation",
   "intubation",
-  "iv fluids",
   "mechanical ventilation",
+];
+
+const VALPROATE_TOXICITY_HEMODYNAMIC_STABILIZATION_ACTION_TERMS = [
+  "circulation",
+  "iv fluids",
+  "shock",
   "vasopressor",
 ];
 
-const VALPROATE_TOXICITY_DECONTAMINATION_ACTION_TERMS = [
+const VALPROATE_TOXICITY_SEIZURE_STABILIZATION_ACTION_TERMS = [
+  "benzodiazepine",
+  "seizure",
+];
+
+const VALPROATE_TOXICITY_CHARCOAL_ACTION_TERMS = [
   "activated charcoal",
   "charcoal",
+];
+
+const VALPROATE_TOXICITY_FORMULATION_DECONTAMINATION_ACTION_TERMS = [
   "enteric-coated",
   "extended-release",
   "gastric lavage",
@@ -14785,52 +14814,93 @@ const VALPROATE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = [
   "hemodialysis",
 ];
 
-const VALPROATE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS = [
+const VALPROATE_TOXICITY_DIALYSIS_LEVEL_SAFETY_TERMS = [
   "1300",
-  "cerebral edema",
-  "dialysis indication",
-  "ectr",
-  "hemodialysis indication",
-  "ph < 7.10",
-  "severe acidosis",
-  "shock",
-  "valproate concentration",
+  "900",
+  ">1300",
+  ">900",
 ];
 
-const VALPROATE_TOXICITY_CARNITINE_AMMONIA_SAFETY_TERMS = [
-  "100 mg/kg",
-  "50 mg/kg",
-  "ammonia",
+const VALPROATE_TOXICITY_DIALYSIS_SHOCK_EDEMA_SAFETY_TERMS = [
+  "cerebral edema",
+  "shock",
+];
+
+const VALPROATE_TOXICITY_DIALYSIS_COMA_VENTILATION_SAFETY_TERMS = [
+  "coma",
+  "mechanical ventilation",
+  "respiratory depression",
+];
+
+const VALPROATE_TOXICITY_DIALYSIS_AMMONIA_ACIDOSIS_SAFETY_TERMS = [
+  "acute hyperammonemia",
+  "hyperammonemia",
+  "ph < 7.10",
+  "severe acidosis",
+];
+
+const VALPROATE_TOXICITY_DIALYSIS_MODALITY_STOPPING_SAFETY_TERMS = [
+  "50",
+  "100",
+  "clinical improvement",
+  "crrt",
+  "hemodialysis",
+  "intermittent hemodialysis",
+];
+
+const VALPROATE_TOXICITY_CARNITINE_SAFETY_TERMS = [
   "carnitine",
   "l-carnitine",
   "levocarnitine",
 ];
 
+const VALPROATE_TOXICITY_CARNITINE_DOSE_SAFETY_TERMS = ["100 mg/kg", "50 mg/kg"];
+
+const VALPROATE_TOXICITY_AMMONIA_RESPONSE_SAFETY_TERMS = [
+  "ammonia",
+  "ammonia-response",
+  "hyperammonemia",
+];
+
 const VALPROATE_TOXICITY_FREE_LEVEL_SAFETY_TERMS = [
   "free level",
+  "free valproate",
+  "unbound level",
+  "unbound valproate",
+];
+
+const VALPROATE_TOXICITY_PROTEIN_BINDING_SAFETY_TERMS = [
   "hypoalbuminemia",
   "low albumin",
   "normal total",
   "protein binding",
-  "unbound level",
 ];
 
-const VALPROATE_TOXICITY_FORMULATION_AIRWAY_SAFETY_TERMS = [
-  "airway",
-  "charcoal",
+const VALPROATE_TOXICITY_FORMULATION_SAFETY_TERMS = [
   "enteric-coated",
   "extended-release",
-  "swallow",
   "within 2 hours",
 ];
 
-const VALPROATE_TOXICITY_COMPLICATION_REPRODUCTIVE_SAFETY_TERMS = [
-  "cerebral edema",
+const VALPROATE_TOXICITY_DECONTAMINATION_AIRWAY_SAFETY_TERMS = [
+  "airway",
+  "charcoal",
+  "swallow",
+];
+
+const VALPROATE_TOXICITY_HEPATIC_PLATELET_SAFETY_TERMS = [
   "hepatotoxicity",
+  "thrombocytopenia",
+];
+
+const VALPROATE_TOXICITY_NEURO_PANCREAS_SAFETY_TERMS = [
+  "cerebral edema",
   "pancreatitis",
+];
+
+const VALPROATE_TOXICITY_REPRODUCTIVE_SAFETY_TERMS = [
   "pregnancy",
   "teratogen",
-  "thrombocytopenia",
 ];
 
 const THEOPHYLLINE_TOXICITY_DIRECT_CONTEXT_TERMS = [
@@ -29590,18 +29660,41 @@ function hasValproateToxicityTimeCriticalActions(actions: string[]): boolean {
   const hasValproateLevel = VALPROATE_TOXICITY_LEVEL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAmmoniaOrFreeLevel = VALPROATE_TOXICITY_AMMONIA_FREE_ACTION_TERMS.some((term) =>
+  const hasAmmonia = VALPROATE_TOXICITY_AMMONIA_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasOrganLab = VALPROATE_TOXICITY_ORGAN_LAB_ACTION_TERMS.some((term) =>
+  const hasFreeUnboundLevel = VALPROATE_TOXICITY_FREE_UNBOUND_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasStabilization = VALPROATE_TOXICITY_STABILIZATION_ACTION_TERMS.some((term) =>
+  const hasHepaticLab = VALPROATE_TOXICITY_HEPATIC_LAB_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDecontamination = VALPROATE_TOXICITY_DECONTAMINATION_ACTION_TERMS.some(
+  const hasCbcPlatelet = VALPROATE_TOXICITY_CBC_PLATELET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasMetabolicLab = VALPROATE_TOXICITY_METABOLIC_LAB_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCoingestantPregnancy = VALPROATE_TOXICITY_COINGESTANT_PREGNANCY_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
+  const hasAirwayStabilization = VALPROATE_TOXICITY_AIRWAY_STABILIZATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasHemodynamicStabilization =
+    VALPROATE_TOXICITY_HEMODYNAMIC_STABILIZATION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasSeizureStabilization = VALPROATE_TOXICITY_SEIZURE_STABILIZATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCharcoal = VALPROATE_TOXICITY_CHARCOAL_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasFormulationDecontamination =
+    VALPROATE_TOXICITY_FORMULATION_DECONTAMINATION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
   const hasCarnitine = VALPROATE_TOXICITY_CARNITINE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -29613,10 +29706,17 @@ function hasValproateToxicityTimeCriticalActions(actions: string[]): boolean {
   );
   return (
     hasValproateLevel &&
-    hasAmmoniaOrFreeLevel &&
-    hasOrganLab &&
-    hasStabilization &&
-    hasDecontamination &&
+    hasAmmonia &&
+    hasFreeUnboundLevel &&
+    hasHepaticLab &&
+    hasCbcPlatelet &&
+    hasMetabolicLab &&
+    hasCoingestantPregnancy &&
+    hasAirwayStabilization &&
+    hasHemodynamicStabilization &&
+    hasSeizureStabilization &&
+    hasCharcoal &&
+    hasFormulationDecontamination &&
     hasCarnitine &&
     hasToxicologyEscalation &&
     hasDialysisEscalation
@@ -29625,31 +29725,72 @@ function hasValproateToxicityTimeCriticalActions(actions: string[]): boolean {
 
 function hasValproateToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasDialysisIndicationSafety =
-    VALPROATE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS.some((term) =>
+  const hasDialysisLevelSafety = VALPROATE_TOXICITY_DIALYSIS_LEVEL_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDialysisShockEdemaSafety =
+    VALPROATE_TOXICITY_DIALYSIS_SHOCK_EDEMA_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasCarnitineAmmoniaSafety =
-    VALPROATE_TOXICITY_CARNITINE_AMMONIA_SAFETY_TERMS.some((term) =>
+  const hasDialysisComaVentilationSafety =
+    VALPROATE_TOXICITY_DIALYSIS_COMA_VENTILATION_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
+  const hasDialysisAmmoniaAcidosisSafety =
+    VALPROATE_TOXICITY_DIALYSIS_AMMONIA_ACIDOSIS_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDialysisModalityStoppingSafety =
+    VALPROATE_TOXICITY_DIALYSIS_MODALITY_STOPPING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCarnitineSafety = VALPROATE_TOXICITY_CARNITINE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCarnitineDoseSafety = VALPROATE_TOXICITY_CARNITINE_DOSE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAmmoniaResponseSafety = VALPROATE_TOXICITY_AMMONIA_RESPONSE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   const hasFreeLevelSafety = VALPROATE_TOXICITY_FREE_LEVEL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasFormulationAirwaySafety =
-    VALPROATE_TOXICITY_FORMULATION_AIRWAY_SAFETY_TERMS.some((term) =>
+  const hasProteinBindingSafety = VALPROATE_TOXICITY_PROTEIN_BINDING_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasFormulationSafety = VALPROATE_TOXICITY_FORMULATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDecontaminationAirwaySafety =
+    VALPROATE_TOXICITY_DECONTAMINATION_AIRWAY_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasComplicationReproductiveSafety =
-    VALPROATE_TOXICITY_COMPLICATION_REPRODUCTIVE_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
+  const hasHepaticPlateletSafety = VALPROATE_TOXICITY_HEPATIC_PLATELET_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNeuroPancreasSafety = VALPROATE_TOXICITY_NEURO_PANCREAS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasReproductiveSafety = VALPROATE_TOXICITY_REPRODUCTIVE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
-    hasDialysisIndicationSafety &&
-    hasCarnitineAmmoniaSafety &&
+    hasDialysisLevelSafety &&
+    hasDialysisShockEdemaSafety &&
+    hasDialysisComaVentilationSafety &&
+    hasDialysisAmmoniaAcidosisSafety &&
+    hasDialysisModalityStoppingSafety &&
+    hasCarnitineSafety &&
+    hasCarnitineDoseSafety &&
+    hasAmmoniaResponseSafety &&
     hasFreeLevelSafety &&
-    hasFormulationAirwaySafety &&
-    hasComplicationReproductiveSafety
+    hasProteinBindingSafety &&
+    hasFormulationSafety &&
+    hasDecontaminationAirwaySafety &&
+    hasHepaticPlateletSafety &&
+    hasNeuroPancreasSafety &&
+    hasReproductiveSafety
   );
 }
 
@@ -34703,7 +34844,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasValproateToxicityTimeCriticalActions,
       issue:
-        "valproate toxicity time-critical actions must include serial valproate level or valproate concentration monitoring, ammonia, free-valproate, or unbound-valproate assessment, CMP, LFT, liver-function, CBC, glucose, electrolyte, acetaminophen, salicylate, co-ingestant, or pregnancy testing, airway, breathing, circulation, intubation, mechanical-ventilation, IV-fluid, vasopressor, or benzodiazepine stabilization, activated-charcoal, enteric-coated, extended-release, gastric-lavage, or decontamination planning, L-carnitine, levocarnitine, or carnitine therapy, poison-center or toxicologist consultation, and hemodialysis, ECTR, or extracorporeal-treatment escalation",
+        "valproate toxicity time-critical actions must include serial valproate level or valproate concentration monitoring, separate ammonia and free-valproate or unbound-valproate assessment, hepatic labs such as AST, ALT, LFT, or liver-function testing, CBC, platelet, or thrombocytopenia testing, metabolic labs such as CMP, glucose, or electrolytes, acetaminophen, salicylate, co-ingestant, or pregnancy testing, airway/ventilation support, hemodynamic support, seizure treatment, activated-charcoal planning plus enteric-coated, extended-release, gastric-lavage, or delayed-absorption decontamination planning, L-carnitine, levocarnitine, or carnitine therapy, poison-center or toxicologist consultation, and hemodialysis, ECTR, or extracorporeal-treatment escalation",
     },
     {
       name: "valproate_toxicity_treatment_safety",
@@ -34712,7 +34853,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasValproateToxicityTreatmentSafetyCheck,
       issue:
-        "valproate toxicity safety checks must include dialysis indication review for valproate concentration >1300 mg/L, shock, cerebral edema, severe acidosis, pH <7.10, hemodialysis, ECTR, or dialysis criteria, L-carnitine, levocarnitine, carnitine, 100 mg/kg, 50 mg/kg, or ammonia-response monitoring, free-level, unbound-level, hypoalbuminemia, low-albumin, protein-binding, or normal-total-level interpretation, enteric-coated, extended-release, within-2-hour, charcoal, swallow, or airway decontamination safety, and hepatotoxicity, thrombocytopenia, cerebral-edema, pancreatitis, pregnancy, or teratogen complication review",
+        "valproate toxicity safety checks must include dialysis indication review for valproate concentration thresholds such as >1300 mg/L and >900 mg/L, shock or cerebral edema, coma, respiratory depression, or mechanical ventilation, acute hyperammonemia, severe acidosis, or pH <7.10, and hemodialysis modality or stopping criteria such as clinical improvement or 50-100 mg/L, L-carnitine, levocarnitine, or carnitine dosing such as 100 mg/kg then 50 mg/kg with ammonia-response monitoring, free or unbound valproate interpretation plus hypoalbuminemia, low-albumin, protein-binding, or normal-total-level discordance, enteric-coated, extended-release, within-2-hour, charcoal, swallow, or airway decontamination safety, and hepatotoxicity, thrombocytopenia, cerebral-edema, pancreatitis, pregnancy, or teratogen complication review",
     },
     {
       name: "theophylline_toxicity_time_critical_actions",

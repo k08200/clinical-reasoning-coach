@@ -13237,37 +13237,59 @@ VALPROATE_TOXICITY_LEVEL_ACTION_TERMS = (
     "total valproate",
     "valproate concentration",
 )
-VALPROATE_TOXICITY_AMMONIA_FREE_ACTION_TERMS = (
+VALPROATE_TOXICITY_AMMONIA_ACTION_TERMS = (
     "ammonia",
+    "hyperammonemia",
+)
+VALPROATE_TOXICITY_FREE_UNBOUND_ACTION_TERMS = (
     "free valproate",
     "unbound valproate",
 )
-VALPROATE_TOXICITY_ORGAN_LAB_ACTION_TERMS = (
-    "acetaminophen",
+VALPROATE_TOXICITY_HEPATIC_LAB_ACTION_TERMS = (
+    "alt",
+    "ast",
+    "hepatic",
+    "lft",
+    "liver function",
+)
+VALPROATE_TOXICITY_CBC_PLATELET_ACTION_TERMS = (
     "cbc",
-    "co-ingestant",
-    "coingestant",
+    "platelet",
+    "thrombocytopenia",
+)
+VALPROATE_TOXICITY_METABOLIC_LAB_ACTION_TERMS = (
     "cmp",
     "electrolyte",
     "glucose",
-    "lft",
-    "liver function",
+)
+VALPROATE_TOXICITY_COINGESTANT_PREGNANCY_ACTION_TERMS = (
+    "acetaminophen",
+    "co-ingestant",
+    "coingestant",
     "pregnancy",
     "salicylate",
 )
-VALPROATE_TOXICITY_STABILIZATION_ACTION_TERMS = (
+VALPROATE_TOXICITY_AIRWAY_STABILIZATION_ACTION_TERMS = (
     "airway",
-    "benzodiazepine",
     "breathing",
-    "circulation",
     "intubation",
-    "iv fluids",
     "mechanical ventilation",
+)
+VALPROATE_TOXICITY_HEMODYNAMIC_STABILIZATION_ACTION_TERMS = (
+    "circulation",
+    "iv fluids",
+    "shock",
     "vasopressor",
 )
-VALPROATE_TOXICITY_DECONTAMINATION_ACTION_TERMS = (
+VALPROATE_TOXICITY_SEIZURE_STABILIZATION_ACTION_TERMS = (
+    "benzodiazepine",
+    "seizure",
+)
+VALPROATE_TOXICITY_CHARCOAL_ACTION_TERMS = (
     "activated charcoal",
     "charcoal",
+)
+VALPROATE_TOXICITY_FORMULATION_DECONTAMINATION_ACTION_TERMS = (
     "enteric-coated",
     "extended-release",
     "gastric lavage",
@@ -13290,48 +13312,82 @@ VALPROATE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = (
     "haemodialysis",
     "hemodialysis",
 )
-VALPROATE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS = (
+VALPROATE_TOXICITY_DIALYSIS_LEVEL_SAFETY_TERMS = (
     "1300",
+    "900",
+    ">1300",
+    ">900",
+)
+VALPROATE_TOXICITY_DIALYSIS_SHOCK_EDEMA_SAFETY_TERMS = (
     "cerebral edema",
-    "dialysis indication",
-    "ectr",
-    "hemodialysis indication",
+    "shock",
+)
+VALPROATE_TOXICITY_DIALYSIS_COMA_VENTILATION_SAFETY_TERMS = (
+    "coma",
+    "mechanical ventilation",
+    "respiratory depression",
+)
+VALPROATE_TOXICITY_DIALYSIS_AMMONIA_ACIDOSIS_SAFETY_TERMS = (
+    "acute hyperammonemia",
+    "hyperammonemia",
     "ph < 7.10",
     "severe acidosis",
-    "shock",
-    "valproate concentration",
 )
-VALPROATE_TOXICITY_CARNITINE_AMMONIA_SAFETY_TERMS = (
-    "100 mg/kg",
-    "50 mg/kg",
-    "ammonia",
+VALPROATE_TOXICITY_DIALYSIS_MODALITY_STOPPING_SAFETY_TERMS = (
+    "50",
+    "100",
+    "clinical improvement",
+    "crrt",
+    "hemodialysis",
+    "intermittent hemodialysis",
+)
+VALPROATE_TOXICITY_CARNITINE_SAFETY_TERMS = (
     "carnitine",
     "l-carnitine",
     "levocarnitine",
 )
+VALPROATE_TOXICITY_CARNITINE_DOSE_SAFETY_TERMS = (
+    "100 mg/kg",
+    "50 mg/kg",
+)
+VALPROATE_TOXICITY_AMMONIA_RESPONSE_SAFETY_TERMS = (
+    "ammonia",
+    "ammonia-response",
+    "hyperammonemia",
+)
 VALPROATE_TOXICITY_FREE_LEVEL_SAFETY_TERMS = (
     "free level",
+    "free valproate",
+    "unbound level",
+    "unbound valproate",
+)
+VALPROATE_TOXICITY_PROTEIN_BINDING_SAFETY_TERMS = (
     "hypoalbuminemia",
     "low albumin",
     "normal total",
     "protein binding",
-    "unbound level",
 )
-VALPROATE_TOXICITY_FORMULATION_AIRWAY_SAFETY_TERMS = (
-    "airway",
-    "charcoal",
+VALPROATE_TOXICITY_FORMULATION_SAFETY_TERMS = (
     "enteric-coated",
     "extended-release",
-    "swallow",
     "within 2 hours",
 )
-VALPROATE_TOXICITY_COMPLICATION_REPRODUCTIVE_SAFETY_TERMS = (
-    "cerebral edema",
+VALPROATE_TOXICITY_DECONTAMINATION_AIRWAY_SAFETY_TERMS = (
+    "airway",
+    "charcoal",
+    "swallow",
+)
+VALPROATE_TOXICITY_HEPATIC_PLATELET_SAFETY_TERMS = (
     "hepatotoxicity",
+    "thrombocytopenia",
+)
+VALPROATE_TOXICITY_NEURO_PANCREAS_SAFETY_TERMS = (
+    "cerebral edema",
     "pancreatitis",
+)
+VALPROATE_TOXICITY_REPRODUCTIVE_SAFETY_TERMS = (
     "pregnancy",
     "teratogen",
-    "thrombocytopenia",
 )
 THEOPHYLLINE_TOXICITY_DIRECT_CONTEXT_TERMS = (
     "aminophylline overdose",
@@ -21753,14 +21809,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_valproate_toxicity_time_critical_actions,
             issue=(
                 "valproate toxicity time-critical actions must include serial "
-                "valproate level or valproate concentration monitoring, ammonia, "
-                "free-valproate, or unbound-valproate assessment, CMP, LFT, "
-                "liver-function, CBC, "
-                "glucose, electrolyte, acetaminophen, salicylate, co-ingestant, "
-                "or pregnancy testing, airway, breathing, circulation, intubation, "
-                "mechanical-ventilation, IV-fluid, vasopressor, or benzodiazepine "
-                "stabilization, activated-charcoal, enteric-coated, extended-"
-                "release, gastric-lavage, or decontamination planning, L-carnitine, "
+                "valproate level or valproate concentration monitoring, separate "
+                "ammonia and free-valproate or unbound-valproate assessment, "
+                "hepatic labs such as AST, ALT, LFT, or liver-function testing, "
+                "CBC, platelet, or thrombocytopenia testing, metabolic labs such "
+                "as CMP, glucose, or electrolytes, acetaminophen, salicylate, "
+                "co-ingestant, or pregnancy testing, airway/ventilation support, "
+                "hemodynamic support, seizure treatment, activated-charcoal "
+                "planning plus enteric-coated, extended-release, gastric-lavage, "
+                "or delayed-absorption decontamination planning, L-carnitine, "
                 "levocarnitine, or carnitine therapy, poison-center or "
                 "toxicologist consultation, and hemodialysis, ECTR, or "
                 "extracorporeal-treatment escalation"
@@ -21773,15 +21830,19 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_valproate_toxicity_treatment_safety_check,
             issue=(
                 "valproate toxicity safety checks must include dialysis indication "
-                "review for valproate concentration >1300 mg/L, shock, cerebral "
-                "edema, severe acidosis, pH <7.10, hemodialysis, ECTR, or "
-                "dialysis criteria, L-carnitine, levocarnitine, carnitine, "
-                "100 mg/kg, 50 mg/kg, or ammonia-response monitoring, free-level, "
-                "unbound-level, hypoalbuminemia, low-albumin, protein-binding, "
-                "or normal-total-level interpretation, enteric-coated, extended-"
-                "release, within-2-hour, charcoal, swallow, or airway decontamination "
-                "safety, and hepatotoxicity, thrombocytopenia, cerebral-edema, "
-                "pancreatitis, pregnancy, or teratogen complication review"
+                "review for valproate concentration thresholds such as >1300 "
+                "mg/L and >900 mg/L, shock or cerebral edema, coma, respiratory "
+                "depression, or mechanical ventilation, acute hyperammonemia, "
+                "severe acidosis, or pH <7.10, and hemodialysis modality or "
+                "stopping criteria such as clinical improvement or 50-100 mg/L, "
+                "L-carnitine, levocarnitine, or carnitine dosing such as "
+                "100 mg/kg then 50 mg/kg with ammonia-response monitoring, "
+                "free or unbound valproate interpretation plus hypoalbuminemia, "
+                "low-albumin, protein-binding, or normal-total-level discordance, "
+                "enteric-coated, extended-release, within-2-hour, charcoal, "
+                "swallow, or airway decontamination safety, and hepatotoxicity, "
+                "thrombocytopenia, cerebral-edema, pancreatitis, pregnancy, or "
+                "teratogen complication review"
             ),
         ),
         DomainSafetyGate(
@@ -34533,21 +34594,49 @@ def _has_valproate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in VALPROATE_TOXICITY_LEVEL_ACTION_TERMS
     )
-    has_ammonia_or_free_level = any(
+    has_ammonia = any(
         _contains_safety_term(normalized_actions, term)
-        for term in VALPROATE_TOXICITY_AMMONIA_FREE_ACTION_TERMS
+        for term in VALPROATE_TOXICITY_AMMONIA_ACTION_TERMS
     )
-    has_organ_lab = any(
+    has_free_unbound_level = any(
         _contains_safety_term(normalized_actions, term)
-        for term in VALPROATE_TOXICITY_ORGAN_LAB_ACTION_TERMS
+        for term in VALPROATE_TOXICITY_FREE_UNBOUND_ACTION_TERMS
     )
-    has_stabilization = any(
+    has_hepatic_lab = any(
         _contains_safety_term(normalized_actions, term)
-        for term in VALPROATE_TOXICITY_STABILIZATION_ACTION_TERMS
+        for term in VALPROATE_TOXICITY_HEPATIC_LAB_ACTION_TERMS
     )
-    has_decontamination = any(
+    has_cbc_platelet = any(
         _contains_safety_term(normalized_actions, term)
-        for term in VALPROATE_TOXICITY_DECONTAMINATION_ACTION_TERMS
+        for term in VALPROATE_TOXICITY_CBC_PLATELET_ACTION_TERMS
+    )
+    has_metabolic_lab = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VALPROATE_TOXICITY_METABOLIC_LAB_ACTION_TERMS
+    )
+    has_coingestant_pregnancy = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VALPROATE_TOXICITY_COINGESTANT_PREGNANCY_ACTION_TERMS
+    )
+    has_airway_stabilization = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VALPROATE_TOXICITY_AIRWAY_STABILIZATION_ACTION_TERMS
+    )
+    has_hemodynamic_stabilization = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VALPROATE_TOXICITY_HEMODYNAMIC_STABILIZATION_ACTION_TERMS
+    )
+    has_seizure_stabilization = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VALPROATE_TOXICITY_SEIZURE_STABILIZATION_ACTION_TERMS
+    )
+    has_charcoal = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VALPROATE_TOXICITY_CHARCOAL_ACTION_TERMS
+    )
+    has_formulation_decontamination = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in VALPROATE_TOXICITY_FORMULATION_DECONTAMINATION_ACTION_TERMS
     )
     has_carnitine = any(
         _contains_safety_term(normalized_actions, term)
@@ -34563,10 +34652,17 @@ def _has_valproate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
     )
     return (
         has_valproate_level
-        and has_ammonia_or_free_level
-        and has_organ_lab
-        and has_stabilization
-        and has_decontamination
+        and has_ammonia
+        and has_free_unbound_level
+        and has_hepatic_lab
+        and has_cbc_platelet
+        and has_metabolic_lab
+        and has_coingestant_pregnancy
+        and has_airway_stabilization
+        and has_hemodynamic_stabilization
+        and has_seizure_stabilization
+        and has_charcoal
+        and has_formulation_decontamination
         and has_carnitine
         and has_toxicology_escalation
         and has_dialysis_escalation
@@ -34575,32 +34671,82 @@ def _has_valproate_toxicity_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_valproate_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_dialysis_indication_safety = any(
+    has_dialysis_level_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in VALPROATE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS
+        for term in VALPROATE_TOXICITY_DIALYSIS_LEVEL_SAFETY_TERMS
     )
-    has_carnitine_ammonia_safety = any(
+    has_dialysis_shock_edema_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in VALPROATE_TOXICITY_CARNITINE_AMMONIA_SAFETY_TERMS
+        for term in VALPROATE_TOXICITY_DIALYSIS_SHOCK_EDEMA_SAFETY_TERMS
+    )
+    has_dialysis_coma_ventilation_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VALPROATE_TOXICITY_DIALYSIS_COMA_VENTILATION_SAFETY_TERMS
+    )
+    has_dialysis_ammonia_acidosis_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VALPROATE_TOXICITY_DIALYSIS_AMMONIA_ACIDOSIS_SAFETY_TERMS
+    )
+    has_dialysis_modality_stopping_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VALPROATE_TOXICITY_DIALYSIS_MODALITY_STOPPING_SAFETY_TERMS
+    )
+    has_carnitine_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VALPROATE_TOXICITY_CARNITINE_SAFETY_TERMS
+    )
+    has_carnitine_dose_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VALPROATE_TOXICITY_CARNITINE_DOSE_SAFETY_TERMS
+    )
+    has_ammonia_response_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VALPROATE_TOXICITY_AMMONIA_RESPONSE_SAFETY_TERMS
     )
     has_free_level_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in VALPROATE_TOXICITY_FREE_LEVEL_SAFETY_TERMS
     )
-    has_formulation_airway_safety = any(
+    has_protein_binding_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in VALPROATE_TOXICITY_FORMULATION_AIRWAY_SAFETY_TERMS
+        for term in VALPROATE_TOXICITY_PROTEIN_BINDING_SAFETY_TERMS
     )
-    has_complication_reproductive_safety = any(
+    has_formulation_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in VALPROATE_TOXICITY_COMPLICATION_REPRODUCTIVE_SAFETY_TERMS
+        for term in VALPROATE_TOXICITY_FORMULATION_SAFETY_TERMS
+    )
+    has_decontamination_airway_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VALPROATE_TOXICITY_DECONTAMINATION_AIRWAY_SAFETY_TERMS
+    )
+    has_hepatic_platelet_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VALPROATE_TOXICITY_HEPATIC_PLATELET_SAFETY_TERMS
+    )
+    has_neuro_pancreas_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VALPROATE_TOXICITY_NEURO_PANCREAS_SAFETY_TERMS
+    )
+    has_reproductive_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in VALPROATE_TOXICITY_REPRODUCTIVE_SAFETY_TERMS
     )
     return (
-        has_dialysis_indication_safety
-        and has_carnitine_ammonia_safety
+        has_dialysis_level_safety
+        and has_dialysis_shock_edema_safety
+        and has_dialysis_coma_ventilation_safety
+        and has_dialysis_ammonia_acidosis_safety
+        and has_dialysis_modality_stopping_safety
+        and has_carnitine_safety
+        and has_carnitine_dose_safety
+        and has_ammonia_response_safety
         and has_free_level_safety
-        and has_formulation_airway_safety
-        and has_complication_reproductive_safety
+        and has_protein_binding_safety
+        and has_formulation_safety
+        and has_decontamination_airway_safety
+        and has_hepatic_platelet_safety
+        and has_neuro_pancreas_safety
+        and has_reproductive_safety
     )
 
 
