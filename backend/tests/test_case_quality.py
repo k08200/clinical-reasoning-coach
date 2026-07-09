@@ -28090,7 +28090,7 @@ def test_quality_gate_requires_button_battery_xray_hotline_mitigation_and_remova
 
     assert not report.passed
     assert any(
-        "button battery ingestion time-critical actions must include immediate x-ray localization"
+        "button battery ingestion time-critical actions must include immediate x-ray or radiograph localization"
         in issue
         for issue in report.critical_issues
     )
@@ -28150,6 +28150,132 @@ def test_quality_gate_requires_button_battery_no_delay_injury_disposition_and_av
     assert not report.passed
     assert any(
         "button battery ingestion safety checks must include no-delay removal safeguards" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_button_battery_separate_hotline_npo_and_no_vomiting_actions():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Button battery ingestion lodged in esophagus"
+    case["chief_complaint"] = "Drooling and refusal to eat after suspected coin ingestion"
+    case["history_of_present_illness"] = (
+        "Toddler swallowed a lithium coin cell or button battery with drooling, "
+        "vomiting, dysphagia, chest discomfort, and refusal to eat."
+    )
+    case["key_teaching_points"] = [
+        "Button battery ingestion can cause esophageal burns within 2 hours",
+        "Neck, esophagus, and abdomen x-rays help localize the battery and distinguish it from a coin",
+        "Honey or sucralfate can mitigate injury only when eligible and must not delay removal",
+    ]
+    case["clinical_red_flags"] = [
+        "Drooling, dysphagia, vomiting, chest pain, choking, or noisy breathing after suspected coin cell ingestion",
+        "Esophageal location, unknown ingestion time, unwitnessed ingestion, or lithium coin cell exposure",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain immediate x-ray radiograph localization with AP and lateral view of the neck, chest, esophagus, and abdomen; look for double-rim halo effect and step-off",
+        "Call poison center or the Battery Ingestion Hotline 800-498-8666",
+        "Give honey 10 mL every 10 minutes or sucralfate q10 when eligible without delaying care",
+        "Arrange urgent GI, ENT, surgery, endoscopy, or endoscopic removal for an esophageal battery",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay immediate removal because honey, sucralfate, eaten recently, or sedation timing is not a substitute for esophageal battery removal; serious burns can occur within 2 hours",
+        "Monitor for delayed esophageal injury including perforation, tracheoesophageal fistula, mediastinitis, vocal cord paralysis, stricture, aorto-esophageal fistula, sentinel bleed, airway compromise, and exsanguination",
+        "Use stomach or beyond esophagus disposition criteria including magnet co-ingestion, large button battery 15 mm or 20 mm size, repeat radiograph, stool passage within 10-14 days, admission, or observation",
+        "Avoid ipecac, induced vomiting, avoid blind removal with balloon catheter or magnet, chelation, laxative, polyethylene glycol, and unnecessary mercury testing",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Button Battery Ingestion Triage and Treatment Guideline",
+            "organization": "National Capital Poison Center",
+            "url": "https://www.poison.org/battery/guideline",
+            "supports": [
+                "button battery ingestion lodged in esophagus diagnosis and risk stratification",
+                "button battery ingestion can cause esophageal burns within 2 hours",
+                "neck, esophagus, and abdomen x-rays help localize the battery and distinguish it from a coin",
+                "honey or sucralfate can mitigate injury only when eligible and must not delay removal",
+                "drooling, dysphagia, vomiting, chest pain, choking, or noisy breathing after suspected coin cell ingestion as red flags",
+                "esophageal location, unknown ingestion time, unwitnessed ingestion, or lithium coin cell exposure as severity markers",
+                "immediate x-ray radiograph localization with AP and lateral view of the neck, chest, esophagus, and abdomen and double-rim halo effect and step-off review",
+                "poison center or Battery Ingestion Hotline 800-498-8666 consultation",
+                "honey 10 mL every 10 minutes or sucralfate q10 when eligible without delaying care",
+                "urgent GI, ENT, surgery, endoscopy, or endoscopic removal for an esophageal battery",
+                "do not delay immediate removal because honey, sucralfate, eaten recently, or sedation timing is not a substitute for esophageal battery removal",
+                "delayed esophageal injury including perforation, tracheoesophageal fistula, mediastinitis, vocal cord paralysis, stricture, aorto-esophageal fistula, sentinel bleed, airway compromise, and exsanguination",
+                "stomach or beyond esophagus disposition criteria including magnet co-ingestion, large button battery 15 mm or 20 mm size, repeat radiograph, stool passage within 10-14 days, admission, or observation",
+                "avoid ipecac, induced vomiting, blind removal with balloon catheter or magnet, chelation, laxative, polyethylene glycol, and unnecessary mercury testing",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "separate poison center or battery hotline consultation, NPO, and no-vomiting instructions"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_button_battery_delayed_fistula_airway_and_stricture_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Button battery ingestion lodged in esophagus"
+    case["chief_complaint"] = "Drooling and vomiting after suspected coin ingestion"
+    case["history_of_present_illness"] = (
+        "Toddler swallowed a lithium coin cell or button battery with drooling, "
+        "vomiting, dysphagia, chest pain, and noisy breathing."
+    )
+    case["key_teaching_points"] = [
+        "Button battery ingestion can cause esophageal burns within 2 hours",
+        "AP and lateral x-rays of the neck, esophagus, and abdomen identify location and coin features",
+        "Delayed complications after esophageal injury can be catastrophic",
+    ]
+    case["clinical_red_flags"] = [
+        "Drooling, dysphagia, vomiting, chest pain, choking, or noisy breathing after suspected coin cell ingestion",
+        "Esophageal location, unknown ingestion time, or unwitnessed ingestion",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain immediate x-ray radiograph localization with AP and lateral view of the neck, chest, esophagus, and abdomen; look for double-rim halo effect and step-off",
+        "Keep NPO, do not induce vomiting, and call poison center or the Battery Ingestion Hotline 800-498-8666",
+        "Give honey 10 mL every 10 minutes or sucralfate q10 when eligible without delaying care",
+        "Arrange urgent GI, ENT, surgery, endoscopy, or endoscopic removal for an esophageal battery",
+    ]
+    case["contraindication_checks"] = [
+        "Do not delay immediate removal because honey, sucralfate, eaten recently, or sedation timing is not a substitute for esophageal battery removal; serious burns can occur within 2 hours",
+        "Monitor for delayed esophageal injury including perforation and mediastinitis",
+        "Use stomach or beyond esophagus disposition criteria including magnet co-ingestion, large button battery 15 mm or 20 mm size, repeat radiograph, stool passage within 10-14 days, admission, or observation",
+        "Avoid ipecac, induced vomiting, avoid blind removal with balloon catheter or magnet, chelation, laxative, polyethylene glycol, and unnecessary mercury testing",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Button Battery Ingestion Triage and Treatment Guideline",
+            "organization": "National Capital Poison Center",
+            "url": "https://www.poison.org/battery/guideline",
+            "supports": [
+                "button battery ingestion lodged in esophagus diagnosis and risk stratification",
+                "button battery ingestion can cause esophageal burns within 2 hours",
+                "AP and lateral x-rays of the neck, esophagus, and abdomen identify location and coin features",
+                "delayed complications after esophageal injury can be catastrophic",
+                "drooling, dysphagia, vomiting, chest pain, choking, or noisy breathing after suspected coin cell ingestion as red flags",
+                "esophageal location, unknown ingestion time, or unwitnessed ingestion as severity markers",
+                "immediate x-ray radiograph localization with AP and lateral view of the neck, chest, esophagus, and abdomen and double-rim halo effect and step-off review",
+                "NPO, do not induce vomiting, and poison center or Battery Ingestion Hotline 800-498-8666 consultation",
+                "honey 10 mL every 10 minutes or sucralfate q10 when eligible without delaying care",
+                "urgent GI, ENT, surgery, endoscopy, or endoscopic removal for an esophageal battery",
+                "do not delay immediate removal because honey, sucralfate, eaten recently, or sedation timing is not a substitute for esophageal battery removal",
+                "delayed esophageal injury including perforation and mediastinitis",
+                "stomach or beyond esophagus disposition criteria including magnet co-ingestion, large button battery 15 mm or 20 mm size, repeat radiograph, stool passage within 10-14 days, admission, or observation",
+                "avoid ipecac, induced vomiting, blind removal with balloon catheter or magnet, chelation, laxative, polyethylene glycol, and unnecessary mercury testing",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "tracheoesophageal or vascular fistula" in issue
+        and "vocal cord, airway, or stricture complications" in issue
         for issue in report.critical_issues
     )
 

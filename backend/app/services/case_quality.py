@@ -12886,94 +12886,140 @@ BUTTON_BATTERY_CONTEXT_TERMS = (
     "step-off",
     "버튼 배터리",
 )
-BUTTON_BATTERY_XRAY_ACTION_TERMS = (
-    "abdomen",
-    "ap and lateral",
-    "double-rim",
-    "esophagus",
-    "halo",
-    "lateral view",
-    "neck",
+BUTTON_BATTERY_XRAY_IMAGE_ACTION_TERMS = (
     "radiograph",
-    "step-off",
     "x-ray",
     "xray",
 )
-BUTTON_BATTERY_POISON_NPO_ACTION_TERMS = (
+BUTTON_BATTERY_XRAY_NECK_ACTION_TERMS = (
+    "neck",
+)
+BUTTON_BATTERY_XRAY_ESOPHAGUS_ACTION_TERMS = (
+    "chest",
+    "esophagus",
+    "esophageal",
+)
+BUTTON_BATTERY_XRAY_ABDOMEN_ACTION_TERMS = (
+    "abdomen",
+)
+BUTTON_BATTERY_XRAY_COIN_DIFFERENTIATION_ACTION_TERMS = (
+    "ap and lateral",
+    "double-rim",
+    "halo",
+    "lateral view",
+    "step-off",
+)
+BUTTON_BATTERY_HOTLINE_ACTION_TERMS = (
     "800-498-8666",
     "battery hotline",
-    "do not induce vomiting",
-    "nothing by mouth",
-    "npo",
     "poison center",
     "poison control",
 )
-BUTTON_BATTERY_HONEY_SUCRALFATE_ACTION_TERMS = (
-    "10 ml",
+BUTTON_BATTERY_NPO_ACTION_TERMS = (
+    "nothing by mouth",
+    "npo",
+)
+BUTTON_BATTERY_NO_VOMITING_ACTION_TERMS = (
+    "do not induce vomiting",
+    "no vomiting",
+)
+BUTTON_BATTERY_MITIGATION_AGENT_ACTION_TERMS = (
     "carafate",
-    "every 10 minutes",
     "honey",
-    "q10",
     "sucralfate",
 )
-BUTTON_BATTERY_REMOVAL_ACTION_TERMS = (
+BUTTON_BATTERY_MITIGATION_ELIGIBILITY_ACTION_TERMS = (
+    "10 ml",
+    "12 hours",
+    "12 months",
+    "able to swallow",
+    "age",
+    "eligible",
+    "every 10 minutes",
+    "q10",
+    "swallow",
+)
+BUTTON_BATTERY_URGENT_REMOVAL_ACTION_TERMS = (
     "battery removal",
     "endoscopic removal",
+    "immediate removal",
+    "remove battery",
+    "urgent removal",
+)
+BUTTON_BATTERY_SPECIALIST_REMOVAL_ACTION_TERMS = (
     "endoscopy",
     "ent",
     "esophageal battery",
     "gastroenterology",
     "gi",
-    "immediate removal",
-    "remove battery",
     "surgery",
-    "urgent removal",
 )
-BUTTON_BATTERY_NO_DELAY_SAFETY_TERMS = (
-    "2 hours",
+BUTTON_BATTERY_DO_NOT_DELAY_SAFETY_TERMS = (
     "do not delay",
-    "eaten recently",
     "not delay",
     "not substitute",
+)
+BUTTON_BATTERY_DELAY_CONTEXT_SAFETY_TERMS = (
+    "2 hours",
+    "eaten recently",
+    "honey",
     "recent eating",
     "sedation",
+    "sucralfate",
 )
-BUTTON_BATTERY_ESOPHAGEAL_INJURY_SAFETY_TERMS = (
+BUTTON_BATTERY_PERFORATION_INJURY_SAFETY_TERMS = (
+    "mediastinitis",
+    "mucosal injury",
+    "perforation",
+)
+BUTTON_BATTERY_FISTULA_VASCULAR_INJURY_SAFETY_TERMS = (
     "aorta",
     "exsanguination",
     "fistula",
     "large vessel",
-    "mediastinitis",
-    "mucosal injury",
-    "perforation",
     "sentinel bleed",
+    "tracheoesophageal fistula",
+)
+BUTTON_BATTERY_AIRWAY_STRICTURE_INJURY_SAFETY_TERMS = (
+    "airway",
     "stricture",
     "tracheoesophageal fistula",
     "vocal cord paralysis",
 )
-BUTTON_BATTERY_LOCATION_DISPOSITION_SAFETY_TERMS = (
-    "10-14 days",
+BUTTON_BATTERY_BEYOND_ESOPHAGUS_DISPOSITION_SAFETY_TERMS = (
+    "beyond esophagus",
+    "stomach",
+)
+BUTTON_BATTERY_HIGH_RISK_DISPOSITION_SAFETY_TERMS = (
     "15 mm",
     "20 mm",
-    "admit",
-    "beyond esophagus",
     "large button battery",
     "magnet",
-    "observe",
+)
+BUTTON_BATTERY_PASSAGE_FOLLOWUP_SAFETY_TERMS = (
+    "10-14 days",
     "passage",
     "repeat radiograph",
-    "stomach",
     "stool",
 )
-BUTTON_BATTERY_AVOIDANCE_SAFETY_TERMS = (
-    "avoid blind removal",
+BUTTON_BATTERY_OBSERVATION_DISPOSITION_SAFETY_TERMS = (
+    "admit",
+    "observe",
+)
+BUTTON_BATTERY_VOMITING_AVOIDANCE_SAFETY_TERMS = (
     "avoid ipecac",
-    "balloon catheter",
-    "chelation",
     "do not induce vomiting",
     "induced vomiting",
-    "laxative",
+    "ipecac",
+)
+BUTTON_BATTERY_BLIND_REMOVAL_AVOIDANCE_SAFETY_TERMS = (
+    "avoid blind removal",
+    "balloon catheter",
     "magnet",
+)
+BUTTON_BATTERY_UNPROVEN_THERAPY_AVOIDANCE_SAFETY_TERMS = (
+    "chelation",
+    "laxative",
     "mercury testing",
     "polyethylene glycol",
 )
@@ -21636,12 +21682,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_button_battery_time_critical_actions,
             issue=(
                 "button battery ingestion time-critical actions must include "
-                "immediate x-ray localization with AP/lateral neck, chest/"
-                "esophagus, and abdomen views or double-rim/halo review, poison "
-                "center or battery hotline consultation with NPO and no-vomiting "
-                "instructions, honey or sucralfate mitigation when eligible "
-                "without delaying care, and urgent endoscopic or specialist "
-                "removal planning for esophageal batteries"
+                "immediate x-ray or radiograph localization with separate neck, "
+                "chest/esophagus, and abdomen coverage plus AP/lateral, "
+                "double-rim, halo, or step-off review, separate poison center "
+                "or battery hotline consultation, NPO, and no-vomiting "
+                "instructions, honey or sucralfate mitigation with eligibility "
+                "or dosing context, and urgent endoscopic or specialist removal "
+                "planning for esophageal batteries"
             ),
         ),
         DomainSafetyGate(
@@ -21653,12 +21700,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "button battery ingestion safety checks must include no-delay "
                 "removal safeguards because honey, sucralfate, recent eating, or "
                 "sedation timing must not delay esophageal battery removal, "
-                "delayed esophageal injury monitoring for perforation, "
-                "tracheoesophageal or vascular fistula, vocal cord injury, "
-                "stricture, or sentinel bleeding, stomach/beyond-esophagus "
-                "disposition or repeat imaging criteria, and avoidance of "
-                "ipecac, induced vomiting, blind balloon/magnet removal, "
-                "chelation, laxatives, or unnecessary mercury testing"
+                "delayed esophageal injury monitoring for perforation or "
+                "mediastinitis, tracheoesophageal or vascular fistula, sentinel "
+                "bleeding, vocal cord, airway, or stricture complications, "
+                "stomach/beyond-esophagus disposition, high-risk magnet or "
+                "15-20 mm battery criteria, repeat imaging or stool-passage "
+                "follow-up, admission or observation planning, and avoidance of "
+                "ipecac/induced vomiting, blind balloon/magnet removal, "
+                "chelation, laxatives, polyethylene glycol, or unnecessary "
+                "mercury testing"
             ),
         ),
         DomainSafetyGate(
@@ -34190,48 +34240,133 @@ def _requires_button_battery_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_button_battery_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_xray = any(
+    has_xray_image = any(
         _contains_safety_term(normalized_actions, term)
-        for term in BUTTON_BATTERY_XRAY_ACTION_TERMS
+        for term in BUTTON_BATTERY_XRAY_IMAGE_ACTION_TERMS
     )
-    has_poison_npo = any(
+    has_xray_neck = any(
         _contains_safety_term(normalized_actions, term)
-        for term in BUTTON_BATTERY_POISON_NPO_ACTION_TERMS
+        for term in BUTTON_BATTERY_XRAY_NECK_ACTION_TERMS
     )
-    has_honey_or_sucralfate = any(
+    has_xray_esophagus = any(
         _contains_safety_term(normalized_actions, term)
-        for term in BUTTON_BATTERY_HONEY_SUCRALFATE_ACTION_TERMS
+        for term in BUTTON_BATTERY_XRAY_ESOPHAGUS_ACTION_TERMS
     )
-    has_removal = any(
+    has_xray_abdomen = any(
         _contains_safety_term(normalized_actions, term)
-        for term in BUTTON_BATTERY_REMOVAL_ACTION_TERMS
+        for term in BUTTON_BATTERY_XRAY_ABDOMEN_ACTION_TERMS
     )
-    return has_xray and has_poison_npo and has_honey_or_sucralfate and has_removal
+    has_coin_differentiation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_XRAY_COIN_DIFFERENTIATION_ACTION_TERMS
+    )
+    has_hotline = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_HOTLINE_ACTION_TERMS
+    )
+    has_npo = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_NPO_ACTION_TERMS
+    )
+    has_no_vomiting = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_NO_VOMITING_ACTION_TERMS
+    )
+    has_mitigation_agent = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_MITIGATION_AGENT_ACTION_TERMS
+    )
+    has_mitigation_eligibility = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_MITIGATION_ELIGIBILITY_ACTION_TERMS
+    )
+    has_urgent_removal = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_URGENT_REMOVAL_ACTION_TERMS
+    )
+    has_specialist_removal = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in BUTTON_BATTERY_SPECIALIST_REMOVAL_ACTION_TERMS
+    )
+    return (
+        has_xray_image
+        and has_xray_neck
+        and has_xray_esophagus
+        and has_xray_abdomen
+        and has_coin_differentiation
+        and has_hotline
+        and has_npo
+        and has_no_vomiting
+        and has_mitigation_agent
+        and has_mitigation_eligibility
+        and has_urgent_removal
+        and has_specialist_removal
+    )
 
 
 def _has_button_battery_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_no_delay_safety = any(
+    has_do_not_delay_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in BUTTON_BATTERY_NO_DELAY_SAFETY_TERMS
+        for term in BUTTON_BATTERY_DO_NOT_DELAY_SAFETY_TERMS
     )
-    has_esophageal_injury_safety = any(
+    has_delay_context_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in BUTTON_BATTERY_ESOPHAGEAL_INJURY_SAFETY_TERMS
+        for term in BUTTON_BATTERY_DELAY_CONTEXT_SAFETY_TERMS
     )
-    has_location_disposition_safety = any(
+    has_perforation_injury_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in BUTTON_BATTERY_LOCATION_DISPOSITION_SAFETY_TERMS
+        for term in BUTTON_BATTERY_PERFORATION_INJURY_SAFETY_TERMS
     )
-    has_avoidance_safety = any(
+    has_fistula_vascular_injury_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in BUTTON_BATTERY_AVOIDANCE_SAFETY_TERMS
+        for term in BUTTON_BATTERY_FISTULA_VASCULAR_INJURY_SAFETY_TERMS
+    )
+    has_airway_stricture_injury_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_AIRWAY_STRICTURE_INJURY_SAFETY_TERMS
+    )
+    has_beyond_esophagus_disposition = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_BEYOND_ESOPHAGUS_DISPOSITION_SAFETY_TERMS
+    )
+    has_high_risk_disposition = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_HIGH_RISK_DISPOSITION_SAFETY_TERMS
+    )
+    has_passage_followup = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_PASSAGE_FOLLOWUP_SAFETY_TERMS
+    )
+    has_observation_disposition = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_OBSERVATION_DISPOSITION_SAFETY_TERMS
+    )
+    has_vomiting_avoidance = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_VOMITING_AVOIDANCE_SAFETY_TERMS
+    )
+    has_blind_removal_avoidance = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_BLIND_REMOVAL_AVOIDANCE_SAFETY_TERMS
+    )
+    has_unproven_therapy_avoidance = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in BUTTON_BATTERY_UNPROVEN_THERAPY_AVOIDANCE_SAFETY_TERMS
     )
     return (
-        has_no_delay_safety
-        and has_esophageal_injury_safety
-        and has_location_disposition_safety
-        and has_avoidance_safety
+        has_do_not_delay_safety
+        and has_delay_context_safety
+        and has_perforation_injury_safety
+        and has_fistula_vascular_injury_safety
+        and has_airway_stricture_injury_safety
+        and has_beyond_esophagus_disposition
+        and has_high_risk_disposition
+        and has_passage_followup
+        and has_observation_disposition
+        and has_vomiting_avoidance
+        and has_blind_removal_avoidance
+        and has_unproven_therapy_avoidance
     )
 
 
