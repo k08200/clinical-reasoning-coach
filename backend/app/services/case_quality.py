@@ -14504,6 +14504,26 @@ SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS = (
     "pressure",
     "surgical consult",
 )
+SNAKEBITE_COMPARTMENT_PRESSURE_THRESHOLD_SAFETY_TERMS = (
+    "30 mm hg",
+    "30 mmhg",
+    "30-mm hg",
+    "30-mmhg",
+)
+SNAKEBITE_COMPARTMENT_PERSISTENCE_DELTA_SAFETY_TERMS = (
+    "1 hour",
+    "diastolic pressure",
+    "delta pressure",
+    "for > 1 hour",
+    "for 1 hour",
+)
+SNAKEBITE_COMPARTMENT_AFTER_ANTIVENOM_SAFETY_TERMS = (
+    "after antivenom",
+    "despite antivenom",
+    "elevation and mannitol",
+    "fails to respond to antivenom",
+    "only after adequate antivenom",
+)
 SNAKEBITE_PRESSURE_IMMOBILIZATION_SAFETY_TERMS = (
     "arterial insufficiency",
     "necrosis",
@@ -22248,7 +22268,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "hypersensitivity, serum sickness, infusion-rate reaction, or "
                 "premedication needs, compartment-syndrome or fasciotomy caution "
                 "with pressure measurement, surgical consultation, or antivenom-"
-                "first planning, pressure-immobilization caution for pit-viper "
+                "first planning plus compartment pressure threshold such as "
+                "30 mm Hg, persistence for 1 hour or diastolic-pressure delta "
+                "criteria, and fasciotomy only after adequate antivenom with "
+                "elevation/mannitol or failure to respond, pressure-"
+                "immobilization caution for pit-viper "
                 "bites because of arterial insufficiency or necrosis risk, and "
                 "tetanus, wound-care, infection, or no-routine-antibiotic safety"
             ),
@@ -35904,6 +35928,18 @@ def _has_snakebite_envenomation_treatment_safety_check(checks: list[Any]) -> boo
         _contains_safety_term(normalized_checks, term)
         for term in SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS
     )
+    has_compartment_pressure_threshold_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SNAKEBITE_COMPARTMENT_PRESSURE_THRESHOLD_SAFETY_TERMS
+    )
+    has_compartment_persistence_delta_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SNAKEBITE_COMPARTMENT_PERSISTENCE_DELTA_SAFETY_TERMS
+    )
+    has_compartment_after_antivenom_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SNAKEBITE_COMPARTMENT_AFTER_ANTIVENOM_SAFETY_TERMS
+    )
     has_pressure_immobilization_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in SNAKEBITE_PRESSURE_IMMOBILIZATION_SAFETY_TERMS
@@ -35919,6 +35955,9 @@ def _has_snakebite_envenomation_treatment_safety_check(checks: list[Any]) -> boo
         and has_blood_product_safety
         and has_antivenom_reaction_safety
         and has_compartment_fasciotomy_safety
+        and has_compartment_pressure_threshold_safety
+        and has_compartment_persistence_delta_safety
+        and has_compartment_after_antivenom_safety
         and has_pressure_immobilization_safety
         and has_tetanus_wound_antibiotic_safety
     )

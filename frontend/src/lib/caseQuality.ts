@@ -16175,6 +16175,29 @@ const SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS = [
   "surgical consult",
 ];
 
+const SNAKEBITE_COMPARTMENT_PRESSURE_THRESHOLD_SAFETY_TERMS = [
+  "30 mm hg",
+  "30 mmhg",
+  "30-mm hg",
+  "30-mmhg",
+];
+
+const SNAKEBITE_COMPARTMENT_PERSISTENCE_DELTA_SAFETY_TERMS = [
+  "1 hour",
+  "diastolic pressure",
+  "delta pressure",
+  "for > 1 hour",
+  "for 1 hour",
+];
+
+const SNAKEBITE_COMPARTMENT_AFTER_ANTIVENOM_SAFETY_TERMS = [
+  "after antivenom",
+  "despite antivenom",
+  "elevation and mannitol",
+  "fails to respond to antivenom",
+  "only after adequate antivenom",
+];
+
 const SNAKEBITE_PRESSURE_IMMOBILIZATION_SAFETY_TERMS = [
   "arterial insufficiency",
   "necrosis",
@@ -30771,6 +30794,18 @@ function hasSnakebiteEnvenomationTreatmentSafetyCheck(checks: string[]): boolean
   const hasCompartmentFasciotomySafety = SNAKEBITE_COMPARTMENT_FASCIOTOMY_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasCompartmentPressureThresholdSafety =
+    SNAKEBITE_COMPARTMENT_PRESSURE_THRESHOLD_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCompartmentPersistenceDeltaSafety =
+    SNAKEBITE_COMPARTMENT_PERSISTENCE_DELTA_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasCompartmentAfterAntivenomSafety =
+    SNAKEBITE_COMPARTMENT_AFTER_ANTIVENOM_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasPressureImmobilizationSafety = SNAKEBITE_PRESSURE_IMMOBILIZATION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
@@ -30785,6 +30820,9 @@ function hasSnakebiteEnvenomationTreatmentSafetyCheck(checks: string[]): boolean
     hasBloodProductSafety &&
     hasAntivenomReactionSafety &&
     hasCompartmentFasciotomySafety &&
+    hasCompartmentPressureThresholdSafety &&
+    hasCompartmentPersistenceDeltaSafety &&
+    hasCompartmentAfterAntivenomSafety &&
     hasPressureImmobilizationSafety &&
     hasTetanusWoundAntibioticSafety
   );
@@ -35216,7 +35254,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSnakebiteEnvenomationTreatmentSafetyCheck,
       issue:
-        "snakebite envenomation safety checks must include avoidance of harmful first aid such as tourniquet, incision, suction, ice, or electric shock, at least 8-hour observation or longer serial monitoring when envenomation findings are present, coagulopathy monitoring with platelets, PT, PTT, INR, fibrinogen, FDP, bleeding, or defibrination, blood-product caution until adequate antivenom has been given, antivenom reaction monitoring for anaphylaxis, hypersensitivity, serum sickness, infusion-rate reaction, or premedication needs, compartment-syndrome or fasciotomy caution with pressure measurement, surgical consultation, or antivenom-first planning, pressure-immobilization caution for pit-viper bites because of arterial insufficiency or necrosis risk, and tetanus, wound-care, infection, or no-routine-antibiotic safety",
+        "snakebite envenomation safety checks must include avoidance of harmful first aid such as tourniquet, incision, suction, ice, or electric shock, at least 8-hour observation or longer serial monitoring when envenomation findings are present, coagulopathy monitoring with platelets, PT, PTT, INR, fibrinogen, FDP, bleeding, or defibrination, blood-product caution until adequate antivenom has been given, antivenom reaction monitoring for anaphylaxis, hypersensitivity, serum sickness, infusion-rate reaction, or premedication needs, compartment-syndrome or fasciotomy caution with pressure measurement, surgical consultation, or antivenom-first planning plus compartment pressure threshold such as 30 mm Hg, persistence for 1 hour or diastolic-pressure delta criteria, and fasciotomy only after adequate antivenom with elevation/mannitol or failure to respond, pressure-immobilization caution for pit-viper bites because of arterial insufficiency or necrosis risk, and tetanus, wound-care, infection, or no-routine-antibiotic safety",
     },
     {
       name: "major_burn_time_critical_actions",

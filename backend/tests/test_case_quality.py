@@ -31704,7 +31704,7 @@ def test_quality_gate_requires_snakebite_transport_labs_antivenom_poison_and_res
         "Monitor coagulopathy with platelet count, PT PTT INR, fibrinogen, FDP, bleeding, and defibrination trends",
         "Do not give transfusion, platelets, fresh frozen plasma, or cryoprecipitate before adequate antivenom has been given unless directed by toxicology",
         "Monitor antivenom anaphylaxis, hypersensitivity reaction, serum sickness, infusion rate reaction, and premedication needs",
-        "Use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+        "Use compartment syndrome pressure measurement with 30 mm Hg intracompartmental pressure threshold, diastolic pressure delta criteria persisting for 1 hour, surgical consult, and fasciotomy only after adequate antivenom with elevation and mannitol or failure to respond to antivenom",
         "Avoid pressure immobilization for pit viper bites because tourniquet-like arterial insufficiency and necrosis can occur",
         "Provide tetanus and wound care; antibiotics only for infection and no prophylactic antibiotic routinely",
     ]
@@ -31723,7 +31723,7 @@ def test_quality_gate_requires_snakebite_transport_labs_antivenom_poison_and_res
                 "monitor coagulopathy with platelet count, PT PTT INR, fibrinogen, FDP, bleeding, and defibrination trends",
                 "avoid transfusion, platelets, fresh frozen plasma, or cryoprecipitate before adequate antivenom",
                 "monitor antivenom anaphylaxis, hypersensitivity reaction, serum sickness, infusion rate reaction, and premedication needs",
-                "use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+                "use compartment syndrome pressure measurement with 30 mm Hg intracompartmental pressure threshold, diastolic pressure delta criteria persisting for 1 hour, surgical consult, and fasciotomy only after adequate antivenom with elevation and mannitol or failure to respond to antivenom",
                 "avoid pressure immobilization for pit viper bites because tourniquet-like arterial insufficiency and necrosis can occur",
                 "tetanus and wound care with antibiotics only for infection and no prophylactic antibiotic routinely",
             ],
@@ -31779,7 +31779,7 @@ def test_quality_gate_rejects_snakebite_antivenom_planning_without_treatment_act
         "Monitor coagulopathy with platelet count, PT PTT INR, fibrinogen, FDP, bleeding, and defibrination trends",
         "Do not give transfusion, platelets, fresh frozen plasma, or cryoprecipitate before adequate antivenom has been given unless directed by toxicology",
         "Monitor antivenom anaphylaxis, hypersensitivity reaction, serum sickness, infusion rate reaction, and premedication needs",
-        "Use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+        "Use compartment syndrome pressure measurement with 30 mm Hg intracompartmental pressure threshold, diastolic pressure delta criteria persisting for 1 hour, surgical consult, and fasciotomy only after adequate antivenom with elevation and mannitol or failure to respond to antivenom",
         "Avoid pressure immobilization for pit viper bites because tourniquet-like arterial insufficiency and necrosis can occur",
         "Provide tetanus and wound care; antibiotics only for infection and no prophylactic antibiotic routinely",
     ]
@@ -31803,7 +31803,7 @@ def test_quality_gate_rejects_snakebite_antivenom_planning_without_treatment_act
                 "monitor coagulopathy with platelet count, PT PTT INR, fibrinogen, FDP, bleeding, and defibrination trends",
                 "avoid transfusion, platelets, fresh frozen plasma, or cryoprecipitate before adequate antivenom",
                 "monitor antivenom anaphylaxis, hypersensitivity reaction, serum sickness, infusion rate reaction, and premedication needs",
-                "use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+                "use compartment syndrome pressure measurement with 30 mm Hg intracompartmental pressure threshold, diastolic pressure delta criteria persisting for 1 hour, surgical consult, and fasciotomy only after adequate antivenom with elevation and mannitol or failure to respond to antivenom",
                 "avoid pressure immobilization for pit viper bites because tourniquet-like arterial insufficiency and necrosis can occur",
                 "tetanus and wound care with antibiotics only for infection and no prophylactic antibiotic routinely",
             ],
@@ -31858,7 +31858,7 @@ def test_quality_gate_requires_snakebite_renal_labs_and_antivenom_control_planni
         "Monitor coagulopathy with platelet count, PT PTT INR, fibrinogen, FDP, bleeding, and defibrination trends",
         "Do not give transfusion, platelets, fresh frozen plasma, or cryoprecipitate before adequate antivenom has been given unless directed by toxicology",
         "Monitor antivenom anaphylaxis, hypersensitivity reaction, serum sickness, infusion rate reaction, and premedication needs",
-        "Use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+        "Use compartment syndrome pressure measurement with 30 mm Hg intracompartmental pressure threshold, diastolic pressure delta criteria persisting for 1 hour, surgical consult, and fasciotomy only after adequate antivenom with elevation and mannitol or failure to respond to antivenom",
         "Avoid pressure immobilization for pit viper bites because tourniquet-like arterial insufficiency and necrosis can occur",
         "Provide tetanus and wound care; antibiotics only for infection and no prophylactic antibiotic routinely",
     ]
@@ -31881,7 +31881,7 @@ def test_quality_gate_requires_snakebite_renal_labs_and_antivenom_control_planni
                 "monitor coagulopathy with platelet count, PT PTT INR, fibrinogen, FDP, bleeding, and defibrination trends",
                 "avoid transfusion, platelets, fresh frozen plasma, or cryoprecipitate before adequate antivenom",
                 "monitor antivenom anaphylaxis, hypersensitivity reaction, serum sickness, infusion rate reaction, and premedication needs",
-                "use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+                "use compartment syndrome pressure measurement with 30 mm Hg intracompartmental pressure threshold, diastolic pressure delta criteria persisting for 1 hour, surgical consult, and fasciotomy only after adequate antivenom with elevation and mannitol or failure to respond to antivenom",
                 "avoid pressure immobilization for pit viper bites because tourniquet-like arterial insufficiency and necrosis can occur",
                 "tetanus and wound care with antibiotics only for infection and no prophylactic antibiotic routinely",
             ],
@@ -31961,6 +31961,88 @@ def test_quality_gate_requires_snakebite_harmful_first_aid_observation_coagulopa
     assert any(
         "snakebite envenomation safety checks must include avoidance of harmful first aid"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_snakebite_fasciotomy_pressure_threshold_delta_and_antivenom_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Rattlesnake snakebite envenomation"
+    case["patient_demographics"] = {
+        "age": 34,
+        "sex": "female",
+        "weight_kg": 63,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Progressive leg swelling after rattlesnake bite"
+    case["history_of_present_illness"] = (
+        "Hiker bitten by rattlesnake two hours ago has progressive swelling, "
+        "ecchymosis, paresthesias, nausea, thrombocytopenia, and mild dyspnea "
+        "concerning for pit viper envenomation."
+    )
+    case["key_teaching_points"] = [
+        "Snakebite envenomation can progress with swelling, coagulopathy, thrombocytopenia, and respiratory or neurologic toxicity",
+        "Early antivenom planning and serial swelling exam with coagulation labs are central when envenomation progresses",
+        "Poison center or toxicology consultation should guide antivenom and escalation decisions",
+    ]
+    case["clinical_red_flags"] = [
+        "Progressive swelling, ecchymosis, coagulopathy, thrombocytopenia, or bleeding",
+        "Hypotension, dyspnea, respiratory paralysis, paresthesias, necrosis, or systemic symptoms",
+    ]
+    case["time_critical_actions"] = [
+        "Arrange rapid transport; remove rings, watches, and constricting items, wrap loosely, and immobilize the limb at heart level",
+        "Mark swelling every 15 to 30 minutes, repeat exam, edema and circumference checks, CBC, platelet count, PT PTT INR, fibrinogen, FDP, and coagulation labs serially",
+        "Check urinalysis, electrolytes, BUN, creatinine, and renal labs",
+        "Start antivenom CroFab or Anavip for initial control, repeat dose, additional dose, and maintenance when progressive envenomation is present",
+        "Consult poison center and toxicologist and arrange transfer or ICU if severe",
+        "Support airway, oxygen, ventilation, respiratory status, and neurologic neurotoxicity monitoring",
+        "Establish IV access and treat hypotension or shock with fluids and vasopressor support if needed",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid harmful first aid including tourniquet, incision, suction, ice, and electric shock",
+        "Observe at least 8 hours with serial monitoring and longer disposition if envenomation findings are present",
+        "Monitor coagulopathy with platelet count, PT PTT INR, fibrinogen, FDP, bleeding, and defibrination trends",
+        "Do not give transfusion, platelets, fresh frozen plasma, or cryoprecipitate before adequate antivenom has been given unless directed by toxicology",
+        "Monitor antivenom anaphylaxis, hypersensitivity reaction, serum sickness, infusion rate reaction, and premedication needs",
+        "Use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+        "Avoid pressure immobilization for pit viper bites because tourniquet-like arterial insufficiency and necrosis can occur",
+        "Provide tetanus and wound care; antibiotics only for infection and no prophylactic antibiotic routinely",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Snakebites",
+            "organization": "Merck Manual Professional Edition",
+            "url": "https://www.merckmanuals.com/professional/injuries-poisoning/bites-and-stings/snakebites",
+            "supports": [
+                "snakebite envenomation diagnosis and risk stratification",
+                "pit viper envenomation can progress with swelling, ecchymosis, paresthesias, thrombocytopenia, dyspnea, coagulopathy, bleeding, hypotension, respiratory paralysis, necrosis, or systemic symptoms",
+                "arrange rapid transport, remove rings watches and constricting items, wrap loosely, and immobilize the limb at heart level",
+                "mark swelling every 15 to 30 minutes, repeat exam, edema and circumference checks, CBC, platelet count, PT PTT INR, fibrinogen, FDP, and coagulation labs serially",
+                "urinalysis, electrolytes, BUN, creatinine, and renal labs",
+                "start antivenom CroFab or Anavip for initial control, repeat dose, additional dose, and maintenance when progressive envenomation is present",
+                "consult poison center and toxicologist and arrange transfer or ICU if severe",
+                "support airway, oxygen, ventilation, respiratory status, and neurologic neurotoxicity monitoring",
+                "IV access and hypotension or shock treatment with fluids and vasopressor support",
+                "avoid harmful first aid including tourniquet, incision, suction, ice, and electric shock",
+                "observe at least 8 hours with serial monitoring and longer disposition when envenomation findings are present",
+                "monitor coagulopathy with platelet count, PT PTT INR, fibrinogen, FDP, bleeding, and defibrination trends",
+                "avoid transfusion, platelets, fresh frozen plasma, or cryoprecipitate before adequate antivenom",
+                "monitor antivenom anaphylaxis, hypersensitivity reaction, serum sickness, infusion rate reaction, and premedication needs",
+                "use compartment syndrome pressure measurement, surgical consult, and antivenom first before fasciotomy decisions",
+                "avoid pressure immobilization for pit viper bites because tourniquet-like arterial insufficiency and necrosis can occur",
+                "tetanus and wound care with antibiotics only for infection and no prophylactic antibiotic routinely",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "compartment pressure threshold" in issue
+        and "30 mm Hg" in issue
+        and "diastolic-pressure delta" in issue
+        and "fasciotomy only after adequate antivenom" in issue
         for issue in report.critical_issues
     )
 
