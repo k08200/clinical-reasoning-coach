@@ -13879,6 +13879,11 @@ LITHIUM_TOXICITY_ECTR_CESSATION_SAFETY_TERMS = (
     "stop dialysis",
     "stop ectr",
 )
+LITHIUM_TOXICITY_ECTR_MODALITY_SAFETY_TERMS = (
+    "after initial treatment",
+    "continuous rrt",
+    "intermittent hemodialysis",
+)
 LITHIUM_TOXICITY_INTERACTING_DRUG_SAFETY_TERMS = (
     "ace inhibitor",
     "arb",
@@ -22030,6 +22035,8 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "expected time to level <1.0 greater than 36 hours review, "
                 "post-ECTR or rebound serial-level monitoring for 12 hours plus "
                 "level <1.0 or clinical-improvement stopping criteria, "
+                "intermittent hemodialysis as preferred ECTR plus continuous "
+                "RRT alternative and after-initial-treatment modality review, "
                 "precipitant review for NSAID, ACE-inhibitor, ARB, diuretic, "
                 "or thiazide plus dehydration, sodium-depletion, low-sodium, "
                 "volume-depletion, or renal-insufficiency risk plus nephrogenic-"
@@ -35268,6 +35275,10 @@ def _has_lithium_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in LITHIUM_TOXICITY_ECTR_CESSATION_SAFETY_TERMS
     )
+    has_ectr_modality_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in LITHIUM_TOXICITY_ECTR_MODALITY_SAFETY_TERMS
+    )
     has_interacting_drug_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in LITHIUM_TOXICITY_INTERACTING_DRUG_SAFETY_TERMS
@@ -35300,6 +35311,7 @@ def _has_lithium_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
         and has_expected_time_safety
         and has_post_ectr_monitoring_safety
         and has_ectr_cessation_safety
+        and has_ectr_modality_safety
         and has_interacting_drug_safety
         and has_volume_sodium_safety
         and has_ndi_safety

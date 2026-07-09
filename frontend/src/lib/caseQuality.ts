@@ -15464,6 +15464,12 @@ const LITHIUM_TOXICITY_ECTR_CESSATION_SAFETY_TERMS = [
   "stop ectr",
 ];
 
+const LITHIUM_TOXICITY_ECTR_MODALITY_SAFETY_TERMS = [
+  "after initial treatment",
+  "continuous rrt",
+  "intermittent hemodialysis",
+];
+
 const LITHIUM_TOXICITY_INTERACTING_DRUG_SAFETY_TERMS = [
   "ace inhibitor",
   "arb",
@@ -30239,6 +30245,9 @@ function hasLithiumToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   const hasEctrCessationSafety = LITHIUM_TOXICITY_ECTR_CESSATION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasEctrModalitySafety = LITHIUM_TOXICITY_ECTR_MODALITY_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasInteractingDrugSafety = LITHIUM_TOXICITY_INTERACTING_DRUG_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
@@ -30266,6 +30275,7 @@ function hasLithiumToxicityTreatmentSafetyCheck(checks: string[]): boolean {
     hasExpectedTimeSafety &&
     hasPostEctrMonitoringSafety &&
     hasEctrCessationSafety &&
+    hasEctrModalitySafety &&
     hasInteractingDrugSafety &&
     hasVolumeSodiumSafety &&
     hasNdiSafety &&
@@ -35030,7 +35040,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasLithiumToxicityTreatmentSafetyCheck,
       issue:
-        "lithium toxicity safety checks must include dialysis indication or ECTR criteria review plus impaired kidney function with Li >4 or renal failure, level >5 review, decreased level of consciousness, seizure, dysrhythmia, or confusion criteria, expected time to level <1.0 greater than 36 hours review, post-ECTR or rebound serial-level monitoring for 12 hours plus level <1.0 or clinical-improvement stopping criteria, precipitant review for NSAID, ACE-inhibitor, ARB, diuretic, or thiazide plus dehydration, sodium-depletion, low-sodium, volume-depletion, or renal-insufficiency risk plus nephrogenic-diabetes-insipidus risk, and clinical-status disposition because signs may not conform to lithium level plus admit or ICU criteria and asymptomatic with less-than-1.5 discharge criteria",
+        "lithium toxicity safety checks must include dialysis indication or ECTR criteria review plus impaired kidney function with Li >4 or renal failure, level >5 review, decreased level of consciousness, seizure, dysrhythmia, or confusion criteria, expected time to level <1.0 greater than 36 hours review, post-ECTR or rebound serial-level monitoring for 12 hours plus level <1.0 or clinical-improvement stopping criteria, intermittent hemodialysis as preferred ECTR plus continuous RRT alternative and after-initial-treatment modality review, precipitant review for NSAID, ACE-inhibitor, ARB, diuretic, or thiazide plus dehydration, sodium-depletion, low-sodium, volume-depletion, or renal-insufficiency risk plus nephrogenic-diabetes-insipidus risk, and clinical-status disposition because signs may not conform to lithium level plus admit or ICU criteria and asymptomatic with less-than-1.5 discharge criteria",
     },
     {
       name: "salicylate_toxicity_time_critical_actions",

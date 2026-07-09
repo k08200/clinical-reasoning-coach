@@ -30057,7 +30057,7 @@ def test_quality_gate_requires_lithium_serial_levels_renal_fluids_decontaminatio
     ]
     case["contraindication_checks"] = [
         "Review dialysis indication and ECTR criteria: impaired kidney function with Li > 4, level > 5, decreased level of consciousness, seizure, dysrhythmia, confusion, or expected time to level <1.0 over 36 hours",
-        "Plan rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent",
+        "Plan rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent; use intermittent hemodialysis as preferred ECTR, continuous RRT if intermittent hemodialysis is unavailable, and either continuous RRT or intermittent hemodialysis after initial treatment",
         "Review precipitants including NSAID, ACE inhibitor, ARB, diuretic, thiazide, dehydration, sodium depletion, low sodium diet, renal insufficiency, and nephrogenic diabetes insipidus",
         "Disposition by clinical status because signs do not conform to lithium level: admit symptomatic despite normal level, ICU for moderate or severe symptoms, and discharge only when asymptomatic with level less than 1.5",
     ]
@@ -30146,7 +30146,7 @@ def test_quality_gate_requires_lithium_specific_ectr_not_generic_dialysis_or_nep
     ]
     case["contraindication_checks"] = [
         "Review dialysis indication and ECTR criteria: impaired kidney function with Li > 4, level > 5, decreased level of consciousness, seizure, dysrhythmia, confusion, or expected time to level <1.0 over 36 hours",
-        "Plan rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent",
+        "Plan rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent; use intermittent hemodialysis as preferred ECTR, continuous RRT if intermittent hemodialysis is unavailable, and either continuous RRT or intermittent hemodialysis after initial treatment",
         "Review precipitants including NSAID, ACE inhibitor, ARB, diuretic, thiazide, dehydration, sodium depletion, low sodium diet, renal insufficiency, and nephrogenic diabetes insipidus",
         "Disposition by clinical status because signs do not conform to lithium level: admit symptomatic despite normal level, ICU for moderate or severe symptoms, and discharge only when asymptomatic with level less than 1.5",
     ]
@@ -30236,7 +30236,7 @@ def test_quality_gate_requires_lithium_wbi_and_charcoal_limitation_not_charcoal_
     ]
     case["contraindication_checks"] = [
         "Review dialysis indication and ECTR criteria: impaired kidney function with Li > 4, level > 5, decreased level of consciousness, seizure, dysrhythmia, confusion, or expected time to level <1.0 over 36 hours",
-        "Plan rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent",
+        "Plan rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent; use intermittent hemodialysis as preferred ECTR, continuous RRT if intermittent hemodialysis is unavailable, and either continuous RRT or intermittent hemodialysis after initial treatment",
         "Review precipitants including NSAID, ACE inhibitor, ARB, diuretic, thiazide, dehydration, sodium depletion, low sodium diet, renal insufficiency, and nephrogenic diabetes insipidus",
         "Disposition by clinical status because signs do not conform to lithium level: admit symptomatic despite normal level, ICU for moderate or severe symptoms, and discharge only when asymptomatic with level less than 1.5",
     ]
@@ -30325,7 +30325,7 @@ def test_quality_gate_requires_lithium_renal_electrolyte_cardiac_and_urine_monit
     ]
     case["contraindication_checks"] = [
         "Review dialysis indication and ECTR criteria: impaired kidney function with Li > 4, level > 5, decreased level of consciousness, seizure, dysrhythmia, confusion, or expected time to level <1.0 over 36 hours",
-        "Plan rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent",
+        "Plan rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent; use intermittent hemodialysis as preferred ECTR, continuous RRT if intermittent hemodialysis is unavailable, and either continuous RRT or intermittent hemodialysis after initial treatment",
         "Review precipitants including NSAID, ACE inhibitor, ARB, diuretic, thiazide, dehydration, sodium depletion, low sodium diet, renal insufficiency, and nephrogenic diabetes insipidus",
         "Disposition by clinical status because signs do not conform to lithium level: admit symptomatic despite normal level, ICU for moderate or severe symptoms, and discharge only when asymptomatic with level less than 1.5",
     ]
@@ -30533,6 +30533,95 @@ def test_quality_gate_requires_lithium_specific_ectr_threshold_rebound_precipita
     assert not report.passed
     assert any(
         "lithium toxicity safety checks must include dialysis indication" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_lithium_ectr_modality_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Lithium poisoning with neurologic toxicity"
+    case["patient_demographics"] = {
+        "age": 63,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Confusion and ataxia with elevated lithium concentration"
+    case["history_of_present_illness"] = (
+        "Patient taking lithium carbonate presents with vomiting, dehydration, "
+        "confusion, ataxia, tremor, hyperreflexia, acute kidney injury, renal "
+        "failure, and elevated lithium concentration."
+    )
+    case["past_medical_history"] = "Bipolar disorder treated with lithium; recent NSAID and ACE inhibitor use"
+    case["physical_exam"] = {
+        "vitals": {"bp": "94/56", "hr": 50, "rr": 18, "temp_c": 37.0, "spo2": 98},
+        "general": "Confused and dehydrated",
+        "cardiovascular": "Bradycardia with possible dysrhythmia",
+        "pulmonary": "No respiratory distress",
+        "abdomen": "Vomiting",
+        "neuro": "Coarse tremor, ataxia, hyperreflexia, and confusion",
+    }
+    case["initial_labs"] = {
+        "lithium": "4.6 mEq/L",
+        "creatinine": "3.1 mg/dL",
+        "bun": "58 mg/dL",
+        "sodium": "128 mEq/L",
+        "ecg": "Sinus bradycardia with T-wave flattening",
+    }
+    case["key_teaching_points"] = [
+        "Lithium toxicity signs can be more severe in chronic exposure and may not match the serum level",
+        "EXTRIP recommends ECTR for impaired kidney function with Li above 4 or severe neurologic or cardiac toxicity",
+        "After ECTR interruption, serial lithium measurements over 12 hours guide subsequent ECTR sessions",
+    ]
+    case["clinical_red_flags"] = [
+        "Confusion, ataxia, tremor, hyperreflexia, seizure, decreased level of consciousness, dysrhythmia, or coma",
+        "AKI, renal failure, dehydration, sodium depletion, bradycardia, or elevated lithium concentration",
+    ]
+    case["time_critical_actions"] = [
+        "Stop lithium and give isotonic saline or normal saline IV fluids for dehydration and volume depletion",
+        "Trend serial serum lithium level or lithium concentration every 6 hours with repeat level monitoring",
+        "Check renal function, creatinine, BUN, electrolytes, sodium, ECG, cardiac monitoring, and urine output",
+        "Use whole bowel irrigation for sustained-release or massive ingestion and note activated charcoal is not effective unless co-ingestant exposure is possible",
+        "Call poison center toxicologist and nephrology for hemodialysis, ECTR, or extracorporeal escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Review dialysis indication and ECTR criteria: impaired kidney function with Li > 4, level > 5, decreased level of consciousness, seizure, dysrhythmia, confusion, or expected time to level <1.0 over 36 hours",
+        "Plan rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent",
+        "Review NSAID, ACE inhibitor, ARB, diuretic, and thiazide precipitants plus dehydration, sodium depletion, low sodium, volume depletion, renal insufficiency, and nephrogenic diabetes insipidus risk",
+        "Disposition by clinical status because signs do not conform to lithium level; admit or ICU for moderate to severe toxicity and discharge only if asymptomatic with lithium < 1.5",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Lithium",
+            "organization": "EXTRIP Workgroup",
+            "url": "https://www.extrip-workgroup.org/lithium",
+            "supports": [
+                "lithium poisoning with neurologic toxicity diagnosis and risk stratification",
+                "lithium toxicity signs can be more severe in chronic exposure and may not match the serum level",
+                "EXTRIP recommends ECTR for impaired kidney function with Li above 4 or severe neurologic or cardiac toxicity",
+                "after ECTR interruption, serial lithium measurements over 12 hours guide subsequent ECTR sessions",
+                "confusion, ataxia, tremor, hyperreflexia, seizure, decreased level of consciousness, dysrhythmia, or coma as red flags",
+                "AKI, renal failure, dehydration, sodium depletion, bradycardia, or elevated lithium concentration as severity markers",
+                "stop lithium and isotonic saline or normal saline IV fluids for dehydration and volume depletion",
+                "serial serum lithium level or lithium concentration every 6 hours with repeat level monitoring",
+                "renal function, creatinine, BUN, electrolytes, sodium, ECG, cardiac monitoring, and urine output assessment",
+                "whole bowel irrigation for sustained-release or massive ingestion and activated charcoal is not effective unless co-ingestant exposure is possible",
+                "poison center toxicologist and nephrology for hemodialysis, ECTR, or extracorporeal escalation",
+                "dialysis indication and ECTR criteria: impaired kidney function with Li > 4, level > 5, decreased level of consciousness, seizure, dysrhythmia, confusion, or expected time to level <1.0 over 36 hours",
+                "rebound monitoring after ECTR with serial level or repeat level over 12 hours and stop dialysis when level < 1.0 or clinical improvement is apparent",
+                "NSAID, ACE inhibitor, ARB, diuretic, and thiazide precipitants plus dehydration, sodium depletion, low sodium, volume depletion, renal insufficiency, and nephrogenic diabetes insipidus risk",
+                "clinical status because signs do not conform to lithium level; admit or ICU for moderate to severe toxicity and discharge only if asymptomatic with lithium < 1.5",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "intermittent hemodialysis as preferred ECTR" in issue
+        and "continuous RRT alternative" in issue
+        and "after-initial-treatment modality review" in issue
         for issue in report.critical_issues
     )
 
