@@ -14143,14 +14143,35 @@ CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS = (
     "arrhythmia",
     "cardiac",
     "delayed neurologic",
-    "ecg",
     "lactate",
     "metabolic acidosis",
     "myocardial",
     "neurocognitive",
-    "troponin",
     "심근",
     "신경",
+)
+CARBON_MONOXIDE_CARDIAC_ECG_SAFETY_TERMS = (
+    "ecg",
+    "ekg",
+    "electrocardiogram",
+    "심전도",
+)
+CARBON_MONOXIDE_CARDIAC_MARKER_SAFETY_TERMS = (
+    "cardiac enzyme",
+    "cardiac enzymes",
+    "troponin",
+)
+CARBON_MONOXIDE_DELAYED_NEURO_WARNING_SAFETY_TERMS = (
+    "delayed neurologic",
+    "delayed neurological",
+)
+CARBON_MONOXIDE_DELAYED_NEURO_FOLLOWUP_SAFETY_TERMS = (
+    "2 week",
+    "2-week",
+    "repeat medical and neurological exam",
+    "repeat medical and neurologic exam",
+    "two week",
+    "two-week",
 )
 CARBON_MONOXIDE_CYANIDE_SMOKE_SAFETY_TERMS = (
     "burn",
@@ -22123,7 +22144,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "history, pregnancy testing or fetal-risk review for women of "
                 "childbearing age, cardiac, ECG, troponin, lactate, metabolic "
                 "acidosis, myocardial, delayed neurologic, or neurocognitive "
-                "complication monitoring, and smoke inhalation, "
+                "complication monitoring plus ECG/EKG, troponin or cardiac-"
+                "enzyme testing, and delayed-neurologic-discharge warning with "
+                "2-week medical/neurologic follow-up, and smoke inhalation, "
                 "cyanide, hydroxocobalamin, burn, fire, or lactate co-toxicity "
                 "assessment"
             ),
@@ -35561,6 +35584,22 @@ def _has_carbon_monoxide_poisoning_treatment_safety_check(checks: list[Any]) -> 
         _contains_safety_term(normalized_checks, term)
         for term in CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS
     )
+    has_cardiac_ecg_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARBON_MONOXIDE_CARDIAC_ECG_SAFETY_TERMS
+    )
+    has_cardiac_marker_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARBON_MONOXIDE_CARDIAC_MARKER_SAFETY_TERMS
+    )
+    has_delayed_neuro_warning_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARBON_MONOXIDE_DELAYED_NEURO_WARNING_SAFETY_TERMS
+    )
+    has_delayed_neuro_followup_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARBON_MONOXIDE_DELAYED_NEURO_FOLLOWUP_SAFETY_TERMS
+    )
     has_cyanide_smoke_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in CARBON_MONOXIDE_CYANIDE_SMOKE_SAFETY_TERMS
@@ -35571,6 +35610,10 @@ def _has_carbon_monoxide_poisoning_treatment_safety_check(checks: list[Any]) -> 
         and has_cohb_limitation_safety
         and has_pregnancy_test_safety
         and has_complication_safety
+        and has_cardiac_ecg_safety
+        and has_cardiac_marker_safety
+        and has_delayed_neuro_warning_safety
+        and has_delayed_neuro_followup_safety
         and has_cyanide_smoke_safety
     )
 

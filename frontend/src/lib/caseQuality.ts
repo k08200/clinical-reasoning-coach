@@ -15768,14 +15768,39 @@ const CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS = [
   "arrhythmia",
   "cardiac",
   "delayed neurologic",
-  "ecg",
   "lactate",
   "metabolic acidosis",
   "myocardial",
   "neurocognitive",
-  "troponin",
   "심근",
   "신경",
+];
+
+const CARBON_MONOXIDE_CARDIAC_ECG_SAFETY_TERMS = [
+  "ecg",
+  "ekg",
+  "electrocardiogram",
+  "심전도",
+];
+
+const CARBON_MONOXIDE_CARDIAC_MARKER_SAFETY_TERMS = [
+  "cardiac enzyme",
+  "cardiac enzymes",
+  "troponin",
+];
+
+const CARBON_MONOXIDE_DELAYED_NEURO_WARNING_SAFETY_TERMS = [
+  "delayed neurologic",
+  "delayed neurological",
+];
+
+const CARBON_MONOXIDE_DELAYED_NEURO_FOLLOWUP_SAFETY_TERMS = [
+  "2 week",
+  "2-week",
+  "repeat medical and neurological exam",
+  "repeat medical and neurologic exam",
+  "two week",
+  "two-week",
 ];
 
 const CARBON_MONOXIDE_CYANIDE_SMOKE_SAFETY_TERMS = [
@@ -30483,6 +30508,20 @@ function hasCarbonMonoxidePoisoningTreatmentSafetyCheck(checks: string[]): boole
   const hasComplicationSafety = CARBON_MONOXIDE_COMPLICATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasCardiacEcgSafety = CARBON_MONOXIDE_CARDIAC_ECG_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCardiacMarkerSafety = CARBON_MONOXIDE_CARDIAC_MARKER_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDelayedNeuroWarningSafety =
+    CARBON_MONOXIDE_DELAYED_NEURO_WARNING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasDelayedNeuroFollowupSafety =
+    CARBON_MONOXIDE_DELAYED_NEURO_FOLLOWUP_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   const hasCyanideSmokeSafety = CARBON_MONOXIDE_CYANIDE_SMOKE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -30492,6 +30531,10 @@ function hasCarbonMonoxidePoisoningTreatmentSafetyCheck(checks: string[]): boole
     hasCohbLimitationSafety &&
     hasPregnancyTestSafety &&
     hasComplicationSafety &&
+    hasCardiacEcgSafety &&
+    hasCardiacMarkerSafety &&
+    hasDelayedNeuroWarningSafety &&
+    hasDelayedNeuroFollowupSafety &&
     hasCyanideSmokeSafety
   );
 }
@@ -35097,7 +35140,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasCarbonMonoxidePoisoningTreatmentSafetyCheck,
       issue:
-        "carbon monoxide poisoning safety checks must include pulse oximetry or SpO2 false-normal limitation review, hyperbaric oxygen criteria review for pregnancy, neurologic symptoms, loss of consciousness, syncope, acidosis, cardiac ischemia, or high carboxyhemoglobin, COHb severity-correlation or elapsed-time limitation review using clinical symptoms and exposure history, pregnancy testing or fetal-risk review for women of childbearing age, cardiac, ECG, troponin, lactate, metabolic acidosis, myocardial, delayed neurologic, or neurocognitive complication monitoring, and smoke inhalation, cyanide, hydroxocobalamin, burn, fire, or lactate co-toxicity assessment",
+        "carbon monoxide poisoning safety checks must include pulse oximetry or SpO2 false-normal limitation review, hyperbaric oxygen criteria review for pregnancy, neurologic symptoms, loss of consciousness, syncope, acidosis, cardiac ischemia, or high carboxyhemoglobin, COHb severity-correlation or elapsed-time limitation review using clinical symptoms and exposure history, pregnancy testing or fetal-risk review for women of childbearing age, cardiac, ECG, troponin, lactate, metabolic acidosis, myocardial, delayed neurologic, or neurocognitive complication monitoring plus ECG/EKG, troponin or cardiac-enzyme testing, and delayed-neurologic-discharge warning with 2-week medical/neurologic follow-up, and smoke inhalation, cyanide, hydroxocobalamin, burn, fire, or lactate co-toxicity assessment",
     },
     {
       name: "cyanide_poisoning_time_critical_actions",
