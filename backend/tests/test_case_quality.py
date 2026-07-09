@@ -29027,7 +29027,7 @@ def test_quality_gate_requires_theophylline_level_labs_abc_charcoal_seizure_and_
         "Call poison center toxicologist and nephrology for hemodialysis, dialysis, ECTR, or hemoperfusion escalation",
     ]
     case["contraindication_checks"] = [
-        "Review ECTR and dialysis indications: acute exposure greater than 100 mcg/mL, chronic exposure greater than 60 mcg/mL, age greater than 60 with chronic level greater than 50 mcg/mL, seizure, shock, rising level, or clinical deterioration",
+        "Review ECTR and dialysis indications: acute exposure greater than 100 mcg/mL, chronic exposure greater than 60 mcg/mL, age greater than 60 or infant with chronic level greater than 50 mcg/mL, seizure, life-threatening dysrhythmia, shock, rising theophylline level, clinical deterioration, GI decontamination cannot be administered, intermittent hemodialysis preferred with hemoperfusion or CRRT alternatives, clinical improvement or theophylline level <15 mcg/mL stopping criteria, and MDAC during ECTR",
         "Manage dysrhythmia and life-threatening dysrhythmia with ACLS; use phenylephrine or norepinephrine for shock and only consider beta antagonist with toxicologist consultation",
         "Monitor hypokalemia, potassium repletion, hyperglycemia, hypercalcemia, metabolic acidosis, CK, and rhabdomyolysis",
         "Check activated charcoal contraindication and airway safety; continue MDAC during ECTR; note emesis not recommended, gastric lavage not recommended, and whole bowel irrigation is controversial",
@@ -29120,7 +29120,7 @@ def test_quality_gate_requires_theophylline_specific_ectr_not_generic_dialysis_o
         "Call poison center toxicologist and nephrology for dialysis escalation",
     ]
     case["contraindication_checks"] = [
-        "Review ECTR and dialysis indications: acute exposure greater than 100 mcg/mL, chronic exposure greater than 60 mcg/mL, age greater than 60 with chronic level greater than 50 mcg/mL, seizure, shock, rising level, or clinical deterioration",
+        "Review ECTR and dialysis indications: acute exposure greater than 100 mcg/mL, chronic exposure greater than 60 mcg/mL, age greater than 60 or infant with chronic level greater than 50 mcg/mL, seizure, life-threatening dysrhythmia, shock, rising theophylline level, clinical deterioration, GI decontamination cannot be administered, intermittent hemodialysis preferred with hemoperfusion or CRRT alternatives, clinical improvement or theophylline level <15 mcg/mL stopping criteria, and MDAC during ECTR",
         "Manage dysrhythmia and life-threatening dysrhythmia with ACLS; use phenylephrine or norepinephrine for shock and only consider beta antagonist with toxicologist consultation",
         "Monitor hypokalemia, potassium repletion, hyperglycemia, hypercalcemia, metabolic acidosis, CK, and rhabdomyolysis",
         "Check activated charcoal contraindication and airway safety; continue MDAC during ECTR; note emesis not recommended, gastric lavage not recommended, and whole bowel irrigation is controversial",
@@ -29210,7 +29210,7 @@ def test_quality_gate_requires_theophylline_ecg_and_metabolic_labs_not_coingesta
         "Call poison center toxicologist and nephrology for hemodialysis, dialysis, ECTR, or hemoperfusion escalation",
     ]
     case["contraindication_checks"] = [
-        "Review ECTR and dialysis indications: acute exposure greater than 100 mcg/mL, chronic exposure greater than 60 mcg/mL, age greater than 60 with chronic level greater than 50 mcg/mL, seizure, shock, rising level, or clinical deterioration",
+        "Review ECTR and dialysis indications: acute exposure greater than 100 mcg/mL, chronic exposure greater than 60 mcg/mL, age greater than 60 or infant with chronic level greater than 50 mcg/mL, seizure, life-threatening dysrhythmia, shock, rising theophylline level, clinical deterioration, GI decontamination cannot be administered, intermittent hemodialysis preferred with hemoperfusion or CRRT alternatives, clinical improvement or theophylline level <15 mcg/mL stopping criteria, and MDAC during ECTR",
         "Manage dysrhythmia and life-threatening dysrhythmia with ACLS; use phenylephrine or norepinephrine for shock and only consider beta antagonist with toxicologist consultation",
         "Monitor hypokalemia, potassium repletion, hyperglycemia, hypercalcemia, metabolic acidosis, CK, and rhabdomyolysis",
         "Check activated charcoal contraindication and airway safety; continue MDAC during ECTR; note emesis not recommended, gastric lavage not recommended, and whole bowel irrigation is controversial",
@@ -29336,6 +29336,100 @@ def test_quality_gate_requires_theophylline_dialysis_dysrhythmia_electrolyte_dec
     assert any(
         "theophylline toxicity safety checks must include dialysis or ECTR indication"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_theophylline_extrip_decon_stopping_and_mdac_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Theophylline poisoning with shock"
+    case["patient_demographics"] = {
+        "age": 67,
+        "sex": "male",
+        "weight_kg": 70,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Shock and seizures after aminophylline overdose"
+    case["history_of_present_illness"] = (
+        "Patient with COPD presents after aminophylline and theophylline overdose "
+        "with vomiting, tachyarrhythmia, shock, hypokalemia, hyperglycemia, "
+        "metabolic acidosis, and recurrent seizure."
+    )
+    case["past_medical_history"] = "COPD on theophylline; recent erythromycin and smoking cessation"
+    case["physical_exam"] = {
+        "vitals": {"bp": "78/42", "hr": 182, "rr": 32, "temp_c": 38.4, "spo2": 92},
+        "general": "Critically ill and vomiting",
+        "cardiovascular": "Unstable tachyarrhythmia and shock",
+        "pulmonary": "Tachypnea with acute lung injury concern",
+        "abdomen": "Repeated vomiting",
+        "neuro": "Agitated, tremulous, and postictal",
+        "other": "Possible chronic toxicity with reduced clearance",
+    }
+    case["initial_labs"] = {
+        "theophylline": "108 mcg/mL",
+        "potassium": "2.5 mEq/L",
+        "glucose": "268 mg/dL",
+        "ph": "7.19",
+        "ck": "620 U/L",
+        "ecg": "Wide-complex tachyarrhythmia",
+    }
+    case["key_teaching_points"] = [
+        "Theophylline toxicity can cause fatal seizures, life-threatening dysrhythmias, shock, and metabolic derangements",
+        "Multiple-dose activated charcoal increases theophylline clearance when safe to administer",
+        "Hemodialysis or ECTR is indicated for severe theophylline poisoning with high level, seizure, dysrhythmia, shock, or deterioration",
+    ]
+    case["clinical_red_flags"] = [
+        "Seizure, life-threatening dysrhythmia, shock, cardiac arrest, clinical deterioration, or rising theophylline level",
+        "Hypokalemia, hyperglycemia, metabolic acidosis, hypercalcemia, rhabdomyolysis, vomiting, or acute lung injury",
+    ]
+    case["time_critical_actions"] = [
+        "Send serum theophylline level with ECG, glucose, CMP, potassium, calcium, CK, LFT, acetaminophen, salicylate, iron, and co-ingestant labs",
+        "Stabilize airway, breathing, and circulation with hemodynamic monitoring, intubation if needed, IV fluids, phenylephrine or norepinephrine vasopressor support",
+        "Give activated charcoal and multiple-dose activated charcoal or MDAC via nasogastric tube if airway is protected and no contraindication",
+        "Treat seizure with lorazepam, midazolam, or diazepam benzodiazepine and escalate to phenobarbital or propofol for refractory seizure",
+        "Call poison center toxicologist and nephrology for hemodialysis, dialysis, ECTR, or hemoperfusion escalation",
+    ]
+    case["contraindication_checks"] = [
+        "Review ECTR and dialysis indications: acute exposure greater than 100 mcg/mL, chronic exposure greater than 60 mcg/mL, age greater than 60 with chronic level greater than 50 mcg/mL, seizure, shock, rising level, or clinical deterioration",
+        "Manage dysrhythmia and life-threatening dysrhythmia with ACLS; use phenylephrine or norepinephrine for shock and only consider beta antagonist with toxicologist consultation",
+        "Monitor hypokalemia, potassium repletion, hyperglycemia, hypercalcemia, metabolic acidosis, CK, and rhabdomyolysis",
+        "Check activated charcoal contraindication and airway safety; continue MDAC during ECTR; note emesis not recommended, gastric lavage not recommended, and whole bowel irrigation is controversial",
+        "Review chronic toxicity interactions and clearance risks including cimetidine, erythromycin, fluoroquinolone, ciprofloxacin, smoking change, viral illness, CHF, and cirrhosis",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Theophylline",
+            "organization": "EXTRIP Workgroup",
+            "url": "https://www.extrip-workgroup.org/theophylline",
+            "supports": [
+                "theophylline poisoning with shock diagnosis and risk stratification",
+                "aminophylline and theophylline overdose can cause vomiting, tachyarrhythmia, shock, hypokalemia, hyperglycemia, metabolic acidosis, and recurrent seizure",
+                "theophylline toxicity can cause fatal seizures, life-threatening dysrhythmias, shock, and metabolic derangements",
+                "multiple-dose activated charcoal increases theophylline clearance when safe to administer",
+                "hemodialysis or ECTR is indicated for severe theophylline poisoning with high level, seizure, dysrhythmia, shock, or deterioration",
+                "seizure, life-threatening dysrhythmia, shock, cardiac arrest, clinical deterioration, or rising theophylline level as red flags",
+                "hypokalemia, hyperglycemia, metabolic acidosis, hypercalcemia, rhabdomyolysis, vomiting, or acute lung injury as severity markers",
+                "serum theophylline level with ECG, glucose, CMP, potassium, calcium, CK, LFT, acetaminophen, salicylate, iron, and co-ingestant labs",
+                "airway, breathing, and circulation stabilization with hemodynamic monitoring, intubation if needed, IV fluids, phenylephrine or norepinephrine vasopressor support",
+                "activated charcoal and multiple-dose activated charcoal or MDAC via nasogastric tube if airway is protected and no contraindication",
+                "seizure treatment with lorazepam, midazolam, or diazepam benzodiazepine and phenobarbital or propofol for refractory seizure",
+                "poison center toxicologist and nephrology for hemodialysis, dialysis, ECTR, or hemoperfusion escalation",
+                "ECTR and dialysis indications: acute exposure greater than 100 mcg/mL, chronic exposure greater than 60 mcg/mL, age greater than 60 with chronic level greater than 50 mcg/mL, seizure, shock, rising level, or clinical deterioration",
+                "dysrhythmia and life-threatening dysrhythmia with ACLS; phenylephrine or norepinephrine for shock and beta antagonist only with toxicologist consultation",
+                "hypokalemia, potassium repletion, hyperglycemia, hypercalcemia, metabolic acidosis, CK, and rhabdomyolysis monitoring",
+                "activated charcoal contraindication and airway safety; MDAC during ECTR; emesis not recommended, gastric lavage not recommended, and whole bowel irrigation is controversial",
+                "chronic toxicity interactions and clearance risks including cimetidine, erythromycin, fluoroquinolone, ciprofloxacin, smoking change, viral illness, CHF, and cirrhosis",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "GI decontamination inability" in issue
+        and "theophylline level <15 stopping criteria" in issue
+        and "MDAC during ECTR" in issue
         for issue in report.critical_issues
     )
 

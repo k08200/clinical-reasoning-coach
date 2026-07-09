@@ -15013,18 +15013,44 @@ const THEOPHYLLINE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = [
   "hemoperfusion",
 ];
 
-const THEOPHYLLINE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS = [
+const THEOPHYLLINE_TOXICITY_ECTR_LEVEL_SAFETY_TERMS = [
   "acute exposure",
   "chronic exposure",
-  "clinical deterioration",
-  "ectr",
   "greater than 100",
   "greater than 50",
   "greater than 60",
-  "rising level",
+];
+
+const THEOPHYLLINE_TOXICITY_ECTR_SEVERE_FEATURE_SAFETY_TERMS = [
+  "life-threatening dysrhythmia",
   "seizure",
   "shock",
+];
+
+const THEOPHYLLINE_TOXICITY_ECTR_TREND_SAFETY_TERMS = [
+  "clinical deterioration",
+  "rising level",
   "theophylline level",
+];
+
+const THEOPHYLLINE_TOXICITY_ECTR_DECON_LIMIT_SAFETY_TERMS = [
+  "decontamination cannot",
+  "gi decontamination",
+  "gastrointestinal decontamination",
+];
+
+const THEOPHYLLINE_TOXICITY_ECTR_MODALITY_STOPPING_SAFETY_TERMS = [
+  "<15",
+  "clinical improvement",
+  "crrt",
+  "hemoperfusion",
+  "intermittent hemodialysis",
+];
+
+const THEOPHYLLINE_TOXICITY_ECTR_MDAC_SAFETY_TERMS = [
+  "during ectr",
+  "mdac",
+  "multiple-dose activated charcoal",
 ];
 
 const THEOPHYLLINE_TOXICITY_ARRHYTHMIA_SHOCK_SAFETY_TERMS = [
@@ -29869,10 +29895,27 @@ function hasTheophyllineToxicityTimeCriticalActions(actions: string[]): boolean 
 
 function hasTheophyllineToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasDialysisIndicationSafety =
-    THEOPHYLLINE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS.some((term) =>
+  const hasEctrLevelSafety = THEOPHYLLINE_TOXICITY_ECTR_LEVEL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEctrSevereFeatureSafety =
+    THEOPHYLLINE_TOXICITY_ECTR_SEVERE_FEATURE_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
+  const hasEctrTrendSafety = THEOPHYLLINE_TOXICITY_ECTR_TREND_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasEctrDeconLimitSafety =
+    THEOPHYLLINE_TOXICITY_ECTR_DECON_LIMIT_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasEctrModalityStoppingSafety =
+    THEOPHYLLINE_TOXICITY_ECTR_MODALITY_STOPPING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasEctrMdacSafety = THEOPHYLLINE_TOXICITY_ECTR_MDAC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasArrhythmiaShockSafety =
     THEOPHYLLINE_TOXICITY_ARRHYTHMIA_SHOCK_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
@@ -29889,7 +29932,12 @@ function hasTheophyllineToxicityTreatmentSafetyCheck(checks: string[]): boolean 
       containsSafetyTerm(normalizedChecks, term),
     );
   return (
-    hasDialysisIndicationSafety &&
+    hasEctrLevelSafety &&
+    hasEctrSevereFeatureSafety &&
+    hasEctrTrendSafety &&
+    hasEctrDeconLimitSafety &&
+    hasEctrModalityStoppingSafety &&
+    hasEctrMdacSafety &&
     hasArrhythmiaShockSafety &&
     hasElectrolyteMetabolicSafety &&
     hasDeconEctrSafety &&
@@ -34871,7 +34919,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasTheophyllineToxicityTreatmentSafetyCheck,
       issue:
-        "theophylline toxicity safety checks must include dialysis or ECTR indication review for acute level >100, chronic level >60, elderly or infant chronic level >50, seizure, shock, rising level, clinical deterioration, or severe poisoning, arrhythmia or shock safety with ACLS, dysrhythmia, life-threatening dysrhythmia, phenylephrine, norepinephrine, beta-antagonist toxicologist consultation, or toxicology review, electrolyte and metabolic monitoring for hypokalemia, potassium, hyperglycemia, hypercalcemia, metabolic acidosis, CK, or rhabdomyolysis, decontamination safety including activated-charcoal contraindications, airway, MDAC during ECTR, emesis-not-recommended, gastric-lavage-not-recommended, or whole-bowel-irrigation review, and interaction or chronic-toxicity risk review for cimetidine, erythromycin, fluoroquinolone, ciprofloxacin, smoking, viral illness, CHF, cirrhosis, clearance, or metabolism",
+        "theophylline toxicity safety checks must include dialysis or ECTR indication review for acute level >100, chronic level >60, elderly or infant chronic level >50, seizure, life-threatening dysrhythmia, shock, rising level, clinical deterioration, GI decontamination inability, intermittent hemodialysis or acceptable alternatives, clinical improvement or theophylline level <15 stopping criteria, and MDAC during ECTR, arrhythmia or shock safety with ACLS, dysrhythmia, life-threatening dysrhythmia, phenylephrine, norepinephrine, beta-antagonist toxicologist consultation, or toxicology review, electrolyte and metabolic monitoring for hypokalemia, potassium, hyperglycemia, hypercalcemia, metabolic acidosis, CK, or rhabdomyolysis, decontamination safety including activated-charcoal contraindications, airway, MDAC during ECTR, emesis-not-recommended, gastric-lavage-not-recommended, or whole-bowel-irrigation review, and interaction or chronic-toxicity risk review for cimetidine, erythromycin, fluoroquinolone, ciprofloxacin, smoking, viral illness, CHF, cirrhosis, clearance, or metabolism",
     },
     {
       name: "toxic_alcohol_time_critical_actions",

@@ -13487,18 +13487,39 @@ THEOPHYLLINE_TOXICITY_DIALYSIS_ESCALATION_ACTION_TERMS = (
     "hemodialysis",
     "hemoperfusion",
 )
-THEOPHYLLINE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS = (
+THEOPHYLLINE_TOXICITY_ECTR_LEVEL_SAFETY_TERMS = (
     "acute exposure",
     "chronic exposure",
-    "clinical deterioration",
-    "ectr",
     "greater than 100",
     "greater than 50",
     "greater than 60",
-    "rising level",
+)
+THEOPHYLLINE_TOXICITY_ECTR_SEVERE_FEATURE_SAFETY_TERMS = (
+    "life-threatening dysrhythmia",
     "seizure",
     "shock",
+)
+THEOPHYLLINE_TOXICITY_ECTR_TREND_SAFETY_TERMS = (
+    "clinical deterioration",
+    "rising level",
     "theophylline level",
+)
+THEOPHYLLINE_TOXICITY_ECTR_DECON_LIMIT_SAFETY_TERMS = (
+    "decontamination cannot",
+    "gi decontamination",
+    "gastrointestinal decontamination",
+)
+THEOPHYLLINE_TOXICITY_ECTR_MODALITY_STOPPING_SAFETY_TERMS = (
+    "<15",
+    "clinical improvement",
+    "crrt",
+    "hemoperfusion",
+    "intermittent hemodialysis",
+)
+THEOPHYLLINE_TOXICITY_ECTR_MDAC_SAFETY_TERMS = (
+    "during ectr",
+    "mdac",
+    "multiple-dose activated charcoal",
 )
 THEOPHYLLINE_TOXICITY_ARRHYTHMIA_SHOCK_SAFETY_TERMS = (
     "acls",
@@ -21875,8 +21896,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "theophylline toxicity safety checks must include dialysis or ECTR "
                 "indication review for acute level >100, chronic level >60, elderly "
-                "or infant chronic level >50, seizure, shock, rising level, clinical "
-                "deterioration, or severe poisoning, arrhythmia or shock safety with "
+                "or infant chronic level >50, seizure, life-threatening dysrhythmia, "
+                "shock, rising level, clinical deterioration, GI decontamination "
+                "inability, intermittent hemodialysis or acceptable alternatives, "
+                "clinical improvement or theophylline level <15 stopping criteria, "
+                "and MDAC during ECTR, arrhythmia or shock safety with "
                 "ACLS, dysrhythmia, life-threatening dysrhythmia, phenylephrine, "
                 "norepinephrine, beta-antagonist toxicologist consultation, or "
                 "toxicology review, electrolyte and metabolic monitoring for "
@@ -34840,9 +34864,29 @@ def _has_theophylline_toxicity_time_critical_actions(actions: list[Any]) -> bool
 
 def _has_theophylline_toxicity_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_dialysis_indication_safety = any(
+    has_ectr_level_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in THEOPHYLLINE_TOXICITY_DIALYSIS_INDICATION_SAFETY_TERMS
+        for term in THEOPHYLLINE_TOXICITY_ECTR_LEVEL_SAFETY_TERMS
+    )
+    has_ectr_severe_feature_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THEOPHYLLINE_TOXICITY_ECTR_SEVERE_FEATURE_SAFETY_TERMS
+    )
+    has_ectr_trend_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THEOPHYLLINE_TOXICITY_ECTR_TREND_SAFETY_TERMS
+    )
+    has_ectr_decon_limit_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THEOPHYLLINE_TOXICITY_ECTR_DECON_LIMIT_SAFETY_TERMS
+    )
+    has_ectr_modality_stopping_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THEOPHYLLINE_TOXICITY_ECTR_MODALITY_STOPPING_SAFETY_TERMS
+    )
+    has_ectr_mdac_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in THEOPHYLLINE_TOXICITY_ECTR_MDAC_SAFETY_TERMS
     )
     has_arrhythmia_shock_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -34861,7 +34905,12 @@ def _has_theophylline_toxicity_treatment_safety_check(checks: list[Any]) -> bool
         for term in THEOPHYLLINE_TOXICITY_INTERACTION_CHRONIC_SAFETY_TERMS
     )
     return (
-        has_dialysis_indication_safety
+        has_ectr_level_safety
+        and has_ectr_severe_feature_safety
+        and has_ectr_trend_safety
+        and has_ectr_decon_limit_safety
+        and has_ectr_modality_stopping_safety
+        and has_ectr_mdac_safety
         and has_arrhythmia_shock_safety
         and has_electrolyte_metabolic_safety
         and has_decon_ectr_safety
