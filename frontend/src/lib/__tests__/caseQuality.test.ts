@@ -220,9 +220,9 @@ describe("reviewQualityIssues", () => {
         ],
         contraindication_checks: [
           "Review MRSA and Pseudomonas risk factors including prior respiratory isolation and recent hospitalization with IV antibiotics within 90 days; use vancomycin or antipseudomonal coverage only when indicated and de-escalate when cultures are negative",
-          "Use PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+          "Use severe CAP major criteria or minor criteria, with one major or three minor criteria prompting ICU disposition review",
           "Assess parapneumonic effusion or empyema, loculated effusion, thoracentesis need, and drainage indications",
-          "Evaluate viral influenza, COVID, aspiration, and lung abscess differential diagnoses",
+          "Evaluate viral influenza, COVID, and aspiration; do not add anaerobic coverage routinely unless lung abscess or empyema is suspected",
           "Do not withhold initial empiric antibiotics because of low procalcitonin when severe CAP is clinically suspected",
           "Consider systemic hydrocortisone for severe CAP; avoid it with influenza pneumonia, uncontrolled diabetes, recent GI bleeding, or Aspergillus concern",
           "If influenza is positive, start antiviral therapy such as oseltamivir while continuing antibacterial coverage when bacterial coinfection remains possible",

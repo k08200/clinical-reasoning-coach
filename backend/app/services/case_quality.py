@@ -16929,44 +16929,77 @@ SEVERE_CAP_SHOCK_RESUSCITATION_ACTION_TERMS = (
     "vasopressor",
     "쇼크",
 )
-SEVERE_CAP_MRSA_PSEUDOMONAS_SAFETY_TERMS = (
+SEVERE_CAP_RESISTANT_PATHOGEN_RISK_TERMS = (
     "90 days",
-    "de-escalation",
     "mrsa",
     "pseudomonas",
     "recent hospitalization",
     "respiratory isolation",
     "risk factor",
+)
+SEVERE_CAP_RESISTANT_PATHOGEN_COVERAGE_TERMS = (
+    "anti-pseudomonal",
+    "antipseudomonal",
+    "cefepime",
+    "linezolid",
+    "meropenem",
+    "piperacillin-tazobactam",
     "vancomycin",
 )
-SEVERE_CAP_SEVERITY_DISPOSITION_SAFETY_TERMS = (
-    "curb-65",
-    "hypotension",
-    "icu",
+SEVERE_CAP_DEESCALATION_TERMS = (
+    "de-escalation",
+    "de-escalate",
+    "deescalation",
+    "deescalate",
+)
+SEVERE_CAP_DEESCALATION_CULTURE_TERMS = (
+    "culture",
+    "cultures",
+)
+SEVERE_CAP_SEVERITY_CRITERIA_TERMS = (
     "major criteria",
     "minor criteria",
-    "psi",
-    "severity",
-    "shock",
 )
-SEVERE_CAP_EFFUSION_EMPYEMA_SAFETY_TERMS = (
-    "drainage",
+SEVERE_CAP_SEVERITY_THRESHOLD_TERMS = (
+    "one major",
+    "three minor",
+)
+SEVERE_CAP_SEVERITY_DISPOSITION_TERMS = (
+    "icu",
+    "intensive care",
+    "critical care",
+)
+SEVERE_CAP_EFFUSION_EMPYEMA_TERMS = (
     "empyema",
     "loculated",
     "parapneumonic effusion",
     "pleural effusion",
-    "thoracentesis",
     "흉수",
 )
-SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS = (
-    "aspiration",
+SEVERE_CAP_EFFUSION_SOURCE_CONTROL_TERMS = (
+    "drainage",
+    "thoracentesis",
+)
+SEVERE_CAP_VIRAL_DIFFERENTIAL_TERMS = (
     "covid",
     "influenza",
-    "lung abscess",
-    "pulmonary embolism",
     "viral",
     "virus",
+)
+SEVERE_CAP_ASPIRATION_DIFFERENTIAL_TERMS = (
+    "aspiration",
     "흡인",
+)
+SEVERE_CAP_ASPIRATION_ANAEROBIC_EXCEPTION_TERMS = (
+    "avoid anaerobic",
+    "do not add anaerobic",
+    "no anaerobic",
+    "not routinely add anaerobic",
+    "without anaerobic",
+)
+SEVERE_CAP_ASPIRATION_ANAEROBIC_INDICATION_TERMS = (
+    "abscess",
+    "empyema",
 )
 SEVERE_CAP_PROCALCITONIN_TERMS = (
     "procalcitonin",
@@ -23385,14 +23418,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_severe_cap_treatment_safety_check,
             issue=(
                 "severe community-acquired pneumonia safety checks must include "
-                "MRSA or Pseudomonas risk-factor review for prior respiratory "
-                "isolation, recent hospitalization or IV antibiotics within "
-                "90 days, vancomycin coverage, and de-escalation, severity or "
-                "disposition review with PSI, CURB-65, major/minor criteria, "
-                "shock, hypotension, or ICU need, parapneumonic effusion, "
-                "empyema, loculated effusion, thoracentesis, or drainage review, "
-                "and viral, influenza, COVID, aspiration, lung abscess, or "
-                "pulmonary embolism differential assessment"
+                "MRSA or Pseudomonas risk factors with indicated anti-MRSA or "
+                "antipseudomonal coverage and culture-guided de-escalation, "
+                "major/minor severity criteria with ICU disposition, pleural "
+                "effusion or empyema assessment with thoracentesis or drainage "
+                "planning, and viral plus aspiration assessment with no routine "
+                "anaerobic coverage unless abscess or empyema is suspected"
             ),
         ),
         DomainSafetyGate(
@@ -38708,27 +38739,65 @@ def _has_severe_cap_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_severe_cap_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_mrsa_pseudomonas_safety = any(
+    has_resistant_pathogen_risk = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_CAP_MRSA_PSEUDOMONAS_SAFETY_TERMS
+        for term in SEVERE_CAP_RESISTANT_PATHOGEN_RISK_TERMS
     )
-    has_severity_disposition_safety = any(
+    has_resistant_pathogen_coverage = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_CAP_SEVERITY_DISPOSITION_SAFETY_TERMS
+        for term in SEVERE_CAP_RESISTANT_PATHOGEN_COVERAGE_TERMS
     )
-    has_effusion_empyema_safety = any(
+    has_deescalation = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_CAP_EFFUSION_EMPYEMA_SAFETY_TERMS
+        for term in SEVERE_CAP_DEESCALATION_TERMS
     )
-    has_viral_aspiration_differential_safety = any(
+    has_deescalation_culture = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS
+        for term in SEVERE_CAP_DEESCALATION_CULTURE_TERMS
+    )
+    has_severity_criteria = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_SEVERITY_CRITERIA_TERMS
+    )
+    has_severity_threshold = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_SEVERITY_THRESHOLD_TERMS
+    )
+    has_severity_disposition = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_SEVERITY_DISPOSITION_TERMS
+    )
+    has_effusion_empyema = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_EFFUSION_EMPYEMA_TERMS
+    )
+    has_effusion_source_control = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_EFFUSION_SOURCE_CONTROL_TERMS
+    )
+    has_viral_differential = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_VIRAL_DIFFERENTIAL_TERMS
+    )
+    has_aspiration_differential = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_ASPIRATION_DIFFERENTIAL_TERMS
+    )
+    has_aspiration_anaerobic_exception = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_ASPIRATION_ANAEROBIC_EXCEPTION_TERMS
+    )
+    has_aspiration_anaerobic_indication = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_CAP_ASPIRATION_ANAEROBIC_INDICATION_TERMS
     )
     return (
-        has_mrsa_pseudomonas_safety
-        and has_severity_disposition_safety
-        and has_effusion_empyema_safety
-        and has_viral_aspiration_differential_safety
+        has_resistant_pathogen_risk and has_resistant_pathogen_coverage
+        and has_deescalation and has_deescalation_culture
+        and has_severity_criteria and has_severity_threshold and has_severity_disposition
+        and has_effusion_empyema and has_effusion_source_control
+        and has_viral_differential and has_aspiration_differential
+        and has_aspiration_anaerobic_exception and has_aspiration_anaerobic_indication
     )
 
 

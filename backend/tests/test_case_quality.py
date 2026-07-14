@@ -35845,9 +35845,9 @@ def test_quality_gate_requires_severe_cap_oxygen_diagnostics_antibiotics_and_sep
     ]
     case["contraindication_checks"] = [
         "Review MRSA and Pseudomonas risk factors including prior respiratory isolation, recent hospitalization with IV antibiotics within 90 days, vancomycin need, and de-escalation when cultures are negative",
-        "Use PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+        "Use severe CAP major criteria or minor criteria, with one major or three minor criteria prompting ICU disposition review",
         "Assess parapneumonic effusion, empyema, loculated pleural effusion, thoracentesis need, and drainage indications",
-        "Evaluate viral influenza, COVID, aspiration, and lung abscess differential diagnoses",
+        "Evaluate viral influenza, COVID, and aspiration; do not add anaerobic coverage routinely unless lung abscess or empyema is suspected",
     ]
     case["clinical_sources"] = [
         {
@@ -35865,9 +35865,9 @@ def test_quality_gate_requires_severe_cap_oxygen_diagnostics_antibiotics_and_sep
                 "chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella urinary antigen, and severe-CAP diagnostic testing",
                 "sepsis and septic shock lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment",
                 "MRSA and Pseudomonas risk factors including prior respiratory isolation, recent hospitalization with IV antibiotics within 90 days, vancomycin need, and de-escalation when cultures are negative",
-                "PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+                "severe CAP major criteria or minor criteria, with one major or three minor criteria prompting ICU disposition review",
                 "parapneumonic effusion, empyema, loculated pleural effusion, thoracentesis need, and drainage indications",
-                "viral influenza, COVID, aspiration, and lung abscess differential diagnoses",
+                "viral influenza, COVID, aspiration, and no routine anaerobic coverage unless lung abscess or empyema is suspected",
             ],
         }
     ]
@@ -35981,7 +35981,7 @@ def test_quality_gate_requires_severe_cap_procalcitonin_steroid_influenza_and_du
     ]
     case["contraindication_checks"] = [
         "Review MRSA and Pseudomonas risk factors including prior respiratory isolation, recent hospitalization with IV antibiotics within 90 days, vancomycin need, and de-escalation when cultures are negative",
-        "Use PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+        "Use severe CAP major criteria or minor criteria, with one major or three minor criteria prompting ICU disposition review",
         "Assess parapneumonic effusion, empyema, loculated pleural effusion, thoracentesis need, and drainage indications",
         "Evaluate viral influenza, COVID, aspiration, and lung abscess differential diagnoses",
     ]
@@ -36002,7 +36002,7 @@ def test_quality_gate_requires_severe_cap_procalcitonin_steroid_influenza_and_du
                 "empiric antibiotic therapy with beta-lactam ceftriaxone plus azithromycin macrolide or levofloxacin coverage",
                 "sepsis and septic shock lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment",
                 "MRSA and Pseudomonas risk factors including prior respiratory isolation, recent hospitalization with IV antibiotics within 90 days, vancomycin need, and de-escalation when cultures are negative",
-                "PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+                "severe CAP major criteria or minor criteria, with one major or three minor criteria prompting ICU disposition review",
                 "parapneumonic effusion, empyema, loculated pleural effusion, thoracentesis need, and drainage indications",
                 "viral influenza, COVID, aspiration, and lung abscess differential diagnoses",
             ],
@@ -36093,7 +36093,7 @@ def test_quality_gate_rejects_severe_cap_generic_procalcitonin_steroid_flu_and_d
     )
 
 
-def test_quality_gate_allows_severe_cap_with_stewardship_safety():
+def test_quality_gate_requires_complete_severe_cap_stewardship_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Severe community-acquired pneumonia with hypoxemia"
     case["past_medical_history"] = "Hypertension and type 2 diabetes"
@@ -36128,9 +36128,9 @@ def test_quality_gate_allows_severe_cap_with_stewardship_safety():
     ]
     case["contraindication_checks"] = [
         "Review MRSA and Pseudomonas risk factors including prior respiratory isolation, recent hospitalization with IV antibiotics within 90 days, vancomycin need, and de-escalation when cultures are negative",
-        "Use PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+        "Use severe CAP major criteria or minor criteria, with one major or three minor criteria prompting ICU disposition review",
         "Assess parapneumonic effusion, empyema, loculated pleural effusion, thoracentesis need, and drainage indications",
-        "Evaluate viral influenza, COVID, aspiration, and lung abscess differential diagnoses",
+        "Evaluate viral influenza, COVID, and aspiration; do not add anaerobic coverage routinely unless lung abscess or empyema is suspected",
         "Do not withhold initial empiric antibiotics because of low procalcitonin when severe CAP is clinically suspected",
         "Consider systemic hydrocortisone for severe CAP; avoid it with influenza pneumonia, uncontrolled diabetes, recent GI bleeding, or Aspergillus concern",
         "Review active bleeding risk, GI bleeding history, and platelet count before corticosteroid or invasive drainage decisions",
@@ -36160,9 +36160,9 @@ def test_quality_gate_allows_severe_cap_with_stewardship_safety():
                 "IV fluid resuscitation for sepsis while reassessing respiratory status and volume tolerance",
                 "sepsis and septic shock lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment",
                 "MRSA and Pseudomonas risk factors including prior respiratory isolation, recent hospitalization with IV antibiotics within 90 days, vancomycin need, and de-escalation when cultures are negative",
-                "PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+                "severe CAP major criteria or minor criteria, with one major or three minor criteria prompting ICU disposition review",
                 "parapneumonic effusion, empyema, loculated pleural effusion, thoracentesis need, and drainage indications",
-                "viral influenza, COVID, aspiration, and lung abscess differential diagnoses",
+                "viral influenza, COVID, aspiration, and no routine anaerobic coverage unless lung abscess or empyema is suspected",
                 "do not withhold initial empiric antibiotics because of low procalcitonin when severe CAP is clinically suspected",
                 "systemic hydrocortisone consideration for severe CAP with influenza pneumonia, uncontrolled diabetes, recent GI bleeding, or Aspergillus contraindication review",
                 "active bleeding risk, GI bleeding history, and platelet count review before corticosteroid or invasive drainage decisions",
@@ -36180,6 +36180,19 @@ def test_quality_gate_allows_severe_cap_with_stewardship_safety():
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
 
     assert report.passed
+
+    case["contraindication_checks"][3] = (
+        "Evaluate viral influenza, COVID, aspiration, and lung abscess differential diagnoses"
+    )
+
+    report_without_anaerobic_exception = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report_without_anaerobic_exception.passed
+    assert any(
+        "severe community-acquired pneumonia safety checks must include MRSA"
+        in issue
+        for issue in report_without_anaerobic_exception.critical_issues
+    )
 
 
 def test_quality_gate_requires_copd_controlled_oxygen_bronchodilators_steroids_antibiotics_and_niv():

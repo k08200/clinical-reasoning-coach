@@ -18860,48 +18860,78 @@ const SEVERE_CAP_ATYPICAL_COVERAGE_ACTION_TERMS = ["azithromycin", "levofloxacin
 const SEVERE_CAP_CRITICAL_CARE_ACTION_TERMS = ["icu", "중환자"];
 const SEVERE_CAP_SHOCK_RESUSCITATION_ACTION_TERMS = ["iv fluid", "lactate", "norepinephrine", "septic shock", "vasopressor", "쇼크"];
 
-const SEVERE_CAP_MRSA_PSEUDOMONAS_SAFETY_TERMS = [
+const SEVERE_CAP_RESISTANT_PATHOGEN_RISK_TERMS = [
   "90 days",
-  "de-escalation",
   "mrsa",
   "pseudomonas",
   "recent hospitalization",
   "respiratory isolation",
   "risk factor",
+];
+
+const SEVERE_CAP_RESISTANT_PATHOGEN_COVERAGE_TERMS = [
+  "anti-pseudomonal",
+  "antipseudomonal",
+  "cefepime",
+  "linezolid",
+  "meropenem",
+  "piperacillin-tazobactam",
   "vancomycin",
 ];
 
-const SEVERE_CAP_SEVERITY_DISPOSITION_SAFETY_TERMS = [
-  "curb-65",
-  "hypotension",
-  "icu",
-  "major criteria",
-  "minor criteria",
-  "psi",
-  "severity",
-  "shock",
+const SEVERE_CAP_DEESCALATION_TERMS = [
+  "de-escalation",
+  "de-escalate",
+  "deescalation",
+  "deescalate",
 ];
 
-const SEVERE_CAP_EFFUSION_EMPYEMA_SAFETY_TERMS = [
-  "drainage",
+const SEVERE_CAP_DEESCALATION_CULTURE_TERMS = ["culture", "cultures"];
+
+const SEVERE_CAP_SEVERITY_CRITERIA_TERMS = [
+  "major criteria",
+  "minor criteria",
+];
+
+const SEVERE_CAP_SEVERITY_THRESHOLD_TERMS = [
+  "one major",
+  "three minor",
+];
+
+const SEVERE_CAP_SEVERITY_DISPOSITION_TERMS = [
+  "icu",
+  "intensive care",
+  "critical care",
+];
+
+const SEVERE_CAP_EFFUSION_EMPYEMA_TERMS = [
   "empyema",
   "loculated",
   "parapneumonic effusion",
   "pleural effusion",
-  "thoracentesis",
   "흉수",
 ];
 
-const SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS = [
-  "aspiration",
+const SEVERE_CAP_EFFUSION_SOURCE_CONTROL_TERMS = ["drainage", "thoracentesis"];
+
+const SEVERE_CAP_VIRAL_DIFFERENTIAL_TERMS = [
   "covid",
   "influenza",
-  "lung abscess",
-  "pulmonary embolism",
   "viral",
   "virus",
-  "흡인",
 ];
+
+const SEVERE_CAP_ASPIRATION_DIFFERENTIAL_TERMS = ["aspiration", "흡인"];
+
+const SEVERE_CAP_ASPIRATION_ANAEROBIC_EXCEPTION_TERMS = [
+  "avoid anaerobic",
+  "do not add anaerobic",
+  "no anaerobic",
+  "not routinely add anaerobic",
+  "without anaerobic",
+];
+
+const SEVERE_CAP_ASPIRATION_ANAEROBIC_INDICATION_TERMS = ["abscess", "empyema"];
 
 const SEVERE_CAP_PROCALCITONIN_TERMS = [
   "procalcitonin",
@@ -33117,24 +33147,59 @@ function hasSevereCapTimeCriticalActions(actions: string[]): boolean {
 
 function hasSevereCapTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasMrsaPseudomonasSafety = SEVERE_CAP_MRSA_PSEUDOMONAS_SAFETY_TERMS.some((term) =>
+  const hasResistantPathogenRisk = SEVERE_CAP_RESISTANT_PATHOGEN_RISK_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasSeverityDispositionSafety = SEVERE_CAP_SEVERITY_DISPOSITION_SAFETY_TERMS.some(
+  const hasResistantPathogenCoverage = SEVERE_CAP_RESISTANT_PATHOGEN_COVERAGE_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDeescalation = SEVERE_CAP_DEESCALATION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasDeescalationCulture = SEVERE_CAP_DEESCALATION_CULTURE_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSeverityCriteria = SEVERE_CAP_SEVERITY_CRITERIA_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSeverityThreshold = SEVERE_CAP_SEVERITY_THRESHOLD_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSeverityDisposition = SEVERE_CAP_SEVERITY_DISPOSITION_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasEffusionEmpyemaSafety = SEVERE_CAP_EFFUSION_EMPYEMA_SAFETY_TERMS.some((term) =>
+  const hasEffusionEmpyema = SEVERE_CAP_EFFUSION_EMPYEMA_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasViralAspirationDifferentialSafety =
-    SEVERE_CAP_VIRAL_ASPIRATION_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
+  const hasEffusionSourceControl = SEVERE_CAP_EFFUSION_SOURCE_CONTROL_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasViralDifferential = SEVERE_CAP_VIRAL_DIFFERENTIAL_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAspirationDifferential = SEVERE_CAP_ASPIRATION_DIFFERENTIAL_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAspirationAnaerobicException = SEVERE_CAP_ASPIRATION_ANAEROBIC_EXCEPTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAspirationAnaerobicIndication = SEVERE_CAP_ASPIRATION_ANAEROBIC_INDICATION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   return (
-    hasMrsaPseudomonasSafety &&
-    hasSeverityDispositionSafety &&
-    hasEffusionEmpyemaSafety &&
-    hasViralAspirationDifferentialSafety
+    hasResistantPathogenRisk &&
+    hasResistantPathogenCoverage &&
+    hasDeescalation &&
+    hasDeescalationCulture &&
+    hasSeverityCriteria &&
+    hasSeverityThreshold &&
+    hasSeverityDisposition &&
+    hasEffusionEmpyema &&
+    hasEffusionSourceControl &&
+    hasViralDifferential &&
+    hasAspirationDifferential &&
+    hasAspirationAnaerobicException &&
+    hasAspirationAnaerobicIndication
   );
 }
 
@@ -36603,7 +36668,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSevereCapTreatmentSafetyCheck,
       issue:
-        "severe community-acquired pneumonia safety checks must include MRSA or Pseudomonas risk-factor review for prior respiratory isolation, recent hospitalization or IV antibiotics within 90 days, vancomycin coverage, and de-escalation, severity or disposition review with PSI, CURB-65, major/minor criteria, shock, hypotension, or ICU need, parapneumonic effusion, empyema, loculated effusion, thoracentesis, or drainage review, and viral, influenza, COVID, aspiration, lung abscess, or pulmonary embolism differential assessment",
+        "severe community-acquired pneumonia safety checks must include MRSA or Pseudomonas risk factors with indicated anti-MRSA or antipseudomonal coverage and culture-guided de-escalation, major/minor severity criteria with ICU disposition, pleural effusion or empyema assessment with thoracentesis or drainage planning, and viral plus aspiration assessment with no routine anaerobic coverage unless abscess or empyema is suspected",
     },
     {
       name: "severe_cap_antibiotic_stewardship_safety",
