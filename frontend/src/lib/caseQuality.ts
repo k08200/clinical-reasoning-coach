@@ -16766,6 +16766,11 @@ const DRESS_SEVERITY_ADMISSION_ACTION_TERMS = [
   "severity",
 ];
 
+const DRESS_REGISCAR_ACTION_TERMS = [
+  "regiscar",
+  "regi-scar",
+];
+
 const DRESS_BIOPSY_ACTION_TERMS = [
   "biopsy",
   "skin biopsy",
@@ -16792,6 +16797,21 @@ const DRESS_PULMONARY_ACTION_TERMS = [
   "pleuritis",
   "pneumonia",
   "pneumonitis",
+];
+
+const DRESS_CARDIAC_TEST_ACTION_TERMS = [
+  "ecg",
+  "echocardiogram",
+  "electrocardiogram",
+  "troponin",
+];
+
+const DRESS_PULMONARY_TEST_ACTION_TERMS = [
+  "chest x-ray",
+  "ct chest",
+  "cxr",
+  "oxygen saturation",
+  "pulse oximetry",
 ];
 
 const DRESS_SUPPORTIVE_ACTION_TERMS = [
@@ -16859,6 +16879,15 @@ const DRESS_STEROID_SLOW_TAPER_SAFETY_TERMS = [
   "withdraw very slowly",
 ];
 
+const DRESS_STEROID_MINIMUM_TAPER_SAFETY_TERMS = [
+  "3 to 6 months",
+  "3-6 months",
+  "6 to 8 weeks",
+  "6-8 weeks",
+  "at least 6 weeks",
+  "minimum 6 weeks",
+];
+
 const DRESS_VIRAL_FOLLOWUP_SAFETY_TERMS = [
   "cmv",
   "ebv",
@@ -16912,6 +16941,14 @@ const DRESS_ALTERNATIVE_IMMUNOMODULATOR_SAFETY_TERMS = [
   "mycophenolate",
   "plasmapheresis",
   "rituximab",
+];
+
+const DRESS_LONG_TERM_FOLLOWUP_SAFETY_TERMS = [
+  "5 years",
+  "long term follow-up",
+  "long-term follow-up",
+  "ongoing follow-up",
+  "years of follow-up",
 ];
 
 const SSSS_CONTEXT_TERMS = [
@@ -31222,13 +31259,22 @@ function hasDressTimeCriticalActions(actions: string[]): boolean {
   const hasSeverityAdmissionAction = DRESS_SEVERITY_ADMISSION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasRegiscarAction = DRESS_REGISCAR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasBiopsyAction = DRESS_BIOPSY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasCardiacAction = DRESS_CARDIAC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasCardiacTestAction = DRESS_CARDIAC_TEST_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasPulmonaryAction = DRESS_PULMONARY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPulmonaryTestAction = DRESS_PULMONARY_TEST_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasSupportiveAction = DRESS_SUPPORTIVE_ACTION_TERMS.some((term) =>
@@ -31245,9 +31291,12 @@ function hasDressTimeCriticalActions(actions: string[]): boolean {
     hasRenalAction &&
     hasDiagnosticCausalityAction &&
     hasSeverityAdmissionAction &&
+    hasRegiscarAction &&
     hasBiopsyAction &&
     hasCardiacAction &&
+    hasCardiacTestAction &&
     hasPulmonaryAction &&
+    hasPulmonaryTestAction &&
     hasSupportiveAction &&
     hasSteroidAction
   );
@@ -31270,6 +31319,9 @@ function hasDressTreatmentSafetyCheck(checks: string[]): boolean {
   const hasSteroidSlowTaperSafety = DRESS_STEROID_SLOW_TAPER_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasSteroidMinimumTaperSafety = DRESS_STEROID_MINIMUM_TAPER_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasViralFollowupSafety = DRESS_VIRAL_FOLLOWUP_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -31288,18 +31340,23 @@ function hasDressTreatmentSafetyCheck(checks: string[]): boolean {
   const hasAlternativeImmunomodulatorSafety = DRESS_ALTERNATIVE_IMMUNOMODULATOR_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasLongTermFollowupSafety = DRESS_LONG_TERM_FOLLOWUP_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
     hasLiverFailureSafety &&
     hasCardiacFailureSafety &&
     hasMultiorganHlhSafety &&
     hasSteroidRelapseSafety &&
     hasSteroidSlowTaperSafety &&
+    hasSteroidMinimumTaperSafety &&
     hasViralFollowupSafety &&
     hasEndocrineAutoimmuneSafety &&
     hasRechallengeSafety &&
     hasCrossReactionSafety &&
     hasFamilyGeneticSafety &&
-    hasAlternativeImmunomodulatorSafety
+    hasAlternativeImmunomodulatorSafety &&
+    hasLongTermFollowupSafety
   );
 }
 
@@ -35413,7 +35470,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasDressTimeCriticalActions,
       issue:
-        "DRESS/DIHS time-critical actions must include immediate cessation, withdrawal, or discontinuation of all suspect/culprit/offending medicines, separate hematology/CBC/eosinophil testing, coagulation testing, liver-function/LFT/hepatitis assessment, renal-function/urinalysis assessment, drug-timeline or temporal-causality review, hospitalisation/hospitalization, admission, RegiSCAR, or severity assessment, skin biopsy, separate cardiac evaluation with ECG, troponin, echocardiogram, myocarditis, or pericarditis review, separate pulmonary evaluation with chest X-ray/CXR, pneumonitis, ARDS, dyspnea, or cough review, supportive care with fluid, electrolytes, nutrition/calories, warm environment, expert nursing, dressings, emollients, or topical steroids, and corticosteroid/prednisone or slow-taper planning when severe organ involvement is present",
+        "DRESS/DIHS time-critical actions must include immediate cessation, withdrawal, or discontinuation of all suspect/culprit/offending medicines, separate hematology/CBC/eosinophil testing, coagulation testing, liver-function/LFT/hepatitis assessment, renal-function/urinalysis assessment, drug-timeline or temporal-causality review, hospitalisation/hospitalization, admission, explicit RegiSCAR scoring, or severity assessment, skin biopsy, separate cardiac evaluation with ECG, troponin, echocardiogram, myocarditis, or pericarditis review, separate pulmonary evaluation with chest X-ray/CXR, oxygenation or pulse-oximetry, pneumonitis, ARDS, dyspnea, or cough review, supportive care with fluid, electrolytes, nutrition/calories, warm environment, expert nursing, dressings, emollients, or topical steroids, and corticosteroid/prednisone or slow-taper planning when severe organ involvement is present",
     },
     {
       name: "dress_treatment_safety",
@@ -35422,7 +35479,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasDressTreatmentSafetyCheck,
       issue:
-        "DRESS/DIHS safety checks must include separate severe organ complication review for acute liver failure/hepatic necrosis/jaundice, fulminant myocarditis/pericarditis, and multiorgan failure or hemophagocytosis/haemophagocytosis, relapse or recurrence monitoring plus slow-taper or withdraw-very-slowly planning, viral follow-up with HHV-6, human herpesvirus, EBV, CMV, hepatitis B/C, or viral serology, endocrine/autoimmune follow-up with thyroid, glucose, diabetes, or autoimmune review, rechallenge prevention with drug-allergy documentation or avoid-causative/avoid-rechallenge planning, cross-reaction prevention such as avoid-all-three aromatic anticonvulsants, phenytoin, carbamazepine, phenobarbital, or cross-reaction review, first-degree-relative, HLA, genetic, or family-risk warning, and alternative immunomodulator review such as cyclosporine/ciclosporin, IVIG, plasmapheresis, mycophenolate, rituximab, or cyclophosphamide when corticosteroid response is inadequate",
+        "DRESS/DIHS safety checks must include separate severe organ complication review for acute liver failure/hepatic necrosis/jaundice, fulminant myocarditis/pericarditis, and multiorgan failure or hemophagocytosis/haemophagocytosis, relapse or recurrence monitoring plus slow-taper or withdraw-very-slowly planning, viral follow-up with HHV-6, human herpesvirus, EBV, CMV, hepatitis B/C, or viral serology, endocrine/autoimmune follow-up with thyroid, glucose, diabetes, or autoimmune review, rechallenge prevention with steroid taper duration of at least 6-8 weeks or 3-6 months when needed, long-term follow-up for years or ongoing follow-up for autoimmune sequelae, drug-allergy documentation or avoid-causative/avoid-rechallenge planning, cross-reaction prevention such as avoid-all-three aromatic anticonvulsants, phenytoin, carbamazepine, phenobarbital, or cross-reaction review, first-degree-relative, HLA, genetic, or family-risk warning, and alternative immunomodulator review such as cyclosporine/ciclosporin, IVIG, plasmapheresis, mycophenolate, rituximab, or cyclophosphamide when corticosteroid response is inadequate",
     },
     {
       name: "ssss_time_critical_actions",

@@ -32959,6 +32959,84 @@ def test_quality_gate_requires_dress_separate_relapse_viral_endocrine_cross_reac
     )
 
 
+def test_quality_gate_requires_dress_regiscar_cardiopulmonary_taper_and_long_term_followup():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "DRESS syndrome from carbamazepine"
+    case["patient_demographics"] = {
+        "age": 47,
+        "sex": "female",
+        "weight_kg": 64,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Fever, facial swelling, and diffuse rash after carbamazepine"
+    case["history_of_present_illness"] = (
+        "Patient started carbamazepine 5 weeks ago and now has drug reaction with "
+        "eosinophilia and systemic symptoms, high fever, morbilliform rash, facial "
+        "edema, lymphadenopathy, eosinophilia, atypical lymphocytes, hepatitis with "
+        "elevated liver enzymes, renal function change, dyspnea, and concern for "
+        "myocarditis or pneumonitis."
+    )
+    case["key_teaching_points"] = [
+        "DRESS/DIHS is a severe cutaneous adverse reaction with fever, rash, hematologic abnormalities, lymphadenopathy, and internal organ inflammation",
+        "DRESS requires explicit RegiSCAR scoring, cardiopulmonary testing, slow steroid taper, and long-term autoimmune follow-up",
+    ]
+    case["clinical_red_flags"] = [
+        "High fever, morbilliform rash, facial edema, lymphadenopathy, eosinophilia, atypical lymphocytes, hepatitis, or renal function change",
+        "Acute liver failure, fulminant myocarditis, pneumonitis, ARDS, multiorgan failure, hemophagocytosis, or endocrine autoimmune complications",
+    ]
+    case["time_critical_actions"] = [
+        "Immediately discontinue all suspect medicines and stop the culprit/offending drug",
+        "Obtain CBC/blood count with eosinophil count, coagulation studies, liver function/LFT, and renal function testing",
+        "Admit for hospitalization and assess severity with drug timeline and temporal association review",
+        "Evaluate cardiac involvement for chest pain, myocarditis, and pericarditis",
+        "Evaluate pulmonary involvement for cough, dyspnea, pneumonitis, and ARDS risk",
+        "Provide supportive care with fluid, electrolytes, nutrition, warm environment, and corticosteroid or prednisone therapy",
+    ]
+    case["contraindication_checks"] = [
+        "Review severe organ complications including acute liver failure, multiorgan failure, fulminant myocarditis, and hemophagocytosis",
+        "Monitor relapse and plan a slow steroid taper because recurrence can occur as the dose reduces",
+        "Send HHV-6, EBV, and CMV viral serology and plan thyroid or autoimmune follow-up",
+        "Document drug allergy, avoid rechallenge, avoid causative drug, review cross-reaction, avoid all three aromatic anticonvulsants, and warn first-degree relatives",
+        "Review alternative immunomodulators such as cyclosporine, IVIG, plasmapheresis, mycophenolate, rituximab, or cyclophosphamide if steroid response is inadequate",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Drug hypersensitivity syndrome",
+            "organization": "DermNet",
+            "url": "https://dermnetnz.org/topics/drug-hypersensitivity-syndrome",
+            "supports": [
+                "DRESS syndrome from carbamazepine diagnosis and risk stratification",
+                "DRESS/DIHS severe cutaneous adverse reaction with fever, rash, eosinophilia, lymphadenopathy, and internal organ inflammation",
+                "immediate withdrawal or discontinuation of all suspect medicines or the culprit/offending drug",
+                "CBC/blood count with eosinophil count, coagulation, liver function/LFT, and renal function testing",
+                "drug timeline and temporal association review with hospitalization and severity assessment",
+                "cardiac chest pain, myocarditis, and pericarditis assessment",
+                "pulmonary cough, dyspnea, pneumonitis, and ARDS assessment",
+                "supportive care with fluid, electrolytes, nutrition, warm environment, and corticosteroid or prednisone therapy",
+                "acute liver failure, fulminant myocarditis, multiorgan failure, and hemophagocytosis review",
+                "relapse monitoring and slow steroid taper",
+                "HHV-6, EBV, and CMV viral serology with thyroid or autoimmune follow-up",
+                "drug allergy, avoid rechallenge, avoid causative drug, cross-reaction, aromatic anticonvulsant avoidance, and first-degree relatives warning",
+                "alternative immunomodulators if steroid response is inadequate",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "explicit RegiSCAR scoring" in issue
+        and "ECG, troponin, echocardiogram" in issue
+        and "chest X-ray/CXR" in issue
+        for issue in report.critical_issues
+    )
+    assert any(
+        "6-8 weeks" in issue and "long-term follow-up" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_ssss_source_admission_antibiotic_fluid_and_wound_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Staphylococcal scalded skin syndrome"

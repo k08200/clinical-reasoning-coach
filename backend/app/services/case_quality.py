@@ -15026,6 +15026,10 @@ DRESS_SEVERITY_ADMISSION_ACTION_TERMS = (
     "regiscar",
     "severity",
 )
+DRESS_REGISCAR_ACTION_TERMS = (
+    "regiscar",
+    "regi-scar",
+)
 DRESS_BIOPSY_ACTION_TERMS = (
     "biopsy",
     "skin biopsy",
@@ -15050,6 +15054,19 @@ DRESS_PULMONARY_ACTION_TERMS = (
     "pleuritis",
     "pneumonia",
     "pneumonitis",
+)
+DRESS_CARDIAC_TEST_ACTION_TERMS = (
+    "ecg",
+    "echocardiogram",
+    "electrocardiogram",
+    "troponin",
+)
+DRESS_PULMONARY_TEST_ACTION_TERMS = (
+    "chest x-ray",
+    "ct chest",
+    "cxr",
+    "oxygen saturation",
+    "pulse oximetry",
 )
 DRESS_SUPPORTIVE_ACTION_TERMS = (
     "calorie",
@@ -15109,6 +15126,14 @@ DRESS_STEROID_SLOW_TAPER_SAFETY_TERMS = (
     "steroid taper",
     "withdraw very slowly",
 )
+DRESS_STEROID_MINIMUM_TAPER_SAFETY_TERMS = (
+    "3 to 6 months",
+    "3-6 months",
+    "6 to 8 weeks",
+    "6-8 weeks",
+    "at least 6 weeks",
+    "minimum 6 weeks",
+)
 DRESS_VIRAL_FOLLOWUP_SAFETY_TERMS = (
     "cmv",
     "ebv",
@@ -15157,6 +15182,13 @@ DRESS_ALTERNATIVE_IMMUNOMODULATOR_SAFETY_TERMS = (
     "mycophenolate",
     "plasmapheresis",
     "rituximab",
+)
+DRESS_LONG_TERM_FOLLOWUP_SAFETY_TERMS = (
+    "5 years",
+    "long term follow-up",
+    "long-term follow-up",
+    "ongoing follow-up",
+    "years of follow-up",
 )
 SSSS_CONTEXT_TERMS = (
     "ritter disease",
@@ -22450,11 +22482,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "medicines, separate hematology/CBC/eosinophil testing, coagulation "
                 "testing, liver-function/LFT/hepatitis assessment, renal-function/"
                 "urinalysis assessment, drug-timeline or temporal-causality review, "
-                "hospitalisation/hospitalization, admission, RegiSCAR, or severity "
+                "hospitalisation/hospitalization, admission, explicit RegiSCAR "
+                "scoring, or severity "
                 "assessment, skin biopsy, separate cardiac evaluation with ECG, "
                 "troponin, echocardiogram, myocarditis, or pericarditis review, "
-                "separate pulmonary evaluation with chest X-ray/CXR, pneumonitis, "
-                "ARDS, dyspnea, or cough review, supportive care with fluid, "
+                "separate pulmonary evaluation with chest X-ray/CXR, oxygenation or "
+                "pulse-oximetry, pneumonitis, ARDS, dyspnea, or cough review, supportive care with fluid, "
                 "electrolytes, nutrition/calories, warm environment, expert nursing, "
                 "dressings, emollients, or topical steroids, and corticosteroid/"
                 "prednisone or slow-taper planning when severe organ involvement is "
@@ -22475,6 +22508,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "follow-up with HHV-6, human herpesvirus, EBV, CMV, hepatitis B/C, "
                 "or viral serology, endocrine/autoimmune follow-up with thyroid, "
                 "glucose, diabetes, or autoimmune review, rechallenge prevention with "
+                "steroid taper duration of at least 6-8 weeks or 3-6 months when "
+                "needed, long-term follow-up for years or ongoing follow-up for "
+                "autoimmune sequelae, "
                 "drug-allergy documentation or avoid-causative/avoid-rechallenge "
                 "planning, cross-reaction prevention such as avoid-all-three "
                 "aromatic anticonvulsants, phenytoin, carbamazepine, phenobarbital, "
@@ -36451,6 +36487,10 @@ def _has_dress_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in DRESS_SEVERITY_ADMISSION_ACTION_TERMS
     )
+    has_regiscar_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DRESS_REGISCAR_ACTION_TERMS
+    )
     has_biopsy_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in DRESS_BIOPSY_ACTION_TERMS
@@ -36459,9 +36499,17 @@ def _has_dress_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in DRESS_CARDIAC_ACTION_TERMS
     )
+    has_cardiac_test_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DRESS_CARDIAC_TEST_ACTION_TERMS
+    )
     has_pulmonary_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in DRESS_PULMONARY_ACTION_TERMS
+    )
+    has_pulmonary_test_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DRESS_PULMONARY_TEST_ACTION_TERMS
     )
     has_supportive_action = any(
         _contains_safety_term(normalized_actions, term)
@@ -36479,9 +36527,12 @@ def _has_dress_time_critical_actions(actions: list[Any]) -> bool:
         and has_renal_action
         and has_diagnostic_causality_action
         and has_severity_admission_action
+        and has_regiscar_action
         and has_biopsy_action
         and has_cardiac_action
+        and has_cardiac_test_action
         and has_pulmonary_action
+        and has_pulmonary_test_action
         and has_supportive_action
         and has_steroid_action
     )
@@ -36509,6 +36560,10 @@ def _has_dress_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in DRESS_STEROID_SLOW_TAPER_SAFETY_TERMS
     )
+    has_steroid_minimum_taper_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DRESS_STEROID_MINIMUM_TAPER_SAFETY_TERMS
+    )
     has_viral_followup_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in DRESS_VIRAL_FOLLOWUP_SAFETY_TERMS
@@ -36533,18 +36588,24 @@ def _has_dress_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in DRESS_ALTERNATIVE_IMMUNOMODULATOR_SAFETY_TERMS
     )
+    has_long_term_followup_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DRESS_LONG_TERM_FOLLOWUP_SAFETY_TERMS
+    )
     return (
         has_liver_failure_safety
         and has_cardiac_failure_safety
         and has_multiorgan_hlh_safety
         and has_steroid_relapse_safety
         and has_steroid_slow_taper_safety
+        and has_steroid_minimum_taper_safety
         and has_viral_followup_safety
         and has_endocrine_autoimmune_safety
         and has_rechallenge_safety
         and has_cross_reaction_safety
         and has_family_genetic_safety
         and has_alternative_immunomodulator_safety
+        and has_long_term_followup_safety
     )
 
 
