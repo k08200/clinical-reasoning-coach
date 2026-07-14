@@ -17675,29 +17675,42 @@ const CAUSTIC_AIRWAY_THREAT_ACTION_TERMS = [
   "vocal changes",
 ];
 
+const CAUSTIC_NAMED_AIRWAY_ACTION_TERMS = [
+  "airway protection",
+  "fiberoptic intubation",
+  "intubation",
+  "prepare intubation",
+  "tracheostomy",
+];
+
 const CAUSTIC_EXPOSURE_PRODUCT_ACTION_TERMS = [
   "acid",
   "alkali",
+  "drain cleaner",
+  "lye",
+  "product",
+  "substance",
+];
+
+const CAUSTIC_EXPOSURE_AMOUNT_ACTION_TERMS = [
   "amount",
   "concentration",
   "ph",
-  "product",
-  "substance",
+  "quantity",
+  "volume",
 ];
 
 const CAUSTIC_EXPOSURE_TIMING_INTENT_ACTION_TERMS = [
   "5 ws",
   "co-ingestion",
-  "intentional",
   "intentionality",
-  "time",
-  "what",
-  "when",
+  "ingestion time",
+  "time of ingestion",
+  "voluntary ingestion",
 ];
 
 const CAUSTIC_ENDOSCOPY_ACTION_TERMS = [
   "egd",
-  "endoscopic",
   "endoscopy",
   "gastroenterology",
   "gi consult",
@@ -17705,12 +17718,22 @@ const CAUSTIC_ENDOSCOPY_ACTION_TERMS = [
 ];
 
 const CAUSTIC_CT_PERFORATION_ACTION_TERMS = [
+  "contrast enhanced ct",
+  "contrast-enhanced ct",
   "computed tomography",
-  "ct",
+  "ct scan",
+  "cross-sectional imaging",
+  "ct abdomen",
+  "ct chest",
+];
+
+const CAUSTIC_CT_CONCERN_TERMS = [
   "mediastinitis",
   "perforation",
   "peritonitis",
+  "pneumomediastinum",
   "surgical abdomen",
+  "transmural necrosis",
 ];
 
 const CAUSTIC_TOXICOLOGY_ESCALATION_ACTION_TERMS = [
@@ -17728,48 +17751,46 @@ const CAUSTIC_SURGICAL_ESCALATION_ACTION_TERMS = [
 ];
 
 const CAUSTIC_NEUTRALIZATION_SAFETY_TERMS = [
-  "neutralization",
-  "neutralize",
-  "weak acid",
-  "weak base",
+  "avoid neutralization",
+  "do not neutralize",
+  "never neutralize",
+  "neutralization contraindicated",
 ];
 
 const CAUSTIC_DILUTION_SAFETY_TERMS = [
-  "dilution",
-  "dilute",
-  "milk",
-  "water",
+  "avoid dilution",
+  "do not dilute",
+  "never dilute",
+  "no dilution",
 ];
 
 const CAUSTIC_CHARCOAL_SAFETY_TERMS = [
-  "activated charcoal",
-  "charcoal",
+  "activated charcoal contraindicated",
+  "avoid activated charcoal",
+  "do not use activated charcoal",
 ];
 
 const CAUSTIC_EMESIS_SAFETY_TERMS = [
-  "emesis",
-  "induce vomiting",
-  "induced vomiting",
-  "vomiting",
+  "avoid emesis",
+  "avoid induced vomiting",
+  "do not induce vomiting",
+  "never induce vomiting",
 ];
 
 const CAUSTIC_BLIND_TUBE_SAFETY_TERMS = [
   "blind nasogastric",
   "blind ng",
+  "blind orogastric",
   "direct endoscopic",
   "endoscopic visualization",
-  "nasogastric",
-  "ng tube",
-  "orogastric",
   "specialist-guided",
 ];
 
 const CAUSTIC_EARLY_ENDOSCOPY_TIMING_SAFETY_TERMS = [
-  "12 to 24",
-  "12 hours",
-  "24 hours",
   "early endoscopy",
   "endoscopy timing",
+  "within 12 to 24",
+  "within 24 hours",
 ];
 
 const CAUSTIC_HIGH_RISK_ENDOSCOPY_SAFETY_TERMS = [
@@ -17777,33 +17798,33 @@ const CAUSTIC_HIGH_RISK_ENDOSCOPY_SAFETY_TERMS = [
   "96 hours",
   "delayed endoscopy",
   "high-risk endoscopy",
-  "perforation",
   "perforation contraindication",
 ];
 
 const CAUSTIC_STEROID_SAFETY_TERMS = [
-  "corticosteroid",
-  "methylprednisolone",
-  "steroid",
+  "avoid routine steroid",
+  "only for selected injury",
+  "selected injury",
 ];
 
 const CAUSTIC_ANTIBIOTIC_SAFETY_TERMS = [
-  "antibiotic",
   "antibiotics only",
-  "infection",
-  "perforation",
+  "antibiotic stewardship",
+  "avoid routine antibiotics",
+  "selected injury, infection",
 ];
 
 const CAUSTIC_STRICTURE_FOLLOW_UP_SAFETY_TERMS = [
   "dysphagia follow-up",
-  "stenosis",
-  "stricture",
+  "long-term stricture",
+  "stenosis follow-up",
+  "stricture follow-up",
 ];
 
 const CAUSTIC_CANCER_SURVEILLANCE_SAFETY_TERMS = [
-  "carcinoma",
+  "carcinoma surveillance",
+  "cancer surveillance",
   "esophageal cancer",
-  "surveillance",
 ];
 
 const OPIOID_TOXICITY_CONTEXT_TERMS = [
@@ -31921,6 +31942,28 @@ function requiresCausticIngestionSafetyCheck(detail: ClinicalCaseReviewDetail): 
   return hasContext && hasSeverity;
 }
 
+function requiresCausticCtPerforationCheck(detail: ClinicalCaseReviewDetail): boolean {
+  if (!requiresCausticIngestionSafetyCheck(detail)) {
+    return false;
+  }
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.diagnosis,
+    ...nestedStrings(detail.clinical_red_flags),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return CAUSTIC_CT_CONCERN_TERMS.some((term) => containsSafetyTerm(riskText, term));
+}
+
+function hasCausticCtPerforationAction(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  return CAUSTIC_CT_PERFORATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+}
+
 function hasCausticIngestionTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
   const hasAirwayStabilization = CAUSTIC_AIRWAY_STABILIZATION_ACTION_TERMS.some((term) =>
@@ -31938,9 +31981,6 @@ function hasCausticIngestionTimeCriticalActions(actions: string[]): boolean {
   const hasEndoscopy = CAUSTIC_ENDOSCOPY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasCtPerforation = CAUSTIC_CT_PERFORATION_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
   const hasToxicologyEscalation = CAUSTIC_TOXICOLOGY_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -31950,10 +31990,15 @@ function hasCausticIngestionTimeCriticalActions(actions: string[]): boolean {
   return (
     hasAirwayStabilization &&
     hasAirwayThreatReview &&
+    CAUSTIC_NAMED_AIRWAY_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    ) &&
     hasExposureProductDetails &&
+    CAUSTIC_EXPOSURE_AMOUNT_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    ) &&
     hasExposureTimingIntent &&
     hasEndoscopy &&
-    hasCtPerforation &&
     hasToxicologyEscalation &&
     hasSurgicalEscalation
   );
@@ -35732,12 +35777,21 @@ function domainSafetyGates(): ReviewQualityGate[] {
     },
     {
       name: "caustic_ingestion_time_critical_actions",
-      label: "Caustic ingestion airway, endoscopy, CT, and escalation",
+      label: "Caustic ingestion airway, endoscopy, and escalation",
       applies: requiresCausticIngestionSafetyCheck,
       fieldName: "time_critical_actions",
       validator: hasCausticIngestionTimeCriticalActions,
       issue:
-        "caustic ingestion time-critical actions must include ABC airway, breathing, circulation, intubation, ventilation, resuscitation, or stabilization planning plus airway-threat review for drooling, hypoxia, stridor, vocal changes, respiratory distress, secretions, or airway edema; separate exposure history for product/substance, amount, concentration, acid/alkali or pH and timing, intentionality, or co-ingestion; early EGD, upper endoscopy, endoscopic, gastroenterology, or GI consultation planning; CT/computed tomography review for perforation, mediastinitis, peritonitis, or surgical abdomen; and both poison center/toxicology escalation and surgery/surgical consultation",
+        "caustic ingestion time-critical actions must include ABC airway, breathing, circulation, intubation, ventilation, resuscitation, or stabilization planning plus named airway protection or intubation planning and airway-threat review for drooling, hypoxia, stridor, vocal changes, respiratory distress, secretions, or airway edema; separate exposure history for product/substance, amount, concentration, acid/alkali or pH and ingestion timing, intentionality, or co-ingestion; early EGD, upper endoscopy, gastroenterology, or GI consultation planning; and both poison center/toxicology escalation and surgery/surgical consultation. Add CT/computed tomography when perforation, mediastinitis, peritonitis, pneumomediastinum, transmural necrosis, or surgical abdomen is suspected",
+    },
+    {
+      name: "caustic_ingestion_ct_perforation_actions",
+      label: "Caustic ingestion CT for perforation concerns",
+      applies: requiresCausticCtPerforationCheck,
+      fieldName: "time_critical_actions",
+      validator: hasCausticCtPerforationAction,
+      issue:
+        "caustic ingestion with suspected perforation, mediastinitis, peritonitis, pneumomediastinum, transmural necrosis, or surgical abdomen must include CT/computed tomography or equivalent perforation assessment",
     },
     {
       name: "caustic_ingestion_treatment_safety",

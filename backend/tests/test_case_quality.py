@@ -284,6 +284,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "methemoglobinemia_time_critical_actions",
         "methemoglobinemia_treatment_safety",
         "caustic_ingestion_time_critical_actions",
+        "caustic_ingestion_ct_perforation_actions",
         "caustic_ingestion_treatment_safety",
         "opioid_toxicity_time_critical_actions",
         "opioid_toxicity_treatment_safety",
@@ -34294,6 +34295,34 @@ def test_quality_gate_requires_caustic_ingestion_separate_harm_avoidance_steward
         and "separate steroid and antibiotic stewardship" in issue
         for issue in report.critical_issues
     )
+
+
+def test_quality_gate_rejects_caustic_generic_decontamination_and_imaging_terms():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Caustic alkali ingestion with airway edema"
+    case["chief_complaint"] = "Drooling and stridor after drain cleaner ingestion"
+    case["history_of_present_illness"] = (
+        "Patient has caustic ingestion with drooling, stridor, respiratory distress, "
+        "and concern for perforation."
+    )
+    case["time_critical_actions"] = [
+        "Give airway support",
+        "Review acid product and time",
+        "Arrange endoscopy",
+        "Use CT",
+        "Call toxicology and surgery",
+    ]
+    case["contraindication_checks"] = [
+        "Review neutralization, dilution, charcoal, vomiting, NG tube, 24 hours, "
+        "48 hours, steroid, antibiotic, stricture, and surveillance",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("caustic ingestion time-critical actions must include ABC airway" in issue for issue in report.critical_issues)
+    assert any("caustic ingestion with suspected perforation" in issue for issue in report.critical_issues)
+    assert any("caustic ingestion safety checks must include avoidance of neutralization" in issue for issue in report.critical_issues)
 
 
 def test_quality_gate_requires_opioid_airway_naloxone_and_recurrent_monitoring():

@@ -27638,6 +27638,30 @@
     }
   },
   {
+    "name": "caustic_ingestion_rejects_generic_decontamination_and_imaging_terms",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "caustic ingestion time-critical actions must include ABC airway",
+      "caustic ingestion with suspected perforation",
+      "caustic ingestion safety checks must include avoidance of neutralization"
+    ],
+    "overrides": {
+      "diagnosis": "Caustic alkali ingestion with airway edema",
+      "chief_complaint": "Drooling and stridor after drain cleaner ingestion",
+      "history_of_present_illness": "Patient has caustic ingestion with drooling, stridor, respiratory distress, and concern for perforation.",
+      "time_critical_actions": [
+        "Give airway support",
+        "Review acid product and time",
+        "Arrange endoscopy",
+        "Use CT",
+        "Call toxicology and surgery"
+      ],
+      "contraindication_checks": [
+        "Review neutralization, dilution, charcoal, vomiting, NG tube, 24 hours, 48 hours, steroid, antibiotic, stricture, and surveillance"
+      ]
+    }
+  },
+  {
     "name": "upper_gi_bleed_requires_resuscitation_labs_endoscopy_and_medical_therapy",
     "expected_passed": false,
     "expected_issue_substrings": [
