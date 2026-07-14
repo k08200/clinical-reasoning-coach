@@ -287,7 +287,9 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "caustic_ingestion_ct_perforation_actions",
         "caustic_ingestion_treatment_safety",
         "opioid_toxicity_time_critical_actions",
+        "opioid_toxicity_cardiac_arrest_actions",
         "opioid_toxicity_treatment_safety",
+        "opioid_toxicity_post_reversal_safety",
         "sickle_splenic_sequestration_time_critical_actions",
         "sickle_splenic_sequestration_treatment_safety",
         "sickle_stroke_time_critical_actions",
@@ -34373,8 +34375,36 @@ def test_quality_gate_requires_opioid_airway_naloxone_and_recurrent_monitoring()
 
     assert not report.passed
     assert any(
-        "opioid toxicity time-critical actions must include airway or ventilatory support"
+        "opioid toxicity time-critical actions must include airway and breathing support"
         in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_requires_cpr_and_aed_for_opioid_cardiac_arrest():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Opioid poisoning"
+    case["chief_complaint"] = "Cardiac arrest after suspected fentanyl overdose"
+    case["history_of_present_illness"] = (
+        "Patient is pulseless in cardiac arrest after suspected fentanyl overdose with "
+        "apnea and pinpoint pupils."
+    )
+    case["clinical_red_flags"] = [
+        "Cardiac arrest, pulselessness, apnea, and pinpoint pupils",
+        "No pulse with suspected opioid overdose",
+    ]
+    case["time_critical_actions"] = [
+        "Open the airway and support breathing with bag-valve-mask rescue breaths",
+        "Titrate naloxone to restore breathing",
+        "Use continuous respiratory monitoring and prepare repeat naloxone dose",
+        "Activate emergency response and call EMS",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "opioid toxicity with cardiac arrest" in issue
         for issue in report.critical_issues
     )
 
@@ -34398,8 +34428,9 @@ def test_quality_gate_requires_opioid_rebound_coingestion_and_naloxone_safety():
     ]
     case["time_critical_actions"] = [
         "Support airway and ventilation with oxygen and bag-valve-mask if needed",
-        "Give titrated naloxone for suspected opioid toxicity",
+        "Give titrated naloxone to restore breathing for suspected opioid toxicity",
         "Place on continuous monitoring with pulse oximetry and capnography and prepare repeat naloxone dosing",
+        "Activate emergency response, call EMS, and contact poison center",
     ]
     case["contraindication_checks"] = [
         "Medication allergy before antiemetics",
@@ -34428,6 +34459,109 @@ def test_quality_gate_requires_opioid_rebound_coingestion_and_naloxone_safety():
     assert not report.passed
     assert any(
         "opioid toxicity safety checks must include long-acting opioid" in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_accepts_complete_opioid_resuscitation_and_post_reversal_safety():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Opioid poisoning"
+    case["patient_demographics"] = {
+        "age": 45,
+        "sex": "male",
+        "weight_kg": 80,
+        "ethnicity": "Korean",
+    }
+    case["past_medical_history"] = "No known bleeding disorder"
+    case["medications"] = ["None reported"]
+    case["coach_guidance"] = "Focus on airway, breathing, naloxone response, and safe disposition."
+    case["chief_complaint"] = "Somnolence and slow breathing after fentanyl exposure"
+    case["history_of_present_illness"] = (
+        "Patient is somnolent with slow shallow breathing, hypoxia, and pinpoint pupils "
+        "after fentanyl exposure, with concern for recurrent respiratory depression."
+    )
+    case["key_teaching_points"] = [
+        "Opioid overdose can progress from respiratory depression to respiratory arrest",
+        "Airway and breathing support should not be delayed while naloxone is prepared",
+        "Patients who respond to naloxone require observation and overdose-prevention planning",
+    ]
+    case["clinical_red_flags"] = [
+        "Somnolence, slow shallow breathing, hypoxia, or pinpoint pupils",
+        "Recurrent respiratory depression after initial naloxone response",
+    ]
+    case["time_critical_actions"] = [
+        "Open the airway and support breathing with bag-valve-mask rescue breaths and oxygen; intubate if needed",
+        "Titrate naloxone to restore breathing rather than normalize mental status",
+        "Use continuous respiratory monitoring with pulse oximetry and capnography; repeat naloxone dose or start naloxone infusion if recurrent respiratory depression develops",
+        "Activate emergency response, call EMS, and contact poison center",
+    ]
+    case["contraindication_checks"] = [
+        "Assess fentanyl, methadone, buprenorphine, long-acting, or extended-release opioid exposure and observe for renarcotization or rebound respiratory depression",
+        "Observe in a health care setting until normal level of consciousness, normal vital signs, and low risk of recurrent respiratory depression",
+        "Assess alcohol, benzodiazepine, sedative co-ingestion, hypoglycemia, trauma, and other alternate causes",
+        "Titrate naloxone to adequate ventilation while monitoring acute withdrawal, aspiration, pulmonary edema, and cardiovascular effects",
+        "Provide take-home naloxone and overdose prevention/naloxone education with referral to medication for opioid use disorder",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "2025 AHA Guidelines: Opioid Overdose Resuscitation",
+            "organization": "American Heart Association",
+            "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation",
+            "supports": [
+                "opioid toxicity with respiratory depression diagnosis and risk stratification",
+                "somnolence, slow shallow breathing, hypoxia, and pinpoint pupils as red flags",
+                "opioid overdose can progress from respiratory depression to respiratory arrest",
+                "airway and breathing support with bag-valve-mask rescue breaths and oxygen",
+                "naloxone titrated to restore breathing rather than normalize mental status",
+                "continuous respiratory monitoring with pulse oximetry and capnography",
+                "repeat naloxone dose or naloxone infusion for recurrent respiratory depression",
+                "emergency response, EMS, and poison center escalation",
+                "long-acting or extended-release opioid exposure and renarcotization observation",
+                "health care observation until normal consciousness, vital signs, and low recurrence risk",
+                "alcohol, benzodiazepine, sedative co-ingestion, hypoglycemia, trauma, and alternate causes",
+                "naloxone titration to adequate ventilation with withdrawal, aspiration, pulmonary edema, and cardiovascular safeguards",
+                "take-home naloxone, overdose prevention education, and medication for opioid use disorder referral",
+                "contraindication and safety checks for opioid reversal and post-reversal care",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
+def test_quality_gate_rejects_opioid_generic_antidote_monitoring_and_disposition_terms():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Opioid toxicity"
+    case["chief_complaint"] = "Found unresponsive"
+    case["history_of_present_illness"] = (
+        "Patient is unresponsive with slow breathing and pinpoint pupils after an "
+        "unknown opioid exposure."
+    )
+    case["time_critical_actions"] = [
+        "Give oxygen",
+        "Give naloxone",
+        "Observe the patient",
+        "Review the case",
+    ]
+    case["contraindication_checks"] = [
+        "Review fentanyl, observation, glucose, aspiration, withdrawal, and take-home naloxone",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "opioid toxicity time-critical actions must include airway" in issue
+        for issue in report.critical_issues
+    )
+    assert any(
+        "opioid toxicity safety checks must include long-acting opioid" in issue
+        for issue in report.critical_issues
+    )
+    assert any(
+        "opioid toxicity post-reversal safety checks must include observation" in issue
         for issue in report.critical_issues
     )
 

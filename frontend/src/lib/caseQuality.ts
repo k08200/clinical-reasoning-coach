@@ -17837,68 +17837,153 @@ const OPIOID_TOXICITY_CONTEXT_TERMS = [
   "opioid poisoning",
   "opioid toxicity",
   "opioid-induced respiratory depression",
-  "naloxone",
-  "narcan",
   "마약성 진통제",
   "오피오이드",
 ];
 
-const OPIOID_AIRWAY_VENTILATION_ACTION_TERMS = [
+const OPIOID_TOXICITY_SEVERITY_TERMS = [
+  "apnea",
+  "bradypnea",
+  "cardiac arrest",
+  "coma",
+  "hypoxia",
+  "loss of consciousness",
+  "miosis",
+  "pinpoint pupils",
+  "respiratory arrest",
+  "respiratory depression",
+  "shallow breathing",
+  "slow breathing",
+  "slow respirations",
+  "somnolent",
+  "unresponsive",
+  "저산소증",
+  "호흡억제",
+];
+
+const OPIOID_AIRWAY_SUPPORT_ACTION_TERMS = [
   "airway",
+  "open airway",
+  "recovery position",
+  "기도",
+];
+
+const OPIOID_BREATHING_SUPPORT_ACTION_TERMS = [
   "bag-valve",
   "bag valve",
   "bvm",
   "intubation",
-  "oxygen",
   "positive pressure",
+  "rescue breaths",
   "respiratory support",
   "ventilation",
-  "기도",
-  "산소",
+  "mechanical ventilation",
+  "구조호흡",
   "환기",
 ];
 
-const OPIOID_NALOXONE_ACTION_TERMS = [
-  "naloxone",
-  "narcan",
-  "opioid antagonist",
-  "날록손",
+const OPIOID_NALOXONE_TITRATION_ACTION_TERMS = [
+  "naloxone to restore breathing",
+  "naloxone to ventilation",
+  "titrate naloxone",
+  "titrated naloxone",
+  "날록손 적정",
 ];
 
-const OPIOID_RECURRENT_DEPRESSION_ACTION_TERMS = [
+const OPIOID_RESPIRATORY_MONITORING_ACTION_TERMS = [
   "capnography",
   "continuous monitoring",
-  "infusion",
-  "long-acting",
-  "methadone",
-  "observation",
-  "observe",
   "pulse oximetry",
-  "recurrent",
+  "respiratory monitoring",
+  "serial respiratory assessment",
+  "호흡 감시",
+];
+
+const OPIOID_RECURRENT_DEPRESSION_PLAN_ACTION_TERMS = [
+  "infusion",
+  "recurrent respiratory depression",
   "repeat dose",
   "repeat naloxone",
   "renarcotization",
-  "respiratory depression",
-  "재호흡억제",
+  "relapse into respiratory depression",
+  "relapse respiratory depression",
   "재투여",
+  "재호흡억제",
 ];
 
-const OPIOID_LONG_ACTING_REBOUND_SAFETY_TERMS = [
+const OPIOID_EMERGENCY_ESCALATION_ACTION_TERMS = [
+  "activate emergency response",
+  "call 911",
+  "call emergency",
+  "emergency medical assistance",
+  "ems",
+  "poison center",
+  "응급 호출",
+];
+
+const OPIOID_CARDIAC_ARREST_RISK_TERMS = [
+  "asystole",
+  "cardiac arrest",
+  "no pulse",
+  "pulseless",
+  "ventricular fibrillation",
+  "심정지",
+];
+
+const OPIOID_CPR_ACTION_TERMS = [
+  "cardiopulmonary resuscitation",
+  "chest compressions",
+  "compression-ventilation cpr",
+  "cpr",
+  "high-quality compressions",
+  "심폐소생술",
+];
+
+const OPIOID_AED_ACTION_TERMS = [
+  "aed",
+  "defibrillation",
+  "defibrillator",
+  "shockable rhythm",
+  "제세동",
+];
+
+const OPIOID_LONG_ACTING_EXPOSURE_SAFETY_TERMS = [
   "extended release",
   "extended-release",
   "fentanyl",
   "long-acting",
   "methadone",
-  "observation",
-  "rebound",
-  "recurrent",
-  "renarcotization",
   "sustained release",
+  "buprenorphine",
   "서방",
+];
+
+const OPIOID_REBOUND_OBSERVATION_SAFETY_TERMS = [
+  "continued surveillance",
+  "health care setting",
+  "healthcare setting",
+  "low risk of recurrent respiratory depression",
+  "observe until",
+  "observation until",
+  "rebound respiratory depression",
+  "recurrent respiratory depression",
+  "renarcotization",
+  "repeat dose",
+  "naloxone infusion",
   "재호흡억제",
 ];
 
-const OPIOID_COINGESTION_DIFFERENTIAL_SAFETY_TERMS = [
+const OPIOID_COINGESTION_ASSESSMENT_SAFETY_TERMS = [
+  "alternate cause",
+  "alternate causes",
+  "co-ingestion",
+  "coingestion",
+  "differential",
+  "mixed ingestion",
+  "other cause",
+];
+
+const OPIOID_COINGESTION_EXAMPLE_SAFETY_TERMS = [
   "alcohol",
   "benzodiazepine",
   "co-ingestion",
@@ -17911,15 +17996,49 @@ const OPIOID_COINGESTION_DIFFERENTIAL_SAFETY_TERMS = [
   "혈당",
 ];
 
-const OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS = [
-  "acute withdrawal",
-  "aspiration",
-  "pulmonary edema",
+const OPIOID_NALOXONE_TARGET_SAFETY_TERMS = [
+  "adequate ventilation",
+  "restore breathing",
   "titrate",
   "titration",
+  "ventilation",
+  "환기",
+];
+
+const OPIOID_NALOXONE_WITHDRAWAL_SAFETY_TERMS = [
+  "acute withdrawal",
   "withdrawal",
   "금단",
+];
+
+const OPIOID_NALOXONE_COMPLICATION_SAFETY_TERMS = [
+  "aspiration",
+  "cardiovascular",
+  "pulmonary edema",
   "폐부종",
+];
+
+const OPIOID_POST_REVERSAL_OBSERVATION_SAFETY_TERMS = [
+  "continued surveillance",
+  "health care setting",
+  "healthcare setting",
+  "low risk of recurrent respiratory depression",
+  "normal level of consciousness",
+  "normal vital signs",
+  "observe until",
+  "observation until",
+  "post-reversal observation",
+];
+
+const OPIOID_DISCHARGE_HARM_REDUCTION_SAFETY_TERMS = [
+  "addiction treatment",
+  "medication for opioid use disorder",
+  "moud",
+  "naloxone education",
+  "overdose prevention",
+  "referral to treatment",
+  "take-home naloxone",
+  "퇴원 교육",
 ];
 
 const SICKLE_SPLENIC_SEQUESTRATION_CONTEXT_TERMS = [
@@ -32056,6 +32175,8 @@ function hasCausticIngestionTreatmentSafetyCheck(checks: string[]): boolean {
 
 function requiresOpioidToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
   const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
     detail.diagnosis,
     detail.coach_guidance,
     ...nestedStrings(detail.key_teaching_points),
@@ -32066,36 +32187,119 @@ function requiresOpioidToxicitySafetyCheck(detail: ClinicalCaseReviewDetail): bo
   ]
     .join(" ")
     .toLowerCase();
-  return OPIOID_TOXICITY_CONTEXT_TERMS.some((term) => containsSafetyTerm(riskText, term));
+  const hasContext = OPIOID_TOXICITY_CONTEXT_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  const hasSeverity = OPIOID_TOXICITY_SEVERITY_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+  return hasContext && hasSeverity;
 }
 
 function hasOpioidToxicityTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasAirwayVentilation = OPIOID_AIRWAY_VENTILATION_ACTION_TERMS.some((term) =>
+  const hasAirwaySupport = OPIOID_AIRWAY_SUPPORT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasNaloxone = OPIOID_NALOXONE_ACTION_TERMS.some((term) =>
+  const hasBreathingSupport = OPIOID_BREATHING_SUPPORT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasRecurrentDepressionMonitoring = OPIOID_RECURRENT_DEPRESSION_ACTION_TERMS.some(
+  const hasNaloxoneTitration = OPIOID_NALOXONE_TITRATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRespiratoryMonitoring = OPIOID_RESPIRATORY_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRecurrentDepressionPlan = OPIOID_RECURRENT_DEPRESSION_PLAN_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  return hasAirwayVentilation && hasNaloxone && hasRecurrentDepressionMonitoring;
+  const hasEmergencyEscalation = OPIOID_EMERGENCY_ESCALATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasAirwaySupport &&
+    hasBreathingSupport &&
+    hasNaloxoneTitration &&
+    hasRespiratoryMonitoring &&
+    hasRecurrentDepressionPlan &&
+    hasEmergencyEscalation
+  );
+}
+
+function requiresOpioidToxicityCardiacArrestCheck(
+  detail: ClinicalCaseReviewDetail,
+): boolean {
+  if (!requiresOpioidToxicitySafetyCheck(detail)) {
+    return false;
+  }
+  const riskText = [
+    detail.chief_complaint,
+    detail.history_of_present_illness,
+    detail.diagnosis,
+    ...nestedStrings(detail.clinical_red_flags),
+    ...nestedStrings(detail.physical_exam),
+  ]
+    .join(" ")
+    .toLowerCase();
+  return OPIOID_CARDIAC_ARREST_RISK_TERMS.some((term) =>
+    containsSafetyTerm(riskText, term),
+  );
+}
+
+function hasOpioidToxicityCardiacArrestActions(actions: string[]): boolean {
+  const normalizedActions = actions.join(" ").toLowerCase();
+  const hasCpr = OPIOID_CPR_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAedOrDefibrillation = OPIOID_AED_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return hasCpr && hasAedOrDefibrillation;
 }
 
 function hasOpioidToxicityTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasLongActingReboundSafety = OPIOID_LONG_ACTING_REBOUND_SAFETY_TERMS.some((term) =>
+  const hasLongActingExposureSafety = OPIOID_LONG_ACTING_EXPOSURE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasCoingestionOrDifferentialSafety =
-    OPIOID_COINGESTION_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
-  const hasNaloxoneAdverseSafety = OPIOID_NALOXONE_ADVERSE_SAFETY_TERMS.some((term) =>
+  const hasReboundObservationSafety = OPIOID_REBOUND_OBSERVATION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  return hasLongActingReboundSafety && hasCoingestionOrDifferentialSafety && hasNaloxoneAdverseSafety;
+  const hasCoingestionAssessment = OPIOID_COINGESTION_ASSESSMENT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasCoingestionExample = OPIOID_COINGESTION_EXAMPLE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNaloxoneTargetSafety = OPIOID_NALOXONE_TARGET_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNaloxoneWithdrawalSafety = OPIOID_NALOXONE_WITHDRAWAL_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasNaloxoneComplicationSafety = OPIOID_NALOXONE_COMPLICATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return (
+    hasLongActingExposureSafety &&
+    hasReboundObservationSafety &&
+    hasCoingestionAssessment &&
+    hasCoingestionExample &&
+    hasNaloxoneTargetSafety &&
+    hasNaloxoneWithdrawalSafety &&
+    hasNaloxoneComplicationSafety
+  );
+}
+
+function hasOpioidToxicityPostReversalSafetyCheck(checks: string[]): boolean {
+  const normalizedChecks = checks.join(" ").toLowerCase();
+  const hasObservation = OPIOID_POST_REVERSAL_OBSERVATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHarmReduction = OPIOID_DISCHARGE_HARM_REDUCTION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  return hasObservation && hasHarmReduction;
 }
 
 function requiresSickleSplenicSequestrationSafetyCheck(
@@ -35809,7 +36013,16 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasOpioidToxicityTimeCriticalActions,
       issue:
-        "opioid toxicity time-critical actions must include airway or ventilatory support, naloxone reversal, and recurrent respiratory depression monitoring or repeat-dose planning",
+        "opioid toxicity time-critical actions must include airway and breathing support such as bag-mask/rescue breaths or ventilation, naloxone titrated to restore breathing, continuous respiratory monitoring with a repeat-dose or infusion plan for recurrent respiratory depression, and emergency-response escalation",
+    },
+    {
+      name: "opioid_toxicity_cardiac_arrest_actions",
+      label: "Opioid toxicity cardiac arrest resuscitation",
+      applies: requiresOpioidToxicityCardiacArrestCheck,
+      fieldName: "time_critical_actions",
+      validator: hasOpioidToxicityCardiacArrestActions,
+      issue:
+        "opioid toxicity with cardiac arrest, pulselessness, asystole, or ventricular fibrillation must include immediate CPR/chest compressions with compression-ventilation support and AED/defibrillation planning without interrupting high-quality resuscitation for naloxone",
     },
     {
       name: "opioid_toxicity_treatment_safety",
@@ -35818,7 +36031,16 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasOpioidToxicityTreatmentSafetyCheck,
       issue:
-        "opioid toxicity safety checks must include long-acting opioid or renarcotization observation, co-ingestion or alternate-cause assessment, and naloxone titration, withdrawal, aspiration, or pulmonary-edema safeguards",
+        "opioid toxicity safety checks must include long-acting opioid or sustained-release opioid exposure with renarcotization/rebound observation, explicit co-ingestion and alternate-cause assessment, naloxone titration to adequate ventilation with withdrawal and aspiration/pulmonary-edema or cardiovascular safeguards",
+    },
+    {
+      name: "opioid_toxicity_post_reversal_safety",
+      label: "Opioid toxicity observation and discharge safety",
+      applies: requiresOpioidToxicitySafetyCheck,
+      fieldName: "contraindication_checks",
+      validator: hasOpioidToxicityPostReversalSafetyCheck,
+      issue:
+        "opioid toxicity post-reversal safety checks must include observation in a health care setting until normal consciousness, normal vital signs, and low risk of recurrent respiratory depression, plus take-home naloxone/overdose-prevention education or referral to opioid use disorder treatment",
     },
     {
       name: "sickle_splenic_sequestration_time_critical_actions",

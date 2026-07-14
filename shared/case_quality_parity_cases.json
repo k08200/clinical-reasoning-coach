@@ -8270,7 +8270,7 @@
     "name": "opioid_toxicity_requires_airway_naloxone_and_recurrent_monitoring",
     "expected_passed": false,
     "expected_issue_substrings": [
-      "opioid toxicity time-critical actions must include airway or ventilatory support"
+      "opioid toxicity time-critical actions must include airway and breathing support"
     ],
     "overrides": {
       "diagnosis": "Opioid toxicity",
@@ -8308,6 +8308,143 @@
             "methadone, fentanyl, extended-release, or long-acting opioid exposure and renarcotization observation",
             "alcohol, benzodiazepine or sedative co-ingestion, hypoglycemia, and trauma as alternate causes",
             "naloxone titration to ventilation with acute withdrawal, aspiration, and pulmonary edema safeguards"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "opioid_toxicity_requires_cpr_and_aed_for_cardiac_arrest",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "opioid toxicity with cardiac arrest"
+    ],
+    "overrides": {
+      "diagnosis": "Opioid poisoning",
+      "chief_complaint": "Cardiac arrest after suspected fentanyl overdose",
+      "history_of_present_illness": "Patient is pulseless in cardiac arrest after suspected fentanyl overdose with apnea and pinpoint pupils.",
+      "clinical_red_flags": [
+        "Cardiac arrest, pulselessness, apnea, and pinpoint pupils",
+        "No pulse with suspected opioid overdose"
+      ],
+      "time_critical_actions": [
+        "Open the airway and support breathing with bag-valve-mask rescue breaths",
+        "Titrate naloxone to restore breathing",
+        "Use continuous respiratory monitoring and prepare repeat naloxone dose",
+        "Activate emergency response and call EMS"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2025 AHA Guidelines: Opioid Overdose Resuscitation",
+          "organization": "American Heart Association",
+          "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation",
+          "supports": [
+            "opioid poisoning with cardiac arrest and respiratory depression diagnosis",
+            "cardiac arrest, pulselessness, apnea, and pinpoint pupils as red flags",
+            "airway and breathing support with bag-valve-mask rescue breaths",
+            "naloxone titrated to restore breathing",
+            "continuous respiratory monitoring and repeat naloxone dose",
+            "emergency response and EMS escalation",
+            "CPR, chest compressions, AED, and defibrillation are required for cardiac arrest"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "opioid_toxicity_accepts_complete_resuscitation_and_post_reversal_safety",
+    "expected_passed": true,
+    "expected_issue_substrings": [],
+    "overrides": {
+      "diagnosis": "Opioid poisoning",
+      "patient_demographics": {
+        "age": 45,
+        "sex": "male",
+        "weight_kg": 80,
+        "ethnicity": "Korean"
+      },
+      "past_medical_history": "No known bleeding disorder",
+      "medications": ["None reported"],
+      "chief_complaint": "Somnolence and slow breathing after fentanyl exposure",
+      "history_of_present_illness": "Patient is somnolent with slow shallow breathing, hypoxia, and pinpoint pupils after fentanyl exposure, with concern for recurrent respiratory depression.",
+      "coach_guidance": "Focus on airway, breathing, naloxone response, and safe disposition.",
+      "key_teaching_points": [
+        "Opioid overdose can progress from respiratory depression to respiratory arrest",
+        "Airway and breathing support should not be delayed while naloxone is prepared",
+        "Patients who respond to naloxone require observation and overdose-prevention planning"
+      ],
+      "clinical_red_flags": [
+        "Somnolence, slow shallow breathing, hypoxia, or pinpoint pupils",
+        "Recurrent respiratory depression after initial naloxone response"
+      ],
+      "time_critical_actions": [
+        "Open the airway and support breathing with bag-valve-mask rescue breaths and oxygen; intubate if needed",
+        "Titrate naloxone to restore breathing rather than normalize mental status",
+        "Use continuous respiratory monitoring with pulse oximetry and capnography; repeat naloxone dose or start naloxone infusion if recurrent respiratory depression develops",
+        "Activate emergency response, call EMS, and contact poison center"
+      ],
+      "contraindication_checks": [
+        "Assess fentanyl, methadone, buprenorphine, long-acting, or extended-release opioid exposure and observe for renarcotization or rebound respiratory depression",
+        "Observe in a health care setting until normal level of consciousness, normal vital signs, and low risk of recurrent respiratory depression",
+        "Assess alcohol, benzodiazepine, sedative co-ingestion, hypoglycemia, trauma, and other alternate causes",
+        "Titrate naloxone to adequate ventilation while monitoring acute withdrawal, aspiration, pulmonary edema, and cardiovascular effects",
+        "Provide take-home naloxone and overdose prevention/naloxone education with referral to medication for opioid use disorder"
+      ],
+      "clinical_sources": [
+        {
+          "title": "2025 AHA Guidelines: Opioid Overdose Resuscitation",
+          "organization": "American Heart Association",
+          "url": "https://cpr.heart.org/en/resuscitation-science/cpr-and-ecc-guidelines/adult-and-pediatric-special-circumstances-of-resuscitation",
+          "supports": [
+            "opioid toxicity with respiratory depression diagnosis and risk stratification",
+            "somnolence, slow shallow breathing, hypoxia, and pinpoint pupils as red flags",
+            "opioid overdose can progress from respiratory depression to respiratory arrest",
+            "airway and breathing support with bag-valve-mask rescue breaths and oxygen",
+            "naloxone titrated to restore breathing rather than normalize mental status",
+            "continuous respiratory monitoring with pulse oximetry and capnography",
+            "repeat naloxone dose or naloxone infusion for recurrent respiratory depression",
+            "emergency response, EMS, and poison center escalation",
+            "long-acting or extended-release opioid exposure and renarcotization observation",
+            "health care observation until normal consciousness, vital signs, and low recurrence risk",
+            "alcohol, benzodiazepine, sedative co-ingestion, hypoglycemia, trauma, and alternate causes",
+            "naloxone titration to adequate ventilation with withdrawal, aspiration, pulmonary edema, and cardiovascular safeguards",
+            "take-home naloxone, overdose prevention education, and medication for opioid use disorder referral",
+            "contraindication and safety checks for opioid reversal and post-reversal care"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "opioid_toxicity_rejects_generic_antidote_monitoring_and_disposition_terms",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "opioid toxicity time-critical actions must include airway and breathing support",
+      "opioid toxicity safety checks must include long-acting opioid",
+      "opioid toxicity post-reversal safety checks must include observation"
+    ],
+    "overrides": {
+      "diagnosis": "Opioid toxicity",
+      "chief_complaint": "Found unresponsive",
+      "history_of_present_illness": "Patient is unresponsive with slow breathing and pinpoint pupils after an unknown opioid exposure.",
+      "time_critical_actions": [
+        "Give oxygen",
+        "Give naloxone",
+        "Observe the patient",
+        "Review the case"
+      ],
+      "contraindication_checks": [
+        "Review fentanyl, observation, glucose, aspiration, withdrawal, and take-home naloxone"
+      ],
+      "clinical_sources": [
+        {
+          "title": "Opioid Toxicity",
+          "organization": "NCBI Bookshelf",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK470415/",
+          "supports": [
+            "opioid toxicity diagnosis and respiratory depression risk stratification",
+            "unresponsive patient with slow breathing and pinpoint pupils as red flags",
+            "naloxone, monitoring, and post-reversal safety checks"
           ]
         }
       ]
