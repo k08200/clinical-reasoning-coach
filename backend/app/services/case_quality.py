@@ -17343,6 +17343,11 @@ ACUTE_HF_DIURESIS_OUTPUT_SAFETY_TERMS = (
     "diuresis",
     "urine output",
 )
+ACUTE_HF_WEIGHT_MONITORING_SAFETY_TERMS = (
+    "daily weight",
+    "weight",
+    "체중",
+)
 ACUTE_HF_ELECTROLYTE_SAFETY_TERMS = (
     "electrolyte",
     "hypokalemia",
@@ -39141,6 +39146,10 @@ def _has_acute_heart_failure_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_HF_DIURESIS_OUTPUT_SAFETY_TERMS
     )
+    has_weight_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in ACUTE_HF_WEIGHT_MONITORING_SAFETY_TERMS
+    )
     has_electrolyte_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_HF_ELECTROLYTE_SAFETY_TERMS
@@ -39149,7 +39158,7 @@ def _has_acute_heart_failure_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_HF_TRIGGER_REVIEW_SAFETY_TERMS
     )
-    has_trigger_condition = any(
+    trigger_condition_count = sum(
         _contains_safety_term(normalized_checks, term)
         for term in ACUTE_HF_TRIGGER_CONDITION_SAFETY_TERMS
     )
@@ -39171,10 +39180,10 @@ def _has_acute_heart_failure_treatment_safety_check(checks: list[Any]) -> bool:
         and has_vasodilator_safety
         and has_vasodilator_contraindication
         and has_renal_monitoring
-        and has_diuresis_output
+        and has_diuresis_output and has_weight_monitoring
         and has_electrolyte_safety
         and has_trigger_review
-        and has_trigger_condition
+        and trigger_condition_count >= 2
         and has_shock_perfusion
         and has_shock_state
         and has_respiratory_escalation

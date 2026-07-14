@@ -19318,6 +19318,8 @@ const ACUTE_HF_DIURESIS_OUTPUT_SAFETY_TERMS = [
   "urine output",
 ];
 
+const ACUTE_HF_WEIGHT_MONITORING_SAFETY_TERMS = ["daily weight", "weight", "체중"];
+
 const ACUTE_HF_ELECTROLYTE_SAFETY_TERMS = [
   "electrolyte",
   "hypokalemia",
@@ -33479,15 +33481,18 @@ function hasAcuteHeartFailureTreatmentSafetyCheck(checks: string[]): boolean {
   const hasDiuresisOutput = ACUTE_HF_DIURESIS_OUTPUT_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasWeightMonitoring = ACUTE_HF_WEIGHT_MONITORING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasElectrolyteSafety = ACUTE_HF_ELECTROLYTE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasTriggerReview = ACUTE_HF_TRIGGER_REVIEW_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasTriggerCondition = ACUTE_HF_TRIGGER_CONDITION_SAFETY_TERMS.some((term) =>
+  const triggerConditionCount = ACUTE_HF_TRIGGER_CONDITION_SAFETY_TERMS.filter((term) =>
     containsSafetyTerm(normalizedChecks, term),
-  );
+  ).length;
   const hasShockPerfusion = ACUTE_HF_SHOCK_PERFUSION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
@@ -33504,9 +33509,10 @@ function hasAcuteHeartFailureTreatmentSafetyCheck(checks: string[]): boolean {
     hasVasodilatorContraindication &&
     hasRenalMonitoring &&
     hasDiuresisOutput &&
+    hasWeightMonitoring &&
     hasElectrolyteSafety &&
     hasTriggerReview &&
-    hasTriggerCondition &&
+    triggerConditionCount >= 2 &&
     hasShockPerfusion &&
     hasShockState &&
     hasRespiratoryEscalation

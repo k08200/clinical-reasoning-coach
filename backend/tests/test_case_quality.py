@@ -36634,7 +36634,7 @@ def test_quality_gate_allows_acute_hf_with_shock_escalation_safety():
     ]
     case["contraindication_checks"] = [
         "Check blood pressure, hypotension, aortic stenosis, right ventricular infarct, sildenafil, and nitrate or vasodilator contraindications",
-        "Monitor renal function, creatinine, urine output, potassium, magnesium, and electrolytes during diuresis",
+        "Monitor renal function, creatinine, daily weight, urine output, potassium, magnesium, and electrolytes during diuresis",
         "Assess arrhythmia, valvular disease, infection, medication nonadherence, and other triggers",
         "Monitor lactate, hypoperfusion, altered mental status, cardiogenic shock, intubation need, and respiratory failure",
         "Do not routinely offer nitrates; use IV nitrate or vasodilator only in an appropriate pressure context with close blood pressure monitoring in level 2 care",
@@ -36659,7 +36659,7 @@ def test_quality_gate_allows_acute_hf_with_shock_escalation_safety():
                 "blood-pressure-guided nitroglycerin nitrate vasodilator planning for pulmonary edema with regurgitant mitral valve disease",
                 "ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
                 "blood pressure, hypotension, aortic stenosis, right ventricular infarct, sildenafil, and nitrate or vasodilator contraindications",
-                "renal function, creatinine, urine output, potassium, magnesium, and electrolytes during diuresis",
+                "renal function, creatinine, daily weight, urine output, potassium, magnesium, and electrolytes during diuresis",
                 "arrhythmia, valvular disease, infection, medication nonadherence, and other triggers",
                 "lactate, hypoperfusion, altered mental status, cardiogenic shock, intubation need, and respiratory failure",
                 "do not routinely offer nitrates; use IV nitrate or vasodilator only in an appropriate pressure context with close blood pressure monitoring in level 2 care",
