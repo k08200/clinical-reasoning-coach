@@ -16178,21 +16178,41 @@ SICKLE_SPLENIC_SEQUESTRATION_RISK_TERMS = (
     "splenomegaly",
     "tachycardia",
 )
-SICKLE_SPLENIC_SEQUESTRATION_ASSESSMENT_ACTION_TERMS = (
-    "baseline hemoglobin",
-    "cbc",
-    "hemoglobin",
+SICKLE_SPLENIC_SEQUESTRATION_SPLEEN_ASSESSMENT_ACTION_TERMS = (
+    "measure spleen",
     "palpate spleen",
-    "reticulocyte",
     "spleen size",
+    "splenic enlargement",
+    "비장 크기",
+)
+SICKLE_SPLENIC_SEQUESTRATION_CBC_ASSESSMENT_ACTION_TERMS = (
+    "cbc",
+    "complete blood count",
+    "reticulocyte",
+    "망상적혈구",
+)
+SICKLE_SPLENIC_SEQUESTRATION_BASELINE_HEMOGLOBIN_ACTION_TERMS = (
+    "baseline hemoglobin",
+    "compare hemoglobin with baseline",
+    "hemoglobin compared with baseline",
+    "기저 헤모글로빈",
+)
+SICKLE_SPLENIC_SEQUESTRATION_BLOOD_BANK_ACTION_TERMS = (
+    "blood bank",
+    "crossmatch",
     "type and crossmatch",
+    "type and screen",
+    "혈액은행",
 )
 SICKLE_SPLENIC_SEQUESTRATION_RESUSCITATION_ACTION_TERMS = (
-    "fluid bolus",
-    "hypovolemia",
+    "establish iv access",
+    "iv access",
+    "intravenous access",
+    "fluid resuscitation",
     "iv fluid",
-    "resuscitation",
-    "shock",
+    "intravenous fluid",
+    "volume support",
+    "수액",
 )
 SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_ACTION_TERMS = (
     "packed red blood",
@@ -16205,37 +16225,84 @@ SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_ACTION_TERMS = (
 )
 SICKLE_SPLENIC_SEQUESTRATION_EXPERT_ACTION_TERMS = (
     "hematology",
+    "reference center",
     "sickle cell expert",
     "sickle cell specialist",
+    "transfer",
 )
 SICKLE_SPLENIC_SEQUESTRATION_OVERTRANSFUSION_SAFETY_TERMS = (
     "avoid over-transfusion",
     "avoid overtransfusion",
+    "do not transfuse above",
     "hemoglobin 8",
+    "hemoglobin 10",
     "hyperviscosity",
     "over-transfusion",
     "overtransfusion",
+    "post-transfusion hematocrit",
+    "small aliquot",
+    "small-volume",
+    "target hemoglobin",
+    "transfusion target",
+    "과점도",
+    "과수혈",
 )
-SICKLE_SPLENIC_SEQUESTRATION_DIFFERENTIAL_SAFETY_TERMS = (
-    "acute chest syndrome",
+SICKLE_SPLENIC_SEQUESTRATION_ACUTE_ANEMIA_DIFFERENTIAL_SAFETY_TERMS = (
     "aplastic",
     "delayed hemolytic transfusion reaction",
+    "delayed hemolytic",
+    "d h t r",
+)
+SICKLE_SPLENIC_SEQUESTRATION_ACUTE_ILLNESS_DIFFERENTIAL_SAFETY_TERMS = (
+    "acute chest syndrome",
     "infection",
     "sepsis",
 )
-SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_SAFETY_TERMS = (
-    "parent education",
+SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_PLAN_SAFETY_TERMS = (
     "recurrence",
     "recurrent sequestration",
+    "recurrence monitoring",
+    "follow-up",
+    "follow up",
+    "재발",
+)
+SICKLE_SPLENIC_SEQUESTRATION_FAMILY_EDUCATION_SAFETY_TERMS = (
+    "caregiver education",
+    "family education",
+    "measure spleen",
+    "parent education",
     "spleen size",
+    "비장 크기",
+)
+SICKLE_SPLENIC_SEQUESTRATION_PREVENTION_FOLLOWUP_SAFETY_TERMS = (
+    "hematology follow-up",
+    "sickle cell follow-up",
     "splenectomy",
 )
-SICKLE_SPLENIC_SEQUESTRATION_MONITORING_SAFETY_TERMS = (
-    "hemoglobin",
-    "rebound",
-    "recheck",
+SICKLE_SPLENIC_SEQUESTRATION_SERIAL_LAB_MONITORING_SAFETY_TERMS = (
+    "repeat cbc",
+    "recheck cbc",
     "serial cbc",
+    "serial hemoglobin",
+    "hemoglobin rebound",
+    "reticulocyte",
+)
+SICKLE_SPLENIC_SEQUESTRATION_HEMODYNAMIC_MONITORING_SAFETY_TERMS = (
+    "hemodynamic",
+    "perfusion",
     "vital signs",
+    "shock response",
+)
+SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_COMPATIBILITY_SAFETY_TERMS = (
+    "alloimmunization",
+    "antigen matched",
+    "blood bank",
+    "c antigen",
+    "e antigen",
+    "extended antigen matching",
+    "k antigen",
+    "sickle-negative",
+    "transfusion history",
 )
 SICKLE_STROKE_CONTEXT_TERMS = (
     "acute stroke in sickle cell",
@@ -22994,11 +23061,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_sickle_splenic_sequestration_time_critical_actions,
             issue=(
                 "sickle cell splenic sequestration time-critical actions must "
-                "include spleen size, CBC, reticulocyte count, baseline "
-                "hemoglobin comparison, and type-and-crossmatch assessment, "
-                "immediate IV fluid resuscitation for hypovolemia or shock, "
-                "simple transfusion or PRBC planning for severe anemia, and "
-                "hematology or sickle cell expert consultation"
+                "include spleen-size assessment, CBC with reticulocyte count, "
+                "baseline hemoglobin comparison, and type-and-screen or "
+                "crossmatch assessment, IV access with fluid resuscitation for "
+                "hypovolemia, transfusion planning for severe anemia, and "
+                "hematology, sickle-cell expert, or reference-center consultation"
             ),
         ),
         DomainSafetyGate(
@@ -23008,12 +23075,13 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_sickle_splenic_sequestration_treatment_safety_check,
             issue=(
                 "sickle cell splenic sequestration safety checks must include "
-                "avoiding over-transfusion or hyperviscosity such as hemoglobin "
-                "above 8 g/dL, differential review for aplastic crisis, delayed "
-                "hemolytic transfusion reaction, acute chest syndrome, infection, "
-                "or sepsis, recurrence monitoring with spleen-size education and "
-                "splenectomy discussion, and serial CBC, hemoglobin rebound, "
-                "recheck, or vital-sign monitoring"
+                "a transfusion target or ceiling with small-aliquot/"
+                "hyperviscosity precautions, differential review for aplastic "
+                "crisis or delayed hemolytic transfusion reaction plus acute "
+                "chest syndrome, infection, or sepsis, recurrence and family "
+                "education with specialist follow-up or splenectomy consideration, "
+                "serial CBC/reticulocyte and hemodynamic monitoring, and blood-bank "
+                "compatibility or antigen-matching safety checks"
             ),
         ),
         DomainSafetyGate(
@@ -37773,9 +37841,21 @@ def _has_sickle_splenic_sequestration_time_critical_actions(
     actions: list[Any],
 ) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_assessment = any(
+    has_spleen_assessment = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SICKLE_SPLENIC_SEQUESTRATION_ASSESSMENT_ACTION_TERMS
+        for term in SICKLE_SPLENIC_SEQUESTRATION_SPLEEN_ASSESSMENT_ACTION_TERMS
+    )
+    has_cbc_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_CBC_ASSESSMENT_ACTION_TERMS
+    )
+    has_baseline_hemoglobin_comparison = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_BASELINE_HEMOGLOBIN_ACTION_TERMS
+    )
+    has_blood_bank_assessment = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_BLOOD_BANK_ACTION_TERMS
     )
     has_resuscitation = any(
         _contains_safety_term(normalized_actions, term)
@@ -37789,7 +37869,15 @@ def _has_sickle_splenic_sequestration_time_critical_actions(
         _contains_safety_term(normalized_actions, term)
         for term in SICKLE_SPLENIC_SEQUESTRATION_EXPERT_ACTION_TERMS
     )
-    return has_assessment and has_resuscitation and has_transfusion and has_expert
+    return (
+        has_spleen_assessment
+        and has_cbc_assessment
+        and has_baseline_hemoglobin_comparison
+        and has_blood_bank_assessment
+        and has_resuscitation
+        and has_transfusion
+        and has_expert
+    )
 
 
 def _has_sickle_splenic_sequestration_treatment_safety_check(
@@ -37800,23 +37888,48 @@ def _has_sickle_splenic_sequestration_treatment_safety_check(
         _contains_safety_term(normalized_checks, term)
         for term in SICKLE_SPLENIC_SEQUESTRATION_OVERTRANSFUSION_SAFETY_TERMS
     )
-    has_differential_safety = any(
+    has_acute_anemia_differential_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SICKLE_SPLENIC_SEQUESTRATION_DIFFERENTIAL_SAFETY_TERMS
+        for term in SICKLE_SPLENIC_SEQUESTRATION_ACUTE_ANEMIA_DIFFERENTIAL_SAFETY_TERMS
     )
-    has_recurrence_safety = any(
+    has_acute_illness_differential_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_SAFETY_TERMS
+        for term in SICKLE_SPLENIC_SEQUESTRATION_ACUTE_ILLNESS_DIFFERENTIAL_SAFETY_TERMS
     )
-    has_monitoring_safety = any(
+    has_recurrence_plan = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SICKLE_SPLENIC_SEQUESTRATION_MONITORING_SAFETY_TERMS
+        for term in SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_PLAN_SAFETY_TERMS
+    )
+    has_family_education = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_FAMILY_EDUCATION_SAFETY_TERMS
+    )
+    has_prevention_followup = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_PREVENTION_FOLLOWUP_SAFETY_TERMS
+    )
+    has_serial_lab_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_SERIAL_LAB_MONITORING_SAFETY_TERMS
+    )
+    has_hemodynamic_monitoring = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_HEMODYNAMIC_MONITORING_SAFETY_TERMS
+    )
+    has_transfusion_compatibility_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_COMPATIBILITY_SAFETY_TERMS
     )
     return (
         has_overtransfusion_safety
-        and has_differential_safety
-        and has_recurrence_safety
-        and has_monitoring_safety
+        and has_acute_anemia_differential_safety
+        and has_acute_illness_differential_safety
+        and has_recurrence_plan
+        and has_family_education
+        and has_prevention_followup
+        and has_serial_lab_monitoring
+        and has_hemodynamic_monitoring
+        and has_transfusion_compatibility_safety
     )
 
 

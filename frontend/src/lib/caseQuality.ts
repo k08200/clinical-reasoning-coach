@@ -18065,22 +18065,45 @@ const SICKLE_SPLENIC_SEQUESTRATION_RISK_TERMS = [
   "tachycardia",
 ];
 
-const SICKLE_SPLENIC_SEQUESTRATION_ASSESSMENT_ACTION_TERMS = [
-  "baseline hemoglobin",
-  "cbc",
-  "hemoglobin",
+const SICKLE_SPLENIC_SEQUESTRATION_SPLEEN_ASSESSMENT_ACTION_TERMS = [
+  "measure spleen",
   "palpate spleen",
-  "reticulocyte",
   "spleen size",
+  "splenic enlargement",
+  "비장 크기",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_CBC_ASSESSMENT_ACTION_TERMS = [
+  "cbc",
+  "complete blood count",
+  "reticulocyte",
+  "망상적혈구",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_BASELINE_HEMOGLOBIN_ACTION_TERMS = [
+  "baseline hemoglobin",
+  "compare hemoglobin with baseline",
+  "hemoglobin compared with baseline",
+  "기저 헤모글로빈",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_BLOOD_BANK_ACTION_TERMS = [
+  "blood bank",
+  "crossmatch",
   "type and crossmatch",
+  "type and screen",
+  "혈액은행",
 ];
 
 const SICKLE_SPLENIC_SEQUESTRATION_RESUSCITATION_ACTION_TERMS = [
-  "fluid bolus",
-  "hypovolemia",
+  "establish iv access",
+  "iv access",
+  "intravenous access",
+  "fluid resuscitation",
   "iv fluid",
-  "resuscitation",
-  "shock",
+  "intravenous fluid",
+  "volume support",
+  "수액",
 ];
 
 const SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_ACTION_TERMS = [
@@ -18095,41 +18118,93 @@ const SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_ACTION_TERMS = [
 
 const SICKLE_SPLENIC_SEQUESTRATION_EXPERT_ACTION_TERMS = [
   "hematology",
+  "reference center",
   "sickle cell expert",
   "sickle cell specialist",
+  "transfer",
 ];
 
 const SICKLE_SPLENIC_SEQUESTRATION_OVERTRANSFUSION_SAFETY_TERMS = [
   "avoid over-transfusion",
   "avoid overtransfusion",
+  "do not transfuse above",
   "hemoglobin 8",
+  "hemoglobin 10",
   "hyperviscosity",
   "over-transfusion",
   "overtransfusion",
+  "post-transfusion hematocrit",
+  "small aliquot",
+  "small-volume",
+  "target hemoglobin",
+  "transfusion target",
+  "과점도",
+  "과수혈",
 ];
 
-const SICKLE_SPLENIC_SEQUESTRATION_DIFFERENTIAL_SAFETY_TERMS = [
-  "acute chest syndrome",
+const SICKLE_SPLENIC_SEQUESTRATION_ACUTE_ANEMIA_DIFFERENTIAL_SAFETY_TERMS = [
   "aplastic",
   "delayed hemolytic transfusion reaction",
+  "delayed hemolytic",
+  "d h t r",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_ACUTE_ILLNESS_DIFFERENTIAL_SAFETY_TERMS = [
+  "acute chest syndrome",
   "infection",
   "sepsis",
 ];
 
-const SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_SAFETY_TERMS = [
-  "parent education",
+const SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_PLAN_SAFETY_TERMS = [
   "recurrence",
   "recurrent sequestration",
+  "recurrence monitoring",
+  "follow-up",
+  "follow up",
+  "재발",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_FAMILY_EDUCATION_SAFETY_TERMS = [
+  "caregiver education",
+  "family education",
+  "measure spleen",
+  "parent education",
   "spleen size",
+  "비장 크기",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_PREVENTION_FOLLOWUP_SAFETY_TERMS = [
+  "hematology follow-up",
+  "sickle cell follow-up",
   "splenectomy",
 ];
 
-const SICKLE_SPLENIC_SEQUESTRATION_MONITORING_SAFETY_TERMS = [
-  "hemoglobin",
-  "rebound",
-  "recheck",
+const SICKLE_SPLENIC_SEQUESTRATION_SERIAL_LAB_MONITORING_SAFETY_TERMS = [
+  "repeat cbc",
+  "recheck cbc",
   "serial cbc",
+  "serial hemoglobin",
+  "hemoglobin rebound",
+  "reticulocyte",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_HEMODYNAMIC_MONITORING_SAFETY_TERMS = [
+  "hemodynamic",
+  "perfusion",
   "vital signs",
+  "shock response",
+];
+
+const SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_COMPATIBILITY_SAFETY_TERMS = [
+  "alloimmunization",
+  "antigen matched",
+  "blood bank",
+  "c antigen",
+  "e antigen",
+  "extended antigen matching",
+  "k antigen",
+  "sickle-negative",
+  "transfusion history",
 ];
 
 const SICKLE_STROKE_CONTEXT_TERMS = [
@@ -32331,7 +32406,16 @@ function requiresSickleSplenicSequestrationSafetyCheck(
 
 function hasSickleSplenicSequestrationTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasAssessment = SICKLE_SPLENIC_SEQUESTRATION_ASSESSMENT_ACTION_TERMS.some((term) =>
+  const hasSpleenAssessment = SICKLE_SPLENIC_SEQUESTRATION_SPLEEN_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasCbcAssessment = SICKLE_SPLENIC_SEQUESTRATION_CBC_ASSESSMENT_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBaselineHemoglobinComparison = SICKLE_SPLENIC_SEQUESTRATION_BASELINE_HEMOGLOBIN_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasBloodBankAssessment = SICKLE_SPLENIC_SEQUESTRATION_BLOOD_BANK_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasResuscitation = SICKLE_SPLENIC_SEQUESTRATION_RESUSCITATION_ACTION_TERMS.some(
@@ -32343,7 +32427,15 @@ function hasSickleSplenicSequestrationTimeCriticalActions(actions: string[]): bo
   const hasExpert = SICKLE_SPLENIC_SEQUESTRATION_EXPERT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasAssessment && hasResuscitation && hasTransfusion && hasExpert;
+  return (
+    hasSpleenAssessment &&
+    hasCbcAssessment &&
+    hasBaselineHemoglobinComparison &&
+    hasBloodBankAssessment &&
+    hasResuscitation &&
+    hasTransfusion &&
+    hasExpert
+  );
 }
 
 function hasSickleSplenicSequestrationTreatmentSafetyCheck(checks: string[]): boolean {
@@ -32352,17 +32444,45 @@ function hasSickleSplenicSequestrationTreatmentSafetyCheck(checks: string[]): bo
     SICKLE_SPLENIC_SEQUESTRATION_OVERTRANSFUSION_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasDifferentialSafety = SICKLE_SPLENIC_SEQUESTRATION_DIFFERENTIAL_SAFETY_TERMS.some(
+  const hasAcuteAnemiaDifferentialSafety =
+    SICKLE_SPLENIC_SEQUESTRATION_ACUTE_ANEMIA_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasAcuteIllnessDifferentialSafety =
+    SICKLE_SPLENIC_SEQUESTRATION_ACUTE_ILLNESS_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasRecurrencePlan = SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_PLAN_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasRecurrenceSafety = SICKLE_SPLENIC_SEQUESTRATION_RECURRENCE_SAFETY_TERMS.some(
+  const hasFamilyEducation = SICKLE_SPLENIC_SEQUESTRATION_FAMILY_EDUCATION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasMonitoringSafety = SICKLE_SPLENIC_SEQUESTRATION_MONITORING_SAFETY_TERMS.some(
+  const hasPreventionFollowup = SICKLE_SPLENIC_SEQUESTRATION_PREVENTION_FOLLOWUP_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasSerialLabMonitoring =
+    SICKLE_SPLENIC_SEQUESTRATION_SERIAL_LAB_MONITORING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasHemodynamicMonitoring =
+    SICKLE_SPLENIC_SEQUESTRATION_HEMODYNAMIC_MONITORING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasTransfusionCompatibilitySafety =
+    SICKLE_SPLENIC_SEQUESTRATION_TRANSFUSION_COMPATIBILITY_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   return (
-    hasOvertransfusionSafety && hasDifferentialSafety && hasRecurrenceSafety && hasMonitoringSafety
+    hasOvertransfusionSafety &&
+    hasAcuteAnemiaDifferentialSafety &&
+    hasAcuteIllnessDifferentialSafety &&
+    hasRecurrencePlan &&
+    hasFamilyEducation &&
+    hasPreventionFollowup &&
+    hasSerialLabMonitoring &&
+    hasHemodynamicMonitoring &&
+    hasTransfusionCompatibilitySafety
   );
 }
 
@@ -36049,7 +36169,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSickleSplenicSequestrationTimeCriticalActions,
       issue:
-        "sickle cell splenic sequestration time-critical actions must include spleen size, CBC, reticulocyte count, baseline hemoglobin comparison, and type-and-crossmatch assessment, immediate IV fluid resuscitation for hypovolemia or shock, simple transfusion or PRBC planning for severe anemia, and hematology or sickle cell expert consultation",
+        "sickle cell splenic sequestration time-critical actions must include spleen-size assessment, CBC with reticulocyte count, baseline hemoglobin comparison, and type-and-screen or crossmatch assessment, IV access with fluid resuscitation for hypovolemia, transfusion planning for severe anemia, and hematology, sickle-cell expert, or reference-center consultation",
     },
     {
       name: "sickle_splenic_sequestration_treatment_safety",
@@ -36058,7 +36178,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSickleSplenicSequestrationTreatmentSafetyCheck,
       issue:
-        "sickle cell splenic sequestration safety checks must include avoiding over-transfusion or hyperviscosity such as hemoglobin above 8 g/dL, differential review for aplastic crisis, delayed hemolytic transfusion reaction, acute chest syndrome, infection, or sepsis, recurrence monitoring with spleen-size education and splenectomy discussion, and serial CBC, hemoglobin rebound, recheck, or vital-sign monitoring",
+        "sickle cell splenic sequestration safety checks must include a transfusion target or ceiling with small-aliquot/hyperviscosity precautions, differential review for aplastic crisis or delayed hemolytic transfusion reaction plus acute chest syndrome, infection, or sepsis, recurrence and family education with specialist follow-up or splenectomy consideration, serial CBC/reticulocyte and hemodynamic monitoring, and blood-bank compatibility or antigen-matching safety checks",
     },
     {
       name: "sickle_stroke_time_critical_actions",

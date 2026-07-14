@@ -34636,7 +34636,7 @@ def test_quality_gate_requires_sickle_splenic_sequestration_assessment_fluids_tr
 
     assert not report.passed
     assert any(
-        "sickle cell splenic sequestration time-critical actions must include spleen size"
+        "sickle cell splenic sequestration time-critical actions must include spleen-size assessment"
         in issue
         for issue in report.critical_issues
     )
@@ -34713,7 +34713,7 @@ def test_quality_gate_requires_sickle_splenic_sequestration_specific_transfusion
 
     assert not report.passed
     assert any(
-        "sickle cell splenic sequestration time-critical actions must include spleen size"
+        "sickle cell splenic sequestration time-critical actions must include spleen-size assessment"
         in issue
         for issue in report.critical_issues
     )
@@ -34778,7 +34778,128 @@ def test_quality_gate_requires_sickle_splenic_sequestration_overtransfusion_diff
 
     assert not report.passed
     assert any(
-        "sickle cell splenic sequestration safety checks must include avoiding over-transfusion"
+        "sickle cell splenic sequestration safety checks must include a transfusion target"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
+def test_quality_gate_accepts_complete_sickle_splenic_sequestration_safety_plan():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sickle cell acute splenic sequestration"
+    case["patient_demographics"] = {
+        "age": 3,
+        "sex": "female",
+        "weight_kg": 14,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Pallor, lethargy, and an enlarging spleen"
+    case["past_medical_history"] = "No known bleeding disorder or chronic neurologic disease"
+    case["medications"] = ["Hydroxyurea"]
+    case["physical_exam"] = {
+        "vitals": {"bp": "78/42", "hr": 168, "rr": 30, "temp_c": 37.0, "spo2": 98},
+        "general": "Pale and lethargic child with delayed capillary refill",
+        "abdomen": "Rapidly enlarging palpable spleen",
+        "cardiovascular": "Tachycardic with delayed capillary refill",
+        "pulmonary": "Clear breath sounds without respiratory distress",
+        "neuro": "Lethargic but arousable without focal neurologic deficit",
+    }
+    case["initial_labs"] = {
+        "wbc": "15.2 K/uL",
+        "hemoglobin": "4.8 g/dL from baseline 8.5 g/dL",
+        "reticulocyte": "18%",
+        "platelets": "70 K/uL",
+        "glucose": "102 mg/dL",
+        "creatinine": "0.4 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Acute splenic sequestration can cause severe anemia and hypovolemia",
+        "CBC and reticulocyte count should be compared with baseline measurements",
+        "Transfusion requires small aliquots and specialist guidance to avoid hyperviscosity",
+    ]
+    case["cognitive_traps"] = [
+        "Do not mistake baseline splenomegaly for acute enlargement with a hemoglobin drop",
+        "Do not give a large transfusion without accounting for mobilization of sequestered red cells",
+    ]
+    case["coach_guidance"] = "Focus on urgent assessment, cautious transfusion, and hematology coordination."
+    case["history_of_present_illness"] = (
+        "Child with HbSS has a rapidly enlarging spleen, severe anemia more than 2 g/dL "
+        "below baseline, reticulocytosis, tachycardia, and hypovolemia."
+    )
+    case["clinical_red_flags"] = [
+        "For acute splenic sequestration, rapidly enlarging spleen, pallor, tachycardia, and hypovolemia",
+        "For acute splenic sequestration, hemoglobin more than 2 g/dL below baseline with reticulocytosis",
+    ]
+    case["time_critical_actions"] = [
+        "For acute splenic sequestration, measure spleen size by palpation, order CBC with reticulocyte count, and compare hemoglobin with baseline",
+        "For acute splenic sequestration, establish IV access and provide IV fluid resuscitation for hypovolemia",
+        "For acute splenic sequestration, give a small-aliquot simple transfusion with PRBC for severe anemia",
+        "For acute splenic sequestration, consult hematology and a sickle cell expert and contact a reference center",
+        "For acute splenic sequestration, obtain type and crossmatch and notify the blood bank",
+    ]
+    case["contraindication_checks"] = [
+        "For acute splenic sequestration, set a transfusion target based on baseline hemoglobin, use small aliquots, and avoid over-transfusion or hyperviscosity",
+        "For acute splenic sequestration, assess for aplastic crisis and delayed hemolytic transfusion reaction",
+        "For acute splenic sequestration, assess for acute chest syndrome, infection, and sepsis",
+        "For acute splenic sequestration, plan recurrence monitoring and follow-up",
+        "For acute splenic sequestration, provide parent and caregiver education to measure spleen size",
+        "For acute splenic sequestration, arrange hematology follow-up and discuss splenectomy if sequestration recurs",
+        "For acute splenic sequestration, repeat CBC and reticulocyte count and trend hemoglobin rebound",
+        "For acute splenic sequestration, monitor vital signs, perfusion, and hemodynamic response",
+        "For acute splenic sequestration, use weight-based fluid and transfusion calculations with C, E, and K antigen-matched, sickle-negative units and review transfusion history and alloimmunization",
+        "For acute splenic sequestration, assess bleeding risk and platelet status before invasive procedures or transfusion decisions",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Evidence-Based Management of Sickle Cell Disease: Expert Panel Report, 2014",
+            "organization": "National Heart, Lung, and Blood Institute",
+            "url": "https://www.nhlbi.nih.gov/sites/default/files/publications/56-364N.pdf",
+            "supports": [
+                "CBC and reticulocyte count with comparison to prior measurements",
+                "sickle cell acute splenic sequestration diagnosis and risk stratification",
+                "acute splenic sequestration with hemoglobin 2 g/dL or more below baseline",
+                "immediate IV fluid resuscitation for hypovolemia",
+                "simple transfusion for severe anemia in consultation with a sickle cell expert",
+                "avoid over-transfusion and hyperviscosity",
+                "splenectomy discussion for recurrent acute splenic sequestration",
+                "C, E, and K antigen matching and transfusion complication prevention",
+                "rapidly enlarging spleen, pallor, tachycardia, and hypovolemia as severity markers",
+                "contraindication and safety checks for transfusion and post-transfusion care",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
+def test_quality_gate_rejects_generic_sickle_splenic_sequestration_actions_and_safety_terms():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sickle cell splenic sequestration crisis"
+    case["chief_complaint"] = "Pallor and an enlarged spleen"
+    case["history_of_present_illness"] = (
+        "Child with sickle cell disease has splenic sequestration with severe anemia, "
+        "tachycardia, and shock."
+    )
+    case["time_critical_actions"] = [
+        "Check CBC and give fluids",
+        "Transfuse and consult a specialist",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid over-transfusion, review infection, and provide family education for recurrence",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "sickle cell splenic sequestration time-critical actions must include spleen-size assessment"
+        in issue
+        for issue in report.critical_issues
+    )
+    assert any(
+        "sickle cell splenic sequestration safety checks must include a transfusion target"
         in issue
         for issue in report.critical_issues
     )
