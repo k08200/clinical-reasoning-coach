@@ -35243,7 +35243,7 @@ def test_quality_gate_rejects_generic_sickle_stroke_imaging_transfusion_and_moni
     )
 
 
-def test_quality_gate_requires_acute_chest_syndrome_imaging_oxygen_antibiotics_spirometry_transfusion_and_escalation():
+def test_quality_gate_does_not_reject_complete_acute_chest_syndrome_management_plan():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Sickle cell acute chest syndrome"
     case["chief_complaint"] = "Chest pain, fever, and hypoxemia"
@@ -35276,15 +35276,18 @@ def test_quality_gate_requires_acute_chest_syndrome_imaging_oxygen_antibiotics_s
     ]
     case["time_critical_actions"] = [
         "Obtain chest x-ray CXR and CBC, reticulocyte count, blood culture, and sputum culture",
-        "Give supplemental oxygen with pulse oximetry and co-oximetry, target SpO2 above 92 or near baseline",
+        "Give supplemental oxygen with pulse oximetry and co-oximetry, target SpO2 above 95 percent",
+        "Start IV ceftriaxone plus oral azithromycin macrolide empiric antibiotics",
         "Start incentive spirometry every 2 hours while awake and pain control with ketorolac/PCA while avoiding hypoventilation",
+        "Use simple transfusion when hemoglobin is more than 1 g/dL below baseline; arrange exchange transfusion for high pretransfusion hemoglobin or rapidly progressive disease",
+        "Escalate to ICU with BiPAP or intubation for worsening hypoxemia despite supplemental oxygen, increasing respiratory distress, or progressive infiltrates",
     ]
     case["contraindication_checks"] = [
         "Avoid overhydration and large-volume IV fluids; monitor hydration status, pulmonary edema, and fluid overload, and avoid opioid oversedation or hypoventilation",
         "Plan transfusion or exchange transfusion with hematology; avoid hemoglobin 10, Hct 30, and hyperviscosity while targeting sickle hemoglobin HbS <30 when exchange is needed",
         "Use bronchodilator only for asthma or bronchospasm and review steroid rebound vaso-occlusive crisis, readmission, and fat embolism risk",
         "Review pulmonary embolism, pneumonia, pneumothorax, acute coronary myocardial infarction, ARDS, and empyema in the differential",
-        "Escalate to ICU and hematology for multilobar disease, severe hypoxemia, respiratory failure, worsening radiographic signs, or oxygen need above baseline oxygen",
+        "Admit for inpatient monitoring and escalate to ICU and hematology for multilobar disease, severe hypoxemia, respiratory failure, worsening radiographic signs, or oxygen need above baseline oxygen",
     ]
     case["clinical_sources"] = [
         {
@@ -35299,25 +35302,25 @@ def test_quality_gate_requires_acute_chest_syndrome_imaging_oxygen_antibiotics_s
                 "new infiltrate, hypoxemia, multilobar disease, falling hemoglobin, respiratory failure, and severe pain as red flags",
                 "fever, cough, chest pain, tachypnea, wheezing, dyspnea, and low SpO2 as severity markers",
                 "chest x-ray CXR and CBC, reticulocyte count, blood culture, and sputum culture",
-                "supplemental oxygen with pulse oximetry and co-oximetry targeting SpO2 above 92 or near baseline",
+                "supplemental oxygen with pulse oximetry and co-oximetry targeting SpO2 above 95 percent",
+                "IV ceftriaxone plus oral azithromycin macrolide empiric antibiotics",
                 "incentive spirometry every 2 hours while awake and pain control with ketorolac/PCA while avoiding hypoventilation",
+                "simple transfusion when hemoglobin is more than 1 g/dL below baseline and exchange transfusion for high pretransfusion hemoglobin or rapidly progressive disease",
+                "ICU with BiPAP or intubation for worsening hypoxemia despite supplemental oxygen, increasing respiratory distress, or progressive infiltrates",
                 "avoid overhydration and large-volume IV fluids; monitor hydration status, pulmonary edema, and fluid overload, and avoid opioid oversedation or hypoventilation",
                 "transfusion or exchange transfusion with hematology; avoid hemoglobin 10, Hct 30, and hyperviscosity while targeting sickle hemoglobin HbS <30",
                 "bronchodilator only for asthma or bronchospasm and steroid rebound vaso-occlusive crisis, readmission, and fat embolism risk",
                 "pulmonary embolism, pneumonia, pneumothorax, acute coronary myocardial infarction, ARDS, and empyema differential",
-                "ICU and hematology for multilobar disease, severe hypoxemia, respiratory failure, worsening radiographic signs, or oxygen need above baseline oxygen",
+                "inpatient admission with ICU and hematology for multilobar disease, severe hypoxemia, respiratory failure, worsening radiographic signs, or oxygen need above baseline oxygen",
             ],
         }
     ]
 
     report = evaluate_case_quality(ClinicalCaseCreate(**case))
 
-    assert not report.passed
-    assert any(
-        "acute chest syndrome time-critical actions must include chest imaging"
-        in issue
-        for issue in report.critical_issues
-    )
+    assert not any(
+        issue.startswith("acute chest syndrome ") for issue in report.critical_issues
+    ), report.critical_issues
 
 
 def test_quality_gate_requires_acute_chest_syndrome_specific_transfusion_action_not_hematology_or_hbs_only():
@@ -35353,7 +35356,7 @@ def test_quality_gate_requires_acute_chest_syndrome_specific_transfusion_action_
     ]
     case["time_critical_actions"] = [
         "Obtain chest x-ray CXR and CBC, reticulocyte count, blood culture, and sputum culture",
-        "Give supplemental oxygen with pulse oximetry and co-oximetry, target SpO2 above 92 or near baseline",
+        "Give supplemental oxygen with pulse oximetry and co-oximetry, target SpO2 above 95 percent",
         "Start ceftriaxone and azithromycin empiric antibiotics for acute chest syndrome",
         "Start incentive spirometry every 2 hours while awake and pain control with ketorolac/PCA while avoiding hypoventilation",
         "Consult hematology and track HbS while planning escalation after imaging confirmation",
@@ -35477,6 +35480,55 @@ def test_quality_gate_requires_acute_chest_syndrome_fluid_opioid_transfusion_bro
         "acute chest syndrome safety checks must include fluid" in issue
         for issue in report.critical_issues
     )
+
+
+def test_quality_gate_accepts_acute_chest_syndrome_actions_despite_other_domain_checks():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sickle cell acute chest syndrome"
+    case["chief_complaint"] = "Fever, pleuritic chest pain, and hypoxemia"
+    case["history_of_present_illness"] = (
+        "Patient with HbSS has fever, cough, tachypnea, SpO2 88%, and a new "
+        "pulmonary infiltrate during vaso-occlusive pain crisis."
+    )
+    case["key_teaching_points"] = [
+        "Acute chest syndrome is new infiltrate plus respiratory symptoms or fever in sickle cell disease",
+        "Acute chest syndrome can progress rapidly and requires inpatient management",
+    ]
+    case["clinical_red_flags"] = [
+        "SpO2 below 90 despite supplemental oxygen, increasing respiratory distress, progressive infiltrates, and falling hemoglobin require urgent escalation",
+    ]
+    case["time_critical_actions"] = [
+        "Obtain chest x-ray, CBC with reticulocyte count, and blood culture",
+        "Give supplemental oxygen with continuous pulse oximetry and maintain SpO2 above 95 percent",
+        "Start IV ceftriaxone plus oral azithromycin macrolide empiric antibiotics",
+        "Use awake incentive spirometry every 2 hours and ketorolac-based analgesia while monitoring for opioid hypoventilation",
+        "Use simple transfusion when hemoglobin is more than 1 g/dL below baseline; arrange exchange transfusion for high pretransfusion hemoglobin or rapidly progressive disease",
+        "Escalate to ICU with BiPAP or intubation for worsening hypoxemia despite supplemental oxygen, increasing respiratory distress, or progressive infiltrates",
+    ]
+    case["contraindication_checks"] = [
+        "Avoid overhydration and fluid overload; monitor pulmonary edema and opioid oversedation or hypoventilation",
+        "Review simple transfusion versus exchange transfusion with hematology and blood bank, and avoid hemoglobin above 10 because of hyperviscosity",
+        "Use bronchodilator only for asthma or bronchospasm; avoid routine systemic steroid because rebound vaso-occlusive crisis and readmission can occur",
+        "Evaluate pneumonia and pulmonary embolism, pneumothorax, ARDS, acute coronary syndrome, and empyema as alternate cardiopulmonary diagnoses",
+        "Admit for inpatient monitoring and escalate to ICU and hematology for multilobar disease, severe hypoxemia, or respiratory failure",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Management of Acute Complications of Sickle Cell Disease",
+            "organization": "American Society of Hematology",
+            "url": "https://www.hematology.org/-/media/hematology/files/education/clinicians/guidelines-quality/documents/watermarked-pocket-guides/watermark-sickle-cell-acute.pdf",
+            "supports": case["key_teaching_points"]
+            + case["clinical_red_flags"]
+            + case["time_critical_actions"]
+            + case["contraindication_checks"],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not any(
+        issue.startswith("acute chest syndrome ") for issue in report.critical_issues
+    ), report.critical_issues
 
 
 def test_quality_gate_requires_severe_asthma_oxygen_bronchodilators_steroids_and_escalation():

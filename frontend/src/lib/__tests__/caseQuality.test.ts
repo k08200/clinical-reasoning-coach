@@ -121,6 +121,43 @@ describe("reviewQualityIssues", () => {
     },
   );
 
+  it("accepts a complete acute chest syndrome emergency plan", () => {
+    const issues = reviewQualityIssues(
+      makeReviewDetail({
+        diagnosis: "Sickle cell acute chest syndrome",
+        chief_complaint: "Fever, pleuritic chest pain, and hypoxemia",
+        history_of_present_illness:
+          "Patient with HbSS has fever, cough, tachypnea, SpO2 88%, and a new pulmonary infiltrate.",
+        key_teaching_points: [
+          "Acute chest syndrome is new infiltrate plus respiratory symptoms or fever in sickle cell disease",
+          "Acute chest syndrome can progress rapidly and requires inpatient management",
+          "Management requires oxygen, antibiotics, spirometry, and transfusion escalation",
+        ],
+        clinical_red_flags: [
+          "SpO2 below 90 despite supplemental oxygen, increasing respiratory distress, progressive infiltrates, and falling hemoglobin require urgent escalation",
+          "Hypoxemia and multilobar disease can progress to respiratory failure",
+        ],
+        time_critical_actions: [
+          "Obtain chest x-ray, CBC with reticulocyte count, and blood culture",
+          "Give supplemental oxygen with continuous pulse oximetry and maintain SpO2 above 95 percent",
+          "Start IV ceftriaxone plus oral azithromycin macrolide empiric antibiotics",
+          "Use awake incentive spirometry every 2 hours and ketorolac-based analgesia",
+          "Use simple transfusion when hemoglobin is more than 1 g/dL below baseline; arrange exchange transfusion for high pretransfusion hemoglobin or rapidly progressive disease",
+          "Escalate to ICU with BiPAP or intubation for worsening hypoxemia despite supplemental oxygen, increasing respiratory distress, or progressive infiltrates",
+        ],
+        contraindication_checks: [
+          "Avoid overhydration and fluid overload; monitor pulmonary edema and opioid oversedation or hypoventilation",
+          "Review simple transfusion versus exchange transfusion with hematology and blood bank, and avoid hemoglobin above 10 because of hyperviscosity",
+          "Use bronchodilator only for asthma or bronchospasm; avoid routine systemic steroid because rebound vaso-occlusive crisis and readmission can occur",
+          "Evaluate pneumonia and pulmonary embolism, pneumothorax, ARDS, acute coronary syndrome, and empyema as alternate cardiopulmonary diagnoses",
+          "Admit for inpatient monitoring and escalate to ICU and hematology for multilobar disease, severe hypoxemia, or respiratory failure",
+        ],
+      }),
+    );
+
+    expect(issues.some((issue) => issue.startsWith("acute chest syndrome "))).toBe(false);
+  });
+
   it("flags Korean diagnosis terms in learner-visible case fields", () => {
     const issues = reviewQualityIssues(
       makeReviewDetail({

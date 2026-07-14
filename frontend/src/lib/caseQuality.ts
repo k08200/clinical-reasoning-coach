@@ -18430,50 +18430,78 @@ const ACUTE_CHEST_SYNDROME_PULMONARY_RISK_TERMS = [
   "multilobar",
 ];
 
-const ACUTE_CHEST_SYNDROME_CXR_LAB_ACTION_TERMS = [
-  "blood culture",
-  "cbc",
+const ACUTE_CHEST_SYNDROME_IMAGING_ACTION_TERMS = [
   "chest x-ray",
   "chest xray",
   "ct chest",
   "cxr",
-  "new infiltrate",
+];
+
+const ACUTE_CHEST_SYNDROME_HEMATOLOGY_LAB_ACTION_TERMS = [
+  "cbc",
   "reticulocyte",
+];
+
+const ACUTE_CHEST_SYNDROME_INFECTION_EVALUATION_ACTION_TERMS = [
+  "blood culture",
   "sputum culture",
 ];
 
-const ACUTE_CHEST_SYNDROME_OXYGEN_ACTION_TERMS = [
+const ACUTE_CHEST_SYNDROME_OXYGEN_DELIVERY_ACTION_TERMS = [
+  "nasal cannula",
+  "supplemental oxygen",
+  "give oxygen",
+  "administer oxygen",
+];
+
+const ACUTE_CHEST_SYNDROME_OXYGEN_MONITORING_ACTION_TERMS = [
   "co-oximetry",
-  "hypoxemia",
-  "oxygen",
   "pao2",
   "pulse oximetry",
   "spo2",
 ];
 
-const ACUTE_CHEST_SYNDROME_ANTIBIOTIC_ACTION_TERMS = [
-  "antibiotic",
-  "azithromycin",
-  "ceftriaxone",
-  "cefotaxime",
-  "fluoroquinolone",
-  "macrolide",
-  "vancomycin",
+const ACUTE_CHEST_SYNDROME_OXYGEN_TARGET_ACTION_TERMS = [
+  ">95",
+  "95%",
+  "95 percent",
+  "above 95",
+  "maintain 95",
+  "target spo2",
 ];
 
-const ACUTE_CHEST_SYNDROME_SPIROMETRY_PAIN_ACTION_TERMS = [
-  "analgesia",
+const ACUTE_CHEST_SYNDROME_CEPHALOSPORIN_ACTION_TERMS = [
+  "ceftriaxone",
+  "cefotaxime",
+  "cephalosporin",
+];
+
+const ACUTE_CHEST_SYNDROME_MACROLIDE_ACTION_TERMS = [
+  "azithromycin",
+  "macrolide",
+];
+
+const ACUTE_CHEST_SYNDROME_RESPIRATORY_FLUOROQUINOLONE_ACTION_TERMS = [
+  "fluoroquinolone",
+  "levofloxacin",
+  "moxifloxacin",
+];
+
+const ACUTE_CHEST_SYNDROME_SPIROMETRY_ACTION_TERMS = [
   "every 2 hours",
   "incentive spirometry",
-  "ketorolac",
-  "opioid",
-  "pain control",
-  "pca",
   "q2",
   "spirometry",
 ];
 
-const ACUTE_CHEST_SYNDROME_TRANSFUSION_ACTION_TERMS = [
+const ACUTE_CHEST_SYNDROME_ANALGESIA_ACTION_TERMS = [
+  "analgesia",
+  "ketorolac",
+  "pain control",
+  "pca",
+];
+
+const ACUTE_CHEST_SYNDROME_TRANSFUSION_MODALITY_ACTION_TERMS = [
   "blood transfusion",
   "exchange transfusion",
   "packed red blood",
@@ -18484,40 +18512,77 @@ const ACUTE_CHEST_SYNDROME_TRANSFUSION_ACTION_TERMS = [
   "simple transfusion",
 ];
 
-const ACUTE_CHEST_SYNDROME_RESPIRATORY_ESCALATION_ACTION_TERMS = [
+const ACUTE_CHEST_SYNDROME_TRANSFUSION_SELECTION_ACTION_TERMS = [
+  "below baseline",
+  "declining hemoglobin",
+  "falling hemoglobin",
+  "high pretransfusion hemoglobin",
+  "high pre-transfusion hemoglobin",
+  "hemoglobin >=9",
+  "hemoglobin >9",
+  "hemoglobin 9",
+  "rapid progression",
+  "rapidly progressive",
+  "severe hypoxemia",
+];
+
+const ACUTE_CHEST_SYNDROME_RESPIRATORY_SUPPORT_ACTION_TERMS = [
   "bipap",
   "ecmo",
   "icu",
   "intubation",
-  "multilobar",
   "respiratory failure",
+];
+
+const ACUTE_CHEST_SYNDROME_RESPIRATORY_ESCALATION_TRIGGER_TERMS = [
+  "despite supplemental oxygen",
+  "increasing respiratory distress",
+  "multilobar",
+  "progressive infiltrate",
   "worsening hypoxemia",
 ];
 
-const ACUTE_CHEST_SYNDROME_FLUID_OPIOID_SAFETY_TERMS = [
+const ACUTE_CHEST_SYNDROME_FLUID_SAFETY_TERMS = [
   "avoid overhydration",
   "fluid overload",
   "hydration status",
-  "hypoventilation",
-  "opioid",
-  "oversedation",
   "pulmonary edema",
 ];
 
-const ACUTE_CHEST_SYNDROME_TRANSFUSION_SAFETY_TERMS = [
-  "exchange transfusion",
-  "hematology",
-  "hbs <30",
-  "hemoglobin 10",
-  "hct 30",
-  "hyperviscosity",
-  "sickle hemoglobin",
+const ACUTE_CHEST_SYNDROME_OPIOID_SAFETY_TERMS = [
+  "hypoventilation",
+  "opioid",
+  "oversedation",
 ];
 
-const ACUTE_CHEST_SYNDROME_BRONCHODILATOR_STEROID_SAFETY_TERMS = [
-  "asthma",
+const ACUTE_CHEST_SYNDROME_TRANSFUSION_SELECTION_SAFETY_TERMS = [
+  "exchange transfusion",
+  "simple transfusion",
+];
+
+const ACUTE_CHEST_SYNDROME_TRANSFUSION_TARGET_SAFETY_TERMS = [
+  "hemoglobin 10",
+  "hemoglobin >10",
+  "hct 30",
+  "hyperviscosity",
+];
+
+const ACUTE_CHEST_SYNDROME_TRANSFUSION_EXPERT_SAFETY_TERMS = [
+  "blood bank",
+  "hematology",
+  "transfusion medicine",
+];
+
+const ACUTE_CHEST_SYNDROME_BRONCHODILATOR_SAFETY_TERMS = [
   "bronchodilator",
+];
+
+const ACUTE_CHEST_SYNDROME_BRONCHODILATOR_INDICATION_SAFETY_TERMS = [
+  "asthma",
   "bronchospasm",
+];
+
+const ACUTE_CHEST_SYNDROME_STEROID_CAUTION_SAFETY_TERMS = [
   "readmission",
   "rebound",
   "steroid",
@@ -18534,8 +18599,13 @@ const ACUTE_CHEST_SYNDROME_DIFFERENTIAL_SAFETY_TERMS = [
   "pulmonary embolism",
 ];
 
-const ACUTE_CHEST_SYNDROME_DISPOSITION_SAFETY_TERMS = [
-  "baseline oxygen",
+const ACUTE_CHEST_SYNDROME_ADMISSION_SAFETY_TERMS = [
+  "admit",
+  "hospitalize",
+  "inpatient",
+];
+
+const ACUTE_CHEST_SYNDROME_DISPOSITION_ESCALATION_SAFETY_TERMS = [
   "hematology",
   "icu",
   "multilobar",
@@ -32708,59 +32778,121 @@ function requiresAcuteChestSyndromeSafetyCheck(detail: ClinicalCaseReviewDetail)
 
 function hasAcuteChestSyndromeTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasCxrOrLabActions = ACUTE_CHEST_SYNDROME_CXR_LAB_ACTION_TERMS.some((term) =>
+  const hasImaging = ACUTE_CHEST_SYNDROME_IMAGING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasOxygenActions = ACUTE_CHEST_SYNDROME_OXYGEN_ACTION_TERMS.some((term) =>
+  const hasHematologyLabs = ACUTE_CHEST_SYNDROME_HEMATOLOGY_LAB_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasAntibioticActions = ACUTE_CHEST_SYNDROME_ANTIBIOTIC_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
-  const hasSpirometryPainActions = ACUTE_CHEST_SYNDROME_SPIROMETRY_PAIN_ACTION_TERMS.some(
+  const hasInfectionEvaluation = ACUTE_CHEST_SYNDROME_INFECTION_EVALUATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasTransfusionActions = ACUTE_CHEST_SYNDROME_TRANSFUSION_ACTION_TERMS.some((term) =>
+  const hasOxygenDelivery = ACUTE_CHEST_SYNDROME_OXYGEN_DELIVERY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasRespiratoryEscalation =
-    ACUTE_CHEST_SYNDROME_RESPIRATORY_ESCALATION_ACTION_TERMS.some((term) =>
+  const hasOxygenMonitoring = ACUTE_CHEST_SYNDROME_OXYGEN_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOxygenTarget = ACUTE_CHEST_SYNDROME_OXYGEN_TARGET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasStandardAntibiotics = [
+    ACUTE_CHEST_SYNDROME_CEPHALOSPORIN_ACTION_TERMS,
+    ACUTE_CHEST_SYNDROME_MACROLIDE_ACTION_TERMS,
+  ].every((terms) => terms.some((term) => containsSafetyTerm(normalizedActions, term)));
+  const hasRespiratoryFluoroquinolone =
+    ACUTE_CHEST_SYNDROME_RESPIRATORY_FLUOROQUINOLONE_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasSpirometry = ACUTE_CHEST_SYNDROME_SPIROMETRY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasAnalgesia = ACUTE_CHEST_SYNDROME_ANALGESIA_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasTransfusionModality =
+    ACUTE_CHEST_SYNDROME_TRANSFUSION_MODALITY_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasTransfusionSelection =
+    ACUTE_CHEST_SYNDROME_TRANSFUSION_SELECTION_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasRespiratorySupport =
+    ACUTE_CHEST_SYNDROME_RESPIRATORY_SUPPORT_ACTION_TERMS.some((term) =>
+      containsSafetyTerm(normalizedActions, term),
+    );
+  const hasRespiratoryEscalationTrigger =
+    ACUTE_CHEST_SYNDROME_RESPIRATORY_ESCALATION_TRIGGER_TERMS.some((term) =>
       containsSafetyTerm(normalizedActions, term),
     );
   return (
-    hasCxrOrLabActions &&
-    hasOxygenActions &&
-    hasAntibioticActions &&
-    hasSpirometryPainActions &&
-    hasTransfusionActions &&
-    hasRespiratoryEscalation
+    hasImaging &&
+    hasHematologyLabs &&
+    hasInfectionEvaluation &&
+    hasOxygenDelivery &&
+    hasOxygenMonitoring &&
+    hasOxygenTarget &&
+    (hasStandardAntibiotics || hasRespiratoryFluoroquinolone) &&
+    hasSpirometry &&
+    hasAnalgesia &&
+    hasTransfusionModality &&
+    hasTransfusionSelection &&
+    hasRespiratorySupport &&
+    hasRespiratoryEscalationTrigger
   );
 }
 
 function hasAcuteChestSyndromeTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasFluidOpioidSafety = ACUTE_CHEST_SYNDROME_FLUID_OPIOID_SAFETY_TERMS.some((term) =>
+  const hasFluidSafety = ACUTE_CHEST_SYNDROME_FLUID_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasTransfusionSafety = ACUTE_CHEST_SYNDROME_TRANSFUSION_SAFETY_TERMS.some((term) =>
+  const hasOpioidSafety = ACUTE_CHEST_SYNDROME_OPIOID_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasBronchodilatorSteroidSafety =
-    ACUTE_CHEST_SYNDROME_BRONCHODILATOR_STEROID_SAFETY_TERMS.some((term) =>
+  const hasTransfusionSelection =
+    ACUTE_CHEST_SYNDROME_TRANSFUSION_SELECTION_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
+  const hasTransfusionTarget = ACUTE_CHEST_SYNDROME_TRANSFUSION_TARGET_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasTransfusionExpert = ACUTE_CHEST_SYNDROME_TRANSFUSION_EXPERT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBronchodilator = ACUTE_CHEST_SYNDROME_BRONCHODILATOR_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBronchodilatorIndication =
+    ACUTE_CHEST_SYNDROME_BRONCHODILATOR_INDICATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasSteroidCaution = ACUTE_CHEST_SYNDROME_STEROID_CAUTION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+  );
   const hasDifferentialSafety = ACUTE_CHEST_SYNDROME_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDispositionSafety = ACUTE_CHEST_SYNDROME_DISPOSITION_SAFETY_TERMS.some((term) =>
+  const hasAdmissionSafety = ACUTE_CHEST_SYNDROME_ADMISSION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasDispositionEscalation =
+    ACUTE_CHEST_SYNDROME_DISPOSITION_ESCALATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
   return (
-    hasFluidOpioidSafety &&
-    hasTransfusionSafety &&
-    hasBronchodilatorSteroidSafety &&
+    hasFluidSafety &&
+    hasOpioidSafety &&
+    hasTransfusionSelection &&
+    hasTransfusionTarget &&
+    hasTransfusionExpert &&
+    hasBronchodilator &&
+    hasBronchodilatorIndication &&
+    hasSteroidCaution &&
     hasDifferentialSafety &&
-    hasDispositionSafety
+    hasAdmissionSafety &&
+    hasDispositionEscalation
   );
 }
 
@@ -36330,7 +36462,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcuteChestSyndromeTimeCriticalActions,
       issue:
-        "acute chest syndrome time-critical actions must include chest imaging or infiltrate confirmation, oxygenation monitoring or support, empiric antibiotics, incentive spirometry with pain control, transfusion or exchange-transfusion planning, and respiratory failure escalation",
+        "acute chest syndrome time-critical actions must include chest imaging plus CBC/reticulocyte and blood culture, supplemental oxygen with pulse-ox target, IV cephalosporin plus macrolide or respiratory fluoroquinolone, awake incentive spirometry with analgesia, baseline-hemoglobin-guided simple versus exchange transfusion, and ICU or respiratory-support escalation for worsening hypoxemia or progression",
     },
     {
       name: "acute_chest_syndrome_treatment_safety",
@@ -36339,7 +36471,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasAcuteChestSyndromeTreatmentSafetyCheck,
       issue:
-        "acute chest syndrome safety checks must include fluid and opioid overhydration or hypoventilation safeguards, transfusion hyperviscosity or exchange-transfusion targets, bronchodilator and steroid caution, alternate cardiopulmonary diagnoses, and ICU or hematology disposition criteria",
+        "acute chest syndrome safety checks must include fluid and opioid hypoventilation safeguards, transfusion modality plus hyperviscosity ceiling and hematology or blood-bank review, bronchodilator-only-for-bronchospasm and steroid rebound caution, alternate cardiopulmonary diagnoses, and inpatient admission with ICU or hematology escalation criteria",
     },
     {
       name: "severe_asthma_time_critical_actions",
