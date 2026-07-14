@@ -33986,6 +33986,42 @@ def test_quality_gate_requires_methemoglobinemia_separate_g6pd_hemolysis_seroton
     )
 
 
+def test_quality_gate_rejects_methemoglobinemia_generic_antidote_and_safety_terms():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Acquired methemoglobinemia after benzocaine exposure"
+    case["history_of_present_illness"] = (
+        "Patient has acquired methemoglobinemia after benzocaine exposure with "
+        "cyanosis, refractory hypoxemia, pulse oximetry near 85%, saturation gap, "
+        "and methemoglobin level 35%."
+    )
+    case["time_critical_actions"] = [
+        "Give oxygen",
+        "Stop the exposure",
+        "Send blood gas",
+        "Check percentage",
+        "Give methylene blue for significantly elevated levels",
+        "Give 5 minutes of treatment",
+        "Call toxicology",
+    ]
+    case["contraindication_checks"] = [
+        "Review 85% saturation and pulse oximetry",
+        "Review NADPH before methylene blue",
+        "Review hemolysis risk",
+        "Review linezolid interaction",
+        "Review treatment threshold",
+        "Review symptoms persist and repeat testing",
+        "Monitor dapsone",
+        "Review refractory treatment and vitamin C",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("separate co-oximetry" in issue for issue in report.critical_issues)
+    assert any("methylene blue dosing" in issue for issue in report.critical_issues)
+    assert any("ascorbic-acid renal risk" in issue for issue in report.critical_issues)
+
+
 def test_quality_gate_requires_caustic_ingestion_airway_history_endoscopy_ct_and_escalation_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Caustic alkali ingestion with airway edema"

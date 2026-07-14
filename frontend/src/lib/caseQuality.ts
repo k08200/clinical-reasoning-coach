@@ -17452,7 +17452,18 @@ const METHEMOGLOBINEMIA_OXYGEN_SUPPORT_ACTION_TERMS = [
   "100% oxygen",
   "airway",
   "high-flow oxygen",
+  "non-rebreather",
+  "nonrebreather",
   "oxygen",
+  "respiratory support",
+  "ventilation",
+];
+
+const METHEMOGLOBINEMIA_NAMED_OXYGEN_SUPPORT_ACTION_TERMS = [
+  "100% oxygen",
+  "high-flow oxygen",
+  "non-rebreather",
+  "nonrebreather",
   "respiratory support",
   "ventilation",
 ];
@@ -17468,6 +17479,18 @@ const METHEMOGLOBINEMIA_SOURCE_REMOVAL_ACTION_TERMS = [
   "stop",
 ];
 
+const METHEMOGLOBINEMIA_NAMED_SOURCE_REMOVAL_ACTION_TERMS = [
+  "aniline",
+  "benzocaine",
+  "dapsone",
+  "nitrate",
+  "nitrite",
+  "offending agent",
+  "oxidizing source",
+  "phenazopyridine",
+  "prilocaine",
+];
+
 const METHEMOGLOBINEMIA_BLOOD_GAS_ACTION_TERMS = [
   "abg",
   "blood gas",
@@ -17479,7 +17502,6 @@ const METHEMOGLOBINEMIA_COOX_CONFIRMATION_ACTION_TERMS = [
   "co-oximetry",
   "methemoglobin level",
   "methb",
-  "percentage",
 ];
 
 const METHEMOGLOBINEMIA_METHYLENE_INDICATION_ACTION_TERMS = [
@@ -17487,17 +17509,21 @@ const METHEMOGLOBINEMIA_METHYLENE_INDICATION_ACTION_TERMS = [
   "end-organ damage",
   "methemoglobin > 20",
   "methemoglobin > 30",
-  "methylene blue",
-  "significantly elevated",
   "symptomatic",
 ];
 
 const METHEMOGLOBINEMIA_METHYLENE_DOSE_ACTION_TERMS = [
   "0.1 to 0.2 ml/kg",
+  "0.1-0.2 ml/kg",
+  "1 mg/kg",
   "1 to 2 mg/kg",
-  "1% solution",
-  "5 minutes",
-  "iv over 5",
+  "1-2 mg/kg",
+  "2 mg/kg",
+];
+
+const METHEMOGLOBINEMIA_METHYLENE_IV_ACTION_TERMS = [
+  "iv",
+  "intravenous",
 ];
 
 const METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS = [
@@ -17509,31 +17535,31 @@ const METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS = [
 ];
 
 const METHEMOGLOBINEMIA_PULSE_OX_GAP_SAFETY_TERMS = [
-  "85%",
   "calculated sao2",
   "falsely normal sao2",
-  "near 85",
   "pulse ox unreliable",
   "pulse oximetry unreliable",
   "saturation gap",
   "spo2 unreliable",
+  "spo2 near 85",
 ];
 
 const METHEMOGLOBINEMIA_G6PD_SAFETY_TERMS = [
   "g6pd",
-  "nadph",
 ];
 
 const METHEMOGLOBINEMIA_HEMOLYSIS_HIGH_DOSE_SAFETY_TERMS = [
-  "5 mg/kg",
-  "high dose",
   "hemolysis",
   "hemolytic",
-  "oxidizing agent",
+];
+
+const METHEMOGLOBINEMIA_HIGH_DOSE_SAFETY_TERMS = [
+  ">5 mg/kg",
+  "5 mg/kg",
+  "high dose",
 ];
 
 const METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS = [
-  "linezolid",
   "maoi",
   "monoamine oxidase",
   "serotonin syndrome",
@@ -17556,19 +17582,23 @@ const METHEMOGLOBINEMIA_TREATMENT_THRESHOLD_SAFETY_TERMS = [
 ];
 
 const METHEMOGLOBINEMIA_REPEAT_DOSE_SAFETY_TERMS = [
-  "30 to 60 minutes",
-  "remain above treatment threshold",
   "repeat dose",
+  "repeat methylene",
   "second dose",
-  "symptoms persist",
-  "treatment refractoriness",
+];
+
+const METHEMOGLOBINEMIA_REPEAT_TIMING_SAFETY_TERMS = [
+  "30 to 60 minutes",
+  "30-60 minutes",
+  "after 30 minutes",
+  "after 60 minutes",
 ];
 
 const METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS = [
-  "dapsone",
   "prolonged monitoring",
   "rebound",
   "repeat co-oximetry",
+  "repeat methemoglobin",
   "serial co-oximetry",
   "serial methemoglobin",
 ];
@@ -17578,7 +17608,14 @@ const METHEMOGLOBINEMIA_ALTERNATIVE_THERAPY_SAFETY_TERMS = [
   "exchange transfusion",
   "hbot",
   "hyperbaric oxygen",
+  "vitamin c",
+];
+
+const METHEMOGLOBINEMIA_ALTERNATIVE_TRIGGER_SAFETY_TERMS = [
+  "contraindicated",
+  "contraindication",
   "refractory",
+  "unavailable",
 ];
 
 const METHEMOGLOBINEMIA_ASCORBIC_RENAL_SAFETY_TERMS = [
@@ -31764,8 +31801,14 @@ function hasMethemoglobinemiaTimeCriticalActions(actions: string[]): boolean {
   const hasOxygenSupport = METHEMOGLOBINEMIA_OXYGEN_SUPPORT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasNamedOxygenSupport = METHEMOGLOBINEMIA_NAMED_OXYGEN_SUPPORT_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
   const hasSourceRemoval = METHEMOGLOBINEMIA_SOURCE_REMOVAL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
+  );
+  const hasNamedSourceRemoval = METHEMOGLOBINEMIA_NAMED_SOURCE_REMOVAL_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
   );
   const hasBloodGas = METHEMOGLOBINEMIA_BLOOD_GAS_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
@@ -31779,16 +31822,22 @@ function hasMethemoglobinemiaTimeCriticalActions(actions: string[]): boolean {
   const hasMethyleneDose = METHEMOGLOBINEMIA_METHYLENE_DOSE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasMethyleneIv = METHEMOGLOBINEMIA_METHYLENE_IV_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasToxEscalation = METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   return (
     hasOxygenSupport &&
+    hasNamedOxygenSupport &&
     hasSourceRemoval &&
+    hasNamedSourceRemoval &&
     hasBloodGas &&
     hasCooxConfirmation &&
     hasMethyleneIndication &&
     hasMethyleneDose &&
+    hasMethyleneIv &&
     hasToxEscalation
   );
 }
@@ -31804,6 +31853,9 @@ function hasMethemoglobinemiaTreatmentSafetyCheck(checks: string[]): boolean {
   const hasHemolysisHighDoseSafety = METHEMOGLOBINEMIA_HEMOLYSIS_HIGH_DOSE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasHighDoseSafety = METHEMOGLOBINEMIA_HIGH_DOSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasMethyleneInteractionSafety = METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
@@ -31813,10 +31865,16 @@ function hasMethemoglobinemiaTreatmentSafetyCheck(checks: string[]): boolean {
   const hasRepeatDoseSafety = METHEMOGLOBINEMIA_REPEAT_DOSE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasRepeatTimingSafety = METHEMOGLOBINEMIA_REPEAT_TIMING_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasReboundMonitoringSafety = METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasAlternativeTherapySafety = METHEMOGLOBINEMIA_ALTERNATIVE_THERAPY_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAlternativeTriggerSafety = METHEMOGLOBINEMIA_ALTERNATIVE_TRIGGER_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasAscorbicRenalSafety = METHEMOGLOBINEMIA_ASCORBIC_RENAL_SAFETY_TERMS.some((term) =>
@@ -31826,11 +31884,14 @@ function hasMethemoglobinemiaTreatmentSafetyCheck(checks: string[]): boolean {
     hasPulseOxGapSafety &&
     hasG6pdSafety &&
     hasHemolysisHighDoseSafety &&
+    hasHighDoseSafety &&
     hasMethyleneInteractionSafety &&
     hasTreatmentThresholdSafety &&
     hasRepeatDoseSafety &&
+    hasRepeatTimingSafety &&
     hasReboundMonitoringSafety &&
     hasAlternativeTherapySafety &&
+    hasAlternativeTriggerSafety &&
     hasAscorbicRenalSafety
   );
 }

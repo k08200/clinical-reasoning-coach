@@ -15633,7 +15633,17 @@ METHEMOGLOBINEMIA_OXYGEN_SUPPORT_ACTION_TERMS = (
     "100% oxygen",
     "airway",
     "high-flow oxygen",
+    "non-rebreather",
+    "nonrebreather",
     "oxygen",
+    "respiratory support",
+    "ventilation",
+)
+METHEMOGLOBINEMIA_NAMED_OXYGEN_SUPPORT_ACTION_TERMS = (
+    "100% oxygen",
+    "high-flow oxygen",
+    "non-rebreather",
+    "nonrebreather",
     "respiratory support",
     "ventilation",
 )
@@ -15647,6 +15657,17 @@ METHEMOGLOBINEMIA_SOURCE_REMOVAL_ACTION_TERMS = (
     "remove",
     "stop",
 )
+METHEMOGLOBINEMIA_NAMED_SOURCE_REMOVAL_ACTION_TERMS = (
+    "aniline",
+    "benzocaine",
+    "dapsone",
+    "nitrate",
+    "nitrite",
+    "offending agent",
+    "oxidizing source",
+    "phenazopyridine",
+    "prilocaine",
+)
 METHEMOGLOBINEMIA_BLOOD_GAS_ACTION_TERMS = (
     "abg",
     "blood gas",
@@ -15657,23 +15678,25 @@ METHEMOGLOBINEMIA_COOX_CONFIRMATION_ACTION_TERMS = (
     "co-oximetry",
     "methemoglobin level",
     "methb",
-    "percentage",
 )
 METHEMOGLOBINEMIA_METHYLENE_INDICATION_ACTION_TERMS = (
     "20% to 30%",
     "end-organ damage",
     "methemoglobin > 20",
     "methemoglobin > 30",
-    "methylene blue",
-    "significantly elevated",
     "symptomatic",
 )
 METHEMOGLOBINEMIA_METHYLENE_DOSE_ACTION_TERMS = (
     "0.1 to 0.2 ml/kg",
+    "0.1-0.2 ml/kg",
+    "1 mg/kg",
     "1 to 2 mg/kg",
-    "1% solution",
-    "5 minutes",
-    "iv over 5",
+    "1-2 mg/kg",
+    "2 mg/kg",
+)
+METHEMOGLOBINEMIA_METHYLENE_IV_ACTION_TERMS = (
+    "iv",
+    "intravenous",
 )
 METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS = (
     "icu",
@@ -15683,28 +15706,27 @@ METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS = (
     "toxicology",
 )
 METHEMOGLOBINEMIA_PULSE_OX_GAP_SAFETY_TERMS = (
-    "85%",
     "calculated sao2",
     "falsely normal sao2",
-    "near 85",
     "pulse ox unreliable",
     "pulse oximetry unreliable",
     "saturation gap",
     "spo2 unreliable",
+    "spo2 near 85",
 )
 METHEMOGLOBINEMIA_G6PD_SAFETY_TERMS = (
     "g6pd",
-    "nadph",
 )
 METHEMOGLOBINEMIA_HEMOLYSIS_HIGH_DOSE_SAFETY_TERMS = (
-    "5 mg/kg",
-    "high dose",
     "hemolysis",
     "hemolytic",
-    "oxidizing agent",
+)
+METHEMOGLOBINEMIA_HIGH_DOSE_SAFETY_TERMS = (
+    ">5 mg/kg",
+    "5 mg/kg",
+    "high dose",
 )
 METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS = (
-    "linezolid",
     "maoi",
     "monoamine oxidase",
     "serotonin syndrome",
@@ -15725,18 +15747,21 @@ METHEMOGLOBINEMIA_TREATMENT_THRESHOLD_SAFETY_TERMS = (
     "symptomatic",
 )
 METHEMOGLOBINEMIA_REPEAT_DOSE_SAFETY_TERMS = (
-    "30 to 60 minutes",
-    "remain above treatment threshold",
     "repeat dose",
+    "repeat methylene",
     "second dose",
-    "symptoms persist",
-    "treatment refractoriness",
+)
+METHEMOGLOBINEMIA_REPEAT_TIMING_SAFETY_TERMS = (
+    "30 to 60 minutes",
+    "30-60 minutes",
+    "after 30 minutes",
+    "after 60 minutes",
 )
 METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS = (
-    "dapsone",
     "prolonged monitoring",
     "rebound",
     "repeat co-oximetry",
+    "repeat methemoglobin",
     "serial co-oximetry",
     "serial methemoglobin",
 )
@@ -15745,7 +15770,13 @@ METHEMOGLOBINEMIA_ALTERNATIVE_THERAPY_SAFETY_TERMS = (
     "exchange transfusion",
     "hbot",
     "hyperbaric oxygen",
+    "vitamin c",
+)
+METHEMOGLOBINEMIA_ALTERNATIVE_TRIGGER_SAFETY_TERMS = (
+    "contraindicated",
+    "contraindication",
     "refractory",
+    "unavailable",
 )
 METHEMOGLOBINEMIA_ASCORBIC_RENAL_SAFETY_TERMS = (
     "hyperoxaluria",
@@ -37102,9 +37133,17 @@ def _has_methemoglobinemia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in METHEMOGLOBINEMIA_OXYGEN_SUPPORT_ACTION_TERMS
     )
+    has_named_oxygen_support = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METHEMOGLOBINEMIA_NAMED_OXYGEN_SUPPORT_ACTION_TERMS
+    )
     has_source_removal = any(
         _contains_safety_term(normalized_actions, term)
         for term in METHEMOGLOBINEMIA_SOURCE_REMOVAL_ACTION_TERMS
+    )
+    has_named_source_removal = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METHEMOGLOBINEMIA_NAMED_SOURCE_REMOVAL_ACTION_TERMS
     )
     has_blood_gas = any(
         _contains_safety_term(normalized_actions, term)
@@ -37122,17 +37161,24 @@ def _has_methemoglobinemia_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in METHEMOGLOBINEMIA_METHYLENE_DOSE_ACTION_TERMS
     )
+    has_methylene_iv = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in METHEMOGLOBINEMIA_METHYLENE_IV_ACTION_TERMS
+    )
     has_tox_escalation = any(
         _contains_safety_term(normalized_actions, term)
         for term in METHEMOGLOBINEMIA_TOX_ESCALATION_ACTION_TERMS
     )
     return (
         has_oxygen_support
+        and has_named_oxygen_support
         and has_source_removal
+        and has_named_source_removal
         and has_blood_gas
         and has_coox_confirmation
         and has_methylene_indication
         and has_methylene_dose
+        and has_methylene_iv
         and has_tox_escalation
     )
 
@@ -37151,6 +37197,10 @@ def _has_methemoglobinemia_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in METHEMOGLOBINEMIA_HEMOLYSIS_HIGH_DOSE_SAFETY_TERMS
     )
+    has_high_dose_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_HIGH_DOSE_SAFETY_TERMS
+    )
     has_methylene_interaction_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in METHEMOGLOBINEMIA_METHYLENE_INTERACTION_SAFETY_TERMS
@@ -37163,6 +37213,10 @@ def _has_methemoglobinemia_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in METHEMOGLOBINEMIA_REPEAT_DOSE_SAFETY_TERMS
     )
+    has_repeat_timing_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_REPEAT_TIMING_SAFETY_TERMS
+    )
     has_rebound_monitoring_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in METHEMOGLOBINEMIA_REBOUND_MONITORING_SAFETY_TERMS
@@ -37170,6 +37224,10 @@ def _has_methemoglobinemia_treatment_safety_check(checks: list[Any]) -> bool:
     has_alternative_therapy_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in METHEMOGLOBINEMIA_ALTERNATIVE_THERAPY_SAFETY_TERMS
+    )
+    has_alternative_trigger_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in METHEMOGLOBINEMIA_ALTERNATIVE_TRIGGER_SAFETY_TERMS
     )
     has_ascorbic_renal_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -37179,11 +37237,14 @@ def _has_methemoglobinemia_treatment_safety_check(checks: list[Any]) -> bool:
         has_pulse_ox_gap_safety
         and has_g6pd_safety
         and has_hemolysis_high_dose_safety
+        and has_high_dose_safety
         and has_methylene_interaction_safety
         and has_treatment_threshold_safety
         and has_repeat_dose_safety
+        and has_repeat_timing_safety
         and has_rebound_monitoring_safety
         and has_alternative_therapy_safety
+        and has_alternative_trigger_safety
         and has_ascorbic_renal_safety
     )
 
