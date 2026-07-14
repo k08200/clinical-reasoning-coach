@@ -19456,31 +19456,24 @@ const DUCTAL_DEPENDENT_CHD_PGE_DRUG_ACTION_TERMS = [
 ];
 
 const DUCTAL_DEPENDENT_CHD_PGE_URGENCY_ACTION_TERMS = [
-  "ductal patency",
   "immediately",
-  "infusion",
-  "maintain ductal",
-  "start",
+  "urgent",
+  "without delay",
+  "without waiting",
 ];
 
-const DUCTAL_DEPENDENT_CHD_PULSE_OX_ACTION_TERMS = [
-  "preductal",
-  "postductal",
-  "pulse oximetry",
-];
+const DUCTAL_DEPENDENT_CHD_PGE_INFUSION_ACTION_TERMS = ["infusion", "infuse"];
 
-const DUCTAL_DEPENDENT_CHD_HEMODYNAMIC_ACTION_TERMS = [
-  "blood gas",
+const DUCTAL_DEPENDENT_CHD_FOUR_EXTREMITY_BP_ACTION_TERMS = [
   "four extremity blood pressure",
-  "lactate",
+  "four-extremity blood pressure",
+  "4 extremity blood pressure",
+  "4-extremity blood pressure",
 ];
 
-const DUCTAL_DEPENDENT_CHD_CARDIAC_DIAGNOSTIC_ACTION_TERMS = [
-  "chest x-ray",
-  "echocardiogram",
-  "echo",
-  "ecg",
-];
+const DUCTAL_DEPENDENT_CHD_BLOOD_GAS_ACTION_TERMS = ["blood gas", "arterial blood gas", "abg"];
+const DUCTAL_DEPENDENT_CHD_LACTATE_ACTION_TERMS = ["lactate"];
+const DUCTAL_DEPENDENT_CHD_ECHO_ACTION_TERMS = ["echocardiogram", "echo"];
 
 const DUCTAL_DEPENDENT_CHD_CARDIAC_ESCALATION_ACTION_TERMS = [
   "cardiac intensive care",
@@ -19493,10 +19486,18 @@ const DUCTAL_DEPENDENT_CHD_NEONATAL_ESCALATION_ACTION_TERMS = [
   "nicu",
 ];
 
-const DUCTAL_DEPENDENT_CHD_ACCESS_TRANSFER_ACTION_TERMS = [
+const DUCTAL_DEPENDENT_CHD_TRANSFER_ACTION_TERMS = [
   "transfer",
+  "transport",
+  "retrieval",
+];
+
+const DUCTAL_DEPENDENT_CHD_VASCULAR_ACCESS_ACTION_TERMS = [
   "umbilical venous catheter",
   "uvc",
+  "iv access",
+  "intravenous access",
+  "vascular access",
 ];
 
 const DUCTAL_DEPENDENT_CHD_AIRWAY_SUPPORT_ACTION_TERMS = [
@@ -19523,9 +19524,9 @@ const DUCTAL_DEPENDENT_CHD_OXYGEN_JUDICIOUS_SAFETY_TERMS = [
 const DUCTAL_DEPENDENT_CHD_OXYGEN_PHYSIOLOGY_SAFETY_TERMS = [
   "ductal steal",
   "lower pulmonary vascular resistance",
-  "judicious oxygen",
   "pulmonary vascular resistance",
-  "supplemental oxygen",
+  "pulmonary overcirculation",
+  "systemic hypoperfusion",
 ];
 
 const DUCTAL_DEPENDENT_CHD_PGE_DRUG_SAFETY_TERMS = [
@@ -19537,13 +19538,24 @@ const DUCTAL_DEPENDENT_CHD_PGE_DRUG_SAFETY_TERMS = [
 
 const DUCTAL_DEPENDENT_CHD_PGE_APNEA_SAFETY_TERMS = [
   "apnea",
-  "intubation",
   "respiratory depression",
 ];
 
-const DUCTAL_DEPENDENT_CHD_PGE_HEMODYNAMIC_SAFETY_TERMS = [
-  "fever",
-  "hypotension",
+const DUCTAL_DEPENDENT_CHD_PGE_AIRWAY_READINESS_SAFETY_TERMS = [
+  "airway",
+  "intubation",
+  "mechanical ventilation",
+  "ventilation readiness",
+];
+
+const DUCTAL_DEPENDENT_CHD_PGE_HYPOTENSION_SAFETY_TERMS = ["hypotension"];
+const DUCTAL_DEPENDENT_CHD_PGE_FEVER_SAFETY_TERMS = ["fever"];
+const DUCTAL_DEPENDENT_CHD_PGE_CONTINUOUS_MONITORING_SAFETY_TERMS = [
+  "continuous cardiorespiratory monitoring",
+  "continuous cardio-respiratory monitoring",
+  "continuous monitoring",
+  "cardiorespiratory monitor",
+  "cardio-respiratory monitor",
 ];
 
 const DUCTAL_DEPENDENT_CHD_SEPSIS_DIFFERENTIAL_SAFETY_TERMS = [
@@ -19566,8 +19578,6 @@ const DUCTAL_DEPENDENT_CHD_CARDIAC_TRANSFER_SAFETY_TERMS = [
   "neonatology",
   "pediatric cardiac",
   "pediatric cardiology",
-  "transport",
-  "transfer",
 ];
 
 const CARDIAC_TAMPONADE_CONTEXT_TERMS = [
@@ -33569,28 +33579,52 @@ function requiresDuctalDependentChdSafetyCheck(detail: ClinicalCaseReviewDetail)
 
 function hasDuctalDependentChdTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasPgeDrug = DUCTAL_DEPENDENT_CHD_PGE_DRUG_ACTION_TERMS.some((term) =>
+  const hasImmediatePgeInfusion = actions.some((action) => {
+    const normalizedAction = action.toLowerCase();
+    return (
+      DUCTAL_DEPENDENT_CHD_PGE_DRUG_ACTION_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      ) &&
+      DUCTAL_DEPENDENT_CHD_PGE_URGENCY_ACTION_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      ) &&
+      DUCTAL_DEPENDENT_CHD_PGE_INFUSION_ACTION_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      )
+    );
+  });
+  const hasPreductalPulseOx = containsSafetyTerm(normalizedActions, "preductal");
+  const hasPostductalPulseOx = containsSafetyTerm(normalizedActions, "postductal");
+  const hasFourExtremityBp = DUCTAL_DEPENDENT_CHD_FOUR_EXTREMITY_BP_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasPgeUrgency = DUCTAL_DEPENDENT_CHD_PGE_URGENCY_ACTION_TERMS.some((term) =>
+  const hasBloodGas = DUCTAL_DEPENDENT_CHD_BLOOD_GAS_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasPulseOx = DUCTAL_DEPENDENT_CHD_PULSE_OX_ACTION_TERMS.some((term) =>
+  const hasLactate = DUCTAL_DEPENDENT_CHD_LACTATE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasHemodynamicAssessment = DUCTAL_DEPENDENT_CHD_HEMODYNAMIC_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
-  const hasCardiacDiagnostic = DUCTAL_DEPENDENT_CHD_CARDIAC_DIAGNOSTIC_ACTION_TERMS.some(
-    (term) => containsSafetyTerm(normalizedActions, term),
-  );
+  const hasUrgentEcho = actions.some((action) => {
+    const normalizedAction = action.toLowerCase();
+    return (
+      DUCTAL_DEPENDENT_CHD_ECHO_ACTION_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      ) &&
+      DUCTAL_DEPENDENT_CHD_PGE_URGENCY_ACTION_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      )
+    );
+  });
   const hasCardiacEscalation = DUCTAL_DEPENDENT_CHD_CARDIAC_ESCALATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   const hasNeonatalEscalation = DUCTAL_DEPENDENT_CHD_NEONATAL_ESCALATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasAccessTransfer = DUCTAL_DEPENDENT_CHD_ACCESS_TRANSFER_ACTION_TERMS.some((term) =>
+  const hasTransfer = DUCTAL_DEPENDENT_CHD_TRANSFER_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasVascularAccess = DUCTAL_DEPENDENT_CHD_VASCULAR_ACCESS_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasAirwaySupport = DUCTAL_DEPENDENT_CHD_AIRWAY_SUPPORT_ACTION_TERMS.some((term) =>
@@ -33600,14 +33634,17 @@ function hasDuctalDependentChdTimeCriticalActions(actions: string[]): boolean {
     containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasPgeDrug &&
-    hasPgeUrgency &&
-    hasPulseOx &&
-    hasHemodynamicAssessment &&
-    hasCardiacDiagnostic &&
+    hasImmediatePgeInfusion &&
+    hasPreductalPulseOx &&
+    hasPostductalPulseOx &&
+    hasFourExtremityBp &&
+    hasBloodGas &&
+    hasLactate &&
+    hasUrgentEcho &&
     hasCardiacEscalation &&
     hasNeonatalEscalation &&
-    hasAccessTransfer &&
+    hasTransfer &&
+    hasVascularAccess &&
     hasAirwaySupport &&
     hasMetabolicSupport
   );
@@ -33627,7 +33664,16 @@ function hasDuctalDependentChdTreatmentSafetyCheck(checks: string[]): boolean {
   const hasPgeApneaSafety = DUCTAL_DEPENDENT_CHD_PGE_APNEA_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasPgeHemodynamicSafety = DUCTAL_DEPENDENT_CHD_PGE_HEMODYNAMIC_SAFETY_TERMS.some(
+  const hasPgeAirwayReadinessSafety = DUCTAL_DEPENDENT_CHD_PGE_AIRWAY_READINESS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPgeHypotensionSafety = DUCTAL_DEPENDENT_CHD_PGE_HYPOTENSION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPgeFeverSafety = DUCTAL_DEPENDENT_CHD_PGE_FEVER_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasPgeContinuousMonitoringSafety = DUCTAL_DEPENDENT_CHD_PGE_CONTINUOUS_MONITORING_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
   const hasSepsisDifferentialSafety = DUCTAL_DEPENDENT_CHD_SEPSIS_DIFFERENTIAL_SAFETY_TERMS.some(
@@ -33642,16 +33688,23 @@ function hasDuctalDependentChdTreatmentSafetyCheck(checks: string[]): boolean {
   const hasCardiacTransferSafety = DUCTAL_DEPENDENT_CHD_CARDIAC_TRANSFER_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasTransferSafety = DUCTAL_DEPENDENT_CHD_TRANSFER_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   return (
     hasOxygenJudiciousSafety &&
     hasOxygenPhysiologySafety &&
     hasPgeDrugSafety &&
     hasPgeApneaSafety &&
-    hasPgeHemodynamicSafety &&
+    hasPgeAirwayReadinessSafety &&
+    hasPgeHypotensionSafety &&
+    hasPgeFeverSafety &&
+    hasPgeContinuousMonitoringSafety &&
     hasSepsisDifferentialSafety &&
     hasLesionDifferentialSafety &&
     hasTransferNoDelaySafety &&
-    hasCardiacTransferSafety
+    hasCardiacTransferSafety &&
+    hasTransferSafety
   );
 }
 
@@ -36792,7 +36845,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasDuctalDependentChdTimeCriticalActions,
       issue:
-        "ductal-dependent congenital heart disease time-critical actions must include immediate prostaglandin E1, PGE1, or alprostadil infusion planning, preductal/postductal pulse oximetry, four-extremity blood pressure, blood gas, lactate, ECG, chest x-ray, or echocardiogram assessment, neonatology, NICU, pediatric cardiology, cardiac ICU, transfer, or umbilical venous catheter escalation, and airway, vascular access, glucose, thermoregulation, metabolic acidosis, intubation, or ventilation support",
+        "ductal-dependent congenital heart disease time-critical actions must include immediate prostaglandin E1, PGE1, or alprostadil infusion started without delay, both preductal and postductal pulse oximetry, four-extremity blood pressure, blood gas, lactate, urgent echocardiogram, neonatology, NICU, pediatric cardiology, cardiac ICU, transfer or retrieval, vascular access, and airway, glucose, thermoregulation, metabolic acidosis, intubation, or ventilation support",
     },
     {
       name: "ductal_dependent_chd_treatment_safety",
@@ -36801,7 +36854,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasDuctalDependentChdTreatmentSafetyCheck,
       issue:
-        "ductal-dependent congenital heart disease safety checks must include judicious oxygen or pulmonary vascular resistance safety, PGE1 adverse-effect monitoring for apnea, respiratory depression, hypotension, fever, or intubation need, differential review for sepsis versus ductal-dependent lesions such as hypoplastic left heart, transposition, or pulmonary atresia, and do-not-delay transport, pediatric cardiology, pediatric cardiac, neonatology, or transfer planning",
+        "ductal-dependent congenital heart disease safety checks must include judicious oxygen plus pulmonary vascular resistance safety, PGE1 adverse-effect monitoring for apnea or respiratory depression, airway readiness, hypotension, fever, and continuous cardiorespiratory monitoring, differential review for sepsis versus ductal-dependent lesions such as hypoplastic left heart, transposition, or pulmonary atresia, and do-not-delay transport or transfer with pediatric cardiology, pediatric cardiac, or neonatology planning",
     },
     {
       name: "cardiac_tamponade_time_critical_actions",

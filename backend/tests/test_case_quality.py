@@ -36754,6 +36754,41 @@ def test_quality_gate_requires_ductal_dependent_chd_pge_diagnostics_escalation_a
     )
 
 
+def test_ductal_dependent_chd_gate_requires_complete_resuscitation_and_pge_safety_plan():
+    actions = [
+        "Start alprostadil PGE1 infusion immediately without delay to maintain ductal patency",
+        "Measure preductal and postductal pulse oximetry, four-extremity blood pressure, blood gas, and lactate",
+        "Obtain urgent echocardiogram and escalate to NICU, neonatologist, pediatric cardiology, and cardiac intensive care",
+        "Arrange pediatric cardiac retrieval transfer and establish umbilical venous catheter UVC vascular access",
+        "Support airway with intubation or mechanical ventilation readiness and correct glucose, thermoregulation, and metabolic acidosis",
+    ]
+    checks = [
+        "Avoid excess supplemental oxygen because lowering pulmonary vascular resistance can cause pulmonary overcirculation and systemic hypoperfusion",
+        "During alprostadil PGE1 infusion, use continuous cardiorespiratory monitoring for apnea or respiratory depression, with airway and intubation readiness; monitor hypotension and fever",
+        "Differentiate sepsis from ductal-dependent lesions including hypoplastic left heart, transposition, and pulmonary atresia",
+        "Do not delay transport or transfer to a pediatric cardiac center with pediatric cardiology, neonatology, and retrieval planning",
+    ]
+
+    assert case_quality_module._has_ductal_dependent_chd_time_critical_actions(actions)
+    assert case_quality_module._has_ductal_dependent_chd_treatment_safety_check(checks)
+
+    incomplete_actions = actions.copy()
+    incomplete_actions[1] = (
+        "Measure postductal pulse oximetry, four-extremity blood pressure, blood gas, and lactate"
+    )
+    assert not case_quality_module._has_ductal_dependent_chd_time_critical_actions(
+        incomplete_actions
+    )
+
+    incomplete_checks = checks.copy()
+    incomplete_checks[1] = (
+        "During alprostadil PGE1 infusion, monitor apnea, respiratory depression, hypotension, fever, and intubation need"
+    )
+    assert not case_quality_module._has_ductal_dependent_chd_treatment_safety_check(
+        incomplete_checks
+    )
+
+
 def test_quality_gate_requires_ductal_dependent_chd_oxygen_pge_differential_and_transfer_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Ductal-dependent congenital heart disease with neonatal cyanosis"

@@ -9675,6 +9675,68 @@
     }
   },
   {
+    "name": "ductal_dependent_chd_requires_both_preductal_and_postductal_assessment",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "ductal-dependent congenital heart disease time-critical actions must include immediate prostaglandin E1"
+    ],
+    "overrides": {
+      "diagnosis": "Ductal-dependent congenital heart disease with neonatal shock",
+      "chief_complaint": "Newborn cyanosis and shock",
+      "history_of_present_illness": "Two-day-old newborn has cyanosis, hypoxemia, poor feeding, weak femoral pulses, and shock concerning for ductal-dependent congenital heart disease.",
+      "key_teaching_points": [
+        "Ductal-dependent lesions need prostaglandin E1 infusion and urgent cardiology planning"
+      ],
+      "clinical_red_flags": [
+        "Neonatal cyanosis, shock, weak femoral pulses, and differential saturation"
+      ],
+      "time_critical_actions": [
+        "Start alprostadil PGE1 infusion immediately without delay to maintain ductal patency",
+        "Measure postductal pulse oximetry, four-extremity blood pressure, blood gas, and lactate",
+        "Obtain urgent echocardiogram and escalate to NICU, neonatologist, pediatric cardiology, and cardiac intensive care",
+        "Arrange pediatric cardiac retrieval transfer and establish umbilical venous catheter UVC vascular access",
+        "Support airway with intubation or mechanical ventilation readiness and correct glucose, thermoregulation, and metabolic acidosis"
+      ],
+      "contraindication_checks": [
+        "Avoid excess supplemental oxygen because lowering pulmonary vascular resistance can cause pulmonary overcirculation and systemic hypoperfusion",
+        "During alprostadil PGE1 infusion, use continuous cardiorespiratory monitoring for apnea or respiratory depression, with airway and intubation readiness; monitor hypotension and fever",
+        "Differentiate sepsis from ductal-dependent lesions including hypoplastic left heart, transposition, and pulmonary atresia",
+        "Do not delay transport or transfer to a pediatric cardiac center with pediatric cardiology, neonatology, and retrieval planning"
+      ]
+    }
+  },
+  {
+    "name": "ductal_dependent_chd_requires_continuous_monitoring_for_pge1",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "ductal-dependent congenital heart disease safety checks must include judicious oxygen"
+    ],
+    "overrides": {
+      "diagnosis": "Ductal-dependent congenital heart disease with neonatal shock",
+      "chief_complaint": "Newborn cyanosis and shock",
+      "history_of_present_illness": "Two-day-old newborn has cyanosis, hypoxemia, poor feeding, weak femoral pulses, and shock concerning for ductal-dependent congenital heart disease.",
+      "key_teaching_points": [
+        "Ductal-dependent lesions need prostaglandin E1 infusion and urgent cardiology planning"
+      ],
+      "clinical_red_flags": [
+        "Neonatal cyanosis, shock, weak femoral pulses, and differential saturation"
+      ],
+      "time_critical_actions": [
+        "Start alprostadil PGE1 infusion immediately without delay to maintain ductal patency",
+        "Measure preductal and postductal pulse oximetry, four-extremity blood pressure, blood gas, and lactate",
+        "Obtain urgent echocardiogram and escalate to NICU, neonatologist, pediatric cardiology, and cardiac intensive care",
+        "Arrange pediatric cardiac retrieval transfer and establish umbilical venous catheter UVC vascular access",
+        "Support airway with intubation or mechanical ventilation readiness and correct glucose, thermoregulation, and metabolic acidosis"
+      ],
+      "contraindication_checks": [
+        "Avoid excess supplemental oxygen because lowering pulmonary vascular resistance can cause pulmonary overcirculation and systemic hypoperfusion",
+        "During alprostadil PGE1 infusion, monitor apnea or respiratory depression with airway and intubation readiness; monitor hypotension and fever",
+        "Differentiate sepsis from ductal-dependent lesions including hypoplastic left heart, transposition, and pulmonary atresia",
+        "Do not delay transport or transfer to a pediatric cardiac center with pediatric cardiology, neonatology, and retrieval planning"
+      ]
+    }
+  },
+  {
     "name": "symptomatic_bradycardia_requires_monitor_instability_atropine_pacing_chronotrope_and_causes",
     "expected_passed": false,
     "expected_issue_substrings": [

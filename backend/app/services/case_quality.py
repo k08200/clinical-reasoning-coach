@@ -17471,27 +17471,26 @@ DUCTAL_DEPENDENT_CHD_PGE_DRUG_ACTION_TERMS = (
     "prostaglandin e1",
 )
 DUCTAL_DEPENDENT_CHD_PGE_URGENCY_ACTION_TERMS = (
-    "ductal patency",
     "immediately",
+    "urgent",
+    "without delay",
+    "without waiting",
+)
+DUCTAL_DEPENDENT_CHD_PGE_INFUSION_ACTION_TERMS = (
     "infusion",
-    "maintain ductal",
-    "start",
+    "infuse",
 )
-DUCTAL_DEPENDENT_CHD_PULSE_OX_ACTION_TERMS = (
-    "preductal",
-    "postductal",
-    "pulse oximetry",
-)
-DUCTAL_DEPENDENT_CHD_HEMODYNAMIC_ACTION_TERMS = (
-    "blood gas",
+DUCTAL_DEPENDENT_CHD_FOUR_EXTREMITY_BP_ACTION_TERMS = (
     "four extremity blood pressure",
-    "lactate",
+    "four-extremity blood pressure",
+    "4 extremity blood pressure",
+    "4-extremity blood pressure",
 )
-DUCTAL_DEPENDENT_CHD_CARDIAC_DIAGNOSTIC_ACTION_TERMS = (
-    "chest x-ray",
+DUCTAL_DEPENDENT_CHD_BLOOD_GAS_ACTION_TERMS = ("blood gas", "arterial blood gas", "abg")
+DUCTAL_DEPENDENT_CHD_LACTATE_ACTION_TERMS = ("lactate",)
+DUCTAL_DEPENDENT_CHD_ECHO_ACTION_TERMS = (
     "echocardiogram",
     "echo",
-    "ecg",
 )
 DUCTAL_DEPENDENT_CHD_CARDIAC_ESCALATION_ACTION_TERMS = (
     "cardiac intensive care",
@@ -17502,10 +17501,17 @@ DUCTAL_DEPENDENT_CHD_NEONATAL_ESCALATION_ACTION_TERMS = (
     "neonatologist",
     "nicu",
 )
-DUCTAL_DEPENDENT_CHD_ACCESS_TRANSFER_ACTION_TERMS = (
+DUCTAL_DEPENDENT_CHD_TRANSFER_ACTION_TERMS = (
     "transfer",
+    "transport",
+    "retrieval",
+)
+DUCTAL_DEPENDENT_CHD_VASCULAR_ACCESS_ACTION_TERMS = (
     "umbilical venous catheter",
     "uvc",
+    "iv access",
+    "intravenous access",
+    "vascular access",
 )
 DUCTAL_DEPENDENT_CHD_AIRWAY_SUPPORT_ACTION_TERMS = (
     "airway",
@@ -17528,9 +17534,9 @@ DUCTAL_DEPENDENT_CHD_OXYGEN_JUDICIOUS_SAFETY_TERMS = (
 DUCTAL_DEPENDENT_CHD_OXYGEN_PHYSIOLOGY_SAFETY_TERMS = (
     "ductal steal",
     "lower pulmonary vascular resistance",
-    "judicious oxygen",
     "pulmonary vascular resistance",
-    "supplemental oxygen",
+    "pulmonary overcirculation",
+    "systemic hypoperfusion",
 )
 DUCTAL_DEPENDENT_CHD_PGE_DRUG_SAFETY_TERMS = (
     "alprostadil",
@@ -17540,12 +17546,22 @@ DUCTAL_DEPENDENT_CHD_PGE_DRUG_SAFETY_TERMS = (
 )
 DUCTAL_DEPENDENT_CHD_PGE_APNEA_SAFETY_TERMS = (
     "apnea",
-    "intubation",
     "respiratory depression",
 )
-DUCTAL_DEPENDENT_CHD_PGE_HEMODYNAMIC_SAFETY_TERMS = (
-    "fever",
-    "hypotension",
+DUCTAL_DEPENDENT_CHD_PGE_AIRWAY_READINESS_SAFETY_TERMS = (
+    "airway",
+    "intubation",
+    "mechanical ventilation",
+    "ventilation readiness",
+)
+DUCTAL_DEPENDENT_CHD_PGE_HYPOTENSION_SAFETY_TERMS = ("hypotension",)
+DUCTAL_DEPENDENT_CHD_PGE_FEVER_SAFETY_TERMS = ("fever",)
+DUCTAL_DEPENDENT_CHD_PGE_CONTINUOUS_MONITORING_SAFETY_TERMS = (
+    "continuous cardiorespiratory monitoring",
+    "continuous cardio-respiratory monitoring",
+    "continuous monitoring",
+    "cardiorespiratory monitor",
+    "cardio-respiratory monitor",
 )
 DUCTAL_DEPENDENT_CHD_SEPSIS_DIFFERENTIAL_SAFETY_TERMS = (
     "sepsis",
@@ -17564,8 +17580,6 @@ DUCTAL_DEPENDENT_CHD_CARDIAC_TRANSFER_SAFETY_TERMS = (
     "neonatology",
     "pediatric cardiac",
     "pediatric cardiology",
-    "transport",
-    "transfer",
 )
 CARDIAC_TAMPONADE_CONTEXT_TERMS = (
     "beck triad",
@@ -23552,11 +23566,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "ductal-dependent congenital heart disease time-critical actions "
                 "must include immediate prostaglandin E1, PGE1, or alprostadil "
-                "infusion planning, preductal/postductal pulse oximetry, "
-                "four-extremity blood pressure, blood gas, lactate, ECG, chest "
-                "x-ray, or echocardiogram assessment, neonatology, NICU, "
-                "pediatric cardiology, cardiac ICU, transfer, or umbilical venous "
-                "catheter escalation, and airway, vascular access, glucose, "
+                "infusion started without delay, both preductal and postductal "
+                "pulse oximetry, four-extremity blood pressure, blood gas, lactate, "
+                "urgent echocardiogram, neonatology, NICU, pediatric cardiology, "
+                "cardiac ICU, transfer or retrieval, vascular access, and airway, "
+                "glucose, "
                 "thermoregulation, metabolic acidosis, intubation, or ventilation "
                 "support"
             ),
@@ -23568,13 +23582,14 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_ductal_dependent_chd_treatment_safety_check,
             issue=(
                 "ductal-dependent congenital heart disease safety checks must "
-                "include judicious oxygen or pulmonary vascular resistance safety, "
-                "PGE1 adverse-effect monitoring for apnea, respiratory depression, "
-                "hypotension, fever, or intubation need, differential review for "
+                "include judicious oxygen plus pulmonary vascular resistance safety, "
+                "PGE1 adverse-effect monitoring for apnea or respiratory depression, "
+                "airway readiness, hypotension, fever, and continuous cardiorespiratory "
+                "monitoring, differential review for "
                 "sepsis versus ductal-dependent lesions such as hypoplastic left "
                 "heart, transposition, or pulmonary atresia, and do-not-delay "
-                "transport, pediatric cardiology, pediatric cardiac, neonatology, "
-                "or transfer planning"
+                "transport or transfer with pediatric cardiology, pediatric cardiac, "
+                "or neonatology planning"
             ),
         ),
         DomainSafetyGate(
@@ -39250,25 +39265,45 @@ def _requires_ductal_dependent_chd_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_ductal_dependent_chd_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_pge_drug = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in DUCTAL_DEPENDENT_CHD_PGE_DRUG_ACTION_TERMS
+    has_immediate_pge_infusion = any(
+        any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in DUCTAL_DEPENDENT_CHD_PGE_DRUG_ACTION_TERMS
+        )
+        and any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in DUCTAL_DEPENDENT_CHD_PGE_URGENCY_ACTION_TERMS
+        )
+        and any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in DUCTAL_DEPENDENT_CHD_PGE_INFUSION_ACTION_TERMS
+        )
+        for action in actions
     )
-    has_pge_urgency = any(
+    has_preductal_pulse_ox = _contains_safety_term(normalized_actions, "preductal")
+    has_postductal_pulse_ox = _contains_safety_term(normalized_actions, "postductal")
+    has_four_extremity_bp = any(
         _contains_safety_term(normalized_actions, term)
-        for term in DUCTAL_DEPENDENT_CHD_PGE_URGENCY_ACTION_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_FOUR_EXTREMITY_BP_ACTION_TERMS
     )
-    has_pulse_ox = any(
+    has_blood_gas = any(
         _contains_safety_term(normalized_actions, term)
-        for term in DUCTAL_DEPENDENT_CHD_PULSE_OX_ACTION_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_BLOOD_GAS_ACTION_TERMS
     )
-    has_hemodynamic_assessment = any(
+    has_lactate = any(
         _contains_safety_term(normalized_actions, term)
-        for term in DUCTAL_DEPENDENT_CHD_HEMODYNAMIC_ACTION_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_LACTATE_ACTION_TERMS
     )
-    has_cardiac_diagnostic = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in DUCTAL_DEPENDENT_CHD_CARDIAC_DIAGNOSTIC_ACTION_TERMS
+    has_urgent_echo = any(
+        any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in DUCTAL_DEPENDENT_CHD_ECHO_ACTION_TERMS
+        )
+        and any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in DUCTAL_DEPENDENT_CHD_PGE_URGENCY_ACTION_TERMS
+        )
+        for action in actions
     )
     has_cardiac_escalation = any(
         _contains_safety_term(normalized_actions, term)
@@ -39278,9 +39313,13 @@ def _has_ductal_dependent_chd_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in DUCTAL_DEPENDENT_CHD_NEONATAL_ESCALATION_ACTION_TERMS
     )
-    has_access_transfer = any(
+    has_transfer = any(
         _contains_safety_term(normalized_actions, term)
-        for term in DUCTAL_DEPENDENT_CHD_ACCESS_TRANSFER_ACTION_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_TRANSFER_ACTION_TERMS
+    )
+    has_vascular_access = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in DUCTAL_DEPENDENT_CHD_VASCULAR_ACCESS_ACTION_TERMS
     )
     has_airway_support = any(
         _contains_safety_term(normalized_actions, term)
@@ -39291,14 +39330,17 @@ def _has_ductal_dependent_chd_time_critical_actions(actions: list[Any]) -> bool:
         for term in DUCTAL_DEPENDENT_CHD_METABOLIC_SUPPORT_ACTION_TERMS
     )
     return (
-        has_pge_drug
-        and has_pge_urgency
-        and has_pulse_ox
-        and has_hemodynamic_assessment
-        and has_cardiac_diagnostic
+        has_immediate_pge_infusion
+        and has_preductal_pulse_ox
+        and has_postductal_pulse_ox
+        and has_four_extremity_bp
+        and has_blood_gas
+        and has_lactate
+        and has_urgent_echo
         and has_cardiac_escalation
         and has_neonatal_escalation
-        and has_access_transfer
+        and has_transfer
+        and has_vascular_access
         and has_airway_support
         and has_metabolic_support
     )
@@ -39322,9 +39364,21 @@ def _has_ductal_dependent_chd_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in DUCTAL_DEPENDENT_CHD_PGE_APNEA_SAFETY_TERMS
     )
-    has_pge_hemodynamic_safety = any(
+    has_pge_airway_readiness_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in DUCTAL_DEPENDENT_CHD_PGE_HEMODYNAMIC_SAFETY_TERMS
+        for term in DUCTAL_DEPENDENT_CHD_PGE_AIRWAY_READINESS_SAFETY_TERMS
+    )
+    has_pge_hypotension_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_PGE_HYPOTENSION_SAFETY_TERMS
+    )
+    has_pge_fever_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_PGE_FEVER_SAFETY_TERMS
+    )
+    has_pge_continuous_monitoring_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_PGE_CONTINUOUS_MONITORING_SAFETY_TERMS
     )
     has_sepsis_differential_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -39342,16 +39396,24 @@ def _has_ductal_dependent_chd_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in DUCTAL_DEPENDENT_CHD_CARDIAC_TRANSFER_SAFETY_TERMS
     )
+    has_transfer_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in DUCTAL_DEPENDENT_CHD_TRANSFER_ACTION_TERMS
+    )
     return (
         has_oxygen_judicious_safety
         and has_oxygen_physiology_safety
         and has_pge_drug_safety
         and has_pge_apnea_safety
-        and has_pge_hemodynamic_safety
+        and has_pge_airway_readiness_safety
+        and has_pge_hypotension_safety
+        and has_pge_fever_safety
+        and has_pge_continuous_monitoring_safety
         and has_sepsis_differential_safety
         and has_lesion_differential_safety
         and has_transfer_no_delay_safety
         and has_cardiac_transfer_safety
+        and has_transfer_safety
     )
 
 
