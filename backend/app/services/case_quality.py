@@ -17624,17 +17624,28 @@ CARDIAC_TAMPONADE_SPECIALIST_ACTION_TERMS = (
     "흉부외과",
     "심장내과",
 )
-CARDIAC_TAMPONADE_HEMODYNAMIC_ACTION_TERMS = (
+CARDIAC_TAMPONADE_URGENCY_ACTION_TERMS = (
+    "immediate",
+    "immediately",
+    "urgent",
+    "without delay",
+    "without waiting",
+)
+CARDIAC_TAMPONADE_HEMODYNAMIC_MONITOR_ACTION_TERMS = (
     "blood pressure",
+    "arterial line",
+    "hemodynamic monitoring",
+    "continuous monitoring",
+    "혈압",
+)
+CARDIAC_TAMPONADE_BRIDGE_SUPPORT_ACTION_TERMS = (
+    "cautious fluid bolus",
     "fluid bolus",
-    "hemodynamic",
-    "hypotension",
+    "volume expansion",
+    "inotrope",
     "pressor",
-    "shock",
     "vasopressor",
     "수액",
-    "쇼크",
-    "혈압",
 )
 CARDIAC_TAMPONADE_NO_DELAY_SAFETY_TERMS = (
     "do not delay",
@@ -17646,23 +17657,29 @@ CARDIAC_TAMPONADE_NO_DELAY_SAFETY_TERMS = (
     "urgent drainage",
     "urgent pericardiocentesis",
     "without waiting",
-    "지연",
 )
-CARDIAC_TAMPONADE_ANTICOAG_REVERSAL_SAFETY_TERMS = (
+CARDIAC_TAMPONADE_ANTICOAG_SAFETY_TERMS = (
     "anticoagulant",
     "anticoagulation",
-    "bleeding",
     "coagulopathy",
     "doac",
     "inr",
     "platelet",
-    "reversal",
     "thrombolysis",
     "warfarin",
     "출혈",
     "항응고",
 )
-CARDIAC_TAMPONADE_CAUSE_COMPLICATION_SAFETY_TERMS = (
+CARDIAC_TAMPONADE_REVERSAL_SAFETY_TERMS = (
+    "reversal",
+    "reverse",
+    "protamine",
+    "prothrombin complex",
+    "pcc",
+    "vitamin k",
+    "idarucizumab",
+)
+CARDIAC_TAMPONADE_CAUSE_SAFETY_TERMS = (
     "aortic dissection",
     "iatrogenic",
     "malignancy",
@@ -17674,9 +17691,25 @@ CARDIAC_TAMPONADE_CAUSE_COMPLICATION_SAFETY_TERMS = (
     "감별",
     "외상",
 )
-CARDIAC_TAMPONADE_VENTILATION_PRELOAD_SAFETY_TERMS = (
-    "avoid diuresis",
-    "avoid diuretics",
+CARDIAC_TAMPONADE_SURGICAL_CAUSE_SAFETY_TERMS = (
+    "aortic dissection",
+    "myocardial rupture",
+    "ventricular free wall rupture",
+    "severe chest trauma",
+    "uncontrolled iatrogenic",
+)
+CARDIAC_TAMPONADE_SURGICAL_MANAGEMENT_SAFETY_TERMS = (
+    "cardiac surgery",
+    "cardiothoracic surgical",
+    "cardiothoracic surgery",
+    "emergency surgery",
+    "urgent surgery",
+    "surgical drainage",
+    "surgical management",
+    "sternotomy",
+    "operating room",
+)
+CARDIAC_TAMPONADE_AVOID_POSITIVE_PRESSURE_SAFETY_TERMS = (
     "avoid intubation",
     "avoid mechanical ventilation",
     "avoid positive pressure",
@@ -17686,10 +17719,16 @@ CARDIAC_TAMPONADE_VENTILATION_PRELOAD_SAFETY_TERMS = (
     "minimize positive pressure",
     "positive pressure ventilation should be avoided",
     "positive-pressure mechanical ventilation should be avoided",
-    "preload optimization",
-    "preserve preload",
     "양압환기 피",
     "삽관 피",
+)
+CARDIAC_TAMPONADE_PRELOAD_SAFETY_TERMS = (
+    "cautious fluid bolus",
+    "preserve preload",
+    "preload optimization",
+    "volume expansion",
+    "avoid diuresis",
+    "avoid diuretics",
 )
 UNSTABLE_TACHYARRHYTHMIA_CONTEXT_TERMS = (
     "af with rvr",
@@ -23599,12 +23638,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_cardiac_tamponade_time_critical_actions,
             issue=(
                 "cardiac tamponade time-critical actions must include bedside "
-                "echo, cardiac POCUS, or ultrasound assessment, immediate "
+                "echo, cardiac POCUS, or ultrasound assessment without delay, immediate "
                 "pericardiocentesis, pericardial drainage, pericardial window, "
                 "or pericardiotomy planning, cardiology, cardiothoracic, thoracic, "
-                "trauma, or emergency surgery escalation, and hemodynamic support "
-                "with fluids, blood pressure, vasopressor, hypotension, or shock "
-                "management"
+                "trauma, or emergency surgery escalation, and blood-pressure or "
+                "hemodynamic monitoring plus temporary fluid, vasopressor, or inotrope "
+                "support while drainage is arranged"
             ),
         ),
         DomainSafetyGate(
@@ -23614,12 +23653,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_cardiac_tamponade_treatment_safety_check,
             issue=(
                 "cardiac tamponade safety checks must include unstable-patient "
-                "do-not-delay or immediate-drainage planning, anticoagulant, "
-                "thrombolysis, bleeding, coagulopathy, INR, platelet, or reversal "
-                "review, and trauma, iatrogenic injury, myocardial infarction or "
-                "rupture, aortic dissection, malignancy, uremia, or renal failure "
-                "cause assessment, plus avoidance of positive-pressure ventilation, "
-                "intubation, diuresis, or other preload-reducing steps when feasible"
+                "do-not-delay or immediate-drainage planning, anticoagulant and reversal "
+                "review, trauma, iatrogenic injury, myocardial infarction or rupture, "
+                "aortic dissection, malignancy, uremia, or renal failure cause assessment, "
+                "surgical management for dissection, rupture, severe trauma, or uncontrolled "
+                "iatrogenic bleeding, plus avoidance of positive-pressure ventilation and "
+                "preload preservation when feasible"
             ),
         ),
         DomainSafetyGate(
@@ -39444,27 +39483,46 @@ def _requires_cardiac_tamponade_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_cardiac_tamponade_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_echo_action = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in CARDIAC_TAMPONADE_ECHO_ACTION_TERMS
+    has_urgent_echo_action = any(
+        any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in CARDIAC_TAMPONADE_ECHO_ACTION_TERMS
+        )
+        and any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in CARDIAC_TAMPONADE_URGENCY_ACTION_TERMS
+        )
+        for action in actions
     )
-    has_drainage_action = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in CARDIAC_TAMPONADE_DRAINAGE_ACTION_TERMS
+    has_immediate_drainage_action = any(
+        any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in CARDIAC_TAMPONADE_DRAINAGE_ACTION_TERMS
+        )
+        and any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in CARDIAC_TAMPONADE_URGENCY_ACTION_TERMS
+        )
+        for action in actions
     )
     has_specialist_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in CARDIAC_TAMPONADE_SPECIALIST_ACTION_TERMS
     )
-    has_hemodynamic_action = any(
+    has_hemodynamic_monitor_action = any(
         _contains_safety_term(normalized_actions, term)
-        for term in CARDIAC_TAMPONADE_HEMODYNAMIC_ACTION_TERMS
+        for term in CARDIAC_TAMPONADE_HEMODYNAMIC_MONITOR_ACTION_TERMS
+    )
+    has_bridge_support_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in CARDIAC_TAMPONADE_BRIDGE_SUPPORT_ACTION_TERMS
     )
     return (
-        has_echo_action
-        and has_drainage_action
+        has_urgent_echo_action
+        and has_immediate_drainage_action
         and has_specialist_action
-        and has_hemodynamic_action
+        and has_hemodynamic_monitor_action
+        and has_bridge_support_action
     )
 
 
@@ -39474,23 +39532,43 @@ def _has_cardiac_tamponade_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in CARDIAC_TAMPONADE_NO_DELAY_SAFETY_TERMS
     )
-    has_anticoag_reversal_safety = any(
+    has_anticoag_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in CARDIAC_TAMPONADE_ANTICOAG_REVERSAL_SAFETY_TERMS
+        for term in CARDIAC_TAMPONADE_ANTICOAG_SAFETY_TERMS
     )
-    has_cause_complication_safety = any(
+    has_reversal_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in CARDIAC_TAMPONADE_CAUSE_COMPLICATION_SAFETY_TERMS
+        for term in CARDIAC_TAMPONADE_REVERSAL_SAFETY_TERMS
     )
-    has_ventilation_preload_safety = any(
+    has_cause_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in CARDIAC_TAMPONADE_VENTILATION_PRELOAD_SAFETY_TERMS
+        for term in CARDIAC_TAMPONADE_CAUSE_SAFETY_TERMS
+    )
+    has_surgical_cause_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARDIAC_TAMPONADE_SURGICAL_CAUSE_SAFETY_TERMS
+    )
+    has_surgical_management_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARDIAC_TAMPONADE_SURGICAL_MANAGEMENT_SAFETY_TERMS
+    )
+    has_avoid_positive_pressure_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARDIAC_TAMPONADE_AVOID_POSITIVE_PRESSURE_SAFETY_TERMS
+    )
+    has_preload_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in CARDIAC_TAMPONADE_PRELOAD_SAFETY_TERMS
     )
     return (
         has_no_delay_safety
-        and has_anticoag_reversal_safety
-        and has_cause_complication_safety
-        and has_ventilation_preload_safety
+        and has_anticoag_safety
+        and has_reversal_safety
+        and has_cause_safety
+        and has_surgical_cause_safety
+        and has_surgical_management_safety
+        and has_avoid_positive_pressure_safety
+        and has_preload_safety
     )
 
 

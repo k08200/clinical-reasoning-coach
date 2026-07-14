@@ -37037,6 +37037,37 @@ def test_quality_gate_requires_tension_pneumothorax_needle_or_finger_decompressi
     )
 
 
+def test_cardiac_tamponade_gate_requires_immediate_drainage_and_surgical_safety_plan():
+    actions = [
+        "Obtain urgent bedside echo or cardiac POCUS to confirm tamponade physiology",
+        "Perform immediate echo-guided pericardiocentesis with pericardial drainage while arranging definitive care",
+        "Escalate cardiology and cardiothoracic surgery for urgent procedural support",
+        "Continuously monitor blood pressure with arterial line consideration; give cautious fluid bolus or vasopressor support only while drainage is arranged",
+    ]
+    checks = [
+        "Do not delay immediate drainage for CT or prolonged workup in unstable tamponade",
+        "Review anticoagulation, INR, platelet count, and warfarin; give reversal with prothrombin complex concentrate or vitamin K when indicated",
+        "Assess aortic dissection, myocardial rupture, severe chest trauma, and iatrogenic bleeding; arrange urgent cardiothoracic surgical management when present",
+        "Avoid positive-pressure ventilation or intubation when feasible and preserve preload with cautious volume expansion",
+    ]
+
+    assert case_quality_module._has_cardiac_tamponade_time_critical_actions(actions)
+    assert case_quality_module._has_cardiac_tamponade_treatment_safety_check(checks)
+
+    incomplete_actions = actions.copy()
+    incomplete_actions[0] = "Obtain bedside echo or cardiac POCUS after initial stabilization"
+    incomplete_actions[1] = "Perform immediate pericardiocentesis with pericardial drainage while arranging definitive care"
+    assert not case_quality_module._has_cardiac_tamponade_time_critical_actions(
+        incomplete_actions
+    )
+
+    incomplete_checks = checks.copy()
+    incomplete_checks[1] = "Review anticoagulation, INR, platelet count, and warfarin bleeding risk"
+    assert not case_quality_module._has_cardiac_tamponade_treatment_safety_check(
+        incomplete_checks
+    )
+
+
 def test_quality_gate_requires_cardiac_tamponade_echo_drainage_specialist_and_hemodynamic_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Cardiac tamponade"

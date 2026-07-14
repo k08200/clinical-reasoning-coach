@@ -23696,6 +23696,58 @@
     }
   },
   {
+    "name": "cardiac_tamponade_requires_urgent_echo_with_immediate_drainage",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "cardiac tamponade time-critical actions must include bedside echo"
+    ],
+    "overrides": {
+      "diagnosis": "Cardiac tamponade with obstructive shock",
+      "chief_complaint": "Hypotension and dyspnea",
+      "history_of_present_illness": "Patient has hypotension, tachycardia, elevated JVP, pulsus paradoxus, and suspected cardiac tamponade.",
+      "key_teaching_points": ["Tamponade requires urgent drainage and surgical escalation when bleeding causes are possible"],
+      "clinical_red_flags": ["Shock, hypotension, tachycardia, and pulsus paradoxus"],
+      "time_critical_actions": [
+        "Obtain bedside echo or cardiac POCUS after initial stabilization",
+        "Perform immediate pericardiocentesis with pericardial drainage while arranging definitive care",
+        "Escalate cardiology and cardiothoracic surgery for urgent procedural support",
+        "Continuously monitor blood pressure and give cautious fluid bolus or vasopressor support only while drainage is arranged"
+      ],
+      "contraindication_checks": [
+        "Do not delay immediate drainage for CT or prolonged workup in unstable tamponade",
+        "Review anticoagulation, INR, platelet count, and warfarin; give reversal with prothrombin complex concentrate or vitamin K when indicated",
+        "Assess aortic dissection, myocardial rupture, severe chest trauma, and iatrogenic bleeding; arrange urgent cardiothoracic surgical management when present",
+        "Avoid positive-pressure ventilation or intubation when feasible and preserve preload with cautious volume expansion"
+      ]
+    }
+  },
+  {
+    "name": "cardiac_tamponade_requires_positive_pressure_and_preload_safety",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "cardiac tamponade safety checks must include unstable-patient"
+    ],
+    "overrides": {
+      "diagnosis": "Cardiac tamponade with obstructive shock",
+      "chief_complaint": "Hypotension and dyspnea",
+      "history_of_present_illness": "Patient has hypotension, tachycardia, elevated JVP, pulsus paradoxus, and suspected cardiac tamponade.",
+      "key_teaching_points": ["Tamponade requires urgent drainage and surgical escalation when bleeding causes are possible"],
+      "clinical_red_flags": ["Shock, hypotension, tachycardia, and pulsus paradoxus"],
+      "time_critical_actions": [
+        "Obtain urgent bedside echo or cardiac POCUS to confirm tamponade physiology",
+        "Perform immediate echo-guided pericardiocentesis with pericardial drainage while arranging definitive care",
+        "Escalate cardiology and cardiothoracic surgery for urgent procedural support",
+        "Continuously monitor blood pressure and give cautious fluid bolus or vasopressor support only while drainage is arranged"
+      ],
+      "contraindication_checks": [
+        "Do not delay immediate drainage for CT or prolonged workup in unstable tamponade",
+        "Review anticoagulation, INR, platelet count, and warfarin; give reversal with prothrombin complex concentrate or vitamin K when indicated",
+        "Assess aortic dissection, myocardial rupture, severe chest trauma, and iatrogenic bleeding; arrange urgent cardiothoracic surgical management when present",
+        "Reassess oxygenation and airway status during resuscitation"
+      ]
+    }
+  },
+  {
     "name": "unstable_tachyarrhythmia_requires_monitor_pulse_cardioversion_causes_and_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [
