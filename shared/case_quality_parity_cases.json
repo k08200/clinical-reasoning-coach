@@ -24076,6 +24076,34 @@
     }
   },
   {
+    "name": "unstable_tachyarrhythmia_requires_iv_access_before_cardioversion",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "unstable tachyarrhythmia time-critical actions must include ECG"
+    ],
+    "overrides": {
+      "diagnosis": "Unstable wide-complex tachycardia with pulse",
+      "chief_complaint": "Palpitations, syncope, and hypotension",
+      "history_of_present_illness": "Patient has unstable ventricular tachycardia with pulse, hypotension, shock, and altered mental status.",
+      "key_teaching_points": ["Unstable tachycardia with a pulse requires immediate synchronized cardioversion"],
+      "clinical_red_flags": ["Hypotension, shock, altered mental status, and weak pulse"],
+      "time_critical_actions": [
+        "Apply cardiac monitor and pulse oximetry, monitor blood pressure, and obtain 12-lead ECG",
+        "Confirm a pulse and instability from hypotension, altered mental status, shock, ischemic chest pain, or acute heart failure",
+        "Perform immediate synchronized cardioversion for unstable tachycardia with a pulse",
+        "Identify and correct reversible hypoxia, ischemia, potassium, magnesium, and other electrolyte causes",
+        "Escalate to ACLS, cardiology, and ICU support if refractory or if the patient becomes pulseless"
+      ],
+      "contraindication_checks": [
+        "Sedate with analgesia whenever feasible without delaying synchronized cardioversion",
+        "Use synchronized cardioversion for tachycardia with a pulse; use unsynchronized defibrillation if pulseless or polymorphic",
+        "For irregular wide-complex tachycardia with pre-excitation or WPW, avoid AV nodal blocker, diltiazem, beta blocker, digoxin, verapamil, and avoid adenosine",
+        "Use amiodarone, procainamide, or sotalol only with hypotension, prolonged QT, and heart failure contraindication review",
+        "Identify and treat the underlying cause, including hypoxia, ischemia, potassium, magnesium, electrolyte disturbance, thyroid disease, or toxin exposure"
+      ]
+    }
+  },
+  {
     "name": "toxic_alcohol_requires_gap_antidote_dialysis_and_acidosis_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

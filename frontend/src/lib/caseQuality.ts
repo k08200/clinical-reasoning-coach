@@ -19774,45 +19774,61 @@ const UNSTABLE_TACHYARRHYTHMIA_RISK_TERMS = [
   "weak pulse",
 ];
 
-const UNSTABLE_TACHYARRHYTHMIA_MONITOR_ACTION_TERMS = [
-  "12-lead ecg",
+const UNSTABLE_TACHYARRHYTHMIA_RHYTHM_MONITOR_ACTION_TERMS = [
   "cardiac monitor",
-  "defibrillator pads",
-  "ecg",
-  "ekg",
-  "iv access",
-  "monitor",
   "telemetry",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_BP_OXIMETRY_ACTION_TERMS = [
+  "blood pressure",
+  "oximetry",
+  "pulse oximetry",
+  "spo2",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_IV_ACCESS_ACTION_TERMS = [
+  "iv access",
+  "intravenous access",
+  "vascular access",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_ECG_ACTION_TERMS = [
+  "12-lead ecg",
+  "12 lead ecg",
+  "12-lead ekg",
+  "12 lead ekg",
   "심전도",
 ];
 
-const UNSTABLE_TACHYARRHYTHMIA_PULSE_INSTABILITY_ACTION_TERMS = [
+const UNSTABLE_TACHYARRHYTHMIA_PULSE_ACTION_TERMS = ["pulse check", "pulse", "맥박"];
+
+const UNSTABLE_TACHYARRHYTHMIA_INSTABILITY_ACTION_TERMS = [
   "altered mental status",
   "chest pain",
   "hypotension",
   "instability",
   "ischemia",
-  "pulse check",
   "pulmonary edema",
   "shock",
   "unstable",
-  "맥박",
   "불안정",
 ];
 
-const UNSTABLE_TACHYARRHYTHMIA_CARDIOVERSION_ACTION_TERMS = [
-  "immediate cardioversion",
+const UNSTABLE_TACHYARRHYTHMIA_SYNC_CARDIOVERSION_ACTION_TERMS = [
   "immediate synchronized cardioversion",
-  "immediate synchronized shock",
-  "prompt cardioversion",
   "prompt synchronized cardioversion",
   "synchronized cardioversion",
   "synchronized shock",
   "synchronised cardioversion",
-  "sync mode",
-  "urgent synchronized cardioversion",
-  "동기화",
   "전기적 심율동전환",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_URGENCY_ACTION_TERMS = [
+  "immediate",
+  "immediately",
+  "prompt",
+  "urgent",
+  "without delay",
 ];
 
 const UNSTABLE_TACHYARRHYTHMIA_REVERSIBLE_CAUSE_ACTION_TERMS = [
@@ -19839,38 +19855,31 @@ const UNSTABLE_TACHYARRHYTHMIA_ESCALATION_ACTION_TERMS = [
   "중환자",
 ];
 
-const UNSTABLE_TACHYARRHYTHMIA_SEDATION_NO_DELAY_SAFETY_TERMS = [
-  "do not delay",
-  "do not delay cardioversion",
-  "do not delay shock",
-  "if feasible without delay",
-  "sedation if feasible",
-  "sedation if it does not delay",
-  "sedation without delaying",
+const UNSTABLE_TACHYARRHYTHMIA_SEDATION_SAFETY_TERMS = ["sedation", "sedate", "analgesia"];
+
+const UNSTABLE_TACHYARRHYTHMIA_SEDATION_FEASIBILITY_SAFETY_TERMS = [
+  "if feasible",
   "without delaying cardioversion",
   "without delaying shock",
-  "지연 없이",
+  "sedation if it does not delay",
+  "sedation without delaying",
+  "whenever feasible",
 ];
 
-const UNSTABLE_TACHYARRHYTHMIA_SYNC_UNSYNC_SAFETY_TERMS = [
-  "defibrillation if pulseless",
+const UNSTABLE_TACHYARRHYTHMIA_SYNC_SAFETY_TERMS = [
   "synchronized cardioversion",
   "synchronized shock",
-  "synchronized versus unsynchronized",
-  "synchronized vs unsynchronized",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_UNSYNC_PULSELESS_SAFETY_TERMS = [
+  "defibrillation if pulseless",
   "unsynchronized defibrillation if pulseless",
   "unsynchronized if pulseless",
   "unsynchronized shock if pulseless",
   "unsynchronized shock for polymorphic",
-  "sync mode",
-  "동기화",
 ];
 
-const UNSTABLE_TACHYARRHYTHMIA_WIDE_IRREGULAR_SAFETY_TERMS = [
-  "av nodal blocker",
-  "beta blocker",
-  "diltiazem",
-  "digoxin",
+const UNSTABLE_TACHYARRHYTHMIA_WIDE_IRREGULAR_CONTEXT_SAFETY_TERMS = [
   "irregular wide",
   "pre-excitation",
   "preexcited",
@@ -19878,7 +19887,22 @@ const UNSTABLE_TACHYARRHYTHMIA_WIDE_IRREGULAR_SAFETY_TERMS = [
   "wpw",
 ];
 
-const UNSTABLE_TACHYARRHYTHMIA_ANTIARRHYTHMIC_SAFETY_TERMS = [
+const UNSTABLE_TACHYARRHYTHMIA_AV_NODAL_AVOID_SAFETY_TERMS = [
+  "avoid av nodal blocker",
+  "avoid beta blocker",
+  "avoid diltiazem",
+  "avoid digoxin",
+  "avoid verapamil",
+  "do not give av nodal blocker",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_ADENOSINE_RESTRICTION_SAFETY_TERMS = [
+  "adenosine only if regular",
+  "avoid adenosine",
+  "do not give adenosine",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_ANTIARRHYTHMIC_AGENT_SAFETY_TERMS = [
   "amiodarone",
   "hypotension",
   "magnesium",
@@ -19886,7 +19910,19 @@ const UNSTABLE_TACHYARRHYTHMIA_ANTIARRHYTHMIC_SAFETY_TERMS = [
   "prolonged qt",
   "qtc",
   "sotalol",
-  "torsades",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_ANTIARRHYTHMIC_CONTRAINDICATION_SAFETY_TERMS = [
+  "heart failure",
+  "hypotension",
+  "prolonged qt",
+  "qtc",
+];
+
+const UNSTABLE_TACHYARRHYTHMIA_UNDERLYING_CAUSE_SAFETY_TERMS = [
+  "underlying cause",
+  "reversible cause",
+  "treat cause",
 ];
 
 const UNSTABLE_TACHYARRHYTHMIA_CAUSE_DISPOSITION_SAFETY_TERMS = [
@@ -33876,27 +33912,49 @@ function requiresUnstableTachyarrhythmiaSafetyCheck(detail: ClinicalCaseReviewDe
 
 function hasUnstableTachyarrhythmiaTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasMonitorAction = UNSTABLE_TACHYARRHYTHMIA_MONITOR_ACTION_TERMS.some((term) =>
+  const hasRhythmMonitorAction = UNSTABLE_TACHYARRHYTHMIA_RHYTHM_MONITOR_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasPulseInstabilityAction =
-    UNSTABLE_TACHYARRHYTHMIA_PULSE_INSTABILITY_ACTION_TERMS.some((term) =>
-      containsSafetyTerm(normalizedActions, term),
+  const hasBpOximetryAction = UNSTABLE_TACHYARRHYTHMIA_BP_OXIMETRY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasIvAccessAction = UNSTABLE_TACHYARRHYTHMIA_IV_ACCESS_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEcgAction = UNSTABLE_TACHYARRHYTHMIA_ECG_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPulseAction = UNSTABLE_TACHYARRHYTHMIA_PULSE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasInstabilityAction = UNSTABLE_TACHYARRHYTHMIA_INSTABILITY_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasImmediateSyncCardioversionAction = actions.some((action) => {
+    const normalizedAction = action.toLowerCase();
+    return (
+      UNSTABLE_TACHYARRHYTHMIA_SYNC_CARDIOVERSION_ACTION_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      ) &&
+      UNSTABLE_TACHYARRHYTHMIA_URGENCY_ACTION_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      )
     );
-  const hasCardioversionAction = UNSTABLE_TACHYARRHYTHMIA_CARDIOVERSION_ACTION_TERMS.some(
+  });
+  const hasReversibleCauseAction = UNSTABLE_TACHYARRHYTHMIA_REVERSIBLE_CAUSE_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
-  const hasReversibleCauseAction =
-    UNSTABLE_TACHYARRHYTHMIA_REVERSIBLE_CAUSE_ACTION_TERMS.some((term) =>
-      containsSafetyTerm(normalizedActions, term),
-    );
   const hasEscalationAction = UNSTABLE_TACHYARRHYTHMIA_ESCALATION_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasMonitorAction &&
-    hasPulseInstabilityAction &&
-    hasCardioversionAction &&
+    hasRhythmMonitorAction &&
+    hasBpOximetryAction &&
+    hasIvAccessAction &&
+    hasEcgAction &&
+    hasPulseAction &&
+    hasInstabilityAction &&
+    hasImmediateSyncCardioversionAction &&
     hasReversibleCauseAction &&
     hasEscalationAction
   );
@@ -33904,30 +33962,51 @@ function hasUnstableTachyarrhythmiaTimeCriticalActions(actions: string[]): boole
 
 function hasUnstableTachyarrhythmiaTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasSedationNoDelaySafety =
-    UNSTABLE_TACHYARRHYTHMIA_SEDATION_NO_DELAY_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
-  const hasSyncUnsyncSafety = UNSTABLE_TACHYARRHYTHMIA_SYNC_UNSYNC_SAFETY_TERMS.some(
+  const hasSedationSafety = UNSTABLE_TACHYARRHYTHMIA_SEDATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSedationFeasibilitySafety = UNSTABLE_TACHYARRHYTHMIA_SEDATION_FEASIBILITY_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasWideIrregularSafety =
-    UNSTABLE_TACHYARRHYTHMIA_WIDE_IRREGULAR_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
-  const hasAntiarrhythmicSafety =
-    UNSTABLE_TACHYARRHYTHMIA_ANTIARRHYTHMIC_SAFETY_TERMS.some((term) =>
-      containsSafetyTerm(normalizedChecks, term),
-    );
+  const hasSyncSafety = UNSTABLE_TACHYARRHYTHMIA_SYNC_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasUnsyncPulselessSafety = UNSTABLE_TACHYARRHYTHMIA_UNSYNC_PULSELESS_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasWideIrregularContextSafety = UNSTABLE_TACHYARRHYTHMIA_WIDE_IRREGULAR_CONTEXT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAvNodalAvoidSafety = UNSTABLE_TACHYARRHYTHMIA_AV_NODAL_AVOID_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAdenosineRestrictionSafety = UNSTABLE_TACHYARRHYTHMIA_ADENOSINE_RESTRICTION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntiarrhythmicAgentSafety = UNSTABLE_TACHYARRHYTHMIA_ANTIARRHYTHMIC_AGENT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntiarrhythmicContraindicationSafety = UNSTABLE_TACHYARRHYTHMIA_ANTIARRHYTHMIC_CONTRAINDICATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasUnderlyingCauseSafety = UNSTABLE_TACHYARRHYTHMIA_UNDERLYING_CAUSE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   const hasCauseDispositionSafety =
     UNSTABLE_TACHYARRHYTHMIA_CAUSE_DISPOSITION_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
   return (
-    hasSedationNoDelaySafety &&
-    hasSyncUnsyncSafety &&
-    hasWideIrregularSafety &&
-    hasAntiarrhythmicSafety &&
+    hasSedationSafety &&
+    hasSedationFeasibilitySafety &&
+    hasSyncSafety &&
+    hasUnsyncPulselessSafety &&
+    hasWideIrregularContextSafety &&
+    hasAvNodalAvoidSafety &&
+    hasAdenosineRestrictionSafety &&
+    hasAntiarrhythmicAgentSafety &&
+    hasAntiarrhythmicContraindicationSafety &&
+    hasUnderlyingCauseSafety &&
     hasCauseDispositionSafety
   );
 }

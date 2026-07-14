@@ -37399,6 +37399,38 @@ def test_quality_gate_requires_cardiac_tamponade_ventilation_preload_safety():
     )
 
 
+def test_unstable_tachyarrhythmia_gate_requires_complete_acls_and_medication_safety_plan():
+    actions = [
+        "Apply cardiac monitor and pulse oximetry, monitor blood pressure, establish IV access, and obtain 12-lead ECG",
+        "Confirm a pulse and instability from hypotension, altered mental status, shock, ischemic chest pain, or acute heart failure",
+        "Perform immediate synchronized cardioversion for unstable tachycardia with a pulse",
+        "Identify and correct reversible hypoxia, ischemia, potassium, magnesium, and other electrolyte causes",
+        "Escalate to ACLS, cardiology, and ICU support if refractory or if the patient becomes pulseless",
+    ]
+    checks = [
+        "Sedate with analgesia whenever feasible without delaying synchronized cardioversion",
+        "Use synchronized cardioversion for tachycardia with a pulse; use unsynchronized defibrillation if pulseless or polymorphic",
+        "For irregular wide-complex tachycardia with pre-excitation or WPW, avoid AV nodal blocker, diltiazem, beta blocker, digoxin, verapamil, and avoid adenosine",
+        "Use amiodarone, procainamide, or sotalol only with hypotension, prolonged QT, and heart failure contraindication review",
+        "Identify and treat the underlying cause, including hypoxia, ischemia, potassium, magnesium, electrolyte disturbance, thyroid disease, or toxin exposure",
+    ]
+
+    assert case_quality_module._has_unstable_tachyarrhythmia_time_critical_actions(actions)
+    assert case_quality_module._has_unstable_tachyarrhythmia_treatment_safety_check(checks)
+
+    incomplete_actions = actions.copy()
+    incomplete_actions[0] = "Apply cardiac monitor and pulse oximetry, monitor blood pressure, and obtain 12-lead ECG"
+    assert not case_quality_module._has_unstable_tachyarrhythmia_time_critical_actions(
+        incomplete_actions
+    )
+
+    incomplete_checks = checks.copy()
+    incomplete_checks[2] = "For irregular wide-complex tachycardia with pre-excitation or WPW, consider beta blocker and diltiazem"
+    assert not case_quality_module._has_unstable_tachyarrhythmia_treatment_safety_check(
+        incomplete_checks
+    )
+
+
 def test_quality_gate_requires_unstable_tachyarrhythmia_monitor_pulse_cardioversion_causes_and_escalation():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Unstable wide-complex tachycardia with pulse"
