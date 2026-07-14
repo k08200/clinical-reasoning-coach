@@ -36394,7 +36394,7 @@ def test_quality_gate_requires_acute_hf_oxygen_diuresis_vasodilator_and_escalati
     ]
     case["time_critical_actions"] = [
         "Start oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
-        "Use blood-pressure-guided nitroglycerin nitrate vasodilator planning for pulmonary edema when pressure allows",
+        "Use blood-pressure-guided nitroglycerin nitrate vasodilator planning for pulmonary edema with regurgitant mitral valve disease",
         "Escalate to ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
     ]
     case["contraindication_checks"] = [
@@ -36413,7 +36413,7 @@ def test_quality_gate_requires_acute_hf_oxygen_diuresis_vasodilator_and_escalati
                 "hypoxemia with severe respiratory distress and diffuse crackles as red flags",
                 "hypotension, altered mental status, and rising lactate suggesting cardiogenic shock",
                 "oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
-                "blood-pressure-guided nitroglycerin nitrate vasodilator planning for hypertensive pulmonary edema",
+                "blood-pressure-guided nitroglycerin nitrate vasodilator planning for pulmonary edema with regurgitant mitral valve disease",
                 "ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
                 "blood pressure, hypotension, aortic stenosis, right ventricular infarct, sildenafil, and nitrate or vasodilator contraindications",
                 "renal function, creatinine, urine output, potassium, magnesium, and electrolytes during diuresis",
@@ -36453,7 +36453,7 @@ def test_quality_gate_requires_acute_hf_bp_renal_trigger_and_shock_safety():
     case["time_critical_actions"] = [
         "Start oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
         "Give IV furosemide loop diuretic for decongestion",
-        "Use blood-pressure-guided nitroglycerin nitrate vasodilator planning for hypertensive pulmonary edema",
+        "Use blood-pressure-guided nitroglycerin nitrate vasodilator planning for pulmonary edema with regurgitant mitral valve disease",
         "Escalate to ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
     ]
     case["contraindication_checks"] = [
@@ -36471,7 +36471,7 @@ def test_quality_gate_requires_acute_hf_bp_renal_trigger_and_shock_safety():
                 "hypotension, altered mental status, and rising lactate suggesting cardiogenic shock",
                 "oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
                 "IV furosemide loop diuretic for decongestion",
-                "blood-pressure-guided nitroglycerin nitrate vasodilator planning for hypertensive pulmonary edema",
+                "blood-pressure-guided nitroglycerin nitrate vasodilator planning for pulmonary edema with regurgitant mitral valve disease",
                 "ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
                 "medication allergy before antiemetics",
                 "pregnancy status before imaging if needed",
@@ -36629,7 +36629,7 @@ def test_quality_gate_allows_acute_hf_with_shock_escalation_safety():
     case["time_critical_actions"] = [
         "Start oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
         "Give IV furosemide loop diuretic for decongestion",
-        "Use blood-pressure-guided nitroglycerin nitrate vasodilator planning for pulmonary edema when pressure allows",
+        "Use blood-pressure-guided nitroglycerin nitrate vasodilator planning for pulmonary edema with regurgitant mitral valve disease",
         "Escalate to ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
     ]
     case["contraindication_checks"] = [
@@ -36656,7 +36656,7 @@ def test_quality_gate_allows_acute_hf_with_shock_escalation_safety():
                 "hypotension, altered mental status, and rising lactate suggesting cardiogenic shock",
                 "oxygen and CPAP noninvasive ventilation for pulmonary edema with respiratory failure risk",
                 "IV furosemide loop diuretic for decongestion",
-                "blood-pressure-guided nitroglycerin nitrate vasodilator planning for pulmonary edema when pressure allows",
+                "blood-pressure-guided nitroglycerin nitrate vasodilator planning for pulmonary edema with regurgitant mitral valve disease",
                 "ICU, intubation, vasopressor, or inotrope support if cardiogenic shock develops",
                 "blood pressure, hypotension, aortic stenosis, right ventricular infarct, sildenafil, and nitrate or vasodilator contraindications",
                 "renal function, creatinine, urine output, potassium, magnesium, and electrolytes during diuresis",

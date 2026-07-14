@@ -17265,6 +17265,12 @@ ACUTE_HF_DIURETIC_ACTION_TERMS = (
     "torsemide",
     "이뇨",
 )
+ACUTE_HF_IV_LOOP_DIURETIC_ACTION_TERMS = (
+    "iv furosemide",
+    "iv loop diuretic",
+    "intravenous furosemide",
+    "intravenous loop diuretic",
+)
 ACUTE_HF_DECONGESTION_ACTION_TERMS = (
     "congestion",
     "decongestion",
@@ -17280,14 +17286,19 @@ ACUTE_HF_VASODILATOR_ACTION_TERMS = (
 )
 ACUTE_HF_BP_CONTEXT_ACTION_TERMS = (
     "blood pressure",
+    "blood-pressure",
     "hypertensive",
     "pressure allows",
     "혈압",
 )
+ACUTE_HF_NITRATE_INDICATION_ACTION_TERMS = (
+    "hypertensive",
+    "myocardial ischemia",
+    "regurgitant",
+    "severe hypertension",
+)
 ACUTE_HF_SHOCK_ACTION_TERMS = (
     "cardiogenic shock",
-    "shock",
-    "쇼크",
 )
 ACUTE_HF_ESCALATION_ACTION_TERMS = (
     "icu",
@@ -23494,9 +23505,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_acute_heart_failure_time_critical_actions,
             issue=(
                 "acute heart failure time-critical actions must include oxygen or "
-                "noninvasive ventilation for pulmonary edema, IV loop diuretic "
-                "decongestion, blood-pressure-guided vasodilator or nitrate "
-                "planning, and shock or respiratory-failure escalation"
+                "noninvasive ventilation for pulmonary edema with respiratory "
+                "failure, IV loop-diuretic decongestion, blood-pressure-guided "
+                "vasodilator or nitrate planning for severe hypertension, myocardial "
+                "ischemia, or regurgitant valve disease, and cardiogenic-shock escalation"
             ),
         ),
         DomainSafetyGate(
@@ -39065,6 +39077,10 @@ def _has_acute_heart_failure_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_HF_DIURETIC_ACTION_TERMS
     )
+    has_iv_loop_diuretic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_HF_IV_LOOP_DIURETIC_ACTION_TERMS
+    )
     has_decongestion = any(
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_HF_DECONGESTION_ACTION_TERMS
@@ -39077,6 +39093,10 @@ def _has_acute_heart_failure_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_HF_BP_CONTEXT_ACTION_TERMS
     )
+    has_nitrate_indication = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in ACUTE_HF_NITRATE_INDICATION_ACTION_TERMS
+    )
     has_shock = any(
         _contains_safety_term(normalized_actions, term)
         for term in ACUTE_HF_SHOCK_ACTION_TERMS
@@ -39086,13 +39106,10 @@ def _has_acute_heart_failure_time_critical_actions(actions: list[Any]) -> bool:
         for term in ACUTE_HF_ESCALATION_ACTION_TERMS
     )
     return (
-        has_oxygen
-        and has_niv
-        and has_respiratory_failure
-        and has_diuretic
+        (has_oxygen or (has_niv and has_respiratory_failure))
+        and has_diuretic and has_iv_loop_diuretic
         and has_decongestion
-        and has_vasodilator
-        and has_bp_context
+        and has_vasodilator and has_bp_context and has_nitrate_indication
         and has_shock
         and has_escalation
     )

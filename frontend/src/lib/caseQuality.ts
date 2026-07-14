@@ -19227,6 +19227,13 @@ const ACUTE_HF_DIURETIC_ACTION_TERMS = [
   "이뇨",
 ];
 
+const ACUTE_HF_IV_LOOP_DIURETIC_ACTION_TERMS = [
+  "iv furosemide",
+  "iv loop diuretic",
+  "intravenous furosemide",
+  "intravenous loop diuretic",
+];
+
 const ACUTE_HF_DECONGESTION_ACTION_TERMS = [
   "congestion",
   "decongestion",
@@ -19244,15 +19251,21 @@ const ACUTE_HF_VASODILATOR_ACTION_TERMS = [
 
 const ACUTE_HF_BP_CONTEXT_ACTION_TERMS = [
   "blood pressure",
+  "blood-pressure",
   "hypertensive",
   "pressure allows",
   "혈압",
 ];
 
+const ACUTE_HF_NITRATE_INDICATION_ACTION_TERMS = [
+  "hypertensive",
+  "myocardial ischemia",
+  "regurgitant",
+  "severe hypertension",
+];
+
 const ACUTE_HF_SHOCK_ACTION_TERMS = [
   "cardiogenic shock",
-  "shock",
-  "쇼크",
 ];
 
 const ACUTE_HF_ESCALATION_ACTION_TERMS = [
@@ -33411,6 +33424,9 @@ function hasAcuteHeartFailureTimeCriticalActions(actions: string[]): boolean {
   const hasDiuretic = ACUTE_HF_DIURETIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasIvLoopDiuretic = ACUTE_HF_IV_LOOP_DIURETIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasDecongestion = ACUTE_HF_DECONGESTION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -33420,6 +33436,9 @@ function hasAcuteHeartFailureTimeCriticalActions(actions: string[]): boolean {
   const hasBpContext = ACUTE_HF_BP_CONTEXT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasNitrateIndication = ACUTE_HF_NITRATE_INDICATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasShock = ACUTE_HF_SHOCK_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -33427,13 +33446,13 @@ function hasAcuteHeartFailureTimeCriticalActions(actions: string[]): boolean {
     containsSafetyTerm(normalizedActions, term),
   );
   return (
-    hasOxygen &&
-    hasNiv &&
-    hasRespiratoryFailure &&
+    (hasOxygen || (hasNiv && hasRespiratoryFailure)) &&
     hasDiuretic &&
+    hasIvLoopDiuretic &&
     hasDecongestion &&
     hasVasodilator &&
     hasBpContext &&
+    hasNitrateIndication &&
     hasShock &&
     hasEscalation
   );
@@ -36740,7 +36759,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasAcuteHeartFailureTimeCriticalActions,
       issue:
-        "acute heart failure time-critical actions must include oxygen or noninvasive ventilation for pulmonary edema, IV loop diuretic decongestion, blood-pressure-guided vasodilator or nitrate planning, and shock or respiratory-failure escalation",
+        "acute heart failure time-critical actions must include oxygen or noninvasive ventilation for pulmonary edema with respiratory failure, IV loop-diuretic decongestion, blood-pressure-guided vasodilator or nitrate planning for severe hypertension, myocardial ischemia, or regurgitant valve disease, and cardiogenic-shock escalation",
     },
     {
       name: "acute_heart_failure_treatment_safety",
