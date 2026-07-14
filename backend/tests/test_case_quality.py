@@ -35118,6 +35118,131 @@ def test_quality_gate_requires_sickle_stroke_hyperviscosity_blood_bank_secondary
     )
 
 
+def test_quality_gate_accepts_prompt_sickle_stroke_transfusion_and_secondary_prevention_plan():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sickle cell acute stroke"
+    case["patient_demographics"] = {
+        "age": 12,
+        "sex": "female",
+        "weight_kg": 38,
+        "ethnicity": "Korean",
+    }
+    case["chief_complaint"] = "Sudden right-sided weakness and speech difficulty"
+    case["past_medical_history"] = "No known bleeding disorder or chronic kidney disease"
+    case["medications"] = ["Hydroxyurea"]
+    case["history_of_present_illness"] = (
+        "Child with HbSS developed sudden right hemiparesis, aphasia, facial droop, "
+        "and altered mental status 45 minutes before arrival."
+    )
+    case["physical_exam"] = {
+        "vitals": {"bp": "112/68", "hr": 112, "rr": 22, "temp_c": 37.2, "spo2": 97},
+        "general": "Anxious child protecting the airway",
+        "cardiovascular": "Tachycardic with regular rhythm",
+        "pulmonary": "Clear breath sounds without respiratory distress",
+        "abdomen": "Soft and nontender",
+        "neuro": "Right hemiparesis, facial droop, aphasia, and focal neurologic deficit",
+    }
+    case["initial_labs"] = {
+        "wbc": "10.8 K/uL",
+        "hemoglobin": "7.2 g/dL",
+        "platelets": "310 K/uL",
+        "glucose": "104 mg/dL",
+        "creatinine": "0.5 mg/dL",
+    }
+    case["key_teaching_points"] = [
+        "Acute focal neurologic deficits in sickle cell disease need a stroke-system response",
+        "Do not delay transfusion while arranging brain imaging and specialist coordination",
+        "Exchange transfusion is preferred when available, with simple transfusion as a bridge for low hemoglobin when exchange is delayed",
+    ]
+    case["cognitive_traps"] = [
+        "Do not wait for MRI confirmation before beginning the sickle cell transfusion pathway",
+        "Do not use simple transfusion for a high hemoglobin level when exchange transfusion is available",
+    ]
+    case["coach_guidance"] = "Focus on stroke-system timing, urgent transfusion, and transfer coordination."
+    case["clinical_red_flags"] = [
+        "For sickle cell acute stroke, sudden hemiparesis, aphasia, facial droop, and altered mental status",
+        "For sickle cell acute stroke, transient ischemic attack or a new focal neurologic deficit",
+    ]
+    case["time_critical_actions"] = [
+        "For sickle cell acute stroke, record last known well, assess glucose and disabling deficits, activate code stroke and neurology stroke consultation, and review thrombolysis eligibility plus large vessel occlusion or endovascular thrombectomy eligibility",
+        "For sickle cell acute stroke, obtain urgent noncontrast head CT followed by MRI and MRA when available",
+        "For sickle cell acute stroke, arrange exchange transfusion within 2 hours without delaying transfusion for imaging",
+        "For sickle cell acute stroke, if exchange is unavailable, start simple transfusion when exchange is unavailable while arranging transfer to an apheresis service and a sickle cell expert",
+    ]
+    case["contraindication_checks"] = [
+        "For sickle cell acute stroke, avoid hemoglobin above 10 and prevent hyperviscosity",
+        "For sickle cell acute stroke, when hemoglobin is 8.5 or lower, use simple transfusion if exchange is unavailable to avoid delay",
+        "For sickle cell acute stroke, use exchange transfusion if hemoglobin is above 8.5",
+        "For sickle cell acute stroke, ask the blood bank to review transfusion history and alloimmunization",
+        "For sickle cell acute stroke, use C antigen, E antigen, and K antigen matching with sickle-negative units",
+        "For sickle cell acute stroke, plan secondary prevention with chronic monthly exchange transfusion",
+        "For sickle cell acute stroke, target HbS below 30 percent for secondary prevention",
+        "For sickle cell acute stroke, use urgent head CT to exclude hemorrhage before reperfusion decisions",
+        "For sickle cell acute stroke, evaluate seizure, hypoglycemia, transient ischemic attack, and other stroke mimic diagnoses",
+        "For sickle cell acute stroke, calculate weight-based medication and fluid doses and assess bleeding risk before thrombolysis",
+        "For sickle cell acute stroke, document pregnancy status before thrombolysis or contrast imaging",
+        "For sickle cell acute stroke, review renal function before contrast imaging",
+        "For sickle cell acute stroke, check oxygen saturation, glucose, temperature, and dysphagia swallow screening before enteral or rectal medications",
+        "For sickle cell acute stroke, exclude hemorrhage and early extensive ischemic change; review anticoagulant history, PT/INR/aPTT, bleeding history, platelet count, glucose threshold, and blood pressure 185/110 before thrombolysis",
+        "For sickle cell acute stroke, review CTA or MRA vascular imaging, CT perfusion infarct core, large vessel occlusion, last known well, NIHSS, stroke service, post-thrombolysis monitoring, follow-up imaging, and 24-hour antiplatelet or anticoagulation timing",
+    ]
+    case["clinical_sources"] = [
+        {
+            "title": "Evidence-Based Management of Sickle Cell Disease: Expert Panel Report, 2014",
+            "organization": "National Heart, Lung, and Blood Institute",
+            "url": "https://www.nhlbi.nih.gov/sites/default/files/publications/56-364N.pdf",
+            "supports": [
+                "sickle cell acute stroke diagnosis and risk stratification",
+                "sudden hemiparesis, aphasia, facial droop, and altered mental status as red flags",
+                "last known well, glucose, thrombolysis eligibility, and endovascular thrombectomy eligibility review",
+                "urgent noncontrast head CT followed by MRI and MRA when available",
+                "transfusion within 2 hours without delaying transfusion for imaging",
+                "exchange transfusion with simple transfusion bridge if exchange is unavailable and hemoglobin is 8.5 or lower",
+                "apheresis transfer and sickle cell expert coordination",
+                "hyperviscosity avoidance with hemoglobin target and ceiling",
+                "blood bank transfusion history, alloimmunization, antigen matching, and sickle-negative units",
+                "secondary prevention with chronic monthly exchange transfusion and HbS below 30 percent",
+                "CT-based hemorrhage exclusion plus seizure, hypoglycemia, TIA, and stroke mimic review",
+                "contraindication and safety checks for acute stroke transfusion and reperfusion decisions",
+            ],
+        }
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert report.passed
+
+
+def test_quality_gate_rejects_generic_sickle_stroke_imaging_transfusion_and_monitoring_terms():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Sickle cell acute stroke"
+    case["chief_complaint"] = "Sudden weakness and speech difficulty"
+    case["history_of_present_illness"] = (
+        "Patient with sickle cell disease has aphasia, weakness, and a focal neurologic deficit."
+    )
+    case["time_critical_actions"] = [
+        "Call neurology, get CT, and give a transfusion",
+        "Monitor the patient and consult hematology",
+    ]
+    case["contraindication_checks"] = [
+        "Review hyperviscosity, blood bank issues, recurrence, and seizure",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "sickle cell stroke time-critical actions must include urgent neurology"
+        in issue
+        for issue in report.critical_issues
+    )
+    assert any(
+        "sickle cell stroke safety checks must include hyperviscosity avoidance"
+        in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acute_chest_syndrome_imaging_oxygen_antibiotics_spirometry_transfusion_and_escalation():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Sickle cell acute chest syndrome"

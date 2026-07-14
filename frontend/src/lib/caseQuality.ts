@@ -18239,52 +18239,115 @@ const SICKLE_STROKE_NEURO_ACTION_TERMS = [
   "stroke team",
 ];
 
-const SICKLE_STROKE_IMAGING_ACTION_TERMS = [
-  "ct",
+const SICKLE_STROKE_INITIAL_CT_ACTION_TERMS = [
+  "head computed tomography",
   "head ct",
+  "noncontrast head ct",
+  "non-contrast head ct",
+  "urgent head ct",
+];
+
+const SICKLE_STROKE_MRI_MRA_ACTION_TERMS = [
   "magnetic resonance angiography",
+  "magnetic resonance imaging",
   "mra",
   "mri",
-  "neuroimaging",
-  "urgent head",
 ];
 
-const SICKLE_STROKE_TRANSFUSION_ACTION_TERMS = [
+const SICKLE_STROKE_LAST_KNOWN_WELL_ACTION_TERMS = [
+  "last known normal",
+  "last known well",
+  "symptom onset",
+  "time last known well",
+];
+
+const SICKLE_STROKE_REPERFUSION_EVALUATION_ACTION_TERMS = [
+  "alteplase eligibility",
+  "endovascular thrombectomy",
+  "large vessel occlusion",
+  "mechanical thrombectomy",
+  "tenecteplase eligibility",
+  "thrombolysis eligibility",
+];
+
+const SICKLE_STROKE_PROMPT_TRANSFUSION_ACTION_TERMS = [
+  "do not delay transfusion",
+  "immediate transfusion",
+  "transfusion within 2 hours",
+  "transfusion within two hours",
+  "without delaying transfusion",
+];
+
+const SICKLE_STROKE_EXCHANGE_TRANSFUSION_ACTION_TERMS = [
+  "automated exchange",
   "exchange transfusion",
   "erythrocytapheresis",
-  "packed red blood cell",
-  "packed rbcs",
-  "prbc",
-  "red blood cell transfusion",
+  "manual exchange",
   "red cell exchange",
-  "red cell transfusion",
-  "simple transfusion",
 ];
 
-const SICKLE_STROKE_EXPERT_ACTION_TERMS = [
-  "apheresis",
-  "hematology",
+const SICKLE_STROKE_SIMPLE_TRANSFUSION_BRIDGE_ACTION_TERMS = [
+  "bridge simple transfusion",
+  "simple transfusion if exchange is unavailable",
+  "simple transfusion if exchange unavailable",
+  "simple transfusion when exchange is unavailable",
+  "simple transfusion when exchange unavailable",
+];
+
+const SICKLE_STROKE_EXPERT_TRANSFER_ACTION_TERMS = [
+  "apheresis service",
+  "reference center",
   "sickle cell expert",
-  "sickle cell specialist",
+  "stroke center",
+  "transfer for exchange",
+  "transfer to apheresis",
 ];
 
-const SICKLE_STROKE_HYPERVISCOSITY_SAFETY_TERMS = [
+const SICKLE_STROKE_HYPERVISCOSITY_TARGET_SAFETY_TERMS = [
   "avoid hemoglobin above 10",
   "avoid transfusing above 10",
   "hemoglobin above 10",
-  "hyperviscosity",
   "target hemoglobin above 10",
 ];
 
-const SICKLE_STROKE_BLOOD_BANK_SAFETY_TERMS = [
+const SICKLE_STROKE_HYPERVISCOSITY_RISK_SAFETY_TERMS = [
+  "hyperviscosity",
+  "viscosity risk",
+];
+
+const SICKLE_STROKE_LOW_HEMOGLOBIN_SIMPLE_TRANSFUSION_SAFETY_TERMS = [
+  "hemoglobin 8.5 or lower",
+  "hemoglobin is 8.5 or lower",
+  "hemoglobin <=8.5",
+  "hemoglobin is less than or equal to 8.5",
+  "hemoglobin less than or equal to 8.5",
+  "hgb <=8.5",
+  "hb <=8.5",
+  "simple transfusion if exchange is unavailable",
+  "simple transfusion when exchange is unavailable",
+];
+
+const SICKLE_STROKE_HIGH_HEMOGLOBIN_EXCHANGE_SAFETY_TERMS = [
+  "exchange transfusion if hemoglobin is above 8.5",
+  "exchange transfusion when hemoglobin is above 8.5",
+  "hemoglobin >8.5",
+  "hgb >8.5",
+  "hb >8.5",
+];
+
+const SICKLE_STROKE_BLOOD_BANK_HISTORY_SAFETY_TERMS = [
   "alloimmunization",
-  "antigen matching",
   "blood bank",
+  "transfusion history",
+];
+
+const SICKLE_STROKE_BLOOD_BANK_MATCHING_SAFETY_TERMS = [
+  "antigen matching",
   "c antigen",
   "e antigen",
+  "extended antigen matching",
   "k antigen",
   "sickle-negative",
-  "transfusion history",
 ];
 
 const SICKLE_STROKE_SECONDARY_PREVENTION_SAFETY_TERMS = [
@@ -18296,9 +18359,21 @@ const SICKLE_STROKE_SECONDARY_PREVENTION_SAFETY_TERMS = [
   "stroke recurrence",
 ];
 
-const SICKLE_STROKE_MIMIC_HEMORRHAGE_SAFETY_TERMS = [
-  "hemorrhagic stroke",
-  "intracranial hemorrhage",
+const SICKLE_STROKE_HBS_TARGET_SAFETY_TERMS = [
+  "hbs <30",
+  "hbs below 30",
+  "hemoglobin s below 30",
+  "sickle hemoglobin below 30",
+];
+
+const SICKLE_STROKE_HEMORRHAGE_SAFETY_TERMS = [
+  "exclude hemorrhage",
+  "hemorrhage exclusion",
+  "rule out hemorrhage",
+];
+
+const SICKLE_STROKE_MIMIC_SAFETY_TERMS = [
+  "hypoglycemia",
   "mimic",
   "seizure",
   "tia",
@@ -32514,37 +32589,87 @@ function hasSickleStrokeTimeCriticalActions(actions: string[]): boolean {
   const hasNeuroConsult = SICKLE_STROKE_NEURO_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasNeuroimaging = SICKLE_STROKE_IMAGING_ACTION_TERMS.some((term) =>
+  const hasInitialCt = SICKLE_STROKE_INITIAL_CT_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasTransfusion = SICKLE_STROKE_TRANSFUSION_ACTION_TERMS.some((term) =>
+  const hasMriMra = SICKLE_STROKE_MRI_MRA_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasExpert = SICKLE_STROKE_EXPERT_ACTION_TERMS.some((term) =>
+  const hasLastKnownWell = SICKLE_STROKE_LAST_KNOWN_WELL_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasNeuroConsult && hasNeuroimaging && hasTransfusion && hasExpert;
+  const hasReperfusionEvaluation = SICKLE_STROKE_REPERFUSION_EVALUATION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasPromptTransfusion = SICKLE_STROKE_PROMPT_TRANSFUSION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasExchangeTransfusion = SICKLE_STROKE_EXCHANGE_TRANSFUSION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSimpleTransfusionBridge = SICKLE_STROKE_SIMPLE_TRANSFUSION_BRIDGE_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasExpertTransfer = SICKLE_STROKE_EXPERT_TRANSFER_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasNeuroConsult &&
+    hasInitialCt &&
+    hasMriMra &&
+    hasLastKnownWell &&
+    hasReperfusionEvaluation &&
+    hasPromptTransfusion &&
+    hasExchangeTransfusion &&
+    hasSimpleTransfusionBridge &&
+    hasExpertTransfer
+  );
 }
 
 function hasSickleStrokeTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasHyperviscositySafety = SICKLE_STROKE_HYPERVISCOSITY_SAFETY_TERMS.some((term) =>
+  const hasHyperviscosityTarget = SICKLE_STROKE_HYPERVISCOSITY_TARGET_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHyperviscosityRisk = SICKLE_STROKE_HYPERVISCOSITY_RISK_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasLowHemoglobinSimpleTransfusionPathway =
+    SICKLE_STROKE_LOW_HEMOGLOBIN_SIMPLE_TRANSFUSION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasHighHemoglobinExchangePathway = SICKLE_STROKE_HIGH_HEMOGLOBIN_EXCHANGE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBloodBankHistory = SICKLE_STROKE_BLOOD_BANK_HISTORY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasBloodBankSafety = SICKLE_STROKE_BLOOD_BANK_SAFETY_TERMS.some((term) =>
+  const hasBloodBankMatching = SICKLE_STROKE_BLOOD_BANK_MATCHING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasSecondaryPrevention = SICKLE_STROKE_SECONDARY_PREVENTION_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasMimicOrHemorrhageSafety = SICKLE_STROKE_MIMIC_HEMORRHAGE_SAFETY_TERMS.some((term) =>
+  const hasHbsTarget = SICKLE_STROKE_HBS_TARGET_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHemorrhageSafety = SICKLE_STROKE_HEMORRHAGE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMimicSafety = SICKLE_STROKE_MIMIC_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasHyperviscositySafety &&
-    hasBloodBankSafety &&
+    hasHyperviscosityTarget &&
+    hasHyperviscosityRisk &&
+    hasLowHemoglobinSimpleTransfusionPathway &&
+    hasHighHemoglobinExchangePathway &&
+    hasBloodBankHistory &&
+    hasBloodBankMatching &&
     hasSecondaryPrevention &&
-    hasMimicOrHemorrhageSafety
+    hasHbsTarget &&
+    hasHemorrhageSafety &&
+    hasMimicSafety
   );
 }
 
@@ -36187,7 +36312,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSickleStrokeTimeCriticalActions,
       issue:
-        "sickle cell stroke time-critical actions must include urgent neurology or stroke consultation, urgent CT followed by MRI/MRA or neuroimaging when available, exchange or simple transfusion planning for imaging-confirmed acute stroke, and hematology, sickle cell expert, or apheresis consultation",
+        "sickle cell stroke time-critical actions must include urgent neurology or stroke consultation, last-known-well or symptom-onset assessment with thrombolysis/thrombectomy eligibility review, urgent head CT followed by MRI/MRA when available, and transfusion within 2 hours without waiting for imaging: exchange transfusion planning plus a simple-transfusion bridge when exchange is unavailable, with apheresis, stroke-center, or sickle-cell-expert transfer coordination",
     },
     {
       name: "sickle_stroke_treatment_safety",
@@ -36196,7 +36321,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSickleStrokeTreatmentSafetyCheck,
       issue:
-        "sickle cell stroke safety checks must include hyperviscosity avoidance such as not transfusing above hemoglobin 10 g/dL, blood bank review for transfusion history, antigen matching, sickle-negative units, or alloimmunization risk, secondary stroke prevention with monthly simple or exchange transfusions, and hemorrhagic stroke, TIA, seizure, or stroke mimic review",
+        "sickle cell stroke safety checks must include hyperviscosity avoidance with a hemoglobin target or ceiling, both low-hemoglobin simple-transfusion and high-hemoglobin exchange-transfusion pathways, blood-bank transfusion-history plus antigen-matching review, secondary prevention with chronic transfusion and HbS below 30% planning, and both CT-based hemorrhage exclusion and seizure, hypoglycemia, TIA, or other stroke-mimic review",
     },
     {
       name: "acute_chest_syndrome_time_critical_actions",

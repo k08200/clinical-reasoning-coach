@@ -16333,48 +16333,102 @@ SICKLE_STROKE_NEURO_ACTION_TERMS = (
     "stroke consult",
     "stroke team",
 )
-SICKLE_STROKE_IMAGING_ACTION_TERMS = (
-    "ct",
+SICKLE_STROKE_INITIAL_CT_ACTION_TERMS = (
+    "head computed tomography",
     "head ct",
+    "noncontrast head ct",
+    "non-contrast head ct",
+    "urgent head ct",
+)
+SICKLE_STROKE_MRI_MRA_ACTION_TERMS = (
     "magnetic resonance angiography",
+    "magnetic resonance imaging",
     "mra",
     "mri",
-    "neuroimaging",
-    "urgent head",
 )
-SICKLE_STROKE_TRANSFUSION_ACTION_TERMS = (
+SICKLE_STROKE_LAST_KNOWN_WELL_ACTION_TERMS = (
+    "last known normal",
+    "last known well",
+    "symptom onset",
+    "time last known well",
+)
+SICKLE_STROKE_REPERFUSION_EVALUATION_ACTION_TERMS = (
+    "alteplase eligibility",
+    "endovascular thrombectomy",
+    "large vessel occlusion",
+    "mechanical thrombectomy",
+    "tenecteplase eligibility",
+    "thrombolysis eligibility",
+)
+SICKLE_STROKE_PROMPT_TRANSFUSION_ACTION_TERMS = (
+    "do not delay transfusion",
+    "immediate transfusion",
+    "transfusion within 2 hours",
+    "transfusion within two hours",
+    "without delaying transfusion",
+)
+SICKLE_STROKE_EXCHANGE_TRANSFUSION_ACTION_TERMS = (
+    "automated exchange",
     "exchange transfusion",
     "erythrocytapheresis",
-    "packed red blood cell",
-    "packed rbcs",
-    "prbc",
-    "red blood cell transfusion",
+    "manual exchange",
     "red cell exchange",
-    "red cell transfusion",
-    "simple transfusion",
 )
-SICKLE_STROKE_EXPERT_ACTION_TERMS = (
-    "apheresis",
-    "hematology",
+SICKLE_STROKE_SIMPLE_TRANSFUSION_BRIDGE_ACTION_TERMS = (
+    "bridge simple transfusion",
+    "simple transfusion if exchange is unavailable",
+    "simple transfusion if exchange unavailable",
+    "simple transfusion when exchange is unavailable",
+    "simple transfusion when exchange unavailable",
+)
+SICKLE_STROKE_EXPERT_TRANSFER_ACTION_TERMS = (
+    "apheresis service",
+    "reference center",
     "sickle cell expert",
-    "sickle cell specialist",
+    "stroke center",
+    "transfer for exchange",
+    "transfer to apheresis",
 )
-SICKLE_STROKE_HYPERVISCOSITY_SAFETY_TERMS = (
+SICKLE_STROKE_HYPERVISCOSITY_TARGET_SAFETY_TERMS = (
     "avoid hemoglobin above 10",
     "avoid transfusing above 10",
     "hemoglobin above 10",
-    "hyperviscosity",
     "target hemoglobin above 10",
 )
-SICKLE_STROKE_BLOOD_BANK_SAFETY_TERMS = (
+SICKLE_STROKE_HYPERVISCOSITY_RISK_SAFETY_TERMS = (
+    "hyperviscosity",
+    "viscosity risk",
+)
+SICKLE_STROKE_LOW_HEMOGLOBIN_SIMPLE_TRANSFUSION_SAFETY_TERMS = (
+    "hemoglobin 8.5 or lower",
+    "hemoglobin is 8.5 or lower",
+    "hemoglobin <=8.5",
+    "hemoglobin is less than or equal to 8.5",
+    "hemoglobin less than or equal to 8.5",
+    "hgb <=8.5",
+    "hb <=8.5",
+    "simple transfusion if exchange is unavailable",
+    "simple transfusion when exchange is unavailable",
+)
+SICKLE_STROKE_HIGH_HEMOGLOBIN_EXCHANGE_SAFETY_TERMS = (
+    "exchange transfusion if hemoglobin is above 8.5",
+    "exchange transfusion when hemoglobin is above 8.5",
+    "hemoglobin >8.5",
+    "hgb >8.5",
+    "hb >8.5",
+)
+SICKLE_STROKE_BLOOD_BANK_HISTORY_SAFETY_TERMS = (
     "alloimmunization",
-    "antigen matching",
     "blood bank",
+    "transfusion history",
+)
+SICKLE_STROKE_BLOOD_BANK_MATCHING_SAFETY_TERMS = (
+    "antigen matching",
     "c antigen",
     "e antigen",
+    "extended antigen matching",
     "k antigen",
     "sickle-negative",
-    "transfusion history",
 )
 SICKLE_STROKE_SECONDARY_PREVENTION_SAFETY_TERMS = (
     "chronic transfusion",
@@ -16384,9 +16438,19 @@ SICKLE_STROKE_SECONDARY_PREVENTION_SAFETY_TERMS = (
     "secondary prevention",
     "stroke recurrence",
 )
-SICKLE_STROKE_MIMIC_HEMORRHAGE_SAFETY_TERMS = (
-    "hemorrhagic stroke",
-    "intracranial hemorrhage",
+SICKLE_STROKE_HBS_TARGET_SAFETY_TERMS = (
+    "hbs <30",
+    "hbs below 30",
+    "hemoglobin s below 30",
+    "sickle hemoglobin below 30",
+)
+SICKLE_STROKE_HEMORRHAGE_SAFETY_TERMS = (
+    "exclude hemorrhage",
+    "hemorrhage exclusion",
+    "rule out hemorrhage",
+)
+SICKLE_STROKE_MIMIC_SAFETY_TERMS = (
+    "hypoglycemia",
     "mimic",
     "seizure",
     "tia",
@@ -23091,10 +23155,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_sickle_stroke_time_critical_actions,
             issue=(
                 "sickle cell stroke time-critical actions must include urgent "
-                "neurology or stroke consultation, urgent CT followed by MRI/MRA "
-                "or neuroimaging when available, exchange or simple transfusion "
-                "planning for imaging-confirmed acute stroke, and hematology, "
-                "sickle cell expert, or apheresis consultation"
+                "neurology or stroke consultation, last-known-well or symptom-onset "
+                "assessment with thrombolysis/thrombectomy eligibility review, urgent "
+                "head CT followed by MRI/MRA when available, and transfusion within "
+                "2 hours without waiting for imaging: exchange transfusion planning plus "
+                "a simple-transfusion bridge when exchange is unavailable, with apheresis, "
+                "stroke-center, or sickle-cell-expert transfer coordination"
             ),
         ),
         DomainSafetyGate(
@@ -23104,11 +23170,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_sickle_stroke_treatment_safety_check,
             issue=(
                 "sickle cell stroke safety checks must include hyperviscosity "
-                "avoidance such as not transfusing above hemoglobin 10 g/dL, "
-                "blood bank review for transfusion history, antigen matching, "
-                "sickle-negative units, or alloimmunization risk, secondary "
-                "stroke prevention with monthly simple or exchange transfusions, "
-                "and hemorrhagic stroke, TIA, seizure, or stroke mimic review"
+                "avoidance with a hemoglobin target or ceiling, both low-hemoglobin "
+                "simple-transfusion and high-hemoglobin exchange-transfusion pathways, "
+                "blood-bank transfusion-history plus antigen-matching review, secondary "
+                "prevention with chronic transfusion and HbS below 30% planning, and both "
+                "CT-based hemorrhage exclusion and seizure, hypoglycemia, TIA, or other "
+                "stroke-mimic review"
             ),
         ),
         DomainSafetyGate(
@@ -37971,44 +38038,104 @@ def _has_sickle_stroke_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SICKLE_STROKE_NEURO_ACTION_TERMS
     )
-    has_neuroimaging = any(
+    has_initial_ct = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SICKLE_STROKE_IMAGING_ACTION_TERMS
+        for term in SICKLE_STROKE_INITIAL_CT_ACTION_TERMS
     )
-    has_transfusion = any(
+    has_mri_mra = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SICKLE_STROKE_TRANSFUSION_ACTION_TERMS
+        for term in SICKLE_STROKE_MRI_MRA_ACTION_TERMS
     )
-    has_expert = any(
+    has_last_known_well = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SICKLE_STROKE_EXPERT_ACTION_TERMS
+        for term in SICKLE_STROKE_LAST_KNOWN_WELL_ACTION_TERMS
     )
-    return has_neuro_consult and has_neuroimaging and has_transfusion and has_expert
+    has_reperfusion_evaluation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_STROKE_REPERFUSION_EVALUATION_ACTION_TERMS
+    )
+    has_prompt_transfusion = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_STROKE_PROMPT_TRANSFUSION_ACTION_TERMS
+    )
+    has_exchange_transfusion = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_STROKE_EXCHANGE_TRANSFUSION_ACTION_TERMS
+    )
+    has_simple_transfusion_bridge = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_STROKE_SIMPLE_TRANSFUSION_BRIDGE_ACTION_TERMS
+    )
+    has_expert_transfer = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SICKLE_STROKE_EXPERT_TRANSFER_ACTION_TERMS
+    )
+    return (
+        has_neuro_consult
+        and has_initial_ct
+        and has_mri_mra
+        and has_last_known_well
+        and has_reperfusion_evaluation
+        and has_prompt_transfusion
+        and has_exchange_transfusion
+        and has_simple_transfusion_bridge
+        and has_expert_transfer
+    )
 
 
 def _has_sickle_stroke_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_hyperviscosity_safety = any(
+    has_hyperviscosity_target = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SICKLE_STROKE_HYPERVISCOSITY_SAFETY_TERMS
+        for term in SICKLE_STROKE_HYPERVISCOSITY_TARGET_SAFETY_TERMS
     )
-    has_blood_bank_safety = any(
+    has_hyperviscosity_risk = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SICKLE_STROKE_BLOOD_BANK_SAFETY_TERMS
+        for term in SICKLE_STROKE_HYPERVISCOSITY_RISK_SAFETY_TERMS
+    )
+    has_low_hemoglobin_simple_transfusion_pathway = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_STROKE_LOW_HEMOGLOBIN_SIMPLE_TRANSFUSION_SAFETY_TERMS
+    )
+    has_high_hemoglobin_exchange_pathway = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_STROKE_HIGH_HEMOGLOBIN_EXCHANGE_SAFETY_TERMS
+    )
+    has_blood_bank_history = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_STROKE_BLOOD_BANK_HISTORY_SAFETY_TERMS
+    )
+    has_blood_bank_matching = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_STROKE_BLOOD_BANK_MATCHING_SAFETY_TERMS
     )
     has_secondary_prevention = any(
         _contains_safety_term(normalized_checks, term)
         for term in SICKLE_STROKE_SECONDARY_PREVENTION_SAFETY_TERMS
     )
-    has_mimic_or_hemorrhage_safety = any(
+    has_hbs_target = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SICKLE_STROKE_MIMIC_HEMORRHAGE_SAFETY_TERMS
+        for term in SICKLE_STROKE_HBS_TARGET_SAFETY_TERMS
+    )
+    has_hemorrhage_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_STROKE_HEMORRHAGE_SAFETY_TERMS
+    )
+    has_mimic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SICKLE_STROKE_MIMIC_SAFETY_TERMS
     )
     return (
-        has_hyperviscosity_safety
-        and has_blood_bank_safety
+        has_hyperviscosity_target
+        and has_hyperviscosity_risk
+        and has_low_hemoglobin_simple_transfusion_pathway
+        and has_high_hemoglobin_exchange_pathway
+        and has_blood_bank_history
+        and has_blood_bank_matching
         and has_secondary_prevention
-        and has_mimic_or_hemorrhage_safety
+        and has_hbs_target
+        and has_hemorrhage_safety
+        and has_mimic_safety
     )
 
 
