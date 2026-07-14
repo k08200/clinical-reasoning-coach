@@ -9165,7 +9165,7 @@
     "name": "severe_asthma_requires_oxygen_bronchodilators_steroids_and_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [
-      "severe asthma time-critical actions must include oxygen or ventilatory support"
+      "severe asthma time-critical actions must include controlled oxygen"
     ],
     "overrides": {
       "diagnosis": "Severe asthma exacerbation",
@@ -9214,7 +9214,7 @@
     "name": "severe_asthma_requires_poor_response_escalation_not_intubation_context_only",
     "expected_passed": false,
     "expected_issue_substrings": [
-      "severe asthma time-critical actions must include oxygen or ventilatory support"
+      "severe asthma time-critical actions must include controlled oxygen"
     ],
     "overrides": {
       "diagnosis": "Severe asthma exacerbation",
@@ -9266,7 +9266,7 @@
     "name": "severe_asthma_requires_ventilation_strategy_monitoring_and_sedation_safety",
     "expected_passed": false,
     "expected_issue_substrings": [
-      "severe asthma ventilation safety checks must include low-minute ventilation"
+      "severe asthma ventilation safety checks must include low-rate/minute-ventilation"
     ],
     "overrides": {
       "diagnosis": "Pediatric status asthmaticus requiring intubation",

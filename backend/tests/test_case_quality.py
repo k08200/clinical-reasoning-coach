@@ -35581,7 +35581,7 @@ def test_quality_gate_requires_severe_asthma_oxygen_bronchodilators_steroids_and
 
     assert not report.passed
     assert any(
-        "severe asthma time-critical actions must include oxygen or ventilatory support"
+        "severe asthma time-critical actions must include controlled oxygen"
         in issue
         for issue in report.critical_issues
     )
@@ -35640,7 +35640,7 @@ def test_quality_gate_requires_severe_asthma_poor_response_escalation_not_intuba
 
     assert not report.passed
     assert any(
-        "severe asthma time-critical actions must include oxygen or ventilatory support"
+        "severe asthma time-critical actions must include controlled oxygen"
         in issue
         for issue in report.critical_issues
     )
@@ -35696,7 +35696,7 @@ def test_quality_gate_requires_severe_asthma_response_failure_and_treatment_safe
 
     assert not report.passed
     assert any(
-        "severe asthma safety checks must include serial severity or response monitoring"
+        "severe asthma safety checks must include pulse-ox plus PEF/FEV1"
         in issue
         for issue in report.critical_issues
     )
@@ -35767,10 +35767,51 @@ def test_quality_gate_requires_severe_asthma_ventilation_strategy_monitoring_and
 
     assert not report.passed
     assert any(
-        "severe asthma ventilation safety checks must include low-minute ventilation"
+        "severe asthma ventilation safety checks must include low-rate/minute-ventilation"
         in issue
         for issue in report.critical_issues
     )
+
+
+def test_quality_gate_accepts_complete_severe_asthma_and_ventilation_safety_plan():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Status asthmaticus requiring mechanical ventilation"
+    case["chief_complaint"] = "Severe wheeze, silent chest, and respiratory failure"
+    case["history_of_present_illness"] = (
+        "Patient with status asthmaticus has fatigue, drowsiness, hypercapnia, and "
+        "respiratory acidosis requiring intubation and mechanical ventilation."
+    )
+    case["key_teaching_points"] = [
+        "Severe asthma requires controlled oxygen, repeated SABA, ipratropium, and early systemic corticosteroids",
+        "Drowsiness, silent chest, or hypercapnia requires ICU escalation",
+        "Mechanical ventilation requires prevention of auto-PEEP and dynamic hyperinflation",
+    ]
+    case["clinical_red_flags"] = [
+        "Silent chest, fatigue, drowsiness, hypercapnia, and respiratory acidosis",
+        "Worsening hypoxemia or poor response to repeated bronchodilator treatment",
+    ]
+    case["time_critical_actions"] = [
+        "Give controlled supplemental oxygen by nasal cannula with continuous pulse oximetry and target SpO2 93-95 percent",
+        "Give repeated albuterol SABA every 20 minutes with ipratropium for severe bronchospasm",
+        "Give IV methylprednisolone systemic corticosteroid early",
+        "For poor response give IV magnesium sulfate and transfer to ICU for intubation and mechanical ventilation",
+    ]
+    case["contraindication_checks"] = [
+        "Monitor pulse oximetry, serial PEF or FEV1, work of breathing, and response reassessment",
+        "Review silent chest, fatigue, drowsiness, hypercapnia CO2, and intubation or ventilation risk",
+        "Monitor beta-agonist tachycardia or arrhythmia plus potassium hypokalemia and lactic acidosis",
+        "Avoid routine antibiotics and avoid routine chest x-ray unless infection or another diagnosis is suspected",
+        "Use low respiratory rate and low minute ventilation with prolonged expiratory time and permissive hypercapnia",
+        "Monitor auto-PEEP, air trapping, and dynamic hyperinflation with an end expiratory pause and expiratory flow-time waveform",
+        "Watch for barotrauma or pneumothorax plus hypotension, hemodynamic collapse, or obstructive shock",
+        "Use ketamine sedation and neuromuscular blockade for ventilator asynchrony when needed",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not any(
+        issue.startswith("severe asthma ") for issue in report.critical_issues
+    ), report.critical_issues
 
 
 def test_quality_gate_requires_severe_cap_oxygen_diagnostics_antibiotics_and_sepsis_escalation():

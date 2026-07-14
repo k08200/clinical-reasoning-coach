@@ -16673,139 +16673,183 @@ SEVERE_ASTHMA_CONTEXT_TERMS = (
     "천식 악화",
     "중증 천식",
 )
-SEVERE_ASTHMA_OXYGEN_VENTILATION_ACTION_TERMS = (
-    "airway",
-    "hypoxemia",
-    "hypoxia",
-    "intubation",
-    "oxygen",
-    "respiratory failure",
-    "ventilation",
-    "기도",
-    "산소",
-    "저산소",
-    "환기",
+SEVERE_ASTHMA_OXYGEN_DELIVERY_ACTION_TERMS = (
+    "controlled oxygen",
+    "give oxygen",
+    "nasal cannula",
+    "oxygen by",
+    "supplemental oxygen",
+    "venturi",
+    "산소 투여",
 )
-SEVERE_ASTHMA_SABA_ACTION_TERMS = (
+SEVERE_ASTHMA_OXYGEN_MONITORING_ACTION_TERMS = (
+    "pulse oximetry",
+    "spo2",
+    "sao2",
+    "산소포화도",
+)
+SEVERE_ASTHMA_OXYGEN_TARGET_ACTION_TERMS = (
+    "90%",
+    ">90",
+    "93-95",
+    "94-98",
+    "maintain saturation",
+    "target spo2",
+    "target sao2",
+)
+SEVERE_ASTHMA_SABA_MEDICATION_ACTION_TERMS = (
     "albuterol",
-    "beta-agonist",
-    "bronchodilator",
-    "continuous nebulization",
     "levalbuterol",
     "saba",
     "salbutamol",
     "short-acting beta",
-    "네뷸",
     "살부타몰",
+)
+SEVERE_ASTHMA_SABA_REPETITION_ACTION_TERMS = (
+    "continuous",
+    "every 20",
+    "every 30",
+    "repeated",
+    "three treatments",
 )
 SEVERE_ASTHMA_IPRATROPIUM_ACTION_TERMS = (
     "anticholinergic",
     "ipratropium",
     "이프라트로피움",
 )
-SEVERE_ASTHMA_STEROID_ACTION_TERMS = (
+SEVERE_ASTHMA_SYSTEMIC_STEROID_ACTION_TERMS = (
     "corticosteroid",
     "dexamethasone",
-    "glucocorticoid",
     "methylprednisolone",
-    "prednisone",
-    "steroid",
+    "oral prednisone",
+    "oral steroid",
+    "systemic steroid",
+    "iv steroid",
     "스테로이드",
 )
-SEVERE_ASTHMA_ESCALATION_ACTION_TERMS = (
+SEVERE_ASTHMA_ESCALATION_THERAPY_ACTION_TERMS = (
     "heliox",
-    "icu",
-    "intubation escalation",
-    "intubation readiness",
     "iv magnesium",
-    "magnesium",
-    "mechanical ventilation escalation",
-    "noninvasive ventilation",
-    "niv",
-    "picu",
+    "magnesium sulfate",
     "마그네슘",
-    "삽관 준비",
-    "중환자",
 )
-SEVERE_ASTHMA_RESPONSE_MONITORING_SAFETY_TERMS = (
+SEVERE_ASTHMA_ESCALATION_DISPOSITION_ACTION_TERMS = (
+    "icu",
+    "intubation",
+    "mechanical ventilation",
+    "picu",
+    "중환자",
+    "삽관",
+)
+SEVERE_ASTHMA_ESCALATION_TRIGGER_ACTION_TERMS = (
+    "drowsy",
+    "fatigue",
+    "no response",
+    "not responding",
+    "poor response",
+    "refractory",
+    "silent chest",
+    "worsening",
+    "악화",
+)
+SEVERE_ASTHMA_RESPONSE_OXYGEN_MONITORING_SAFETY_TERMS = (
+    "pulse oximetry",
+    "spo2",
+    "sao2",
+    "산소포화도",
+)
+SEVERE_ASTHMA_RESPONSE_LUNG_FUNCTION_SAFETY_TERMS = (
     "fev1",
     "peak flow",
     "pef",
-    "pulse oximetry",
+)
+SEVERE_ASTHMA_RESPONSE_REASSESSMENT_SAFETY_TERMS = (
     "reassessment",
-    "response",
     "serial",
     "work of breathing",
-    "산소포화도",
     "재평가",
 )
-SEVERE_ASTHMA_RESPIRATORY_FAILURE_SAFETY_TERMS = (
+SEVERE_ASTHMA_IMPENDING_FAILURE_SIGN_SAFETY_TERMS = (
     "altered mental status",
-    "co2",
     "drowsiness",
     "fatigue",
+    "silent chest",
+    "의식",
+)
+SEVERE_ASTHMA_IMPENDING_FAILURE_VENTILATION_SAFETY_TERMS = (
+    "co2",
     "hypercapnia",
     "intubation",
     "respiratory failure",
-    "silent chest",
     "ventilation",
-    "의식",
     "호흡부전",
 )
-SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS = (
+SEVERE_ASTHMA_SABA_CARDIAC_ADVERSE_SAFETY_TERMS = (
     "arrhythmia",
+    "tachycardia",
+)
+SEVERE_ASTHMA_SABA_METABOLIC_ADVERSE_SAFETY_TERMS = (
     "hypokalemia",
     "lactic acidosis",
     "potassium",
-    "tachycardia",
-    "theophylline",
-    "trigger",
-    "전해질",
     "저칼륨",
+    "전해질",
+)
+SEVERE_ASTHMA_ANTIBIOTIC_XRAY_STEWARDSHIP_SAFETY_TERMS = (
+    "avoid routine antibiotic",
+    "avoid routine chest x-ray",
+    "not routinely prescribe antibiotics",
+    "not routinely request a chest x-ray",
+    "no routine antibiotic",
+    "no routine chest x-ray",
 )
 SEVERE_ASTHMA_VENTILATION_CONTEXT_TERMS = (
-    "auto-peep",
-    "hypercapnia",
     "intubated",
     "intubation",
     "mechanical ventilation",
-    "near-fatal asthma",
     "positive pressure",
-    "respiratory acidosis",
-    "respiratory failure",
-    "status asthmaticus",
     "ventilator",
 )
-SEVERE_ASTHMA_VENTILATION_STRATEGY_SAFETY_TERMS = (
+SEVERE_ASTHMA_VENTILATION_RATE_SAFETY_TERMS = (
     "low minute ventilation",
     "low respiratory rate",
+    "reduce respiratory rate",
+)
+SEVERE_ASTHMA_VENTILATION_EXPIRATION_SAFETY_TERMS = (
     "permissive hypercapnia",
     "prolonged expiratory",
     "prolonged expiration",
-    "reduce respiratory rate",
 )
-SEVERE_ASTHMA_AUTO_PEEP_MONITORING_SAFETY_TERMS = (
+SEVERE_ASTHMA_AUTO_PEEP_RISK_SAFETY_TERMS = (
     "air trapping",
     "auto-peep",
     "dynamic hyperinflation",
-    "expiratory flow",
     "intrinsic peep",
+)
+SEVERE_ASTHMA_AUTO_PEEP_MEASUREMENT_SAFETY_TERMS = (
+    "end expiratory pause",
+    "expiratory flow",
+    "flow-time waveform",
     "plateau pressure",
 )
-SEVERE_ASTHMA_BAROTRAUMA_HEMODYNAMIC_SAFETY_TERMS = (
+SEVERE_ASTHMA_BAROTRAUMA_SAFETY_TERMS = (
     "barotrauma",
+    "pneumomediastinum",
+    "pneumothorax",
+)
+SEVERE_ASTHMA_HEMODYNAMIC_SAFETY_TERMS = (
     "hemodynamic",
     "hypotension",
     "obstructive shock",
-    "pneumomediastinum",
-    "pneumothorax",
     "shock",
 )
-SEVERE_ASTHMA_SEDATION_SYNCHRONY_SAFETY_TERMS = (
+SEVERE_ASTHMA_SEDATION_SAFETY_TERMS = (
     "ketamine",
+    "sedation",
+)
+SEVERE_ASTHMA_SYNCHRONY_SAFETY_TERMS = (
     "neuromuscular blockade",
     "paralysis",
-    "sedation",
     "ventilator asynchrony",
 )
 SEVERE_CAP_CONTEXT_TERMS = (
@@ -23267,10 +23311,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="time_critical_actions",
             validator=_has_severe_asthma_time_critical_actions,
             issue=(
-                "severe asthma time-critical actions must include oxygen or "
-                "ventilatory support, repeated or continuous SABA plus ipratropium, "
-                "systemic corticosteroids, and magnesium or ICU/intubation escalation "
-                "for poor response"
+                "severe asthma time-critical actions must include controlled oxygen "
+                "with pulse-ox target, repeated or continuous SABA plus ipratropium, "
+                "systemic corticosteroids, and IV magnesium or heliox with ICU or "
+                "intubation escalation for poor response"
             ),
         ),
         DomainSafetyGate(
@@ -23279,10 +23323,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="contraindication_checks",
             validator=_has_severe_asthma_treatment_safety_check,
             issue=(
-                "severe asthma safety checks must include serial severity or "
-                "response monitoring, impending respiratory failure or ventilation "
-                "risk review, and beta-agonist adverse-effect, electrolyte, or "
-                "trigger reassessment"
+                "severe asthma safety checks must include pulse-ox plus PEF/FEV1 and "
+                "serial response reassessment, silent-chest/drowsiness/fatigue plus "
+                "hypercapnia or ventilation-risk review, beta-agonist cardiac plus "
+                "potassium/lactate monitoring, and avoidance of routine antibiotics or "
+                "chest x-ray"
             ),
         ),
         DomainSafetyGate(
@@ -23291,10 +23336,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="contraindication_checks",
             validator=_has_severe_asthma_ventilation_safety_check,
             issue=(
-                "severe asthma ventilation safety checks must include low-minute "
-                "ventilation or prolonged expiratory-time strategy, auto-PEEP or "
-                "dynamic-hyperinflation monitoring, barotrauma or hemodynamic "
-                "collapse surveillance, and sedation or ventilator-synchrony planning"
+                "severe asthma ventilation safety checks must include low-rate/minute-"
+                "ventilation plus prolonged-expiratory-time or permissive-hypercapnia "
+                "strategy, auto-PEEP/dynamic-hyperinflation risk plus waveform or pause "
+                "monitoring, barotrauma plus hemodynamic-collapse surveillance, and "
+                "sedation plus ventilator-synchrony planning"
             ),
         ),
         DomainSafetyGate(
@@ -23959,14 +24005,7 @@ def _requires_epiglottitis_safety_check(data: dict[str, Any]) -> bool:
         str(data.get(field_name, "")).lower()
         for field_name in risk_text_fields
     )
-    for field_name in (
-        "key_teaching_points",
-        "time_critical_actions",
-        "clinical_red_flags",
-        "clinical_sources",
-        "physical_exam",
-        "initial_labs",
-    ):
+    for field_name in ("physical_exam", "initial_labs"):
         risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
 
     diagnosis_text = str(data.get("diagnosis", "")).lower()
@@ -38408,14 +38447,7 @@ def _requires_severe_asthma_ventilation_safety_check(data: dict[str, Any]) -> bo
         str(data.get(field_name, "")).lower()
         for field_name in risk_text_fields
     )
-    for field_name in (
-        "key_teaching_points",
-        "time_critical_actions",
-        "clinical_red_flags",
-        "clinical_sources",
-        "physical_exam",
-        "initial_labs",
-    ):
+    for field_name in ("physical_exam", "initial_labs"):
         risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
     has_asthma_context = any(
         _contains_safety_term(risk_text, term)
@@ -38430,13 +38462,25 @@ def _requires_severe_asthma_ventilation_safety_check(data: dict[str, Any]) -> bo
 
 def _has_severe_asthma_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_oxygen_or_ventilation = any(
+    has_oxygen_delivery = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_ASTHMA_OXYGEN_VENTILATION_ACTION_TERMS
+        for term in SEVERE_ASTHMA_OXYGEN_DELIVERY_ACTION_TERMS
     )
-    has_saba = any(
+    has_oxygen_monitoring = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_ASTHMA_SABA_ACTION_TERMS
+        for term in SEVERE_ASTHMA_OXYGEN_MONITORING_ACTION_TERMS
+    )
+    has_oxygen_target = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ASTHMA_OXYGEN_TARGET_ACTION_TERMS
+    )
+    has_saba_medication = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ASTHMA_SABA_MEDICATION_ACTION_TERMS
+    )
+    has_repeated_saba = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ASTHMA_SABA_REPETITION_ACTION_TERMS
     )
     has_ipratropium = any(
         _contains_safety_term(normalized_actions, term)
@@ -38444,65 +38488,123 @@ def _has_severe_asthma_time_critical_actions(actions: list[Any]) -> bool:
     )
     has_systemic_steroid = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_ASTHMA_STEROID_ACTION_TERMS
+        for term in SEVERE_ASTHMA_SYSTEMIC_STEROID_ACTION_TERMS
     )
-    has_escalation = any(
+    has_escalation_therapy = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_ASTHMA_ESCALATION_ACTION_TERMS
+        for term in SEVERE_ASTHMA_ESCALATION_THERAPY_ACTION_TERMS
+    )
+    has_escalation_disposition = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ASTHMA_ESCALATION_DISPOSITION_ACTION_TERMS
+    )
+    has_escalation_trigger = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_ASTHMA_ESCALATION_TRIGGER_ACTION_TERMS
     )
     return (
-        has_oxygen_or_ventilation
-        and has_saba
+        has_oxygen_delivery
+        and has_oxygen_monitoring
+        and has_oxygen_target
+        and has_saba_medication
+        and has_repeated_saba
         and has_ipratropium
         and has_systemic_steroid
-        and has_escalation
+        and has_escalation_therapy
+        and has_escalation_disposition
+        and has_escalation_trigger
     )
 
 
 def _has_severe_asthma_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_response_monitoring = any(
+    has_response_oxygen_monitoring = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_ASTHMA_RESPONSE_MONITORING_SAFETY_TERMS
+        for term in SEVERE_ASTHMA_RESPONSE_OXYGEN_MONITORING_SAFETY_TERMS
     )
-    has_respiratory_failure_safety = any(
+    has_response_lung_function = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_ASTHMA_RESPIRATORY_FAILURE_SAFETY_TERMS
+        for term in SEVERE_ASTHMA_RESPONSE_LUNG_FUNCTION_SAFETY_TERMS
     )
-    has_treatment_adverse_safety = any(
+    has_response_reassessment = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS
+        for term in SEVERE_ASTHMA_RESPONSE_REASSESSMENT_SAFETY_TERMS
+    )
+    has_impending_failure_sign = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_IMPENDING_FAILURE_SIGN_SAFETY_TERMS
+    )
+    has_impending_failure_ventilation = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_IMPENDING_FAILURE_VENTILATION_SAFETY_TERMS
+    )
+    has_saba_cardiac_adverse = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_SABA_CARDIAC_ADVERSE_SAFETY_TERMS
+    )
+    has_saba_metabolic_adverse = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_SABA_METABOLIC_ADVERSE_SAFETY_TERMS
+    )
+    has_antibiotic_xray_stewardship = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_ANTIBIOTIC_XRAY_STEWARDSHIP_SAFETY_TERMS
     )
     return (
-        has_response_monitoring
-        and has_respiratory_failure_safety
-        and has_treatment_adverse_safety
+        has_response_oxygen_monitoring
+        and has_response_lung_function
+        and has_response_reassessment
+        and has_impending_failure_sign
+        and has_impending_failure_ventilation
+        and has_saba_cardiac_adverse
+        and has_saba_metabolic_adverse
+        and has_antibiotic_xray_stewardship
     )
 
 
 def _has_severe_asthma_ventilation_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_ventilation_strategy = any(
+    has_ventilation_rate_strategy = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_ASTHMA_VENTILATION_STRATEGY_SAFETY_TERMS
+        for term in SEVERE_ASTHMA_VENTILATION_RATE_SAFETY_TERMS
     )
-    has_auto_peep_monitoring = any(
+    has_ventilation_expiration_strategy = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_ASTHMA_AUTO_PEEP_MONITORING_SAFETY_TERMS
+        for term in SEVERE_ASTHMA_VENTILATION_EXPIRATION_SAFETY_TERMS
     )
-    has_barotrauma_hemodynamic_safety = any(
+    has_auto_peep_risk = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_ASTHMA_BAROTRAUMA_HEMODYNAMIC_SAFETY_TERMS
+        for term in SEVERE_ASTHMA_AUTO_PEEP_RISK_SAFETY_TERMS
     )
-    has_sedation_synchrony_plan = any(
+    has_auto_peep_measurement = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_ASTHMA_SEDATION_SYNCHRONY_SAFETY_TERMS
+        for term in SEVERE_ASTHMA_AUTO_PEEP_MEASUREMENT_SAFETY_TERMS
+    )
+    has_barotrauma_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_BAROTRAUMA_SAFETY_TERMS
+    )
+    has_hemodynamic_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_HEMODYNAMIC_SAFETY_TERMS
+    )
+    has_sedation_plan = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_SEDATION_SAFETY_TERMS
+    )
+    has_synchrony_plan = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SEVERE_ASTHMA_SYNCHRONY_SAFETY_TERMS
     )
     return (
-        has_ventilation_strategy
-        and has_auto_peep_monitoring
-        and has_barotrauma_hemodynamic_safety
-        and has_sedation_synchrony_plan
+        has_ventilation_rate_strategy
+        and has_ventilation_expiration_strategy
+        and has_auto_peep_risk
+        and has_auto_peep_measurement
+        and has_barotrauma_safety
+        and has_hemodynamic_safety
+        and has_sedation_plan
+        and has_synchrony_plan
     )
 
 

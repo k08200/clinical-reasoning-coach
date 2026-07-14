@@ -18628,31 +18628,48 @@ const SEVERE_ASTHMA_CONTEXT_TERMS = [
   "중증 천식",
 ];
 
-const SEVERE_ASTHMA_OXYGEN_VENTILATION_ACTION_TERMS = [
-  "airway",
-  "hypoxemia",
-  "hypoxia",
-  "intubation",
-  "oxygen",
-  "respiratory failure",
-  "ventilation",
-  "기도",
-  "산소",
-  "저산소",
-  "환기",
+const SEVERE_ASTHMA_OXYGEN_DELIVERY_ACTION_TERMS = [
+  "controlled oxygen",
+  "give oxygen",
+  "nasal cannula",
+  "oxygen by",
+  "supplemental oxygen",
+  "venturi",
+  "산소 투여",
 ];
 
-const SEVERE_ASTHMA_SABA_ACTION_TERMS = [
+const SEVERE_ASTHMA_OXYGEN_MONITORING_ACTION_TERMS = [
+  "pulse oximetry",
+  "spo2",
+  "sao2",
+  "산소포화도",
+];
+
+const SEVERE_ASTHMA_OXYGEN_TARGET_ACTION_TERMS = [
+  "90%",
+  ">90",
+  "93-95",
+  "94-98",
+  "maintain saturation",
+  "target spo2",
+  "target sao2",
+];
+
+const SEVERE_ASTHMA_SABA_MEDICATION_ACTION_TERMS = [
   "albuterol",
-  "beta-agonist",
-  "bronchodilator",
-  "continuous nebulization",
   "levalbuterol",
   "saba",
   "salbutamol",
   "short-acting beta",
-  "네뷸",
   "살부타몰",
+];
+
+const SEVERE_ASTHMA_SABA_REPETITION_ACTION_TERMS = [
+  "continuous",
+  "every 20",
+  "every 30",
+  "repeated",
+  "three treatments",
 ];
 
 const SEVERE_ASTHMA_IPRATROPIUM_ACTION_TERMS = [
@@ -18661,118 +18678,159 @@ const SEVERE_ASTHMA_IPRATROPIUM_ACTION_TERMS = [
   "이프라트로피움",
 ];
 
-const SEVERE_ASTHMA_STEROID_ACTION_TERMS = [
+const SEVERE_ASTHMA_SYSTEMIC_STEROID_ACTION_TERMS = [
   "corticosteroid",
   "dexamethasone",
-  "glucocorticoid",
   "methylprednisolone",
-  "prednisone",
-  "steroid",
+  "oral prednisone",
+  "oral steroid",
+  "systemic steroid",
+  "iv steroid",
   "스테로이드",
 ];
 
-const SEVERE_ASTHMA_ESCALATION_ACTION_TERMS = [
+const SEVERE_ASTHMA_ESCALATION_THERAPY_ACTION_TERMS = [
   "heliox",
-  "icu",
-  "intubation escalation",
-  "intubation readiness",
   "iv magnesium",
-  "magnesium",
-  "mechanical ventilation escalation",
-  "noninvasive ventilation",
-  "niv",
-  "picu",
+  "magnesium sulfate",
   "마그네슘",
-  "삽관 준비",
-  "중환자",
 ];
 
-const SEVERE_ASTHMA_RESPONSE_MONITORING_SAFETY_TERMS = [
+const SEVERE_ASTHMA_ESCALATION_DISPOSITION_ACTION_TERMS = [
+  "icu",
+  "intubation",
+  "mechanical ventilation",
+  "picu",
+  "중환자",
+  "삽관",
+];
+
+const SEVERE_ASTHMA_ESCALATION_TRIGGER_ACTION_TERMS = [
+  "drowsy",
+  "fatigue",
+  "no response",
+  "not responding",
+  "poor response",
+  "refractory",
+  "silent chest",
+  "worsening",
+  "악화",
+];
+
+const SEVERE_ASTHMA_RESPONSE_OXYGEN_MONITORING_SAFETY_TERMS = [
+  "pulse oximetry",
+  "spo2",
+  "sao2",
+  "산소포화도",
+];
+
+const SEVERE_ASTHMA_RESPONSE_LUNG_FUNCTION_SAFETY_TERMS = [
   "fev1",
   "peak flow",
   "pef",
-  "pulse oximetry",
+];
+
+const SEVERE_ASTHMA_RESPONSE_REASSESSMENT_SAFETY_TERMS = [
   "reassessment",
-  "response",
   "serial",
   "work of breathing",
-  "산소포화도",
   "재평가",
 ];
 
-const SEVERE_ASTHMA_RESPIRATORY_FAILURE_SAFETY_TERMS = [
+const SEVERE_ASTHMA_IMPENDING_FAILURE_SIGN_SAFETY_TERMS = [
   "altered mental status",
-  "co2",
   "drowsiness",
   "fatigue",
+  "silent chest",
+  "의식",
+];
+
+const SEVERE_ASTHMA_IMPENDING_FAILURE_VENTILATION_SAFETY_TERMS = [
+  "co2",
   "hypercapnia",
   "intubation",
   "respiratory failure",
-  "silent chest",
   "ventilation",
-  "의식",
   "호흡부전",
 ];
 
-const SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS = [
+const SEVERE_ASTHMA_SABA_CARDIAC_ADVERSE_SAFETY_TERMS = [
   "arrhythmia",
+  "tachycardia",
+];
+
+const SEVERE_ASTHMA_SABA_METABOLIC_ADVERSE_SAFETY_TERMS = [
   "hypokalemia",
   "lactic acidosis",
   "potassium",
-  "tachycardia",
-  "theophylline",
-  "trigger",
-  "전해질",
   "저칼륨",
+  "전해질",
+];
+
+const SEVERE_ASTHMA_ANTIBIOTIC_XRAY_STEWARDSHIP_SAFETY_TERMS = [
+  "avoid routine antibiotic",
+  "avoid routine chest x-ray",
+  "not routinely prescribe antibiotics",
+  "not routinely request a chest x-ray",
+  "no routine antibiotic",
+  "no routine chest x-ray",
 ];
 
 const SEVERE_ASTHMA_VENTILATION_CONTEXT_TERMS = [
-  "auto-peep",
-  "hypercapnia",
   "intubated",
   "intubation",
   "mechanical ventilation",
-  "near-fatal asthma",
   "positive pressure",
-  "respiratory acidosis",
-  "respiratory failure",
-  "status asthmaticus",
   "ventilator",
 ];
 
-const SEVERE_ASTHMA_VENTILATION_STRATEGY_SAFETY_TERMS = [
+const SEVERE_ASTHMA_VENTILATION_RATE_SAFETY_TERMS = [
   "low minute ventilation",
   "low respiratory rate",
-  "permissive hypercapnia",
-  "prolonged expiratory",
-  "prolonged expiration",
   "reduce respiratory rate",
 ];
 
-const SEVERE_ASTHMA_AUTO_PEEP_MONITORING_SAFETY_TERMS = [
+const SEVERE_ASTHMA_VENTILATION_EXPIRATION_SAFETY_TERMS = [
+  "permissive hypercapnia",
+  "prolonged expiratory",
+  "prolonged expiration",
+];
+
+const SEVERE_ASTHMA_AUTO_PEEP_RISK_SAFETY_TERMS = [
   "air trapping",
   "auto-peep",
   "dynamic hyperinflation",
-  "expiratory flow",
   "intrinsic peep",
+];
+
+const SEVERE_ASTHMA_AUTO_PEEP_MEASUREMENT_SAFETY_TERMS = [
+  "end expiratory pause",
+  "expiratory flow",
+  "flow-time waveform",
   "plateau pressure",
 ];
 
-const SEVERE_ASTHMA_BAROTRAUMA_HEMODYNAMIC_SAFETY_TERMS = [
+const SEVERE_ASTHMA_BAROTRAUMA_SAFETY_TERMS = [
   "barotrauma",
+  "pneumomediastinum",
+  "pneumothorax",
+];
+
+const SEVERE_ASTHMA_HEMODYNAMIC_SAFETY_TERMS = [
   "hemodynamic",
   "hypotension",
   "obstructive shock",
-  "pneumomediastinum",
-  "pneumothorax",
   "shock",
 ];
 
-const SEVERE_ASTHMA_SEDATION_SYNCHRONY_SAFETY_TERMS = [
+const SEVERE_ASTHMA_SEDATION_SAFETY_TERMS = [
   "ketamine",
+  "sedation",
+];
+
+const SEVERE_ASTHMA_SYNCHRONY_SAFETY_TERMS = [
   "neuromuscular blockade",
   "paralysis",
-  "sedation",
   "ventilator asynchrony",
 ];
 
@@ -21177,10 +21235,6 @@ function requiresAnaphylaxisSafetyCheck(detail: ClinicalCaseReviewDetail): boole
   const riskText = [
     detail.diagnosis,
     detail.coach_guidance,
-    ...nestedStrings(detail.key_teaching_points),
-    ...nestedStrings(detail.time_critical_actions),
-    ...nestedStrings(detail.clinical_red_flags),
-    ...nestedStrings(detail.clinical_sources),
     ...nestedStrings(detail.physical_exam),
   ]
     .join(" ")
@@ -21245,7 +21299,6 @@ function requiresEpiglottitisSafetyCheck(detail: ClinicalCaseReviewDetail): bool
     ...nestedStrings(detail.key_teaching_points),
     ...nestedStrings(detail.time_critical_actions),
     ...nestedStrings(detail.clinical_red_flags),
-    ...nestedStrings(detail.clinical_sources),
     ...nestedStrings(detail.physical_exam),
     ...nestedStrings(detail.initial_labs),
   ]
@@ -21317,7 +21370,6 @@ function requiresDeepNeckInfectionSafetyCheck(detail: ClinicalCaseReviewDetail):
     ...nestedStrings(detail.key_teaching_points),
     ...nestedStrings(detail.time_critical_actions),
     ...nestedStrings(detail.clinical_red_flags),
-    ...nestedStrings(detail.clinical_sources),
     ...nestedStrings(detail.physical_exam),
     ...nestedStrings(detail.initial_labs),
   ]
@@ -32917,10 +32969,6 @@ function requiresSevereAsthmaVentilationSafetyCheck(detail: ClinicalCaseReviewDe
     detail.history_of_present_illness,
     detail.diagnosis,
     detail.coach_guidance,
-    ...nestedStrings(detail.key_teaching_points),
-    ...nestedStrings(detail.time_critical_actions),
-    ...nestedStrings(detail.clinical_red_flags),
-    ...nestedStrings(detail.clinical_sources),
     ...nestedStrings(detail.physical_exam),
     ...nestedStrings(detail.initial_labs),
   ]
@@ -32937,58 +32985,127 @@ function requiresSevereAsthmaVentilationSafetyCheck(detail: ClinicalCaseReviewDe
 
 function hasSevereAsthmaTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasOxygenOrVentilation = SEVERE_ASTHMA_OXYGEN_VENTILATION_ACTION_TERMS.some((term) =>
+  const hasOxygenDelivery = SEVERE_ASTHMA_OXYGEN_DELIVERY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSaba = SEVERE_ASTHMA_SABA_ACTION_TERMS.some((term) =>
+  const hasOxygenMonitoring = SEVERE_ASTHMA_OXYGEN_MONITORING_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasOxygenTarget = SEVERE_ASTHMA_OXYGEN_TARGET_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasSabaMedication = SEVERE_ASTHMA_SABA_MEDICATION_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  const hasRepeatedSaba = SEVERE_ASTHMA_SABA_REPETITION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
   const hasIpratropium = SEVERE_ASTHMA_IPRATROPIUM_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSystemicSteroid = SEVERE_ASTHMA_STEROID_ACTION_TERMS.some((term) =>
+  const hasSystemicSteroid = SEVERE_ASTHMA_SYSTEMIC_STEROID_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasEscalation = SEVERE_ASTHMA_ESCALATION_ACTION_TERMS.some((term) =>
+  const hasEscalationTherapy = SEVERE_ASTHMA_ESCALATION_THERAPY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasOxygenOrVentilation && hasSaba && hasIpratropium && hasSystemicSteroid && hasEscalation;
+  const hasEscalationDisposition = SEVERE_ASTHMA_ESCALATION_DISPOSITION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
+  const hasEscalationTrigger = SEVERE_ASTHMA_ESCALATION_TRIGGER_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
+  return (
+    hasOxygenDelivery &&
+    hasOxygenMonitoring &&
+    hasOxygenTarget &&
+    hasSabaMedication &&
+    hasRepeatedSaba &&
+    hasIpratropium &&
+    hasSystemicSteroid &&
+    hasEscalationTherapy &&
+    hasEscalationDisposition &&
+    hasEscalationTrigger
+  );
 }
 
 function hasSevereAsthmaTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasResponseMonitoring = SEVERE_ASTHMA_RESPONSE_MONITORING_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
-  );
-  const hasRespiratoryFailureSafety = SEVERE_ASTHMA_RESPIRATORY_FAILURE_SAFETY_TERMS.some(
+  const hasResponseOxygenMonitoring =
+    SEVERE_ASTHMA_RESPONSE_OXYGEN_MONITORING_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasResponseLungFunction = SEVERE_ASTHMA_RESPONSE_LUNG_FUNCTION_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  const hasTreatmentAdverseSafety = SEVERE_ASTHMA_TREATMENT_ADVERSE_SAFETY_TERMS.some(
+  const hasResponseReassessment = SEVERE_ASTHMA_RESPONSE_REASSESSMENT_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
-  return hasResponseMonitoring && hasRespiratoryFailureSafety && hasTreatmentAdverseSafety;
+  const hasImpendingFailureSign = SEVERE_ASTHMA_IMPENDING_FAILURE_SIGN_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasImpendingFailureVentilation =
+    SEVERE_ASTHMA_IMPENDING_FAILURE_VENTILATION_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  const hasSabaCardiacAdverse = SEVERE_ASTHMA_SABA_CARDIAC_ADVERSE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSabaMetabolicAdverse = SEVERE_ASTHMA_SABA_METABOLIC_ADVERSE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAntibioticXrayStewardship =
+    SEVERE_ASTHMA_ANTIBIOTIC_XRAY_STEWARDSHIP_SAFETY_TERMS.some((term) =>
+      containsSafetyTerm(normalizedChecks, term),
+    );
+  return (
+    hasResponseOxygenMonitoring &&
+    hasResponseLungFunction &&
+    hasResponseReassessment &&
+    hasImpendingFailureSign &&
+    hasImpendingFailureVentilation &&
+    hasSabaCardiacAdverse &&
+    hasSabaMetabolicAdverse &&
+    hasAntibioticXrayStewardship
+  );
 }
 
 function hasSevereAsthmaVentilationSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasVentilationStrategy = SEVERE_ASTHMA_VENTILATION_STRATEGY_SAFETY_TERMS.some((term) =>
+  const hasVentilationRateStrategy = SEVERE_ASTHMA_VENTILATION_RATE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasAutoPeepMonitoring = SEVERE_ASTHMA_AUTO_PEEP_MONITORING_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
-  );
-  const hasBarotraumaHemodynamicSafety =
-    SEVERE_ASTHMA_BAROTRAUMA_HEMODYNAMIC_SAFETY_TERMS.some((term) =>
+  const hasVentilationExpirationStrategy =
+    SEVERE_ASTHMA_VENTILATION_EXPIRATION_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
-  const hasSedationSynchronyPlan = SEVERE_ASTHMA_SEDATION_SYNCHRONY_SAFETY_TERMS.some((term) =>
+  const hasAutoPeepRisk = SEVERE_ASTHMA_AUTO_PEEP_RISK_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasAutoPeepMeasurement = SEVERE_ASTHMA_AUTO_PEEP_MEASUREMENT_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasBarotraumaSafety = SEVERE_ASTHMA_BAROTRAUMA_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasHemodynamicSafety = SEVERE_ASTHMA_HEMODYNAMIC_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSedationPlan = SEVERE_ASTHMA_SEDATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSynchronyPlan = SEVERE_ASTHMA_SYNCHRONY_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasVentilationStrategy &&
-    hasAutoPeepMonitoring &&
-    hasBarotraumaHemodynamicSafety &&
-    hasSedationSynchronyPlan
+    hasVentilationRateStrategy &&
+    hasVentilationExpirationStrategy &&
+    hasAutoPeepRisk &&
+    hasAutoPeepMeasurement &&
+    hasBarotraumaSafety &&
+    hasHemodynamicSafety &&
+    hasSedationPlan &&
+    hasSynchronyPlan
   );
 }
 
@@ -36480,7 +36597,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSevereAsthmaTimeCriticalActions,
       issue:
-        "severe asthma time-critical actions must include oxygen or ventilatory support, repeated or continuous SABA plus ipratropium, systemic corticosteroids, and magnesium or ICU/intubation escalation for poor response",
+        "severe asthma time-critical actions must include controlled oxygen with pulse-ox target, repeated or continuous SABA plus ipratropium, systemic corticosteroids, and IV magnesium or heliox with ICU or intubation escalation for poor response",
     },
     {
       name: "severe_asthma_treatment_safety",
@@ -36489,7 +36606,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSevereAsthmaTreatmentSafetyCheck,
       issue:
-        "severe asthma safety checks must include serial severity or response monitoring, impending respiratory failure or ventilation risk review, and beta-agonist adverse-effect, electrolyte, or trigger reassessment",
+        "severe asthma safety checks must include pulse-ox plus PEF/FEV1 and serial response reassessment, silent-chest/drowsiness/fatigue plus hypercapnia or ventilation-risk review, beta-agonist cardiac plus potassium/lactate monitoring, and avoidance of routine antibiotics or chest x-ray",
     },
     {
       name: "severe_asthma_ventilation_safety",
@@ -36498,7 +36615,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSevereAsthmaVentilationSafetyCheck,
       issue:
-        "severe asthma ventilation safety checks must include low-minute ventilation or prolonged expiratory-time strategy, auto-PEEP or dynamic-hyperinflation monitoring, barotrauma or hemodynamic collapse surveillance, and sedation or ventilator-synchrony planning",
+        "severe asthma ventilation safety checks must include low-rate/minute-ventilation plus prolonged-expiratory-time or permissive-hypercapnia strategy, auto-PEEP/dynamic-hyperinflation risk plus waveform or pause monitoring, barotrauma plus hemodynamic-collapse surveillance, and sedation plus ventilator-synchrony planning",
     },
     {
       name: "severe_cap_time_critical_actions",

@@ -158,6 +158,44 @@ describe("reviewQualityIssues", () => {
     expect(issues.some((issue) => issue.startsWith("acute chest syndrome "))).toBe(false);
   });
 
+  it("accepts a complete severe asthma and ventilation safety plan", () => {
+    const issues = reviewQualityIssues(
+      makeReviewDetail({
+        diagnosis: "Status asthmaticus requiring mechanical ventilation",
+        chief_complaint: "Severe wheeze, silent chest, and respiratory failure",
+        history_of_present_illness:
+          "Patient with status asthmaticus has fatigue, drowsiness, hypercapnia, and respiratory acidosis requiring intubation and mechanical ventilation.",
+        key_teaching_points: [
+          "Severe asthma requires controlled oxygen, repeated SABA, ipratropium, and early systemic corticosteroids",
+          "Drowsiness, silent chest, or hypercapnia requires ICU escalation",
+          "Mechanical ventilation requires prevention of auto-PEEP and dynamic hyperinflation",
+        ],
+        clinical_red_flags: [
+          "Silent chest, fatigue, drowsiness, hypercapnia, and respiratory acidosis",
+          "Worsening hypoxemia or poor response to repeated bronchodilator treatment",
+        ],
+        time_critical_actions: [
+          "Give controlled supplemental oxygen by nasal cannula with continuous pulse oximetry and target SpO2 93-95 percent",
+          "Give repeated albuterol SABA every 20 minutes with ipratropium for severe bronchospasm",
+          "Give IV methylprednisolone systemic corticosteroid early",
+          "For poor response give IV magnesium sulfate and transfer to ICU for intubation and mechanical ventilation",
+        ],
+        contraindication_checks: [
+          "Monitor pulse oximetry, serial PEF or FEV1, work of breathing, and response reassessment",
+          "Review silent chest, fatigue, drowsiness, hypercapnia CO2, and intubation or ventilation risk",
+          "Monitor beta-agonist tachycardia or arrhythmia plus potassium hypokalemia and lactic acidosis",
+          "Avoid routine antibiotics and avoid routine chest x-ray unless infection or another diagnosis is suspected",
+          "Use low respiratory rate and low minute ventilation with prolonged expiratory time and permissive hypercapnia",
+          "Monitor auto-PEEP, air trapping, and dynamic hyperinflation with an end expiratory pause and expiratory flow-time waveform",
+          "Watch for barotrauma or pneumothorax plus hypotension, hemodynamic collapse, or obstructive shock",
+          "Use ketamine sedation and neuromuscular blockade for ventilator asynchrony when needed",
+        ],
+      }),
+    );
+
+    expect(issues.some((issue) => issue.startsWith("severe asthma "))).toBe(false);
+  });
+
   it("flags Korean diagnosis terms in learner-visible case fields", () => {
     const issues = reviewQualityIssues(
       makeReviewDetail({
