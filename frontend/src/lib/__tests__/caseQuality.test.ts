@@ -213,7 +213,7 @@ describe("reviewQualityIssues", () => {
           "Prior respiratory isolation of MRSA or Pseudomonas, recent hospitalization with IV antibiotics within 90 days, or empyema",
         ],
         time_critical_actions: [
-          "Give supplemental oxygen and escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
+          "Give supplemental oxygen with pulse oximetry and ABG, then escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
           "Obtain chest x-ray, blood cultures, sputum respiratory culture, Legionella urinary antigen, and pneumococcal urinary antigen",
           "Start empiric ceftriaxone beta-lactam plus azithromycin macrolide antibiotics",
           "Treat sepsis with IV fluids, lactate monitoring, vasopressor planning, and ICU escalation for septic shock",

@@ -16865,49 +16865,68 @@ SEVERE_CAP_CONTEXT_TERMS = (
     "severe pneumonia",
     "중증 폐렴",
 )
-SEVERE_CAP_OXYGEN_VENTILATION_ACTION_TERMS = (
-    "airway",
+SEVERE_CAP_OXYGEN_DELIVERY_ACTION_TERMS = (
     "high-flow nasal cannula",
     "hfnc",
-    "hypoxemia",
+    "supplemental oxygen",
+    "give oxygen",
+    "산소",
+)
+SEVERE_CAP_OXYGEN_MONITORING_ACTION_TERMS = (
+    "abg",
+    "pao2",
+    "pulse oximetry",
+    "spo2",
+)
+SEVERE_CAP_RESPIRATORY_ESCALATION_ACTION_TERMS = (
+    "airway",
     "intubation",
-    "oxygen",
+    "mechanical ventilation",
     "respiratory failure",
     "ventilation",
-    "산소",
-    "저산소",
 )
-SEVERE_CAP_DIAGNOSTIC_CULTURE_ACTION_TERMS = (
-    "blood culture",
-    "blood cultures",
+SEVERE_CAP_IMAGING_ACTION_TERMS = (
     "chest x-ray",
     "chest radiograph",
-    "legionella",
+    "lung ultrasound",
+    "ct chest",
+)
+SEVERE_CAP_BLOOD_CULTURE_ACTION_TERMS = (
+    "blood culture",
+    "blood cultures",
+)
+SEVERE_CAP_RESPIRATORY_CULTURE_ACTION_TERMS = (
     "respiratory culture",
     "sputum culture",
-    "urinary antigen",
-    "배양",
 )
-SEVERE_CAP_EMPIRIC_ANTIBIOTIC_ACTION_TERMS = (
-    "antibiotic",
-    "azithromycin",
+SEVERE_CAP_URINARY_ANTIGEN_ACTION_TERMS = (
+    "legionella",
+    "pneumococcal",
+    "urinary antigen",
+)
+SEVERE_CAP_BETA_LACTAM_ACTION_TERMS = (
     "beta-lactam",
     "ceftriaxone",
     "cefotaxime",
     "ceftaroline",
+    "ampicillin",
+)
+SEVERE_CAP_ATYPICAL_COVERAGE_ACTION_TERMS = (
+    "azithromycin",
     "levofloxacin",
     "macrolide",
     "moxifloxacin",
-    "항생제",
 )
-SEVERE_CAP_SEPSIS_ESCALATION_ACTION_TERMS = (
+SEVERE_CAP_CRITICAL_CARE_ACTION_TERMS = (
     "icu",
-    "lactate",
-    "sepsis",
-    "septic shock",
-    "shock",
-    "vasopressor",
     "중환자",
+)
+SEVERE_CAP_SHOCK_RESUSCITATION_ACTION_TERMS = (
+    "iv fluid",
+    "lactate",
+    "norepinephrine",
+    "septic shock",
+    "vasopressor",
     "쇼크",
 )
 SEVERE_CAP_MRSA_PSEUDOMONAS_SAFETY_TERMS = (
@@ -23352,14 +23371,11 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_severe_cap_time_critical_actions,
             issue=(
                 "severe community-acquired pneumonia time-critical actions must "
-                "include oxygen, airway, HFNC, ventilation, intubation, "
-                "hypoxemia, or respiratory-failure support, chest x-ray, chest "
-                "radiograph, blood culture, sputum or respiratory culture, "
-                "Legionella, urinary antigen, or severe-CAP diagnostic testing, "
-                "empiric antibiotic therapy with beta-lactam, ceftriaxone, "
-                "cefotaxime, ceftaroline, macrolide, azithromycin, levofloxacin, "
-                "or moxifloxacin coverage, and sepsis, septic shock, lactate, "
-                "vasopressor, ICU, or shock escalation"
+                "include supplemental oxygen with pulse-ox or ABG monitoring and "
+                "HFNC/ventilatory escalation, chest imaging plus blood and respiratory "
+                "cultures with Legionella or pneumococcal urinary antigen, beta-lactam "
+                "plus macrolide or respiratory-fluoroquinolone coverage, and ICU with "
+                "lactate, fluid, norepinephrine, or vasopressor shock-resuscitation planning"
             ),
         ),
         DomainSafetyGate(
@@ -38638,27 +38654,55 @@ def _requires_severe_cap_safety_check(data: dict[str, Any]) -> bool:
 
 def _has_severe_cap_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
-    has_oxygen_ventilation = any(
+    has_oxygen_delivery = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_CAP_OXYGEN_VENTILATION_ACTION_TERMS
+        for term in SEVERE_CAP_OXYGEN_DELIVERY_ACTION_TERMS
     )
-    has_diagnostic_culture = any(
+    has_oxygen_monitoring = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_CAP_DIAGNOSTIC_CULTURE_ACTION_TERMS
+        for term in SEVERE_CAP_OXYGEN_MONITORING_ACTION_TERMS
     )
-    has_empiric_antibiotic = any(
+    has_respiratory_escalation = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_CAP_EMPIRIC_ANTIBIOTIC_ACTION_TERMS
+        for term in SEVERE_CAP_RESPIRATORY_ESCALATION_ACTION_TERMS
     )
-    has_sepsis_escalation = any(
+    has_imaging = any(
         _contains_safety_term(normalized_actions, term)
-        for term in SEVERE_CAP_SEPSIS_ESCALATION_ACTION_TERMS
+        for term in SEVERE_CAP_IMAGING_ACTION_TERMS
+    )
+    has_blood_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_CAP_BLOOD_CULTURE_ACTION_TERMS
+    )
+    has_respiratory_culture = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_CAP_RESPIRATORY_CULTURE_ACTION_TERMS
+    )
+    has_urinary_antigen = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_CAP_URINARY_ANTIGEN_ACTION_TERMS
+    )
+    has_beta_lactam = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_CAP_BETA_LACTAM_ACTION_TERMS
+    )
+    has_atypical_coverage = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_CAP_ATYPICAL_COVERAGE_ACTION_TERMS
+    )
+    has_critical_care = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_CAP_CRITICAL_CARE_ACTION_TERMS
+    )
+    has_shock_resuscitation = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SEVERE_CAP_SHOCK_RESUSCITATION_ACTION_TERMS
     )
     return (
-        has_oxygen_ventilation
-        and has_diagnostic_culture
-        and has_empiric_antibiotic
-        and has_sepsis_escalation
+        has_oxygen_delivery and has_oxygen_monitoring and has_respiratory_escalation
+        and has_imaging and has_blood_culture and has_respiratory_culture
+        and has_urinary_antigen and has_beta_lactam and has_atypical_coverage
+        and has_critical_care and has_shock_resuscitation
     )
 
 

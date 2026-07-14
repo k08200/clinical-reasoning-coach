@@ -35839,8 +35839,8 @@ def test_quality_gate_requires_severe_cap_oxygen_diagnostics_antibiotics_and_sep
         "Prior respiratory isolation of MRSA or Pseudomonas, recent hospitalization with IV antibiotics within 90 days, empyema, or septic shock",
     ]
     case["time_critical_actions"] = [
-        "Give oxygen, assess airway, and escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
-        "Obtain chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella urinary antigen, and severe-CAP diagnostic testing",
+        "Give supplemental oxygen with pulse oximetry and ABG, then escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
+        "Obtain chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella and pneumococcal urinary antigens, and severe-CAP diagnostic testing",
         "Treat sepsis and septic shock with lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment",
     ]
     case["contraindication_checks"] = [
@@ -35876,7 +35876,7 @@ def test_quality_gate_requires_severe_cap_oxygen_diagnostics_antibiotics_and_sep
 
     assert not report.passed
     assert any(
-        "severe community-acquired pneumonia time-critical actions must include oxygen"
+        "severe community-acquired pneumonia time-critical actions must include supplemental oxygen"
         in issue
         for issue in report.critical_issues
     )
@@ -35907,8 +35907,8 @@ def test_quality_gate_requires_severe_cap_mrsa_severity_effusion_and_differentia
         "Prior respiratory isolation of MRSA or Pseudomonas, recent hospitalization with IV antibiotics within 90 days, empyema, or septic shock",
     ]
     case["time_critical_actions"] = [
-        "Give oxygen, assess airway, and escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
-        "Obtain chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella urinary antigen, and severe-CAP diagnostic testing",
+        "Give supplemental oxygen with pulse oximetry and ABG, assess airway, and escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
+        "Obtain chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella and pneumococcal urinary antigens, and severe-CAP diagnostic testing",
         "Start empiric antibiotic therapy with beta-lactam ceftriaxone plus azithromycin macrolide or levofloxacin coverage",
         "Give IV fluid resuscitation for sepsis while reassessing respiratory status and volume tolerance",
         "Treat sepsis and septic shock with lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment",
@@ -36120,8 +36120,8 @@ def test_quality_gate_allows_severe_cap_with_stewardship_safety():
         "Prior respiratory isolation of MRSA or Pseudomonas, recent hospitalization with IV antibiotics within 90 days, empyema, or septic shock",
     ]
     case["time_critical_actions"] = [
-        "Give oxygen, assess airway, and escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
-        "Obtain chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella urinary antigen, and severe-CAP diagnostic testing",
+        "Give supplemental oxygen with pulse oximetry and ABG, assess airway, and escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
+        "Obtain chest x-ray or chest radiograph plus blood cultures, sputum respiratory culture, Legionella and pneumococcal urinary antigens, and severe-CAP diagnostic testing",
         "Start empiric antibiotic therapy with beta-lactam ceftriaxone plus azithromycin macrolide or levofloxacin coverage",
         "Give IV fluid resuscitation for sepsis while reassessing respiratory status and volume tolerance",
         "Treat sepsis and septic shock with lactate monitoring, vasopressor planning, ICU escalation, and shock reassessment",

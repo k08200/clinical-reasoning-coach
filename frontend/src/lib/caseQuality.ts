@@ -18848,54 +18848,17 @@ const SEVERE_CAP_CONTEXT_TERMS = [
   "중증 폐렴",
 ];
 
-const SEVERE_CAP_OXYGEN_VENTILATION_ACTION_TERMS = [
-  "airway",
-  "high-flow nasal cannula",
-  "hfnc",
-  "hypoxemia",
-  "intubation",
-  "oxygen",
-  "respiratory failure",
-  "ventilation",
-  "산소",
-  "저산소",
-];
-
-const SEVERE_CAP_DIAGNOSTIC_CULTURE_ACTION_TERMS = [
-  "blood culture",
-  "blood cultures",
-  "chest x-ray",
-  "chest radiograph",
-  "legionella",
-  "respiratory culture",
-  "sputum culture",
-  "urinary antigen",
-  "배양",
-];
-
-const SEVERE_CAP_EMPIRIC_ANTIBIOTIC_ACTION_TERMS = [
-  "antibiotic",
-  "azithromycin",
-  "beta-lactam",
-  "ceftriaxone",
-  "cefotaxime",
-  "ceftaroline",
-  "levofloxacin",
-  "macrolide",
-  "moxifloxacin",
-  "항생제",
-];
-
-const SEVERE_CAP_SEPSIS_ESCALATION_ACTION_TERMS = [
-  "icu",
-  "lactate",
-  "sepsis",
-  "septic shock",
-  "shock",
-  "vasopressor",
-  "중환자",
-  "쇼크",
-];
+const SEVERE_CAP_OXYGEN_DELIVERY_ACTION_TERMS = ["high-flow nasal cannula", "hfnc", "supplemental oxygen", "give oxygen", "산소"];
+const SEVERE_CAP_OXYGEN_MONITORING_ACTION_TERMS = ["abg", "pao2", "pulse oximetry", "spo2"];
+const SEVERE_CAP_RESPIRATORY_ESCALATION_ACTION_TERMS = ["airway", "intubation", "mechanical ventilation", "respiratory failure", "ventilation"];
+const SEVERE_CAP_IMAGING_ACTION_TERMS = ["chest x-ray", "chest radiograph", "lung ultrasound", "ct chest"];
+const SEVERE_CAP_BLOOD_CULTURE_ACTION_TERMS = ["blood culture", "blood cultures"];
+const SEVERE_CAP_RESPIRATORY_CULTURE_ACTION_TERMS = ["respiratory culture", "sputum culture"];
+const SEVERE_CAP_URINARY_ANTIGEN_ACTION_TERMS = ["legionella", "pneumococcal", "urinary antigen"];
+const SEVERE_CAP_BETA_LACTAM_ACTION_TERMS = ["beta-lactam", "ceftriaxone", "cefotaxime", "ceftaroline", "ampicillin"];
+const SEVERE_CAP_ATYPICAL_COVERAGE_ACTION_TERMS = ["azithromycin", "levofloxacin", "macrolide", "moxifloxacin"];
+const SEVERE_CAP_CRITICAL_CARE_ACTION_TERMS = ["icu", "중환자"];
+const SEVERE_CAP_SHOCK_RESUSCITATION_ACTION_TERMS = ["iv fluid", "lactate", "norepinephrine", "septic shock", "vasopressor", "쇼크"];
 
 const SEVERE_CAP_MRSA_PSEUDOMONAS_SAFETY_TERMS = [
   "90 days",
@@ -33130,19 +33093,26 @@ function requiresSevereCapSafetyCheck(detail: ClinicalCaseReviewDetail): boolean
 
 function hasSevereCapTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasOxygenVentilation = SEVERE_CAP_OXYGEN_VENTILATION_ACTION_TERMS.some((term) =>
+  const hasOxygenDelivery = SEVERE_CAP_OXYGEN_DELIVERY_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasDiagnosticCulture = SEVERE_CAP_DIAGNOSTIC_CULTURE_ACTION_TERMS.some((term) =>
+  const hasOxygenMonitoring = SEVERE_CAP_OXYGEN_MONITORING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasEmpiricAntibiotic = SEVERE_CAP_EMPIRIC_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+  const hasRespiratoryEscalation = SEVERE_CAP_RESPIRATORY_ESCALATION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasSepsisEscalation = SEVERE_CAP_SEPSIS_ESCALATION_ACTION_TERMS.some((term) =>
+  const hasImaging = SEVERE_CAP_IMAGING_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  return hasOxygenVentilation && hasDiagnosticCulture && hasEmpiricAntibiotic && hasSepsisEscalation;
+  const hasBloodCulture = SEVERE_CAP_BLOOD_CULTURE_ACTION_TERMS.some((term) => containsSafetyTerm(normalizedActions, term));
+  const hasRespiratoryCulture = SEVERE_CAP_RESPIRATORY_CULTURE_ACTION_TERMS.some((term) => containsSafetyTerm(normalizedActions, term));
+  const hasUrinaryAntigen = SEVERE_CAP_URINARY_ANTIGEN_ACTION_TERMS.some((term) => containsSafetyTerm(normalizedActions, term));
+  const hasBetaLactam = SEVERE_CAP_BETA_LACTAM_ACTION_TERMS.some((term) => containsSafetyTerm(normalizedActions, term));
+  const hasAtypicalCoverage = SEVERE_CAP_ATYPICAL_COVERAGE_ACTION_TERMS.some((term) => containsSafetyTerm(normalizedActions, term));
+  const hasCriticalCare = SEVERE_CAP_CRITICAL_CARE_ACTION_TERMS.some((term) => containsSafetyTerm(normalizedActions, term));
+  const hasShockResuscitation = SEVERE_CAP_SHOCK_RESUSCITATION_ACTION_TERMS.some((term) => containsSafetyTerm(normalizedActions, term));
+  return hasOxygenDelivery && hasOxygenMonitoring && hasRespiratoryEscalation && hasImaging && hasBloodCulture && hasRespiratoryCulture && hasUrinaryAntigen && hasBetaLactam && hasAtypicalCoverage && hasCriticalCare && hasShockResuscitation;
 }
 
 function hasSevereCapTreatmentSafetyCheck(checks: string[]): boolean {
@@ -36624,7 +36594,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSevereCapTimeCriticalActions,
       issue:
-        "severe community-acquired pneumonia time-critical actions must include oxygen, airway, HFNC, ventilation, intubation, hypoxemia, or respiratory-failure support, chest x-ray, chest radiograph, blood culture, sputum or respiratory culture, Legionella, urinary antigen, or severe-CAP diagnostic testing, empiric antibiotic therapy with beta-lactam, ceftriaxone, cefotaxime, ceftaroline, macrolide, azithromycin, levofloxacin, or moxifloxacin coverage, and sepsis, septic shock, lactate, vasopressor, ICU, or shock escalation",
+        "severe community-acquired pneumonia time-critical actions must include supplemental oxygen with pulse-ox or ABG monitoring and HFNC/ventilatory escalation, chest imaging plus blood and respiratory cultures with Legionella or pneumococcal urinary antigen, beta-lactam plus macrolide or respiratory-fluoroquinolone coverage, and ICU with lactate, fluid, norepinephrine, or vasopressor shock-resuscitation planning",
     },
     {
       name: "severe_cap_treatment_safety",

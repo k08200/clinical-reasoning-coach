@@ -28886,7 +28886,7 @@
     "name": "severe_cap_requires_oxygen_diagnostics_antibiotics_and_sepsis_escalation",
     "expected_passed": false,
     "expected_issue_substrings": [
-      "severe community-acquired pneumonia time-critical actions must include oxygen"
+      "severe community-acquired pneumonia time-critical actions must include supplemental oxygen"
     ],
     "overrides": {
       "diagnosis": "Severe community-acquired pneumonia with hypoxemia",
