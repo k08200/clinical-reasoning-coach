@@ -279,6 +279,7 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
         "ssss_time_critical_actions",
         "ssss_treatment_safety",
         "toxic_shock_time_critical_actions",
+        "toxic_shock_device_removal_actions",
         "toxic_shock_treatment_safety",
         "methemoglobinemia_time_critical_actions",
         "methemoglobinemia_treatment_safety",
@@ -33663,6 +33664,40 @@ def test_quality_gate_requires_toxic_shock_separate_regimen_ivig_recurrence_deco
         and "household-contact prophylaxis" in issue
         for issue in report.critical_issues
     )
+
+
+def test_quality_gate_rejects_toxic_shock_generic_regimen_and_imprecise_monitoring_terms():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Group A strep toxic shock syndrome with necrotizing fasciitis"
+    case["history_of_present_illness"] = (
+        "Patient has group A strep toxic shock syndrome from necrotizing fasciitis "
+        "with hypotension, septic shock, diffuse rash, renal injury, hepatic "
+        "dysfunction, thrombocytopenia, elevated CK, ARDS, and multiorgan failure."
+    )
+    case["time_critical_actions"] = [
+        "Hospitalize immediately in ICU and give aggressive fluid resuscitation with vasopressor support",
+        "Provide ventilation and organ support",
+        "Obtain blood culture and wound culture",
+        "Use CT to identify the source",
+        "Start toxin-suppressing therapy plus empiric beta-lactam coverage",
+        "Perform source control with drainage and irrigation plus surgery",
+        "Monitor renal function, coagulation, ARDS, and myalgia",
+    ]
+    case["contraindication_checks"] = [
+        "Review group A strep regimen with beta-lactam and toxin suppression",
+        "Review staphylococcal/MSSA regimen and MRSA coverage",
+        "Consider IVIG for severe or refractory shock",
+        "Review Kawasaki disease, scarlet fever, SSSS, Stevens-Johnson syndrome, and meningococcemia",
+        "Review recurrence prevention and decolonization with mupirocin or chlorhexidine",
+        "Review household contact prophylaxis and standard infection control",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("named empiric coverage" in issue for issue in report.critical_issues)
+    assert any("named penicillin" in issue for issue in report.critical_issues)
+    assert not any("device or foreign-body removal" in issue for issue in report.critical_issues)
 
 
 def test_quality_gate_requires_methemoglobinemia_oxygen_source_coox_methylene_and_toxicology_actions():

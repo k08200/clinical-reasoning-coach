@@ -27087,6 +27087,35 @@
     }
   },
   {
+    "name": "toxic_shock_rejects_generic_regimen_and_imprecise_monitoring_terms",
+    "expected_passed": false,
+    "expected_issue_substrings": [
+      "named empiric coverage",
+      "named penicillin"
+    ],
+    "overrides": {
+      "diagnosis": "Group A strep toxic shock syndrome with necrotizing fasciitis",
+      "history_of_present_illness": "Patient has group A strep toxic shock syndrome from necrotizing fasciitis with hypotension, septic shock, diffuse rash, renal injury, hepatic dysfunction, thrombocytopenia, elevated CK, ARDS, and multiorgan failure.",
+      "time_critical_actions": [
+        "Hospitalize immediately in ICU and give aggressive fluid resuscitation with vasopressor support",
+        "Provide ventilation and organ support",
+        "Obtain blood culture and wound culture",
+        "Use CT to identify the source",
+        "Start toxin-suppressing therapy plus empiric beta-lactam coverage",
+        "Perform source control with drainage and irrigation plus surgery",
+        "Monitor renal function, coagulation, ARDS, and myalgia"
+      ],
+      "contraindication_checks": [
+        "Review group A strep regimen with beta-lactam and toxin suppression",
+        "Review staphylococcal/MSSA regimen and MRSA coverage",
+        "Consider IVIG for severe or refractory shock",
+        "Review Kawasaki disease, scarlet fever, SSSS, Stevens-Johnson syndrome, and meningococcemia",
+        "Review recurrence prevention and decolonization with mupirocin or chlorhexidine",
+        "Review household contact prophylaxis and standard infection control"
+      ]
+    }
+  },
+  {
     "name": "methemoglobinemia_requires_oxygen_source_coox_methylene_and_toxicology_actions",
     "expected_passed": false,
     "expected_issue_substrings": [

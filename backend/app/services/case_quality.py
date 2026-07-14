@@ -15434,16 +15434,21 @@ TOXIC_SHOCK_BLOOD_CULTURE_ACTION_TERMS = (
     "blood culture",
 )
 TOXIC_SHOCK_SITE_CULTURE_ACTION_TERMS = (
-    "culture",
-    "lesion",
-    "local site",
-    "nose",
-    "throat",
-    "vagina",
-    "wound",
+    "cultures from nose",
+    "cultures from throat",
+    "cultures from vagina",
+    "cultures from wound",
+    "lesion culture",
+    "nasal culture",
+    "site culture",
+    "site cultures",
+    "throat culture",
+    "vaginal culture",
+    "wound culture",
 )
 TOXIC_SHOCK_SOURCE_IMAGING_ACTION_TERMS = (
-    "ct",
+    "computed tomography",
+    "ct scan",
     "mri",
     "soft tissue imaging",
 )
@@ -15454,12 +15459,36 @@ TOXIC_SHOCK_TOXIN_SUPPRESSION_ACTION_TERMS = (
     "toxin suppression",
     "toxin-suppressing",
 )
+TOXIC_SHOCK_NAMED_TOXIN_SUPPRESSION_ACTION_TERMS = (
+    "clindamycin",
+    "linezolid",
+)
 TOXIC_SHOCK_EMPIRIC_COVERAGE_ACTION_TERMS = (
     "beta-lactam",
     "ceftaroline",
     "daptomycin",
     "penicillin",
     "vancomycin",
+)
+TOXIC_SHOCK_NAMED_EMPIRIC_COVERAGE_ACTION_TERMS = (
+    "cefazolin",
+    "ceftaroline",
+    "daptomycin",
+    "flucloxacillin",
+    "nafcillin",
+    "oxacillin",
+    "penicillin",
+    "vancomycin",
+)
+TOXIC_SHOCK_DEVICE_CONTEXT_TERMS = (
+    "cervical cap",
+    "contraceptive sponge",
+    "diaphragm",
+    "foreign body",
+    "menstrual cup",
+    "pessary",
+    "tampon",
+    "vaginal device",
 )
 TOXIC_SHOCK_FOREIGN_BODY_REMOVAL_ACTION_TERMS = (
     "device removal",
@@ -15480,10 +15509,12 @@ TOXIC_SHOCK_SURGICAL_CONTROL_ACTION_TERMS = (
     "surgery",
 )
 TOXIC_SHOCK_RENAL_HEPATIC_MONITORING_ACTION_TERMS = (
-    "hepatic",
     "kidney",
-    "liver",
     "renal",
+)
+TOXIC_SHOCK_HEPATIC_MONITORING_ACTION_TERMS = (
+    "hepatic",
+    "liver",
 )
 TOXIC_SHOCK_HEMATOLOGIC_MONITORING_ACTION_TERMS = (
     "bone marrow",
@@ -15499,31 +15530,38 @@ TOXIC_SHOCK_CARDIOPULMONARY_MONITORING_ACTION_TERMS = (
     "tachypnea",
 )
 TOXIC_SHOCK_MUSCLE_CK_MONITORING_ACTION_TERMS = (
-    "coagulation",
     "ck",
     "creatine kinase",
     "myalgia",
 )
 TOXIC_SHOCK_GAS_BETA_LACTAM_SAFETY_TERMS = (
-    "beta-lactam",
     "penicillin",
 )
 TOXIC_SHOCK_GAS_TOXIN_SUPPRESSION_SAFETY_TERMS = (
-    "clindamycin",
     "group a strep",
-    "linezolid",
     "streptococcal",
 )
+TOXIC_SHOCK_GAS_TOXIN_AGENT_SAFETY_TERMS = (
+    "clindamycin",
+    "linezolid",
+)
 TOXIC_SHOCK_STAPH_MSSA_SAFETY_TERMS = (
-    "mssa",
-    "nafcillin",
-    "oxacillin",
     "staphylococcal",
 )
+TOXIC_SHOCK_MSSA_AGENT_SAFETY_TERMS = (
+    "cefazolin",
+    "cloxacillin",
+    "dicloxacillin",
+    "flucloxacillin",
+    "nafcillin",
+    "oxacillin",
+)
 TOXIC_SHOCK_MRSA_COVERAGE_SAFETY_TERMS = (
+    "mrsa",
+)
+TOXIC_SHOCK_MRSA_AGENT_SAFETY_TERMS = (
     "ceftaroline",
     "daptomycin",
-    "mrsa",
     "vancomycin",
 )
 TOXIC_SHOCK_IVIG_CONSIDERATION_SAFETY_TERMS = (
@@ -22600,17 +22638,29 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "separate aggressive fluid resuscitation/fluids-electrolytes plus "
                 "vasopressor or circulatory-support planning, separate organ-support "
                 "planning such as ventilation, ventilatory support, renal replacement, "
-                "hemodialysis, or organ support, blood culture, site culture from "
-                "wound, vagina, throat, nose, lesion, or local site, CT, MRI, or "
+                "hemodialysis, or organ support, blood culture, source-specific "
+                "culture from a wound, vagina, throat, nose, lesion, or local site, "
+                "CT scan, MRI, or "
                 "soft-tissue imaging to identify source, toxin-suppressing antibiotic "
-                "such as clindamycin, linezolid, protein inhibitor, or toxin-"
-                "suppression plus empiric coverage such as beta-lactam, penicillin, "
-                "vancomycin, daptomycin, or ceftaroline, tampon/foreign-body/device "
-                "removal, source decontamination with drainage, irrigation, or source "
+                "with a named agent such as clindamycin or linezolid, plus named "
+                "empiric coverage such as penicillin, vancomycin, daptomycin, "
+                "ceftaroline, nafcillin, oxacillin, or cefazolin, source "
+                "decontamination with drainage, irrigation, or source "
                 "control, surgical control with debridement, repeated debridement, "
                 "necrotizing-fasciitis surgery, or surgery, and separate renal/"
                 "hepatic, hematologic/platelet/coagulation, cardiopulmonary/ARDS, "
                 "and CK/creatine-kinase/myalgia monitoring"
+            ),
+        ),
+        DomainSafetyGate(
+            name="toxic_shock_device_removal_actions",
+            applies=_requires_toxic_shock_device_removal_check,
+            field_name="time_critical_actions",
+            validator=_has_toxic_shock_device_removal_action,
+            issue=(
+                "toxic shock syndrome with a tampon, menstrual cup, vaginal device, "
+                "or other foreign-body risk must include immediate device or foreign-"
+                "body removal"
             ),
         ),
         DomainSafetyGate(
@@ -22620,11 +22670,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_toxic_shock_treatment_safety_check,
             issue=(
                 "toxic shock syndrome safety checks must include group-A-strep/"
-                "streptococcal regimen tailoring with penicillin or beta-lactam plus "
+                "streptococcal regimen tailoring with named penicillin plus named "
                 "clindamycin or linezolid toxin suppression, staphylococcal/MSSA "
-                "regimen review with nafcillin, oxacillin, or MSSA coverage, MRSA "
-                "coverage review with vancomycin, daptomycin, ceftaroline, or MRSA "
-                "coverage, IVIG or IV immune globulin consideration for severe, "
+                "regimen review with a named agent such as nafcillin, oxacillin, "
+                "flucloxacillin, or cefazolin, MRSA coverage review with a named "
+                "agent such as vancomycin, daptomycin, or ceftaroline, IVIG or IV "
+                "immune globulin consideration for severe, "
                 "severely ill, or refractory shock, differential review for Kawasaki, "
                 "scarlet fever, SSSS, staphylococcal scalded skin, Stevens-Johnson, "
                 "meningococcemia, Rocky Mountain spotted fever, or leptospirosis, "
@@ -36815,6 +36866,42 @@ def _requires_toxic_shock_safety_check(data: dict[str, Any]) -> bool:
     return has_context and has_risk
 
 
+def _requires_toxic_shock_device_removal_check(data: dict[str, Any]) -> bool:
+    if not _requires_toxic_shock_safety_check(data):
+        return False
+    risk_text = " ".join(
+        str(data.get(field_name, "")).lower()
+        for field_name in (
+            "chief_complaint",
+            "history_of_present_illness",
+            "past_medical_history",
+            "diagnosis",
+            "coach_guidance",
+        )
+    )
+    for field_name in (
+        "key_teaching_points",
+        "time_critical_actions",
+        "clinical_red_flags",
+        "clinical_sources",
+        "physical_exam",
+        "initial_labs",
+    ):
+        risk_text = f"{risk_text} {' '.join(_nested_strings(data.get(field_name))).lower()}"
+    return any(
+        _contains_safety_term(risk_text, term)
+        for term in TOXIC_SHOCK_DEVICE_CONTEXT_TERMS
+    )
+
+
+def _has_toxic_shock_device_removal_action(actions: list[Any]) -> bool:
+    normalized_actions = " ".join(str(action).lower() for action in actions)
+    return any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TOXIC_SHOCK_FOREIGN_BODY_REMOVAL_ACTION_TERMS
+    )
+
+
 def _has_toxic_shock_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
     has_hospital_icu_action = any(
@@ -36845,13 +36932,17 @@ def _has_toxic_shock_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in TOXIC_SHOCK_TOXIN_SUPPRESSION_ACTION_TERMS
     )
+    has_named_toxin_suppression_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TOXIC_SHOCK_NAMED_TOXIN_SUPPRESSION_ACTION_TERMS
+    )
     has_empiric_coverage_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in TOXIC_SHOCK_EMPIRIC_COVERAGE_ACTION_TERMS
     )
-    has_foreign_body_removal_action = any(
+    has_named_empiric_coverage_action = any(
         _contains_safety_term(normalized_actions, term)
-        for term in TOXIC_SHOCK_FOREIGN_BODY_REMOVAL_ACTION_TERMS
+        for term in TOXIC_SHOCK_NAMED_EMPIRIC_COVERAGE_ACTION_TERMS
     )
     has_source_decontamination_action = any(
         _contains_safety_term(normalized_actions, term)
@@ -36864,6 +36955,10 @@ def _has_toxic_shock_time_critical_actions(actions: list[Any]) -> bool:
     has_renal_hepatic_monitoring = any(
         _contains_safety_term(normalized_actions, term)
         for term in TOXIC_SHOCK_RENAL_HEPATIC_MONITORING_ACTION_TERMS
+    )
+    has_hepatic_monitoring = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in TOXIC_SHOCK_HEPATIC_MONITORING_ACTION_TERMS
     )
     has_hematologic_monitoring = any(
         _contains_safety_term(normalized_actions, term)
@@ -36885,11 +36980,13 @@ def _has_toxic_shock_time_critical_actions(actions: list[Any]) -> bool:
         and has_site_culture_action
         and has_source_imaging_action
         and has_toxin_suppression_action
+        and has_named_toxin_suppression_action
         and has_empiric_coverage_action
-        and has_foreign_body_removal_action
+        and has_named_empiric_coverage_action
         and has_source_decontamination_action
         and has_surgical_control_action
         and has_renal_hepatic_monitoring
+        and has_hepatic_monitoring
         and has_hematologic_monitoring
         and has_cardiopulmonary_monitoring
         and has_muscle_ck_monitoring
@@ -36906,13 +37003,25 @@ def _has_toxic_shock_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in TOXIC_SHOCK_GAS_TOXIN_SUPPRESSION_SAFETY_TERMS
     )
+    has_gas_toxin_agent_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_SHOCK_GAS_TOXIN_AGENT_SAFETY_TERMS
+    )
     has_staph_mssa_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in TOXIC_SHOCK_STAPH_MSSA_SAFETY_TERMS
     )
+    has_mssa_agent_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_SHOCK_MSSA_AGENT_SAFETY_TERMS
+    )
     has_mrsa_coverage_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in TOXIC_SHOCK_MRSA_COVERAGE_SAFETY_TERMS
+    )
+    has_mrsa_agent_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in TOXIC_SHOCK_MRSA_AGENT_SAFETY_TERMS
     )
     has_ivig_consideration_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -36941,8 +37050,11 @@ def _has_toxic_shock_treatment_safety_check(checks: list[Any]) -> bool:
     return (
         has_gas_beta_lactam_safety
         and has_gas_toxin_suppression_safety
+        and has_gas_toxin_agent_safety
         and has_staph_mssa_safety
+        and has_mssa_agent_safety
         and has_mrsa_coverage_safety
+        and has_mrsa_agent_safety
         and has_ivig_consideration_safety
         and has_severe_refractory_safety
         and has_differential_safety
