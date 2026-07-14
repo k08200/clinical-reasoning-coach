@@ -33327,6 +33327,40 @@ def test_quality_gate_requires_ssss_separate_medication_harm_complication_and_ou
     )
 
 
+def test_quality_gate_rejects_ssss_generic_antibiotic_and_mrsa_without_mucosal_sparing():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Staphylococcal scalded skin syndrome"
+    case["history_of_present_illness"] = (
+        "Child has SSSS with fever, flaccid bullae, positive Nikolsky sign, "
+        "skin sloughing, and suspected Staphylococcus aureus exfoliative toxin."
+    )
+    case["time_critical_actions"] = [
+        "Evaluate the wound source and send a skin swab plus blood culture",
+        "Admit for hospitalization with dermatology and burn center escalation",
+        "Consider skin biopsy for the blistering differential when uncertain",
+        "Start prompt IV antibiotic therapy",
+        "Give IV fluids for dehydration and electrolyte support; monitor temperature",
+        "Provide nonadherent dressing wound care and pain relief",
+    ]
+    case["contraindication_checks"] = [
+        "Review MRSA risk including healthcare exposure",
+        "Avoid silver sulfadiazine because of systemic absorption and toxicity",
+        "Avoid NSAID/ibuprofen with renal impairment",
+        "Avoid clindamycin monotherapy when resistance is possible",
+        "Review mucosa and differential diagnosis for SJS/TEN and bullous impetigo",
+        "Monitor dehydration, electrolyte imbalance, hypothermia, and temperature",
+        "Monitor secondary infection, cellulitis, sepsis, and pneumonia",
+        "Monitor acute kidney injury and renal failure",
+        "Assess carrier state, decolonization, and hand washing prevention",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any("named MSSA-active agent" in issue for issue in report.critical_issues)
+    assert any("named MRSA-active option" in issue for issue in report.critical_issues)
+
+
 def test_quality_gate_requires_toxic_shock_icu_cultures_antibiotics_source_control_and_organ_monitoring_actions():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Streptococcal toxic shock syndrome from necrotizing fasciitis"

@@ -16988,11 +16988,13 @@ const SSSS_SOURCE_SITE_ACTION_TERMS = [
 const SSSS_CULTURE_ACTION_TERMS = [
   "blood culture",
   "blister fluid culture",
-  "culture",
-  "staph aureus",
-  "staphylococcus aureus",
+  "conjunctival swab",
+  "nasopharyngeal swab",
+  "perianal swab",
   "skin swab",
-  "swab",
+  "source culture",
+  "throat swab",
+  "wound culture",
 ];
 
 const SSSS_BIOPSY_DIFFERENTIAL_ACTION_TERMS = [
@@ -17031,6 +17033,15 @@ const SSSS_ANTISTAPH_ANTIBIOTIC_ACTION_TERMS = [
   "oxacillin",
   "penicillinase-resistant",
   "vancomycin",
+];
+
+const SSSS_MSSA_ANTIBIOTIC_ACTION_TERMS = [
+  "cefazolin",
+  "cloxacillin",
+  "dicloxacillin",
+  "flucloxacillin",
+  "nafcillin",
+  "oxacillin",
 ];
 
 const SSSS_FLUID_ELECTROLYTE_ACTION_TERMS = [
@@ -17076,6 +17087,13 @@ const SSSS_MRSA_VANCOMYCIN_SAFETY_TERMS = [
   "mrsa",
   "recent hospitalization",
   "skilled nursing",
+];
+
+const SSSS_MRSA_COVERAGE_SAFETY_TERMS = [
+  "anti-mrsa",
+  "linezolid",
+  "mrsa coverage",
+  "mrsa-active",
   "vancomycin",
 ];
 
@@ -17105,8 +17123,11 @@ const SSSS_DIFFERENTIAL_SAFETY_TERMS = [
   "agep",
   "bullous impetigo",
   "drug reaction",
-  "mucosa",
   "mucosal sparing",
+  "mucosa-sparing",
+  "mucosae unaffected",
+  "mucous membranes spared",
+  "no mucosal involvement",
   "sjs/ten",
   "stevens-johnson",
   "toxic epidermal necrolysis",
@@ -31401,6 +31422,9 @@ function hasSsssTimeCriticalActions(actions: string[]): boolean {
   const hasAntistaphAntibiotic = SSSS_ANTISTAPH_ANTIBIOTIC_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasMssaAntibiotic = SSSS_MSSA_ANTIBIOTIC_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasFluidElectrolyte = SSSS_FLUID_ELECTROLYTE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
@@ -31420,6 +31444,7 @@ function hasSsssTimeCriticalActions(actions: string[]): boolean {
     hasAdmissionEscalation &&
     hasSpecialistEscalation &&
     hasAntistaphAntibiotic &&
+    hasMssaAntibiotic &&
     hasFluidElectrolyte &&
     hasTempNutrition &&
     hasSkinWound &&
@@ -31430,6 +31455,9 @@ function hasSsssTimeCriticalActions(actions: string[]): boolean {
 function hasSsssTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
   const hasMrsaVancomycinSafety = SSSS_MRSA_VANCOMYCIN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMrsaCoverageSafety = SSSS_MRSA_COVERAGE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasSilverSulfadiazineSafety = SSSS_SILVER_SULFADIAZINE_SAFETY_TERMS.some((term) =>
@@ -31461,6 +31489,7 @@ function hasSsssTreatmentSafetyCheck(checks: string[]): boolean {
   );
   return (
     hasMrsaVancomycinSafety &&
+    hasMrsaCoverageSafety &&
     hasSilverSulfadiazineSafety &&
     hasNsaidRenalSafety &&
     hasClindamycinResistanceSafety &&
@@ -35488,7 +35517,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "time_critical_actions",
       validator: hasSsssTimeCriticalActions,
       issue:
-        "staphylococcal scalded skin syndrome time-critical actions must include suspected source-site evaluation such as nasopharynx, conjunctiva, ears, throat, perianal area, wound source, or pyogenic focus review, culture/swab evaluation such as skin swab, blister fluid culture, blood culture, Staph aureus, or S. aureus review, skin biopsy, frozen-section, intra-epidermal split, or serious blistering differential review when uncertain, hospitalisation/hospitalization, admission, inpatient, or emergency-department management, dermatology, ICU, intensive-care, burn-unit, or burn-center escalation for severe disease, prompt IV anti-staphylococcal or penicillinase-resistant antibiotics such as flucloxacillin, cefazolin, ceftriaxone, nafcillin, oxacillin, dicloxacillin, or vancomycin, separate fluid/hydration/electrolyte or IV-fluid support, separate temperature, hypothermia, thermal, or nutrition support, skin/wound care with gentle washing, soap substitute, saline-soaked gauze, non-adherent dressings, burns dressings, emollient, or petroleum jelly, and pain relief with paracetamol/acetaminophen, analgesia, morphine, pain control, or pain relief",
+        "staphylococcal scalded skin syndrome time-critical actions must include suspected source-site evaluation such as nasopharynx, conjunctiva, ears, throat, perianal area, wound source, or pyogenic focus review, culture/swab evaluation such as skin swab, blister fluid culture, blood culture, wound culture, or source-swab review, skin biopsy, frozen-section, intra-epidermal split, or serious blistering differential review when uncertain, hospitalisation/hospitalization, admission, inpatient, or emergency-department management, dermatology, ICU, intensive-care, burn-unit, or burn-center escalation for severe disease, prompt IV anti-staphylococcal or penicillinase-resistant therapy with a named MSSA-active agent such as flucloxacillin, cefazolin, nafcillin, oxacillin, or dicloxacillin, separate fluid/hydration/electrolyte or IV-fluid support, separate temperature, hypothermia, thermal, or nutrition support, skin/wound care with gentle washing, soap substitute, saline-soaked gauze, non-adherent dressings, burns dressings, emollient, or petroleum jelly, and pain relief with paracetamol/acetaminophen, analgesia, morphine, pain control, or pain relief",
     },
     {
       name: "ssss_treatment_safety",
@@ -35497,7 +35526,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSsssTreatmentSafetyCheck,
       issue:
-        "staphylococcal scalded skin syndrome safety checks must include MRSA/vancomycin risk review such as healthcare exposure, recent hospitalization, skilled-nursing residence, or high-MRSA-prevalence setting, silver-sulfadiazine avoidance or toxicity/systemic-absorption review, NSAID/ibuprofen avoidance with kidney or renal impairment review, clindamycin-resistance or clindamycin-monotherapy avoidance, serious differential review for mucosal sparing versus SJS/TEN, toxic epidermal necrolysis, bullous impetigo, drug reaction, or AGEP, separate dehydration/fluid-deficit/electrolyte-imbalance monitoring, separate hypothermia/temperature/heat-loss monitoring, secondary infection, cellulitis, sepsis, or pneumonia monitoring, acute kidney injury/renal-failure monitoring, and carrier, decolonization, chlorhexidine, mupirocin, nursery outbreak, outbreak, Staph aureus carrier, or hand-washing prevention planning",
+        "staphylococcal scalded skin syndrome safety checks must include MRSA-risk review such as healthcare exposure, recent hospitalization, skilled-nursing residence, or high-MRSA-prevalence setting plus a named MRSA-active option such as vancomycin or linezolid, silver-sulfadiazine avoidance or toxicity/systemic-absorption review, NSAID/ibuprofen avoidance with kidney or renal impairment review, clindamycin-resistance or clindamycin-monotherapy avoidance, serious differential review for mucosal sparing versus SJS/TEN, toxic epidermal necrolysis, bullous impetigo, drug reaction, or AGEP, separate dehydration/fluid-deficit/electrolyte-imbalance monitoring, separate hypothermia/temperature/heat-loss monitoring, secondary infection, cellulitis, sepsis, or pneumonia monitoring, acute kidney injury/renal-failure monitoring, and carrier, decolonization, chlorhexidine, mupirocin, nursery outbreak, outbreak, Staph aureus carrier, or hand-washing prevention planning",
     },
     {
       name: "toxic_shock_time_critical_actions",

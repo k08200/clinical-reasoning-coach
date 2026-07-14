@@ -15224,11 +15224,13 @@ SSSS_SOURCE_SITE_ACTION_TERMS = (
 SSSS_CULTURE_ACTION_TERMS = (
     "blood culture",
     "blister fluid culture",
-    "culture",
-    "staph aureus",
-    "staphylococcus aureus",
+    "conjunctival swab",
+    "nasopharyngeal swab",
+    "perianal swab",
     "skin swab",
-    "swab",
+    "source culture",
+    "throat swab",
+    "wound culture",
 )
 SSSS_BIOPSY_DIFFERENTIAL_ACTION_TERMS = (
     "biopsy",
@@ -15265,6 +15267,14 @@ SSSS_ANTISTAPH_ANTIBIOTIC_ACTION_TERMS = (
     "oxacillin",
     "penicillinase-resistant",
     "vancomycin",
+)
+SSSS_MSSA_ANTIBIOTIC_ACTION_TERMS = (
+    "cefazolin",
+    "cloxacillin",
+    "dicloxacillin",
+    "flucloxacillin",
+    "nafcillin",
+    "oxacillin",
 )
 SSSS_FLUID_ELECTROLYTE_ACTION_TERMS = (
     "dehydration",
@@ -15305,6 +15315,12 @@ SSSS_MRSA_VANCOMYCIN_SAFETY_TERMS = (
     "mrsa",
     "recent hospitalization",
     "skilled nursing",
+)
+SSSS_MRSA_COVERAGE_SAFETY_TERMS = (
+    "anti-mrsa",
+    "linezolid",
+    "mrsa coverage",
+    "mrsa-active",
     "vancomycin",
 )
 SSSS_SILVER_SULFADIAZINE_SAFETY_TERMS = (
@@ -15330,8 +15346,11 @@ SSSS_DIFFERENTIAL_SAFETY_TERMS = (
     "agep",
     "bullous impetigo",
     "drug reaction",
-    "mucosa",
     "mucosal sparing",
+    "mucosa-sparing",
+    "mucosae unaffected",
+    "mucous membranes spared",
+    "no mucosal involvement",
     "sjs/ten",
     "stevens-johnson",
     "toxic epidermal necrolysis",
@@ -22531,15 +22550,15 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
                 "include suspected source-site evaluation such as nasopharynx, "
                 "conjunctiva, ears, throat, perianal area, wound source, or pyogenic "
                 "focus review, culture/swab evaluation such as skin swab, blister "
-                "fluid culture, blood culture, Staph aureus, or S. aureus review, "
+                "fluid culture, blood culture, wound culture, or source-swab review, "
                 "skin biopsy, frozen-section, intra-epidermal split, or serious "
                 "blistering differential review when uncertain, hospitalisation/"
                 "hospitalization, admission, inpatient, or emergency-department "
                 "management, dermatology, ICU, intensive-care, burn-unit, or burn-"
                 "center escalation for severe disease, prompt IV anti-staphylococcal "
-                "or penicillinase-resistant antibiotics such as flucloxacillin, "
-                "cefazolin, ceftriaxone, nafcillin, oxacillin, dicloxacillin, or "
-                "vancomycin, separate fluid/hydration/electrolyte or IV-fluid "
+                "or penicillinase-resistant therapy with a named MSSA-active agent "
+                "such as flucloxacillin, cefazolin, nafcillin, oxacillin, or "
+                "dicloxacillin, separate fluid/hydration/electrolyte or IV-fluid "
                 "support, separate temperature, hypothermia, thermal, or nutrition "
                 "support, skin/wound care with gentle washing, soap substitute, "
                 "saline-soaked gauze, non-adherent dressings, burns dressings, "
@@ -22554,9 +22573,10 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             validator=_has_ssss_treatment_safety_check,
             issue=(
                 "staphylococcal scalded skin syndrome safety checks must include "
-                "MRSA/vancomycin risk review such as healthcare exposure, recent "
+                "MRSA-risk review such as healthcare exposure, recent "
                 "hospitalization, skilled-nursing residence, or high-MRSA-prevalence "
-                "setting, silver-sulfadiazine avoidance or toxicity/systemic-"
+                "setting plus a named MRSA-active option such as vancomycin or "
+                "linezolid, silver-sulfadiazine avoidance or toxicity/systemic-"
                 "absorption review, NSAID/ibuprofen avoidance with kidney or renal "
                 "impairment review, clindamycin-resistance or clindamycin-monotherapy "
                 "avoidance, serious differential review for mucosal sparing versus "
@@ -36667,6 +36687,10 @@ def _has_ssss_time_critical_actions(actions: list[Any]) -> bool:
         _contains_safety_term(normalized_actions, term)
         for term in SSSS_ANTISTAPH_ANTIBIOTIC_ACTION_TERMS
     )
+    has_mssa_antibiotic = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SSSS_MSSA_ANTIBIOTIC_ACTION_TERMS
+    )
     has_fluid_electrolyte = any(
         _contains_safety_term(normalized_actions, term)
         for term in SSSS_FLUID_ELECTROLYTE_ACTION_TERMS
@@ -36690,6 +36714,7 @@ def _has_ssss_time_critical_actions(actions: list[Any]) -> bool:
         and has_admission_escalation
         and has_specialist_escalation
         and has_antistaph_antibiotic
+        and has_mssa_antibiotic
         and has_fluid_electrolyte
         and has_temp_nutrition
         and has_skin_wound
@@ -36702,6 +36727,10 @@ def _has_ssss_treatment_safety_check(checks: list[Any]) -> bool:
     has_mrsa_vancomycin_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in SSSS_MRSA_VANCOMYCIN_SAFETY_TERMS
+    )
+    has_mrsa_coverage_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SSSS_MRSA_COVERAGE_SAFETY_TERMS
     )
     has_silver_sulfadiazine_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -36741,6 +36770,7 @@ def _has_ssss_treatment_safety_check(checks: list[Any]) -> bool:
     )
     return (
         has_mrsa_vancomycin_safety
+        and has_mrsa_coverage_safety
         and has_silver_sulfadiazine_safety
         and has_nsaid_renal_safety
         and has_clindamycin_resistance_safety
