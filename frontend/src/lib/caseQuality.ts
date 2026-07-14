@@ -19091,14 +19091,12 @@ const COPD_VENTILATORY_FAILURE_ACTION_TERMS = [
   "삽관",
 ];
 
-const COPD_OXYGEN_TARGET_SAFETY_TERMS = [
-  "88",
-  "92",
+const COPD_CONTROLLED_OXYGEN_SAFETY_TERMS = [
   "controlled oxygen",
-  "oxygen target",
-  "target saturation",
   "venturi",
 ];
+
+const COPD_OXYGEN_TARGET_RANGE_SAFETY_TERMS = ["88-92", "88 to 92", "88% to 92", "88-92%"];
 
 const COPD_CO2_RETENTION_SAFETY_TERMS = [
   "co2",
@@ -19115,6 +19113,13 @@ const COPD_ABG_SAFETY_TERMS = [
   "동맥혈",
 ];
 
+const COPD_SERIAL_GAS_REASSESSMENT_SAFETY_TERMS = [
+  "repeat abg",
+  "repeat blood gas",
+  "serial abg",
+  "serial blood gas",
+];
+
 const COPD_NIV_SAFETY_TERMS = [
   "bipap",
   "niv",
@@ -19123,19 +19128,26 @@ const COPD_NIV_SAFETY_TERMS = [
 ];
 
 const COPD_NIV_ACIDOSIS_SAFETY_TERMS = [
-  "hypercapnic acidosis",
+  "acidosis",
   "ph",
   "respiratory acidosis",
 ];
 
-const COPD_NIV_FAILURE_INTUBATION_SAFETY_TERMS = [
+const COPD_NIV_HYPERCAPNIA_SAFETY_TERMS = ["co2", "hypercapnia", "paco2"];
+
+const COPD_NIV_FAILURE_SAFETY_TERMS = [
   "altered mental status",
   "fatigue",
-  "intubation",
-  "respiratory failure",
+  "hemodynamic instability",
+  "worsening acidosis",
   "의식",
+];
+
+const COPD_INTUBATION_ESCALATION_SAFETY_TERMS = [
+  "intubation",
+  "invasive ventilation",
+  "mechanical ventilation",
   "삽관",
-  "호흡부전",
 ];
 
 const COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS = [
@@ -19150,14 +19162,18 @@ const COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS = [
   "폐렴",
 ];
 
-const COPD_TREATMENT_ADVERSE_SAFETY_TERMS = [
+const COPD_BRONCHODILATOR_ADVERSE_SAFETY_TERMS = [
   "arrhythmia",
-  "glucose",
-  "hyperglycemia",
   "hypokalemia",
   "potassium",
-  "steroid",
   "tachycardia",
+  "전해질",
+];
+
+const COPD_STEROID_ADVERSE_SAFETY_TERMS = [
+  "glucose",
+  "hyperglycemia",
+  "steroid adverse",
   "전해질",
   "혈당",
 ];
@@ -33310,7 +33326,10 @@ function hasCopdExacerbationTimeCriticalActions(actions: string[]): boolean {
 
 function hasCopdExacerbationTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasOxygenTargetSafety = COPD_OXYGEN_TARGET_SAFETY_TERMS.some((term) =>
+  const hasControlledOxygenSafety = COPD_CONTROLLED_OXYGEN_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasOxygenTargetRangeSafety = COPD_OXYGEN_TARGET_RANGE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasCo2RetentionSafety = COPD_CO2_RETENTION_SAFETY_TERMS.some((term) =>
@@ -33319,30 +33338,47 @@ function hasCopdExacerbationTreatmentSafetyCheck(checks: string[]): boolean {
   const hasAbgSafety = COPD_ABG_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
+  const hasSerialGasReassessment = COPD_SERIAL_GAS_REASSESSMENT_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
   const hasNivSafety = COPD_NIV_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasNivAcidosisSafety = COPD_NIV_ACIDOSIS_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasNivFailureIntubationSafety = COPD_NIV_FAILURE_INTUBATION_SAFETY_TERMS.some((term) =>
+  const hasNivHypercapniaSafety = COPD_NIV_HYPERCAPNIA_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasDifferentialReview = COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS.some((term) =>
+  const hasNivFailureSafety = COPD_NIV_FAILURE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasTreatmentAdverseSafety = COPD_TREATMENT_ADVERSE_SAFETY_TERMS.some((term) =>
+  const hasIntubationEscalation = COPD_INTUBATION_ESCALATION_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const differentialCount = COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS.filter((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  ).length;
+  const hasBronchodilatorAdverseSafety = COPD_BRONCHODILATOR_ADVERSE_SAFETY_TERMS.some((term) =>
+    containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasSteroidAdverseSafety = COPD_STEROID_ADVERSE_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   return (
-    hasOxygenTargetSafety &&
+    hasControlledOxygenSafety &&
+    hasOxygenTargetRangeSafety &&
     hasCo2RetentionSafety &&
     hasAbgSafety &&
+    hasSerialGasReassessment &&
     hasNivSafety &&
     hasNivAcidosisSafety &&
-    hasNivFailureIntubationSafety &&
-    hasDifferentialReview &&
-    hasTreatmentAdverseSafety
+    hasNivHypercapniaSafety &&
+    hasNivFailureSafety &&
+    hasIntubationEscalation &&
+    differentialCount >= 2 &&
+    hasBronchodilatorAdverseSafety &&
+    hasSteroidAdverseSafety
   );
 }
 
@@ -36695,7 +36731,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasCopdExacerbationTreatmentSafetyCheck,
       issue:
-        "COPD exacerbation safety checks must include oxygen-induced hypercapnia or ABG monitoring, NIV/intubation failure criteria, cardiopulmonary differential diagnosis review, and bronchodilator or steroid adverse-effect monitoring",
+        "COPD exacerbation safety checks must include controlled oxygen targeting 88-92% with repeat ABG or blood-gas reassessment for oxygen-induced hypercapnia, NIV for hypercapnic acidosis with failure criteria and intubation escalation, at least two pneumonia, pulmonary embolism, acute heart failure, pneumothorax, or arrhythmia mimics, and bronchodilator plus steroid adverse-effect monitoring",
     },
     {
       name: "acute_heart_failure_time_critical_actions",

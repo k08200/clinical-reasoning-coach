@@ -17138,13 +17138,15 @@ COPD_VENTILATORY_FAILURE_ACTION_TERMS = (
     "기계환기",
     "삽관",
 )
-COPD_OXYGEN_TARGET_SAFETY_TERMS = (
-    "88",
-    "92",
+COPD_CONTROLLED_OXYGEN_SAFETY_TERMS = (
     "controlled oxygen",
-    "oxygen target",
-    "target saturation",
     "venturi",
+)
+COPD_OXYGEN_TARGET_RANGE_SAFETY_TERMS = (
+    "88-92",
+    "88 to 92",
+    "88% to 92",
+    "88-92%",
 )
 COPD_CO2_RETENTION_SAFETY_TERMS = (
     "co2",
@@ -17159,6 +17161,12 @@ COPD_ABG_SAFETY_TERMS = (
     "ph",
     "동맥혈",
 )
+COPD_SERIAL_GAS_REASSESSMENT_SAFETY_TERMS = (
+    "repeat abg",
+    "repeat blood gas",
+    "serial abg",
+    "serial blood gas",
+)
 COPD_NIV_SAFETY_TERMS = (
     "bipap",
     "niv",
@@ -17166,20 +17174,29 @@ COPD_NIV_SAFETY_TERMS = (
     "비침습",
 )
 COPD_NIV_ACIDOSIS_SAFETY_TERMS = (
-    "hypercapnic acidosis",
+    "acidosis",
     "ph",
     "respiratory acidosis",
 )
-COPD_NIV_FAILURE_INTUBATION_SAFETY_TERMS = (
+COPD_NIV_HYPERCAPNIA_SAFETY_TERMS = (
+    "co2",
+    "hypercapnia",
+    "paco2",
+)
+COPD_NIV_FAILURE_SAFETY_TERMS = (
     "altered mental status",
     "fatigue",
-    "intubation",
-    "respiratory failure",
+    "hemodynamic instability",
+    "worsening acidosis",
     "의식",
-    "삽관",
-    "호흡부전",
 )
-COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS = (
+COPD_INTUBATION_ESCALATION_SAFETY_TERMS = (
+    "intubation",
+    "invasive ventilation",
+    "mechanical ventilation",
+    "삽관",
+)
+COPD_COMORBID_DIFFERENTIAL_TERMS = (
     "acute heart failure",
     "arrhythmia",
     "bronchiectasis",
@@ -17190,14 +17207,17 @@ COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS = (
     "감별",
     "폐렴",
 )
-COPD_TREATMENT_ADVERSE_SAFETY_TERMS = (
+COPD_BRONCHODILATOR_ADVERSE_SAFETY_TERMS = (
     "arrhythmia",
-    "glucose",
-    "hyperglycemia",
     "hypokalemia",
     "potassium",
-    "steroid",
     "tachycardia",
+    "전해질",
+)
+COPD_STEROID_ADVERSE_SAFETY_TERMS = (
+    "glucose",
+    "hyperglycemia",
+    "steroid adverse",
     "전해질",
     "혈당",
 )
@@ -23459,10 +23479,12 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             field_name="contraindication_checks",
             validator=_has_copd_exacerbation_treatment_safety_check,
             issue=(
-                "COPD exacerbation safety checks must include oxygen-induced "
-                "hypercapnia or ABG monitoring, NIV/intubation failure criteria, "
-                "cardiopulmonary differential diagnosis review, and bronchodilator "
-                "or steroid adverse-effect monitoring"
+                "COPD exacerbation safety checks must include controlled oxygen "
+                "targeting 88-92% with repeat ABG or blood-gas reassessment for "
+                "oxygen-induced hypercapnia, NIV for hypercapnic acidosis with "
+                "failure criteria and intubation escalation, at least two pneumonia, "
+                "pulmonary embolism, acute heart failure, pneumothorax, or arrhythmia "
+                "mimics, and bronchodilator plus steroid adverse-effect monitoring"
             ),
         ),
         DomainSafetyGate(
@@ -38938,9 +38960,13 @@ def _has_copd_exacerbation_time_critical_actions(actions: list[Any]) -> bool:
 
 def _has_copd_exacerbation_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
-    has_oxygen_target_safety = any(
+    has_controlled_oxygen_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in COPD_OXYGEN_TARGET_SAFETY_TERMS
+        for term in COPD_CONTROLLED_OXYGEN_SAFETY_TERMS
+    )
+    has_oxygen_target_range_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_OXYGEN_TARGET_RANGE_SAFETY_TERMS
     )
     has_co2_retention_safety = any(
         _contains_safety_term(normalized_checks, term)
@@ -38950,6 +38976,10 @@ def _has_copd_exacerbation_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in COPD_ABG_SAFETY_TERMS
     )
+    has_serial_gas_reassessment = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_SERIAL_GAS_REASSESSMENT_SAFETY_TERMS
+    )
     has_niv_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in COPD_NIV_SAFETY_TERMS
@@ -38958,27 +38988,39 @@ def _has_copd_exacerbation_treatment_safety_check(checks: list[Any]) -> bool:
         _contains_safety_term(normalized_checks, term)
         for term in COPD_NIV_ACIDOSIS_SAFETY_TERMS
     )
-    has_niv_failure_intubation_safety = any(
+    has_niv_hypercapnia_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in COPD_NIV_FAILURE_INTUBATION_SAFETY_TERMS
+        for term in COPD_NIV_HYPERCAPNIA_SAFETY_TERMS
     )
-    has_differential_review = any(
+    has_niv_failure_safety = any(
         _contains_safety_term(normalized_checks, term)
-        for term in COPD_COMORBID_DIFFERENTIAL_SAFETY_TERMS
+        for term in COPD_NIV_FAILURE_SAFETY_TERMS
     )
-    has_treatment_adverse_safety = any(
+    has_intubation_escalation = any(
         _contains_safety_term(normalized_checks, term)
-        for term in COPD_TREATMENT_ADVERSE_SAFETY_TERMS
+        for term in COPD_INTUBATION_ESCALATION_SAFETY_TERMS
+    )
+    differential_count = sum(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_COMORBID_DIFFERENTIAL_TERMS
+    )
+    has_bronchodilator_adverse_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_BRONCHODILATOR_ADVERSE_SAFETY_TERMS
+    )
+    has_steroid_adverse_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in COPD_STEROID_ADVERSE_SAFETY_TERMS
     )
     return (
-        has_oxygen_target_safety
+        has_controlled_oxygen_safety and has_oxygen_target_range_safety
         and has_co2_retention_safety
-        and has_abg_safety
+        and has_abg_safety and has_serial_gas_reassessment
         and has_niv_safety
-        and has_niv_acidosis_safety
-        and has_niv_failure_intubation_safety
-        and has_differential_review
-        and has_treatment_adverse_safety
+        and has_niv_acidosis_safety and has_niv_hypercapnia_safety
+        and has_niv_failure_safety and has_intubation_escalation
+        and differential_count >= 2
+        and has_bronchodilator_adverse_safety and has_steroid_adverse_safety
     )
 
 

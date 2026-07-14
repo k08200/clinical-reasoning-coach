@@ -36219,7 +36219,7 @@ def test_quality_gate_requires_copd_controlled_oxygen_bronchodilators_steroids_a
         "Start NIV BiPAP for hypercapnic respiratory acidosis and prepare intubation if respiratory failure worsens",
     ]
     case["contraindication_checks"] = [
-        "Repeat ABG pH, PaCO2, and oxygen saturation after controlled oxygen to avoid oxygen-induced hypercapnia",
+        "Repeat ABG pH, PaCO2, and oxygen saturation after controlled oxygen targeting SpO2 88-92% to avoid oxygen-induced hypercapnia",
         "Review NIV failure, altered mental status, fatigue, respiratory acidosis, and intubation criteria",
         "Assess pneumonia, pneumothorax, pulmonary embolism, acute heart failure, arrhythmia, and other triggers",
         "Monitor tachycardia, arrhythmia, potassium hypokalemia, glucose hyperglycemia, and steroid adverse effects",
@@ -36237,7 +36237,7 @@ def test_quality_gate_requires_copd_controlled_oxygen_bronchodilators_steroids_a
                 "albuterol SABA and ipratropium SAMA short-acting bronchodilators",
                 "antibiotics when purulent sputum or pneumonia infection criteria are present",
                 "NIV BiPAP for hypercapnic respiratory acidosis and intubation if respiratory failure worsens",
-                "ABG pH, PaCO2, and oxygen saturation after controlled oxygen to avoid oxygen-induced hypercapnia",
+                "ABG pH, PaCO2, and oxygen saturation after controlled oxygen targeting SpO2 88-92% to avoid oxygen-induced hypercapnia",
                 "NIV failure, altered mental status, fatigue, respiratory acidosis, and intubation criteria",
                 "pneumonia, pneumothorax, pulmonary embolism, acute heart failure, arrhythmia, and other triggers",
                 "tachycardia, arrhythmia, potassium hypokalemia, glucose hyperglycemia, and steroid adverse effects",
@@ -36251,6 +36251,10 @@ def test_quality_gate_requires_copd_controlled_oxygen_bronchodilators_steroids_a
     assert any(
         "COPD exacerbation time-critical actions must include controlled oxygen targeting 88-92%"
         in issue
+        for issue in report.critical_issues
+    )
+    assert not any(
+        issue.startswith("COPD exacerbation safety checks")
         for issue in report.critical_issues
     )
 
@@ -36307,7 +36311,7 @@ def test_quality_gate_requires_copd_hypercapnia_niv_differential_and_adverse_saf
 
     assert not report.passed
     assert any(
-        "COPD exacerbation safety checks must include oxygen-induced hypercapnia"
+        "COPD exacerbation safety checks must include controlled oxygen targeting 88-92%"
         in issue
         for issue in report.critical_issues
     )
@@ -36365,7 +36369,7 @@ def test_quality_gate_rejects_copd_generic_abg_niv_differential_and_adverse_term
 
     assert not report.passed
     assert any(
-        "COPD exacerbation safety checks must include oxygen-induced hypercapnia"
+        "COPD exacerbation safety checks must include controlled oxygen targeting 88-92%"
         in issue
         for issue in report.critical_issues
     )

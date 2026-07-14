@@ -29074,7 +29074,7 @@
     "name": "copd_rejects_generic_abg_niv_differential_and_adverse_terms",
     "expected_passed": false,
     "expected_issue_substrings": [
-      "COPD exacerbation safety checks must include oxygen-induced hypercapnia"
+      "COPD exacerbation safety checks must include controlled oxygen targeting 88-92%"
     ],
     "overrides": {
       "diagnosis": "COPD exacerbation with acute hypercapnic respiratory failure",
