@@ -16963,22 +16963,24 @@ SEVERE_CAP_INITIAL_ANTIBIOTIC_TERMS = (
     "initial empiric antibiotics",
     "initial empiric antibiotic",
 )
-SEVERE_CAP_CORTICOSTEROID_CLASS_TERMS = (
+SEVERE_CAP_SYSTEMIC_CORTICOSTEROID_TERMS = (
     "corticosteroid",
-    "steroid",
-    "스테로이드",
+    "hydrocortisone",
+    "methylprednisolone",
+    "systemic steroid",
 )
-SEVERE_CAP_CORTICOSTEROID_AVOIDANCE_TERMS = (
-    "avoid routine",
-    "avoid routinely",
-    "no routine",
-    "not routinely",
-    "not routine",
+SEVERE_CAP_SEVERE_STEROID_INDICATION_TERMS = (
+    "severe cap",
+    "severe community-acquired pneumonia",
+    "severe pneumonia",
 )
-SEVERE_CAP_CORTICOSTEROID_EXCEPTION_TERMS = (
-    "refractory septic shock",
-    "septic shock",
-    "separate indication",
+SEVERE_CAP_STEROID_CONTRAINDICATION_TERMS = (
+    "influenza",
+    "uncontrolled diabetes",
+    "gi bleeding",
+    "gastrointestinal bleeding",
+    "aspergillus",
+    "recent gastrointestinal bleeding",
 )
 SEVERE_CAP_INFLUENZA_TERMS = (
     "influenza",
@@ -23385,8 +23387,9 @@ def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
             issue=(
                 "severe community-acquired pneumonia stewardship safety checks "
                 "must include not withholding initial empiric antibiotics because "
-                "of procalcitonin, corticosteroid avoidance or refractory-septic-shock "
-                "exception review, influenza antiviral or oseltamivir planning when "
+                "of procalcitonin, systemic-corticosteroid consideration for severe CAP "
+                "with influenza/diabetes/GI-bleeding/Aspergillus contraindication review, "
+                "influenza antiviral or oseltamivir planning when "
                 "positive, and antibiotic duration guided by clinical stability for "
                 "at least 5 days"
             ),
@@ -24104,7 +24107,6 @@ def _requires_deep_neck_infection_safety_check(data: dict[str, Any]) -> bool:
         "key_teaching_points",
         "time_critical_actions",
         "clinical_red_flags",
-        "clinical_sources",
         "physical_exam",
         "initial_labs",
     ):
@@ -38624,7 +38626,6 @@ def _requires_severe_cap_safety_check(data: dict[str, Any]) -> bool:
         "key_teaching_points",
         "time_critical_actions",
         "clinical_red_flags",
-        "clinical_sources",
         "physical_exam",
         "initial_labs",
     ):
@@ -38701,17 +38702,17 @@ def _has_severe_cap_antibiotic_stewardship_safety_check(checks: list[Any]) -> bo
         _contains_safety_term(normalized_checks, term)
         for term in SEVERE_CAP_INITIAL_ANTIBIOTIC_TERMS
     )
-    has_corticosteroid_class = any(
+    has_systemic_corticosteroid = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_CAP_CORTICOSTEROID_CLASS_TERMS
+        for term in SEVERE_CAP_SYSTEMIC_CORTICOSTEROID_TERMS
     )
-    has_corticosteroid_avoidance = any(
+    has_severe_steroid_indication = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_CAP_CORTICOSTEROID_AVOIDANCE_TERMS
+        for term in SEVERE_CAP_SEVERE_STEROID_INDICATION_TERMS
     )
-    has_corticosteroid_exception = any(
+    has_steroid_contraindication = any(
         _contains_safety_term(normalized_checks, term)
-        for term in SEVERE_CAP_CORTICOSTEROID_EXCEPTION_TERMS
+        for term in SEVERE_CAP_STEROID_CONTRAINDICATION_TERMS
     )
     has_influenza = any(
         _contains_safety_term(normalized_checks, term)
@@ -38737,9 +38738,9 @@ def _has_severe_cap_antibiotic_stewardship_safety_check(checks: list[Any]) -> bo
         has_procalcitonin_marker
         and has_antibiotic_nonwithhold
         and has_initial_antibiotic
-        and has_corticosteroid_class
-        and has_corticosteroid_avoidance
-        and has_corticosteroid_exception
+        and has_systemic_corticosteroid
+        and has_severe_steroid_indication
+        and has_steroid_contraindication
         and has_influenza
         and has_antiviral
         and has_duration

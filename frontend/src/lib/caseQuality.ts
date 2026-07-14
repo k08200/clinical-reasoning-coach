@@ -18957,24 +18957,26 @@ const SEVERE_CAP_INITIAL_ANTIBIOTIC_TERMS = [
   "initial empiric antibiotic",
 ];
 
-const SEVERE_CAP_CORTICOSTEROID_CLASS_TERMS = [
+const SEVERE_CAP_SYSTEMIC_CORTICOSTEROID_TERMS = [
   "corticosteroid",
-  "steroid",
-  "스테로이드",
+  "hydrocortisone",
+  "methylprednisolone",
+  "systemic steroid",
 ];
 
-const SEVERE_CAP_CORTICOSTEROID_AVOIDANCE_TERMS = [
-  "avoid routine",
-  "avoid routinely",
-  "no routine",
-  "not routinely",
-  "not routine",
+const SEVERE_CAP_SEVERE_STEROID_INDICATION_TERMS = [
+  "severe cap",
+  "severe community-acquired pneumonia",
+  "severe pneumonia",
 ];
 
-const SEVERE_CAP_CORTICOSTEROID_EXCEPTION_TERMS = [
-  "refractory septic shock",
-  "septic shock",
-  "separate indication",
+const SEVERE_CAP_STEROID_CONTRAINDICATION_TERMS = [
+  "influenza",
+  "uncontrolled diabetes",
+  "gi bleeding",
+  "gastrointestinal bleeding",
+  "aspergillus",
+  "recent gastrointestinal bleeding",
 ];
 
 const SEVERE_CAP_INFLUENZA_TERMS = [
@@ -21428,7 +21430,6 @@ function requiresCroupSafetyCheck(detail: ClinicalCaseReviewDetail): boolean {
     ...nestedStrings(detail.key_teaching_points),
     ...nestedStrings(detail.time_critical_actions),
     ...nestedStrings(detail.clinical_red_flags),
-    ...nestedStrings(detail.clinical_sources),
     ...nestedStrings(detail.physical_exam),
     ...nestedStrings(detail.initial_labs),
   ]
@@ -33119,7 +33120,6 @@ function requiresSevereCapSafetyCheck(detail: ClinicalCaseReviewDetail): boolean
     ...nestedStrings(detail.key_teaching_points),
     ...nestedStrings(detail.time_critical_actions),
     ...nestedStrings(detail.clinical_red_flags),
-    ...nestedStrings(detail.clinical_sources),
     ...nestedStrings(detail.physical_exam),
     ...nestedStrings(detail.initial_labs),
   ]
@@ -33179,13 +33179,13 @@ function hasSevereCapAntibioticStewardshipSafetyCheck(checks: string[]): boolean
   const hasInitialAntibiotic = SEVERE_CAP_INITIAL_ANTIBIOTIC_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasCorticosteroidClass = SEVERE_CAP_CORTICOSTEROID_CLASS_TERMS.some((term) =>
+  const hasSystemicCorticosteroid = SEVERE_CAP_SYSTEMIC_CORTICOSTEROID_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasCorticosteroidAvoidance = SEVERE_CAP_CORTICOSTEROID_AVOIDANCE_TERMS.some((term) =>
+  const hasSevereSteroidIndication = SEVERE_CAP_SEVERE_STEROID_INDICATION_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasCorticosteroidException = SEVERE_CAP_CORTICOSTEROID_EXCEPTION_TERMS.some((term) =>
+  const hasSteroidContraindication = SEVERE_CAP_STEROID_CONTRAINDICATION_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
   const hasInfluenza = SEVERE_CAP_INFLUENZA_TERMS.some((term) =>
@@ -33207,9 +33207,9 @@ function hasSevereCapAntibioticStewardshipSafetyCheck(checks: string[]): boolean
     hasProcalcitoninMarker &&
     hasAntibioticNonwithhold &&
     hasInitialAntibiotic &&
-    hasCorticosteroidClass &&
-    hasCorticosteroidAvoidance &&
-    hasCorticosteroidException &&
+    hasSystemicCorticosteroid &&
+    hasSevereSteroidIndication &&
+    hasSteroidContraindication &&
     hasInfluenza &&
     hasAntiviral &&
     hasDuration &&
@@ -36642,7 +36642,7 @@ function domainSafetyGates(): ReviewQualityGate[] {
       fieldName: "contraindication_checks",
       validator: hasSevereCapAntibioticStewardshipSafetyCheck,
       issue:
-        "severe community-acquired pneumonia stewardship safety checks must include not withholding initial empiric antibiotics because of procalcitonin, corticosteroid avoidance or refractory-septic-shock exception review, influenza antiviral or oseltamivir planning when positive, and antibiotic duration guided by clinical stability for at least 5 days",
+        "severe community-acquired pneumonia stewardship safety checks must include not withholding initial empiric antibiotics because of procalcitonin, systemic-corticosteroid consideration for severe CAP with influenza/diabetes/GI-bleeding/Aspergillus contraindication review, influenza antiviral or oseltamivir planning when positive, and antibiotic duration guided by clinical stability for at least 5 days",
     },
     {
       name: "copd_exacerbation_time_critical_actions",

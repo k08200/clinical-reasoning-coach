@@ -196,6 +196,46 @@ describe("reviewQualityIssues", () => {
     expect(issues.some((issue) => issue.startsWith("severe asthma "))).toBe(false);
   });
 
+  it("accepts current severe CAP stewardship", () => {
+    const issues = reviewQualityIssues(
+      makeReviewDetail({
+        diagnosis: "Severe community-acquired pneumonia with hypoxemia",
+        chief_complaint: "Fever, cough, confusion, and severe shortness of breath",
+        history_of_present_illness:
+          "Patient has hypoxemia, hypotension, elevated lactate, sepsis, and respiratory failure from severe community-acquired pneumonia.",
+        key_teaching_points: [
+          "Severe CAP requires oxygenation support and early empiric antibiotics",
+          "Severe CAP requires cultures, urinary antigens, and MRSA or Pseudomonas risk review",
+          "Systemic corticosteroids may be considered for severe CAP after contraindication review",
+        ],
+        clinical_red_flags: [
+          "Hypoxemia, respiratory failure, hypotension, shock, confusion, multilobar infiltrates, or ICU need",
+          "Prior respiratory isolation of MRSA or Pseudomonas, recent hospitalization with IV antibiotics within 90 days, or empyema",
+        ],
+        time_critical_actions: [
+          "Give supplemental oxygen and escalate to HFNC, ventilation, or intubation for hypoxemia and respiratory failure",
+          "Obtain chest x-ray, blood cultures, sputum respiratory culture, Legionella urinary antigen, and pneumococcal urinary antigen",
+          "Start empiric ceftriaxone beta-lactam plus azithromycin macrolide antibiotics",
+          "Treat sepsis with IV fluids, lactate monitoring, vasopressor planning, and ICU escalation for septic shock",
+        ],
+        contraindication_checks: [
+          "Review MRSA and Pseudomonas risk factors including prior respiratory isolation and recent hospitalization with IV antibiotics within 90 days; use vancomycin or antipseudomonal coverage only when indicated and de-escalate when cultures are negative",
+          "Use PSI, CURB-65, major criteria, minor criteria, hypotension, shock, and ICU need for severity and disposition review",
+          "Assess parapneumonic effusion or empyema, loculated effusion, thoracentesis need, and drainage indications",
+          "Evaluate viral influenza, COVID, aspiration, and lung abscess differential diagnoses",
+          "Do not withhold initial empiric antibiotics because of low procalcitonin when severe CAP is clinically suspected",
+          "Consider systemic hydrocortisone for severe CAP; avoid it with influenza pneumonia, uncontrolled diabetes, recent GI bleeding, or Aspergillus concern",
+          "If influenza is positive, start antiviral therapy such as oseltamivir while continuing antibacterial coverage when bacterial coinfection remains possible",
+          "Guide antibiotic duration by clinical stability including vital signs, respiratory rate, oxygen saturation, oral intake, and baseline mental status for at least 5 days",
+        ],
+      }),
+    );
+
+    expect(issues.some((issue) => issue.startsWith("severe community-acquired pneumonia "))).toBe(
+      false,
+    );
+  });
+
   it("flags Korean diagnosis terms in learner-visible case fields", () => {
     const issues = reviewQualityIssues(
       makeReviewDetail({
