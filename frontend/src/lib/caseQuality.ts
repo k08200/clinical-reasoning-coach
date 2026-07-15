@@ -20720,7 +20720,6 @@ const ACS_REPERFUSION_TIMING_ACTION_TERMS = [
   "door-to-balloon",
   "door to balloon",
   "door-to-needle",
-  "primary pci",
 ];
 
 const ACS_ASPIRIN_ACTION_TERMS = [
@@ -34521,9 +34520,17 @@ function hasAcsTimeCriticalActions(actions: string[]): boolean {
   const hasReperfusion = ACS_REPERFUSION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasReperfusionTiming = ACS_REPERFUSION_TIMING_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasReperfusionTiming = actions.some((action) => {
+    const normalizedAction = action.toLowerCase();
+    return (
+      ACS_REPERFUSION_ACTION_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      ) &&
+      ACS_REPERFUSION_TIMING_ACTION_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      )
+    );
+  });
   const hasAspirin = ACS_ASPIRIN_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );

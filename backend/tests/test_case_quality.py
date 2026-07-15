@@ -39297,6 +39297,26 @@ def test_quality_gate_requires_acs_reperfusion_timing_aspirin_dapt_and_anticoagu
     )
 
 
+def test_quality_gate_requires_acs_reperfusion_method_and_timing_in_same_action():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["time_critical_actions"] = [
+        "Obtain 12-lead ECG within 10 minutes and repeat ECG if symptoms evolve",
+        "Activate local ACS/reperfusion pathway and cath lab when STEMI criteria are met",
+        "Plan primary PCI if STEMI is confirmed",
+        "Document that symptom onset was within the 12 hour presentation window",
+        "Give 300 mg aspirin loading plus dual antiplatelet therapy with ticagrelor and UFH heparin anticoagulation after checking major contraindications",
+    ]
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "primary PCI/coronary angiography or fibrinolysis reperfusion planning with "
+        "90-minute/120-minute/12-hour or door-to-needle timing" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_requires_acs_dissection_bleeding_and_hemodynamic_safety():
     case = copy.deepcopy(CASE_POOL[0])
     case["contraindication_checks"] = [

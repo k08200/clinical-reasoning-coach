@@ -18628,7 +18628,6 @@ ACS_REPERFUSION_TIMING_ACTION_TERMS = (
     "door-to-balloon",
     "door to balloon",
     "door-to-needle",
-    "primary pci",
 )
 ACS_ASPIRIN_ACTION_TERMS = (
     "300 mg aspirin",
@@ -40356,8 +40355,15 @@ def _has_acs_time_critical_actions(actions: list[Any]) -> bool:
         for term in ACS_REPERFUSION_ACTION_TERMS
     )
     has_reperfusion_timing = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in ACS_REPERFUSION_TIMING_ACTION_TERMS
+        any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in ACS_REPERFUSION_ACTION_TERMS
+        )
+        and any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in ACS_REPERFUSION_TIMING_ACTION_TERMS
+        )
+        for action in actions
     )
     has_aspirin = any(
         _contains_safety_term(normalized_actions, term)
