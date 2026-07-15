@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 
 import pytest
 from httpx import AsyncClient
@@ -440,6 +441,7 @@ async def test_admin_can_verify_and_suspend_a_clinician_reviewer(
         json={
             "status": "verified",
             "practice_scope": "Emergency medicine educational simulation",
+            "verification_note": "Verified current educational review credentials.",
         },
         headers=headers_for(admin),
     )
@@ -453,7 +455,10 @@ async def test_admin_can_verify_and_suspend_a_clinician_reviewer(
 
     suspended_response = await client.patch(
         f"/api/auth/users/{reviewer.id}/reviewer-verification",
-        json={"status": "suspended"},
+        json={
+            "status": "suspended",
+            "verification_note": "Suspended pending credential review.",
+        },
         headers=headers_for(admin),
     )
 
@@ -463,6 +468,19 @@ async def test_admin_can_verify_and_suspend_a_clinician_reviewer(
     assert suspended["reviewer_practice_scope"] is None
     assert suspended["reviewer_verified_at"] is None
     assert suspended["reviewer_verified_by_user_id"] is None
+
+    history_response = await client.get(
+        f"/api/auth/users/{reviewer.id}/reviewer-verification/history",
+        headers=headers_for(admin),
+    )
+    assert history_response.status_code == 200
+    history = history_response.json()
+    assert [(event["action"], event["resulting_verification_status"]) for event in history] == [
+        ("credentials_suspended", "suspended"),
+        ("credentials_verified", "verified"),
+    ]
+    assert history[0]["verification_note"] == "Suspended pending credential review."
+    assert history[0]["actioned_by_user_id"] == str(admin.id)
 
 
 @pytest.mark.asyncio
@@ -477,12 +495,76 @@ async def test_admin_cannot_verify_own_clinician_credentials(
         json={
             "status": "verified",
             "practice_scope": "Emergency medicine educational simulation",
+            "verification_note": "Attempted self-verification for test coverage.",
         },
         headers=headers_for(admin),
     )
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Administrators cannot verify their own clinician credentials"
+
+
+@pytest.mark.asyncio
+async def test_role_update_preserves_existing_reviewer_verification(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    admin = await create_user(db, email="admin-preserve-reviewer@test.com", role="admin")
+    reviewer = await create_user(
+        db,
+        email="preserve-reviewer@test.com",
+        role="clinician_reviewer",
+    )
+    reviewer.reviewer_verification_status = "verified"
+    reviewer.reviewer_practice_scope = "Emergency medicine educational simulation"
+    reviewer.reviewer_verified_at = datetime.now(timezone.utc)
+    reviewer.reviewer_verified_by_user_id = admin.id
+    await db.commit()
+
+    response = await client.patch(
+        f"/api/auth/users/{reviewer.id}/role",
+        json={"role": "clinician_reviewer"},
+        headers=headers_for(admin),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["reviewer_verification_status"] == "verified"
+    assert body["reviewer_practice_scope"] == "Emergency medicine educational simulation"
+
+
+@pytest.mark.asyncio
+async def test_role_change_writes_reviewer_credential_events(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    admin = await create_user(db, email="admin-role-events@test.com", role="admin")
+    learner = await create_user(db, email="role-events@test.com")
+
+    assigned_response = await client.patch(
+        f"/api/auth/users/{learner.id}/role",
+        json={"role": "clinician_reviewer"},
+        headers=headers_for(admin),
+    )
+    assert assigned_response.status_code == 200
+
+    removed_response = await client.patch(
+        f"/api/auth/users/{learner.id}/role",
+        json={"role": "learner"},
+        headers=headers_for(admin),
+    )
+    assert removed_response.status_code == 200
+
+    history_response = await client.get(
+        f"/api/auth/users/{learner.id}/reviewer-verification/history",
+        headers=headers_for(admin),
+    )
+    assert history_response.status_code == 200
+    history = history_response.json()
+    assert [(event["action"], event["resulting_verification_status"]) for event in history] == [
+        ("role_removed", "not_applicable"),
+        ("role_assigned", "pending"),
+    ]
 
 
 @pytest.mark.asyncio

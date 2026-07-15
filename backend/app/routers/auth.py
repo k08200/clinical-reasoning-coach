@@ -11,12 +11,14 @@ from sqlalchemy import select
 from app.config import get_settings
 from app.database import get_db
 from app.models.case import ClinicalCase
+from app.models.reviewer_credential_event import ReviewerCredentialEvent
 from app.models.user import User
 from app.schemas.auth import (
     AdminBootstrapRequest,
     EducationalUseConsentRequest,
     RefreshTokenRequest,
     ReviewerVerificationUpdateRequest,
+    ReviewerCredentialEventResponse,
     UserRegister,
     UserRoleUpdateRequest,
     TokenResponse,
@@ -51,6 +53,29 @@ async def _invalidate_cases_reviewed_by(
         case.last_reviewed_at = None
         case.reviewed_by_user_id = None
         case.review_notes = None
+
+
+def _record_reviewer_credential_event(
+    db: AsyncSession,
+    *,
+    reviewer_user_id,
+    action: str,
+    resulting_verification_status: str,
+    practice_scope: str | None,
+    verification_note: str,
+    actioned_by_user_id,
+) -> None:
+    db.add(
+        ReviewerCredentialEvent(
+            reviewer_user_id=reviewer_user_id,
+            action=action,
+            resulting_verification_status=resulting_verification_status,
+            practice_scope=practice_scope,
+            verification_note=verification_note,
+            actioned_by_user_id=actioned_by_user_id,
+            created_at=datetime.now(timezone.utc),
+        )
+    )
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -232,22 +257,42 @@ async def update_user_role(
             detail="Cannot remove your own admin role",
         )
 
+    previous_role = target.role
+    role_changed = previous_role != data.role
     invalidates_active_reviews = (
-        target.role == "clinician_reviewer" and data.role != "clinician_reviewer"
+        previous_role == "clinician_reviewer" and data.role != "clinician_reviewer"
     )
     target.role = data.role
-    if data.role == "clinician_reviewer":
+    if role_changed and data.role == "clinician_reviewer":
         target.reviewer_verification_status = "pending"
         target.reviewer_practice_scope = None
         target.reviewer_verified_at = None
         target.reviewer_verified_by_user_id = None
-    else:
+        _record_reviewer_credential_event(
+            db,
+            reviewer_user_id=target.id,
+            action="role_assigned",
+            resulting_verification_status="pending",
+            practice_scope=None,
+            verification_note="Reviewer role assigned by administrator; credential verification pending.",
+            actioned_by_user_id=admin.id,
+        )
+    elif role_changed:
         target.reviewer_verification_status = "not_applicable"
         target.reviewer_practice_scope = None
         target.reviewer_verified_at = None
         target.reviewer_verified_by_user_id = None
     if invalidates_active_reviews:
         await _invalidate_cases_reviewed_by(db, target.id)
+        _record_reviewer_credential_event(
+            db,
+            reviewer_user_id=target.id,
+            action="role_removed",
+            resulting_verification_status="not_applicable",
+            practice_scope=None,
+            verification_note="Reviewer role removed by administrator; approved cases require re-review.",
+            actioned_by_user_id=admin.id,
+        )
     await db.flush()
     await db.refresh(target)
     return target
@@ -295,6 +340,47 @@ async def update_reviewer_verification(
         target.reviewer_verified_by_user_id = None
         await _invalidate_cases_reviewed_by(db, target.id)
 
+    _record_reviewer_credential_event(
+        db,
+        reviewer_user_id=target.id,
+        action=("credentials_verified" if data.status == "verified" else "credentials_suspended"),
+        resulting_verification_status=data.status,
+        practice_scope=target.reviewer_practice_scope,
+        verification_note=data.verification_note,
+        actioned_by_user_id=admin.id,
+    )
+
     await db.flush()
     await db.refresh(target)
     return target
+
+
+@router.get(
+    "/users/{user_id}/reviewer-verification/history",
+    response_model=list[ReviewerCredentialEventResponse],
+)
+async def list_reviewer_verification_history(
+    user_id: str,
+    _admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> list[ReviewerCredentialEvent]:
+    import uuid as _uuid
+
+    try:
+        target_id = _uuid.UUID(user_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        ) from e
+
+    target = await db.get(User, target_id)
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    events = await db.scalars(
+        select(ReviewerCredentialEvent)
+        .where(ReviewerCredentialEvent.reviewer_user_id == target.id)
+        .order_by(ReviewerCredentialEvent.created_at.desc())
+    )
+    return list(events)

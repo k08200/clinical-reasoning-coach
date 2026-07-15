@@ -8,6 +8,7 @@ from app.models.bias_event import BiasEvent
 from app.models.token_usage import TokenUsage
 from app.models.safety_event import SafetyEvent
 from app.models.case_review import ClinicalCaseReview
+from app.models.reviewer_credential_event import ReviewerCredentialEvent
 
 __all__ = [
     "User",
@@ -18,4 +19,5 @@ __all__ = [
     "TokenUsage",
     "SafetyEvent",
     "ClinicalCaseReview",
+    "ReviewerCredentialEvent",
 ]

@@ -2004,7 +2004,10 @@ async def test_suspending_reviewer_requires_re_review_of_their_cases(
     suspension_response = await client.patch(
         f"/api/auth/users/{reviewer.id}/reviewer-verification",
         headers=admin_headers,
-        json={"status": "suspended"},
+        json={
+            "status": "suspended",
+            "verification_note": "Suspended reviewer to require fresh case review.",
+        },
     )
     assert suspension_response.status_code == 200
 

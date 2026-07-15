@@ -5,6 +5,7 @@ import {
   setAuthTokens,
 } from "./session";
 import type {
+  ReviewerCredentialEvent,
   ReviewerVerificationStatus,
   SourceAlignmentChecks,
   TokenResponse,
@@ -132,12 +133,17 @@ export const api = {
       data: {
         status: Extract<ReviewerVerificationStatus, "verified" | "suspended">;
         practice_scope?: string;
+        verification_note: string;
       },
     ) =>
       request(`/api/auth/users/${id}/reviewer-verification`, {
         method: "PATCH",
         body: JSON.stringify(data),
       }),
+    listReviewerVerificationHistory: (id: string) =>
+      request(`/api/auth/users/${id}/reviewer-verification/history`) as Promise<
+        ReviewerCredentialEvent[]
+      >,
   },
 
   cases: {

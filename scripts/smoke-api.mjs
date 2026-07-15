@@ -89,8 +89,23 @@ async function main() {
     body: JSON.stringify({
       status: "verified",
       practice_scope: "Emergency medicine educational simulation",
+      verification_note: "Verified current educational review credentials for the smoke workflow.",
     }),
   });
+  const verifiedCredentialHistory = await request(
+    `/api/auth/users/${reviewer.id}/reviewer-verification/history`,
+    { headers: adminHeaders },
+  );
+  if (
+    !verifiedCredentialHistory.some(
+      (event) =>
+        event.action === "credentials_verified" &&
+        event.verification_note ===
+          "Verified current educational review credentials for the smoke workflow.",
+    )
+  ) {
+    throw new Error("reviewer credential verification audit event was not recorded");
+  }
   const reviewerTokens = await request("/api/auth/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -372,8 +387,25 @@ async function main() {
   await request(`/api/auth/users/${reviewer.id}/reviewer-verification`, {
     method: "PATCH",
     headers: { ...adminHeaders, "Content-Type": "application/json" },
-    body: JSON.stringify({ status: "suspended" }),
+    body: JSON.stringify({
+      status: "suspended",
+      verification_note: "Suspended reviewer in the smoke workflow to require fresh case review.",
+    }),
   });
+  const suspendedCredentialHistory = await request(
+    `/api/auth/users/${reviewer.id}/reviewer-verification/history`,
+    { headers: adminHeaders },
+  );
+  if (
+    !suspendedCredentialHistory.some(
+      (event) =>
+        event.action === "credentials_suspended" &&
+        event.verification_note ===
+          "Suspended reviewer in the smoke workflow to require fresh case review.",
+    )
+  ) {
+    throw new Error("reviewer credential suspension audit event was not recorded");
+  }
   const revokedReviewerSession = await fetch(`${API_URL}/api/sessions`, {
     method: "POST",
     headers: { ...authHeaders, "Content-Type": "application/json" },

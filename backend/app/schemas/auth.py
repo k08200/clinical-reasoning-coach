@@ -97,6 +97,7 @@ class UserRoleUpdateRequest(BaseModel):
 class ReviewerVerificationUpdateRequest(BaseModel):
     status: str
     practice_scope: str | None = Field(default=None, max_length=200)
+    verification_note: str = Field(max_length=1000)
 
     @field_validator("status")
     @classmethod
@@ -115,6 +116,14 @@ class ReviewerVerificationUpdateRequest(BaseModel):
         scope = v.strip()
         return scope or None
 
+    @field_validator("verification_note")
+    @classmethod
+    def require_verification_note(cls, v: str) -> str:
+        note = v.strip()
+        if len(note) < 10:
+            raise ValueError("Credential verification note must be at least 10 characters")
+        return note
+
     @model_validator(mode="after")
     def require_scope_for_verified_reviewer(self) -> "ReviewerVerificationUpdateRequest":
         if self.status == "verified" and (
@@ -122,6 +131,19 @@ class ReviewerVerificationUpdateRequest(BaseModel):
         ):
             raise ValueError("Verified clinician reviewers require a practice scope")
         return self
+
+
+class ReviewerCredentialEventResponse(BaseModel):
+    id: uuid.UUID
+    reviewer_user_id: uuid.UUID
+    action: str
+    resulting_verification_status: str
+    practice_scope: str | None
+    verification_note: str
+    actioned_by_user_id: uuid.UUID
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class UserResponse(BaseModel):

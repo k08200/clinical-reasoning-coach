@@ -5,7 +5,12 @@ import Link from "next/link";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import { useRequireAuth } from "@/lib/useAuthGate";
-import type { ReviewerVerificationStatus, User, UserRole } from "@/types";
+import type {
+  ReviewerCredentialEvent,
+  ReviewerVerificationStatus,
+  User,
+  UserRole,
+} from "@/types";
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: "learner", label: "Learner" },
@@ -32,10 +37,17 @@ export default function AdminUsersPage() {
   const checkingAuth = useRequireAuth();
   const [roleDrafts, setRoleDrafts] = useState<Record<string, UserRole>>({});
   const [verificationDrafts, setVerificationDrafts] = useState<
-    Record<string, { status: "verified" | "suspended"; practice_scope: string }>
+    Record<
+      string,
+      { status: "verified" | "suspended"; practice_scope: string; verification_note: string }
+    >
+  >({});
+  const [verificationHistory, setVerificationHistory] = useState<
+    Record<string, ReviewerCredentialEvent[]>
   >({});
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const [verifyingUserId, setVerifyingUserId] = useState<string | null>(null);
+  const [loadingHistoryUserId, setLoadingHistoryUserId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
   const [actionMessage, setActionMessage] = useState("");
 
@@ -81,6 +93,7 @@ export default function AdminUsersPage() {
       status:
         user.reviewer_verification_status === "suspended" ? "suspended" : "verified",
       practice_scope: user.reviewer_practice_scope ?? "",
+      verification_note: "",
     };
     setVerifyingUserId(user.id);
     setActionError("");
@@ -90,7 +103,10 @@ export default function AdminUsersPage() {
       await api.auth.updateReviewerVerification(user.id, {
         status: draft.status,
         practice_scope: draft.practice_scope.trim() || undefined,
+        verification_note: draft.verification_note.trim(),
       });
+      const history = await api.auth.listReviewerVerificationHistory(user.id);
+      setVerificationHistory((current) => ({ ...current, [user.id]: history }));
       await mutateUsers();
       setVerificationDrafts((current) => {
         const next = { ...current };
@@ -103,6 +119,21 @@ export default function AdminUsersPage() {
       setActionError(err instanceof Error ? err.message : "Could not update reviewer verification");
     } finally {
       setVerifyingUserId(null);
+    }
+  }
+
+  async function handleLoadVerificationHistory(user: User) {
+    setLoadingHistoryUserId(user.id);
+    setActionError("");
+
+    try {
+      const history = await api.auth.listReviewerVerificationHistory(user.id);
+      setVerificationHistory((current) => ({ ...current, [user.id]: history }));
+    } catch (err) {
+      console.error(err);
+      setActionError(err instanceof Error ? err.message : "Could not load credential history");
+    } finally {
+      setLoadingHistoryUserId(null);
     }
   }
 
@@ -219,6 +250,7 @@ export default function AdminUsersPage() {
                       ? "suspended"
                       : "verified",
                   practice_scope: managedUser.reviewer_practice_scope ?? "",
+                  verification_note: "",
                 };
                 const removingOwnAdmin =
                   managedUser.id === currentUser.id && selectedRole !== "admin";
@@ -318,6 +350,40 @@ export default function AdminUsersPage() {
                               </option>
                             ))}
                           </select>
+                          <label className="sr-only" htmlFor={`verification-note-${managedUser.id}`}>
+                            Credential review note for {managedUser.full_name}
+                          </label>
+                          <textarea
+                            id={`verification-note-${managedUser.id}`}
+                            value={verificationDraft.verification_note}
+                            onChange={(event) =>
+                              setVerificationDrafts((current) => ({
+                                ...current,
+                                [managedUser.id]: {
+                                  ...verificationDraft,
+                                  verification_note: event.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="Credential review note"
+                            className="min-h-20 w-full resize-y rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-brand-500"
+                          />
+                          {verificationHistory[managedUser.id] && (
+                            <ul
+                              aria-label={`Credential history for ${managedUser.full_name}`}
+                              className="space-y-2 border-l border-slate-700 pl-3 text-xs text-slate-400"
+                            >
+                              {verificationHistory[managedUser.id].map((event) => (
+                                <li key={event.id}>
+                                  <p className="font-medium text-slate-200">
+                                    {event.action.replace(/_/g, " ")} ({event.resulting_verification_status})
+                                  </p>
+                                  <p>{event.verification_note}</p>
+                                  <p>{new Date(event.created_at).toLocaleString()}</p>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                         </>
                       )}
                     </div>
@@ -333,13 +399,29 @@ export default function AdminUsersPage() {
                         <p className="mt-1 text-xs text-amber-300">Cannot demote yourself</p>
                       )}
                       {canManageVerification && (
-                        <button
-                          onClick={() => handleReviewerVerification(managedUser)}
-                          disabled={verifyingUserId === managedUser.id}
-                          className="mt-2 rounded-lg border border-emerald-700 px-3 py-2 text-sm font-semibold text-emerald-200 transition-colors hover:bg-emerald-950/30 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {verifyingUserId === managedUser.id ? "Updating..." : "Update Verification"}
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleReviewerVerification(managedUser)}
+                            disabled={
+                              verifyingUserId === managedUser.id ||
+                              verificationDraft.verification_note.trim().length < 10
+                            }
+                            className="mt-2 rounded-lg border border-emerald-700 px-3 py-2 text-sm font-semibold text-emerald-200 transition-colors hover:bg-emerald-950/30 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {verifyingUserId === managedUser.id
+                              ? "Updating..."
+                              : "Update Verification"}
+                          </button>
+                          <button
+                            onClick={() => handleLoadVerificationHistory(managedUser)}
+                            disabled={loadingHistoryUserId === managedUser.id}
+                            className="mt-2 text-sm font-medium text-sky-300 hover:text-sky-200 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {loadingHistoryUserId === managedUser.id
+                              ? "Loading..."
+                              : "View History"}
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>

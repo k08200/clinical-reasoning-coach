@@ -5,6 +5,17 @@ export type ReviewerVerificationStatus =
   | "verified"
   | "suspended";
 
+export interface ReviewerCredentialEvent {
+  id: string;
+  reviewer_user_id: string;
+  action: string;
+  resulting_verification_status: string;
+  practice_scope: string | null;
+  verification_note: string;
+  actioned_by_user_id: string;
+  created_at: string;
+}
+
 export interface User {
   id: string;
   email: string;

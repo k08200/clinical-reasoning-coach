@@ -12,6 +12,7 @@ import useSWR from "swr";
 const mockListUsers = vi.fn();
 const mockUpdateUserRole = vi.fn();
 const mockUpdateReviewerVerification = vi.fn();
+const mockListReviewerVerificationHistory = vi.fn();
 vi.mock("@/lib/api", () => ({
   api: {
     auth: {
@@ -20,6 +21,8 @@ vi.mock("@/lib/api", () => ({
       updateUserRole: (...args: unknown[]) => mockUpdateUserRole(...args),
       updateReviewerVerification: (...args: unknown[]) =>
         mockUpdateReviewerVerification(...args),
+      listReviewerVerificationHistory: (...args: unknown[]) =>
+        mockListReviewerVerificationHistory(...args),
     },
   },
 }));
@@ -88,6 +91,7 @@ beforeEach(() => {
   mockListUsers.mockReset();
   mockUpdateUserRole.mockReset();
   mockUpdateReviewerVerification.mockReset();
+  mockListReviewerVerificationHistory.mockReset();
   mockMutateUsers.mockReset();
   mockMutateUsers.mockResolvedValue(undefined);
 });
@@ -139,11 +143,15 @@ describe("AdminUsersPage", () => {
       ...pendingReviewer,
       reviewer_verification_status: "verified",
     });
+    mockListReviewerVerificationHistory.mockResolvedValue([]);
 
     render(<AdminUsersPage />);
 
     fireEvent.change(screen.getByLabelText("Practice scope for Reviewer User"), {
       target: { value: "Emergency medicine educational simulation" },
+    });
+    fireEvent.change(screen.getByLabelText("Credential review note for Reviewer User"), {
+      target: { value: "Verified current educational review credentials." },
     });
     fireEvent.click(screen.getByRole("button", { name: "Update Verification" }));
 
@@ -151,10 +159,37 @@ describe("AdminUsersPage", () => {
       expect(mockUpdateReviewerVerification).toHaveBeenCalledWith("reviewer-1", {
         status: "verified",
         practice_scope: "Emergency medicine educational simulation",
+        verification_note: "Verified current educational review credentials.",
       }),
     );
     expect(mockMutateUsers).toHaveBeenCalledOnce();
     expect(screen.getByText("Reviewer User reviewer verification updated.")).toBeTruthy();
+  });
+
+  it("shows credential history when requested", async () => {
+    mockAdminSwr({ users: [admin, pendingReviewer] });
+    mockListReviewerVerificationHistory.mockResolvedValue([
+      {
+        id: "event-1",
+        reviewer_user_id: "reviewer-1",
+        action: "credentials_verified",
+        resulting_verification_status: "verified",
+        practice_scope: "Emergency medicine educational simulation",
+        verification_note: "Verified current educational review credentials.",
+        actioned_by_user_id: "admin-1",
+        created_at: "2026-07-15T01:02:03Z",
+      },
+    ]);
+
+    render(<AdminUsersPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "View History" }));
+
+    await waitFor(() =>
+      expect(mockListReviewerVerificationHistory).toHaveBeenCalledWith("reviewer-1"),
+    );
+    expect(screen.getByLabelText("Credential history for Reviewer User")).toBeTruthy();
+    expect(screen.getByText("Verified current educational review credentials.")).toBeTruthy();
   });
 
   it("does not allow an admin to demote themselves in the UI", () => {
