@@ -10,6 +10,7 @@ from sqlalchemy import select
 
 from app.config import get_settings
 from app.database import get_db
+from app.models.case import ClinicalCase
 from app.models.user import User
 from app.schemas.auth import (
     AdminBootstrapRequest,
@@ -33,6 +34,23 @@ from app.utils.auth import (
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+
+async def _invalidate_cases_reviewed_by(
+    db: AsyncSession,
+    reviewer_user_id,
+) -> None:
+    reviewed_cases = await db.scalars(
+        select(ClinicalCase).where(
+            ClinicalCase.reviewed_by_user_id == reviewer_user_id,
+            ClinicalCase.review_status == "clinician_reviewed",
+        )
+    )
+    for case in reviewed_cases:
+        case.review_status = "educational_draft"
+        case.last_reviewed_at = None
+        case.reviewed_by_user_id = None
+        case.review_notes = None
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -214,6 +232,9 @@ async def update_user_role(
             detail="Cannot remove your own admin role",
         )
 
+    invalidates_active_reviews = (
+        target.role == "clinician_reviewer" and data.role != "clinician_reviewer"
+    )
     target.role = data.role
     if data.role == "clinician_reviewer":
         target.reviewer_verification_status = "pending"
@@ -225,6 +246,8 @@ async def update_user_role(
         target.reviewer_practice_scope = None
         target.reviewer_verified_at = None
         target.reviewer_verified_by_user_id = None
+    if invalidates_active_reviews:
+        await _invalidate_cases_reviewed_by(db, target.id)
     await db.flush()
     await db.refresh(target)
     return target
@@ -270,6 +293,7 @@ async def update_reviewer_verification(
         target.reviewer_practice_scope = None
         target.reviewer_verified_at = None
         target.reviewer_verified_by_user_id = None
+        await _invalidate_cases_reviewed_by(db, target.id)
 
     await db.flush()
     await db.refresh(target)

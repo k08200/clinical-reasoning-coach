@@ -1947,6 +1947,86 @@ async def test_unverified_clinician_reviewer_cannot_complete_clinical_review(
     assert response.json()["detail"] == "Clinician reviewer credential verification required"
 
 
+async def test_suspending_reviewer_requires_re_review_of_their_cases(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    admin = User(
+        email=f"suspension-admin-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Suspension Admin",
+        training_level="fellow",
+        role="admin",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    reviewer = User(
+        email=f"suspension-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Suspended Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = ClinicalCase(**CASE_POOL[0])
+    db.add_all([admin, reviewer, case])
+    await db.commit()
+    await db.refresh(admin)
+    await db.refresh(reviewer)
+    await db.refresh(case)
+    reviewer.reviewer_verified_by_user_id = admin.id
+    await db.commit()
+
+    reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}",
+    }
+    approval_response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
+            "educational_safety_confirmed": True,
+            "review_notes": REVIEW_AUDIT_NOTES,
+        },
+    )
+    assert approval_response.status_code == 200
+
+    admin_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(admin.id)})}",
+    }
+    suspension_response = await client.patch(
+        f"/api/auth/users/{reviewer.id}/reviewer-verification",
+        headers=admin_headers,
+        json={"status": "suspended"},
+    )
+    assert suspension_response.status_code == 200
+
+    await db.refresh(case)
+    assert case.review_status == "educational_draft"
+    assert case.last_reviewed_at is None
+    assert case.reviewed_by_user_id is None
+    assert case.review_notes is None
+
+    learner_headers = await _register_and_login(client)
+    session_response = await client.post(
+        "/api/sessions",
+        headers=learner_headers,
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+    )
+    assert session_response.status_code == 409
+    assert session_response.json()["detail"]["code"] == "case_not_clinician_reviewed"
+
+
 async def test_clinical_review_writes_audit_log(
     client: AsyncClient,
     db: AsyncSession,

@@ -369,6 +369,27 @@ async function main() {
     throw new Error("reviewer resolution did not preserve the privacy-locked session");
   }
 
+  await request(`/api/auth/users/${reviewer.id}/reviewer-verification`, {
+    method: "PATCH",
+    headers: { ...adminHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "suspended" }),
+  });
+  const revokedReviewerSession = await fetch(`${API_URL}/api/sessions`, {
+    method: "POST",
+    headers: { ...authHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      case_id: clinicalCase.id,
+      acknowledge_educational_simulation: true,
+    }),
+  });
+  const revokedReviewerBody = await revokedReviewerSession.json();
+  if (
+    revokedReviewerSession.status !== 409 ||
+    revokedReviewerBody?.detail?.code !== "case_not_clinician_reviewed"
+  ) {
+    throw new Error("suspended reviewer did not force case re-review before a new session");
+  }
+
   console.log(JSON.stringify({
     ok: true,
     apiUrl: API_URL,
