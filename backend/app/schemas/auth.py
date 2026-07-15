@@ -158,5 +158,8 @@ class UserResponse(BaseModel):
     reviewer_verified_by_user_id: uuid.UUID | None
     accepted_educational_use: bool
     accepted_educational_use_at: datetime | None
+    accepted_educational_use_version: str
+    required_educational_use_consent_version: str
+    educational_use_consent_current: bool
 
     model_config = {"from_attributes": True}

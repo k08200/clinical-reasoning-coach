@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.models.user import User
+from app.models.user import LEGACY_EDUCATIONAL_USE_CONSENT_VERSION, User
 from app.utils.auth import create_access_token, create_refresh_token, hash_password
 
 
@@ -53,6 +53,9 @@ async def test_register_success(client: AsyncClient):
     assert data["role"] == "learner"
     assert data["accepted_educational_use"] is True
     assert data["accepted_educational_use_at"]
+    assert data["accepted_educational_use_version"] == get_settings().educational_use_consent_version
+    assert data["required_educational_use_consent_version"] == get_settings().educational_use_consent_version
+    assert data["educational_use_consent_current"] is True
     assert "id" in data
     assert "hashed_password" not in data
 
@@ -212,6 +215,54 @@ async def test_existing_user_can_accept_educational_use_consent(
     payload = consent_response.json()
     assert payload["accepted_educational_use"] is True
     assert payload["accepted_educational_use_at"]
+
+    allowed_response = await client.get("/api/cases", headers=headers)
+    assert allowed_response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_legacy_educational_use_consent_requires_renewal(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email="legacy-version@test.com",
+        hashed_password=hash_password("legacypass123"),
+        full_name="Legacy Version User",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+        accepted_educational_use_version=LEGACY_EDUCATIONAL_USE_CONSENT_VERSION,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    headers = headers_for(user)
+
+    me_response = await client.get("/api/auth/me", headers=headers)
+    assert me_response.status_code == 200
+    assert me_response.json()["accepted_educational_use"] is True
+    assert me_response.json()["educational_use_consent_current"] is False
+    assert (
+        me_response.json()["required_educational_use_consent_version"]
+        == get_settings().educational_use_consent_version
+    )
+
+    blocked_response = await client.get("/api/cases", headers=headers)
+    assert blocked_response.status_code == 403
+    assert blocked_response.json()["detail"] == "Current educational use consent required"
+
+    consent_response = await client.post(
+        "/api/auth/educational-use-consent",
+        json={"accepted_educational_use": True},
+        headers=headers,
+    )
+    assert consent_response.status_code == 200
+    assert consent_response.json()["educational_use_consent_current"] is True
+    assert (
+        consent_response.json()["accepted_educational_use_version"]
+        == get_settings().educational_use_consent_version
+    )
 
     allowed_response = await client.get("/api/cases", headers=headers)
     assert allowed_response.status_code == 200

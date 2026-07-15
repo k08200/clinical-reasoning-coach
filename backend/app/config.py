@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
 DEFAULT_SECRET_KEY = "change-me-in-production"
+DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION = "2026-07-15"
 VALID_LLM_PROVIDERS = {"claude", "ollama", "mock"}
 
 
@@ -26,6 +27,10 @@ class Settings(BaseSettings):
     admin_bootstrap_token: str = Field(
         default="",
         validation_alias="ADMIN_BOOTSTRAP_TOKEN",
+    )
+    educational_use_consent_version: str = Field(
+        default=DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION,
+        validation_alias="EDUCATIONAL_USE_CONSENT_VERSION",
     )
 
     # Database

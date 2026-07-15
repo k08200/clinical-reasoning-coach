@@ -54,6 +54,10 @@ export default function EducationalUseConsentPage() {
             This app is for simulated clinical reasoning practice. It is not a medical
             device, patient-care tool, diagnostic system, or emergency service.
           </p>
+          <p className="mb-5 text-sm leading-6 text-slate-400">
+            Continuing records your agreement to the current educational-use statement.
+            A future change to this statement will require renewed confirmation.
+          </p>
 
           {error && (
             <div className="mb-4 rounded-lg border border-red-700 bg-red-900/50 p-3 text-sm text-red-300">

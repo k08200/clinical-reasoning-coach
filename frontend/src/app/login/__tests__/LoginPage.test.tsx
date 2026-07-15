@@ -13,6 +13,10 @@ vi.mock("@/lib/auth", () => ({
 
 vi.mock("@/lib/useAuthGate", () => ({
   useRedirectIfAuthenticated: () => false,
+  hasCurrentEducationalUseConsent: (user: {
+    accepted_educational_use?: boolean;
+    educational_use_consent_current?: boolean;
+  }) => user.educational_use_consent_current ?? !!user.accepted_educational_use,
 }));
 
 import LoginPage from "@/app/login/page";
@@ -71,6 +75,30 @@ describe("LoginPage", () => {
       expect(mockLogin).toHaveBeenCalledWith("student@test.com", "securepass123");
     });
     expect(mockReplace).toHaveBeenCalledWith("/consent");
+  });
+
+  it("sends users with an outdated consent version to the consent page", async () => {
+    mockLogin.mockResolvedValue({
+      id: "user-1",
+      email: "student@test.com",
+      full_name: "Test Student",
+      training_level: "resident",
+      accepted_educational_use: true,
+      educational_use_consent_current: false,
+    });
+
+    render(<LoginPage />);
+    fireEvent.change(screen.getByPlaceholderText("you@hospital.edu"), {
+      target: { value: "student@test.com" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("••••••••"), {
+      target: { value: "securepass123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/consent");
+    });
   });
 
   it("shows login errors", async () => {

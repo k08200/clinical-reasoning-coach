@@ -59,6 +59,12 @@ async function main() {
   });
   const adminHeaders = { Authorization: `Bearer ${refreshed.access_token}` };
 
+  await request("/api/auth/educational-use-consent", {
+    method: "POST",
+    headers: { ...adminHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({ accepted_educational_use: true }),
+  });
+
   if (!EXISTING_ADMIN_EMAIL) {
     await request("/api/auth/admin/bootstrap", {
       method: "POST",

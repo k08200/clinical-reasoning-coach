@@ -18,6 +18,14 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 
+def _educational_use_consent_error(user: User) -> str | None:
+    if not user.accepted_educational_use:
+        return "Educational use consent required"
+    if not user.educational_use_consent_current:
+        return "Current educational use consent required"
+    return None
+
+
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
@@ -91,10 +99,11 @@ async def get_current_user(
 async def require_educational_use_consent(
     user: User = Depends(get_current_user),
 ) -> str:
-    if not user.accepted_educational_use:
+    consent_error = _educational_use_consent_error(user)
+    if consent_error:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Educational use consent required",
+            detail=consent_error,
         )
     return str(user.id)
 
@@ -102,10 +111,11 @@ async def require_educational_use_consent(
 async def require_clinical_reviewer(
     user: User = Depends(get_current_user),
 ) -> User:
-    if not user.accepted_educational_use:
+    consent_error = _educational_use_consent_error(user)
+    if consent_error:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Educational use consent required",
+            detail=consent_error,
         )
     if user.role != "clinician_reviewer":
         raise HTTPException(
@@ -123,10 +133,11 @@ async def require_clinical_reviewer(
 async def require_safety_reviewer(
     user: User = Depends(get_current_user),
 ) -> User:
-    if not user.accepted_educational_use:
+    consent_error = _educational_use_consent_error(user)
+    if consent_error:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Educational use consent required",
+            detail=consent_error,
         )
     if user.role not in {"clinician_reviewer", "admin"}:
         raise HTTPException(
@@ -139,10 +150,11 @@ async def require_safety_reviewer(
 async def require_admin(
     user: User = Depends(get_current_user),
 ) -> User:
-    if not user.accepted_educational_use:
+    consent_error = _educational_use_consent_error(user)
+    if consent_error:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Educational use consent required",
+            detail=consent_error,
         )
     if user.role != "admin":
         raise HTTPException(

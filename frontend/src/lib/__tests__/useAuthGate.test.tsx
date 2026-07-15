@@ -61,6 +61,21 @@ describe("auth gate hooks", () => {
     });
   });
 
+  it("sends users with an outdated consent version to consent", async () => {
+    mockGetAccessToken.mockReturnValue("access-token");
+    mockGetRefreshToken.mockReturnValue(undefined);
+    mockMe.mockResolvedValue({
+      accepted_educational_use: true,
+      educational_use_consent_current: false,
+    });
+
+    renderHook(() => useRequireAuth());
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/consent");
+    });
+  });
+
   it("allows authenticated users with consent through", async () => {
     mockGetAccessToken.mockReturnValue("access-token");
     mockGetRefreshToken.mockReturnValue(undefined);

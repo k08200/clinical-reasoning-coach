@@ -28,6 +28,9 @@ export interface User {
   reviewer_verified_by_user_id?: string | null;
   accepted_educational_use: boolean;
   accepted_educational_use_at: string | null;
+  accepted_educational_use_version?: string;
+  required_educational_use_consent_version?: string;
+  educational_use_consent_current?: boolean;
 }
 
 export interface TokenResponse {

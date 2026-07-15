@@ -94,6 +94,7 @@ async def register(data: UserRegister, db: AsyncSession = Depends(get_db)) -> Us
         training_level=data.training_level,
         accepted_educational_use=data.accepted_educational_use,
         accepted_educational_use_at=datetime.now(timezone.utc),
+        accepted_educational_use_version=get_settings().educational_use_consent_version,
     )
     db.add(user)
     await db.flush()
@@ -118,8 +119,8 @@ async def accept_educational_use_consent(
         )
 
     user.accepted_educational_use = data.accepted_educational_use
-    if user.accepted_educational_use_at is None:
-        user.accepted_educational_use_at = datetime.now(timezone.utc)
+    user.accepted_educational_use_at = datetime.now(timezone.utc)
+    user.accepted_educational_use_version = get_settings().educational_use_consent_version
 
     await db.flush()
     await db.refresh(user)
@@ -196,10 +197,10 @@ async def bootstrap_first_admin(
             detail="Admin bootstrap is not configured",
         )
 
-    if not user.accepted_educational_use:
+    if not user.educational_use_consent_current:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Educational use consent required",
+            detail="Current educational use consent required",
         )
 
     if not hmac.compare_digest(data.setup_token, expected_token):

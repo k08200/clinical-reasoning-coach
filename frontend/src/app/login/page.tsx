@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/lib/auth";
-import { useRedirectIfAuthenticated } from "@/lib/useAuthGate";
+import { hasCurrentEducationalUseConsent, useRedirectIfAuthenticated } from "@/lib/useAuthGate";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const user = await login(email, password);
-      router.replace(user.accepted_educational_use ? "/cases" : "/consent");
+      router.replace(hasCurrentEducationalUseConsent(user) ? "/cases" : "/consent");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

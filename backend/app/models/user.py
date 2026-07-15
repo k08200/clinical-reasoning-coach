@@ -8,7 +8,10 @@ from sqlalchemy import String, DateTime, Boolean, ForeignKey, false, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
+from app.config import DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION, get_settings
 from app.database import Base
+
+LEGACY_EDUCATIONAL_USE_CONSENT_VERSION = "legacy-unversioned"
 
 
 class User(Base):
@@ -45,6 +48,12 @@ class User(Base):
     accepted_educational_use_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    accepted_educational_use_version: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default=DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION,
+        server_default=LEGACY_EDUCATIONAL_USE_CONSENT_VERSION,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -67,3 +76,15 @@ class User(Base):
     clinical_case_reviews: Mapped[list["ClinicalCaseReview"]] = relationship(
         "ClinicalCaseReview", back_populates="reviewer", lazy="selectin"
     )
+
+    @property
+    def required_educational_use_consent_version(self) -> str:
+        return get_settings().educational_use_consent_version
+
+    @property
+    def educational_use_consent_current(self) -> bool:
+        return (
+            self.accepted_educational_use
+            and self.accepted_educational_use_version
+            == self.required_educational_use_consent_version
+        )

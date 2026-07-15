@@ -9,6 +9,13 @@ function hasStoredAuthToken(): boolean {
   return !!(getAccessToken() || getRefreshToken());
 }
 
+export function hasCurrentEducationalUseConsent(user: {
+  accepted_educational_use?: boolean;
+  educational_use_consent_current?: boolean;
+}): boolean {
+  return user.educational_use_consent_current ?? !!user.accepted_educational_use;
+}
+
 export function useRequireAuth(options: { allowPendingConsent?: boolean } = {}): boolean {
   const router = useRouter();
   const pathname = usePathname();
@@ -30,11 +37,12 @@ export function useRequireAuth(options: { allowPendingConsent?: boolean } = {}):
         const user = await api.auth.me() as { accepted_educational_use?: boolean };
         if (cancelled) return;
 
-        if (!user.accepted_educational_use && !allowPendingConsent) {
+        const consentCurrent = hasCurrentEducationalUseConsent(user);
+        if (!consentCurrent && !allowPendingConsent) {
           router.replace("/consent");
           return;
         }
-        if (user.accepted_educational_use && pathname === "/consent") {
+        if (consentCurrent && pathname === "/consent") {
           router.replace("/cases");
           return;
         }
@@ -70,7 +78,7 @@ export function useRedirectIfAuthenticated(path = "/cases"): boolean {
         try {
           const user = await api.auth.me() as { accepted_educational_use?: boolean };
           if (cancelled) return;
-          router.replace(user.accepted_educational_use ? path : "/consent");
+          router.replace(hasCurrentEducationalUseConsent(user) ? path : "/consent");
         } catch {
           clearAuthTokens();
           if (!cancelled) {
