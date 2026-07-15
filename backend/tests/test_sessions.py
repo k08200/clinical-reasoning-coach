@@ -1402,10 +1402,7 @@ async def test_patient_identifier_signal_halts_before_case_snapshot_gate(
     response = await client.post(
         f"/api/sessions/{session.id}/stream",
         json={
-            "content": (
-                "Patient name is John Smith, DOB 01/02/1970, "
-                "MRN A123456, and phone 555-123-4567."
-            ),
+            "content": "Maria Gomez, a 54-year-old with chest pain, is my patient.",
         },
         headers=auth_headers,
     )
@@ -1429,10 +1426,9 @@ async def test_patient_identifier_signal_halts_before_case_snapshot_gate(
     assert len(safety_events) == 1
     assert safety_events[0].event_type == "possible_patient_identifier"
     assert safety_events[0].action_taken == "locked_session_blocked_storage_and_coaching"
-    assert "medical_record_number" in safety_events[0].detected_terms
+    assert safety_events[0].detected_terms == ["name_identifier"]
     assert [message.role for message in messages] == ["coach"]
-    assert all("John Smith" not in message.content for message in messages)
-    assert all("A123456" not in message.content for message in messages)
+    assert all("Maria Gomez" not in message.content for message in messages)
 
 
 @pytest.mark.asyncio

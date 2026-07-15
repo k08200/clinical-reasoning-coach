@@ -278,6 +278,64 @@ async function main() {
     throw new Error("reviewer resolution did not preserve the safety-locked session");
   }
 
+  const privacySession = await request("/api/sessions", {
+    method: "POST",
+    headers: { ...authHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      case_id: clinicalCase.id,
+      acknowledge_educational_simulation: true,
+    }),
+  });
+  const privacyResponse = await fetch(
+    `${API_URL}/api/sessions/${privacySession.id}/stream`,
+    {
+      method: "POST",
+      headers: { ...authHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: "Maria Gomez, a 54-year-old with chest pain, is my patient.",
+      }),
+    },
+  );
+  const privacyText = await privacyResponse.text();
+  if (!privacyResponse.ok || !privacyText.includes('"type": "done"')) {
+    throw new Error("patient-identifier safety stream did not halt cleanly");
+  }
+  const privacySaved = await request(`/api/sessions/${privacySession.id}`, {
+    headers: authHeaders,
+  });
+  if (
+    privacySaved.status !== "safety_locked" ||
+    privacySaved.messages.map((message) => message.role).join(",") !== "coach,coach" ||
+    JSON.stringify(privacySaved).includes("Maria Gomez")
+  ) {
+    throw new Error("patient identifier was stored or did not lock the session");
+  }
+  const privacyEvents = (await request(
+    "/api/safety-events?event_type=possible_patient_identifier&event_status=open&limit=200",
+    { headers: adminHeaders },
+  )).filter((event) => event.session_id === privacySession.id);
+  if (privacyEvents.length !== 1 || privacyEvents[0].severity !== "high") {
+    throw new Error("patient identifier did not create one high-severity safety event");
+  }
+  const resolvedPrivacyEvent = await request(
+    `/api/safety-events/${privacyEvents[0].id}/resolution`,
+    {
+      method: "PATCH",
+      headers: { ...adminHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: "resolved",
+        resolution_note:
+          "Reviewed blocked patient identifier signal, documented privacy handling, and confirmed this was not patient care.",
+      }),
+    },
+  );
+  if (
+    resolvedPrivacyEvent.status !== "resolved" ||
+    resolvedPrivacyEvent.session_status !== "safety_locked"
+  ) {
+    throw new Error("reviewer resolution did not preserve the privacy-locked session");
+  }
+
   console.log(JSON.stringify({
     ok: true,
     apiUrl: API_URL,
@@ -286,6 +344,7 @@ async function main() {
     caseTitle: clinicalCase.title,
     sessionId: session.id,
     lockedSessionId: lockedSession.id,
+    privacyLockedSessionId: privacySession.id,
     resolvedCoachGuardrailEvents: sessionSafetyEvents.length,
     finalScore: saved.final_reasoning_score,
     totalTokens:

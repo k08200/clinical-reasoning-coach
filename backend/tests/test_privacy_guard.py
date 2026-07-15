@@ -50,6 +50,14 @@ def test_detect_patient_identifiers_finds_direct_korean_patient_name_labels():
     assert detected == ["name_identifier"]
 
 
+def test_detect_patient_identifiers_finds_unlabeled_name_and_age_combinations():
+    detected = detect_patient_identifiers(
+        "Maria Gomez, a 54-year-old with chest pain, and 홍길동님은 62세로 발열이 있습니다."
+    )
+
+    assert detected == ["name_identifier"]
+
+
 def test_detect_patient_identifiers_finds_korean_resident_registration_numbers():
     detected = detect_patient_identifiers(
         "주민등록번호는 900101-1234567입니다. "

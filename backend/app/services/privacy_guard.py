@@ -143,6 +143,14 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
     ),
     IdentifierPattern(
         "name_identifier",
+        re.compile(
+            r"\b[A-Z][a-z]{1,40}\s+[A-Z][a-z]{1,40},?\s+"
+            r"(?:a|an)?\s*(?:\d{1,3}(?:-|\s)?(?:year[-\s]?old|yo)|"
+            r"age\s*[:=]?\s*\d{1,3})\b"
+        ),
+    ),
+    IdentifierPattern(
+        "name_identifier",
         re.compile(r"(?:환자\s*)?(?:이름|성명)\s*(?:은|는|:)?\s*[가-힣]{2,5}"),
     ),
     IdentifierPattern(
@@ -150,6 +158,12 @@ IDENTIFIER_PATTERNS: tuple[IdentifierPattern, ...] = (
         re.compile(
             r"(?:환자|대상자)\s*(?::|=)\s*[가-힣]{2,5}(?:님|씨)?|"
             r"(?:환자|대상자)\s+[가-힣]{2,5}(?:님|씨)"
+        ),
+    ),
+    IdentifierPattern(
+        "name_identifier",
+        re.compile(
+            r"\b[가-힣]{2,5}(?:님|씨)\s*(?:은|는|이|가)?\s*(?:만\s*)?\d{1,3}\s*세\b"
         ),
     ),
     IdentifierPattern(
