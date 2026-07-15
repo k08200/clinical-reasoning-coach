@@ -40,8 +40,21 @@ def test_validate_runtime_settings_accepts_production_with_custom_secret():
             app_environment="production",
             secret_key="replace-with-a-long-random-secret",
             database_auto_create_tables=False,
+            llm_provider="ollama",
         )
     )
+
+
+def test_validate_runtime_settings_rejects_mock_provider_in_production():
+    with pytest.raises(RuntimeError, match="does not allow LLM_PROVIDER=mock"):
+        validate_runtime_settings(
+            Settings(
+                app_environment="production",
+                secret_key="replace-with-a-long-random-secret",
+                database_auto_create_tables=False,
+                llm_provider="mock",
+            )
+        )
 
 
 def test_settings_reads_app_env_alias(monkeypatch: pytest.MonkeyPatch):

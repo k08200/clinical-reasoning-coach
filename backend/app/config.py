@@ -101,3 +101,9 @@ def validate_runtime_settings(settings: Settings | None = None) -> None:
             "APP_ENV=production requires DATABASE_AUTO_CREATE_TABLES=false "
             "and Alembic migrations"
         )
+
+    if environment == "production" and provider == "mock":
+        raise RuntimeError(
+            "APP_ENV=production does not allow LLM_PROVIDER=mock; "
+            "configure ollama or claude"
+        )

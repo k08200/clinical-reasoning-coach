@@ -60,6 +60,7 @@ LLM_PROVIDER=ollama  # 또는 claude
 
 - `APP_ENV=production`에서 기본 `SECRET_KEY=change-me-in-production`이면 백엔드가 시작되지 않습니다.
 - `APP_ENV=production`에서는 `DATABASE_AUTO_CREATE_TABLES=false`를 설정하고 Alembic migration을 적용해야 합니다.
+- `APP_ENV=production`에서는 데모용 `LLM_PROVIDER=mock`으로 시작할 수 없습니다. 검증된 로컬 `ollama` 또는 API 키가 설정된 `claude`를 명시적으로 선택해야 합니다.
 - 첫 관리자 계정은 일반 회원가입/로그인 후 `/admin/bootstrap`에서 `ADMIN_BOOTSTRAP_TOKEN`을 입력해 생성합니다.
 - 첫 admin이 생성된 뒤에는 bootstrap endpoint가 닫히므로, 이후 reviewer/admin 권한은 `/admin/users`에서 관리합니다.
 - `EDUCATIONAL_USE_CONSENT_VERSION`을 변경하면 모든 기존 사용자는 현재 교육 전용 사용 동의 화면에서 재확인하기 전까지 기능을 사용할 수 없습니다. 변경 전 동의 버전과 시각은 사용자 감사 데이터에 보존됩니다.
