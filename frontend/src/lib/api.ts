@@ -4,7 +4,12 @@ import {
   handleUnauthorized,
   setAuthTokens,
 } from "./session";
-import type { SourceAlignmentChecks, TokenResponse, UserRole } from "@/types";
+import type {
+  ReviewerVerificationStatus,
+  SourceAlignmentChecks,
+  TokenResponse,
+  UserRole,
+} from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -119,6 +124,17 @@ export const api = {
     listUsers: () => request("/api/auth/users"),
     updateUserRole: (id: string, data: { role: UserRole }) =>
       request(`/api/auth/users/${id}/role`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    updateReviewerVerification: (
+      id: string,
+      data: {
+        status: Extract<ReviewerVerificationStatus, "verified" | "suspended">;
+        practice_scope?: string;
+      },
+    ) =>
+      request(`/api/auth/users/${id}/reviewer-verification`, {
         method: "PATCH",
         body: JSON.stringify(data),
       }),

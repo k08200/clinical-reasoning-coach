@@ -11,12 +11,15 @@ import useSWR from "swr";
 
 const mockListUsers = vi.fn();
 const mockUpdateUserRole = vi.fn();
+const mockUpdateReviewerVerification = vi.fn();
 vi.mock("@/lib/api", () => ({
   api: {
     auth: {
       me: vi.fn(),
       listUsers: (...args: unknown[]) => mockListUsers(...args),
       updateUserRole: (...args: unknown[]) => mockUpdateUserRole(...args),
+      updateReviewerVerification: (...args: unknown[]) =>
+        mockUpdateReviewerVerification(...args),
     },
   },
 }));
@@ -41,6 +44,20 @@ const learner: User = {
   full_name: "Learner User",
   training_level: "resident",
   role: "learner",
+  accepted_educational_use: true,
+  accepted_educational_use_at: "2026-06-01T00:00:00Z",
+};
+
+const pendingReviewer: User = {
+  id: "reviewer-1",
+  email: "reviewer@test.com",
+  full_name: "Reviewer User",
+  training_level: "fellow",
+  role: "clinician_reviewer",
+  reviewer_verification_status: "pending",
+  reviewer_practice_scope: null,
+  reviewer_verified_at: null,
+  reviewer_verified_by_user_id: null,
   accepted_educational_use: true,
   accepted_educational_use_at: "2026-06-01T00:00:00Z",
 };
@@ -70,6 +87,7 @@ function mockAdminSwr({
 beforeEach(() => {
   mockListUsers.mockReset();
   mockUpdateUserRole.mockReset();
+  mockUpdateReviewerVerification.mockReset();
   mockMutateUsers.mockReset();
   mockMutateUsers.mockResolvedValue(undefined);
 });
@@ -113,6 +131,30 @@ describe("AdminUsersPage", () => {
     );
     expect(mockMutateUsers).toHaveBeenCalledOnce();
     expect(screen.getByText("Learner User role updated.")).toBeTruthy();
+  });
+
+  it("records reviewer credential verification with a practice scope", async () => {
+    mockAdminSwr({ users: [admin, pendingReviewer] });
+    mockUpdateReviewerVerification.mockResolvedValue({
+      ...pendingReviewer,
+      reviewer_verification_status: "verified",
+    });
+
+    render(<AdminUsersPage />);
+
+    fireEvent.change(screen.getByLabelText("Practice scope for Reviewer User"), {
+      target: { value: "Emergency medicine educational simulation" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Update Verification" }));
+
+    await waitFor(() =>
+      expect(mockUpdateReviewerVerification).toHaveBeenCalledWith("reviewer-1", {
+        status: "verified",
+        practice_scope: "Emergency medicine educational simulation",
+      }),
+    );
+    expect(mockMutateUsers).toHaveBeenCalledOnce();
+    expect(screen.getByText("Reviewer User reviewer verification updated.")).toBeTruthy();
   });
 
   it("does not allow an admin to demote themselves in the UI", () => {

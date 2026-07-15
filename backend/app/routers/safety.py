@@ -21,7 +21,7 @@ from app.schemas.safety import (
     SafetyEventResolutionRequest,
     SafetyEventResponse,
 )
-from app.utils.auth import require_clinical_reviewer
+from app.utils.auth import require_safety_reviewer
 
 router = APIRouter(prefix="/api/safety-events", tags=["safety"])
 
@@ -190,7 +190,7 @@ async def list_safety_events(
     event_status: str | None = Query(None),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    _reviewer: User = Depends(require_clinical_reviewer),
+    _reviewer: User = Depends(require_safety_reviewer),
     db: AsyncSession = Depends(get_db),
 ) -> list[SafetyEventResponse]:
     _validate_safety_event_filter("event_type", event_type, VALID_SAFETY_EVENT_TYPES)
@@ -252,7 +252,7 @@ async def list_safety_events(
 async def update_safety_event_resolution(
     event_id: uuid.UUID,
     body: SafetyEventResolutionRequest,
-    reviewer: User = Depends(require_clinical_reviewer),
+    reviewer: User = Depends(require_safety_reviewer),
     db: AsyncSession = Depends(get_db),
 ) -> SafetyEventResponse:
     event = await db.get(SafetyEvent, event_id)

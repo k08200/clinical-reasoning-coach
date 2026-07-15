@@ -1,4 +1,9 @@
 export type UserRole = "learner" | "clinician_reviewer" | "admin";
+export type ReviewerVerificationStatus =
+  | "not_applicable"
+  | "pending"
+  | "verified"
+  | "suspended";
 
 export interface User {
   id: string;
@@ -6,6 +11,10 @@ export interface User {
   full_name: string;
   training_level: string;
   role: UserRole;
+  reviewer_verification_status?: ReviewerVerificationStatus;
+  reviewer_practice_scope?: string | null;
+  reviewer_verified_at?: string | null;
+  reviewer_verified_by_user_id?: string | null;
   accepted_educational_use: boolean;
   accepted_educational_use_at: string | null;
 }
@@ -85,6 +94,12 @@ export interface ClinicalCaseReview {
       attests_review_within_scope: boolean;
       attests_educational_use_only: boolean;
       reviewer_role: UserRole;
+    };
+    reviewer_credential_verification?: {
+      status: "verified";
+      practice_scope: string;
+      verified_at: string;
+      verified_by_user_id: string;
     };
     supported_elements?: Array<{
       title?: string;

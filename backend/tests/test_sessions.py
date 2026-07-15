@@ -215,6 +215,12 @@ def _review_audit_for_case(case: ClinicalCase) -> ClinicalCaseReview:
                 "attests_educational_use_only": True,
                 "reviewer_role": "clinician_reviewer",
             },
+            "reviewer_credential_verification": {
+                "status": "verified",
+                "practice_scope": "Emergency medicine educational simulation",
+                "verified_at": datetime.now(timezone.utc).isoformat(),
+                "verified_by_user_id": str(uuid.uuid4()),
+            },
         },
         review_notes="Test clinician review with source and safety alignment.",
     )
@@ -2110,6 +2116,10 @@ async def test_reviewer_can_read_safety_locked_session_with_safety_event(
         full_name="Safety Context Reviewer",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
@@ -2192,6 +2202,10 @@ async def test_reviewer_can_read_active_session_with_safety_event_context(
         full_name="Active Context Reviewer",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
@@ -2275,6 +2289,10 @@ async def test_reviewer_can_read_completed_safety_event_session_review(
         full_name="Completed Safety Reviewer",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
@@ -2370,6 +2388,10 @@ async def test_reviewer_cannot_read_completed_session_review_without_safety_even
         full_name="Completed Private Reviewer",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
@@ -2425,6 +2447,10 @@ async def test_reviewer_cannot_read_active_session_without_safety_event(
         full_name="Active Private Reviewer",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )

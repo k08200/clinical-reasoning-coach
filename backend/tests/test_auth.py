@@ -413,10 +413,76 @@ async def test_admin_can_promote_clinician_reviewer(
 
     assert response.status_code == 200
     assert response.json()["role"] == "clinician_reviewer"
+    assert response.json()["reviewer_verification_status"] == "pending"
 
     me_response = await client.get("/api/auth/me", headers=headers_for(learner))
     assert me_response.status_code == 200
     assert me_response.json()["role"] == "clinician_reviewer"
+    assert me_response.json()["reviewer_verification_status"] == "pending"
+
+
+@pytest.mark.asyncio
+async def test_admin_can_verify_and_suspend_a_clinician_reviewer(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    admin = await create_user(db, email="admin-verify@test.com", role="admin")
+    reviewer = await create_user(
+        db,
+        email="reviewer-verify@test.com",
+        role="clinician_reviewer",
+    )
+    reviewer.reviewer_verification_status = "pending"
+    await db.commit()
+
+    verified_response = await client.patch(
+        f"/api/auth/users/{reviewer.id}/reviewer-verification",
+        json={
+            "status": "verified",
+            "practice_scope": "Emergency medicine educational simulation",
+        },
+        headers=headers_for(admin),
+    )
+
+    assert verified_response.status_code == 200
+    verified = verified_response.json()
+    assert verified["reviewer_verification_status"] == "verified"
+    assert verified["reviewer_practice_scope"] == "Emergency medicine educational simulation"
+    assert verified["reviewer_verified_at"]
+    assert verified["reviewer_verified_by_user_id"] == str(admin.id)
+
+    suspended_response = await client.patch(
+        f"/api/auth/users/{reviewer.id}/reviewer-verification",
+        json={"status": "suspended"},
+        headers=headers_for(admin),
+    )
+
+    assert suspended_response.status_code == 200
+    suspended = suspended_response.json()
+    assert suspended["reviewer_verification_status"] == "suspended"
+    assert suspended["reviewer_practice_scope"] is None
+    assert suspended["reviewer_verified_at"] is None
+    assert suspended["reviewer_verified_by_user_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_admin_cannot_verify_own_clinician_credentials(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    admin = await create_user(db, email="self-verify-admin@test.com", role="admin")
+
+    response = await client.patch(
+        f"/api/auth/users/{admin.id}/reviewer-verification",
+        json={
+            "status": "verified",
+            "practice_scope": "Emergency medicine educational simulation",
+        },
+        headers=headers_for(admin),
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Administrators cannot verify their own clinician credentials"
 
 
 @pytest.mark.asyncio

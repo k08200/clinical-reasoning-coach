@@ -244,6 +244,16 @@ async def complete_clinical_review(
                     **body.reviewer_attestation.model_dump(),
                     "reviewer_role": reviewer.role,
                 },
+                "reviewer_credential_verification": {
+                    "status": reviewer.reviewer_verification_status,
+                    "practice_scope": reviewer.reviewer_practice_scope,
+                    "verified_at": reviewer.reviewer_verified_at.isoformat()
+                    if reviewer.reviewer_verified_at
+                    else None,
+                    "verified_by_user_id": str(reviewer.reviewer_verified_by_user_id)
+                    if reviewer.reviewer_verified_by_user_id
+                    else None,
+                },
                 "supported_elements": [
                     {
                         "title": source.get("title"),

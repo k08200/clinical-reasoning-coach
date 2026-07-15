@@ -5,12 +5,19 @@ import Link from "next/link";
 import useSWR from "swr";
 import { api } from "@/lib/api";
 import { useRequireAuth } from "@/lib/useAuthGate";
-import type { User, UserRole } from "@/types";
+import type { ReviewerVerificationStatus, User, UserRole } from "@/types";
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: "learner", label: "Learner" },
   { value: "clinician_reviewer", label: "Clinician reviewer" },
   { value: "admin", label: "Admin" },
+];
+const REVIEWER_VERIFICATION_OPTIONS: {
+  value: Extract<ReviewerVerificationStatus, "verified" | "suspended">;
+  label: string;
+}[] = [
+  { value: "verified", label: "Verified" },
+  { value: "suspended", label: "Suspended" },
 ];
 
 function roleBadgeClasses(role: UserRole): string {
@@ -24,7 +31,11 @@ function roleBadgeClasses(role: UserRole): string {
 export default function AdminUsersPage() {
   const checkingAuth = useRequireAuth();
   const [roleDrafts, setRoleDrafts] = useState<Record<string, UserRole>>({});
+  const [verificationDrafts, setVerificationDrafts] = useState<
+    Record<string, { status: "verified" | "suspended"; practice_scope: string }>
+  >({});
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [verifyingUserId, setVerifyingUserId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
   const [actionMessage, setActionMessage] = useState("");
 
@@ -62,6 +73,36 @@ export default function AdminUsersPage() {
       setActionError(err instanceof Error ? err.message : "Could not update user role");
     } finally {
       setUpdatingUserId(null);
+    }
+  }
+
+  async function handleReviewerVerification(user: User) {
+    const draft = verificationDrafts[user.id] ?? {
+      status:
+        user.reviewer_verification_status === "suspended" ? "suspended" : "verified",
+      practice_scope: user.reviewer_practice_scope ?? "",
+    };
+    setVerifyingUserId(user.id);
+    setActionError("");
+    setActionMessage("");
+
+    try {
+      await api.auth.updateReviewerVerification(user.id, {
+        status: draft.status,
+        practice_scope: draft.practice_scope.trim() || undefined,
+      });
+      await mutateUsers();
+      setVerificationDrafts((current) => {
+        const next = { ...current };
+        delete next[user.id];
+        return next;
+      });
+      setActionMessage(`${user.full_name} reviewer verification updated.`);
+    } catch (err) {
+      console.error(err);
+      setActionError(err instanceof Error ? err.message : "Could not update reviewer verification");
+    } finally {
+      setVerifyingUserId(null);
     }
   }
 
@@ -172,8 +213,18 @@ export default function AdminUsersPage() {
               {users?.map((managedUser) => {
                 const selectedRole = roleDrafts[managedUser.id] ?? managedUser.role;
                 const changed = selectedRole !== managedUser.role;
+                const verificationDraft = verificationDrafts[managedUser.id] ?? {
+                  status:
+                    managedUser.reviewer_verification_status === "suspended"
+                      ? "suspended"
+                      : "verified",
+                  practice_scope: managedUser.reviewer_practice_scope ?? "",
+                };
                 const removingOwnAdmin =
                   managedUser.id === currentUser.id && selectedRole !== "admin";
+                const canManageVerification =
+                  managedUser.role === "clinician_reviewer" &&
+                  managedUser.id !== currentUser.id;
 
                 return (
                   <div
@@ -197,27 +248,79 @@ export default function AdminUsersPage() {
                       >
                         {managedUser.role.replace(/_/g, " ")}
                       </span>
+                      {managedUser.role === "clinician_reviewer" && (
+                        <p className="mt-2 text-xs text-slate-400">
+                          Verification: {managedUser.reviewer_verification_status ?? "pending"}
+                        </p>
+                      )}
                     </div>
-                    <label className="sr-only" htmlFor={`role-${managedUser.id}`}>
-                      Role for {managedUser.full_name}
-                    </label>
-                    <select
-                      id={`role-${managedUser.id}`}
-                      value={selectedRole}
-                      onChange={(event) =>
-                        setRoleDrafts((current) => ({
-                          ...current,
-                          [managedUser.id]: event.target.value as UserRole,
-                        }))
-                      }
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-brand-500"
-                    >
-                      {ROLE_OPTIONS.map((role) => (
-                        <option key={role.value} value={role.value}>
-                          {role.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="space-y-2">
+                      <label className="sr-only" htmlFor={`role-${managedUser.id}`}>
+                        Role for {managedUser.full_name}
+                      </label>
+                      <select
+                        id={`role-${managedUser.id}`}
+                        value={selectedRole}
+                        onChange={(event) =>
+                          setRoleDrafts((current) => ({
+                            ...current,
+                            [managedUser.id]: event.target.value as UserRole,
+                          }))
+                        }
+                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-brand-500"
+                      >
+                        {ROLE_OPTIONS.map((role) => (
+                          <option key={role.value} value={role.value}>
+                            {role.label}
+                          </option>
+                        ))}
+                      </select>
+                      {canManageVerification && (
+                        <>
+                          <label className="sr-only" htmlFor={`scope-${managedUser.id}`}>
+                            Practice scope for {managedUser.full_name}
+                          </label>
+                          <input
+                            id={`scope-${managedUser.id}`}
+                            value={verificationDraft.practice_scope}
+                            onChange={(event) =>
+                              setVerificationDrafts((current) => ({
+                                ...current,
+                                [managedUser.id]: {
+                                  ...verificationDraft,
+                                  practice_scope: event.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="Clinical practice scope"
+                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-brand-500"
+                          />
+                          <label className="sr-only" htmlFor={`verification-${managedUser.id}`}>
+                            Verification status for {managedUser.full_name}
+                          </label>
+                          <select
+                            id={`verification-${managedUser.id}`}
+                            value={verificationDraft.status}
+                            onChange={(event) =>
+                              setVerificationDrafts((current) => ({
+                                ...current,
+                                [managedUser.id]: {
+                                  ...verificationDraft,
+                                  status: event.target.value as "verified" | "suspended",
+                                },
+                              }))
+                            }
+                            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-brand-500"
+                          >
+                            {REVIEWER_VERIFICATION_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </>
+                      )}
+                    </div>
                     <div className="text-right">
                       <button
                         onClick={() => handleSave(managedUser)}
@@ -228,6 +331,15 @@ export default function AdminUsersPage() {
                       </button>
                       {removingOwnAdmin && (
                         <p className="mt-1 text-xs text-amber-300">Cannot demote yourself</p>
+                      )}
+                      {canManageVerification && (
+                        <button
+                          onClick={() => handleReviewerVerification(managedUser)}
+                          disabled={verifyingUserId === managedUser.id}
+                          className="mt-2 rounded-lg border border-emerald-700 px-3 py-2 text-sm font-semibold text-emerald-200 transition-colors hover:bg-emerald-950/30 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {verifyingUserId === managedUser.id ? "Updating..." : "Update Verification"}
+                        </button>
                       )}
                     </div>
                   </div>

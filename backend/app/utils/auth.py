@@ -107,6 +107,27 @@ async def require_clinical_reviewer(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Educational use consent required",
         )
+    if user.role != "clinician_reviewer":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Clinician reviewer role required",
+        )
+    if user.reviewer_verification_status != "verified":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Clinician reviewer credential verification required",
+        )
+    return user
+
+
+async def require_safety_reviewer(
+    user: User = Depends(get_current_user),
+) -> User:
+    if not user.accepted_educational_use:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Educational use consent required",
+        )
     if user.role not in {"clinician_reviewer", "admin"}:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

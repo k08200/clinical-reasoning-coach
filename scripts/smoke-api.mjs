@@ -2,6 +2,7 @@ const API_URL = process.env.SMOKE_API_URL ?? "http://127.0.0.1:8000";
 const ADMIN_BOOTSTRAP_TOKEN = process.env.SMOKE_ADMIN_BOOTSTRAP_TOKEN;
 const EXISTING_ADMIN_EMAIL = process.env.SMOKE_ADMIN_EMAIL;
 const ADMIN_PASSWORD = "smokeadminpass123";
+const REVIEWER_PASSWORD = "smokereviewerpass123";
 const LEARNER_PASSWORD = "smokelearnerpass123";
 const REVIEW_NOTES =
   "Source alignment, hidden safety checks, and educational simulation limitations reviewed.";
@@ -29,6 +30,7 @@ async function main() {
 
   const timestamp = Date.now();
   const adminEmail = EXISTING_ADMIN_EMAIL ?? `smoke-admin-${timestamp}@test.com`;
+  const reviewerEmail = `smoke-reviewer-${timestamp}@test.com`;
   const learnerEmail = `smoke-learner-${timestamp}@test.com`;
 
   if (!EXISTING_ADMIN_EMAIL) {
@@ -65,6 +67,37 @@ async function main() {
     });
   }
 
+  const reviewer = await request("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: reviewerEmail,
+      password: REVIEWER_PASSWORD,
+      full_name: "Smoke Clinician Reviewer",
+      training_level: "fellow",
+      accepted_educational_use: true,
+    }),
+  });
+  await request(`/api/auth/users/${reviewer.id}/role`, {
+    method: "PATCH",
+    headers: { ...adminHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({ role: "clinician_reviewer" }),
+  });
+  await request(`/api/auth/users/${reviewer.id}/reviewer-verification`, {
+    method: "PATCH",
+    headers: { ...adminHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      status: "verified",
+      practice_scope: "Emergency medicine educational simulation",
+    }),
+  });
+  const reviewerTokens = await request("/api/auth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ username: reviewerEmail, password: REVIEWER_PASSWORD }),
+  });
+  const reviewerHeaders = { Authorization: `Bearer ${reviewerTokens.access_token}` };
+
   const clinicalCase = await request("/api/cases/generate/demo", {
     method: "POST",
     headers: adminHeaders,
@@ -72,7 +105,7 @@ async function main() {
 
   await request(`/api/cases/${clinicalCase.id}/clinical-review`, {
     method: "POST",
-    headers: { ...adminHeaders, "Content-Type": "application/json" },
+    headers: { ...reviewerHeaders, "Content-Type": "application/json" },
     body: JSON.stringify({
       clinical_accuracy_confirmed: true,
       source_alignment_confirmed: true,
@@ -93,7 +126,7 @@ async function main() {
   });
   const reviewDetail = await request(
     `/api/cases/${clinicalCase.id}/clinical-review/detail`,
-    { headers: adminHeaders },
+    { headers: reviewerHeaders },
   );
   const safetyReasoning = [
     ...reviewDetail.clinical_red_flags.map((item) => `I will address ${item}.`),
@@ -340,6 +373,7 @@ async function main() {
     ok: true,
     apiUrl: API_URL,
     adminEmail,
+    reviewerEmail,
     learnerEmail,
     caseTitle: clinicalCase.title,
     sessionId: session.id,

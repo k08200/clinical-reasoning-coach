@@ -108,6 +108,21 @@ def _review_audit_confirms_required_items(review: "ClinicalCaseReview") -> bool:
     return all(
         reviewer_attestation.get(field) is True
         for field in REQUIRED_REVIEWER_ATTESTATION_FIELDS
+    ) and _review_audit_has_verified_reviewer_credentials(source_snapshot)
+
+
+def _review_audit_has_verified_reviewer_credentials(source_snapshot: dict) -> bool:
+    verification = source_snapshot.get("reviewer_credential_verification")
+    if not isinstance(verification, dict):
+        return False
+    if verification.get("status") != "verified":
+        return False
+    if not isinstance(verification.get("practice_scope"), str):
+        return False
+    if len(verification["practice_scope"].strip()) < 3:
+        return False
+    return bool(verification.get("verified_at")) and bool(
+        verification.get("verified_by_user_id")
     )
 
 

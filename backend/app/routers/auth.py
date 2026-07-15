@@ -15,6 +15,7 @@ from app.schemas.auth import (
     AdminBootstrapRequest,
     EducationalUseConsentRequest,
     RefreshTokenRequest,
+    ReviewerVerificationUpdateRequest,
     UserRegister,
     UserRoleUpdateRequest,
     TokenResponse,
@@ -214,6 +215,62 @@ async def update_user_role(
         )
 
     target.role = data.role
+    if data.role == "clinician_reviewer":
+        target.reviewer_verification_status = "pending"
+        target.reviewer_practice_scope = None
+        target.reviewer_verified_at = None
+        target.reviewer_verified_by_user_id = None
+    else:
+        target.reviewer_verification_status = "not_applicable"
+        target.reviewer_practice_scope = None
+        target.reviewer_verified_at = None
+        target.reviewer_verified_by_user_id = None
+    await db.flush()
+    await db.refresh(target)
+    return target
+
+
+@router.patch("/users/{user_id}/reviewer-verification", response_model=UserResponse)
+async def update_reviewer_verification(
+    user_id: str,
+    data: ReviewerVerificationUpdateRequest,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    import uuid as _uuid
+
+    try:
+        target_id = _uuid.UUID(user_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        ) from e
+
+    target = await db.get(User, target_id)
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if target.id == admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Administrators cannot verify their own clinician credentials",
+        )
+    if target.role != "clinician_reviewer":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only clinician reviewers can receive credential verification",
+        )
+
+    target.reviewer_verification_status = data.status
+    if data.status == "verified":
+        target.reviewer_practice_scope = data.practice_scope
+        target.reviewer_verified_at = datetime.now(timezone.utc)
+        target.reviewer_verified_by_user_id = admin.id
+    else:
+        target.reviewer_practice_scope = None
+        target.reviewer_verified_at = None
+        target.reviewer_verified_by_user_id = None
+
     await db.flush()
     await db.refresh(target)
     return target

@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import String, DateTime, Boolean, false, func
+from sqlalchemy import String, DateTime, Boolean, ForeignKey, false, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -26,6 +26,19 @@ class User(Base):
     role: Mapped[str] = mapped_column(
         String(50), nullable=False, default="learner", server_default="learner"
     )  # learner, clinician_reviewer, admin
+    reviewer_verification_status: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="not_applicable",
+        server_default="not_applicable",
+    )  # not_applicable, pending, verified, suspended
+    reviewer_practice_scope: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    reviewer_verified_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    reviewer_verified_by_user_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )
     accepted_educational_use: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default=false()
     )

@@ -40,6 +40,10 @@ const reviewer: User = {
   full_name: "Dr Reviewer",
   training_level: "fellow",
   role: "clinician_reviewer",
+  reviewer_verification_status: "verified",
+  reviewer_practice_scope: "Emergency medicine educational simulation",
+  reviewer_verified_at: "2026-06-01T00:00:00Z",
+  reviewer_verified_by_user_id: "admin-1",
   accepted_educational_use: true,
   accepted_educational_use_at: "2026-06-01T00:00:00Z",
 };
