@@ -12,7 +12,7 @@ from typing import Any
 import anthropic
 
 from app.config import get_settings
-from app.services.provider import StreamChunk, LLMResponse
+from app.services.provider import ProviderReadiness, StreamChunk, LLMResponse
 
 settings = get_settings()
 
@@ -20,6 +20,38 @@ settings = get_settings()
 class ClaudeProvider:
     def _client(self) -> anthropic.AsyncAnthropic:
         return anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+
+    async def readiness(self) -> ProviderReadiness:
+        """Verify API credentials, network reachability, and configured model access."""
+        client = anthropic.AsyncAnthropic(
+            api_key=settings.anthropic_api_key,
+            timeout=settings.provider_readiness_timeout_seconds,
+        )
+        try:
+            await client.messages.create(
+                model=settings.claude_model,
+                max_tokens=1,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": "Readiness check. Reply with OK.",
+                    }
+                ],
+            )
+        except anthropic.APIError:
+            return ProviderReadiness(
+                ready=False,
+                verification="unavailable",
+                detail="Claude could not complete a readiness check.",
+            )
+        finally:
+            await client.close()
+
+        return ProviderReadiness(
+            ready=True,
+            verification="verified",
+            detail="Claude credentials and the configured model completed a readiness check.",
+        )
 
     async def stream(
         self,

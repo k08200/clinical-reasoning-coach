@@ -18,7 +18,7 @@ from typing import Any
 import httpx
 
 from app.config import get_settings
-from app.services.provider import StreamChunk, LLMResponse
+from app.services.provider import ProviderReadiness, StreamChunk, LLMResponse
 
 settings = get_settings()
 
@@ -36,6 +36,47 @@ Keep responses concise (2-3 questions max)."""
 
 class OllamaProvider:
     """Local Ollama LLM — completely free, no API key."""
+
+    async def readiness(self) -> ProviderReadiness:
+        """Confirm that Ollama is reachable and the configured model is installed."""
+        url = f"{OLLAMA_BASE_URL.rstrip('/')}/api/tags"
+        try:
+            async with httpx.AsyncClient(
+                timeout=settings.provider_readiness_timeout_seconds
+            ) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+        except httpx.HTTPError:
+            return ProviderReadiness(
+                ready=False,
+                verification="unavailable",
+                detail="Ollama could not be reached for a readiness check.",
+            )
+
+        models = response.json().get("models", [])
+        available_models = {
+            model_name
+            for model in models
+            if isinstance(model, dict)
+            for model_name in (model.get("name"), model.get("model"))
+            if isinstance(model_name, str)
+        }
+        expected_models = {OLLAMA_MODEL}
+        if ":" not in OLLAMA_MODEL:
+            expected_models.add(f"{OLLAMA_MODEL}:latest")
+
+        if expected_models.isdisjoint(available_models):
+            return ProviderReadiness(
+                ready=False,
+                verification="unavailable",
+                detail="The configured Ollama model is not installed.",
+            )
+
+        return ProviderReadiness(
+            ready=True,
+            verification="verified",
+            detail="Ollama is reachable and the configured model is installed.",
+        )
 
     async def stream(
         self,

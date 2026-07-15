@@ -65,6 +65,18 @@ class Settings(BaseSettings):
     # Ollama (only needed when llm_provider=ollama)
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.2"
+    provider_readiness_timeout_seconds: int = Field(
+        default=10,
+        ge=1,
+        le=60,
+        validation_alias="PROVIDER_READINESS_TIMEOUT_SECONDS",
+    )
+    provider_readiness_cache_seconds: int = Field(
+        default=300,
+        ge=1,
+        le=3600,
+        validation_alias="PROVIDER_READINESS_CACHE_SECONDS",
+    )
 
     # CORS
     cors_origins: list[str] = [

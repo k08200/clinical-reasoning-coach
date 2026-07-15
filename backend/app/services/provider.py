@@ -27,7 +27,18 @@ class LLMResponse:
     thinking_tokens: int
 
 
+@dataclass(frozen=True)
+class ProviderReadiness:
+    """The result of a bounded, non-clinical provider availability check."""
+
+    ready: bool
+    verification: str
+    detail: str
+
+
 class LLMProvider(Protocol):
+    async def readiness(self) -> ProviderReadiness: ...
+
     async def stream(
         self,
         messages: list[dict[str, Any]],

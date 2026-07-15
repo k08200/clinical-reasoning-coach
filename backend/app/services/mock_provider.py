@@ -14,7 +14,7 @@ import re
 from collections.abc import AsyncGenerator
 from typing import Any
 
-from app.services.provider import StreamChunk, LLMResponse
+from app.services.provider import ProviderReadiness, StreamChunk, LLMResponse
 
 # ─── Socratic question bank ───────────────────────────────────────────────────
 
@@ -808,6 +808,13 @@ DEMO_CASE = _CASE_STEMI
 
 class MockProvider:
     """Rule-based Socratic coach. No API key needed."""
+
+    async def readiness(self) -> ProviderReadiness:
+        return ProviderReadiness(
+            ready=True,
+            verification="verified",
+            detail="Rule-based development provider is available.",
+        )
 
     def _detect_specialty(self, system: str) -> str | None:
         """Detect case specialty from the system prompt to pick targeted questions."""
