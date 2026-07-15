@@ -34381,6 +34381,18 @@ def test_quality_gate_requires_opioid_airway_naloxone_and_recurrent_monitoring()
     )
 
 
+def test_opioid_respiratory_emergency_gate_does_not_trigger_for_somnolence_alone():
+    case = copy.deepcopy(CASE_POOL[0])
+    case["diagnosis"] = "Opioid toxicity"
+    case["chief_complaint"] = "Somnolence after prescribed opioid use"
+    case["history_of_present_illness"] = (
+        "Patient is somnolent with pinpoint pupils but has normal breathing, intact airway reflexes, "
+        "normal oxygen saturation, and normal ventilation."
+    )
+
+    assert not case_quality_module._requires_opioid_toxicity_safety_check(case)
+
+
 def test_quality_gate_requires_cpr_and_aed_for_opioid_cardiac_arrest():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Opioid poisoning"
