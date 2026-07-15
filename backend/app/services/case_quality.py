@@ -45,6 +45,7 @@ TRUSTED_CLINICAL_SOURCE_HOSTS = {
     "bmj.com",
     "cdc.gov",
     "diabetes.org",
+    "diabetesjournals.org",
     "escardio.org",
     "heart.org",
     "idsociety.org",

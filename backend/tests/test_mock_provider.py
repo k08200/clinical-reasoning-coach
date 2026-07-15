@@ -5,12 +5,17 @@ import json
 import pytest
 
 from app.services.mock_provider import (
+    CASE_POOL,
     MockProvider,
     SPECIALTY_QUESTIONS,
     _analyze_reasoning,
     _extract_hypothesis,
     _extract_student_response,
 )
+
+
+def _case_with_title(title: str) -> dict:
+    return next(case for case in CASE_POOL if case["title"] == title)
 
 
 # ─── _extract_student_response ────────────────────────────────────────────────
@@ -177,6 +182,24 @@ def test_detect_specialty_returns_none_for_cardiac():
 def test_specialty_questions_non_empty():
     for specialty in ("sepsis", "dka", "stroke", "pe"):
         assert len(SPECIALTY_QUESTIONS[specialty]) >= 5
+
+
+def test_high_risk_demo_cases_avoid_misleading_risk_or_treatment_claims():
+    pe_case = _case_with_title("Sudden Dyspnea in a Post-Surgical Patient")
+    stroke_case = _case_with_title("Sudden Facial Droop and Speech Difficulty")
+    dka_case = _case_with_title("Young Diabetic with Nausea and Abdominal Pain")
+
+    assert "massive/submassive" not in pe_case["diagnosis"].lower()
+    assert any("not by itself shock" in point for point in pe_case["key_teaching_points"])
+    assert all("insufficient prophylaxis" not in point for point in pe_case["key_teaching_points"])
+
+    assert "subtherapeutic anticoagulation" not in stroke_case["diagnosis"].lower()
+    assert "inr_therapeutic_range" not in stroke_case["initial_labs"]
+    assert "does not quantify apixaban activity" in stroke_case["initial_labs"]["inr"]
+    assert any("does not alone establish thrombolysis eligibility" in point for point in stroke_case["key_teaching_points"])
+
+    assert any("glucose at least 200 mg/dL" in point for point in dka_case["key_teaching_points"])
+    assert any("ketoacidosis resolves" in point for point in dka_case["key_teaching_points"])
 
 
 @pytest.mark.asyncio

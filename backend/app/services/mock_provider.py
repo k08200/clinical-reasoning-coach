@@ -213,9 +213,9 @@ _SOURCE_ACS_STATPEARLS = {
 }
 
 _SOURCE_SEPSIS = {
-    "title": "Surviving Sepsis Campaign Adult Guidelines",
+    "title": "2026 Surviving Sepsis Campaign Adult Resuscitation Quick Guide",
     "organization": "Society of Critical Care Medicine",
-    "url": "https://www.sccm.org/survivingsepsiscampaign/guidelines-and-resources/surviving-sepsis-campaign-adult-guidelines",
+    "url": "https://sccm.org/SCCM/media/SCCM/PDFs/SSC-Adult-Quick-Guide-Infographic-2026.pdf",
     "supports": [
         "lactate measurement and reassessment",
         "measure lactate and repeat lactate if elevated",
@@ -298,11 +298,11 @@ _SOURCE_PE_STATPEARLS = {
 }
 
 _SOURCE_DKA = {
-    "title": "Standards of Care in Diabetes",
+    "title": "2026 ADA Standards of Care: Diabetes Care in the Hospital",
     "organization": "American Diabetes Association",
-    "url": "https://professional.diabetes.org/standards-of-care",
+    "url": "https://diabetesjournals.org/care/article/49/Supplement_1/S339/163925/16-Diabetes-Care-in-the-Hospital-Standards-of-Care",
     "supports": [
-        "DKA diagnostic pattern",
+        "DKA diagnostic pattern: diabetes or glucose at least 200 mg/dL, ketosis, and metabolic acidosis",
         "acidosis, dehydration, and mental status severity markers",
         "severe metabolic acidosis with Kussmaul respirations",
         "tachycardia, dehydration signs, AKI, and confusion in DKA severity assessment",
@@ -340,9 +340,9 @@ _SOURCE_DKA_STATPEARLS = {
 }
 
 _SOURCE_STROKE = {
-    "title": "AHA/ASA Acute Ischemic Stroke Guidelines",
+    "title": "2026 AHA/ASA Guideline for Early Management of Acute Ischemic Stroke",
     "organization": "American Heart Association / American Stroke Association",
-    "url": "https://www.heart.org/-/media/files/professional/quality-improvement/get-with-the-guidelines/get-with-the-guidelines-stroke/2019updateahaasaaisguidelineslidedeckrevisedadl12919.pdf",
+    "url": "https://www.ahajournals.org/guidelines/acute-ischemic-stroke",
     "supports": [
         "last-known-normal based reperfusion eligibility",
         "sudden focal neurologic deficit and NIHSS severity assessment",
@@ -583,19 +583,19 @@ _CASE_PE = {
         "bnp": "220 (mildly elevated)",
         "abg": "pH 7.48, pO2 58, pCO2 30 (respiratory alkalosis + hypoxemia)",
     },
-    "diagnosis": "Massive/Submassive Pulmonary Embolism with right ventricular strain",
+    "diagnosis": "Acute Pulmonary Embolism with suspected right ventricular strain; normotensive pending formal risk stratification",
     "key_teaching_points": [
-        "Wells PE criteria: 3 points (DVT signs) + 3 (HR>100) + 1.5 (immobilization post-surgery) = high pre-test probability",
-        "RV strain signs: elevated troponin, BNP, loud P2, elevated JVP = submassive PE",
-        "SpO2 89% + HR 114 + hypotension = hemodynamic compromise requiring urgent intervention",
-        "CT-PA is gold standard but consider thrombolysis if hemodynamically unstable",
-        "Low-dose rivaroxaban post-op may have been insufficient prophylaxis",
+        "Wells score supports high pretest probability here: clinical DVT signs 3, heart rate over 100 1.5, and recent surgery or immobilization 1.5",
+        "Troponin and BNP elevation suggest possible RV myocardial injury, but imaging and hemodynamic assessment are needed for formal PE risk stratification",
+        "Hypoxemia and tachycardia require urgent assessment; a blood pressure of 105/70 is not by itself shock or high-risk PE",
+        "CTPA is generally the diagnostic test of choice in a stable patient; use bedside imaging and immediate escalation if instability develops",
+        "Post-arthroplasty rivaroxaban prophylaxis does not exclude PE; confirm adherence, timing of the last dose, and bleeding risk before selecting treatment",
     ],
     "cognitive_traps": [
         "Pleuritic pain may be mistaken for musculoskeletal post-op pain",
         "Recent anticoagulant use may falsely reassure students",
         "Normal temperature may underestimate seriousness",
-        "SpO2 of 89% requires urgent intervention — not just supplemental O2",
+        "Hypoxemia requires urgent assessment and support while diagnostic and risk-stratification work proceeds",
     ],
     "clinical_red_flags": [
         "Sudden dyspnea with hypoxemia and pleuritic chest pain after surgery",
@@ -603,7 +603,7 @@ _CASE_PE = {
         "Unilateral calf swelling and markedly elevated D-dimer",
     ],
     "time_critical_actions": [
-        "Risk stratify for massive versus submassive or high-risk PE with Wells score, PESI/sPESI, hemodynamic instability, and RV strain before choosing disposition",
+        "Risk stratify PE with Wells score, PESI or sPESI, hemodynamic status, RV imaging, and cardiac biomarkers before choosing disposition",
         "Start therapeutic UFH, continuous UFH infusion, heparin, or LMWH anticoagulation unless active bleeding or another major contraindication is present",
         "Escalate urgently for worsening hypotension, syncope, or shock",
         "Select CTPA CT pulmonary angiography, V/Q alternative, or bedside echo or bedside ultrasound pathway based on hemodynamic stability",
@@ -664,7 +664,7 @@ _CASE_DKA = {
         "bicarbonate": "8 mEq/L (low)",
         "anion_gap": "28 (elevated, normal 8-12)",
         "ketones": "Serum ketones 4+ positive",
-        "na": "128 (pseudohyponatremia — corrected Na = 135)",
+        "na": "128 (hyperglycemia-related translocational hyponatremia; corrected sodium should be calculated)",
         "k": "5.8 (elevated — but total body K depleted)",
         "cr": "1.6 (AKI from dehydration)",
         "wbc": "14.2 (stress leukocytosis)",
@@ -672,11 +672,11 @@ _CASE_DKA = {
     },
     "diagnosis": "Diabetic Ketoacidosis (DKA) — precipitated by insulin non-compliance",
     "key_teaching_points": [
-        "DKA criteria: glucose >250, pH <7.3, bicarbonate <15, positive ketones",
-        "Corrected Na = measured Na + 1.6 × (glucose-100)/100 — do not treat apparent hyponatremia",
+        "DKA requires diabetes or glucose at least 200 mg/dL, ketosis, and metabolic acidosis with pH below 7.3 and/or bicarbonate below 18",
+        "Calculate corrected sodium in marked hyperglycemia and avoid treating the measured sodium as isolated sodium depletion",
         "Potassium must be replaced BEFORE insulin if K <3.5 — insulin drives K intracellularly",
         "Abdominal pain in DKA is often the acidosis itself, not a surgical emergency",
-        "Never stop insulin infusion until anion gap closes and patient is eating",
+        "Continue insulin until ketoacidosis resolves, then overlap basal or long-acting subcutaneous insulin before stopping intravenous insulin",
     ],
     "cognitive_traps": [
         "Abdominal pain may lead students toward surgical causes (appendicitis, bowel obstruction)",
@@ -747,31 +747,31 @@ _CASE_STROKE = {
         "k": "4.0",
         "cr": "1.0",
         "glucose": "128",
-        "inr": "1.2 (subtherapeutic — missed doses)",
-        "inr_therapeutic_range": "Target 2.0-3.0",
+        "inr": "1.2 (does not quantify apixaban activity)",
+        "last_apixaban_dose": "Reportedly missed for 5 days; verify history, timing, renal function, and local thrombolysis protocol",
         "noncontrast_ct": "No hemorrhage, no early ischemic changes",
     },
-    "diagnosis": "Acute Ischemic Stroke — cardioembolic (AFib + subtherapeutic anticoagulation)",
+    "diagnosis": "Acute Ischemic Stroke — likely cardioembolic with recent apixaban nonadherence",
     "key_teaching_points": [
         "Time is brain: 1.9 million neurons die per minute in untreated stroke",
-        "tPA window: 3-4.5 hours from LAST KNOWN NORMAL, not symptom onset",
-        "Last known normal is 07:00 AM — tPA window: until 11:30 AM",
-        "Subtherapeutic INR 1.2 from missed apixaban doses suggests cardioembolic mechanism",
-        "NIHSS 8 = moderate stroke; LKN + non-contrast CT negative = tPA eligible",
+        "Last known well, not symptom recognition time, anchors reperfusion-window assessment",
+        "Last known well is 07:00 AM; urgent assessment is still required because thrombolysis eligibility also depends on imaging, contraindications, and local protocol",
+        "Recent apixaban exposure requires an exact last-dose history and renal-function review; INR does not measure apixaban activity",
+        "An NIHSS score of 8; noncontrast CT without hemorrhage supports urgent reperfusion evaluation but does not alone establish thrombolysis eligibility",
     ],
     "cognitive_traps": [
-        "Using symptom recognition time (09:00 AM) instead of last known normal (07:00 AM) — wrong tPA window",
+        "Using symptom recognition time (09:00 AM) instead of last known well (07:00 AM) for reperfusion-window assessment",
         "AFib + anticoagulation may falsely reassure students that embolism is unlikely",
-        "Blood pressure 178/104 might prompt treatment — but BP should NOT be lowered before tPA",
-        "Students may skip mechanical thrombectomy consideration for large vessel occlusion",
+        "Lowering blood pressure reflexively when it is already below the thrombolysis threshold, or failing to lower it when it exceeds the threshold",
+        "Skipping vascular imaging and mechanical-thrombectomy evaluation when large-vessel occlusion is possible",
     ],
     "clinical_red_flags": [
         "Sudden focal neurologic deficit with NIHSS 8",
-        "Potentially treatable stroke within thrombolysis window from last known normal",
+        "Potentially treatable stroke within a reperfusion-assessment window from last known well",
         "Atrial fibrillation with missed anticoagulation suggesting embolic risk",
     ],
     "time_critical_actions": [
-        "Establish last known normal and activate stroke pathway immediately",
+        "Establish last known well and activate the stroke pathway immediately",
         "Obtain urgent noncontrast head CT to exclude hemorrhage without delay to treatment decision",
         "Assess thrombolysis and thrombectomy eligibility in parallel",
     ],
@@ -779,7 +779,7 @@ _CASE_STROKE = {
         "Intracranial hemorrhage or early extensive ischemic change on imaging",
         "Recent anticoagulant or DOAC/warfarin/heparin use, bleeding history, recent surgery or head trauma, PT/INR/aPTT/anti-Xa coagulation labs, platelet count, glucose or hypoglycemia threshold, and blood pressure 185/110 thresholds",
         "Large vessel occlusion criteria and transfer needs for thrombectomy",
-        "Use CTA vascular imaging and CT perfusion or MRA MR perfusion when needed for thrombectomy selection",
+        "Check renal function and contrast risk before CTA vascular imaging; use CT perfusion or MRA MR perfusion when needed for thrombectomy selection",
         "Review NIHSS, pre-stroke modified Rankin mRS, ASPECTS, large vessel occlusion LVO, 6 hours, 24 hours, salvageable tissue, and thrombectomy eligibility",
         "Treat in a stroke service or stroke unit with stroke physician oversight, thrombolysis protocol, post-thrombolysis complication monitoring, and follow-up imaging or re-imaging",
         "Plan aspirin, antiplatelet, and anticoagulation timing: delay antiplatelet for 24 hours after thrombolysis and use dysphagia-safe enteral or rectal swallow route",
@@ -789,11 +789,11 @@ _CASE_STROKE = {
     "review_status": "educational_draft",
     "last_reviewed_at": "2026-06-01",
     "coach_guidance": (
-        "Critical teaching point: LKN is 07:00 AM, not 09:00 AM. "
-        "Guide student to calculate correct tPA eligibility window. "
-        "Ask: 'What is the last known normal time and why does that matter?' "
-        "Challenge BP management instinct — pre-tPA, accept BP up to 185/110. "
-        "Ask about mechanical thrombectomy criteria (NIHSS ≥6, LVO on CTA)."
+        "Critical teaching point: last known well is 07:00 AM, not 09:00 AM. "
+        "Guide the learner to assess reperfusion eligibility rather than declaring eligibility from time alone. "
+        "Ask: 'What is the last known well time and why does that matter?' "
+        "Challenge reflexive blood-pressure treatment while checking the thrombolysis threshold and protocol. "
+        "Ask about CTA, large-vessel occlusion, baseline function, and imaging-based thrombectomy selection."
     ),
 }
 
