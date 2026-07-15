@@ -5,6 +5,7 @@ import {
   setAuthTokens,
 } from "./session";
 import type {
+  GovernanceReadiness,
   ReviewerCredentialEvent,
   ReviewerVerificationStatus,
   SourceAlignmentChecks,
@@ -144,6 +145,10 @@ export const api = {
       request(`/api/auth/users/${id}/reviewer-verification/history`) as Promise<
         ReviewerCredentialEvent[]
       >,
+  },
+
+  governance: {
+    readiness: () => request("/api/governance/readiness") as Promise<GovernanceReadiness>,
   },
 
   cases: {

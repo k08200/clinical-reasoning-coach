@@ -16,6 +16,32 @@ export interface ReviewerCredentialEvent {
   created_at: string;
 }
 
+export interface GovernanceCaseBlocker {
+  case_id: string;
+  title: string;
+  reasons: string[];
+}
+
+export interface GovernanceReleaseBlocker {
+  code: string;
+  count: number;
+  message: string;
+}
+
+export interface GovernanceReadiness {
+  learner_eligible_case_count: number;
+  case_blocker_count: number;
+  case_blockers: GovernanceCaseBlocker[];
+  open_safety_event_count: number;
+  open_high_risk_safety_event_count: number;
+  verified_clinician_reviewer_count: number;
+  pending_clinician_reviewer_count: number;
+  suspended_clinician_reviewer_count: number;
+  consent_renewal_required_user_count: number;
+  release_ready: boolean;
+  release_blockers: GovernanceReleaseBlocker[];
+}
+
 export interface User {
   id: string;
   email: string;

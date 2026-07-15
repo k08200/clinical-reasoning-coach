@@ -189,6 +189,9 @@ export default function AdminUsersPage() {
             <Link href="/safety" className="text-sm text-slate-400 hover:text-white">
               Safety Events
             </Link>
+            <Link href="/admin/governance" className="text-sm text-slate-400 hover:text-white">
+              Governance
+            </Link>
           </div>
         </div>
       </header>

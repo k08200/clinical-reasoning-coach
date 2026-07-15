@@ -145,6 +145,12 @@ async function main() {
       review_notes: REVIEW_NOTES,
     }),
   });
+  const governanceReadiness = await request("/api/governance/readiness", {
+    headers: adminHeaders,
+  });
+  if (governanceReadiness.learner_eligible_case_count < 1) {
+    throw new Error("governance readiness did not count the approved case as learner eligible");
+  }
   const reviewDetail = await request(
     `/api/cases/${clinicalCase.id}/clinical-review/detail`,
     { headers: reviewerHeaders },

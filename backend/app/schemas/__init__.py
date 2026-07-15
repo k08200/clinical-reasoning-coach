@@ -23,6 +23,7 @@ from app.schemas.session import (
     MessageResponse,
 )
 from app.schemas.analytics import BiasPattern, SafetyAnalyticsSummary, UserAnalytics
+from app.schemas.governance import GovernanceReadinessResponse
 
 __all__ = [
     "AdminBootstrapRequest",
@@ -44,4 +45,5 @@ __all__ = [
     "UserAnalytics",
     "BiasPattern",
     "SafetyAnalyticsSummary",
+    "GovernanceReadinessResponse",
 ]
