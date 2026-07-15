@@ -40285,8 +40285,15 @@ def _has_pe_reperfusion_escalation_safety_check(checks: list[Any]) -> bool:
         for term in PE_CATHETER_SURGICAL_BACKUP_SAFETY_TERMS
     )
     has_unstable_imaging_logic = any(
-        _contains_safety_term(normalized_checks, term)
-        for term in PE_UNSTABLE_IMAGING_SAFETY_TERMS
+        any(
+            _contains_safety_term(str(check).lower(), term)
+            for term in PE_UNSTABLE_IMAGING_SAFETY_TERMS
+        )
+        and any(
+            _contains_safety_term(str(check).lower(), term)
+            for term in ("do not delay", "not delay", "without delay")
+        )
+        for check in checks
     )
     has_alternative_imaging_review = any(
         _contains_safety_term(normalized_checks, term)

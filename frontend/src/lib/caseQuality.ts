@@ -34459,9 +34459,17 @@ function hasPeReperfusionEscalationSafetyCheck(checks: string[]): boolean {
   const hasCatheterSurgicalBackup = PE_CATHETER_SURGICAL_BACKUP_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
-  const hasUnstableImagingLogic = PE_UNSTABLE_IMAGING_SAFETY_TERMS.some((term) =>
-    containsSafetyTerm(normalizedChecks, term),
-  );
+  const hasUnstableImagingLogic = checks.some((check) => {
+    const normalizedCheck = check.toLowerCase();
+    return (
+      PE_UNSTABLE_IMAGING_SAFETY_TERMS.some((term) =>
+        containsSafetyTerm(normalizedCheck, term),
+      ) &&
+      ["do not delay", "not delay", "without delay"].some((term) =>
+        containsSafetyTerm(normalizedCheck, term),
+      )
+    );
+  });
   const hasAlternativeImagingReview = PE_ALTERNATIVE_IMAGING_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );

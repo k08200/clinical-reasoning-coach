@@ -39186,6 +39186,21 @@ def test_quality_gate_rejects_generic_pe_anticoagulation_planning_action():
     )
 
 
+def test_quality_gate_requires_unstable_pe_imaging_to_avoid_reperfusion_delay():
+    case = copy.deepcopy(CASE_POOL[2])
+    case["contraindication_checks"][9] = (
+        "If hemodynamically unstable, use bedside echo or ultrasound pathway for PE assessment"
+    )
+
+    report = evaluate_case_quality(ClinicalCaseCreate(**case))
+
+    assert not report.passed
+    assert any(
+        "unstable-patient bedside echo or no-delay imaging logic" in issue
+        for issue in report.critical_issues
+    )
+
+
 def test_quality_gate_allows_pe_with_required_risk_and_safety_checks():
     case = copy.deepcopy(CASE_POOL[2])
 
