@@ -19976,6 +19976,8 @@ const SYMPTOMATIC_BRADYCARDIA_MONITOR_ACTION_TERMS = [
   "심전도",
 ];
 
+const SYMPTOMATIC_BRADYCARDIA_PULSE_ACTION_TERMS = ["pulse check", "monitor pulse", "pulse", "맥박"];
+
 const SYMPTOMATIC_BRADYCARDIA_INSTABILITY_ACTION_TERMS = [
   "acute heart failure",
   "altered mental status",
@@ -20008,6 +20010,8 @@ const SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ACTION_TERMS = [
   "드파민",
   "에피네프린",
 ];
+
+const SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_INFUSION_ACTION_TERMS = ["infusion", "infuse", "주입"];
 
 const SYMPTOMATIC_BRADYCARDIA_REVERSIBLE_CAUSE_ACTION_TERMS = [
   "acute coronary syndrome",
@@ -20051,9 +20055,15 @@ const SYMPTOMATIC_BRADYCARDIA_ATROPINE_LIMIT_SAFETY_TERMS = [
 
 const SYMPTOMATIC_BRADYCARDIA_PACING_CAPTURE_SAFETY_TERMS = [
   "capture",
-  "confirm capture",
   "electrical and mechanical capture",
+  "confirm capture",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_ELECTRICAL_CAPTURE_SAFETY_TERMS = [
   "electrical capture",
+];
+
+const SYMPTOMATIC_BRADYCARDIA_MECHANICAL_CAPTURE_SAFETY_TERMS = [
   "mechanical capture",
 ];
 
@@ -20085,6 +20095,8 @@ const SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ADVERSE_SAFETY_TERMS = [
   "ischemia",
   "tachyarrhythmia",
 ];
+
+const SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_TITRATION_SAFETY_TERMS = ["titrate", "titration", "taper"];
 
 const SYMPTOMATIC_BRADYCARDIA_CAUSE_DISPOSITION_SAFETY_TERMS = [
   "acute coronary syndrome",
@@ -34040,6 +34052,9 @@ function hasSymptomaticBradycardiaTimeCriticalActions(actions: string[]): boolea
   const hasMonitorAction = SYMPTOMATIC_BRADYCARDIA_MONITOR_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
+  const hasPulseAction = SYMPTOMATIC_BRADYCARDIA_PULSE_ACTION_TERMS.some((term) =>
+    containsSafetyTerm(normalizedActions, term),
+  );
   const hasInstabilityAction = SYMPTOMATIC_BRADYCARDIA_INSTABILITY_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
@@ -34052,16 +34067,21 @@ function hasSymptomaticBradycardiaTimeCriticalActions(actions: string[]): boolea
   const hasChronotropeAction = SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ACTION_TERMS.some(
     (term) => containsSafetyTerm(normalizedActions, term),
   );
+  const hasChronotropeInfusionAction = SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_INFUSION_ACTION_TERMS.some(
+    (term) => containsSafetyTerm(normalizedActions, term),
+  );
   const hasReversibleCauseAction =
     SYMPTOMATIC_BRADYCARDIA_REVERSIBLE_CAUSE_ACTION_TERMS.some((term) =>
       containsSafetyTerm(normalizedActions, term),
     );
   return (
     hasMonitorAction &&
+    hasPulseAction &&
     hasInstabilityAction &&
     hasAtropineAction &&
     hasPacingAction &&
     hasChronotropeAction &&
+    hasChronotropeInfusionAction &&
     hasReversibleCauseAction
   );
 }
@@ -34081,6 +34101,12 @@ function hasSymptomaticBradycardiaTreatmentSafetyCheck(checks: string[]): boolea
   const hasPacingCaptureSafety = SYMPTOMATIC_BRADYCARDIA_PACING_CAPTURE_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
+  const hasElectricalCaptureSafety = SYMPTOMATIC_BRADYCARDIA_ELECTRICAL_CAPTURE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
+  const hasMechanicalCaptureSafety = SYMPTOMATIC_BRADYCARDIA_MECHANICAL_CAPTURE_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   const hasPacingComfortSafety = SYMPTOMATIC_BRADYCARDIA_PACING_COMFORT_SAFETY_TERMS.some(
     (term) => containsSafetyTerm(normalizedChecks, term),
   );
@@ -34095,6 +34121,9 @@ function hasSymptomaticBradycardiaTreatmentSafetyCheck(checks: string[]): boolea
     SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ADVERSE_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
     );
+  const hasChronotropeTitrationSafety = SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_TITRATION_SAFETY_TERMS.some(
+    (term) => containsSafetyTerm(normalizedChecks, term),
+  );
   const hasCauseDispositionSafety =
     SYMPTOMATIC_BRADYCARDIA_CAUSE_DISPOSITION_SAFETY_TERMS.some((term) =>
       containsSafetyTerm(normalizedChecks, term),
@@ -34104,10 +34133,13 @@ function hasSymptomaticBradycardiaTreatmentSafetyCheck(checks: string[]): boolea
     hasAtropineReferenceSafety &&
     hasAtropineLimitSafety &&
     hasPacingCaptureSafety &&
+    hasElectricalCaptureSafety &&
+    hasMechanicalCaptureSafety &&
     hasPacingComfortSafety &&
     hasPacingRouteSafety &&
     hasChronotropeAgentSafety &&
     hasChronotropeAdverseSafety &&
+    hasChronotropeTitrationSafety &&
     hasCauseDispositionSafety
   );
 }

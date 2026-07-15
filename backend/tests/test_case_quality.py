@@ -37847,6 +37847,34 @@ def test_quality_gate_requires_unstable_tachyarrhythmia_shock_av_nodal_qt_and_ca
     )
 
 
+def test_symptomatic_bradycardia_gate_requires_pulse_capture_and_titrated_chronotrope_plan():
+    actions = [
+        "Attach cardiac monitor, obtain 12-lead ECG, establish IV access, provide oxygen as needed, and continuously monitor pulse",
+        "Assess hypotension, altered mental status, shock, ischemic chest discomfort, and acute heart failure from bradycardia",
+        "Give atropine for persistent bradycardia with cardiopulmonary compromise",
+        "Prepare transcutaneous pacing and transvenous pacing with expert consultation if atropine is ineffective",
+        "Start dopamine or epinephrine infusion if atropine is ineffective while preparing pacing",
+        "Treat reversible ischemia, hypoxia, hyperkalemia, beta blocker, calcium channel blocker, digoxin, and toxin causes",
+    ]
+    checks = [
+        "Do not delay transcutaneous pacing for unstable high-grade AV block while atropine is given",
+        "Atropine may be ineffective in high-grade AV block or heart transplant, so do not delay pacing",
+        "During transcutaneous pacing, confirm electrical capture and mechanical capture with a pulse and use analgesia or sedation when feasible",
+        "Escalate from transcutaneous pacing to transvenous pacing or temporary pacemaker when persistent instability requires it",
+        "Titrate dopamine or epinephrine infusion to response and monitor arrhythmia, ischemia, tachyarrhythmia, and extravasation",
+        "Consult cardiology or pacemaker service and review acute coronary syndrome, hypoxia, hyperkalemia, electrolyte, hypothermia, toxin, and reversible causes",
+    ]
+
+    assert case_quality_module._has_symptomatic_bradycardia_time_critical_actions(actions)
+    assert case_quality_module._has_symptomatic_bradycardia_treatment_safety_check(checks)
+
+    incomplete_checks = checks.copy()
+    incomplete_checks[2] = "During transcutaneous pacing, confirm electrical capture and use analgesia or sedation when feasible"
+    assert not case_quality_module._has_symptomatic_bradycardia_treatment_safety_check(
+        incomplete_checks
+    )
+
+
 def test_quality_gate_requires_symptomatic_bradycardia_monitor_instability_atropine_pacing_chronotrope_and_causes():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Symptomatic bradycardia with hypotension"

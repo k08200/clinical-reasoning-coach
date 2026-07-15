@@ -17940,6 +17940,7 @@ SYMPTOMATIC_BRADYCARDIA_MONITOR_ACTION_TERMS = (
     "telemetry",
     "심전도",
 )
+SYMPTOMATIC_BRADYCARDIA_PULSE_ACTION_TERMS = ("pulse check", "monitor pulse", "pulse", "맥박")
 SYMPTOMATIC_BRADYCARDIA_INSTABILITY_ACTION_TERMS = (
     "acute heart failure",
     "altered mental status",
@@ -17972,6 +17973,7 @@ SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ACTION_TERMS = (
     "드파민",
     "에피네프린",
 )
+SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_INFUSION_ACTION_TERMS = ("infusion", "infuse", "주입")
 SYMPTOMATIC_BRADYCARDIA_REVERSIBLE_CAUSE_ACTION_TERMS = (
     "acute coronary syndrome",
     "beta blocker",
@@ -18010,9 +18012,13 @@ SYMPTOMATIC_BRADYCARDIA_ATROPINE_LIMIT_SAFETY_TERMS = (
 )
 SYMPTOMATIC_BRADYCARDIA_PACING_CAPTURE_SAFETY_TERMS = (
     "capture",
-    "confirm capture",
     "electrical and mechanical capture",
+    "confirm capture",
+)
+SYMPTOMATIC_BRADYCARDIA_ELECTRICAL_CAPTURE_SAFETY_TERMS = (
     "electrical capture",
+)
+SYMPTOMATIC_BRADYCARDIA_MECHANICAL_CAPTURE_SAFETY_TERMS = (
     "mechanical capture",
 )
 SYMPTOMATIC_BRADYCARDIA_PACING_COMFORT_SAFETY_TERMS = (
@@ -18040,6 +18046,7 @@ SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ADVERSE_SAFETY_TERMS = (
     "ischemia",
     "tachyarrhythmia",
 )
+SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_TITRATION_SAFETY_TERMS = ("titrate", "titration", "taper")
 SYMPTOMATIC_BRADYCARDIA_CAUSE_DISPOSITION_SAFETY_TERMS = (
     "acute coronary syndrome",
     "cardiology",
@@ -39788,6 +39795,10 @@ def _has_symptomatic_bradycardia_time_critical_actions(actions: list[Any]) -> bo
         _contains_safety_term(normalized_actions, term)
         for term in SYMPTOMATIC_BRADYCARDIA_MONITOR_ACTION_TERMS
     )
+    has_pulse_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SYMPTOMATIC_BRADYCARDIA_PULSE_ACTION_TERMS
+    )
     has_instability_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in SYMPTOMATIC_BRADYCARDIA_INSTABILITY_ACTION_TERMS
@@ -39804,16 +39815,22 @@ def _has_symptomatic_bradycardia_time_critical_actions(actions: list[Any]) -> bo
         _contains_safety_term(normalized_actions, term)
         for term in SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ACTION_TERMS
     )
+    has_chronotrope_infusion_action = any(
+        _contains_safety_term(normalized_actions, term)
+        for term in SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_INFUSION_ACTION_TERMS
+    )
     has_reversible_cause_action = any(
         _contains_safety_term(normalized_actions, term)
         for term in SYMPTOMATIC_BRADYCARDIA_REVERSIBLE_CAUSE_ACTION_TERMS
     )
     return (
         has_monitor_action
+        and has_pulse_action
         and has_instability_action
         and has_atropine_action
         and has_pacing_action
         and has_chronotrope_action
+        and has_chronotrope_infusion_action
         and has_reversible_cause_action
     )
 
@@ -39836,6 +39853,14 @@ def _has_symptomatic_bradycardia_treatment_safety_check(checks: list[Any]) -> bo
         _contains_safety_term(normalized_checks, term)
         for term in SYMPTOMATIC_BRADYCARDIA_PACING_CAPTURE_SAFETY_TERMS
     )
+    has_electrical_capture_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SYMPTOMATIC_BRADYCARDIA_ELECTRICAL_CAPTURE_SAFETY_TERMS
+    )
+    has_mechanical_capture_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SYMPTOMATIC_BRADYCARDIA_MECHANICAL_CAPTURE_SAFETY_TERMS
+    )
     has_pacing_comfort_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in SYMPTOMATIC_BRADYCARDIA_PACING_COMFORT_SAFETY_TERMS
@@ -39852,6 +39877,10 @@ def _has_symptomatic_bradycardia_treatment_safety_check(checks: list[Any]) -> bo
         _contains_safety_term(normalized_checks, term)
         for term in SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_ADVERSE_SAFETY_TERMS
     )
+    has_chronotrope_titration_safety = any(
+        _contains_safety_term(normalized_checks, term)
+        for term in SYMPTOMATIC_BRADYCARDIA_CHRONOTROPE_TITRATION_SAFETY_TERMS
+    )
     has_cause_disposition_safety = any(
         _contains_safety_term(normalized_checks, term)
         for term in SYMPTOMATIC_BRADYCARDIA_CAUSE_DISPOSITION_SAFETY_TERMS
@@ -39861,10 +39890,13 @@ def _has_symptomatic_bradycardia_treatment_safety_check(checks: list[Any]) -> bo
         and has_atropine_reference_safety
         and has_atropine_limit_safety
         and has_pacing_capture_safety
+        and has_electrical_capture_safety
+        and has_mechanical_capture_safety
         and has_pacing_comfort_safety
         and has_pacing_route_safety
         and has_chronotrope_agent_safety
         and has_chronotrope_adverse_safety
+        and has_chronotrope_titration_safety
         and has_cause_disposition_safety
     )
 
