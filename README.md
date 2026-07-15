@@ -156,8 +156,11 @@ PostgreSQL 16
 (cd frontend && npm install && npm test)
 
 # API smoke test (백엔드가 localhost:8000에서 실행 중이어야 함)
-node scripts/smoke-api.mjs
+# 최초 관리자 설정 토큰이 .env의 ADMIN_BOOTSTRAP_TOKEN과 같아야 합니다.
+SMOKE_ADMIN_BOOTSTRAP_TOKEN=<ADMIN_BOOTSTRAP_TOKEN> node scripts/smoke-api.mjs
 ```
+
+스모크 테스트는 빈 개발 DB에서 관리자 생성/토큰 갱신 → 데모 케이스 생성 → 임상 검토 승인 → 학습자 세션/SSE → 코치 출력 가드레일 검토 → 완료까지를 검증합니다. 이미 만든 테스트 관리자를 재사용해 반복 실행하려면 `SMOKE_ADMIN_EMAIL=<existing-admin-email>`을 함께 지정하세요.
 
 ## API
 

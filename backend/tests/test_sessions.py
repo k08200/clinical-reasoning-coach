@@ -4002,6 +4002,31 @@ async def test_negated_safety_mentions_do_not_satisfy_completion_coverage(
     assert session.completed_at is None
 
 
+def test_safety_coverage_accepts_treatment_delay_and_missed_medication_risk_language():
+    coverage = sessions_router._build_clinical_safety_coverage_from_targets(
+        red_flag_targets=["Atrial fibrillation with missed anticoagulation suggesting embolic risk"],
+        time_critical_action_targets=[
+            "Obtain blood cultures promptly without delaying empiric antibiotics"
+        ],
+        contraindication_check_targets=[],
+        messages=[
+            Message(
+                session_id=uuid.uuid4(),
+                role="student",
+                content=(
+                    "I will recognize atrial fibrillation with missed anticoagulation "
+                    "as embolic risk. I will obtain blood cultures promptly without "
+                    "delaying empiric antibiotics."
+                ),
+            )
+        ],
+    )
+
+    assert coverage.covered_count == 2
+    assert coverage.red_flags[0].covered is True
+    assert coverage.time_critical_actions[0].covered is True
+
+
 @pytest.mark.asyncio
 async def test_korean_negated_safety_mentions_do_not_satisfy_completion_coverage(
     client: AsyncClient,
