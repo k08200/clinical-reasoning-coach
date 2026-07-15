@@ -202,6 +202,77 @@ async function main() {
     throw new Error(`session did not complete: ${saved.status}`);
   }
 
+  const lockedSession = await request("/api/sessions", {
+    method: "POST",
+    headers: { ...authHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      case_id: clinicalCase.id,
+      acknowledge_educational_simulation: true,
+    }),
+  });
+  const realPatientResponse = await fetch(
+    `${API_URL}/api/sessions/${lockedSession.id}/stream`,
+    {
+      method: "POST",
+      headers: { ...authHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: "This is a real patient with severe chest pain right now.",
+      }),
+    },
+  );
+  const realPatientText = await realPatientResponse.text();
+  if (!realPatientResponse.ok || !realPatientText.includes('"type": "done"')) {
+    throw new Error("real-patient safety stream did not halt cleanly");
+  }
+  const lockedSaved = await request(`/api/sessions/${lockedSession.id}`, {
+    headers: authHeaders,
+  });
+  if (
+    lockedSaved.status !== "safety_locked" ||
+    lockedSaved.messages.map((message) => message.role).join(",") !== "coach,coach"
+  ) {
+    throw new Error("real-patient signal did not lock the session before storing learner text");
+  }
+  const highRiskEvents = (await request(
+    "/api/safety-events?event_type=real_patient_or_emergency_signal&event_status=open&limit=200",
+    { headers: adminHeaders },
+  )).filter((event) => event.session_id === lockedSession.id);
+  if (highRiskEvents.length !== 1 || highRiskEvents[0].severity !== "high") {
+    throw new Error("real-patient signal did not create one high-severity safety event");
+  }
+  const learnerResolution = await fetch(
+    `${API_URL}/api/safety-events/${highRiskEvents[0].id}/resolution`,
+    {
+      method: "PATCH",
+      headers: { ...authHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: "resolved",
+        resolution_note: "Reviewed and escalated to a supervising clinician.",
+      }),
+    },
+  );
+  if (learnerResolution.status !== 403) {
+    throw new Error("learner was allowed to resolve a high-risk safety event");
+  }
+  const resolvedHighRiskEvent = await request(
+    `/api/safety-events/${highRiskEvents[0].id}/resolution`,
+    {
+      method: "PATCH",
+      headers: { ...adminHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: "resolved",
+        resolution_note:
+          "Reviewed real-patient signal, escalated to supervising clinician, and documented that this simulator was not used for patient care.",
+      }),
+    },
+  );
+  if (
+    resolvedHighRiskEvent.status !== "resolved" ||
+    resolvedHighRiskEvent.session_status !== "safety_locked"
+  ) {
+    throw new Error("reviewer resolution did not preserve the safety-locked session");
+  }
+
   console.log(JSON.stringify({
     ok: true,
     apiUrl: API_URL,
@@ -209,6 +280,7 @@ async function main() {
     learnerEmail,
     caseTitle: clinicalCase.title,
     sessionId: session.id,
+    lockedSessionId: lockedSession.id,
     resolvedCoachGuardrailEvents: sessionSafetyEvents.length,
     finalScore: saved.final_reasoning_score,
     totalTokens:
