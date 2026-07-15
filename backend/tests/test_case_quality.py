@@ -39487,6 +39487,16 @@ def test_quality_gate_requires_aortic_dissection_imaging_impulse_and_surgical_ac
     )
 
 
+def test_aortic_dissection_treatment_gate_requires_antithrombotic_avoidance_not_drug_label():
+    checks = [
+        "Start anticoagulation and heparin while the aortic workup is pending",
+        "Use beta-blocker before vasodilator and monitor heart rate to prevent reflex tachycardia",
+        "Assess pulse deficit, neurologic deficit, aortic regurgitation, pericardial effusion, tamponade, malperfusion, and rupture risk",
+    ]
+
+    assert not case_quality_module._has_aortic_dissection_treatment_safety_check(checks)
+
+
 def test_quality_gate_requires_aortic_dissection_specific_repair_not_team_transfer_only():
     case = copy.deepcopy(CASE_POOL[0])
     case["diagnosis"] = "Acute type A aortic dissection"

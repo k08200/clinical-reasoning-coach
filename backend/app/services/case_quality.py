@@ -40522,8 +40522,15 @@ def _has_aortic_dissection_time_critical_actions(actions: list[Any]) -> bool:
 def _has_aortic_dissection_treatment_safety_check(checks: list[Any]) -> bool:
     normalized_checks = " ".join(str(check).lower() for check in checks)
     has_antithrombotic_safety = any(
-        _contains_safety_term(normalized_checks, term)
-        for term in AORTIC_DISSECTION_ANTITHROMBOTIC_SAFETY_TERMS
+        any(
+            _contains_safety_term(str(check).lower(), term)
+            for term in AORTIC_DISSECTION_ANTITHROMBOTIC_SAFETY_TERMS
+        )
+        and any(
+            _contains_safety_term(str(check).lower(), term)
+            for term in ("avoid", "defer", "hold", "withhold", "do not administer", "금기", "피한다")
+        )
+        for check in checks
     )
     has_impulse_safety = any(
         _contains_safety_term(normalized_checks, term)

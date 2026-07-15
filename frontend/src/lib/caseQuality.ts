@@ -34658,9 +34658,17 @@ function hasAorticDissectionTimeCriticalActions(actions: string[]): boolean {
 
 function hasAorticDissectionTreatmentSafetyCheck(checks: string[]): boolean {
   const normalizedChecks = checks.join(" ").toLowerCase();
-  const hasAntithromboticSafety = AORTIC_DISSECTION_ANTITHROMBOTIC_SAFETY_TERMS.some(
-    (term) => containsSafetyTerm(normalizedChecks, term),
-  );
+  const hasAntithromboticSafety = checks.some((check) => {
+    const normalizedCheck = check.toLowerCase();
+    return (
+      AORTIC_DISSECTION_ANTITHROMBOTIC_SAFETY_TERMS.some((term) =>
+        containsSafetyTerm(normalizedCheck, term),
+      ) &&
+      ["avoid", "defer", "hold", "withhold", "do not administer", "금기", "피한다"].some(
+        (term) => containsSafetyTerm(normalizedCheck, term),
+      )
+    );
+  });
   const hasImpulseSafety = AORTIC_DISSECTION_VASODILATOR_SAFETY_TERMS.some((term) =>
     containsSafetyTerm(normalizedChecks, term),
   );
