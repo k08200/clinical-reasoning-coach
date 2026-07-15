@@ -193,13 +193,13 @@ _SOURCE_CHEST_PAIN = {
 }
 
 _SOURCE_ACS_STATPEARLS = {
-    "title": "Acute Coronary Syndrome",
-    "organization": "NCBI Bookshelf / StatPearls",
-    "url": "https://www.ncbi.nlm.nih.gov/books/NBK459157/",
+    "title": "2025 ACC/AHA/ACEP/NAEMSP/SCAI Guideline for Acute Coronary Syndromes",
+    "organization": "American College of Cardiology / American Heart Association",
+    "url": "https://www.acc.org/Guidelines/Guidelines/2025/02/27/17/21/Acute-Coronary-Syndromes-2025",
     "supports": [
-        "acute coronary syndrome diagnosis and risk stratification",
+        "acute coronary syndrome diagnosis, risk stratification, and invasive management",
         "ECG and cardiac biomarkers in ACS evaluation",
-        "STEMI and ACS time-sensitive management pathways",
+        "STEMI and ACS time-sensitive reperfusion pathways",
         "300 mg aspirin, dual antiplatelet therapy, and UFH heparin antithrombin anticoagulation safety considerations",
         "life-threatening differential diagnosis for acute chest pain",
         "serial troponin, cardiac biomarker, GRACE NSTEMI risk assessment, creatinine, glucose, and hemoglobin review",
@@ -213,9 +213,9 @@ _SOURCE_ACS_STATPEARLS = {
 }
 
 _SOURCE_SEPSIS = {
-    "title": "2026 Surviving Sepsis Campaign Adult Resuscitation Quick Guide",
+    "title": "2026 Surviving Sepsis Campaign International Guidelines for Sepsis and Septic Shock",
     "organization": "Society of Critical Care Medicine",
-    "url": "https://sccm.org/SCCM/media/SCCM/PDFs/SSC-Adult-Quick-Guide-Infographic-2026.pdf",
+    "url": "https://www.sccm.org/clinical-resources/guidelines/guidelines/surviving-sepsis-campaign-international-guidelines-for-management-of-sepsis-and-septic-shock-2026",
     "supports": [
         "lactate measurement and reassessment",
         "measure lactate and repeat lactate if elevated",
@@ -223,11 +223,11 @@ _SOURCE_SEPSIS = {
         "lactate elevation and tissue hypoperfusion in septic shock",
         "AKI, thrombocytopenia, delayed urination, and poor perfusion as organ dysfunction",
         "suspected septic shock recognition and immediate escalation",
-        "blood cultures and antimicrobial timing",
-        "immediate broad-spectrum antimicrobials ideally within 1 hour",
-        "30 mL/kg crystalloid fluid resuscitation for sepsis-induced hypoperfusion or septic shock",
+        "blood cultures as soon as possible and ideally before antimicrobials without delaying treatment",
+        "start immediate broad-spectrum antibiotics within 1 hour for probable or definite sepsis with shock; use time-limited investigation for possible sepsis without shock",
+        "at least 30 mL/kg crystalloid fluid resuscitation within 3 hours for sepsis-induced hypoperfusion or septic shock with individualized reassessment",
         "norepinephrine vasopressor support targeting MAP 65",
-        "source control and ICU or critical-care escalation",
+        "early source control, ideally within 6 hours when indicated, and ICU or critical-care escalation",
         "fluid reassessment and vasopressor escalation",
         "shock severity markers and organ dysfunction in sepsis diagnosis",
         "renal impairment and allergy safety checks before antimicrobial dosing",
@@ -502,7 +502,7 @@ _CASE_SEPSIS = {
     "diagnosis": "Septic Shock secondary to Urosepsis (UTI → urosepsis → septic shock)",
     "key_teaching_points": [
         "Septic shock = sepsis + vasopressor requirement to maintain MAP ≥65 mmHg + lactate >2 mmol/L",
-        "Source control (antibiotics within 1 hour) and fluid resuscitation are time-critical",
+        "For septic shock, immediate antimicrobials, resuscitation, and early source-control assessment are time-critical",
         "Elevated lactate 4.1 indicates tissue hypoperfusion — immediate action required",
         "Altered mental status in elderly is a sepsis red flag even without classic fever pattern",
         "AKI and thrombocytopenia suggest early organ dysfunction (sepsis-3 criteria)",
@@ -539,12 +539,12 @@ _CASE_SEPSIS = {
     "review_status": "educational_draft",
     "last_reviewed_at": "2026-06-01",
     "coach_guidance": (
-        "Guide student toward: (1) recognizing SIRS criteria and sepsis-3, "
+        "Guide student toward: (1) recognizing suspected infection, shock, and organ dysfunction, "
         "(2) identifying source (urinary symptoms + UA), "
         "(3) lactate as prognostic marker requiring immediate intervention, "
         "(4) understanding organ dysfunction scoring. "
         "Challenge anchoring on delirium or stroke. "
-        "Emphasize time-critical nature: antibiotics within 1 hour, 30mL/kg IV fluids."
+        "Emphasize time-critical shock care: immediate antimicrobials, individualized 30 mL/kg IV crystalloid within 3 hours, reassessment, and source control."
     ),
 }
 

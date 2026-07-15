@@ -185,6 +185,8 @@ def test_specialty_questions_non_empty():
 
 
 def test_high_risk_demo_cases_avoid_misleading_risk_or_treatment_claims():
+    acs_case = _case_with_title("Acute Chest Pain in a Middle-Aged Male")
+    sepsis_case = _case_with_title("Fever and Altered Mental Status in an Elderly Patient")
     pe_case = _case_with_title("Sudden Dyspnea in a Post-Surgical Patient")
     stroke_case = _case_with_title("Sudden Facial Droop and Speech Difficulty")
     dka_case = _case_with_title("Young Diabetic with Nausea and Abdominal Pain")
@@ -200,6 +202,10 @@ def test_high_risk_demo_cases_avoid_misleading_risk_or_treatment_claims():
 
     assert any("glucose at least 200 mg/dL" in point for point in dka_case["key_teaching_points"])
     assert any("ketoacidosis resolves" in point for point in dka_case["key_teaching_points"])
+
+    assert any("2025 ACC/AHA" in source["title"] for source in acs_case["clinical_sources"])
+    assert any("2026 Surviving Sepsis Campaign" in source["title"] for source in sepsis_case["clinical_sources"])
+    assert any("immediate antimicrobials" in point for point in sepsis_case["key_teaching_points"])
 
 
 @pytest.mark.asyncio
