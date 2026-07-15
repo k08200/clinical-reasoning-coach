@@ -39927,8 +39927,15 @@ def _requires_tension_pneumothorax_safety_check(data: dict[str, Any]) -> bool:
 def _has_tension_pneumothorax_time_critical_actions(actions: list[Any]) -> bool:
     normalized_actions = " ".join(str(action).lower() for action in actions)
     has_decompression = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in TENSION_PNEUMOTHORAX_DECOMPRESSION_ACTION_TERMS
+        any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in TENSION_PNEUMOTHORAX_DECOMPRESSION_ACTION_TERMS
+        )
+        and any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in ("immediate", "urgent", "without delay")
+        )
+        for action in actions
     )
     has_chest_tube = any(
         _contains_safety_term(normalized_actions, term)

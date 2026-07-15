@@ -34163,9 +34163,17 @@ function requiresTensionPneumothoraxSafetyCheck(detail: ClinicalCaseReviewDetail
 
 function hasTensionPneumothoraxTimeCriticalActions(actions: string[]): boolean {
   const normalizedActions = actions.join(" ").toLowerCase();
-  const hasDecompression = TENSION_PNEUMOTHORAX_DECOMPRESSION_ACTION_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasDecompression = actions.some((action) => {
+    const normalizedAction = action.toLowerCase();
+    return (
+      TENSION_PNEUMOTHORAX_DECOMPRESSION_ACTION_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      ) &&
+      ["immediate", "urgent", "without delay"].some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      )
+    );
+  });
   const hasChestTube = TENSION_PNEUMOTHORAX_CHEST_TUBE_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
