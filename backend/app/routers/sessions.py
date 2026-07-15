@@ -1162,6 +1162,18 @@ def _assert_case_provenance_allows_learner_session(case: ClinicalCase) -> None:
                 ),
             ),
         )
+    if source_provenance["source_evidence_attestation_incomplete"]:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=_case_provenance_block_detail(
+                code="case_source_evidence_incomplete",
+                message=(
+                    "This case is missing current source evidence attestation. "
+                    "Learner sessions are blocked until a clinician confirms every "
+                    "cited source was accessed and remains current."
+                ),
+            ),
+        )
     if source_provenance["review_audit_incomplete"]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

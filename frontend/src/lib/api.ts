@@ -176,6 +176,12 @@ export const api = {
           attests_review_within_scope: boolean;
           attests_educational_use_only: boolean;
         };
+        source_evidence_attestation: {
+          source_urls: string[];
+          verified_on: string;
+          attests_sources_accessed: boolean;
+          attests_sources_current: boolean;
+        };
         review_notes?: string;
       },
     ) =>

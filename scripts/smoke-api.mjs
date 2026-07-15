@@ -123,6 +123,11 @@ async function main() {
     method: "POST",
     headers: adminHeaders,
   });
+  const clinicalReviewDetail = await request(
+    `/api/cases/${clinicalCase.id}/clinical-review/detail`,
+    { headers: reviewerHeaders },
+  );
+  const sourceEvidenceVerifiedOn = new Date().toISOString().slice(0, 10);
 
   await request(`/api/cases/${clinicalCase.id}/clinical-review`, {
     method: "POST",
@@ -141,10 +146,33 @@ async function main() {
         attests_review_within_scope: true,
         attests_educational_use_only: true,
       },
+      source_evidence_attestation: {
+        source_urls: clinicalReviewDetail.clinical_sources.map((source) => source.url),
+        verified_on: sourceEvidenceVerifiedOn,
+        attests_sources_accessed: true,
+        attests_sources_current: true,
+      },
       educational_safety_confirmed: true,
       review_notes: REVIEW_NOTES,
     }),
   });
+  const clinicalReviewHistory = await request(
+    `/api/cases/${clinicalCase.id}/clinical-review/history`,
+    { headers: reviewerHeaders },
+  );
+  const recordedSourceEvidence = clinicalReviewHistory[0]?.source_snapshot?.source_evidence_attestation;
+  if (
+    !recordedSourceEvidence ||
+    recordedSourceEvidence.verified_on !== sourceEvidenceVerifiedOn ||
+    recordedSourceEvidence.attests_sources_accessed !== true ||
+    recordedSourceEvidence.attests_sources_current !== true ||
+    recordedSourceEvidence.source_urls.length !== clinicalReviewDetail.clinical_sources.length ||
+    !clinicalReviewDetail.clinical_sources.every((source) =>
+      recordedSourceEvidence.source_urls.includes(source.url),
+    )
+  ) {
+    throw new Error("clinical review did not retain complete current source evidence");
+  }
   const governanceReadiness = await request("/api/governance/readiness", {
     headers: adminHeaders,
   });

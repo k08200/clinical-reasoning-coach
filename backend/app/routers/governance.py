@@ -35,6 +35,8 @@ def _case_blocker_reasons(provenance: dict) -> list[str]:
         reasons.append("Clinical review audit is missing")
     if provenance["review_audit_incomplete"]:
         reasons.append("Clinical review audit is incomplete")
+    if provenance["source_evidence_attestation_incomplete"]:
+        reasons.append("Current source evidence attestation is incomplete")
     if provenance["source_diversity_insufficient"]:
         reasons.append("Independent source diversity is insufficient")
     return reasons or [provenance["review_label"]]

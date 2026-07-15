@@ -166,6 +166,8 @@ export default function ReviewPage() {
   const [practiceScope, setPracticeScope] = useState("");
   const [attestsReviewWithinScope, setAttestsReviewWithinScope] = useState(false);
   const [attestsEducationalUseOnly, setAttestsEducationalUseOnly] = useState(false);
+  const [attestsSourcesAccessed, setAttestsSourcesAccessed] = useState(false);
+  const [attestsSourcesCurrent, setAttestsSourcesCurrent] = useState(false);
   const [reviewNotes, setReviewNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState("");
@@ -210,6 +212,8 @@ export default function ReviewPage() {
     practiceScope.trim().length >= 3 &&
     attestsReviewWithinScope &&
     attestsEducationalUseOnly;
+  const sourceEvidenceAttestationReady =
+    attestsSourcesAccessed && attestsSourcesCurrent && !!reviewDetail?.clinical_sources.length;
   const approvalDetail = useMemo(() => reviewApprovalDetail(reviewDetail), [reviewDetail]);
   const qualityIssues = useMemo(() => reviewQualityIssues(approvalDetail), [approvalDetail]);
   const qualityGateStatuses = useMemo(
@@ -235,6 +239,7 @@ export default function ReviewPage() {
     allSourceAlignmentConfirmed &&
     reviewNotesReady &&
     reviewerAttestationReady &&
+    sourceEvidenceAttestationReady &&
     qualityIssues.length === 0;
 
   useEffect(() => {
@@ -262,6 +267,12 @@ export default function ReviewPage() {
           attests_review_within_scope: attestsReviewWithinScope,
           attests_educational_use_only: attestsEducationalUseOnly,
         },
+        source_evidence_attestation: {
+          source_urls: reviewDetail?.clinical_sources.map((source) => source.url) ?? [],
+          verified_on: new Date().toISOString().slice(0, 10),
+          attests_sources_accessed: attestsSourcesAccessed,
+          attests_sources_current: attestsSourcesCurrent,
+        },
         review_notes: reviewNotes.trim() || undefined,
       });
       await mutateCases();
@@ -271,6 +282,8 @@ export default function ReviewPage() {
       setPracticeScope("");
       setAttestsReviewWithinScope(false);
       setAttestsEducationalUseOnly(false);
+      setAttestsSourcesAccessed(false);
+      setAttestsSourcesCurrent(false);
       setReviewNotes("");
       setActionMessage("Clinical review recorded.");
     } catch (err) {
@@ -784,6 +797,26 @@ export default function ReviewPage() {
                   <div className="mt-3 space-y-3">
                     <label className="flex items-start gap-3 rounded-lg border border-slate-700 bg-slate-900/40 p-3 text-sm text-slate-300">
                       <input
+                        aria-label="I opened every cited source listed for this case."
+                        type="checkbox"
+                        checked={attestsSourcesAccessed}
+                        onChange={(event) => setAttestsSourcesAccessed(event.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-800"
+                      />
+                      <span>I opened every cited source listed for this case.</span>
+                    </label>
+                    <label className="flex items-start gap-3 rounded-lg border border-slate-700 bg-slate-900/40 p-3 text-sm text-slate-300">
+                      <input
+                        aria-label="I confirm the cited sources remain current for this educational case."
+                        type="checkbox"
+                        checked={attestsSourcesCurrent}
+                        onChange={(event) => setAttestsSourcesCurrent(event.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-800"
+                      />
+                      <span>I confirm the cited sources remain current for this educational case.</span>
+                    </label>
+                    <label className="flex items-start gap-3 rounded-lg border border-slate-700 bg-slate-900/40 p-3 text-sm text-slate-300">
+                      <input
                         aria-label="I attest this review is within my clinical practice scope."
                         type="checkbox"
                         checked={attestsReviewWithinScope}
@@ -865,6 +898,11 @@ export default function ReviewPage() {
                           {review.source_snapshot.reviewer_attestation && (
                             <p className="mt-2 text-xs text-slate-400">
                               Scope: {review.source_snapshot.reviewer_attestation.practice_scope}
+                            </p>
+                          )}
+                          {review.source_snapshot.source_evidence_attestation && (
+                            <p className="mt-2 text-xs text-slate-400">
+                              Sources opened and current as of {review.source_snapshot.source_evidence_attestation.verified_on}.
                             </p>
                           )}
                           {review.source_snapshot.alignment_checklist && (

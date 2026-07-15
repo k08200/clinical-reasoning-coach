@@ -77,6 +77,7 @@ export interface ClinicalSourceProvenance {
   review_date_invalid: boolean;
   review_audit_missing?: boolean;
   review_audit_incomplete?: boolean;
+  source_evidence_attestation_incomplete?: boolean;
   source_diversity_insufficient?: boolean;
   review_content_changed: boolean;
 }
@@ -134,6 +135,12 @@ export interface ClinicalCaseReview {
       attests_review_within_scope: boolean;
       attests_educational_use_only: boolean;
       reviewer_role: UserRole;
+    };
+    source_evidence_attestation?: {
+      source_urls: string[];
+      verified_on: string;
+      attests_sources_accessed: boolean;
+      attests_sources_current: boolean;
     };
     reviewer_credential_verification?: {
       status: "verified";

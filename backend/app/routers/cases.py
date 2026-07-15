@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date
+from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -199,6 +199,25 @@ async def complete_clinical_review(
             status_code=status.HTTP_409_CONFLICT,
             detail="Clinical review requires at least one supporting clinical source",
         )
+    case_source_urls = {
+        str(source.get("url")).strip()
+        for source in case.clinical_sources
+        if isinstance(source, dict) and str(source.get("url") or "").strip()
+    }
+    attested_source_urls = set(body.source_evidence_attestation.source_urls)
+    if not case_source_urls or attested_source_urls != case_source_urls:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Source evidence attestation must include every current clinical "
+                "source URL exactly once"
+            ),
+        )
+    if body.source_evidence_attestation.verified_on < date.today() - timedelta(days=7):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Source evidence verification must be dated within the last 7 days",
+        )
     quality_report = evaluate_case_quality(_quality_payload_for_clinical_review(case))
     if not quality_report.passed:
         issues = quality_report.critical_issues + quality_report.warnings
@@ -244,6 +263,9 @@ async def complete_clinical_review(
                     **body.reviewer_attestation.model_dump(),
                     "reviewer_role": reviewer.role,
                 },
+                "source_evidence_attestation": body.source_evidence_attestation.model_dump(
+                    mode="json"
+                ),
                 "reviewer_credential_verification": {
                     "status": reviewer.reviewer_verification_status,
                     "practice_scope": reviewer.reviewer_practice_scope,

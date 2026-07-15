@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 import uuid
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -81,6 +81,7 @@ class ClinicalSourceProvenance(BaseModel):
     review_date_invalid: bool = False
     review_audit_missing: bool = False
     review_audit_incomplete: bool = False
+    source_evidence_attestation_incomplete: bool = False
     source_diversity_insufficient: bool = False
     review_content_changed: bool = False
 
@@ -195,6 +196,42 @@ class ClinicalReviewerAttestation(BaseModel):
         return value
 
 
+class ClinicalSourceEvidenceAttestation(BaseModel):
+    source_urls: list[str] = Field(min_length=1, max_length=50)
+    verified_on: date
+    attests_sources_accessed: bool = Field(default=False, validate_default=True)
+    attests_sources_current: bool = Field(default=False, validate_default=True)
+
+    @field_validator("source_urls")
+    @classmethod
+    def require_distinct_https_source_urls(cls, value: list[str]) -> list[str]:
+        normalized_urls = [
+            url.strip() for url in value if isinstance(url, str) and url.strip()
+        ]
+        if (
+            len(normalized_urls) != len(value)
+            or len(set(normalized_urls)) != len(normalized_urls)
+        ):
+            raise ValueError("Source evidence attestation requires distinct non-empty source URLs")
+        if any(not url.startswith("https://") for url in normalized_urls):
+            raise ValueError("Source evidence attestation requires HTTPS source URLs")
+        return normalized_urls
+
+    @field_validator("verified_on")
+    @classmethod
+    def require_non_future_verification_date(cls, value: date) -> date:
+        if value > date.today():
+            raise ValueError("Source evidence verification date must not be in the future")
+        return value
+
+    @field_validator("attests_sources_accessed", "attests_sources_current")
+    @classmethod
+    def require_source_evidence_attestation(cls, value: bool) -> bool:
+        if value is not True:
+            raise ValueError("Source evidence attestation requires all confirmations")
+        return value
+
+
 class ClinicalReviewRequest(BaseModel):
     clinical_accuracy_confirmed: bool = Field(
         default=False,
@@ -218,6 +255,7 @@ class ClinicalReviewRequest(BaseModel):
         ),
     )
     reviewer_attestation: ClinicalReviewerAttestation
+    source_evidence_attestation: ClinicalSourceEvidenceAttestation
     review_notes: str | None = Field(default=None, max_length=2000)
 
     @field_validator(

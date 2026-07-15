@@ -215,6 +215,16 @@ def _review_audit_for_case(case: ClinicalCase) -> ClinicalCaseReview:
                 "attests_educational_use_only": True,
                 "reviewer_role": "clinician_reviewer",
             },
+            "source_evidence_attestation": {
+                "source_urls": [
+                    source["url"]
+                    for source in case.clinical_sources or []
+                    if source.get("url")
+                ],
+                "verified_on": date.today().isoformat(),
+                "attests_sources_accessed": True,
+                "attests_sources_current": True,
+            },
             "reviewer_credential_verification": {
                 "status": "verified",
                 "practice_scope": "Emergency medicine educational simulation",
@@ -232,6 +242,15 @@ def _refresh_review_fingerprint_for_test(case: ClinicalCase) -> None:
     review.source_snapshot = {
         **review.source_snapshot,
         "case_content_fingerprint": clinical_case_content_fingerprint(case),
+        "source_evidence_attestation": {
+            **review.source_snapshot["source_evidence_attestation"],
+            "source_urls": [
+                source["url"]
+                for source in case.clinical_sources or []
+                if source.get("url")
+            ],
+            "verified_on": date.today().isoformat(),
+        },
     }
 
 
@@ -819,6 +838,49 @@ async def test_create_session_blocks_review_without_reviewer_attestation(
         code="case_review_audit_incomplete",
     )
     assert "review audit is incomplete" in message
+    await db.refresh(case)
+    assert case.times_used == 0
+
+
+@pytest.mark.asyncio
+async def test_create_session_blocks_review_without_source_evidence_attestation(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"missing-source-evidence-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Missing Source Evidence Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    source_snapshot = dict(case.clinical_reviews[0].source_snapshot)
+    source_snapshot.pop("source_evidence_attestation")
+    case.clinical_reviews[0].source_snapshot = source_snapshot
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    assert _case_provenance_block_message(
+        response,
+        code="case_source_evidence_incomplete",
+    )
     await db.refresh(case)
     assert case.times_used == 0
 

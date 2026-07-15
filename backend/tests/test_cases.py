@@ -34,6 +34,15 @@ REVIEW_AUDIT_NOTES = (
 )
 
 
+def _source_evidence_attestation_for(case: ClinicalCase) -> dict:
+    return {
+        "source_urls": [source["url"] for source in case.clinical_sources],
+        "verified_on": date.today().isoformat(),
+        "attests_sources_accessed": True,
+        "attests_sources_current": True,
+    }
+
+
 def test_clinical_review_requires_reviewer_attestation():
     with pytest.raises(ValueError, match="reviewer_attestation"):
         ClinicalReviewRequest(
@@ -683,6 +692,7 @@ async def test_insufficient_source_diversity_provenance_requires_caution(
                     **REVIEWER_ATTESTATION,
                     "reviewer_role": "clinician_reviewer",
                 },
+                "source_evidence_attestation": _source_evidence_attestation_for(case),
                 "reviewer_credential_verification": {
                     "status": "verified",
                     "practice_scope": REVIEWER_ATTESTATION["practice_scope"],
@@ -777,10 +787,11 @@ async def test_incomplete_clinician_review_audit_provenance_requires_caution(
     assert response.status_code == 200
     provenance = response.json()["source_provenance"]
     assert provenance["review_status"] == "clinician_reviewed"
-    assert provenance["review_label"] == "Clinician review audit incomplete"
+    assert provenance["review_label"] == "Clinician review source evidence incomplete"
     assert provenance["requires_caution"] is True
     assert provenance["review_audit_missing"] is False
     assert provenance["review_audit_incomplete"] is True
+    assert provenance["source_evidence_attestation_incomplete"] is True
     assert provenance["review_content_changed"] is False
 
 
@@ -802,6 +813,12 @@ async def test_learner_cannot_mark_case_clinician_reviewed(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": {
+                "source_urls": ["https://www.acc.org/Guidelines"],
+                "verified_on": date.today().isoformat(),
+                "attests_sources_accessed": True,
+                "attests_sources_current": True,
+            },
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -864,6 +881,7 @@ async def test_clinician_reviewer_can_mark_case_reviewed(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -904,7 +922,54 @@ async def test_clinician_reviewer_can_mark_case_reviewed(
         **REVIEWER_ATTESTATION,
         "reviewer_role": "clinician_reviewer",
     }
+    assert history[0]["source_snapshot"]["source_evidence_attestation"] == _source_evidence_attestation_for(
+        case
+    )
     assert history[0]["source_snapshot"]["supported_elements"][0]["supports"]
+
+
+async def test_clinical_review_requires_evidence_for_every_current_source(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"source-evidence-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Source Evidence Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = ClinicalCase(**CASE_POOL[0])
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers={"Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}"},
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": {
+                **_source_evidence_attestation_for(case),
+                "source_urls": [case.clinical_sources[0]["url"]],
+            },
+            "educational_safety_confirmed": True,
+            "review_notes": REVIEW_AUDIT_NOTES,
+        },
+    )
+
+    assert response.status_code == 422
+    assert "must include every current clinical source URL" in response.json()["detail"]
 
 
 async def test_clinical_review_requires_source_alignment_checklist(
@@ -944,6 +1009,7 @@ async def test_clinical_review_requires_source_alignment_checklist(
                 "contraindication_checks_supported": False,
             },
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -991,6 +1057,7 @@ async def test_clinical_review_requires_independent_source_organizations(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1038,6 +1105,7 @@ async def test_clinical_review_requires_audit_review_notes(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": "OK",
         },
@@ -1083,6 +1151,7 @@ async def test_clinical_review_notes_must_cover_audit_domains(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": "Reviewed carefully by clinician reviewer before approval.",
         },
@@ -1130,6 +1199,7 @@ async def test_clinical_review_requires_complete_safety_metadata(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1184,6 +1254,7 @@ async def test_clinical_review_requires_pregnancy_safety_check_for_reproductive_
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1238,6 +1309,7 @@ async def test_clinical_review_requires_weight_based_safety_check_for_pediatric_
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1312,6 +1384,7 @@ async def test_clinical_review_requires_renal_safety_check_for_contrast_imaging(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1385,6 +1458,7 @@ async def test_clinical_review_requires_bleeding_safety_check_for_thrombolysis(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1461,6 +1535,7 @@ async def test_clinical_review_requires_antimicrobial_safety_for_sepsis_therapy(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1531,6 +1606,7 @@ async def test_clinical_review_requires_dka_insulin_safety_checks(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1603,6 +1679,7 @@ async def test_clinical_review_requires_stroke_reperfusion_safety_checks(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1675,6 +1752,7 @@ async def test_clinical_review_requires_pe_risk_and_safety_checks(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1745,6 +1823,7 @@ async def test_clinical_review_requires_acs_safety_checks(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1801,6 +1880,7 @@ async def test_clinical_review_rejects_placeholder_source_url(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1902,6 +1982,7 @@ async def test_admin_cannot_complete_clinical_review(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1938,6 +2019,7 @@ async def test_unverified_clinician_reviewer_cannot_complete_clinical_review(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1992,6 +2074,7 @@ async def test_suspending_reviewer_requires_re_review_of_their_cases(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -2064,6 +2147,7 @@ async def test_clinical_review_writes_audit_log(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -2085,6 +2169,9 @@ async def test_clinical_review_writes_audit_log(
         **REVIEWER_ATTESTATION,
         "reviewer_role": "clinician_reviewer",
     }
+    assert review.source_snapshot["source_evidence_attestation"] == _source_evidence_attestation_for(
+        case
+    )
     assert review.source_snapshot["reviewer_credential_verification"]["status"] == "verified"
     assert review.source_snapshot["supported_elements"][0]["title"]
 
@@ -2123,6 +2210,7 @@ async def test_post_review_case_content_change_blocks_sessions_until_re_review(
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
             "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },

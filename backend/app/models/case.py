@@ -12,6 +12,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from app.database import Base
 
 CLINICAL_REVIEW_VALID_DAYS = 365
+SOURCE_EVIDENCE_VALID_DAYS = 7
 MIN_REVIEWED_SOURCE_ORGANIZATIONS = 2
 CLINICAL_REVIEW_CONTENT_FIELDS = (
     "title",
@@ -83,7 +84,10 @@ def clinical_case_content_fingerprint(case: "ClinicalCase") -> str:
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
-def _review_audit_confirms_required_items(review: "ClinicalCaseReview") -> bool:
+def _review_audit_confirms_required_items(
+    review: "ClinicalCaseReview",
+    case: "ClinicalCase",
+) -> bool:
     confirmations = review.confirmations if isinstance(review.confirmations, dict) else {}
     if not all(confirmations.get(field) is True for field in REQUIRED_REVIEW_CONFIRMATION_FIELDS):
         return False
@@ -105,10 +109,14 @@ def _review_audit_confirms_required_items(review: "ClinicalCaseReview") -> bool:
         return False
     if len(reviewer_attestation["practice_scope"].strip()) < 3:
         return False
-    return all(
-        reviewer_attestation.get(field) is True
-        for field in REQUIRED_REVIEWER_ATTESTATION_FIELDS
-    ) and _review_audit_has_verified_reviewer_credentials(source_snapshot)
+    return (
+        all(
+            reviewer_attestation.get(field) is True
+            for field in REQUIRED_REVIEWER_ATTESTATION_FIELDS
+        )
+        and _review_audit_has_verified_reviewer_credentials(source_snapshot)
+        and _review_audit_has_source_evidence_attestation(source_snapshot, case)
+    )
 
 
 def _review_audit_has_verified_reviewer_credentials(source_snapshot: dict) -> bool:
@@ -123,6 +131,43 @@ def _review_audit_has_verified_reviewer_credentials(source_snapshot: dict) -> bo
         return False
     return bool(verification.get("verified_at")) and bool(
         verification.get("verified_by_user_id")
+    )
+
+
+def _review_audit_has_source_evidence_attestation(
+    source_snapshot: dict,
+    case: "ClinicalCase",
+) -> bool:
+    attestation = source_snapshot.get("source_evidence_attestation")
+    if not isinstance(attestation, dict):
+        return False
+    if not (
+        attestation.get("attests_sources_accessed") is True
+        and attestation.get("attests_sources_current") is True
+    ):
+        return False
+    verified_on = _parse_review_date(attestation.get("verified_on"))
+    if (
+        verified_on is None
+        or verified_on > date.today()
+        or verified_on < date.today() - timedelta(days=SOURCE_EVIDENCE_VALID_DAYS)
+    ):
+        return False
+    source_urls = attestation.get("source_urls")
+    if not isinstance(source_urls, list) or not source_urls:
+        return False
+    attested_urls = [
+        url.strip() for url in source_urls if isinstance(url, str) and url.strip()
+    ]
+    case_urls = [
+        str(source.get("url")).strip()
+        for source in case.clinical_sources or []
+        if isinstance(source, dict) and str(source.get("url") or "").strip()
+    ]
+    return (
+        len(attested_urls) == len(source_urls)
+        and len(set(attested_urls)) == len(attested_urls)
+        and set(attested_urls) == set(case_urls)
     )
 
 
@@ -225,7 +270,17 @@ class ClinicalCase(Base):
             self.review_status == "clinician_reviewed"
             and bool(review_fingerprint)
             and latest_review is not None
-            and not _review_audit_confirms_required_items(latest_review)
+            and not _review_audit_confirms_required_items(latest_review, self)
+        )
+        source_evidence_attestation_incomplete = (
+            self.review_status == "clinician_reviewed"
+            and latest_review is not None
+            and not _review_audit_has_source_evidence_attestation(
+                latest_review.source_snapshot
+                if isinstance(latest_review.source_snapshot, dict)
+                else {},
+                self,
+            )
         )
         source_diversity_insufficient = (
             self.review_status == "clinician_reviewed"
@@ -241,6 +296,9 @@ class ClinicalCase(Base):
             requires_caution = True
         if review_audit_incomplete:
             review_label = "Clinician review audit incomplete"
+            requires_caution = True
+        if source_evidence_attestation_incomplete:
+            review_label = "Clinician review source evidence incomplete"
             requires_caution = True
         if source_diversity_insufficient:
             review_label = "Clinician review source diversity insufficient"
@@ -267,6 +325,9 @@ class ClinicalCase(Base):
             "review_date_invalid": review_date_invalid,
             "review_audit_missing": review_audit_missing,
             "review_audit_incomplete": review_audit_incomplete,
+            "source_evidence_attestation_incomplete": (
+                source_evidence_attestation_incomplete
+            ),
             "source_diversity_insufficient": source_diversity_insufficient,
             "review_content_changed": review_content_changed,
         }

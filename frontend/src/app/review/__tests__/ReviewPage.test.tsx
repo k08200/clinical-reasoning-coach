@@ -462,6 +462,15 @@ describe("ReviewPage", () => {
           attests_review_within_scope: true,
           attests_educational_use_only: true,
         },
+        source_evidence_attestation: {
+          source_urls: [
+            "https://www.sccm.org/survivingsepsis",
+            "https://www.nice.org.uk/guidance/ng51",
+          ],
+          verified_on: expect.any(String),
+          attests_sources_accessed: true,
+          attests_sources_current: true,
+        },
         review_notes:
           "Source alignment, safety checks, and educational simulation limitations reviewed.",
       }),
