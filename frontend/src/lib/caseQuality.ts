@@ -34242,9 +34242,17 @@ function hasStrokeTimeCriticalActions(actions: string[]): boolean {
   const hasPathwayActivation = STROKE_PATHWAY_ACTIVATION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );
-  const hasNoncontrastImaging = STROKE_NONCONTRAST_BRAIN_IMAGING_TERMS.some((term) =>
-    containsSafetyTerm(normalizedActions, term),
-  );
+  const hasNoncontrastImaging = actions.some((action) => {
+    const normalizedAction = action.toLowerCase();
+    return (
+      STROKE_NONCONTRAST_BRAIN_IMAGING_TERMS.some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      ) &&
+      ["immediate", "urgent", "without delay"].some((term) =>
+        containsSafetyTerm(normalizedAction, term),
+      )
+    );
+  });
   const hasReperfusionPlanning = STROKE_REPERFUSION_ACTION_TERMS.some((term) =>
     containsSafetyTerm(normalizedActions, term),
   );

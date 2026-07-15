@@ -772,7 +772,7 @@ _CASE_STROKE = {
     ],
     "time_critical_actions": [
         "Establish last known normal and activate stroke pathway immediately",
-        "Obtain noncontrast head CT to exclude hemorrhage without delaying treatment decision",
+        "Obtain urgent noncontrast head CT to exclude hemorrhage without delay to treatment decision",
         "Assess thrombolysis and thrombectomy eligibility in parallel",
     ],
     "contraindication_checks": [

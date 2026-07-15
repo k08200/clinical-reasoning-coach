@@ -40022,8 +40022,15 @@ def _has_stroke_time_critical_actions(actions: list[Any]) -> bool:
         for term in STROKE_PATHWAY_ACTIVATION_TERMS
     )
     has_noncontrast_imaging = any(
-        _contains_safety_term(normalized_actions, term)
-        for term in STROKE_NONCONTRAST_BRAIN_IMAGING_TERMS
+        any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in STROKE_NONCONTRAST_BRAIN_IMAGING_TERMS
+        )
+        and any(
+            _contains_safety_term(str(action).lower(), term)
+            for term in ("immediate", "urgent", "without delay")
+        )
+        for action in actions
     )
     has_reperfusion_planning = any(
         _contains_safety_term(normalized_actions, term)
