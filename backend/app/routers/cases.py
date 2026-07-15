@@ -240,6 +240,10 @@ async def complete_clinical_review(
                 "organizations": source_organizations,
                 "case_content_fingerprint": clinical_case_content_fingerprint(case),
                 "alignment_checklist": body.source_alignment_checks.model_dump(),
+                "reviewer_attestation": {
+                    **body.reviewer_attestation.model_dump(),
+                    "reviewer_role": reviewer.role,
+                },
                 "supported_elements": [
                     {
                         "title": source.get("title"),

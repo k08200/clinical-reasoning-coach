@@ -80,6 +80,12 @@ export interface ClinicalCaseReview {
     organizations: string[];
     case_content_fingerprint?: string;
     alignment_checklist?: SourceAlignmentChecks;
+    reviewer_attestation?: {
+      practice_scope: string;
+      attests_review_within_scope: boolean;
+      attests_educational_use_only: boolean;
+      reviewer_role: UserRole;
+    };
     supported_elements?: Array<{
       title?: string;
       organization?: string;

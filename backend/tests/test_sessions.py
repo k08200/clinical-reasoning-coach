@@ -209,6 +209,12 @@ def _review_audit_for_case(case: ClinicalCase) -> ClinicalCaseReview:
                 "time_critical_actions_supported": True,
                 "contraindication_checks_supported": True,
             },
+            "reviewer_attestation": {
+                "practice_scope": "Emergency medicine educational simulation",
+                "attests_review_within_scope": True,
+                "attests_educational_use_only": True,
+                "reviewer_role": "clinician_reviewer",
+            },
         },
         review_notes="Test clinician review with source and safety alignment.",
     )
@@ -763,6 +769,50 @@ async def test_create_session_blocks_reviewed_case_with_incomplete_review_audit(
     )
     assert "review audit is incomplete" in message
     assert "confirms clinical accuracy, source alignment, and educational safety" in message
+    await db.refresh(case)
+    assert case.times_used == 0
+
+
+@pytest.mark.asyncio
+async def test_create_session_blocks_review_without_reviewer_attestation(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    user = User(
+        email=f"missing-attestation-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Missing Attestation Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    source_snapshot = dict(case.clinical_reviews[0].source_snapshot)
+    source_snapshot.pop("reviewer_attestation")
+    case.clinical_reviews[0].source_snapshot = source_snapshot
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+    auth_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}",
+    }
+
+    response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 409
+    message = _case_provenance_block_message(
+        response,
+        code="case_review_audit_incomplete",
+    )
+    assert "review audit is incomplete" in message
     await db.refresh(case)
     assert case.times_used == 0
 

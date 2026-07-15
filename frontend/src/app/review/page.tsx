@@ -160,6 +160,9 @@ export default function ReviewPage() {
   const [checks, setChecks] = useState<ReviewChecks>(DEFAULT_CHECKS);
   const [sourceAlignmentChecks, setSourceAlignmentChecks] =
     useState<SourceAlignmentChecks>(DEFAULT_SOURCE_ALIGNMENT_CHECKS);
+  const [practiceScope, setPracticeScope] = useState("");
+  const [attestsReviewWithinScope, setAttestsReviewWithinScope] = useState(false);
+  const [attestsEducationalUseOnly, setAttestsEducationalUseOnly] = useState(false);
   const [reviewNotes, setReviewNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState("");
@@ -200,6 +203,10 @@ export default function ReviewPage() {
   const allChecksConfirmed = Object.values(checks).every(Boolean);
   const allSourceAlignmentConfirmed = Object.values(sourceAlignmentChecks).every(Boolean);
   const reviewNotesReady = reviewNotesCoverAuditDomains(reviewNotes);
+  const reviewerAttestationReady =
+    practiceScope.trim().length >= 3 &&
+    attestsReviewWithinScope &&
+    attestsEducationalUseOnly;
   const approvalDetail = useMemo(() => reviewApprovalDetail(reviewDetail), [reviewDetail]);
   const qualityIssues = useMemo(() => reviewQualityIssues(approvalDetail), [approvalDetail]);
   const qualityGateStatuses = useMemo(
@@ -224,6 +231,7 @@ export default function ReviewPage() {
     allChecksConfirmed &&
     allSourceAlignmentConfirmed &&
     reviewNotesReady &&
+    reviewerAttestationReady &&
     qualityIssues.length === 0;
 
   useEffect(() => {
@@ -246,12 +254,20 @@ export default function ReviewPage() {
       await api.cases.completeClinicalReview(selectedCase.id, {
         ...checks,
         source_alignment_checks: sourceAlignmentChecks,
+        reviewer_attestation: {
+          practice_scope: practiceScope.trim(),
+          attests_review_within_scope: attestsReviewWithinScope,
+          attests_educational_use_only: attestsEducationalUseOnly,
+        },
         review_notes: reviewNotes.trim() || undefined,
       });
       await mutateCases();
       await mutateHistory();
       setChecks(DEFAULT_CHECKS);
       setSourceAlignmentChecks(DEFAULT_SOURCE_ALIGNMENT_CHECKS);
+      setPracticeScope("");
+      setAttestsReviewWithinScope(false);
+      setAttestsEducationalUseOnly(false);
       setReviewNotes("");
       setActionMessage("Clinical review recorded.");
     } catch (err) {
@@ -753,6 +769,38 @@ export default function ReviewPage() {
                     ))}
                   </div>
                   <label className="mt-4 block text-sm font-medium text-slate-300">
+                    Clinical practice scope
+                    <input
+                      aria-label="Clinical practice scope"
+                      value={practiceScope}
+                      onChange={(event) => setPracticeScope(event.target.value)}
+                      maxLength={200}
+                      className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-brand-500"
+                    />
+                  </label>
+                  <div className="mt-3 space-y-3">
+                    <label className="flex items-start gap-3 rounded-lg border border-slate-700 bg-slate-900/40 p-3 text-sm text-slate-300">
+                      <input
+                        aria-label="I attest this review is within my clinical practice scope."
+                        type="checkbox"
+                        checked={attestsReviewWithinScope}
+                        onChange={(event) => setAttestsReviewWithinScope(event.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-800"
+                      />
+                      <span>I attest this review is within my clinical practice scope.</span>
+                    </label>
+                    <label className="flex items-start gap-3 rounded-lg border border-slate-700 bg-slate-900/40 p-3 text-sm text-slate-300">
+                      <input
+                        aria-label="I attest this approval is for educational simulation only."
+                        type="checkbox"
+                        checked={attestsEducationalUseOnly}
+                        onChange={(event) => setAttestsEducationalUseOnly(event.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-800"
+                      />
+                      <span>I attest this approval is for educational simulation only.</span>
+                    </label>
+                  </div>
+                  <label className="mt-4 block text-sm font-medium text-slate-300">
                     Review Notes
                     <textarea
                       aria-label="Review Notes"
@@ -811,6 +859,11 @@ export default function ReviewPage() {
                             {review.source_snapshot.source_count} source
                             {review.source_snapshot.source_count === 1 ? "" : "s"} checked
                           </p>
+                          {review.source_snapshot.reviewer_attestation && (
+                            <p className="mt-2 text-xs text-slate-400">
+                              Scope: {review.source_snapshot.reviewer_attestation.practice_scope}
+                            </p>
+                          )}
                           {review.source_snapshot.alignment_checklist && (
                             <div className="mt-2 flex flex-wrap gap-1.5">
                               {SOURCE_ALIGNMENT_ITEMS.filter(

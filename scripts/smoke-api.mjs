@@ -82,6 +82,11 @@ async function main() {
         time_critical_actions_supported: true,
         contraindication_checks_supported: true,
       },
+      reviewer_attestation: {
+        practice_scope: "Emergency medicine educational simulation",
+        attests_review_within_scope: true,
+        attests_educational_use_only: true,
+      },
       educational_safety_confirmed: true,
       review_notes: REVIEW_NOTES,
     }),

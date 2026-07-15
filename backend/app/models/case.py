@@ -44,6 +44,10 @@ REQUIRED_SOURCE_ALIGNMENT_FIELDS = (
     "time_critical_actions_supported",
     "contraindication_checks_supported",
 )
+REQUIRED_REVIEWER_ATTESTATION_FIELDS = (
+    "attests_review_within_scope",
+    "attests_educational_use_only",
+)
 
 REVIEW_PROVENANCE = {
     "clinician_reviewed": {
@@ -88,9 +92,22 @@ def _review_audit_confirms_required_items(review: "ClinicalCaseReview") -> bool:
     alignment_checklist = source_snapshot.get("alignment_checklist")
     if not isinstance(alignment_checklist, dict):
         return False
-    return all(
+    if not all(
         alignment_checklist.get(field) is True
         for field in REQUIRED_SOURCE_ALIGNMENT_FIELDS
+    ):
+        return False
+
+    reviewer_attestation = source_snapshot.get("reviewer_attestation")
+    if not isinstance(reviewer_attestation, dict):
+        return False
+    if not isinstance(reviewer_attestation.get("practice_scope"), str):
+        return False
+    if len(reviewer_attestation["practice_scope"].strip()) < 3:
+        return False
+    return all(
+        reviewer_attestation.get(field) is True
+        for field in REQUIRED_REVIEWER_ATTESTATION_FIELDS
     )
 
 

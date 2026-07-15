@@ -4,6 +4,7 @@ import copy
 import uuid
 from datetime import date, datetime, timezone
 
+import pytest
 from httpx import AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +13,7 @@ from app.models.case import ClinicalCase, clinical_case_content_fingerprint
 from app.models.case_review import ClinicalCaseReview
 from app.models.user import User
 from app.routers import cases as cases_router
-from app.schemas.case import ClinicalCaseCreate, MAX_SEED_SCENARIO_LENGTH
+from app.schemas.case import ClinicalCaseCreate, ClinicalReviewRequest, MAX_SEED_SCENARIO_LENGTH
 from app.services.mock_provider import CASE_POOL
 from app.services.case_quality import evaluate_case_quality
 from app.utils.auth import create_access_token, hash_password
@@ -23,9 +24,25 @@ SOURCE_ALIGNMENT_CHECKS = {
     "time_critical_actions_supported": True,
     "contraindication_checks_supported": True,
 }
+REVIEWER_ATTESTATION = {
+    "practice_scope": "Emergency medicine educational simulation",
+    "attests_review_within_scope": True,
+    "attests_educational_use_only": True,
+}
 REVIEW_AUDIT_NOTES = (
     "Source alignment, hidden safety checks, and educational simulation limitations reviewed."
 )
+
+
+def test_clinical_review_requires_reviewer_attestation():
+    with pytest.raises(ValueError, match="reviewer_attestation"):
+        ClinicalReviewRequest(
+            clinical_accuracy_confirmed=True,
+            source_alignment_confirmed=True,
+            educational_safety_confirmed=True,
+            source_alignment_checks=SOURCE_ALIGNMENT_CHECKS,
+            review_notes=REVIEW_AUDIT_NOTES,
+        )
 
 
 def _quality_gate_detail(response, *, code: str) -> dict:
@@ -659,10 +676,14 @@ async def test_insufficient_source_diversity_provenance_requires_caution(
             "source_alignment_confirmed": True,
             "educational_safety_confirmed": True,
         },
-        source_snapshot={
-            "case_content_fingerprint": clinical_case_content_fingerprint(case),
-            "alignment_checklist": SOURCE_ALIGNMENT_CHECKS,
-        },
+            source_snapshot={
+                "case_content_fingerprint": clinical_case_content_fingerprint(case),
+                "alignment_checklist": SOURCE_ALIGNMENT_CHECKS,
+                "reviewer_attestation": {
+                    **REVIEWER_ATTESTATION,
+                    "reviewer_role": "clinician_reviewer",
+                },
+            },
         review_notes="Sources, safety checks, and educational simulation limits reviewed.",
     ))
     await db.commit()
@@ -774,6 +795,7 @@ async def test_learner_cannot_mark_case_clinician_reviewed(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -831,6 +853,7 @@ async def test_clinician_reviewer_can_mark_case_reviewed(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -867,6 +890,10 @@ async def test_clinician_reviewer_can_mark_case_reviewed(
     assert history[0]["source_snapshot"]["organizations"]
     assert history[0]["source_snapshot"]["case_content_fingerprint"]
     assert history[0]["source_snapshot"]["alignment_checklist"] == SOURCE_ALIGNMENT_CHECKS
+    assert history[0]["source_snapshot"]["reviewer_attestation"] == {
+        **REVIEWER_ATTESTATION,
+        "reviewer_role": "clinician_reviewer",
+    }
     assert history[0]["source_snapshot"]["supported_elements"][0]["supports"]
 
 
@@ -902,6 +929,7 @@ async def test_clinical_review_requires_source_alignment_checklist(
                 **SOURCE_ALIGNMENT_CHECKS,
                 "contraindication_checks_supported": False,
             },
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -944,6 +972,7 @@ async def test_clinical_review_requires_independent_source_organizations(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -986,6 +1015,7 @@ async def test_clinical_review_requires_audit_review_notes(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": "OK",
         },
@@ -1026,6 +1056,7 @@ async def test_clinical_review_notes_must_cover_audit_domains(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": "Reviewed carefully by clinician reviewer before approval.",
         },
@@ -1068,6 +1099,7 @@ async def test_clinical_review_requires_complete_safety_metadata(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1117,6 +1149,7 @@ async def test_clinical_review_requires_pregnancy_safety_check_for_reproductive_
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1166,6 +1199,7 @@ async def test_clinical_review_requires_weight_based_safety_check_for_pediatric_
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1235,6 +1269,7 @@ async def test_clinical_review_requires_renal_safety_check_for_contrast_imaging(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1303,6 +1338,7 @@ async def test_clinical_review_requires_bleeding_safety_check_for_thrombolysis(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1374,6 +1410,7 @@ async def test_clinical_review_requires_antimicrobial_safety_for_sepsis_therapy(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1439,6 +1476,7 @@ async def test_clinical_review_requires_dka_insulin_safety_checks(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1506,6 +1544,7 @@ async def test_clinical_review_requires_stroke_reperfusion_safety_checks(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1573,6 +1612,7 @@ async def test_clinical_review_requires_pe_risk_and_safety_checks(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1638,6 +1678,7 @@ async def test_clinical_review_requires_acs_safety_checks(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1689,6 +1730,7 @@ async def test_clinical_review_rejects_placeholder_source_url(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1789,6 +1831,7 @@ async def test_clinical_review_writes_audit_log(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },
@@ -1806,6 +1849,10 @@ async def test_clinical_review_writes_audit_log(
     assert review.source_snapshot["source_count"] == 2
     assert review.source_snapshot["case_content_fingerprint"]
     assert review.source_snapshot["alignment_checklist"] == SOURCE_ALIGNMENT_CHECKS
+    assert review.source_snapshot["reviewer_attestation"] == {
+        **REVIEWER_ATTESTATION,
+        "reviewer_role": "admin",
+    }
     assert review.source_snapshot["supported_elements"][0]["title"]
 
 
@@ -1838,6 +1885,7 @@ async def test_post_review_case_content_change_blocks_sessions_until_re_review(
             "clinical_accuracy_confirmed": True,
             "source_alignment_confirmed": True,
             "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
             "educational_safety_confirmed": True,
             "review_notes": REVIEW_AUDIT_NOTES,
         },

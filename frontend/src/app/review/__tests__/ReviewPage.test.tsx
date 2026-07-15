@@ -437,6 +437,9 @@ describe("ReviewPage", () => {
         value: "Source alignment, safety checks, and educational simulation limitations reviewed.",
       },
     });
+    fireEvent.change(screen.getByLabelText("Clinical practice scope"), {
+      target: { value: "Emergency medicine educational simulation" },
+    });
     fireEvent.click(submit);
 
     await waitFor(() =>
@@ -450,6 +453,11 @@ describe("ReviewPage", () => {
           contraindication_checks_supported: true,
         },
         educational_safety_confirmed: true,
+        reviewer_attestation: {
+          practice_scope: "Emergency medicine educational simulation",
+          attests_review_within_scope: true,
+          attests_educational_use_only: true,
+        },
         review_notes:
           "Source alignment, safety checks, and educational simulation limitations reviewed.",
       }),

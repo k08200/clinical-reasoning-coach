@@ -144,6 +144,11 @@ export const api = {
         source_alignment_confirmed: boolean;
         source_alignment_checks: SourceAlignmentChecks;
         educational_safety_confirmed: boolean;
+        reviewer_attestation: {
+          practice_scope: string;
+          attests_review_within_scope: boolean;
+          attests_educational_use_only: boolean;
+        };
         review_notes?: string;
       },
     ) =>

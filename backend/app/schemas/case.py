@@ -174,6 +174,27 @@ class ClinicalSourceAlignmentChecks(BaseModel):
         ))
 
 
+class ClinicalReviewerAttestation(BaseModel):
+    practice_scope: str = Field(min_length=3, max_length=200)
+    attests_review_within_scope: bool = Field(default=False, validate_default=True)
+    attests_educational_use_only: bool = Field(default=False, validate_default=True)
+
+    @field_validator("practice_scope")
+    @classmethod
+    def require_practice_scope(cls, value: str) -> str:
+        scope = value.strip()
+        if len(scope) < 3:
+            raise ValueError("Reviewer attestation requires a practice scope")
+        return scope
+
+    @field_validator("attests_review_within_scope", "attests_educational_use_only")
+    @classmethod
+    def require_attestation(cls, value: bool) -> bool:
+        if value is not True:
+            raise ValueError("Reviewer attestation requires all confirmations")
+        return value
+
+
 class ClinicalReviewRequest(BaseModel):
     clinical_accuracy_confirmed: bool = Field(
         default=False,
@@ -196,6 +217,7 @@ class ClinicalReviewRequest(BaseModel):
             "Reviewer confirms cited sources support teaching points and hidden safety metadata."
         ),
     )
+    reviewer_attestation: ClinicalReviewerAttestation
     review_notes: str | None = Field(default=None, max_length=2000)
 
     @field_validator(
