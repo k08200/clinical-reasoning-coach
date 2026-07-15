@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import pytest
 from httpx import AsyncClient
@@ -49,7 +49,7 @@ def _make_case() -> ClinicalCase:
             }
         ],
         review_status="clinician_reviewed",
-        last_reviewed_at="2026-06-01",
+        last_reviewed_at=date.today().isoformat(),
         coach_guidance="Use Socratic questioning.",
     )
 

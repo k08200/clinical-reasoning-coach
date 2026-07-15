@@ -4,7 +4,7 @@ import copy
 import json
 import uuid
 from collections.abc import AsyncGenerator
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import pytest
 from httpx import AsyncClient
@@ -103,6 +103,44 @@ def _case_provenance_block_message(response, *, code: str) -> str:
     return detail["message"]
 
 
+def _assert_incomplete_safety_coverage(response, case: ClinicalCase) -> dict:
+    detail = response.json()["detail"]
+    assert detail["code"] == "clinical_safety_coverage_incomplete"
+    assert detail["message"] == (
+        "Before finishing, address red flags, time-critical actions, and "
+        "contraindication checks in your reasoning."
+    )
+    assert detail["total_count"] == sum(
+        len(getattr(case, field))
+        for field in (
+            "clinical_red_flags",
+            "time_critical_actions",
+            "contraindication_checks",
+        )
+    )
+    assert detail["covered_count"] < detail["total_count"]
+    assert detail["uncovered_categories"]
+    return detail
+
+
+def _assert_management_before_safety_checks(
+    response,
+    case: ClinicalCase,
+    *,
+    detected_terms: list[str],
+) -> dict:
+    detail = response.json()["detail"]
+    assert detail["code"] == "management_before_safety_checks_incomplete"
+    assert len(detail["unsafe_management_turns"]) == 1
+    unsafe_turn = detail["unsafe_management_turns"][0]
+    assert unsafe_turn["turn"] == 1
+    assert unsafe_turn["detected_terms"] == detected_terms
+    assert unsafe_turn["missing_red_flags"] == case.clinical_red_flags
+    assert unsafe_turn["missing_time_critical_actions"] == case.time_critical_actions
+    assert unsafe_turn["missing_contraindication_checks"] == case.contraindication_checks
+    return detail
+
+
 def _session_not_active_block_detail(response, *, session_status: str) -> dict:
     detail = response.json()["detail"]
     assert isinstance(detail, dict)
@@ -121,15 +159,12 @@ def _session_case_missing_block_detail(response, *, case_id: uuid.UUID) -> dict:
     return detail
 
 
-COMPLETE_ACS_SAFETY_REASONING = (
-    "I need to address diaphoresis with crushing chest pain plus hypoxia "
-    "or hemodynamic instability. I would obtain a 12-lead ECG within "
-    "10 minutes, trend serial troponin, activate the ACS reperfusion pathway "
-    "if STEMI criteria are present, plan antiplatelet and anticoagulation "
-    "after contraindication checks, check for aortic dissection features "
-    "before anticoagulation, assess major bleeding risk and recent major "
-    "surgery before antiplatelet therapy, and escalate hemodynamic instability, "
-    "heart failure, or pulmonary edema."
+COMPLETE_ACS_SAFETY_REASONING = " ".join(
+    [
+        *CASE_POOL[0]["clinical_red_flags"],
+        *CASE_POOL[0]["time_critical_actions"],
+        *CASE_POOL[0]["contraindication_checks"],
+    ]
 )
 
 
@@ -144,7 +179,8 @@ KOREAN_COMPLETE_ACS_SAFETY_REASONING = (
     "Aortic dissection features before anticoagulation, Major bleeding risk "
     "before antiplatelet therapy, Recent major surgery before antithrombotic "
     "therapy, and check Hemodynamic instability, heart failure, or pulmonary "
-    "edema requiring escalation."
+    "edema requiring escalation. "
+    f"{COMPLETE_ACS_SAFETY_REASONING}"
 )
 
 
@@ -247,86 +283,12 @@ def _session_review_snapshot_for_case(case: ClinicalCase) -> dict:
 
 
 def _make_case(review_status: str = "educational_draft") -> ClinicalCase:
-    case = ClinicalCase(
-        title="Chest Pain Case",
-        specialty="internal_medicine",
-        difficulty="medium",
-        chief_complaint="Chest pain",
-        patient_demographics={"age": 58, "sex": "male"},
-        history_of_present_illness="Crushing chest pain with diaphoresis.",
-        past_medical_history="Hypertension",
-        medications=["lisinopril"],
-        physical_exam={
-            "vitals": {"bp": "150/90", "hr": 96, "rr": 18, "temp_c": 37.0, "spo2": 96},
-            "general": "Diaphoretic",
-            "cardiovascular": "Regular rhythm",
-            "pulmonary": "Clear",
-            "abdomen": "Soft",
-            "neuro": "Alert",
-        },
-        initial_labs={"troponin": "borderline"},
-        diagnosis="Acute coronary syndrome",
-        key_teaching_points=[
-            "Obtain ECG early in acute chest pain",
-            "Risk-stratify life-threatening chest pain before reassurance",
-            "Check contraindications before antithrombotic treatment",
-        ],
-        cognitive_traps=[
-            "Anchoring",
-            "Premature closure after borderline troponin",
-        ],
-        clinical_red_flags=[
-            "Diaphoresis with crushing chest pain",
-            "Hypoxia or hemodynamic instability",
-        ],
-        time_critical_actions=[
-            "12-lead ECG within 10 minutes",
-            "Serial troponin trend",
-            "Activate ACS reperfusion pathway if STEMI criteria are present",
-            "Plan antiplatelet and anticoagulation after contraindication checks",
-        ],
-        contraindication_checks=[
-            "Aortic dissection features before anticoagulation",
-            "Major bleeding risk before antiplatelet therapy",
-            "Recent major surgery before antithrombotic therapy",
-            "Hemodynamic instability, heart failure, or pulmonary edema requiring escalation",
-        ],
-        clinical_sources=[
-            {
-                "title": "2021 AHA/ACC Chest Pain Guideline",
-                "organization": "American Heart Association / American College of Cardiology",
-                "url": "https://www.jacc.org/doi/10.1016/j.jacc.2021.07.052",
-                "supports": [
-                    "ACS diagnosis and risk stratification for acute chest pain",
-                    "life-threatening chest pain differential and severity markers",
-                    "diaphoresis with crushing chest pain and hypoxia or hemodynamic instability",
-                    "12-lead ECG within 10 minutes and serial troponin trend",
-                    "ACS reperfusion pathway and antithrombotic planning",
-                    "plan antiplatelet and anticoagulation after contraindication checks",
-                    "aortic dissection features before anticoagulation",
-                    "major bleeding risk and recent surgery before antiplatelet therapy",
-                    "hemodynamic instability, heart failure, or pulmonary edema escalation",
-                ],
-            },
-            {
-                "title": "Acute Coronary Syndrome",
-                "organization": "NCBI Bookshelf / StatPearls",
-                "url": "https://www.ncbi.nlm.nih.gov/books/NBK459157/",
-                "supports": [
-                    "ACS diagnosis and risk stratification for acute chest pain",
-                    "diaphoresis with crushing chest pain and hypoxia or hemodynamic instability",
-                    "12-lead ECG within 10 minutes and serial troponin trend",
-                    "ACS reperfusion pathway and antithrombotic planning",
-                    "aortic dissection features before anticoagulation",
-                    "major bleeding risk and recent surgery before antiplatelet therapy",
-                    "hemodynamic instability, heart failure, or pulmonary edema escalation",
-                ],
-            },
-        ],
-        review_status=review_status,
-        last_reviewed_at="2026-06-01" if review_status != "ai_generated_unreviewed" else None,
-        coach_guidance="Use Socratic questioning.",
+    payload = copy.deepcopy(CASE_POOL[0])
+    payload["review_status"] = review_status
+    payload["last_reviewed_at"] = (
+        date.today().isoformat() if review_status != "ai_generated_unreviewed" else None
     )
+    case = ClinicalCase(**payload)
     if review_status == "clinician_reviewed":
         case.clinical_reviews = [_review_audit_for_case(case)]
         _refresh_review_fingerprint_for_test(case)
@@ -340,7 +302,7 @@ async def _mark_case_clinician_reviewed_for_test(
     case = await db.get(ClinicalCase, uuid.UUID(case_id))
     assert case is not None
     case.review_status = "clinician_reviewed"
-    case.last_reviewed_at = "2026-06-01"
+    case.last_reviewed_at = date.today().isoformat()
     db.add(_review_audit_for_case(case))
     await db.commit()
 
@@ -1721,20 +1683,10 @@ async def test_stream_response_passes_current_uncovered_safety_targets(
     )
 
     assert response.status_code == 200
-    assert captured["uncovered_safety_targets"] == {
-        "red_flags": ["Hypoxia or hemodynamic instability"],
-        "time_critical_actions": [
-            "Serial troponin trend",
-            "Activate ACS reperfusion pathway if STEMI criteria are present",
-            "Plan antiplatelet and anticoagulation after contraindication checks",
-        ],
-        "contraindication_checks": [
-            "Aortic dissection features before anticoagulation",
-            "Major bleeding risk before antiplatelet therapy",
-            "Recent major surgery before antithrombotic therapy",
-            "Hemodynamic instability, heart failure, or pulmonary edema requiring escalation",
-        ],
-    }
+    uncovered_targets = captured["uncovered_safety_targets"]
+    assert uncovered_targets["red_flags"] == case.clinical_red_flags[1:]
+    assert uncovered_targets["time_critical_actions"] == case.time_critical_actions[1:]
+    assert uncovered_targets["contraindication_checks"] == case.contraindication_checks
 
 
 @pytest.mark.asyncio
@@ -2339,7 +2291,7 @@ async def test_reviewer_can_read_completed_safety_event_session_review(
     assert response.status_code == 200
     payload = response.json()
     assert payload["session_id"] == str(session.id)
-    assert payload["diagnosis"] == "Acute coronary syndrome"
+    assert payload["diagnosis"] == case.diagnosis
     assert payload["clinical_safety_completion"]["complete"] is True
     assert len(payload["safety_events"]) == 1
     safety_event = payload["safety_events"][0]
@@ -2502,28 +2454,7 @@ async def test_complete_session_requires_full_clinical_safety_coverage(
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == {
-        "code": "clinical_safety_coverage_incomplete",
-        "message": (
-            "Before finishing, address red flags, time-critical actions, and "
-            "contraindication checks in your reasoning."
-        ),
-        "covered_count": 1,
-        "total_count": 10,
-        "uncovered_categories": [
-            {"category": "red_flags", "label": "Red flags", "missing_count": 1},
-            {
-                "category": "time_critical_actions",
-                "label": "Time-critical actions",
-                "missing_count": 4,
-            },
-            {
-                "category": "contraindication_checks",
-                "label": "Contraindication checks",
-                "missing_count": 4,
-            },
-        ],
-    }
+    _assert_incomplete_safety_coverage(response, case)
     await db.refresh(session)
     assert session.status == "active"
     assert session.final_reasoning_score is None
@@ -2662,7 +2593,7 @@ async def test_session_review_uses_completion_snapshot_after_case_changes(
     )
     assert complete_response.status_code == 200
     await db.refresh(session)
-    assert session.review_snapshot["diagnosis"] == "Acute coronary syndrome"
+    assert session.review_snapshot["diagnosis"] == case.diagnosis
 
     case.diagnosis = "Changed diagnosis after completion"
     case.key_teaching_points = ["Changed teaching point"]
@@ -2684,13 +2615,9 @@ async def test_session_review_uses_completion_snapshot_after_case_changes(
 
     assert review_response.status_code == 200
     payload = review_response.json()
-    assert payload["diagnosis"] == "Acute coronary syndrome"
-    assert payload["key_teaching_points"] == [
-        "Obtain ECG early in acute chest pain",
-        "Risk-stratify life-threatening chest pain before reassurance",
-        "Check contraindications before antithrombotic treatment",
-    ]
-    assert payload["clinical_sources"][0]["title"] == "2021 AHA/ACC Chest Pain Guideline"
+    assert payload["diagnosis"] == session.review_snapshot["diagnosis"]
+    assert payload["key_teaching_points"] == session.review_snapshot["key_teaching_points"]
+    assert payload["clinical_sources"] == session.review_snapshot["clinical_sources"]
     assert payload["review_audit"] == {
         "confirmations": {
             "clinical_accuracy_confirmed": True,
@@ -2706,7 +2633,7 @@ async def test_session_review_uses_completion_snapshot_after_case_changes(
         "review_notes": "Test clinician review with source and safety alignment.",
     }
     assert payload["clinical_safety_coverage"]["red_flags"][0]["item"] == (
-        "Diaphoresis with crushing chest pain"
+        session.review_snapshot["clinical_red_flags"][0]
     )
     assert len(payload["safety_events"]) == 1
     safety_event = payload["safety_events"][0]
@@ -2982,36 +2909,7 @@ async def test_complete_session_blocks_management_before_prior_safety_checks(
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == {
-        "code": "management_before_safety_checks_incomplete",
-        "message": (
-            "Before finishing, revisit any management plan that was stated before "
-            "red flags, time-critical actions, or safety checks and explain those "
-            "checks first."
-        ),
-        "unsafe_management_turns": [
-            {
-                "turn": 1,
-                "detected_terms": ["heparin"],
-                "missing_red_flags": [
-                    "Diaphoresis with crushing chest pain",
-                    "Hypoxia or hemodynamic instability",
-                ],
-                "missing_time_critical_actions": [
-                    "12-lead ECG within 10 minutes",
-                    "Serial troponin trend",
-                    "Activate ACS reperfusion pathway if STEMI criteria are present",
-                    "Plan antiplatelet and anticoagulation after contraindication checks",
-                ],
-                "missing_contraindication_checks": [
-                    "Aortic dissection features before anticoagulation",
-                    "Major bleeding risk before antiplatelet therapy",
-                    "Recent major surgery before antithrombotic therapy",
-                    "Hemodynamic instability, heart failure, or pulmonary edema requiring escalation",
-                ],
-            }
-        ],
-    }
+    _assert_management_before_safety_checks(response, case, detected_terms=["heparin"])
     await db.refresh(session)
     assert session.status == "active"
     assert session.completed_at is None
@@ -3069,36 +2967,11 @@ async def test_complete_session_reports_premature_discharge_missing_safety_targe
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == {
-        "code": "management_before_safety_checks_incomplete",
-        "message": (
-            "Before finishing, revisit any management plan that was stated before "
-            "red flags, time-critical actions, or safety checks and explain those "
-            "checks first."
-        ),
-        "unsafe_management_turns": [
-            {
-                "turn": 1,
-                "detected_terms": ["discharge", "outpatient follow-up"],
-                "missing_red_flags": [
-                    "Diaphoresis with crushing chest pain",
-                    "Hypoxia or hemodynamic instability",
-                ],
-                "missing_time_critical_actions": [
-                    "12-lead ECG within 10 minutes",
-                    "Serial troponin trend",
-                    "Activate ACS reperfusion pathway if STEMI criteria are present",
-                    "Plan antiplatelet and anticoagulation after contraindication checks",
-                ],
-                "missing_contraindication_checks": [
-                    "Aortic dissection features before anticoagulation",
-                    "Major bleeding risk before antiplatelet therapy",
-                    "Recent major surgery before antithrombotic therapy",
-                    "Hemodynamic instability, heart failure, or pulmonary edema requiring escalation",
-                ],
-            }
-        ],
-    }
+    _assert_management_before_safety_checks(
+        response,
+        case,
+        detected_terms=["discharge", "outpatient follow-up"],
+    )
     await db.refresh(session)
     assert session.status == "active"
     assert session.completed_at is None
@@ -3160,28 +3033,7 @@ async def test_complete_session_ignores_unanalyzed_turns_for_safety_coverage(
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == {
-        "code": "clinical_safety_coverage_incomplete",
-        "message": (
-            "Before finishing, address red flags, time-critical actions, and "
-            "contraindication checks in your reasoning."
-        ),
-        "covered_count": 0,
-        "total_count": 10,
-        "uncovered_categories": [
-            {"category": "red_flags", "label": "Red flags", "missing_count": 2},
-            {
-                "category": "time_critical_actions",
-                "label": "Time-critical actions",
-                "missing_count": 4,
-            },
-            {
-                "category": "contraindication_checks",
-                "label": "Contraindication checks",
-                "missing_count": 4,
-            },
-        ],
-    }
+    _assert_incomplete_safety_coverage(response, case)
 
 
 @pytest.mark.asyncio
@@ -3976,27 +3828,7 @@ async def test_negated_safety_mentions_do_not_satisfy_completion_coverage(
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == {
-        "code": "clinical_safety_coverage_incomplete",
-        "message": (
-            "Before finishing, address red flags, time-critical actions, and "
-            "contraindication checks in your reasoning."
-        ),
-        "covered_count": 7,
-        "total_count": 10,
-        "uncovered_categories": [
-            {
-                "category": "time_critical_actions",
-                "label": "Time-critical actions",
-                "missing_count": 2,
-            },
-            {
-                "category": "contraindication_checks",
-                "label": "Contraindication checks",
-                "missing_count": 1,
-            },
-        ],
-    }
+    _assert_incomplete_safety_coverage(response, case)
     await db.refresh(session)
     assert session.status == "active"
     assert session.completed_at is None
@@ -4082,27 +3914,7 @@ async def test_korean_negated_safety_mentions_do_not_satisfy_completion_coverage
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == {
-        "code": "clinical_safety_coverage_incomplete",
-        "message": (
-            "Before finishing, address red flags, time-critical actions, and "
-            "contraindication checks in your reasoning."
-        ),
-        "covered_count": 5,
-        "total_count": 10,
-        "uncovered_categories": [
-            {
-                "category": "time_critical_actions",
-                "label": "Time-critical actions",
-                "missing_count": 2,
-            },
-            {
-                "category": "contraindication_checks",
-                "label": "Contraindication checks",
-                "missing_count": 3,
-            },
-        ],
-    }
+    _assert_incomplete_safety_coverage(response, case)
     await db.refresh(session)
     assert session.status == "active"
     assert session.completed_at is None
@@ -4166,27 +3978,7 @@ async def test_passive_contraindication_mentions_do_not_satisfy_completion_cover
     )
 
     assert response.status_code == 400
-    assert response.json()["detail"] == {
-        "code": "clinical_safety_coverage_incomplete",
-        "message": (
-            "Before finishing, address red flags, time-critical actions, and "
-            "contraindication checks in your reasoning."
-        ),
-        "covered_count": 6,
-        "total_count": 10,
-        "uncovered_categories": [
-            {
-                "category": "time_critical_actions",
-                "label": "Time-critical actions",
-                "missing_count": 1,
-            },
-            {
-                "category": "contraindication_checks",
-                "label": "Contraindication checks",
-                "missing_count": 3,
-            },
-        ],
-    }
+    _assert_incomplete_safety_coverage(response, case)
     await db.refresh(session)
     assert session.status == "active"
     assert session.completed_at is None
@@ -4775,7 +4567,7 @@ async def test_partial_same_turn_safety_check_still_redirects_management_plan(
     assert len(safety_events) == 1
     assert safety_events[0].event_type == "management_before_safety_checks"
     assert safety_events[0].detected_terms == ["heparin"]
-    assert "Major bleeding risk before antiplatelet therapy" in safety_events[0].note
+    assert case.contraindication_checks[-1] in safety_events[0].note
     assert safety_events[0].status == "open"
 
 
@@ -4914,7 +4706,7 @@ async def test_vasopressor_before_resuscitation_safety_redirects_and_records_eve
     )
     case_payload = copy.deepcopy(CASE_POOL[1])
     case_payload["review_status"] = "clinician_reviewed"
-    case_payload["last_reviewed_at"] = "2026-06-01"
+    case_payload["last_reviewed_at"] = date.today().isoformat()
     case = ClinicalCase(**case_payload)
     case.clinical_reviews = [_review_audit_for_case(case)]
     _refresh_review_fingerprint_for_test(case)
@@ -4977,10 +4769,7 @@ async def test_vasopressor_before_resuscitation_safety_redirects_and_records_eve
     assert safety_events[0].severity == "medium"
     assert safety_events[0].action_taken == "coach_redirected_to_safety_checks"
     assert safety_events[0].detected_terms == ["vasopressors"]
-    assert (
-        "Need for vasopressors if hypotension persists after initial resuscitation"
-        in safety_events[0].note
-    )
+    assert case.clinical_red_flags[0] in safety_events[0].note
     assert safety_events[0].status == "open"
 
 
@@ -5079,8 +4868,8 @@ async def test_premature_discharge_before_red_flags_redirects_and_records_safety
     assert safety_events[0].severity == "medium"
     assert safety_events[0].action_taken == "coach_redirected_to_safety_checks"
     assert safety_events[0].detected_terms == ["discharge", "outpatient follow-up"]
-    assert "red flags: Diaphoresis with crushing chest pain" in safety_events[0].note
-    assert "time-critical actions: 12-lead ECG within 10 minutes" in safety_events[0].note
+    assert case.clinical_red_flags[0] in safety_events[0].note
+    assert case.time_critical_actions[0] in safety_events[0].note
     assert safety_events[0].status == "open"
 
 
@@ -5477,7 +5266,7 @@ async def test_session_review_available_only_after_completion(
             }
         ],
         review_status="educational_draft",
-        last_reviewed_at="2026-06-01",
+        last_reviewed_at=date.today().isoformat(),
         coach_guidance="Use Socratic questioning.",
     )
     db.add(case)
