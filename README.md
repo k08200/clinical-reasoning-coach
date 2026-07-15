@@ -77,6 +77,17 @@ LLM_PROVIDER=ollama  # 또는 claude
 (cd backend && alembic -c alembic.ini revision --autogenerate -m "describe change")
 ```
 
+### Production Docker deployment
+
+```bash
+cp .env.production.example .env.production
+# Replace every placeholder, then apply migrations before starting application containers.
+(cd backend && set -a && source ../.env.production && set +a && alembic -c alembic.ini upgrade head)
+docker compose --env-file .env.production -f docker-compose.production.yml up --build -d
+```
+
+`docker-compose.production.yml` removes development source mounts and reload mode, keeps PostgreSQL and Redis off the host network, and waits for backend/frontend health checks. Put the frontend behind an HTTPS reverse proxy; `NEXT_PUBLIC_API_URL` and `CORS_ORIGINS` must use the deployed public origins.
+
 ## 케이스 라이브러리 (5종)
 
 | 케이스 | 전문과 | 난이도 | 핵심 인지 함정 |
