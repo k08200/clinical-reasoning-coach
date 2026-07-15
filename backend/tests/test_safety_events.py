@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 from httpx import AsyncClient
@@ -11,6 +11,7 @@ from app.models.case import ClinicalCase
 from app.models.safety_event import SafetyEvent
 from app.models.session import CoachingSession
 from app.models.user import User
+from app.config import get_settings
 from app.utils.auth import create_access_token, hash_password
 
 
@@ -78,6 +79,36 @@ async def test_safety_events_require_clinician_reviewer_role(
 
 
 @pytest.mark.asyncio
+async def test_safety_events_require_current_reviewer_credentials(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"expired-safety-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("safetypass123"),
+        full_name="Expired Safety Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc) - timedelta(
+            days=get_settings().reviewer_credential_valid_days + 1
+        ),
+        reviewer_verified_by_user_id=uuid.uuid4(),
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    db.add(reviewer)
+    await db.commit()
+    await db.refresh(reviewer)
+
+    response = await client.get("/api/safety-events", headers=_auth_headers(reviewer))
+
+    assert response.status_code == 403
+    assert "credential verification expired" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("query", "field", "allowed_value"),
     [
@@ -103,6 +134,10 @@ async def test_safety_events_reject_invalid_audit_filters(
         full_name="Safety Filter Reviewer",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
@@ -132,6 +167,10 @@ async def test_update_safety_event_resolution_returns_structured_not_found(
         full_name="Safety Missing Reviewer",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
@@ -174,6 +213,10 @@ async def test_reviewer_can_list_and_filter_safety_events(
         full_name="Safety Reviewer",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
@@ -255,6 +298,10 @@ async def test_reviewer_can_resolve_safety_event(
         full_name="Safety Resolver",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
@@ -353,6 +400,10 @@ async def test_resolving_safety_event_does_not_unlock_session(
         full_name="Safety Lock Reviewer",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
@@ -418,6 +469,10 @@ async def test_reviewer_must_document_resolution_note(
         full_name="Safety Note Reviewer",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
@@ -510,6 +565,10 @@ async def test_high_risk_lock_event_resolution_requires_escalation_or_privacy_co
         full_name="Safety High Risk Reviewer",
         training_level="fellow",
         role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        reviewer_verified_by_user_id=uuid.uuid4(),
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )

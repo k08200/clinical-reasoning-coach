@@ -94,7 +94,8 @@ const SOURCE_ALIGNMENT_ITEMS: Array<{
 function isReviewer(user: User | undefined): boolean {
   return (
     user?.role === "clinician_reviewer" &&
-    user.reviewer_verification_status === "verified"
+    user.reviewer_verification_status === "verified" &&
+    user.reviewer_credential_current !== false
   );
 }
 

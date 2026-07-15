@@ -32,6 +32,12 @@ class Settings(BaseSettings):
         default=DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION,
         validation_alias="EDUCATIONAL_USE_CONSENT_VERSION",
     )
+    reviewer_credential_valid_days: int = Field(
+        default=365,
+        ge=1,
+        le=7300,
+        validation_alias="REVIEWER_CREDENTIAL_VALID_DAYS",
+    )
 
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@db:5432/clinical_coach"

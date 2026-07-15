@@ -24,6 +24,7 @@ class GovernanceReadinessResponse(BaseModel):
     open_safety_event_count: int
     open_high_risk_safety_event_count: int
     verified_clinician_reviewer_count: int
+    expired_clinician_reviewer_count: int
     pending_clinician_reviewer_count: int
     suspended_clinician_reviewer_count: int
     consent_renewal_required_user_count: int

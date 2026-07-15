@@ -1174,6 +1174,18 @@ def _assert_case_provenance_allows_learner_session(case: ClinicalCase) -> None:
                 ),
             ),
         )
+    if source_provenance["reviewer_credential_verification_expired"]:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=_case_provenance_block_detail(
+                code="case_reviewer_credentials_expired",
+                message=(
+                    "This case was reviewed with expired clinician credentials. "
+                    "Learner sessions are blocked until a currently verified clinician "
+                    "completes re-review."
+                ),
+            ),
+        )
     if source_provenance["review_audit_incomplete"]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

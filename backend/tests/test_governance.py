@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from httpx import AsyncClient
@@ -10,6 +10,7 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.case import ClinicalCase
+from app.config import get_settings
 from app.models.safety_event import SafetyEvent
 from app.models.session import CoachingSession
 from app.models.user import LEGACY_EDUCATIONAL_USE_CONSENT_VERSION, User
@@ -134,4 +135,45 @@ async def test_governance_readiness_requires_admin(
     assert response.json()["detail"] == "Admin role required"
 
     await db.delete(learner)
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_governance_readiness_counts_expired_reviewer_credentials(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    admin = _user(email=f"governance-expiry-admin-{uuid.uuid4()}@test.com", role="admin")
+    current_reviewer = _user(
+        email=f"governance-current-reviewer-{uuid.uuid4()}@test.com",
+        role="clinician_reviewer",
+        verification_status="verified",
+    )
+    current_reviewer.reviewer_practice_scope = "Emergency medicine educational simulation"
+    current_reviewer.reviewer_verified_at = datetime.now(timezone.utc)
+    current_reviewer.reviewer_verified_by_user_id = uuid.uuid4()
+    expired_reviewer = _user(
+        email=f"governance-expired-reviewer-{uuid.uuid4()}@test.com",
+        role="clinician_reviewer",
+        verification_status="verified",
+    )
+    expired_reviewer.reviewer_practice_scope = "Emergency medicine educational simulation"
+    expired_reviewer.reviewer_verified_at = datetime.now(timezone.utc) - timedelta(
+        days=get_settings().reviewer_credential_valid_days + 1
+    )
+    expired_reviewer.reviewer_verified_by_user_id = uuid.uuid4()
+    db.add_all([admin, current_reviewer, expired_reviewer])
+    await db.commit()
+    await db.refresh(admin)
+
+    response = await client.get("/api/governance/readiness", headers=_headers_for(admin))
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["verified_clinician_reviewer_count"] >= 1
+    assert body["expired_clinician_reviewer_count"] >= 1
+
+    await db.execute(
+        delete(User).where(User.id.in_([admin.id, current_reviewer.id, expired_reviewer.id]))
+    )
     await db.commit()

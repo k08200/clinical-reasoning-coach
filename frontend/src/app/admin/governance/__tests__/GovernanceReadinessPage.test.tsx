@@ -41,6 +41,7 @@ const readiness: GovernanceReadiness = {
   open_safety_event_count: 3,
   open_high_risk_safety_event_count: 1,
   verified_clinician_reviewer_count: 2,
+  expired_clinician_reviewer_count: 1,
   pending_clinician_reviewer_count: 1,
   suspended_clinician_reviewer_count: 0,
   consent_renewal_required_user_count: 4,
@@ -75,6 +76,7 @@ describe("GovernanceReadinessPage", () => {
     expect(screen.getByText("Learner release blocked")).toBeTruthy();
     expect(screen.getByText("Unreviewed chest pain case")).toBeTruthy();
     expect(screen.getByText("Pending reviewer verification")).toBeTruthy();
+    expect(screen.getByText("Expired reviewer credentials")).toBeTruthy();
     expect(screen.getByText("Consent Renewal")).toBeTruthy();
   });
 

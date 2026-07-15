@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 from httpx import AsyncClient
@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.case import ClinicalCase, clinical_case_content_fingerprint
 from app.models.case_review import ClinicalCaseReview
 from app.models.user import User
+from app.config import get_settings
 from app.routers import cases as cases_router
 from app.schemas.case import ClinicalCaseCreate, ClinicalReviewRequest, MAX_SEED_SCENARIO_LENGTH
 from app.services.mock_provider import CASE_POOL
@@ -970,6 +971,54 @@ async def test_clinical_review_requires_evidence_for_every_current_source(
 
     assert response.status_code == 422
     assert "must include every current clinical source URL" in response.json()["detail"]
+
+
+async def test_expired_reviewer_credentials_block_clinical_review(
+    client: AsyncClient,
+    db: AsyncSession,
+):
+    reviewer = User(
+        email=f"expired-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Expired Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc) - timedelta(
+            days=get_settings().reviewer_credential_valid_days + 1
+        ),
+        reviewer_verified_by_user_id=uuid.uuid4(),
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = ClinicalCase(**CASE_POOL[0])
+    db.add_all([reviewer, case])
+    await db.commit()
+    await db.refresh(reviewer)
+    await db.refresh(case)
+
+    response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers={"Authorization": f"Bearer {create_access_token({'sub': str(reviewer.id)})}"},
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
+            "educational_safety_confirmed": True,
+            "review_notes": REVIEW_AUDIT_NOTES,
+        },
+    )
+
+    assert response.status_code == 403
+    assert "credential verification expired" in response.json()["detail"]
+    assert await db.scalar(
+        select(func.count()).select_from(ClinicalCaseReview).where(
+            ClinicalCaseReview.case_id == case.id
+        )
+    ) == 0
 
 
 async def test_clinical_review_requires_source_alignment_checklist(

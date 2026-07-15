@@ -9,6 +9,7 @@ from sqlalchemy import ForeignKey, String, Text, DateTime, Integer, JSON, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
+from app.config import get_settings
 from app.database import Base
 
 CLINICAL_REVIEW_VALID_DAYS = 365
@@ -129,8 +130,25 @@ def _review_audit_has_verified_reviewer_credentials(source_snapshot: dict) -> bo
         return False
     if len(verification["practice_scope"].strip()) < 3:
         return False
-    return bool(verification.get("verified_at")) and bool(
-        verification.get("verified_by_user_id")
+    verified_on = _parse_review_date(verification.get("verified_at"))
+    if verified_on is None:
+        return False
+    return (
+        bool(verification.get("verified_by_user_id"))
+        and date.today()
+        <= verified_on + timedelta(days=get_settings().reviewer_credential_valid_days)
+    )
+
+
+def _review_audit_reviewer_credentials_expired(source_snapshot: dict) -> bool:
+    verification = source_snapshot.get("reviewer_credential_verification")
+    if not isinstance(verification, dict) or verification.get("status") != "verified":
+        return False
+    verified_on = _parse_review_date(verification.get("verified_at"))
+    return bool(
+        verified_on
+        and date.today()
+        > verified_on + timedelta(days=get_settings().reviewer_credential_valid_days)
     )
 
 
@@ -282,6 +300,15 @@ class ClinicalCase(Base):
                 self,
             )
         )
+        reviewer_credential_verification_expired = (
+            self.review_status == "clinician_reviewed"
+            and latest_review is not None
+            and _review_audit_reviewer_credentials_expired(
+                latest_review.source_snapshot
+                if isinstance(latest_review.source_snapshot, dict)
+                else {}
+            )
+        )
         source_diversity_insufficient = (
             self.review_status == "clinician_reviewed"
             and len(organizations) < MIN_REVIEWED_SOURCE_ORGANIZATIONS
@@ -299,6 +326,9 @@ class ClinicalCase(Base):
             requires_caution = True
         if source_evidence_attestation_incomplete:
             review_label = "Clinician review source evidence incomplete"
+            requires_caution = True
+        if reviewer_credential_verification_expired:
+            review_label = "Clinician reviewer credential verification expired"
             requires_caution = True
         if source_diversity_insufficient:
             review_label = "Clinician review source diversity insufficient"
@@ -327,6 +357,9 @@ class ClinicalCase(Base):
             "review_audit_incomplete": review_audit_incomplete,
             "source_evidence_attestation_incomplete": (
                 source_evidence_attestation_incomplete
+            ),
+            "reviewer_credential_verification_expired": (
+                reviewer_credential_verification_expired
             ),
             "source_diversity_insufficient": source_diversity_insufficient,
             "review_content_changed": review_content_changed,

@@ -37,6 +37,8 @@ def _case_blocker_reasons(provenance: dict) -> list[str]:
         reasons.append("Clinical review audit is incomplete")
     if provenance["source_evidence_attestation_incomplete"]:
         reasons.append("Current source evidence attestation is incomplete")
+    if provenance["reviewer_credential_verification_expired"]:
+        reasons.append("Clinician reviewer credential verification is expired")
     if provenance["source_diversity_insufficient"]:
         reasons.append("Independent source diversity is insufficient")
     return reasons or [provenance["review_label"]]
@@ -80,7 +82,12 @@ async def get_governance_readiness(
     users = list((await db.scalars(select(User))).all())
     clinician_reviewers = [user for user in users if user.role == "clinician_reviewer"]
     verified_clinician_reviewer_count = sum(
-        user.reviewer_verification_status == "verified" for user in clinician_reviewers
+        user.reviewer_credential_current for user in clinician_reviewers
+    )
+    expired_clinician_reviewer_count = sum(
+        user.reviewer_verification_status == "verified"
+        and not user.reviewer_credential_current
+        for user in clinician_reviewers
     )
     pending_clinician_reviewer_count = sum(
         user.reviewer_verification_status == "pending" for user in clinician_reviewers
@@ -101,6 +108,17 @@ async def get_governance_readiness(
                 message="No clinician-reviewed case currently meets learner release requirements.",
             )
         )
+    if verified_clinician_reviewer_count == 0:
+        release_blockers.append(
+            GovernanceReleaseBlocker(
+                code="no_currently_verified_clinician_reviewer",
+                count=0,
+                message=(
+                    "At least one currently verified clinician reviewer is required "
+                    "before learner release."
+                ),
+            )
+        )
     if open_high_risk_safety_event_count:
         release_blockers.append(
             GovernanceReleaseBlocker(
@@ -117,6 +135,7 @@ async def get_governance_readiness(
         open_safety_event_count=len(open_safety_events),
         open_high_risk_safety_event_count=open_high_risk_safety_event_count,
         verified_clinician_reviewer_count=verified_clinician_reviewer_count,
+        expired_clinician_reviewer_count=expired_clinician_reviewer_count,
         pending_clinician_reviewer_count=pending_clinician_reviewer_count,
         suspended_clinician_reviewer_count=suspended_clinician_reviewer_count,
         consent_renewal_required_user_count=consent_renewal_required_user_count,

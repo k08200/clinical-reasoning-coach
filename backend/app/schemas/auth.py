@@ -156,6 +156,8 @@ class UserResponse(BaseModel):
     reviewer_practice_scope: str | None
     reviewer_verified_at: datetime | None
     reviewer_verified_by_user_id: uuid.UUID | None
+    reviewer_credential_current: bool
+    reviewer_credential_valid_until: datetime | None
     accepted_educational_use: bool
     accepted_educational_use_at: datetime | None
     accepted_educational_use_version: str

@@ -130,6 +130,7 @@ export default function GovernanceReadinessPage() {
                 <dl className="mt-3 divide-y divide-slate-700 border border-slate-700 bg-slate-800 text-sm">
                   <div className="flex justify-between px-4 py-3"><dt>All open safety events</dt><dd>{readiness.open_safety_event_count}</dd></div>
                   <div className="flex justify-between px-4 py-3"><dt>Verified clinician reviewers</dt><dd className="text-emerald-300">{readiness.verified_clinician_reviewer_count}</dd></div>
+                  <div className="flex justify-between px-4 py-3"><dt>Expired reviewer credentials</dt><dd className={countTone(readiness.expired_clinician_reviewer_count)}>{readiness.expired_clinician_reviewer_count}</dd></div>
                   <div className="flex justify-between px-4 py-3"><dt>Pending reviewer verification</dt><dd className={countTone(readiness.pending_clinician_reviewer_count)}>{readiness.pending_clinician_reviewer_count}</dd></div>
                   <div className="flex justify-between px-4 py-3"><dt>Suspended reviewers</dt><dd className={countTone(readiness.suspended_clinician_reviewer_count)}>{readiness.suspended_clinician_reviewer_count}</dd></div>
                 </dl>

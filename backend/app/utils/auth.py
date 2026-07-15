@@ -127,6 +127,14 @@ async def require_clinical_reviewer(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Clinician reviewer credential verification required",
         )
+    if not user.reviewer_credential_current:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Clinician reviewer credential verification expired; "
+                "administrator re-verification required"
+            ),
+        )
     return user
 
 
@@ -143,6 +151,14 @@ async def require_safety_reviewer(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Clinician reviewer role required",
+        )
+    if user.role == "clinician_reviewer" and not user.reviewer_credential_current:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Clinician reviewer credential verification expired; "
+                "administrator re-verification required"
+            ),
         )
     return user
 

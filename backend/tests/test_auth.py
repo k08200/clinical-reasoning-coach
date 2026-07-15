@@ -503,6 +503,8 @@ async def test_admin_can_verify_and_suspend_a_clinician_reviewer(
     assert verified["reviewer_practice_scope"] == "Emergency medicine educational simulation"
     assert verified["reviewer_verified_at"]
     assert verified["reviewer_verified_by_user_id"] == str(admin.id)
+    assert verified["reviewer_credential_current"] is True
+    assert verified["reviewer_credential_valid_until"]
 
     suspended_response = await client.patch(
         f"/api/auth/users/{reviewer.id}/reviewer-verification",
@@ -519,6 +521,8 @@ async def test_admin_can_verify_and_suspend_a_clinician_reviewer(
     assert suspended["reviewer_practice_scope"] is None
     assert suspended["reviewer_verified_at"] is None
     assert suspended["reviewer_verified_by_user_id"] is None
+    assert suspended["reviewer_credential_current"] is False
+    assert suspended["reviewer_credential_valid_until"] is None
 
     history_response = await client.get(
         f"/api/auth/users/{reviewer.id}/reviewer-verification/history",

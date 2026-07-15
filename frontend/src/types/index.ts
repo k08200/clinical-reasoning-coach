@@ -35,6 +35,7 @@ export interface GovernanceReadiness {
   open_safety_event_count: number;
   open_high_risk_safety_event_count: number;
   verified_clinician_reviewer_count: number;
+  expired_clinician_reviewer_count: number;
   pending_clinician_reviewer_count: number;
   suspended_clinician_reviewer_count: number;
   consent_renewal_required_user_count: number;
@@ -52,6 +53,8 @@ export interface User {
   reviewer_practice_scope?: string | null;
   reviewer_verified_at?: string | null;
   reviewer_verified_by_user_id?: string | null;
+  reviewer_credential_current?: boolean;
+  reviewer_credential_valid_until?: string | null;
   accepted_educational_use: boolean;
   accepted_educational_use_at: string | null;
   accepted_educational_use_version?: string;
@@ -78,6 +81,7 @@ export interface ClinicalSourceProvenance {
   review_audit_missing?: boolean;
   review_audit_incomplete?: boolean;
   source_evidence_attestation_incomplete?: boolean;
+  reviewer_credential_verification_expired?: boolean;
   source_diversity_insufficient?: boolean;
   review_content_changed: boolean;
 }

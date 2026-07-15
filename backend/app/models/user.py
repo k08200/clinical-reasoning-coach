@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy import String, DateTime, Boolean, ForeignKey, false, func
@@ -87,4 +87,27 @@ class User(Base):
             self.accepted_educational_use
             and self.accepted_educational_use_version
             == self.required_educational_use_consent_version
+        )
+
+    @property
+    def reviewer_credential_valid_until(self) -> datetime | None:
+        if self.reviewer_verified_at is None:
+            return None
+        verified_at = self.reviewer_verified_at
+        if verified_at.tzinfo is None:
+            verified_at = verified_at.replace(tzinfo=timezone.utc)
+        return verified_at + timedelta(
+            days=get_settings().reviewer_credential_valid_days
+        )
+
+    @property
+    def reviewer_credential_current(self) -> bool:
+        valid_until = self.reviewer_credential_valid_until
+        return bool(
+            self.role == "clinician_reviewer"
+            and self.reviewer_verification_status == "verified"
+            and self.reviewer_practice_scope
+            and self.reviewer_verified_by_user_id
+            and valid_until
+            and datetime.now(timezone.utc) <= valid_until
         )

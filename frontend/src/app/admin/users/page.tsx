@@ -285,7 +285,9 @@ export default function AdminUsersPage() {
                       </span>
                       {managedUser.role === "clinician_reviewer" && (
                         <p className="mt-2 text-xs text-slate-400">
-                          Verification: {managedUser.reviewer_verification_status ?? "pending"}
+                          Verification: {managedUser.reviewer_credential_current === false
+                            ? "expired"
+                            : managedUser.reviewer_verification_status ?? "pending"}
                         </p>
                       )}
                     </div>
