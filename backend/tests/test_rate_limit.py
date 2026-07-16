@@ -88,3 +88,29 @@ async def test_production_rate_limiter_requires_redis(monkeypatch):
 
     with pytest.raises(RuntimeError, match="Redis is required"):
         await limiter.initialize(settings)
+
+
+async def test_operational_readiness_requires_a_live_redis_client(monkeypatch):
+    class AvailableRedis:
+        async def ping(self) -> None:
+            return None
+
+    class UnavailableRedis:
+        async def ping(self) -> None:
+            raise OSError("Redis is unavailable")
+
+    production_settings = Settings(
+        app_environment="production",
+        rate_limit_enabled=True,
+    )
+    monkeypatch.setattr(rate_limit_module, "get_settings", lambda: production_settings)
+    limiter = RateLimiter()
+    limiter._redis = AvailableRedis()
+
+    assert await limiter.operationally_ready() is True
+
+    limiter._redis = UnavailableRedis()
+    assert await limiter.operationally_ready() is False
+
+    limiter._redis = None
+    assert await limiter.operationally_ready() is False

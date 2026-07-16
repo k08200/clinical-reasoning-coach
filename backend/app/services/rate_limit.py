@@ -65,6 +65,19 @@ class RateLimiter:
             self._redis = None
         await self.reset()
 
+    async def operationally_ready(self) -> bool:
+        """Confirm the live Redis limiter is still usable after application startup."""
+        settings = get_settings()
+        if not settings.rate_limit_enabled:
+            return settings.app_environment.lower() != "production"
+        if self._redis is None:
+            return False
+        try:
+            await self._redis.ping()
+        except Exception:
+            return False
+        return True
+
     async def reset(self) -> None:
         async with self._memory_lock:
             self._memory_hits.clear()
