@@ -362,6 +362,44 @@ REAL_PATIENT_PERSONAL_URGENCY_PATTERNS = [
     ),
 ]
 
+# These patterns deliberately require first-person symptom grammar. Mentioning a
+# symptom while reasoning through a simulation must not lock an educational turn.
+PERSONAL_EMERGENCY_SYMPTOM_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    (
+        "personal_emergency_symptom",
+        re.compile(
+            r"\b(?:i(?:'m| am)?\s+(?:having|have|feel|felt|am experiencing|"
+            r"experienced|developed)|my\s+(?:chest|breathing|speech|face|arm|vision))\b"
+            r".{0,80}\b(?:chest\s+(?:pain|pressure|tightness|discomfort)|"
+            r"chest\s+(?:hurts|is hurting)|shortness\s+of\s+breath|"
+            r"slurred\s+speech|one[-\s]?sided\s+(?:weakness|numbness)|"
+            r"facial\s+droop|vomiting\s+blood|black\s+(?:or\s+tarry\s+)?stools?|"
+            r"worst\s+(?:headache|head\s+pain)|sweating|sweaty|diaphoresis)\b"
+        ),
+    ),
+    (
+        "personal_emergency_symptom",
+        re.compile(
+            r"\b(?:chest\s+(?:pain|pressure|tightness|discomfort)|"
+            r"shortness\s+of\s+breath|slurred\s+speech|"
+            r"one[-\s]?sided\s+(?:weakness|numbness)|facial\s+droop|"
+            r"vomiting\s+blood|black\s+(?:or\s+tarry\s+)?stools?|"
+            r"worst\s+(?:headache|head\s+pain))\b.{0,80}\b"
+            r"(?:i(?:'m| am)?\s+(?:having|have|feel|felt|am experiencing|"
+            r"experienced|developed)|my\s+(?:chest|breathing|speech|face|arm|vision))\b"
+        ),
+    ),
+    (
+        "personal_emergency_symptom",
+        re.compile(
+            r"(?:제가|저는|나는|내가)(?:\s*(?:지금|갑자기))?.{0,40}"
+            r"(?:흉통|가슴\s*통증|가슴이\s*아프|가슴이\s*답답|"
+            r"말이\s*어눌|한쪽\s*(?:팔|다리|몸|얼굴).{0,12}(?:힘이\s*빠|저리|마비)|"
+            r"얼굴.{0,12}처짐|피를\s*토|검은\s*변|갑작스러운\s*(?:두통|머리\s*통증))"
+        ),
+    ),
+)
+
 DIRECT_CONFIRMATION_PATTERNS = [
     r"\byou'?re right\b",
     r"\byou are right\b",
@@ -1339,6 +1377,14 @@ def detect_real_patient_signals(student_message: str) -> list[str]:
         for pattern in REAL_PATIENT_SIGNAL_PATTERNS
         if pattern in normalized
     ]
+    personal_emergency_signals = [
+        label
+        for label, pattern in PERSONAL_EMERGENCY_SYMPTOM_PATTERNS
+        if pattern.search(normalized)
+    ]
+    detected.extend(
+        label for label in personal_emergency_signals if label not in detected
+    )
     if not detected:
         return []
 
@@ -1350,7 +1396,11 @@ def detect_real_patient_signals(student_message: str) -> list[str]:
         pattern in normalized
         for pattern in REAL_PATIENT_OVERRIDE_PATTERNS
     )
-    if has_simulation_context and not has_real_patient_override:
+    if (
+        has_simulation_context
+        and not has_real_patient_override
+        and not personal_emergency_signals
+    ):
         return []
 
     has_high_confidence_signal = any(
@@ -1360,7 +1410,7 @@ def detect_real_patient_signals(student_message: str) -> list[str]:
     has_personal_urgent_context = any(
         pattern.search(normalized)
         for pattern in REAL_PATIENT_PERSONAL_URGENCY_PATTERNS
-    )
+    ) or bool(personal_emergency_signals)
     if not has_high_confidence_signal and not has_personal_urgent_context:
         return []
 

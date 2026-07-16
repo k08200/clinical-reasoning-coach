@@ -4225,7 +4225,7 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
 
     stream_response = await client.post(
         f"/api/sessions/{session_id}/stream",
-        json={"content": "My patient has severe chest pain right now and cannot breathe."},
+        json={"content": "I have chest pressure and sweating."},
         headers=auth_headers,
     )
 
@@ -4245,7 +4245,7 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
         "coach",
     ]
     assert "I cannot continue coaching" in saved_session["messages"][1]["content"]
-    assert "cannot breathe" not in str(saved_session)
+    assert "chest pressure" not in str(saved_session)
     assert saved_session["reasoning_map"]["nodes"] == []
     assert saved_session["total_input_tokens"] == 0
     assert saved_session["total_output_tokens"] == 0
@@ -4269,10 +4269,10 @@ async def test_real_patient_signal_halts_coaching_and_records_safety_event(
         safety_events[0].action_taken
         == "locked_session_blocked_storage_and_coaching"
     )
-    assert "severe chest pain" in safety_events[0].detected_terms
+    assert "personal_emergency_symptom" in safety_events[0].detected_terms
     assert "student message storage" in safety_events[0].note
     assert [message.role for message in messages] == ["coach", "coach"]
-    assert all("cannot breathe" not in message.content for message in messages)
+    assert all("chest pressure" not in message.content for message in messages)
 
     repeat_response = await client.post(
         f"/api/sessions/{session_id}/stream",

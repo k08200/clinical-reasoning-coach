@@ -225,6 +225,27 @@ def test_real_patient_safety_notice_detection():
     assert should_emit_real_patient_safety_notice(
         "시뮬레이션이 아니라 실제 환자가 지금 호흡 곤란이 있습니다."
     )
+    assert should_emit_real_patient_safety_notice(
+        "I have chest pressure and sweating."
+    )
+    assert should_emit_real_patient_safety_notice(
+        "My chest hurts and I feel shortness of breath."
+    )
+    assert should_emit_real_patient_safety_notice(
+        "I have new slurred speech and one-sided weakness."
+    )
+    assert should_emit_real_patient_safety_notice(
+        "제가 가슴 통증과 식은땀이 있습니다."
+    )
+    assert should_emit_real_patient_safety_notice(
+        "저는 말이 어눌하고 한쪽 팔에 힘이 빠집니다."
+    )
+    assert not should_emit_real_patient_safety_notice(
+        "In this simulated case, I would assess chest pain before treatment."
+    )
+    assert not should_emit_real_patient_safety_notice(
+        "이 교육용 증례에서는 흉통과 식은땀을 평가하겠습니다."
+    )
 
 
 def test_real_patient_safety_response_matches_message_language():
