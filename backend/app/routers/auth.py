@@ -3,7 +3,7 @@ from __future__ import annotations
 import hmac
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -34,6 +34,7 @@ from app.utils.auth import (
     get_current_user_id,
     require_admin,
 )
+from app.services.rate_limit import enforce_rate_limit, request_client_identifier
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -79,7 +80,18 @@ def _record_reviewer_credential_event(
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(data: UserRegister, db: AsyncSession = Depends(get_db)) -> User:
+async def register(
+    data: UserRegister,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    settings = get_settings()
+    await enforce_rate_limit(
+        bucket="auth-register",
+        subject=request_client_identifier(request),
+        maximum=settings.auth_registration_rate_limit_per_hour,
+        window_seconds=60 * 60,
+    )
     existing = await db.scalar(select(User).where(User.email == data.email))
     if existing:
         raise HTTPException(
@@ -129,9 +141,17 @@ async def accept_educational_use_consent(
 
 @router.post("/token", response_model=TokenResponse)
 async def login(
+    request: Request,
     form: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
+    settings = get_settings()
+    await enforce_rate_limit(
+        bucket="auth-login",
+        subject=request_client_identifier(request),
+        maximum=settings.auth_login_rate_limit_per_minute,
+        window_seconds=60,
+    )
     user = await db.scalar(select(User).where(User.email == form.username))
     if not user or not verify_password(form.password, user.hashed_password):
         raise HTTPException(
@@ -150,8 +170,16 @@ async def login(
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh_token(
     data: RefreshTokenRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
+    settings = get_settings()
+    await enforce_rate_limit(
+        bucket="auth-refresh",
+        subject=request_client_identifier(request),
+        maximum=settings.auth_refresh_rate_limit_per_minute,
+        window_seconds=60,
+    )
     user_id = get_token_subject(data.refresh_token, "refresh")
 
     import uuid as _uuid

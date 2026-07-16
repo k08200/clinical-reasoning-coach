@@ -41,6 +41,7 @@ def test_validate_runtime_settings_accepts_production_with_custom_secret():
             secret_key="replace-with-a-long-random-secret",
             database_auto_create_tables=False,
             llm_provider="ollama",
+            rate_limit_enabled=True,
         )
     )
 
@@ -53,6 +54,18 @@ def test_validate_runtime_settings_rejects_mock_provider_in_production():
                 secret_key="replace-with-a-long-random-secret",
                 database_auto_create_tables=False,
                 llm_provider="mock",
+            )
+        )
+
+
+def test_validate_runtime_settings_requires_rate_limiting_in_production():
+    with pytest.raises(RuntimeError, match="RATE_LIMIT_ENABLED"):
+        validate_runtime_settings(
+            Settings(
+                app_environment="production",
+                secret_key="replace-with-a-long-random-secret",
+                database_auto_create_tables=False,
+                llm_provider="ollama",
             )
         )
 
@@ -82,3 +95,10 @@ def test_settings_reads_admin_bootstrap_token_alias(monkeypatch: pytest.MonkeyPa
     settings = Settings()
 
     assert settings.admin_bootstrap_token == "setup-token"
+
+
+def test_settings_rejects_non_ip_trusted_proxy(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("TRUSTED_PROXY_IPS", '["proxy.internal"]')
+
+    with pytest.raises(ValueError, match="TRUSTED_PROXY_IPS"):
+        Settings()

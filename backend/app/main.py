@@ -11,6 +11,7 @@ from app.config import get_settings, validate_runtime_settings
 from app.database import init_db
 from app.routers import analytics, auth, cases, governance, safety, sessions
 from app.services.provider_factory import get_provider_readiness
+from app.services.rate_limit import rate_limiter
 
 settings = get_settings()
 
@@ -19,7 +20,11 @@ settings = get_settings()
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     validate_runtime_settings(settings)
     await init_db()
-    yield
+    await rate_limiter.initialize(settings)
+    try:
+        yield
+    finally:
+        await rate_limiter.close()
 
 
 app = FastAPI(

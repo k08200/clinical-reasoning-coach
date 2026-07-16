@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from app.config import get_settings
 from app.database import get_db
 from app.models.case import ClinicalCase, clinical_case_content_fingerprint
 from app.models.case_review import ClinicalCaseReview
@@ -20,6 +21,7 @@ from app.schemas.case import (
 from app.services.case_generator import generate_clinical_case, generate_demo_case
 from app.services.case_quality import evaluate_case_quality
 from app.services.privacy_guard import detect_patient_identifiers
+from app.services.rate_limit import enforce_rate_limit
 from app.services.socratic_coach import detect_real_patient_signals
 from app.utils.auth import require_clinical_reviewer, require_educational_use_consent
 
@@ -130,6 +132,13 @@ async def generate_case(
             ),
         )
 
+    settings = get_settings()
+    await enforce_rate_limit(
+        bucket="case-generate",
+        subject=_user_id,
+        maximum=settings.case_generation_rate_limit_per_hour,
+        window_seconds=60 * 60,
+    )
     _assert_seed_scenario_safe(body.seed_scenario)
 
     case_data = await generate_clinical_case(
@@ -155,6 +164,13 @@ async def generate_demo(
     db: AsyncSession = Depends(get_db),
 ) -> ClinicalCase:
     """Generate the canonical demo case: 58yo male chest pain + diaphoresis."""
+    settings = get_settings()
+    await enforce_rate_limit(
+        bucket="case-demo",
+        subject=_user_id,
+        maximum=settings.demo_case_rate_limit_per_hour,
+        window_seconds=60 * 60,
+    )
     case_data = await generate_demo_case()
     case_payload = case_data.model_dump()
     _assert_generated_case_quality(case_payload)

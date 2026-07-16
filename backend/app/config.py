@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
+from ipaddress import ip_address
 
 DEFAULT_SECRET_KEY = "change-me-in-production"
 DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION = "2026-07-15"
@@ -49,6 +50,52 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = "redis://redis:6379/0"
 
+    # Request limits. Production requires the Redis-backed limiter to be enabled.
+    rate_limit_enabled: bool = Field(
+        default=False,
+        validation_alias="RATE_LIMIT_ENABLED",
+    )
+    trusted_proxy_ips: list[str] = Field(
+        default_factory=list,
+        validation_alias="TRUSTED_PROXY_IPS",
+    )
+    auth_registration_rate_limit_per_hour: int = Field(
+        default=12,
+        ge=1,
+        le=1000,
+        validation_alias="AUTH_REGISTRATION_RATE_LIMIT_PER_HOUR",
+    )
+    auth_login_rate_limit_per_minute: int = Field(
+        default=12,
+        ge=1,
+        le=1000,
+        validation_alias="AUTH_LOGIN_RATE_LIMIT_PER_MINUTE",
+    )
+    auth_refresh_rate_limit_per_minute: int = Field(
+        default=60,
+        ge=1,
+        le=5000,
+        validation_alias="AUTH_REFRESH_RATE_LIMIT_PER_MINUTE",
+    )
+    case_generation_rate_limit_per_hour: int = Field(
+        default=12,
+        ge=1,
+        le=1000,
+        validation_alias="CASE_GENERATION_RATE_LIMIT_PER_HOUR",
+    )
+    demo_case_rate_limit_per_hour: int = Field(
+        default=60,
+        ge=1,
+        le=5000,
+        validation_alias="DEMO_CASE_RATE_LIMIT_PER_HOUR",
+    )
+    coaching_stream_rate_limit_per_hour: int = Field(
+        default=120,
+        ge=1,
+        le=10000,
+        validation_alias="COACHING_STREAM_RATE_LIMIT_PER_HOUR",
+    )
+
     # ─── LLM Provider ────────────────────────────────────────────────────────
     # Options: "claude" | "ollama" | "mock"
     # - mock  : no API key, rule-based Socratic questions (default)
@@ -85,6 +132,16 @@ class Settings(BaseSettings):
         "http://frontend:3000",
     ]
 
+    @field_validator("trusted_proxy_ips")
+    @classmethod
+    def validate_trusted_proxy_ips(cls, values: list[str]) -> list[str]:
+        for value in values:
+            try:
+                ip_address(value)
+            except ValueError as exc:
+                raise ValueError("TRUSTED_PROXY_IPS must contain IP addresses") from exc
+        return values
+
 
 @lru_cache
 def get_settings() -> Settings:
@@ -118,4 +175,9 @@ def validate_runtime_settings(settings: Settings | None = None) -> None:
         raise RuntimeError(
             "APP_ENV=production does not allow LLM_PROVIDER=mock; "
             "configure ollama or claude"
+        )
+
+    if environment == "production" and not settings.rate_limit_enabled:
+        raise RuntimeError(
+            "APP_ENV=production requires RATE_LIMIT_ENABLED=true with Redis available"
         )

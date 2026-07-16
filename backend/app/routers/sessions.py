@@ -17,6 +17,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 
+from app.config import get_settings
 from app.database import get_db, AsyncSessionLocal
 from app.models.case import (
     ClinicalCase,
@@ -52,6 +53,7 @@ from app.services.privacy_guard import (
     detect_patient_identifiers,
     privacy_safety_response_for,
 )
+from app.services.rate_limit import enforce_rate_limit
 from app.services.case_quality import evaluate_case_quality
 from app.services.reasoning_analyzer import (
     SCORE_DIMENSIONS,
@@ -1390,6 +1392,14 @@ async def stream_response(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=_session_not_active_block_detail(session),
         )
+
+    settings = get_settings()
+    await enforce_rate_limit(
+        bucket="coaching-stream",
+        subject=user_id,
+        maximum=settings.coaching_stream_rate_limit_per_hour,
+        window_seconds=60 * 60,
+    )
 
     turn_number = sum(1 for m in session.messages if m.role == "student") + 1
 
