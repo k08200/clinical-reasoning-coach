@@ -66,7 +66,9 @@ class OllamaProvider:
                 if ":" not in OLLAMA_MODEL:
                     expected_models.add(f"{OLLAMA_MODEL}:latest")
 
-                if expected_models.isdisjoint(available_models):
+                # Ollama Cloud's tags endpoint does not report every cloud model.
+                # A keyed request is instead verified by its model metadata endpoint below.
+                if expected_models.isdisjoint(available_models) and not OLLAMA_API_KEY:
                     return ProviderReadiness(
                         ready=False,
                         verification="unavailable",
@@ -81,6 +83,33 @@ class OllamaProvider:
                 show_response.raise_for_status()
                 raw_model_info = show_response.json().get("model_info", {})
                 model_info = raw_model_info if isinstance(raw_model_info, dict) else {}
+
+                # Cloud metadata is publicly readable, so verify configured credentials
+                # with a minimal generation request before reporting the provider ready.
+                if OLLAMA_API_KEY:
+                    auth_response = await client.post(
+                        f"{OLLAMA_BASE_URL.rstrip('/')}/api/chat",
+                        json={
+                            "model": OLLAMA_MODEL,
+                            "messages": [
+                                {"role": "user", "content": "Reply with OK."}
+                            ],
+                            "stream": False,
+                            "options": {"num_predict": 1},
+                        },
+                        headers=self._request_headers(),
+                    )
+                    auth_response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code in {401, 403}:
+                detail = "Ollama rejected the configured API key."
+            else:
+                detail = "Ollama rejected a readiness check request."
+            return ProviderReadiness(
+                ready=False,
+                verification="unavailable",
+                detail=detail,
+            )
         except (httpx.HTTPError, ValueError):
             return ProviderReadiness(
                 ready=False,

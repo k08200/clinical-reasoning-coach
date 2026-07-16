@@ -34,6 +34,7 @@ def _current_ollama_release_approval(tmp_path: Path) -> dict:
     path = tmp_path / "model-release-evaluation.json"
     path.write_text(json.dumps(artifact), encoding="utf-8")
     return {
+        "ollama_model": "llama3.2",
         "model_release_approval_id": "clinical-eval-2026-07-001",
         "model_release_approval_provider": "ollama",
         "model_release_approval_model": "llama3.2",

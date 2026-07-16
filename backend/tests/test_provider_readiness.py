@@ -10,9 +10,11 @@ class FakeOllamaClient:
         self,
         response: httpx.Response | Exception,
         show_response: httpx.Response | Exception | None = None,
+        chat_response: httpx.Response | Exception | None = None,
     ):
         self.response = response
         self.show_response = show_response
+        self.chat_response = chat_response
         self.requests: list[tuple[str, str, dict[str, str] | None]] = []
 
     async def __aenter__(self):
@@ -31,7 +33,7 @@ class FakeOllamaClient:
         self, url: str, json: dict, headers: dict[str, str] | None = None
     ) -> httpx.Response:
         self.requests.append(("POST", url, headers))
-        response = self.show_response
+        response = self.chat_response if url.endswith("/api/chat") else self.show_response
         if isinstance(response, Exception):
             raise response
         if response is None:
@@ -41,6 +43,7 @@ class FakeOllamaClient:
 
 async def test_ollama_readiness_accepts_implicit_latest_tag(monkeypatch):
     monkeypatch.setattr(ollama_provider, "OLLAMA_BASE_URL", "http://ollama.test")
+    monkeypatch.setattr(ollama_provider, "OLLAMA_API_KEY", "")
     monkeypatch.setattr(ollama_provider, "OLLAMA_MODEL", "llama3.2")
     monkeypatch.setattr(
         ollama_provider.httpx,
@@ -69,13 +72,18 @@ async def test_ollama_readiness_sends_configured_api_key(monkeypatch):
     client = FakeOllamaClient(
         httpx.Response(
             200,
-            json={"models": [{"name": "glm-5.2:cloud"}]},
+            json={"models": []},
             request=httpx.Request("GET", "https://ollama.com/api/tags"),
         ),
         httpx.Response(
             200,
             json={"model_info": {"glm.context_length": 8192}},
             request=httpx.Request("POST", "https://ollama.com/api/show"),
+        ),
+        httpx.Response(
+            200,
+            json={"message": {"content": "OK"}},
+            request=httpx.Request("POST", "https://ollama.com/api/chat"),
         ),
     )
     monkeypatch.setattr(ollama_provider, "OLLAMA_BASE_URL", "https://ollama.com")
@@ -91,12 +99,44 @@ async def test_ollama_readiness_sends_configured_api_key(monkeypatch):
     assert client.requests == [
         ("GET", "https://ollama.com/api/tags", {"Authorization": "Bearer test-key"}),
         ("POST", "https://ollama.com/api/show", {"Authorization": "Bearer test-key"}),
+        ("POST", "https://ollama.com/api/chat", {"Authorization": "Bearer test-key"}),
     ]
+
+
+async def test_ollama_readiness_rejects_invalid_api_key(monkeypatch):
+    client = FakeOllamaClient(
+        httpx.Response(
+            200,
+            json={"models": []},
+            request=httpx.Request("GET", "https://ollama.com/api/tags"),
+        ),
+        httpx.Response(
+            200,
+            json={"model_info": {"glm.context_length": 8192}},
+            request=httpx.Request("POST", "https://ollama.com/api/show"),
+        ),
+        httpx.Response(
+            401,
+            request=httpx.Request("POST", "https://ollama.com/api/chat"),
+        ),
+    )
+    monkeypatch.setattr(ollama_provider, "OLLAMA_BASE_URL", "https://ollama.com")
+    monkeypatch.setattr(ollama_provider, "OLLAMA_API_KEY", "invalid-key")
+    monkeypatch.setattr(ollama_provider, "OLLAMA_MODEL", "glm-5.2:cloud")
+    monkeypatch.setattr(
+        ollama_provider.httpx, "AsyncClient", lambda **_: client
+    )
+
+    readiness = await ollama_provider.OllamaProvider().readiness()
+
+    assert readiness.ready is False
+    assert readiness.detail == "Ollama rejected the configured API key."
 
 
 async def test_ollama_complete_sends_configured_api_key(monkeypatch):
     client = FakeOllamaClient(
         httpx.Response(500),
+        None,
         httpx.Response(
             200,
             json={
@@ -124,6 +164,7 @@ async def test_ollama_complete_sends_configured_api_key(monkeypatch):
 
 
 async def test_ollama_readiness_rejects_insufficient_context_window(monkeypatch):
+    monkeypatch.setattr(ollama_provider, "OLLAMA_API_KEY", "")
     monkeypatch.setattr(ollama_provider, "OLLAMA_MODEL", "small-model")
     monkeypatch.setattr(ollama_provider, "OLLAMA_MIN_CONTEXT_TOKENS", 4096)
     monkeypatch.setattr(
@@ -151,6 +192,7 @@ async def test_ollama_readiness_rejects_insufficient_context_window(monkeypatch)
 
 async def test_ollama_readiness_rejects_missing_configured_model(monkeypatch):
     monkeypatch.setattr(ollama_provider, "OLLAMA_MODEL", "llama3.2")
+    monkeypatch.setattr(ollama_provider, "OLLAMA_API_KEY", "")
     monkeypatch.setattr(
         ollama_provider.httpx,
         "AsyncClient",
