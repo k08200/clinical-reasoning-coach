@@ -10,6 +10,7 @@ from app.config import (
     MODEL_RELEASE_EVALUATION_SCENARIO_IDS,
     MODEL_RELEASE_EVALUATION_SUITE_VERSION,
     Settings,
+    model_release_delivery_policy_sha256,
     model_release_approval_status,
     validate_runtime_settings,
 )
@@ -21,6 +22,7 @@ def _current_ollama_release_approval(tmp_path: Path) -> dict:
         "suite_version": MODEL_RELEASE_EVALUATION_SUITE_VERSION,
         "provider": "ollama",
         "model": "llama3.2",
+        "delivery_policy_sha256": model_release_delivery_policy_sha256("ollama"),
         "evaluated_at": datetime.now(timezone.utc).isoformat(),
         "passed": True,
         "scenarios": [
@@ -255,6 +257,22 @@ def test_model_release_approval_rejects_stale_or_future_evaluation_artifact(
     assert model_release_approval_status(settings) == (
         False,
         "Model release evaluation artifact is dated in the future.",
+    )
+
+
+def test_model_release_approval_rejects_delivery_policy_drift(tmp_path: Path):
+    approval = _current_ollama_release_approval(tmp_path)
+    settings = Settings(llm_provider="ollama", **approval)
+    path = Path(settings.model_release_evaluation_artifact_path)
+    artifact = json.loads(path.read_text(encoding="utf-8"))
+    artifact["delivery_policy_sha256"] = "0" * 64
+    artifact["sha256"] = evaluation_sha256(artifact)
+    settings.model_release_evaluation_sha256 = artifact["sha256"]
+    path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    assert model_release_approval_status(settings) == (
+        False,
+        "Model release evaluation artifact does not match the configured coaching delivery policy.",
     )
 
 def test_settings_reads_app_env_alias(monkeypatch: pytest.MonkeyPatch):

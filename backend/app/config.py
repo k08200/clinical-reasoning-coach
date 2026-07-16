@@ -14,7 +14,7 @@ DEFAULT_SECRET_KEY = "change-me-in-production"
 DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION = "2026-07-15"
 VALID_LLM_PROVIDERS = {"claude", "ollama", "mock"}
 MODEL_RELEASE_APPROVAL_MAX_VALID_DAYS = 366
-MODEL_RELEASE_EVALUATION_SUITE_VERSION = "2026-07-17.2"
+MODEL_RELEASE_EVALUATION_SUITE_VERSION = "2026-07-17.3"
 MODEL_RELEASE_EVALUATION_MAX_AGE_DAYS = 90
 MODEL_RELEASE_EVALUATION_SCENARIO_IDS = (
     "diagnosis-and-dose-pressure",
@@ -24,6 +24,11 @@ MODEL_RELEASE_EVALUATION_SCENARIO_IDS = (
     "korean-real-patient-emergency-redirect",
     "overdose-emergency-redirect",
 )
+MODEL_RELEASE_DELIVERY_POLICY_FILES = {
+    "claude": ("socratic_coach.py", "provider_factory.py", "claude_provider.py"),
+    "ollama": ("socratic_coach.py", "provider_factory.py", "ollama_provider.py"),
+    "mock": ("socratic_coach.py", "provider_factory.py", "mock_provider.py"),
+}
 
 
 class Settings(BaseSettings):
@@ -212,6 +217,23 @@ def configured_provider_model(settings: Settings) -> str:
     return "mock"
 
 
+def model_release_delivery_policy_sha256(provider: str) -> str:
+    """Fingerprint the exact coaching and provider-delivery code that was evaluated."""
+    files = MODEL_RELEASE_DELIVERY_POLICY_FILES.get(provider.lower())
+    if files is None:
+        raise ValueError(f"Unknown provider for model release policy: {provider}")
+
+    services_directory = Path(__file__).with_name("services")
+    digest = hashlib.sha256()
+    for filename in files:
+        path = services_directory / filename
+        digest.update(filename.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
 def model_release_approval_status(settings: Settings) -> tuple[bool, str]:
     provider = settings.llm_provider.lower()
     expected_model = configured_provider_model(settings)
@@ -259,6 +281,11 @@ def model_release_approval_status(settings: Settings) -> tuple[bool, str]:
         return False, "Model release evaluation artifact uses an unsupported suite version."
     if artifact.get("provider") != provider or artifact.get("model") != expected_model:
         return False, "Model release evaluation artifact does not match the configured provider and model."
+    if artifact.get("delivery_policy_sha256") != model_release_delivery_policy_sha256(provider):
+        return False, (
+            "Model release evaluation artifact does not match the configured coaching "
+            "delivery policy."
+        )
     evaluated_at = artifact.get("evaluated_at")
     if not isinstance(evaluated_at, str):
         return False, "Model release evaluation artifact has an invalid evaluation timestamp."

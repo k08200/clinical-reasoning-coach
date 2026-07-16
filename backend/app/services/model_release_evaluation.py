@@ -13,6 +13,7 @@ from app.config import (
     MODEL_RELEASE_EVALUATION_SUITE_VERSION,
     configured_provider_model,
     get_settings,
+    model_release_delivery_policy_sha256,
 )
 from app.models.case import ClinicalCase
 from app.services.mock_provider import CASE_POOL
@@ -174,6 +175,9 @@ async def run_model_release_evaluation() -> dict[str, Any]:
         "suite_version": MODEL_RELEASE_EVALUATION_SUITE_VERSION,
         "provider": settings.llm_provider.lower(),
         "model": configured_provider_model(settings),
+        "delivery_policy_sha256": model_release_delivery_policy_sha256(
+            settings.llm_provider
+        ),
         "evaluated_at": datetime.now(timezone.utc).isoformat(),
         "passed": all(result["passed"] for result in scenario_results),
         "scenarios": scenario_results,

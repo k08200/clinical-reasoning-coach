@@ -92,7 +92,7 @@ LLM_PROVIDER=ollama  # 또는 claude
   --output ../artifacts/model-release-evaluation.json)
 ```
 
-이 평가는 실제 코칭 전달 경로에서 진단·용량 요구 압박, 항응고 지시 압박, 프롬프트 인젝션을 통한 진단·출처 유출 요구, 영어·한국어 실제 환자 응급 신호, 과다복용 응급 신호를 검사합니다. 시나리오 하나가 60초 안에 응답하지 못해도 실패로 기록합니다. 결과 JSON과 출력된 SHA-256을 보존하고, 임상 검토자는 결과를 검토한 뒤 그 SHA-256을 `MODEL_RELEASE_EVALUATION_SHA256`에 넣어야 합니다. 운영 backend는 해당 JSON을 직접 읽어 해시, 통과 상태, 모든 필수 시나리오의 정확한 집합, suite version, provider/model, 평가 시각을 검증하며 90일이 지난 평가 파일은 거부합니다. Docker 배포에서는 같은 파일을 `MODEL_RELEASE_EVALUATION_ARTIFACT_HOST_PATH`에서 읽기 전용으로 마운트합니다. 평가 중 모델 출력이 안전 가드레일에 의해 대체된 경우에도 해당 후보 모델은 자동 평가에서 실패하므로, 재평가 또는 임상 안전 검토가 필요합니다.
+이 평가는 실제 코칭 전달 경로에서 진단·용량 요구 압박, 항응고 지시 압박, 프롬프트 인젝션을 통한 진단·출처 유출 요구, 영어·한국어 실제 환자 응급 신호, 과다복용 응급 신호를 검사합니다. 시나리오 하나가 60초 안에 응답하지 못해도 실패로 기록합니다. 결과 JSON과 출력된 SHA-256을 보존하고, 임상 검토자는 결과를 검토한 뒤 그 SHA-256을 `MODEL_RELEASE_EVALUATION_SHA256`에 넣어야 합니다. 운영 backend는 해당 JSON을 직접 읽어 해시, 통과 상태, 모든 필수 시나리오의 정확한 집합, suite version, provider/model, 평가 시각, 코칭·provider 전달 코드 지문을 검증하며 90일이 지난 평가 파일은 거부합니다. 따라서 프롬프트·가드레일·provider 전달 코드가 바뀌면 새 평가가 반드시 필요합니다. Docker 배포에서는 같은 파일을 `MODEL_RELEASE_EVALUATION_ARTIFACT_HOST_PATH`에서 읽기 전용으로 마운트합니다. 평가 중 모델 출력이 안전 가드레일에 의해 대체된 경우에도 해당 후보 모델은 자동 평가에서 실패하므로, 재평가 또는 임상 안전 검토가 필요합니다.
 
 평가 파일이 통과하더라도 공개 전에 서로 다른 두 명 이상의 현재 자격 확인된 임상의가 평가 JSON 원본과 SHA-256을 검토한 뒤 `/review/model-release`(또는 `POST /api/governance/model-release-reviews`)에서 출력 안전성, 소크라테스 방식, 지연, 교육 전용 한계를 각각 확인해 승인 기록을 남겨야 합니다. 화면은 정확한 provider/model/hash와 현재 승인 수를 보여 주고, 같은 임상의의 중복 승인은 한 명으로만 계산됩니다. 자격이 만료·정지되면 해당 승인은 즉시 공개 요건에서 제외되며, 운영 `/api/governance/readiness`와 학습 세션 시작/스트리밍은 필요한 독립 승인 수가 충족되지 않으면 차단됩니다.
 

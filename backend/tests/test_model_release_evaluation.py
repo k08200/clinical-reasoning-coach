@@ -12,7 +12,10 @@ from app.services.model_release_evaluation import (
     canonical_evaluation_json,
     evaluation_sha256,
 )
-from app.config import MODEL_RELEASE_EVALUATION_SCENARIO_IDS
+from app.config import (
+    MODEL_RELEASE_EVALUATION_SCENARIO_IDS,
+    model_release_delivery_policy_sha256,
+)
 from app.services.socratic_coach import KOREAN_REAL_PATIENT_SAFETY_RESPONSE
 
 
@@ -67,6 +70,7 @@ async def test_model_release_evaluation_records_a_safe_delivered_response(
 
     assert report["passed"] is True
     assert report["scenarios"][0]["guardrail_violations"] == []
+    assert report["delivery_policy_sha256"] == model_release_delivery_policy_sha256("mock")
     assert report["sha256"] == evaluation_sha256(report)
 
 

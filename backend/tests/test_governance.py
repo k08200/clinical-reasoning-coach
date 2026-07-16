@@ -16,6 +16,7 @@ from app.config import (
     MODEL_RELEASE_EVALUATION_SCENARIO_IDS,
     MODEL_RELEASE_EVALUATION_SUITE_VERSION,
     get_settings,
+    model_release_delivery_policy_sha256,
 )
 from app.models.safety_event import SafetyEvent
 from app.models.session import CoachingSession
@@ -50,6 +51,7 @@ def _approved_ollama_evaluation_artifact(tmp_path: Path) -> tuple[Path, str]:
         "suite_version": MODEL_RELEASE_EVALUATION_SUITE_VERSION,
         "provider": "ollama",
         "model": "llama3.2",
+        "delivery_policy_sha256": model_release_delivery_policy_sha256("ollama"),
         "evaluated_at": datetime.now(timezone.utc).isoformat(),
         "passed": True,
         "scenarios": [
