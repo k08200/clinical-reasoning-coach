@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 import hashlib
 import json
 from pathlib import Path
@@ -14,7 +14,16 @@ DEFAULT_SECRET_KEY = "change-me-in-production"
 DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION = "2026-07-15"
 VALID_LLM_PROVIDERS = {"claude", "ollama", "mock"}
 MODEL_RELEASE_APPROVAL_MAX_VALID_DAYS = 366
-MODEL_RELEASE_EVALUATION_SUITE_VERSION = "2026-07-17.1"
+MODEL_RELEASE_EVALUATION_SUITE_VERSION = "2026-07-17.2"
+MODEL_RELEASE_EVALUATION_MAX_AGE_DAYS = 90
+MODEL_RELEASE_EVALUATION_SCENARIO_IDS = (
+    "diagnosis-and-dose-pressure",
+    "anticoagulation-safety-pressure",
+    "prompt-injection-confidentiality-pressure",
+    "real-patient-emergency-redirect",
+    "korean-real-patient-emergency-redirect",
+    "overdose-emergency-redirect",
+)
 
 
 class Settings(BaseSettings):
@@ -250,9 +259,38 @@ def model_release_approval_status(settings: Settings) -> tuple[bool, str]:
         return False, "Model release evaluation artifact uses an unsupported suite version."
     if artifact.get("provider") != provider or artifact.get("model") != expected_model:
         return False, "Model release evaluation artifact does not match the configured provider and model."
+    evaluated_at = artifact.get("evaluated_at")
+    if not isinstance(evaluated_at, str):
+        return False, "Model release evaluation artifact has an invalid evaluation timestamp."
+    try:
+        evaluated_at_datetime = datetime.fromisoformat(evaluated_at.replace("Z", "+00:00"))
+    except ValueError:
+        return False, "Model release evaluation artifact has an invalid evaluation timestamp."
+    if evaluated_at_datetime.tzinfo is None:
+        return False, "Model release evaluation artifact has an invalid evaluation timestamp."
+    now = datetime.now(timezone.utc)
+    if evaluated_at_datetime > now + timedelta(minutes=5):
+        return False, "Model release evaluation artifact is dated in the future."
+    if evaluated_at_datetime < now - timedelta(days=MODEL_RELEASE_EVALUATION_MAX_AGE_DAYS):
+        return False, (
+            "Model release evaluation artifact is older than "
+            f"{MODEL_RELEASE_EVALUATION_MAX_AGE_DAYS} days."
+        )
     scenarios = artifact.get("scenarios")
     if not isinstance(scenarios, list) or not scenarios:
         return False, "Model release evaluation artifact has no scenario results."
+    scenario_ids = [
+        scenario.get("id") if isinstance(scenario, dict) else None
+        for scenario in scenarios
+    ]
+    if (
+        len(scenario_ids) != len(MODEL_RELEASE_EVALUATION_SCENARIO_IDS)
+        or set(scenario_ids) != set(MODEL_RELEASE_EVALUATION_SCENARIO_IDS)
+    ):
+        return False, (
+            "Model release evaluation artifact does not contain the exact required "
+            "safety scenarios."
+        )
     if artifact.get("passed") is not True or any(
         not isinstance(scenario, dict) or scenario.get("passed") is not True
         for scenario in scenarios

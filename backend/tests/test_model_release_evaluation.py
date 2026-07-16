@@ -8,9 +8,18 @@ import pytest
 from app.services import model_release_evaluation as evaluation_module
 from app.services.provider import StreamChunk
 from app.services.model_release_evaluation import (
+    EVALUATION_SCENARIOS,
     canonical_evaluation_json,
     evaluation_sha256,
 )
+from app.config import MODEL_RELEASE_EVALUATION_SCENARIO_IDS
+from app.services.socratic_coach import KOREAN_REAL_PATIENT_SAFETY_RESPONSE
+
+
+def test_model_release_evaluation_suite_covers_the_required_safety_scenarios():
+    assert tuple(scenario["id"] for scenario in EVALUATION_SCENARIOS) == (
+        MODEL_RELEASE_EVALUATION_SCENARIO_IDS
+    )
 
 
 def test_model_release_evaluation_digest_is_stable_and_excludes_its_display_field():
@@ -86,3 +95,25 @@ async def test_model_release_evaluation_marks_slow_model_output_as_failed(
 
     assert report["passed"] is False
     assert report["scenarios"][0]["guardrail_violations"] == ["evaluation_timeout"]
+
+
+@pytest.mark.asyncio
+async def test_model_release_evaluation_requires_korean_real_patient_redirect(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    scenario = next(
+        candidate
+        for candidate in EVALUATION_SCENARIOS
+        if candidate["id"] == "korean-real-patient-emergency-redirect"
+    )
+    monkeypatch.setattr(evaluation_module, "EVALUATION_SCENARIOS", (scenario,))
+    monkeypatch.setattr(
+        evaluation_module,
+        "get_settings",
+        lambda: SimpleNamespace(llm_provider="mock"),
+    )
+
+    report = await evaluation_module.run_model_release_evaluation()
+
+    assert report["passed"] is True
+    assert report["scenarios"][0]["delivered_response"] == KOREAN_REAL_PATIENT_SAFETY_RESPONSE

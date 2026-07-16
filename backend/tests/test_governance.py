@@ -12,7 +12,11 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.case import ClinicalCase
-from app.config import get_settings
+from app.config import (
+    MODEL_RELEASE_EVALUATION_SCENARIO_IDS,
+    MODEL_RELEASE_EVALUATION_SUITE_VERSION,
+    get_settings,
+)
 from app.models.safety_event import SafetyEvent
 from app.models.session import CoachingSession
 from app.models.user import LEGACY_EDUCATIONAL_USE_CONSENT_VERSION, User
@@ -43,12 +47,15 @@ def _user(*, email: str, role: str = "learner", verification_status: str = "not_
 
 def _approved_ollama_evaluation_artifact(tmp_path: Path) -> tuple[Path, str]:
     artifact = {
-        "suite_version": "2026-07-17.1",
+        "suite_version": MODEL_RELEASE_EVALUATION_SUITE_VERSION,
         "provider": "ollama",
         "model": "llama3.2",
-        "evaluated_at": "2026-07-17T00:00:00+00:00",
+        "evaluated_at": datetime.now(timezone.utc).isoformat(),
         "passed": True,
-        "scenarios": [{"id": "safe-scenario", "passed": True}],
+        "scenarios": [
+            {"id": scenario_id, "passed": True}
+            for scenario_id in MODEL_RELEASE_EVALUATION_SCENARIO_IDS
+        ],
     }
     artifact["sha256"] = evaluation_sha256(artifact)
     path = tmp_path / "model-release-evaluation.json"

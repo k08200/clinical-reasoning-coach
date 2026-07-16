@@ -1,23 +1,32 @@
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 import json
 from pathlib import Path
 
 import pytest
 
-from app.config import Settings, model_release_approval_status, validate_runtime_settings
+from app.config import (
+    MODEL_RELEASE_EVALUATION_SCENARIO_IDS,
+    MODEL_RELEASE_EVALUATION_SUITE_VERSION,
+    Settings,
+    model_release_approval_status,
+    validate_runtime_settings,
+)
 from app.services.model_release_evaluation import evaluation_sha256
 
 
 def _current_ollama_release_approval(tmp_path: Path) -> dict:
     artifact = {
-        "suite_version": "2026-07-17.1",
+        "suite_version": MODEL_RELEASE_EVALUATION_SUITE_VERSION,
         "provider": "ollama",
         "model": "llama3.2",
-        "evaluated_at": "2026-07-17T00:00:00+00:00",
+        "evaluated_at": datetime.now(timezone.utc).isoformat(),
         "passed": True,
-        "scenarios": [{"id": "safe-scenario", "passed": True}],
+        "scenarios": [
+            {"id": scenario_id, "passed": True}
+            for scenario_id in MODEL_RELEASE_EVALUATION_SCENARIO_IDS
+        ],
     }
     artifact["sha256"] = evaluation_sha256(artifact)
     path = tmp_path / "model-release-evaluation.json"
@@ -192,6 +201,61 @@ def test_model_release_approval_rejects_failed_or_tampered_evaluation_artifact(
         "Model release evaluation artifact hash does not match the configured digest.",
     )
 
+
+def test_model_release_approval_rejects_incomplete_or_duplicate_safety_scenarios(
+    tmp_path: Path,
+):
+    approval = _current_ollama_release_approval(tmp_path)
+    settings = Settings(llm_provider="ollama", **approval)
+    path = Path(settings.model_release_evaluation_artifact_path)
+    artifact = json.loads(path.read_text(encoding="utf-8"))
+    artifact["scenarios"] = artifact["scenarios"][:-1]
+    artifact["sha256"] = evaluation_sha256(artifact)
+    settings.model_release_evaluation_sha256 = artifact["sha256"]
+    path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    assert model_release_approval_status(settings) == (
+        False,
+        "Model release evaluation artifact does not contain the exact required safety scenarios.",
+    )
+
+    artifact["scenarios"].append(dict(artifact["scenarios"][0]))
+    artifact["sha256"] = evaluation_sha256(artifact)
+    settings.model_release_evaluation_sha256 = artifact["sha256"]
+    path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    assert model_release_approval_status(settings) == (
+        False,
+        "Model release evaluation artifact does not contain the exact required safety scenarios.",
+    )
+
+
+def test_model_release_approval_rejects_stale_or_future_evaluation_artifact(
+    tmp_path: Path,
+):
+    approval = _current_ollama_release_approval(tmp_path)
+    settings = Settings(llm_provider="ollama", **approval)
+    path = Path(settings.model_release_evaluation_artifact_path)
+    artifact = json.loads(path.read_text(encoding="utf-8"))
+    artifact["evaluated_at"] = (datetime.now(timezone.utc) - timedelta(days=91)).isoformat()
+    artifact["sha256"] = evaluation_sha256(artifact)
+    settings.model_release_evaluation_sha256 = artifact["sha256"]
+    path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    assert model_release_approval_status(settings) == (
+        False,
+        "Model release evaluation artifact is older than 90 days.",
+    )
+
+    artifact["evaluated_at"] = (datetime.now(timezone.utc) + timedelta(minutes=6)).isoformat()
+    artifact["sha256"] = evaluation_sha256(artifact)
+    settings.model_release_evaluation_sha256 = artifact["sha256"]
+    path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    assert model_release_approval_status(settings) == (
+        False,
+        "Model release evaluation artifact is dated in the future.",
+    )
 
 def test_settings_reads_app_env_alias(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("APP_ENV", "production")
