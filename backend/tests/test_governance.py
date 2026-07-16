@@ -263,6 +263,13 @@ async def test_current_clinician_reviewers_record_independent_model_release_appr
         headers=_headers_for(first),
     )
     assert first_response.status_code == 201
+    first_target_response = await client.get(
+        "/api/governance/model-release-review-target",
+        headers=_headers_for(first),
+    )
+    assert first_target_response.status_code == 200
+    assert first_target_response.json()["current_reviewer_count"] == 1
+    assert first_target_response.json()["current_reviewer_has_approved"] is True
     duplicate_response = await client.post(
         "/api/governance/model-release-reviews",
         json=payload,
@@ -287,6 +294,58 @@ async def test_current_clinician_reviewers_record_independent_model_release_appr
 
     await db.delete(first)
     await db.delete(second)
+    await db.delete(admin)
+    await db.commit()
+
+
+@pytest.mark.asyncio
+async def test_current_clinician_reviewer_can_read_model_release_review_target(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    admin = _user(email=f"model-target-admin-{uuid.uuid4()}@test.com", role="admin")
+    reviewer = _user(
+        email=f"model-target-reviewer-{uuid.uuid4()}@test.com",
+        role="clinician_reviewer",
+        verification_status="verified",
+    )
+    db.add(admin)
+    await db.commit()
+    await db.refresh(admin)
+    reviewer.reviewer_practice_scope = "Emergency medicine educational simulation"
+    reviewer.reviewer_verified_at = datetime.now(timezone.utc)
+    reviewer.reviewer_verified_by_user_id = admin.id
+    db.add(reviewer)
+    await db.commit()
+    await db.refresh(reviewer)
+    monkeypatch.setattr(governance_router, "model_release_approval_status", lambda _: (True, "current"))
+
+    response = await client.get(
+        "/api/governance/model-release-review-target",
+        headers=_headers_for(reviewer),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["provider"] == get_settings().llm_provider.lower()
+    assert body["model"]
+    assert body["evaluation_current"] is True
+    assert body["current_reviewer_count"] == 0
+    assert body["required_reviewer_count"] >= 2
+    assert body["current_reviewer_has_approved"] is False
+
+    learner = _user(email=f"model-target-learner-{uuid.uuid4()}@test.com")
+    db.add(learner)
+    await db.commit()
+    denied_response = await client.get(
+        "/api/governance/model-release-review-target",
+        headers=_headers_for(learner),
+    )
+    assert denied_response.status_code == 403
+
+    await db.delete(learner)
+    await db.delete(reviewer)
     await db.delete(admin)
     await db.commit()
 

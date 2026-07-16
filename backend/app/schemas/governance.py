@@ -62,6 +62,17 @@ class ModelReleaseClinicalReviewResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ModelReleaseClinicalReviewTargetResponse(BaseModel):
+    provider: str
+    model: str
+    evaluation_sha256: str
+    evaluation_current: bool
+    evaluation_detail: str
+    current_reviewer_count: int
+    required_reviewer_count: int
+    current_reviewer_has_approved: bool
+
+
 class GovernanceReadinessResponse(BaseModel):
     learner_eligible_case_count: int
     case_blocker_count: int

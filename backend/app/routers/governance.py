@@ -22,6 +22,7 @@ from app.schemas.governance import (
     GovernanceReleaseBlocker,
     ModelReleaseClinicalReviewRequest,
     ModelReleaseClinicalReviewResponse,
+    ModelReleaseClinicalReviewTargetResponse,
 )
 from app.services.model_release_reviews import (
     current_model_release_clinical_reviews,
@@ -84,6 +85,31 @@ async def create_model_release_clinical_review(
     await db.flush()
     await db.refresh(review)
     return review
+
+
+@router.get(
+    "/model-release-review-target",
+    response_model=ModelReleaseClinicalReviewTargetResponse,
+)
+async def get_model_release_clinical_review_target(
+    reviewer: User = Depends(require_clinical_reviewer),
+    db: AsyncSession = Depends(get_db),
+) -> ModelReleaseClinicalReviewTargetResponse:
+    settings = get_settings()
+    evaluation_current, evaluation_detail = model_release_approval_status(settings)
+    reviews = await current_model_release_clinical_reviews(db, settings)
+    return ModelReleaseClinicalReviewTargetResponse(
+        provider=settings.llm_provider.lower(),
+        model=configured_provider_model(settings),
+        evaluation_sha256=settings.model_release_evaluation_sha256.strip().lower(),
+        evaluation_current=evaluation_current,
+        evaluation_detail=evaluation_detail,
+        current_reviewer_count=len(reviews),
+        required_reviewer_count=required_model_release_clinical_reviewers(settings),
+        current_reviewer_has_approved=any(
+            review.reviewer_user_id == reviewer.id for review in reviews
+        ),
+    )
 
 
 @router.get(

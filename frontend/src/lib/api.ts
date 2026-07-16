@@ -6,6 +6,8 @@ import {
 } from "./session";
 import type {
   GovernanceReadiness,
+  ModelReleaseClinicalReviewRequest,
+  ModelReleaseClinicalReviewTarget,
   ReviewerCredentialEvent,
   ReviewerVerificationStatus,
   SourceAlignmentChecks,
@@ -149,6 +151,13 @@ export const api = {
 
   governance: {
     readiness: () => request("/api/governance/readiness") as Promise<GovernanceReadiness>,
+    modelReleaseReviewTarget: () =>
+      request("/api/governance/model-release-review-target") as Promise<ModelReleaseClinicalReviewTarget>,
+    recordModelReleaseReview: (data: ModelReleaseClinicalReviewRequest) =>
+      request("/api/governance/model-release-reviews", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   },
 
   cases: {

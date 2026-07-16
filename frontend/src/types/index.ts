@@ -50,6 +50,26 @@ export interface GovernanceReadiness {
   release_blockers: GovernanceReleaseBlocker[];
 }
 
+export interface ModelReleaseClinicalReviewTarget {
+  provider: string;
+  model: string;
+  evaluation_sha256: string;
+  evaluation_current: boolean;
+  evaluation_detail: string;
+  current_reviewer_count: number;
+  required_reviewer_count: number;
+  current_reviewer_has_approved: boolean;
+}
+
+export interface ModelReleaseClinicalReviewRequest {
+  practice_scope: string;
+  output_safety_confirmed: boolean;
+  socratic_integrity_confirmed: boolean;
+  latency_confirmed: boolean;
+  educational_use_only_confirmed: boolean;
+  review_notes: string;
+}
+
 export interface User {
   id: string;
   email: string;

@@ -341,6 +341,9 @@ export default function ReviewPage() {
             <Link href="/safety" className="text-sm text-slate-400 hover:text-white">
               Safety Events
             </Link>
+            <Link href="/review/model-release" className="text-sm text-slate-400 hover:text-white">
+              Model Release
+            </Link>
           </div>
         </div>
       </header>
