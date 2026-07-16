@@ -22,11 +22,12 @@ docker compose up --build
 | Provider | 비용 | 설정 |
 |----------|------|------|
 | `mock` (기본) | **무료, 오프라인** | 설정 불필요 |
-| `ollama` | **무료, 로컬 LLM** | Ollama 설치 필요 |
+| `ollama` | 로컬 또는 Ollama Cloud | Ollama 서버 또는 API 키 필요 |
 | `claude` | 유료 (Anthropic) | API 키 필요 |
 
-### Ollama 설정 (무료 로컬 LLM)
+### Ollama 설정
 ```bash
+# 로컬 Ollama
 brew install ollama
 ollama pull llama3.2
 ollama serve
@@ -34,6 +35,12 @@ ollama serve
 # .env 수정:
 LLM_PROVIDER=ollama
 OLLAMA_BASE_URL=http://host.docker.internal:11434
+
+# Ollama Cloud API
+LLM_PROVIDER=ollama
+OLLAMA_BASE_URL=https://ollama.com
+OLLAMA_API_KEY=your-ollama-api-key
+OLLAMA_MODEL=glm-5.2:cloud
 ```
 
 ### Claude 설정 (최고 품질)

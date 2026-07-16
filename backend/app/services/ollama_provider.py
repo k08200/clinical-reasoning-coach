@@ -1,12 +1,12 @@
 """
-Ollama provider — free local LLM via Ollama (https://ollama.com).
+Ollama provider — local or Ollama Cloud LLM via Ollama (https://ollama.com).
 
 Setup:
   brew install ollama
   ollama pull llama3.2
   ollama serve   # starts on http://localhost:11434
 
-Uses OpenAI-compatible API endpoint.
+Uses the Ollama API endpoint.
 """
 from __future__ import annotations
 
@@ -23,6 +23,7 @@ from app.services.provider import ProviderReadiness, StreamChunk, LLMResponse
 settings = get_settings()
 
 OLLAMA_BASE_URL = settings.ollama_base_url
+OLLAMA_API_KEY = settings.ollama_api_key
 OLLAMA_MODEL = settings.ollama_model
 OLLAMA_MIN_CONTEXT_TOKENS = settings.ollama_min_context_tokens
 
@@ -36,7 +37,13 @@ Keep responses concise (2-3 questions max)."""
 
 
 class OllamaProvider:
-    """Local Ollama LLM — completely free, no API key."""
+    """Ollama LLM provider with optional bearer-token authentication."""
+
+    @staticmethod
+    def _request_headers() -> dict[str, str]:
+        if not OLLAMA_API_KEY:
+            return {}
+        return {"Authorization": f"Bearer {OLLAMA_API_KEY}"}
 
     async def readiness(self) -> ProviderReadiness:
         """Confirm that Ollama is reachable and the configured model is installed."""
@@ -45,7 +52,7 @@ class OllamaProvider:
             async with httpx.AsyncClient(
                 timeout=settings.provider_readiness_timeout_seconds
             ) as client:
-                response = await client.get(url)
+                response = await client.get(url, headers=self._request_headers())
                 response.raise_for_status()
                 models = response.json().get("models", [])
                 available_models = {
@@ -69,6 +76,7 @@ class OllamaProvider:
                 show_response = await client.post(
                     f"{OLLAMA_BASE_URL.rstrip('/')}/api/show",
                     json={"model": OLLAMA_MODEL},
+                    headers=self._request_headers(),
                 )
                 show_response.raise_for_status()
                 raw_model_info = show_response.json().get("model_info", {})
@@ -123,7 +131,9 @@ class OllamaProvider:
         }
 
         async with httpx.AsyncClient(timeout=120) as client:
-            async with client.stream("POST", url, json=payload) as resp:
+            async with client.stream(
+                "POST", url, json=payload, headers=self._request_headers()
+            ) as resp:
                 if resp.status_code != 200:
                     error = await resp.aread()
                     yield StreamChunk(type="text_delta", content=f"[Ollama error: {error.decode()[:200]}]")
@@ -175,7 +185,7 @@ class OllamaProvider:
         }
 
         async with httpx.AsyncClient(timeout=120) as client:
-            resp = await client.post(url, json=payload)
+            resp = await client.post(url, json=payload, headers=self._request_headers())
             resp.raise_for_status()
             data = resp.json()
 

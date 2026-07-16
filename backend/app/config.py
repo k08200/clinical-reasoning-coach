@@ -139,6 +139,7 @@ class Settings(BaseSettings):
 
     # Ollama (only needed when llm_provider=ollama)
     ollama_base_url: str = "http://localhost:11434"
+    ollama_api_key: str = Field(default="", validation_alias="OLLAMA_API_KEY")
     ollama_model: str = "llama3.2"
     ollama_min_context_tokens: int = Field(
         default=4096,

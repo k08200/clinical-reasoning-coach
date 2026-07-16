@@ -39,6 +39,7 @@ def _readiness_cache_key() -> tuple[str, ...]:
     return (
         settings.llm_provider.lower(),
         settings.ollama_base_url,
+        settings.ollama_api_key,
         settings.ollama_model,
         settings.claude_model,
         settings.anthropic_api_key,

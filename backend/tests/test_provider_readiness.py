@@ -13,6 +13,7 @@ class FakeOllamaClient:
     ):
         self.response = response
         self.show_response = show_response
+        self.requests: list[tuple[str, str, dict[str, str] | None]] = []
 
     async def __aenter__(self):
         return self
@@ -20,12 +21,16 @@ class FakeOllamaClient:
     async def __aexit__(self, exc_type, exc, traceback):
         return None
 
-    async def get(self, url: str) -> httpx.Response:
+    async def get(self, url: str, headers: dict[str, str] | None = None) -> httpx.Response:
+        self.requests.append(("GET", url, headers))
         if isinstance(self.response, Exception):
             raise self.response
         return self.response
 
-    async def post(self, url: str, json: dict) -> httpx.Response:
+    async def post(
+        self, url: str, json: dict, headers: dict[str, str] | None = None
+    ) -> httpx.Response:
+        self.requests.append(("POST", url, headers))
         response = self.show_response
         if isinstance(response, Exception):
             raise response
@@ -58,6 +63,64 @@ async def test_ollama_readiness_accepts_implicit_latest_tag(monkeypatch):
 
     assert readiness.ready is True
     assert readiness.verification == "verified"
+
+
+async def test_ollama_readiness_sends_configured_api_key(monkeypatch):
+    client = FakeOllamaClient(
+        httpx.Response(
+            200,
+            json={"models": [{"name": "glm-5.2:cloud"}]},
+            request=httpx.Request("GET", "https://ollama.com/api/tags"),
+        ),
+        httpx.Response(
+            200,
+            json={"model_info": {"glm.context_length": 8192}},
+            request=httpx.Request("POST", "https://ollama.com/api/show"),
+        ),
+    )
+    monkeypatch.setattr(ollama_provider, "OLLAMA_BASE_URL", "https://ollama.com")
+    monkeypatch.setattr(ollama_provider, "OLLAMA_API_KEY", "test-key")
+    monkeypatch.setattr(ollama_provider, "OLLAMA_MODEL", "glm-5.2:cloud")
+    monkeypatch.setattr(
+        ollama_provider.httpx, "AsyncClient", lambda **_: client
+    )
+
+    readiness = await ollama_provider.OllamaProvider().readiness()
+
+    assert readiness.ready is True
+    assert client.requests == [
+        ("GET", "https://ollama.com/api/tags", {"Authorization": "Bearer test-key"}),
+        ("POST", "https://ollama.com/api/show", {"Authorization": "Bearer test-key"}),
+    ]
+
+
+async def test_ollama_complete_sends_configured_api_key(monkeypatch):
+    client = FakeOllamaClient(
+        httpx.Response(500),
+        httpx.Response(
+            200,
+            json={
+                "message": {"content": "{}"},
+                "prompt_eval_count": 10,
+                "eval_count": 5,
+            },
+            request=httpx.Request("POST", "https://ollama.com/api/chat"),
+        ),
+    )
+    monkeypatch.setattr(ollama_provider, "OLLAMA_BASE_URL", "https://ollama.com")
+    monkeypatch.setattr(ollama_provider, "OLLAMA_API_KEY", "test-key")
+    monkeypatch.setattr(ollama_provider, "OLLAMA_MODEL", "glm-5.2:cloud")
+    monkeypatch.setattr(
+        ollama_provider.httpx, "AsyncClient", lambda **_: client
+    )
+
+    response = await ollama_provider.OllamaProvider().complete([], "System prompt")
+
+    assert response.input_tokens == 10
+    assert response.output_tokens == 5
+    assert client.requests == [
+        ("POST", "https://ollama.com/api/chat", {"Authorization": "Bearer test-key"})
+    ]
 
 
 async def test_ollama_readiness_rejects_insufficient_context_window(monkeypatch):
