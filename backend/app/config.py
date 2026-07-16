@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+import hashlib
+import json
+from pathlib import Path
 import re
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -11,6 +14,7 @@ DEFAULT_SECRET_KEY = "change-me-in-production"
 DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION = "2026-07-15"
 VALID_LLM_PROVIDERS = {"claude", "ollama", "mock"}
 MODEL_RELEASE_APPROVAL_MAX_VALID_DAYS = 366
+MODEL_RELEASE_EVALUATION_SUITE_VERSION = "2026-07-17.1"
 
 
 class Settings(BaseSettings):
@@ -162,6 +166,10 @@ class Settings(BaseSettings):
         default="",
         validation_alias="MODEL_RELEASE_EVALUATION_SHA256",
     )
+    model_release_evaluation_artifact_path: str = Field(
+        default="",
+        validation_alias="MODEL_RELEASE_EVALUATION_ARTIFACT_PATH",
+    )
 
     # CORS
     cors_origins: list[str] = [
@@ -203,6 +211,7 @@ def model_release_approval_status(settings: Settings) -> tuple[bool, str]:
     approval_model = settings.model_release_approval_model.strip()
     expires_on = settings.model_release_approval_expires_on
     evaluation_sha256 = settings.model_release_evaluation_sha256.strip().lower()
+    artifact_path = settings.model_release_evaluation_artifact_path.strip()
 
     if not all((
         approval_id,
@@ -210,6 +219,7 @@ def model_release_approval_status(settings: Settings) -> tuple[bool, str]:
         approval_model,
         expires_on,
         evaluation_sha256,
+        artifact_path,
     )):
         return False, "Model release approval metadata is incomplete."
     if not re.fullmatch(r"[0-9a-f]{64}", evaluation_sha256):
@@ -222,7 +232,33 @@ def model_release_approval_status(settings: Settings) -> tuple[bool, str]:
         return False, "Model release approval has expired."
     if expires_on > date.today() + timedelta(days=MODEL_RELEASE_APPROVAL_MAX_VALID_DAYS):
         return False, "Model release approval expiry exceeds the maximum validity period."
-    return True, "Model release approval matches the configured provider and model."
+    try:
+        artifact = json.loads(Path(artifact_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False, "Model release evaluation artifact could not be read."
+    if not isinstance(artifact, dict):
+        return False, "Model release evaluation artifact must be a JSON object."
+    artifact_digest = artifact.get("sha256")
+    canonical_artifact = dict(artifact)
+    canonical_artifact.pop("sha256", None)
+    computed_digest = hashlib.sha256(
+        json.dumps(canonical_artifact, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    if artifact_digest != evaluation_sha256 or computed_digest != evaluation_sha256:
+        return False, "Model release evaluation artifact hash does not match the configured digest."
+    if artifact.get("suite_version") != MODEL_RELEASE_EVALUATION_SUITE_VERSION:
+        return False, "Model release evaluation artifact uses an unsupported suite version."
+    if artifact.get("provider") != provider or artifact.get("model") != expected_model:
+        return False, "Model release evaluation artifact does not match the configured provider and model."
+    scenarios = artifact.get("scenarios")
+    if not isinstance(scenarios, list) or not scenarios:
+        return False, "Model release evaluation artifact has no scenario results."
+    if artifact.get("passed") is not True or any(
+        not isinstance(scenario, dict) or scenario.get("passed") is not True
+        for scenario in scenarios
+    ):
+        return False, "Model release evaluation artifact contains failed scenarios."
+    return True, "Model release evaluation artifact matches the configured provider and model."
 
 
 def validate_runtime_settings(settings: Settings | None = None) -> None:

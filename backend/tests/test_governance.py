@@ -3,6 +3,8 @@ from __future__ import annotations
 import copy
 import uuid
 from datetime import date, datetime, timedelta, timezone
+import json
+from pathlib import Path
 
 import pytest
 from httpx import AsyncClient
@@ -18,6 +20,7 @@ from app.config import Settings
 from app.routers import governance as governance_router
 from app.services.mock_provider import CASE_POOL
 from app.services.provider import ProviderReadiness
+from app.services.model_release_evaluation import evaluation_sha256
 from app.utils.auth import create_access_token, hash_password
 
 
@@ -36,6 +39,21 @@ def _user(*, email: str, role: str = "learner", verification_status: str = "not_
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
+
+
+def _approved_ollama_evaluation_artifact(tmp_path: Path) -> tuple[Path, str]:
+    artifact = {
+        "suite_version": "2026-07-17.1",
+        "provider": "ollama",
+        "model": "llama3.2",
+        "evaluated_at": "2026-07-17T00:00:00+00:00",
+        "passed": True,
+        "scenarios": [{"id": "safe-scenario", "passed": True}],
+    }
+    artifact["sha256"] = evaluation_sha256(artifact)
+    path = tmp_path / "model-release-evaluation.json"
+    path.write_text(json.dumps(artifact), encoding="utf-8")
+    return path, artifact["sha256"]
 
 
 @pytest.mark.asyncio
@@ -146,11 +164,13 @@ async def test_governance_readiness_blocks_production_release_when_provider_is_n
     client: AsyncClient,
     db: AsyncSession,
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ):
     admin = _user(email=f"governance-model-admin-{uuid.uuid4()}@test.com", role="admin")
     db.add(admin)
     await db.commit()
     await db.refresh(admin)
+    artifact_path, artifact_sha256 = _approved_ollama_evaluation_artifact(tmp_path)
     monkeypatch.setattr(
         governance_router,
         "get_settings",
@@ -165,7 +185,8 @@ async def test_governance_readiness_blocks_production_release_when_provider_is_n
             model_release_approval_provider="ollama",
             model_release_approval_model="llama3.2",
             model_release_approval_expires_on=date.today() + timedelta(days=90),
-            model_release_evaluation_sha256="a" * 64,
+            model_release_evaluation_sha256=artifact_sha256,
+            model_release_evaluation_artifact_path=str(artifact_path),
         ),
     )
 

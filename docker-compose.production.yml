@@ -40,6 +40,8 @@ services:
         condition: service_healthy
     expose:
       - "8000"
+    volumes:
+      - ${MODEL_RELEASE_EVALUATION_ARTIFACT_HOST_PATH:?set MODEL_RELEASE_EVALUATION_ARTIFACT_HOST_PATH in .env.production}:/app/model-release-evaluation.json:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')"]
       interval: 10s

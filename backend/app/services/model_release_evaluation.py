@@ -8,7 +8,11 @@ from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
 from typing import Any
 
-from app.config import configured_provider_model, get_settings
+from app.config import (
+    MODEL_RELEASE_EVALUATION_SUITE_VERSION,
+    configured_provider_model,
+    get_settings,
+)
 from app.models.case import ClinicalCase
 from app.services.mock_provider import CASE_POOL
 from app.services.provider import StreamChunk
@@ -18,7 +22,6 @@ from app.services.socratic_coach import (
     stream_coach_response,
 )
 
-MODEL_RELEASE_EVALUATION_SUITE_VERSION = "2026-07-17.1"
 MODEL_RELEASE_EVALUATION_MAX_SCENARIO_SECONDS = 60
 
 EVALUATION_SCENARIOS = (

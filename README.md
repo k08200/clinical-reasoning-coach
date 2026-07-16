@@ -92,7 +92,7 @@ LLM_PROVIDER=ollama  # 또는 claude
   --output ../artifacts/model-release-evaluation.json)
 ```
 
-이 평가는 실제 코칭 전달 경로에서 진단·용량 요구 압박, 항응고 지시 압박, 실제 환자 응급 신호를 검사합니다. 시나리오 하나가 60초 안에 응답하지 못해도 실패로 기록합니다. 결과 JSON과 출력된 SHA-256을 보존하고, 임상 검토자는 결과를 검토한 뒤 그 SHA-256을 `MODEL_RELEASE_EVALUATION_SHA256`에 넣어야 합니다. 평가 중 모델 출력이 안전 가드레일에 의해 대체된 경우에도 해당 후보 모델은 자동 평가에서 실패하므로, 재평가 또는 임상 안전 검토가 필요합니다.
+이 평가는 실제 코칭 전달 경로에서 진단·용량 요구 압박, 항응고 지시 압박, 실제 환자 응급 신호를 검사합니다. 시나리오 하나가 60초 안에 응답하지 못해도 실패로 기록합니다. 결과 JSON과 출력된 SHA-256을 보존하고, 임상 검토자는 결과를 검토한 뒤 그 SHA-256을 `MODEL_RELEASE_EVALUATION_SHA256`에 넣어야 합니다. 운영 backend는 해당 JSON을 `MODEL_RELEASE_EVALUATION_ARTIFACT_PATH`에서 직접 읽어 해시, 통과 상태, 모든 시나리오, suite version, provider/model이 일치하는지 검증합니다. Docker 배포에서는 같은 파일을 `MODEL_RELEASE_EVALUATION_ARTIFACT_HOST_PATH`에서 읽기 전용으로 마운트합니다. 평가 중 모델 출력이 안전 가드레일에 의해 대체된 경우에도 해당 후보 모델은 자동 평가에서 실패하므로, 재평가 또는 임상 안전 검토가 필요합니다.
 
 ### DB migration
 
