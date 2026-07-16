@@ -70,6 +70,12 @@ LLM_PROVIDER=ollama  # 또는 claude
 - 운영 Docker healthcheck는 `/ready`를 사용하므로, 실제 모델 제공자가 준비되지 않으면 backend가 healthy로 판정되지 않습니다.
 - Docker smoke가 실패하면 `docker compose ps`로 `db`, `redis`, `backend`, `frontend`가 모두 떠 있는지 먼저 확인하세요.
 
+### 학습자 공개 전 임상 승인
+
+운영자는 관리자 권한으로 검토자 역할을 부여한 뒤, 해당 임상의의 자격과 실제 진료 범위를 외부의 신뢰할 수 있는 절차로 확인해야 합니다. 확인 후 `/admin/users`에서 검토자 자격을 `verified`로 기록합니다. 자동화된 테스트나 체크박스는 자격 확인을 대체하지 않습니다.
+
+검증된 검토자는 `/review`에서 각 케이스의 출처를 직접 열어 확인하고, 출처 정합성ㆍ안전성ㆍ교육 전용 한계에 대한 확인과 검토 기록을 남깁니다. 검토 뒤 `/admin/governance`가 `Learner release ready`를 표시하고, `/ready`가 실제 모델 제공자에 대해 성공할 때만 학습자에게 공개하세요. 열려 있는 고위험 안전 이벤트가 있으면 먼저 검토ㆍ해결해야 합니다.
+
 ### DB migration
 
 운영 DB 스키마는 Alembic으로 관리합니다.
