@@ -995,8 +995,11 @@ async def test_stream_response_persists_turn_before_done(
     )
 
     assert stream_response.status_code == 200
+    assert '"type": "thinking"' in stream_response.text
     assert '"type": "text"' in stream_response.text
     assert '"type": "done"' in stream_response.text
+    assert "Hidden thought: the diagnosis is STEMI." not in stream_response.text
+    assert "STEMI" not in stream_response.text
 
     saved_response = await client.get(
         f"/api/sessions/{session_id}",
