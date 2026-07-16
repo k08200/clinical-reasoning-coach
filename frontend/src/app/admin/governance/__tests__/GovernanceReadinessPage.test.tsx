@@ -45,6 +45,11 @@ const readiness: GovernanceReadiness = {
   pending_clinician_reviewer_count: 1,
   suspended_clinician_reviewer_count: 0,
   consent_renewal_required_user_count: 4,
+  provider_ready: true,
+  provider_verification: "verified",
+  provider_detail: "Configured model provider is ready.",
+  model_release_approval_current: true,
+  model_release_approval_detail: "Model release approval matches the configured provider and model.",
   release_ready: false,
   release_blockers: [
     {
@@ -78,6 +83,8 @@ describe("GovernanceReadinessPage", () => {
     expect(screen.getByText("Pending reviewer verification")).toBeTruthy();
     expect(screen.getByText("Expired reviewer credentials")).toBeTruthy();
     expect(screen.getByText("Consent Renewal")).toBeTruthy();
+    expect(screen.getByText("Model Release")).toBeTruthy();
+    expect(screen.getByText("Configured model provider is ready.")).toBeTruthy();
   });
 
   it("blocks non-admin access", () => {

@@ -28,5 +28,10 @@ class GovernanceReadinessResponse(BaseModel):
     pending_clinician_reviewer_count: int
     suspended_clinician_reviewer_count: int
     consent_renewal_required_user_count: int
+    provider_ready: bool
+    provider_verification: str
+    provider_detail: str
+    model_release_approval_current: bool
+    model_release_approval_detail: str
     release_ready: bool
     release_blockers: list[GovernanceReleaseBlocker] = Field(default_factory=list)

@@ -1,8 +1,19 @@
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 import pytest
 
-from app.config import Settings, validate_runtime_settings
+from app.config import Settings, model_release_approval_status, validate_runtime_settings
+
+
+def _current_ollama_release_approval() -> dict:
+    return {
+        "model_release_approval_id": "clinical-eval-2026-07-001",
+        "model_release_approval_provider": "ollama",
+        "model_release_approval_model": "llama3.2",
+        "model_release_approval_expires_on": date.today() + timedelta(days=90),
+    }
 
 
 def test_validate_runtime_settings_accepts_default_dev_config():
@@ -43,6 +54,7 @@ def test_validate_runtime_settings_accepts_production_with_custom_secret():
             llm_provider="ollama",
             rate_limit_enabled=True,
             clinical_review_minimum_distinct_reviewers=2,
+            **_current_ollama_release_approval(),
         )
     )
 
@@ -83,6 +95,51 @@ def test_validate_runtime_settings_requires_independent_clinical_reviews_in_prod
                 clinical_review_minimum_distinct_reviewers=1,
             )
         )
+
+
+def test_validate_runtime_settings_requires_current_model_release_approval_in_production():
+    with pytest.raises(RuntimeError, match="model release approval"):
+        validate_runtime_settings(
+            Settings(
+                app_environment="production",
+                secret_key="replace-with-a-long-random-secret",
+                database_auto_create_tables=False,
+                llm_provider="ollama",
+                rate_limit_enabled=True,
+                clinical_review_minimum_distinct_reviewers=2,
+            )
+        )
+
+
+def test_model_release_approval_rejects_provider_model_drift_and_invalid_expiry():
+    settings = Settings(llm_provider="ollama", **_current_ollama_release_approval())
+    assert model_release_approval_status(settings)[0] is True
+
+    settings.model_release_approval_provider = "claude"
+    assert model_release_approval_status(settings) == (
+        False,
+        "Model release approval provider does not match the configured provider.",
+    )
+
+    settings.model_release_approval_provider = settings.llm_provider
+    settings.model_release_approval_model = "different-model"
+    assert model_release_approval_status(settings) == (
+        False,
+        "Model release approval model does not match the configured model.",
+    )
+
+    settings.model_release_approval_model = settings.ollama_model
+    settings.model_release_approval_expires_on = date.today() - timedelta(days=1)
+    assert model_release_approval_status(settings) == (
+        False,
+        "Model release approval has expired.",
+    )
+
+    settings.model_release_approval_expires_on = date.today() + timedelta(days=367)
+    assert model_release_approval_status(settings) == (
+        False,
+        "Model release approval expiry exceeds the maximum validity period.",
+    )
 
 
 def test_settings_reads_app_env_alias(monkeypatch: pytest.MonkeyPatch):

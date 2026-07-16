@@ -184,6 +184,24 @@ def test_specialty_questions_non_empty():
         assert len(SPECIALTY_QUESTIONS[specialty]) >= 5
 
 
+def test_specialty_questions_use_current_safety_focused_language():
+    sepsis_questions = " ".join(SPECIALTY_QUESTIONS["sepsis"]).lower()
+    stroke_questions = " ".join(SPECIALTY_QUESTIONS["stroke"]).lower()
+    pe_questions = " ".join(SPECIALTY_QUESTIONS["pe"]).lower()
+
+    assert "avoid delaying antimicrobials" in sepsis_questions
+    assert "before starting antibiotics" not in sepsis_questions
+    assert "subtherapeutic inr" not in stroke_questions
+    assert "local protocol" in stroke_questions
+    assert "massive, submassive" not in pe_questions
+    assert "high-, intermediate-, or low-risk" in pe_questions
+
+
+def test_specialty_questions_remain_socratic_questions():
+    for questions in SPECIALTY_QUESTIONS.values():
+        assert all(question.rstrip().endswith("?") for question in questions)
+
+
 def test_high_risk_demo_cases_avoid_misleading_risk_or_treatment_claims():
     acs_case = _case_with_title("Acute Chest Pain in a Middle-Aged Male")
     sepsis_case = _case_with_title("Fever and Altered Mental Status in an Elderly Patient")

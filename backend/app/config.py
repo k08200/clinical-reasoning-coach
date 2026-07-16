@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date, timedelta
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
@@ -8,6 +9,7 @@ from ipaddress import ip_address
 DEFAULT_SECRET_KEY = "change-me-in-production"
 DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION = "2026-07-15"
 VALID_LLM_PROVIDERS = {"claude", "ollama", "mock"}
+MODEL_RELEASE_APPROVAL_MAX_VALID_DAYS = 366
 
 
 class Settings(BaseSettings):
@@ -15,6 +17,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         populate_by_name=True,
+        protected_namespaces=(),
     )
 
     # App
@@ -136,6 +139,24 @@ class Settings(BaseSettings):
         le=3600,
         validation_alias="PROVIDER_READINESS_CACHE_SECONDS",
     )
+    # Production model-release approval. These values bind an external clinical
+    # model evaluation to the exact provider/model deployed by this process.
+    model_release_approval_id: str = Field(
+        default="",
+        validation_alias="MODEL_RELEASE_APPROVAL_ID",
+    )
+    model_release_approval_provider: str = Field(
+        default="",
+        validation_alias="MODEL_RELEASE_APPROVAL_PROVIDER",
+    )
+    model_release_approval_model: str = Field(
+        default="",
+        validation_alias="MODEL_RELEASE_APPROVAL_MODEL",
+    )
+    model_release_approval_expires_on: date | None = Field(
+        default=None,
+        validation_alias="MODEL_RELEASE_APPROVAL_EXPIRES_ON",
+    )
 
     # CORS
     cors_origins: list[str] = [
@@ -158,6 +179,36 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def configured_provider_model(settings: Settings) -> str:
+    provider = settings.llm_provider.lower()
+    if provider == "claude":
+        return settings.claude_model
+    if provider == "ollama":
+        return settings.ollama_model
+    return "mock"
+
+
+def model_release_approval_status(settings: Settings) -> tuple[bool, str]:
+    provider = settings.llm_provider.lower()
+    expected_model = configured_provider_model(settings)
+    approval_id = settings.model_release_approval_id.strip()
+    approval_provider = settings.model_release_approval_provider.strip().lower()
+    approval_model = settings.model_release_approval_model.strip()
+    expires_on = settings.model_release_approval_expires_on
+
+    if not all((approval_id, approval_provider, approval_model, expires_on)):
+        return False, "Model release approval metadata is incomplete."
+    if approval_provider != provider:
+        return False, "Model release approval provider does not match the configured provider."
+    if approval_model != expected_model:
+        return False, "Model release approval model does not match the configured model."
+    if expires_on < date.today():
+        return False, "Model release approval has expired."
+    if expires_on > date.today() + timedelta(days=MODEL_RELEASE_APPROVAL_MAX_VALID_DAYS):
+        return False, "Model release approval expiry exceeds the maximum validity period."
+    return True, "Model release approval matches the configured provider and model."
 
 
 def validate_runtime_settings(settings: Settings | None = None) -> None:
@@ -202,3 +253,11 @@ def validate_runtime_settings(settings: Settings | None = None) -> None:
             "APP_ENV=production requires CLINICAL_REVIEW_MINIMUM_DISTINCT_REVIEWERS "
             "to be at least 2"
         )
+
+    if environment == "production":
+        model_release_approved, model_release_detail = model_release_approval_status(settings)
+        if not model_release_approved:
+            raise RuntimeError(
+                "APP_ENV=production requires a current model release approval: "
+                + model_release_detail
+            )

@@ -80,11 +80,23 @@ export default function GovernanceReadinessPage() {
               )}
             </section>
 
-            <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="border border-slate-700 bg-slate-800 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Eligible Cases</p>
                 <p className="mt-2 text-3xl font-bold text-emerald-300">
                   {readiness.learner_eligible_case_count}
+                </p>
+              </div>
+              <div className="border border-slate-700 bg-slate-800 p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Model Release</p>
+                <p className={`mt-2 text-sm font-semibold ${readiness.model_release_approval_current ? "text-emerald-300" : "text-amber-300"}`}>
+                  {readiness.model_release_approval_current ? "Current" : "Action required"}
+                </p>
+              </div>
+              <div className="border border-slate-700 bg-slate-800 p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Provider</p>
+                <p className={`mt-2 text-sm font-semibold ${readiness.provider_ready ? "text-emerald-300" : "text-red-300"}`}>
+                  {readiness.provider_ready ? "Ready" : "Not ready"}
                 </p>
               </div>
               <div className="border border-slate-700 bg-slate-800 p-4">
@@ -133,6 +145,8 @@ export default function GovernanceReadinessPage() {
                   <div className="flex justify-between px-4 py-3"><dt>Expired reviewer credentials</dt><dd className={countTone(readiness.expired_clinician_reviewer_count)}>{readiness.expired_clinician_reviewer_count}</dd></div>
                   <div className="flex justify-between px-4 py-3"><dt>Pending reviewer verification</dt><dd className={countTone(readiness.pending_clinician_reviewer_count)}>{readiness.pending_clinician_reviewer_count}</dd></div>
                   <div className="flex justify-between px-4 py-3"><dt>Suspended reviewers</dt><dd className={countTone(readiness.suspended_clinician_reviewer_count)}>{readiness.suspended_clinician_reviewer_count}</dd></div>
+                  <div className="px-4 py-3"><dt className="text-slate-400">Model release approval</dt><dd className="mt-1 text-slate-200">{readiness.model_release_approval_detail}</dd></div>
+                  <div className="px-4 py-3"><dt className="text-slate-400">Provider readiness</dt><dd className="mt-1 text-slate-200">{readiness.provider_detail}</dd></div>
                 </dl>
               </div>
             </section>

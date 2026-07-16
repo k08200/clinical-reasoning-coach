@@ -39,6 +39,11 @@ export interface GovernanceReadiness {
   pending_clinician_reviewer_count: number;
   suspended_clinician_reviewer_count: number;
   consent_renewal_required_user_count: number;
+  provider_ready: boolean;
+  provider_verification: string;
+  provider_detail: string;
+  model_release_approval_current: boolean;
+  model_release_approval_detail: string;
   release_ready: boolean;
   release_blockers: GovernanceReleaseBlocker[];
 }
