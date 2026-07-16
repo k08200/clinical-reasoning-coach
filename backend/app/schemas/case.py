@@ -85,6 +85,9 @@ class ClinicalSourceProvenance(BaseModel):
     reviewer_credential_verification_expired: bool = False
     source_diversity_insufficient: bool = False
     review_content_changed: bool = False
+    independent_reviewer_count: int = 0
+    required_independent_reviewers: int = 1
+    independent_review_requirement_met: bool = False
 
 
 class ClinicalCaseResponse(BaseModel):

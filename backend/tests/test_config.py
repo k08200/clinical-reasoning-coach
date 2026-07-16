@@ -42,6 +42,7 @@ def test_validate_runtime_settings_accepts_production_with_custom_secret():
             database_auto_create_tables=False,
             llm_provider="ollama",
             rate_limit_enabled=True,
+            clinical_review_minimum_distinct_reviewers=2,
         )
     )
 
@@ -66,6 +67,20 @@ def test_validate_runtime_settings_requires_rate_limiting_in_production():
                 secret_key="replace-with-a-long-random-secret",
                 database_auto_create_tables=False,
                 llm_provider="ollama",
+            )
+        )
+
+
+def test_validate_runtime_settings_requires_independent_clinical_reviews_in_production():
+    with pytest.raises(RuntimeError, match="CLINICAL_REVIEW_MINIMUM_DISTINCT_REVIEWERS"):
+        validate_runtime_settings(
+            Settings(
+                app_environment="production",
+                secret_key="replace-with-a-long-random-secret",
+                database_auto_create_tables=False,
+                llm_provider="ollama",
+                rate_limit_enabled=True,
+                clinical_review_minimum_distinct_reviewers=1,
             )
         )
 

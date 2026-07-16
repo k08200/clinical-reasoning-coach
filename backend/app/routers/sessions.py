@@ -1212,6 +1212,18 @@ def _assert_case_provenance_allows_learner_session(case: ClinicalCase) -> None:
                 ),
             ),
         )
+    if not source_provenance["independent_review_requirement_met"]:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=_case_provenance_block_detail(
+                code="case_independent_review_requirement_not_met",
+                message=(
+                    "This case requires approval from "
+                    f"{source_provenance['required_independent_reviewers']} distinct "
+                    "currently verified clinician reviewers before learner sessions can start."
+                ),
+            ),
+        )
 
 
 def _assert_case_quality_for_learner_session(case: ClinicalCase) -> None:

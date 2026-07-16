@@ -9,10 +9,11 @@ from httpx import AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models import case as case_model
 from app.models.case import ClinicalCase, clinical_case_content_fingerprint
 from app.models.case_review import ClinicalCaseReview
 from app.models.user import User
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.routers import cases as cases_router
 from app.schemas.case import ClinicalCaseCreate, ClinicalReviewRequest, MAX_SEED_SCENARIO_LENGTH
 from app.services.mock_provider import CASE_POOL
@@ -42,6 +43,36 @@ def _source_evidence_attestation_for(case: ClinicalCase) -> dict:
         "attests_sources_accessed": True,
         "attests_sources_current": True,
     }
+
+
+def _qualified_review_for(case: ClinicalCase, reviewer_user_id: uuid.UUID) -> ClinicalCaseReview:
+    return ClinicalCaseReview(
+        case_id=case.id,
+        reviewer_user_id=reviewer_user_id,
+        prior_review_status="educational_draft",
+        resulting_review_status="clinician_reviewed",
+        confirmations={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "educational_safety_confirmed": True,
+        },
+        source_snapshot={
+            "case_content_fingerprint": clinical_case_content_fingerprint(case),
+            "alignment_checklist": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": {
+                **REVIEWER_ATTESTATION,
+                "reviewer_role": "clinician_reviewer",
+            },
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
+            "reviewer_credential_verification": {
+                "status": "verified",
+                "practice_scope": REVIEWER_ATTESTATION["practice_scope"],
+                "verified_at": datetime.now(timezone.utc).isoformat(),
+                "verified_by_user_id": str(uuid.uuid4()),
+            },
+        },
+        review_notes=REVIEW_AUDIT_NOTES,
+    )
 
 
 def test_clinical_review_requires_reviewer_attestation():
@@ -717,6 +748,54 @@ async def test_insufficient_source_diversity_provenance_requires_caution(
     assert provenance["source_diversity_insufficient"] is True
     assert provenance["review_audit_missing"] is False
     assert provenance["review_audit_incomplete"] is False
+
+
+async def test_independent_review_requirement_counts_only_distinct_qualified_reviewers(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(
+        case_model,
+        "get_settings",
+        lambda: Settings(clinical_review_minimum_distinct_reviewers=2),
+    )
+    auth_headers = await _register_and_login(client)
+    case_payload = copy.deepcopy(CASE_POOL[0])
+    case_payload["review_status"] = "clinician_reviewed"
+    case_payload["last_reviewed_at"] = date.today().isoformat()
+    case = ClinicalCase(**case_payload)
+    db.add(case)
+    await db.flush()
+
+    reviewer_one = uuid.uuid4()
+    db.add(_qualified_review_for(case, reviewer_one))
+    await db.commit()
+    await db.refresh(case)
+
+    response = await client.get(f"/api/cases/{case.id}", headers=auth_headers)
+
+    assert response.status_code == 200
+    provenance = response.json()["source_provenance"]
+    assert provenance["independent_reviewer_count"] == 1
+    assert provenance["required_independent_reviewers"] == 2
+    assert provenance["independent_review_requirement_met"] is False
+    assert provenance["review_label"] == "Independent clinician review requirement not met"
+    assert provenance["requires_caution"] is True
+
+    db.add(_qualified_review_for(case, reviewer_one))
+    db.add(_qualified_review_for(case, uuid.uuid4()))
+    await db.commit()
+    await db.refresh(case)
+
+    response = await client.get(f"/api/cases/{case.id}", headers=auth_headers)
+
+    assert response.status_code == 200
+    provenance = response.json()["source_provenance"]
+    assert provenance["independent_reviewer_count"] == 2
+    assert provenance["required_independent_reviewers"] == 2
+    assert provenance["independent_review_requirement_met"] is True
+    assert provenance["requires_caution"] is False
 
 
 async def test_missing_clinician_review_audit_provenance_requires_caution(
@@ -2103,13 +2182,27 @@ async def test_suspending_reviewer_requires_re_review_of_their_cases(
         accepted_educational_use=True,
         accepted_educational_use_at=datetime.now(timezone.utc),
     )
+    second_reviewer = User(
+        email=f"second-suspension-reviewer-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("reviewpass123"),
+        full_name="Second Suspension Reviewer",
+        training_level="fellow",
+        role="clinician_reviewer",
+        reviewer_verification_status="verified",
+        reviewer_practice_scope="Emergency medicine educational simulation",
+        reviewer_verified_at=datetime.now(timezone.utc),
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
     case = ClinicalCase(**CASE_POOL[0])
-    db.add_all([admin, reviewer, case])
+    db.add_all([admin, reviewer, second_reviewer, case])
     await db.commit()
     await db.refresh(admin)
     await db.refresh(reviewer)
+    await db.refresh(second_reviewer)
     await db.refresh(case)
     reviewer.reviewer_verified_by_user_id = admin.id
+    second_reviewer.reviewer_verified_by_user_id = admin.id
     await db.commit()
 
     reviewer_headers = {
@@ -2129,6 +2222,26 @@ async def test_suspending_reviewer_requires_re_review_of_their_cases(
         },
     )
     assert approval_response.status_code == 200
+
+    second_reviewer_headers = {
+        "Authorization": f"Bearer {create_access_token({'sub': str(second_reviewer.id)})}",
+    }
+    second_approval_response = await client.post(
+        f"/api/cases/{case.id}/clinical-review",
+        headers=second_reviewer_headers,
+        json={
+            "clinical_accuracy_confirmed": True,
+            "source_alignment_confirmed": True,
+            "source_alignment_checks": SOURCE_ALIGNMENT_CHECKS,
+            "reviewer_attestation": REVIEWER_ATTESTATION,
+            "source_evidence_attestation": _source_evidence_attestation_for(case),
+            "educational_safety_confirmed": True,
+            "review_notes": REVIEW_AUDIT_NOTES,
+        },
+    )
+    assert second_approval_response.status_code == 200
+    await db.refresh(case)
+    assert case.reviewed_by_user_id == second_reviewer.id
 
     admin_headers = {
         "Authorization": f"Bearer {create_access_token({'sub': str(admin.id)})}",

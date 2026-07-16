@@ -55,6 +55,7 @@ CORS_ORIGINS=["https://your-frontend.example.com"]
 ADMIN_BOOTSTRAP_TOKEN=<one-time-random-setup-token>
 EDUCATIONAL_USE_CONSENT_VERSION=2026-07-15
 REVIEWER_CREDENTIAL_VALID_DAYS=365
+CLINICAL_REVIEW_MINIMUM_DISTINCT_REVIEWERS=2
 RATE_LIMIT_ENABLED=true
 LLM_PROVIDER=ollama  # 또는 claude
 ```
@@ -66,6 +67,7 @@ LLM_PROVIDER=ollama  # 또는 claude
 - 첫 admin이 생성된 뒤에는 bootstrap endpoint가 닫히므로, 이후 reviewer/admin 권한은 `/admin/users`에서 관리합니다.
 - `EDUCATIONAL_USE_CONSENT_VERSION`을 변경하면 모든 기존 사용자는 현재 교육 전용 사용 동의 화면에서 재확인하기 전까지 기능을 사용할 수 없습니다. 변경 전 동의 버전과 시각은 사용자 감사 데이터에 보존됩니다.
 - 검토자 자격은 `REVIEWER_CREDENTIAL_VALID_DAYS` 내에 재검증되어야 합니다. 만료된 검토자는 케이스 검토와 임상 안전 이벤트 처리를 할 수 없으며, 해당 자격으로 검토된 케이스는 재검토 전까지 학습자에게 공개되지 않습니다.
+- 운영 환경에서는 `CLINICAL_REVIEW_MINIMUM_DISTINCT_REVIEWERS`를 최소 `2`로 설정해야 합니다. 같은 임상의가 여러 번 검토해도 한 명으로만 계산되며, 현재 콘텐츠 지문ㆍ출처 증빙ㆍ자격 확인을 모두 만족하는 독립 검토만 학습자 공개 승인에 포함됩니다.
 - `LLM_PROVIDER=claude`를 선택하면 `ANTHROPIC_API_KEY`가 반드시 필요합니다.
 - `/health`는 프로세스 생존 여부만, `/ready`는 실제 LLM 제공자 준비 상태를 반환합니다. Ollama는 서버 연결과 지정 모델 설치를 확인하고, Claude는 최대 1토큰의 비임상 요청으로 키ㆍ네트워크ㆍ모델 접근성을 확인합니다. 결과는 기본 5분간 캐시됩니다.
 - Ollama 운영 모델은 설치 여부 외에 `OLLAMA_MIN_CONTEXT_TOKENS`(기본 4096) 이상의 컨텍스트 창을 보고해야 합니다. 케이스 문맥과 안전 지침이 잘리지 않도록, 이 조건을 만족하지 않으면 `/ready`는 `503`을 반환합니다.
@@ -78,7 +80,7 @@ LLM_PROVIDER=ollama  # 또는 claude
 
 운영자는 관리자 권한으로 검토자 역할을 부여한 뒤, 해당 임상의의 자격과 실제 진료 범위를 외부의 신뢰할 수 있는 절차로 확인해야 합니다. 확인 후 `/admin/users`에서 검토자 자격을 `verified`로 기록합니다. 자동화된 테스트나 체크박스는 자격 확인을 대체하지 않습니다.
 
-검증된 검토자는 `/review`에서 각 케이스의 출처를 직접 열어 확인하고, 출처 정합성ㆍ안전성ㆍ교육 전용 한계에 대한 확인과 검토 기록을 남깁니다. 검토 뒤 `/admin/governance`가 `Learner release ready`를 표시하고, `/ready`가 실제 모델 제공자에 대해 성공할 때만 학습자에게 공개하세요. 열려 있는 고위험 안전 이벤트가 있으면 먼저 검토ㆍ해결해야 합니다.
+검증된 서로 다른 두 명 이상의 검토자는 `/review`에서 각 케이스의 출처를 직접 열어 확인하고, 출처 정합성ㆍ안전성ㆍ교육 전용 한계에 대한 확인과 검토 기록을 남깁니다. 검토 뒤 `/admin/governance`가 `Learner release ready`를 표시하고, `/ready`가 실제 모델 제공자에 대해 성공할 때만 학습자에게 공개하세요. 열려 있는 고위험 안전 이벤트가 있으면 먼저 검토ㆍ해결해야 합니다.
 
 ### DB migration
 
@@ -188,7 +190,9 @@ PostgreSQL 16
 SMOKE_ADMIN_BOOTSTRAP_TOKEN=<ADMIN_BOOTSTRAP_TOKEN> node scripts/smoke-api.mjs
 ```
 
-스모크 테스트는 빈 개발 DB에서 관리자 생성/토큰 갱신 → 데모 케이스 생성 → 임상 검토 승인 → 학습자 세션/SSE → 코치 출력 가드레일 검토 → 완료까지를 검증합니다. 또한 실제 환자 신호를 입력했을 때 학생 메시지 저장 없이 세션을 잠그고, 검토자만 고위험 감사 이벤트를 해결할 수 있는지도 검증합니다. 이미 만든 테스트 관리자를 재사용해 반복 실행하려면 `SMOKE_ADMIN_EMAIL=<existing-admin-email>`을 함께 지정하세요.
+운영 공개 검토 조건을 함께 검증하려면 backend를 `CLINICAL_REVIEW_MINIMUM_DISTINCT_REVIEWERS=2`로 시작한 뒤 `SMOKE_EXPECT_INDEPENDENT_REVIEW=true`를 추가해 실행하세요.
+
+스모크 테스트는 빈 개발 DB에서 관리자 생성/토큰 갱신 → 데모 케이스 생성 → 독립된 임상 검토 승인 → 학습자 세션/SSE → 코치 출력 가드레일 검토 → 완료까지를 검증합니다. 또한 실제 환자 신호를 입력했을 때 학생 메시지 저장 없이 세션을 잠그고, 검토자만 고위험 감사 이벤트를 해결할 수 있는지도 검증합니다. 이미 만든 테스트 관리자를 재사용해 반복 실행하려면 `SMOKE_ADMIN_EMAIL=<existing-admin-email>`을 함께 지정하세요.
 
 ## API
 

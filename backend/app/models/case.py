@@ -189,6 +189,23 @@ def _review_audit_has_source_evidence_attestation(
     )
 
 
+def _qualified_independent_reviewer_ids(case: "ClinicalCase") -> set[str]:
+    current_fingerprint = clinical_case_content_fingerprint(case)
+    reviewer_ids: set[str] = set()
+    for review in case.clinical_reviews or []:
+        source_snapshot = (
+            review.source_snapshot if isinstance(review.source_snapshot, dict) else {}
+        )
+        if (
+            review.resulting_review_status != "clinician_reviewed"
+            or source_snapshot.get("case_content_fingerprint") != current_fingerprint
+            or not _review_audit_confirms_required_items(review, case)
+        ):
+            continue
+        reviewer_ids.add(str(review.reviewer_user_id))
+    return reviewer_ids
+
+
 class ClinicalCase(Base):
     __tablename__ = "clinical_cases"
 
@@ -318,6 +335,14 @@ class ClinicalCase(Base):
             and bool(review_fingerprint)
             and review_fingerprint != clinical_case_content_fingerprint(self)
         )
+        required_independent_reviewers = (
+            get_settings().clinical_review_minimum_distinct_reviewers
+        )
+        independent_reviewer_count = len(_qualified_independent_reviewer_ids(self))
+        independent_review_requirement_met = (
+            self.review_status == "clinician_reviewed"
+            and independent_reviewer_count >= required_independent_reviewers
+        )
         if review_audit_missing:
             review_label = "Clinician review audit missing"
             requires_caution = True
@@ -342,6 +367,13 @@ class ClinicalCase(Base):
         if review_content_changed:
             review_label = "Clinician review content changed"
             requires_caution = True
+        if (
+            self.review_status == "clinician_reviewed"
+            and not independent_review_requirement_met
+            and not requires_caution
+        ):
+            review_label = "Independent clinician review requirement not met"
+            requires_caution = True
 
         return {
             "source_count": len(self.clinical_sources or []),
@@ -363,4 +395,7 @@ class ClinicalCase(Base):
             ),
             "source_diversity_insufficient": source_diversity_insufficient,
             "review_content_changed": review_content_changed,
+            "independent_reviewer_count": independent_reviewer_count,
+            "required_independent_reviewers": required_independent_reviewers,
+            "independent_review_requirement_met": independent_review_requirement_met,
         }

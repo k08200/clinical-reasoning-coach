@@ -84,6 +84,9 @@ export interface ClinicalSourceProvenance {
   reviewer_credential_verification_expired?: boolean;
   source_diversity_insufficient?: boolean;
   review_content_changed: boolean;
+  independent_reviewer_count?: number;
+  required_independent_reviewers?: number;
+  independent_review_requirement_met?: boolean;
 }
 
 export interface ClinicalCase {

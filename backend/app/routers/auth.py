@@ -11,6 +11,7 @@ from sqlalchemy import select
 from app.config import get_settings
 from app.database import get_db
 from app.models.case import ClinicalCase
+from app.models.case_review import ClinicalCaseReview
 from app.models.reviewer_credential_event import ReviewerCredentialEvent
 from app.models.user import User
 from app.schemas.auth import (
@@ -43,10 +44,15 @@ async def _invalidate_cases_reviewed_by(
     db: AsyncSession,
     reviewer_user_id,
 ) -> None:
-    reviewed_cases = await db.scalars(
-        select(ClinicalCase).where(
-            ClinicalCase.reviewed_by_user_id == reviewer_user_id,
-            ClinicalCase.review_status == "clinician_reviewed",
+    reviewed_cases = (
+        await db.scalars(
+            select(ClinicalCase)
+            .join(ClinicalCaseReview)
+            .where(
+                ClinicalCaseReview.reviewer_user_id == reviewer_user_id,
+                ClinicalCase.review_status == "clinician_reviewed",
+            )
+            .distinct()
         )
     )
     for case in reviewed_cases:

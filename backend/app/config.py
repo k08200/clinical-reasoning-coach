@@ -39,6 +39,12 @@ class Settings(BaseSettings):
         le=7300,
         validation_alias="REVIEWER_CREDENTIAL_VALID_DAYS",
     )
+    clinical_review_minimum_distinct_reviewers: int = Field(
+        default=1,
+        ge=1,
+        le=5,
+        validation_alias="CLINICAL_REVIEW_MINIMUM_DISTINCT_REVIEWERS",
+    )
 
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@db:5432/clinical_coach"
@@ -186,4 +192,13 @@ def validate_runtime_settings(settings: Settings | None = None) -> None:
     if environment == "production" and not settings.rate_limit_enabled:
         raise RuntimeError(
             "APP_ENV=production requires RATE_LIMIT_ENABLED=true with Redis available"
+        )
+
+    if (
+        environment == "production"
+        and settings.clinical_review_minimum_distinct_reviewers < 2
+    ):
+        raise RuntimeError(
+            "APP_ENV=production requires CLINICAL_REVIEW_MINIMUM_DISTINCT_REVIEWERS "
+            "to be at least 2"
         )

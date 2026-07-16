@@ -273,6 +273,7 @@ describe("ReviewPage", () => {
     expect(screen.getByText("Surviving Sepsis Campaign Guidelines")).toBeTruthy();
     expect(screen.getByText("Source Alignment Evidence")).toBeTruthy();
     expect(screen.getByText("Approval Blockers")).toBeTruthy();
+    expect(screen.getByText("Independent clinician approvals")).toBeTruthy();
     expect(
       screen.getByText(
         /Quality gate clear for clinician review once checklist confirmations/,

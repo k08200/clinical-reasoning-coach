@@ -41,6 +41,12 @@ def _case_blocker_reasons(provenance: dict) -> list[str]:
         reasons.append("Clinician reviewer credential verification is expired")
     if provenance["source_diversity_insufficient"]:
         reasons.append("Independent source diversity is insufficient")
+    if not provenance["independent_review_requirement_met"]:
+        reasons.append(
+            "Independent clinician review requirement is not met "
+            f"({provenance['independent_reviewer_count']}/"
+            f"{provenance['required_independent_reviewers']})"
+        )
     return reasons or [provenance["review_label"]]
 
 

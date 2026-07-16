@@ -1,8 +1,10 @@
 const API_URL = process.env.SMOKE_API_URL ?? "http://127.0.0.1:8000";
 const ADMIN_BOOTSTRAP_TOKEN = process.env.SMOKE_ADMIN_BOOTSTRAP_TOKEN;
 const EXISTING_ADMIN_EMAIL = process.env.SMOKE_ADMIN_EMAIL;
+const EXPECT_INDEPENDENT_REVIEW = process.env.SMOKE_EXPECT_INDEPENDENT_REVIEW === "true";
 const ADMIN_PASSWORD = "smokeadminpass123";
 const REVIEWER_PASSWORD = "smokereviewerpass123";
+const SECOND_REVIEWER_PASSWORD = "smoke-second-reviewer-pass123";
 const LEARNER_PASSWORD = "smokelearnerpass123";
 const REVIEW_NOTES =
   "Source alignment, hidden safety checks, and educational simulation limitations reviewed.";
@@ -31,6 +33,7 @@ async function main() {
   const timestamp = Date.now();
   const adminEmail = EXISTING_ADMIN_EMAIL ?? `smoke-admin-${timestamp}@test.com`;
   const reviewerEmail = `smoke-reviewer-${timestamp}@test.com`;
+  const secondReviewerEmail = `smoke-second-reviewer-${timestamp}@test.com`;
   const learnerEmail = `smoke-learner-${timestamp}@test.com`;
 
   if (!EXISTING_ADMIN_EMAIL) {
@@ -119,6 +122,43 @@ async function main() {
   });
   const reviewerHeaders = { Authorization: `Bearer ${reviewerTokens.access_token}` };
 
+  const secondReviewer = await request("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: secondReviewerEmail,
+      password: SECOND_REVIEWER_PASSWORD,
+      full_name: "Smoke Second Clinician Reviewer",
+      training_level: "fellow",
+      accepted_educational_use: true,
+    }),
+  });
+  await request(`/api/auth/users/${secondReviewer.id}/role`, {
+    method: "PATCH",
+    headers: { ...adminHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({ role: "clinician_reviewer" }),
+  });
+  await request(`/api/auth/users/${secondReviewer.id}/reviewer-verification`, {
+    method: "PATCH",
+    headers: { ...adminHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      status: "verified",
+      practice_scope: "Emergency medicine educational simulation",
+      verification_note: "Verified independent credentials for the smoke workflow.",
+    }),
+  });
+  const secondReviewerTokens = await request("/api/auth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      username: secondReviewerEmail,
+      password: SECOND_REVIEWER_PASSWORD,
+    }),
+  });
+  const secondReviewerHeaders = {
+    Authorization: `Bearer ${secondReviewerTokens.access_token}`,
+  };
+
   const clinicalCase = await request("/api/cases/generate/demo", {
     method: "POST",
     headers: adminHeaders,
@@ -129,33 +169,58 @@ async function main() {
   );
   const sourceEvidenceVerifiedOn = new Date().toISOString().slice(0, 10);
 
-  await request(`/api/cases/${clinicalCase.id}/clinical-review`, {
+  const reviewPayload = {
+    clinical_accuracy_confirmed: true,
+    source_alignment_confirmed: true,
+    source_alignment_checks: {
+      teaching_points_supported: true,
+      red_flags_supported: true,
+      time_critical_actions_supported: true,
+      contraindication_checks_supported: true,
+    },
+    reviewer_attestation: {
+      practice_scope: "Emergency medicine educational simulation",
+      attests_review_within_scope: true,
+      attests_educational_use_only: true,
+    },
+    source_evidence_attestation: {
+      source_urls: clinicalReviewDetail.clinical_sources.map((source) => source.url),
+      verified_on: sourceEvidenceVerifiedOn,
+      attests_sources_accessed: true,
+      attests_sources_current: true,
+    },
+    educational_safety_confirmed: true,
+    review_notes: REVIEW_NOTES,
+  };
+  const firstReview = await request(`/api/cases/${clinicalCase.id}/clinical-review`, {
     method: "POST",
     headers: { ...reviewerHeaders, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      clinical_accuracy_confirmed: true,
-      source_alignment_confirmed: true,
-      source_alignment_checks: {
-        teaching_points_supported: true,
-        red_flags_supported: true,
-        time_critical_actions_supported: true,
-        contraindication_checks_supported: true,
-      },
-      reviewer_attestation: {
-        practice_scope: "Emergency medicine educational simulation",
-        attests_review_within_scope: true,
-        attests_educational_use_only: true,
-      },
-      source_evidence_attestation: {
-        source_urls: clinicalReviewDetail.clinical_sources.map((source) => source.url),
-        verified_on: sourceEvidenceVerifiedOn,
-        attests_sources_accessed: true,
-        attests_sources_current: true,
-      },
-      educational_safety_confirmed: true,
-      review_notes: REVIEW_NOTES,
-    }),
+    body: JSON.stringify(reviewPayload),
   });
+  if (firstReview.source_provenance.independent_reviewer_count !== 1) {
+    throw new Error("first clinician review was not recorded as one independent approval");
+  }
+  if (
+    EXPECT_INDEPENDENT_REVIEW &&
+    firstReview.source_provenance.independent_review_requirement_met !== false
+  ) {
+    throw new Error("first clinician review unexpectedly satisfied independent release approval");
+  }
+  const secondReview = await request(`/api/cases/${clinicalCase.id}/clinical-review`, {
+    method: "POST",
+    headers: { ...secondReviewerHeaders, "Content-Type": "application/json" },
+    body: JSON.stringify(reviewPayload),
+  });
+  if (secondReview.source_provenance.independent_reviewer_count !== 2) {
+    throw new Error("second independent clinician review was not recorded");
+  }
+  if (
+    EXPECT_INDEPENDENT_REVIEW &&
+    (secondReview.source_provenance.independent_review_requirement_met !== true ||
+      secondReview.source_provenance.requires_caution !== false)
+  ) {
+    throw new Error("second independent clinician review did not release the case");
+  }
   const clinicalReviewHistory = await request(
     `/api/cases/${clinicalCase.id}/clinical-review/history`,
     { headers: reviewerHeaders },

@@ -691,6 +691,29 @@ export default function ReviewPage() {
                         </p>
                       )}
                     </div>
+                    <div className="mt-3 rounded border border-slate-700 bg-slate-950/50 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-medium text-slate-100">
+                          Independent clinician approvals
+                        </p>
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                            selectedCase.source_provenance.independent_review_requirement_met
+                              ? "border-emerald-700 bg-emerald-950/30 text-emerald-200"
+                              : "border-amber-700 bg-amber-950/30 text-amber-200"
+                          }`}
+                        >
+                          {selectedCase.source_provenance.independent_reviewer_count ?? 0}/
+                          {selectedCase.source_provenance.required_independent_reviewers ?? 1}
+                        </span>
+                      </div>
+                      {!selectedCase.source_provenance.independent_review_requirement_met && (
+                        <p className="mt-2 text-sm text-amber-100">
+                          A distinct currently verified clinician reviewer must complete an
+                          equivalent review before learner release.
+                        </p>
+                      )}
+                    </div>
                     {reviewDetail && (
                       <div className="mt-3 space-y-3">
                         {reviewDetail.clinical_sources.map((source) => (

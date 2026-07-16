@@ -12,8 +12,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.routers import sessions as sessions_router
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.models.bias_event import BiasEvent
+from app.models import case as case_model
 from app.models.case import ClinicalCase, clinical_case_content_fingerprint
 from app.models.case_review import ClinicalCaseReview
 from app.models.message import Message
@@ -925,6 +926,50 @@ async def test_create_session_blocks_review_without_source_evidence_attestation(
         response,
         code="case_source_evidence_incomplete",
     )
+    await db.refresh(case)
+    assert case.times_used == 0
+
+
+@pytest.mark.asyncio
+async def test_create_session_blocks_until_independent_review_requirement_is_met(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(
+        case_model,
+        "get_settings",
+        lambda: Settings(clinical_review_minimum_distinct_reviewers=2),
+    )
+    user = User(
+        email=f"independent-review-session-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Independent Review Session Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+
+    response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers={"Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}"},
+    )
+
+    assert response.status_code == 409
+    message = _case_provenance_block_message(
+        response,
+        code="case_independent_review_requirement_not_met",
+    )
+    assert "2 distinct currently verified clinician reviewers" in message
     await db.refresh(case)
     assert case.times_used == 0
 
