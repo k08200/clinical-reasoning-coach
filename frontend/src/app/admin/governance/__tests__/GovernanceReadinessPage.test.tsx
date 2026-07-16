@@ -50,6 +50,8 @@ const readiness: GovernanceReadiness = {
   provider_detail: "Configured model provider is ready.",
   model_release_approval_current: true,
   model_release_approval_detail: "Model release approval matches the configured provider and model.",
+  model_release_clinical_reviewer_count: 2,
+  required_model_release_clinical_reviewers: 2,
   release_ready: false,
   release_blockers: [
     {
@@ -84,6 +86,7 @@ describe("GovernanceReadinessPage", () => {
     expect(screen.getByText("Expired reviewer credentials")).toBeTruthy();
     expect(screen.getByText("Consent Renewal")).toBeTruthy();
     expect(screen.getByText("Model Release")).toBeTruthy();
+    expect(screen.getByText("2/2 independent clinical approvals")).toBeTruthy();
     expect(screen.getByText("Configured model provider is ready.")).toBeTruthy();
   });
 

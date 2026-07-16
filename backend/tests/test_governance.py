@@ -220,6 +220,78 @@ async def test_governance_readiness_blocks_production_release_when_provider_is_n
 
 
 @pytest.mark.asyncio
+async def test_current_clinician_reviewers_record_independent_model_release_approvals(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    admin = _user(email=f"model-approval-admin-{uuid.uuid4()}@test.com", role="admin")
+    first = _user(
+        email=f"model-approval-first-{uuid.uuid4()}@test.com",
+        role="clinician_reviewer",
+        verification_status="verified",
+    )
+    second = _user(
+        email=f"model-approval-second-{uuid.uuid4()}@test.com",
+        role="clinician_reviewer",
+        verification_status="verified",
+    )
+    db.add(admin)
+    await db.commit()
+    await db.refresh(admin)
+    for reviewer in (first, second):
+        reviewer.reviewer_practice_scope = "Emergency medicine educational simulation"
+        reviewer.reviewer_verified_at = datetime.now(timezone.utc)
+        reviewer.reviewer_verified_by_user_id = admin.id
+    db.add_all([first, second])
+    await db.commit()
+    await db.refresh(first)
+    await db.refresh(second)
+    monkeypatch.setattr(governance_router, "model_release_approval_status", lambda _: (True, "current"))
+
+    payload = {
+        "practice_scope": "Emergency medicine educational simulation",
+        "output_safety_confirmed": True,
+        "socratic_integrity_confirmed": True,
+        "latency_confirmed": True,
+        "educational_use_only_confirmed": True,
+        "review_notes": "Reviewed output safety, Socratic integrity, latency, and educational limitations for this release.",
+    }
+    first_response = await client.post(
+        "/api/governance/model-release-reviews",
+        json=payload,
+        headers=_headers_for(first),
+    )
+    assert first_response.status_code == 201
+    duplicate_response = await client.post(
+        "/api/governance/model-release-reviews",
+        json=payload,
+        headers=_headers_for(first),
+    )
+    assert duplicate_response.status_code == 409
+    second_response = await client.post(
+        "/api/governance/model-release-reviews",
+        json=payload,
+        headers=_headers_for(second),
+    )
+    assert second_response.status_code == 201
+    listed = await client.get(
+        "/api/governance/model-release-reviews",
+        headers=_headers_for(admin),
+    )
+    assert listed.status_code == 200
+    assert {review["reviewer_user_id"] for review in listed.json()} >= {
+        str(first.id),
+        str(second.id),
+    }
+
+    await db.delete(first)
+    await db.delete(second)
+    await db.delete(admin)
+    await db.commit()
+
+
+@pytest.mark.asyncio
 async def test_governance_readiness_counts_expired_reviewer_credentials(
     client: AsyncClient,
     db: AsyncSession,

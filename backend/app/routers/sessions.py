@@ -56,6 +56,10 @@ from app.services.privacy_guard import (
 from app.services.rate_limit import enforce_rate_limit
 from app.services.case_quality import evaluate_case_quality
 from app.services.provider_factory import get_provider_readiness
+from app.services.model_release_reviews import (
+    current_model_release_clinical_reviews,
+    required_model_release_clinical_reviewers,
+)
 from app.services.reasoning_analyzer import (
     SCORE_DIMENSIONS,
     VALID_BIAS_SEVERITIES,
@@ -1258,6 +1262,27 @@ async def _assert_provider_ready_for_learner_session() -> None:
     )
 
 
+async def _assert_model_release_clinically_reviewed(db: AsyncSession) -> None:
+    settings = get_settings()
+    if settings.app_environment.lower() != "production":
+        return
+    reviews = await current_model_release_clinical_reviews(db, settings)
+    required_reviews = required_model_release_clinical_reviewers(settings)
+    if len(reviews) >= required_reviews:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail={
+            "code": "model_release_independent_clinical_review_not_met",
+            "message": (
+                "The configured clinical model requires approval from "
+                f"{required_reviews} distinct currently verified clinician reviewers "
+                "before learner coaching can start."
+            ),
+        },
+    )
+
+
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_session(
     body: SessionCreate,
@@ -1279,6 +1304,7 @@ async def create_session(
     _assert_case_provenance_allows_learner_session(case)
     _assert_case_quality_for_learner_session(case)
     await _assert_provider_ready_for_learner_session()
+    await _assert_model_release_clinically_reviewed(db)
 
     session = CoachingSession(
         user_id=uuid.UUID(user_id),
@@ -1491,6 +1517,7 @@ async def stream_response(
     _assert_active_session_case_version_matches(session, case)
     _assert_case_quality_for_learner_session(case)
     await _assert_provider_ready_for_learner_session()
+    await _assert_model_release_clinically_reviewed(db)
 
     # Snapshot history before adding any new message
     claude_history = _build_claude_history(session.messages)

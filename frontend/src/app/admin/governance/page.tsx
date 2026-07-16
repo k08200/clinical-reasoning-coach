@@ -92,6 +92,10 @@ export default function GovernanceReadinessPage() {
                 <p className={`mt-2 text-sm font-semibold ${readiness.model_release_approval_current ? "text-emerald-300" : "text-amber-300"}`}>
                   {readiness.model_release_approval_current ? "Current" : "Action required"}
                 </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  {readiness.model_release_clinical_reviewer_count}/
+                  {readiness.required_model_release_clinical_reviewers} independent clinical approvals
+                </p>
               </div>
               <div className="border border-slate-700 bg-slate-800 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Provider</p>

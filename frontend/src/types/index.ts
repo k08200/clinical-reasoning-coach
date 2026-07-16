@@ -44,6 +44,8 @@ export interface GovernanceReadiness {
   provider_detail: string;
   model_release_approval_current: boolean;
   model_release_approval_detail: string;
+  model_release_clinical_reviewer_count: number;
+  required_model_release_clinical_reviewers: number;
   release_ready: boolean;
   release_blockers: GovernanceReleaseBlocker[];
 }

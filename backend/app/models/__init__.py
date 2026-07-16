@@ -9,6 +9,7 @@ from app.models.token_usage import TokenUsage
 from app.models.safety_event import SafetyEvent
 from app.models.case_review import ClinicalCaseReview
 from app.models.reviewer_credential_event import ReviewerCredentialEvent
+from app.models.model_release_clinical_review import ModelReleaseClinicalReview
 
 __all__ = [
     "User",
@@ -20,4 +21,5 @@ __all__ = [
     "SafetyEvent",
     "ClinicalCaseReview",
     "ReviewerCredentialEvent",
+    "ModelReleaseClinicalReview",
 ]
