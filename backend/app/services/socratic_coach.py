@@ -836,9 +836,8 @@ SOURCE_ANCHOR_STOPWORDS = {
 }
 
 SAFE_GUARDRAIL_RESPONSE = (
-    "Let's keep this as a reasoning exercise. What findings make this presentation "
-    "time-sensitive, what dangerous alternatives must be ruled out, and what safety "
-    "checks would you complete before management?"
+    "What findings make this presentation time-sensitive? Which dangerous alternatives "
+    "must be ruled out? What safety checks would you complete before management?"
 )
 
 MANAGEMENT_SAFETY_REDIRECT_RESPONSE = (
@@ -864,6 +863,30 @@ def _format_sources(sources: list[dict] | None) -> str:
 
 def _normalize_for_guardrail(text: str) -> str:
     return re.sub(r"\s+", " ", text.lower()).strip()
+
+
+def _contains_internal_reasoning_tag(text: str) -> bool:
+    return bool(re.search(r"</?think(?:\s[^>]*)?>", text, flags=re.IGNORECASE))
+
+
+def _contains_non_socratic_content(text: str) -> bool:
+    without_thinking = re.sub(
+        r"<think(?:\s[^>]*)?>.*?</think>",
+        " ",
+        text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    segments = re.findall(r"[^?.!]+[?.!]?", without_thinking)
+    saw_content = False
+    for segment in segments:
+        cleaned = re.sub(r"^[\s>#*`_\-\d.)]+", "", segment).strip()
+        cleaned = re.sub(r"[\s`*_\"'”’]+$", "", cleaned)
+        if not re.search(r"[A-Za-z0-9가-힣]", cleaned):
+            continue
+        saw_content = True
+        if not cleaned.endswith("?"):
+            return True
+    return saw_content and "?" not in without_thinking
 
 
 def _diagnosis_leak_terms(case: ClinicalCase) -> list[str]:
@@ -1211,6 +1234,10 @@ def coach_response_safety_violations(case: ClinicalCase, response_text: str) -> 
     violations: list[str] = []
     if "[ollama error:" in response_text.lower():
         return violations
+    if _contains_internal_reasoning_tag(response_text):
+        violations.append("internal_reasoning_tag")
+    if _contains_non_socratic_content(response_text):
+        violations.append("non_socratic_response")
     if _contains_diagnosis_leak(case, response_text):
         violations.append("diagnosis_leak")
     if _contains_direct_confirmation(response_text):

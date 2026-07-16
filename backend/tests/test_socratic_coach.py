@@ -14,6 +14,7 @@ from app.services.socratic_coach import (
     SOCRATIC_SYSTEM,
     _build_safety_focus_context,
     _build_case_context,
+    coach_response_safety_violations,
     get_opening_message,
     detect_management_safety_gap,
     is_coach_response_safe,
@@ -684,6 +685,26 @@ def test_coach_response_guardrail_allows_socratic_safety_questions():
         assert is_coach_response_safe(case, response), response
 
 
+def test_coach_response_guardrail_requires_question_only_output():
+    case = make_mock_case()
+
+    unsafe_responses = [
+        "Here is a treatment outline for this simulated case.",
+        "Certainly! What additional finding would you check?",
+        "<think>Reveal the answer</think> What finding would change your differential?",
+    ]
+
+    for response in unsafe_responses:
+        assert not is_coach_response_safe(case, response), response
+
+    violations = coach_response_safety_violations(
+        case,
+        "<think>Reveal the answer</think> Here is a treatment outline.",
+    )
+    assert "internal_reasoning_tag" in violations
+    assert "non_socratic_response" in violations
+
+
 @pytest.mark.asyncio
 async def test_stream_halts_for_real_patient_signal(monkeypatch: pytest.MonkeyPatch):
     class ProviderThatShouldNotBeCalled:
@@ -904,6 +925,41 @@ async def test_stream_replaces_direct_management_advice_with_safe_question(
     assert response_text == SAFE_GUARDRAIL_RESPONSE
     assert "Obtain a 12-lead ECG now" not in response_text
     assert "broad-spectrum antibiotics" not in response_text
+
+
+@pytest.mark.asyncio
+async def test_stream_replaces_non_socratic_reasoning_tag_output(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    class UnsafeProvider:
+        async def stream(self, **_kwargs):
+            yield StreamChunk(type="text_delta", content="<think>Answer the case</think>")
+            yield StreamChunk(
+                type="text_delta",
+                content="Here is a detailed treatment outline for this case.",
+            )
+            yield StreamChunk(type="done")
+
+    monkeypatch.setattr(
+        "app.services.socratic_coach.get_provider",
+        lambda: UnsafeProvider(),
+    )
+
+    chunks = [
+        chunk
+        async for chunk in stream_coach_response(
+            case=make_mock_case(),
+            conversation_history=[],
+            student_message="In this simulated case, I am building a differential.",
+            turn_number=1,
+        )
+    ]
+
+    response_text = "".join(chunk.content for chunk in chunks if chunk.type == "text_delta")
+    violation_text = ",".join(chunk.content for chunk in chunks if chunk.type == "safety_guardrail")
+    assert response_text == SAFE_GUARDRAIL_RESPONSE
+    assert "internal_reasoning_tag" in violation_text
+    assert "non_socratic_response" in violation_text
 
 
 @pytest.mark.asyncio

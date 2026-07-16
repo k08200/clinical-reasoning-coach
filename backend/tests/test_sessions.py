@@ -22,7 +22,7 @@ from app.models.session import CoachingSession
 from app.models.user import User
 from app.schemas.session import MAX_STUDENT_MESSAGE_LENGTH
 from app.services.mock_provider import CASE_POOL
-from app.services.provider import StreamChunk
+from app.services.provider import ProviderReadiness, StreamChunk
 from app.services.reasoning_analyzer import (
     INTERNAL_THINKING_WITHHELD_TEXT,
     ReasoningAnalysis,
@@ -451,6 +451,49 @@ async def test_create_session_allows_clinician_reviewed_case_with_simulation_ack
     assert response.json()["case_id"] == str(case.id)
     await db.refresh(case)
     assert case.times_used == 1
+
+
+@pytest.mark.asyncio
+async def test_create_session_blocks_when_clinical_coaching_provider_is_not_ready(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def unavailable_provider() -> ProviderReadiness:
+        return ProviderReadiness(
+            ready=False,
+            verification="unavailable",
+            detail="Configured provider is unavailable.",
+        )
+
+    monkeypatch.setattr(sessions_router, "get_provider_readiness", unavailable_provider)
+    user = User(
+        email=f"provider-not-ready-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Provider Not Ready Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(case)
+
+    response = await client.post(
+        "/api/sessions",
+        json={
+            "case_id": str(case.id),
+            "acknowledge_educational_simulation": True,
+        },
+        headers={"Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["code"] == "clinical_coaching_provider_not_ready"
+    await db.refresh(case)
+    assert case.times_used == 0
 
 
 @pytest.mark.asyncio
@@ -1193,6 +1236,61 @@ async def test_stream_response_blocks_if_case_quality_fails_after_session_start(
     messages = await db.execute(
         select(Message).where(Message.session_id == session.id)
     )
+    assert list(messages.scalars().all()) == []
+
+
+@pytest.mark.asyncio
+async def test_stream_response_blocks_when_provider_becomes_unavailable(
+    client: AsyncClient,
+    db: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    async def unavailable_provider() -> ProviderReadiness:
+        return ProviderReadiness(
+            ready=False,
+            verification="unavailable",
+            detail="Configured provider is unavailable.",
+        )
+
+    async def fail_stream_coach_response(**_kwargs):
+        if False:
+            yield StreamChunk(type="done")
+        raise AssertionError("Unavailable providers must not receive learner content")
+
+    monkeypatch.setattr(sessions_router, "get_provider_readiness", unavailable_provider)
+    monkeypatch.setattr(sessions_router, "stream_coach_response", fail_stream_coach_response)
+    user = User(
+        email=f"stream-provider-not-ready-{uuid.uuid4()}@test.com",
+        hashed_password=hash_password("sessionpass123"),
+        full_name="Stream Provider Not Ready Tester",
+        training_level="resident",
+        accepted_educational_use=True,
+        accepted_educational_use_at=datetime.now(timezone.utc),
+    )
+    case = _make_case(review_status="clinician_reviewed")
+    db.add_all([user, case])
+    await db.flush()
+    session = CoachingSession(
+        user_id=user.id,
+        case_id=case.id,
+        status="active",
+        reasoning_map={"nodes": [], "edges": []},
+        review_snapshot=_session_review_snapshot_for_case(case),
+    )
+    db.add(session)
+    await db.commit()
+    await db.refresh(user)
+    await db.refresh(session)
+
+    response = await client.post(
+        f"/api/sessions/{session.id}/stream",
+        json={"content": "I am reasoning through this simulated case."},
+        headers={"Authorization": f"Bearer {create_access_token({'sub': str(user.id)})}"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["code"] == "clinical_coaching_provider_not_ready"
+    messages = await db.execute(select(Message).where(Message.session_id == session.id))
     assert list(messages.scalars().all()) == []
 
 

@@ -6,8 +6,13 @@ from app.services import claude_provider, ollama_provider
 
 
 class FakeOllamaClient:
-    def __init__(self, response: httpx.Response | Exception):
+    def __init__(
+        self,
+        response: httpx.Response | Exception,
+        show_response: httpx.Response | Exception | None = None,
+    ):
         self.response = response
+        self.show_response = show_response
 
     async def __aenter__(self):
         return self
@@ -19,6 +24,14 @@ class FakeOllamaClient:
         if isinstance(self.response, Exception):
             raise self.response
         return self.response
+
+    async def post(self, url: str, json: dict) -> httpx.Response:
+        response = self.show_response
+        if isinstance(response, Exception):
+            raise response
+        if response is None:
+            raise AssertionError("Expected a model metadata response")
+        return response
 
 
 async def test_ollama_readiness_accepts_implicit_latest_tag(monkeypatch):
@@ -32,7 +45,12 @@ async def test_ollama_readiness_accepts_implicit_latest_tag(monkeypatch):
                 200,
                 json={"models": [{"name": "llama3.2:latest"}]},
                 request=httpx.Request("GET", "http://ollama.test/api/tags"),
-            )
+            ),
+            httpx.Response(
+                200,
+                json={"model_info": {"llama.context_length": 8192}},
+                request=httpx.Request("POST", "http://ollama.test/api/show"),
+            ),
         ),
     )
 
@@ -40,6 +58,32 @@ async def test_ollama_readiness_accepts_implicit_latest_tag(monkeypatch):
 
     assert readiness.ready is True
     assert readiness.verification == "verified"
+
+
+async def test_ollama_readiness_rejects_insufficient_context_window(monkeypatch):
+    monkeypatch.setattr(ollama_provider, "OLLAMA_MODEL", "small-model")
+    monkeypatch.setattr(ollama_provider, "OLLAMA_MIN_CONTEXT_TOKENS", 4096)
+    monkeypatch.setattr(
+        ollama_provider.httpx,
+        "AsyncClient",
+        lambda **_: FakeOllamaClient(
+            httpx.Response(
+                200,
+                json={"models": [{"name": "small-model:latest"}]},
+                request=httpx.Request("GET", "http://ollama.test/api/tags"),
+            ),
+            httpx.Response(
+                200,
+                json={"model_info": {"qwen.context_length": 2048}},
+                request=httpx.Request("POST", "http://ollama.test/api/show"),
+            ),
+        ),
+    )
+
+    readiness = await ollama_provider.OllamaProvider().readiness()
+
+    assert readiness.ready is False
+    assert "2048 < 4096" in readiness.detail
 
 
 async def test_ollama_readiness_rejects_missing_configured_model(monkeypatch):

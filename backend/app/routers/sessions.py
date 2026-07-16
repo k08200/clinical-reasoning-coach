@@ -55,6 +55,7 @@ from app.services.privacy_guard import (
 )
 from app.services.rate_limit import enforce_rate_limit
 from app.services.case_quality import evaluate_case_quality
+from app.services.provider_factory import get_provider_readiness
 from app.services.reasoning_analyzer import (
     SCORE_DIMENSIONS,
     VALID_BIAS_SEVERITIES,
@@ -1229,6 +1230,22 @@ def _assert_case_quality_for_learner_session(case: ClinicalCase) -> None:
     )
 
 
+async def _assert_provider_ready_for_learner_session() -> None:
+    readiness = await get_provider_readiness()
+    if readiness.ready:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        detail={
+            "code": "clinical_coaching_provider_not_ready",
+            "message": (
+                "Clinical coaching is temporarily unavailable because the configured "
+                "model provider is not ready. Try again after operations restores it."
+            ),
+        },
+    )
+
+
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_session(
     body: SessionCreate,
@@ -1249,6 +1266,7 @@ async def create_session(
         )
     _assert_case_provenance_allows_learner_session(case)
     _assert_case_quality_for_learner_session(case)
+    await _assert_provider_ready_for_learner_session()
 
     session = CoachingSession(
         user_id=uuid.UUID(user_id),
@@ -1460,6 +1478,7 @@ async def stream_response(
     _assert_case_provenance_allows_learner_session(case)
     _assert_active_session_case_version_matches(session, case)
     _assert_case_quality_for_learner_session(case)
+    await _assert_provider_ready_for_learner_session()
 
     # Snapshot history before adding any new message
     claude_history = _build_claude_history(session.messages)

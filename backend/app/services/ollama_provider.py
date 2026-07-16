@@ -24,6 +24,7 @@ settings = get_settings()
 
 OLLAMA_BASE_URL = settings.ollama_base_url
 OLLAMA_MODEL = settings.ollama_model
+OLLAMA_MIN_CONTEXT_TOKENS = settings.ollama_min_context_tokens
 
 SYSTEM_INSTRUCTION = """You are a Socratic clinical reasoning coach.
 RULES:
@@ -46,36 +47,64 @@ class OllamaProvider:
             ) as client:
                 response = await client.get(url)
                 response.raise_for_status()
-        except httpx.HTTPError:
+                models = response.json().get("models", [])
+                available_models = {
+                    model_name
+                    for model in models
+                    if isinstance(model, dict)
+                    for model_name in (model.get("name"), model.get("model"))
+                    if isinstance(model_name, str)
+                }
+                expected_models = {OLLAMA_MODEL}
+                if ":" not in OLLAMA_MODEL:
+                    expected_models.add(f"{OLLAMA_MODEL}:latest")
+
+                if expected_models.isdisjoint(available_models):
+                    return ProviderReadiness(
+                        ready=False,
+                        verification="unavailable",
+                        detail="The configured Ollama model is not installed.",
+                    )
+
+                show_response = await client.post(
+                    f"{OLLAMA_BASE_URL.rstrip('/')}/api/show",
+                    json={"model": OLLAMA_MODEL},
+                )
+                show_response.raise_for_status()
+                raw_model_info = show_response.json().get("model_info", {})
+                model_info = raw_model_info if isinstance(raw_model_info, dict) else {}
+        except (httpx.HTTPError, ValueError):
             return ProviderReadiness(
                 ready=False,
                 verification="unavailable",
                 detail="Ollama could not be reached for a readiness check.",
             )
 
-        models = response.json().get("models", [])
-        available_models = {
-            model_name
-            for model in models
-            if isinstance(model, dict)
-            for model_name in (model.get("name"), model.get("model"))
-            if isinstance(model_name, str)
-        }
-        expected_models = {OLLAMA_MODEL}
-        if ":" not in OLLAMA_MODEL:
-            expected_models.add(f"{OLLAMA_MODEL}:latest")
-
-        if expected_models.isdisjoint(available_models):
+        context_lengths = [
+            value
+            for key, value in model_info.items()
+            if isinstance(key, str)
+            and key.endswith(".context_length")
+            and isinstance(value, int)
+        ]
+        context_length = max(context_lengths, default=0)
+        if context_length < OLLAMA_MIN_CONTEXT_TOKENS:
             return ProviderReadiness(
                 ready=False,
                 verification="unavailable",
-                detail="The configured Ollama model is not installed.",
+                detail=(
+                    "The configured Ollama model does not meet the minimum "
+                    f"context requirement ({context_length} < {OLLAMA_MIN_CONTEXT_TOKENS})."
+                ),
             )
 
         return ProviderReadiness(
             ready=True,
             verification="verified",
-            detail="Ollama is reachable and the configured model is installed.",
+            detail=(
+                "Ollama is reachable, the configured model is installed, and its "
+                "context window meets the configured minimum."
+            ),
         )
 
     async def stream(

@@ -68,6 +68,7 @@ LLM_PROVIDER=ollama  # 또는 claude
 - 검토자 자격은 `REVIEWER_CREDENTIAL_VALID_DAYS` 내에 재검증되어야 합니다. 만료된 검토자는 케이스 검토와 임상 안전 이벤트 처리를 할 수 없으며, 해당 자격으로 검토된 케이스는 재검토 전까지 학습자에게 공개되지 않습니다.
 - `LLM_PROVIDER=claude`를 선택하면 `ANTHROPIC_API_KEY`가 반드시 필요합니다.
 - `/health`는 프로세스 생존 여부만, `/ready`는 실제 LLM 제공자 준비 상태를 반환합니다. Ollama는 서버 연결과 지정 모델 설치를 확인하고, Claude는 최대 1토큰의 비임상 요청으로 키ㆍ네트워크ㆍ모델 접근성을 확인합니다. 결과는 기본 5분간 캐시됩니다.
+- Ollama 운영 모델은 설치 여부 외에 `OLLAMA_MIN_CONTEXT_TOKENS`(기본 4096) 이상의 컨텍스트 창을 보고해야 합니다. 케이스 문맥과 안전 지침이 잘리지 않도록, 이 조건을 만족하지 않으면 `/ready`는 `503`을 반환합니다.
 - 운영 Docker healthcheck는 `/ready`를 사용하므로, 실제 모델 제공자가 준비되지 않으면 backend가 healthy로 판정되지 않습니다.
 - 운영 환경은 Redis 기반 요청 제한을 반드시 사용합니다. Redis가 준비되지 않으면 backend가 시작되지 않으며, 로그인ㆍ회원가입ㆍ토큰 갱신과 사용자별 케이스 생성ㆍ코칭 스트림은 설정된 제한을 넘으면 `429`와 `Retry-After`를 반환합니다.
 - HTTPS 역방향 프록시가 `X-Forwarded-For`를 추가하는 경우에만 그 프록시의 egress IP를 `TRUSTED_PROXY_IPS`에 JSON 배열로 설정하세요. 이 설정이 없으면 spoofing을 막기 위해 직접 연결 IP만 제한 키로 사용합니다.

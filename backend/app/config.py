@@ -112,6 +112,12 @@ class Settings(BaseSettings):
     # Ollama (only needed when llm_provider=ollama)
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.2"
+    ollama_min_context_tokens: int = Field(
+        default=4096,
+        ge=1024,
+        le=262144,
+        validation_alias="OLLAMA_MIN_CONTEXT_TOKENS",
+    )
     provider_readiness_timeout_seconds: int = Field(
         default=10,
         ge=1,
