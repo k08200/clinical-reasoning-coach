@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+import re
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
@@ -157,6 +158,10 @@ class Settings(BaseSettings):
         default=None,
         validation_alias="MODEL_RELEASE_APPROVAL_EXPIRES_ON",
     )
+    model_release_evaluation_sha256: str = Field(
+        default="",
+        validation_alias="MODEL_RELEASE_EVALUATION_SHA256",
+    )
 
     # CORS
     cors_origins: list[str] = [
@@ -197,9 +202,18 @@ def model_release_approval_status(settings: Settings) -> tuple[bool, str]:
     approval_provider = settings.model_release_approval_provider.strip().lower()
     approval_model = settings.model_release_approval_model.strip()
     expires_on = settings.model_release_approval_expires_on
+    evaluation_sha256 = settings.model_release_evaluation_sha256.strip().lower()
 
-    if not all((approval_id, approval_provider, approval_model, expires_on)):
+    if not all((
+        approval_id,
+        approval_provider,
+        approval_model,
+        expires_on,
+        evaluation_sha256,
+    )):
         return False, "Model release approval metadata is incomplete."
+    if not re.fullmatch(r"[0-9a-f]{64}", evaluation_sha256):
+        return False, "Model release evaluation hash must be a SHA-256 digest."
     if approval_provider != provider:
         return False, "Model release approval provider does not match the configured provider."
     if approval_model != expected_model:

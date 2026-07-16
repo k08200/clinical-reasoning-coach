@@ -13,6 +13,7 @@ def _current_ollama_release_approval() -> dict:
         "model_release_approval_provider": "ollama",
         "model_release_approval_model": "llama3.2",
         "model_release_approval_expires_on": date.today() + timedelta(days=90),
+        "model_release_evaluation_sha256": "a" * 64,
     }
 
 
@@ -139,6 +140,13 @@ def test_model_release_approval_rejects_provider_model_drift_and_invalid_expiry(
     assert model_release_approval_status(settings) == (
         False,
         "Model release approval expiry exceeds the maximum validity period.",
+    )
+
+    settings.model_release_approval_expires_on = date.today() + timedelta(days=90)
+    settings.model_release_evaluation_sha256 = "not-a-sha256"
+    assert model_release_approval_status(settings) == (
+        False,
+        "Model release evaluation hash must be a SHA-256 digest.",
     )
 
 

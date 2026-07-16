@@ -165,6 +165,7 @@ async def test_governance_readiness_blocks_production_release_when_provider_is_n
             model_release_approval_provider="ollama",
             model_release_approval_model="llama3.2",
             model_release_approval_expires_on=date.today() + timedelta(days=90),
+            model_release_evaluation_sha256="a" * 64,
         ),
     )
 
