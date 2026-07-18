@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import uuid
 from datetime import datetime, timezone
 from typing import AsyncGenerator
@@ -9,6 +10,10 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+
+# Tests must not inherit a developer's configured cloud provider or credentials.
+os.environ["LLM_PROVIDER"] = "mock"
+os.environ["OLLAMA_API_KEY"] = ""
 
 from app.main import app
 from app.database import Base, get_db

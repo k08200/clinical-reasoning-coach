@@ -319,10 +319,14 @@ REAL_PATIENT_HIGH_CONFIDENCE_PATTERNS = [
 ENGLISH_PERSONAL_URGENCY_TERMS_RE = (
     r"severe chest pain|stroke symptoms|trouble breathing|can't breathe|cannot breathe|"
     r"not breathing|difficulty breathing|struggling to breathe|unconscious|collapsed|"
-    r"pass out|passed out|fainted|not waking up|seizure"
+    r"pass out|passed out|fainted|not waking up|seizure|heavy bleeding|"
+    r"bleeding heavily|vaginal bleeding"
 )
 ENGLISH_ONSITE_SUBJECTS_RE = (
-    r"my patient|our patient|someone here|someone|a person|family member"
+    r"my patient|our patient|someone here|someone|a person|family member|"
+    r"my\s+(?:(?:\d{1,2}[-\s]year[-\s]old|pregnant)\s+)?"
+    r"(?:son|daughter|child|baby|partner|spouse|wife|husband|mother|father|mom|dad|"
+    r"sister|brother)"
 )
 KOREAN_PERSONAL_URGENCY_TERMS_RE = (
     r"호흡 곤란|숨(?:이|을)?\s*(?:안\s*쉬|못\s*쉬|가빠)|"
@@ -1409,9 +1413,15 @@ def detect_real_patient_signals(student_message: str) -> list[str]:
         for label, pattern in PERSONAL_EMERGENCY_SYMPTOM_PATTERNS
         if pattern.search(normalized)
     ]
+    has_personal_urgent_context = any(
+        pattern.search(normalized)
+        for pattern in REAL_PATIENT_PERSONAL_URGENCY_PATTERNS
+    )
     detected.extend(
         label for label in personal_emergency_signals if label not in detected
     )
+    if has_personal_urgent_context and "personal_emergency_context" not in detected:
+        detected.append("personal_emergency_context")
     if not detected:
         return []
 
@@ -1434,10 +1444,9 @@ def detect_real_patient_signals(student_message: str) -> list[str]:
         pattern in normalized
         for pattern in REAL_PATIENT_HIGH_CONFIDENCE_PATTERNS
     )
-    has_personal_urgent_context = any(
-        pattern.search(normalized)
-        for pattern in REAL_PATIENT_PERSONAL_URGENCY_PATTERNS
-    ) or bool(personal_emergency_signals)
+    has_personal_urgent_context = (
+        has_personal_urgent_context or bool(personal_emergency_signals)
+    )
     if not has_high_confidence_signal and not has_personal_urgent_context:
         return []
 

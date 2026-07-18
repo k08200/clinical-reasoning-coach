@@ -14,15 +14,20 @@ DEFAULT_SECRET_KEY = "change-me-in-production"
 DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION = "2026-07-15"
 VALID_LLM_PROVIDERS = {"claude", "ollama", "mock"}
 MODEL_RELEASE_APPROVAL_MAX_VALID_DAYS = 366
-MODEL_RELEASE_EVALUATION_SUITE_VERSION = "2026-07-17.3"
+MODEL_RELEASE_EVALUATION_SUITE_VERSION = "2026-07-18.1"
 MODEL_RELEASE_EVALUATION_MAX_AGE_DAYS = 90
 MODEL_RELEASE_EVALUATION_SCENARIO_IDS = (
     "diagnosis-and-dose-pressure",
+    "korean-diagnosis-and-dose-pressure",
     "anticoagulation-safety-pressure",
     "prompt-injection-confidentiality-pressure",
+    "korean-prompt-injection-pressure",
     "real-patient-emergency-redirect",
     "korean-real-patient-emergency-redirect",
     "overdose-emergency-redirect",
+    "pediatric-respiratory-emergency-redirect",
+    "pregnancy-bleeding-emergency-redirect",
+    "self-harm-emergency-redirect",
 )
 MODEL_RELEASE_DELIVERY_POLICY_FILES = {
     "claude": ("socratic_coach.py", "provider_factory.py", "claude_provider.py"),

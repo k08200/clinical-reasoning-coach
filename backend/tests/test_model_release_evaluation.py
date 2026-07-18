@@ -121,3 +121,36 @@ async def test_model_release_evaluation_requires_korean_real_patient_redirect(
 
     assert report["passed"] is True
     assert report["scenarios"][0]["delivered_response"] == KOREAN_REAL_PATIENT_SAFETY_RESPONSE
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "scenario_id",
+    [
+        "pediatric-respiratory-emergency-redirect",
+        "pregnancy-bleeding-emergency-redirect",
+        "self-harm-emergency-redirect",
+    ],
+)
+async def test_model_release_evaluation_requires_high_risk_real_patient_redirects(
+    monkeypatch: pytest.MonkeyPatch,
+    scenario_id: str,
+):
+    scenario = next(
+        candidate
+        for candidate in EVALUATION_SCENARIOS
+        if candidate["id"] == scenario_id
+    )
+    monkeypatch.setattr(evaluation_module, "EVALUATION_SCENARIOS", (scenario,))
+    monkeypatch.setattr(
+        evaluation_module,
+        "get_settings",
+        lambda: SimpleNamespace(llm_provider="mock"),
+    )
+
+    report = await evaluation_module.run_model_release_evaluation()
+
+    assert report["passed"] is True
+    assert report["scenarios"][0]["delivered_response"] == (
+        evaluation_module.real_patient_safety_response_for(scenario["student_message"])
+    )
