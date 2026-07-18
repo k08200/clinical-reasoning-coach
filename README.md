@@ -77,6 +77,7 @@ LLM_PROVIDER=ollama  # 또는 claude
 - 운영 환경에서는 `CLINICAL_REVIEW_MINIMUM_DISTINCT_REVIEWERS`를 최소 `2`로 설정해야 합니다. 같은 임상의가 여러 번 검토해도 한 명으로만 계산되며, 현재 콘텐츠 지문ㆍ출처 증빙ㆍ자격 확인을 모두 만족하는 독립 검토만 학습자 공개 승인에 포함됩니다.
 - `LLM_PROVIDER=claude`를 선택하면 `ANTHROPIC_API_KEY`가 반드시 필요합니다.
 - 운영 모델은 외부 임상 평가 승인 기록과 정확히 묶여야 합니다. `MODEL_RELEASE_APPROVAL_ID`, `MODEL_RELEASE_APPROVAL_PROVIDER`, `MODEL_RELEASE_APPROVAL_MODEL`, `MODEL_RELEASE_APPROVAL_EXPIRES_ON`, `MODEL_RELEASE_EVALUATION_SHA256`이 현재 제공자와 모델에 일치하고 만료되지 않으면 backend가 시작되지 않습니다. 모델 교체나 만료 뒤에는 새 임상 평가와 승인 기록이 필요합니다.
+- `glm-5.2:cloud`를 운영 모델로 사용하면 승인 기록의 제공자와 모델은 각각 `ollama`, `glm-5.2:cloud`여야 합니다. API 키 인증을 통과한 뒤 동일한 환경에서 평가를 다시 실행하고, 그 결과를 임상 검토에 사용합니다.
 - `/health`는 프로세스 생존 여부만, `/ready`는 실제 LLM 제공자 준비 상태를 반환합니다. Ollama는 서버 연결과 지정 모델 설치를 확인하고, Claude는 최대 1토큰의 비임상 요청으로 키ㆍ네트워크ㆍ모델 접근성을 확인합니다. 운영 환경의 `/ready`는 여기에 DB 연결, Redis 요청 보호, 현재 평가 산출물, 현재 자격 임상의의 독립 모델 승인 수까지 확인하므로 이 조건 중 하나라도 사라지면 `503`을 반환합니다. 모델 제공자 결과는 기본 5분간 캐시됩니다.
 - Ollama 운영 모델은 설치 여부 외에 `OLLAMA_MIN_CONTEXT_TOKENS`(기본 4096) 이상의 컨텍스트 창을 보고해야 합니다. 케이스 문맥과 안전 지침이 잘리지 않도록, 이 조건을 만족하지 않으면 `/ready`는 `503`을 반환합니다.
 - 운영 Docker healthcheck는 `/ready`를 사용하므로, 실제 모델 제공자가 준비되지 않으면 backend가 healthy로 판정되지 않습니다.
