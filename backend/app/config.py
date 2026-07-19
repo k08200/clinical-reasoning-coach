@@ -137,11 +137,12 @@ class Settings(BaseSettings):
 
     # ─── LLM Provider ────────────────────────────────────────────────────────
     # Options: "claude" | "curated" | "ollama" | "mock"
-    # - mock  : no API key, rule-based Socratic questions (default)
     # - curated: deterministic source-bound Socratic questions for reviewed cases
+    #            (default; no API key required)
+    # - mock  : no API key, rule-based demo provider for development and tests
     # - ollama: local LLM via Ollama (brew install ollama && ollama pull llama3.2)
     # - claude: Anthropic claude-opus-4-7 with extended thinking (requires API key)
-    llm_provider: str = "mock"
+    llm_provider: str = "curated"
 
     # Anthropic (only needed when llm_provider=claude)
     anthropic_api_key: str = ""

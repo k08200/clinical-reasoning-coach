@@ -1,7 +1,7 @@
 # Clinical Reasoning Coach
 
 Socratic AI for medical diagnostic reasoning training.
-**No API key required to run** — works out of the box in mock mode.
+**No API key required to run** — works out of the box with the free, deterministic `curated` question bank.
 
 ## Quick Start (무료, API 키 불필요)
 
@@ -10,7 +10,7 @@ git clone https://github.com/k08200/clinical-reasoning-coach
 cd clinical-reasoning-coach
 
 cp .env.example .env
-# .env 기본값: LLM_PROVIDER=mock (수정 불필요)
+# .env 기본값: LLM_PROVIDER=curated (수정 불필요)
 
 docker compose up --build
 ```
@@ -171,7 +171,7 @@ Next.js 15 (React 19 + TypeScript + Tailwind)
     ↕ SSE 스트리밍
 FastAPI (Python, async SQLAlchemy)
     ↕
-LLM Provider (mock | ollama | claude)
+LLM Provider (curated | mock | ollama | claude)
     ↕
 PostgreSQL 16
 ```

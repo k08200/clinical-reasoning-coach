@@ -76,6 +76,10 @@ def test_validate_runtime_settings_accepts_default_dev_config():
     validate_runtime_settings(Settings())
 
 
+def test_default_provider_is_the_free_curated_question_bank():
+    assert Settings.model_fields["llm_provider"].default == "curated"
+
+
 def test_validate_runtime_settings_rejects_unknown_provider():
     with pytest.raises(RuntimeError, match="LLM_PROVIDER"):
         validate_runtime_settings(Settings(llm_provider="unknown"))
