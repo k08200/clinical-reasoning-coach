@@ -188,6 +188,7 @@ async def test_governance_readiness_blocks_production_release_when_provider_is_n
             secret_key="replace-with-a-long-random-secret",
             database_auto_create_tables=False,
             llm_provider="ollama",
+            ollama_model="llama3.2",
             rate_limit_enabled=True,
             clinical_review_minimum_distinct_reviewers=2,
             model_release_approval_id="clinical-eval-2026-07-001",

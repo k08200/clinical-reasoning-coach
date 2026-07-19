@@ -12,7 +12,7 @@ from ipaddress import ip_address
 
 DEFAULT_SECRET_KEY = "change-me-in-production"
 DEFAULT_EDUCATIONAL_USE_CONSENT_VERSION = "2026-07-15"
-VALID_LLM_PROVIDERS = {"claude", "ollama", "mock"}
+VALID_LLM_PROVIDERS = {"claude", "curated", "ollama", "mock"}
 MODEL_RELEASE_APPROVAL_MAX_VALID_DAYS = 366
 MODEL_RELEASE_EVALUATION_SUITE_VERSION = "2026-07-18.1"
 MODEL_RELEASE_EVALUATION_MAX_AGE_DAYS = 90
@@ -31,6 +31,12 @@ MODEL_RELEASE_EVALUATION_SCENARIO_IDS = (
 )
 MODEL_RELEASE_DELIVERY_POLICY_FILES = {
     "claude": ("socratic_coach.py", "provider_factory.py", "claude_provider.py"),
+    "curated": (
+        "socratic_coach.py",
+        "provider_factory.py",
+        "curated_provider.py",
+        "mock_provider.py",
+    ),
     "ollama": ("socratic_coach.py", "provider_factory.py", "ollama_provider.py"),
     "mock": ("socratic_coach.py", "provider_factory.py", "mock_provider.py"),
 }
@@ -130,8 +136,9 @@ class Settings(BaseSettings):
     )
 
     # ─── LLM Provider ────────────────────────────────────────────────────────
-    # Options: "claude" | "ollama" | "mock"
+    # Options: "claude" | "curated" | "ollama" | "mock"
     # - mock  : no API key, rule-based Socratic questions (default)
+    # - curated: deterministic source-bound Socratic questions for reviewed cases
     # - ollama: local LLM via Ollama (brew install ollama && ollama pull llama3.2)
     # - claude: Anthropic claude-opus-4-7 with extended thinking (requires API key)
     llm_provider: str = "mock"
@@ -220,6 +227,10 @@ def configured_provider_model(settings: Settings) -> str:
         return settings.claude_model
     if provider == "ollama":
         return settings.ollama_model
+    if provider == "curated":
+        from app.services.curated_provider import CURATED_PROVIDER_MODEL
+
+        return CURATED_PROVIDER_MODEL
     return "mock"
 
 
@@ -358,7 +369,7 @@ def validate_runtime_settings(settings: Settings | None = None) -> None:
     if environment == "production" and provider == "mock":
         raise RuntimeError(
             "APP_ENV=production does not allow LLM_PROVIDER=mock; "
-            "configure ollama or claude"
+            "configure curated, ollama, or claude"
         )
 
     if environment == "production" and not settings.rate_limit_enabled:

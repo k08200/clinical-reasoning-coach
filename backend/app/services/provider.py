@@ -1,7 +1,7 @@
 """
 Abstract LLM provider interface.
 
-Providers: claude | ollama | mock
+Providers: claude | curated | ollama | mock
 Selected via LLM_PROVIDER env var.
 """
 from __future__ import annotations

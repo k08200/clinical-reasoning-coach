@@ -29,6 +29,11 @@ def get_provider():
         from app.services.ollama_provider import OllamaProvider
         return OllamaProvider()
 
+    elif provider == "curated":
+        from app.services.curated_provider import CuratedProvider
+
+        return CuratedProvider()
+
     else:  # default: mock
         from app.services.mock_provider import MockProvider
         return MockProvider()

@@ -44,6 +44,34 @@ def _current_ollama_release_approval(tmp_path: Path) -> dict:
     }
 
 
+def _current_curated_release_approval(tmp_path: Path) -> dict:
+    provider = "curated"
+    model = "curated-question-bank-v1"
+    artifact = {
+        "suite_version": MODEL_RELEASE_EVALUATION_SUITE_VERSION,
+        "provider": provider,
+        "model": model,
+        "delivery_policy_sha256": model_release_delivery_policy_sha256(provider),
+        "evaluated_at": datetime.now(timezone.utc).isoformat(),
+        "passed": True,
+        "scenarios": [
+            {"id": scenario_id, "passed": True}
+            for scenario_id in MODEL_RELEASE_EVALUATION_SCENARIO_IDS
+        ],
+    }
+    artifact["sha256"] = evaluation_sha256(artifact)
+    path = tmp_path / "curated-model-release-evaluation.json"
+    path.write_text(json.dumps(artifact), encoding="utf-8")
+    return {
+        "model_release_approval_id": "curated-clinical-eval-2026-07-001",
+        "model_release_approval_provider": provider,
+        "model_release_approval_model": model,
+        "model_release_approval_expires_on": date.today() + timedelta(days=90),
+        "model_release_evaluation_sha256": artifact["sha256"],
+        "model_release_evaluation_artifact_path": str(path),
+    }
+
+
 def test_validate_runtime_settings_accepts_default_dev_config():
     validate_runtime_settings(Settings())
 
@@ -83,6 +111,20 @@ def test_validate_runtime_settings_accepts_production_with_custom_secret(tmp_pat
             rate_limit_enabled=True,
             clinical_review_minimum_distinct_reviewers=2,
             **_current_ollama_release_approval(tmp_path),
+        )
+    )
+
+
+def test_validate_runtime_settings_accepts_reviewed_curated_provider(tmp_path: Path):
+    validate_runtime_settings(
+        Settings(
+            app_environment="production",
+            secret_key="replace-with-a-long-random-secret",
+            database_auto_create_tables=False,
+            llm_provider="curated",
+            rate_limit_enabled=True,
+            clinical_review_minimum_distinct_reviewers=2,
+            **_current_curated_release_approval(tmp_path),
         )
     )
 

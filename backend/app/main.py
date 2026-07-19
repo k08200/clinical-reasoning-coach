@@ -87,6 +87,7 @@ async def health() -> dict:
     provider = settings.llm_provider.lower()
     model_by_provider = {
         "claude": settings.claude_model,
+        "curated": "curated-question-bank-v1",
         "ollama": settings.ollama_model,
         "mock": "mock",
     }
@@ -104,6 +105,7 @@ async def ready() -> JSONResponse:
     provider = settings.llm_provider.lower()
     model_by_provider = {
         "claude": settings.claude_model,
+        "curated": "curated-question-bank-v1",
         "ollama": settings.ollama_model,
         "mock": "mock",
     }
