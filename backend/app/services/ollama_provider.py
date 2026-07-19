@@ -157,6 +157,7 @@ class OllamaProvider:
             "model": OLLAMA_MODEL,
             "messages": [{"role": "system", "content": system}, *messages],
             "stream": True,
+            "think": False,
         }
 
         async with httpx.AsyncClient(timeout=120) as client:
@@ -210,6 +211,7 @@ class OllamaProvider:
             "model": OLLAMA_MODEL,
             "messages": [{"role": "system", "content": system}, *messages],
             "stream": False,
+            "think": False,
             "format": "json",
         }
 

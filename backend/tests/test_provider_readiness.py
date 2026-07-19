@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import httpx
 
 from app.services import claude_provider, ollama_provider
@@ -16,6 +18,7 @@ class FakeOllamaClient:
         self.show_response = show_response
         self.chat_response = chat_response
         self.requests: list[tuple[str, str, dict[str, str] | None]] = []
+        self.request_bodies: list[dict] = []
 
     async def __aenter__(self):
         return self
@@ -33,12 +36,42 @@ class FakeOllamaClient:
         self, url: str, json: dict, headers: dict[str, str] | None = None
     ) -> httpx.Response:
         self.requests.append(("POST", url, headers))
+        self.request_bodies.append(json)
         response = self.chat_response if url.endswith("/api/chat") else self.show_response
         if isinstance(response, Exception):
             raise response
         if response is None:
             raise AssertionError("Expected a model metadata response")
         return response
+
+
+class FakeOllamaStreamClient:
+    def __init__(self):
+        self.status_code = 200
+        self.request_bodies: list[dict] = []
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, traceback):
+        return None
+
+    def stream(
+        self,
+        method: str,
+        url: str,
+        json: dict,
+        headers: dict[str, str] | None = None,
+    ):
+        assert method == "POST"
+        assert url == "https://ollama.com/api/chat"
+        assert headers == {"Authorization": "Bearer test-key"}
+        self.request_bodies.append(json)
+        return self
+
+    async def aiter_lines(self):
+        yield json.dumps({"message": {"content": "What would you assess next?"}})
+        yield json.dumps({"done": True, "prompt_eval_count": 10, "eval_count": 6})
 
 
 async def test_ollama_readiness_accepts_implicit_latest_tag(monkeypatch):
@@ -161,6 +194,28 @@ async def test_ollama_complete_sends_configured_api_key(monkeypatch):
     assert client.requests == [
         ("POST", "https://ollama.com/api/chat", {"Authorization": "Bearer test-key"})
     ]
+    assert client.request_bodies[0]["think"] is False
+
+
+async def test_ollama_stream_disables_thinking(monkeypatch):
+    client = FakeOllamaStreamClient()
+    monkeypatch.setattr(ollama_provider, "OLLAMA_BASE_URL", "https://ollama.com")
+    monkeypatch.setattr(ollama_provider, "OLLAMA_API_KEY", "test-key")
+    monkeypatch.setattr(ollama_provider, "OLLAMA_MODEL", "glm-5.2:cloud")
+    monkeypatch.setattr(ollama_provider.httpx, "AsyncClient", lambda **_: client)
+
+    chunks = [
+        chunk
+        async for chunk in ollama_provider.OllamaProvider().stream([], "System prompt")
+    ]
+
+    assert [chunk.type for chunk in chunks] == [
+        "thinking_start",
+        "text_delta",
+        "usage",
+        "done",
+    ]
+    assert client.request_bodies[0]["think"] is False
 
 
 async def test_ollama_readiness_rejects_insufficient_context_window(monkeypatch):
