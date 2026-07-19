@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import date
+from functools import lru_cache
 from typing import Any, Callable
 from urllib.parse import urlparse
 
@@ -19279,6 +19280,7 @@ def _check_safety_metadata(data: dict[str, Any], report: CaseQualityReport) -> N
             report.add_critical(gate.issue)
 
 
+@lru_cache(maxsize=1)
 def _domain_safety_gates() -> tuple[DomainSafetyGate, ...]:
     return (
         DomainSafetyGate(

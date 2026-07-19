@@ -338,6 +338,13 @@ def test_domain_safety_gate_registry_lists_expected_clinical_domains():
     assert all(gate.issue for gate in gates)
 
 
+def test_domain_safety_gate_registry_is_cached():
+    assert (
+        case_quality_module._domain_safety_gates()
+        is case_quality_module._domain_safety_gates()
+    )
+
+
 def test_quality_gate_rejects_missing_safety_metadata():
     case = copy.deepcopy(CASE_POOL[0])
     case["clinical_red_flags"] = []
