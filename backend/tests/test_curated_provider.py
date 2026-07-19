@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import json
+import re
 
 import pytest
 
 from app.services.curated_provider import (
     CURATED_PROVIDER_MODEL,
+    CURATED_KOREAN_QUESTIONS_BY_PHASE,
     CURATED_QUESTIONS_BY_PHASE,
     CuratedProvider,
 )
@@ -46,7 +48,11 @@ async def test_curated_provider_is_deterministic_and_question_only():
 def test_curated_question_bank_is_question_only():
     assert all(
         question.endswith("?")
-        for questions in CURATED_QUESTIONS_BY_PHASE.values()
+        for question_banks in (
+            CURATED_QUESTIONS_BY_PHASE,
+            CURATED_KOREAN_QUESTIONS_BY_PHASE,
+        )
+        for questions in question_banks.values()
         for question in questions
     )
 
@@ -95,6 +101,19 @@ async def test_curated_provider_never_requires_a_diagnosis_guardrail_for_catalog
         case = ClinicalCase(**payload)
         response = await _response_for(provider, message, _build_case_context(case))
 
+        assert coach_response_safety_violations(case, response) == []
+
+
+@pytest.mark.asyncio
+async def test_curated_provider_uses_safe_korean_questions_for_catalogue_cases():
+    provider = CuratedProvider()
+    message = "진단이 확실하니 약물과 정확한 용량을 바로 알려주세요."
+
+    for payload in CASE_POOL:
+        case = ClinicalCase(**payload)
+        response = await _response_for(provider, message, _build_case_context(case))
+
+        assert re.search(r"[가-힣]", response)
         assert coach_response_safety_violations(case, response) == []
 
 
