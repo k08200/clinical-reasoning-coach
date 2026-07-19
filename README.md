@@ -1,9 +1,22 @@
 # Clinical Reasoning Coach
 
-Socratic AI for medical diagnostic reasoning training.
-**No API key required to run** — works out of the box with the free, deterministic `curated` question bank.
+의료 추론 과정을 연습하는 소크라테스식 교육용 웹 애플리케이션입니다.
+포트폴리오와 교육 시연을 위해 만들었으며, 실제 환자 진단·처방·치료 결정에 사용하면 안 됩니다.
 
-## Quick Start (무료, API 키 불필요)
+**API 키 없이 실행 가능** — 무료의 결정론적 `curated` 질문 은행이 기본값입니다.
+
+## 포트폴리오 검증 상태
+
+- 무료 `curated` 엔진으로 한국어·영어 소크라테스 질문 제공
+- 진단명, 처방, 용량, 직접 처치 제안을 막는 출력 안전 장치
+- 회원가입, 권한, 케이스 검토, SSE 코칭, 세션 완료, 안전·개인정보 잠금 흐름 구현
+- 백엔드 전체 회귀 테스트 `946 passed` 및 API 스모크 테스트 완료
+
+이 검증은 교육용 프로토타입의 소프트웨어 동작을 보여 줍니다. 실제 임상 사용이나 의료기기 인허가를 의미하지 않습니다.
+
+## 가장 빠른 실행: Docker (무료, API 키 불필요)
+
+사전 준비: [Docker Desktop](https://www.docker.com/products/docker-desktop/)을 실행합니다.
 
 ```bash
 git clone https://github.com/k08200/clinical-reasoning-coach
@@ -15,14 +28,72 @@ cp .env.example .env
 docker compose up --build
 ```
 
-→ http://localhost:3000
+브라우저에서 [http://localhost:3000](http://localhost:3000)을 엽니다. 처음 기동은 이미지와 의존성을 내려받으므로 시간이 걸릴 수 있습니다.
+
+정상 기동 확인:
+
+```bash
+curl http://localhost:8000/ready
+```
+
+종료:
+
+```bash
+docker compose down
+```
+
+## Docker 없이 로컬 실행
+
+Docker Desktop을 쓰지 않을 때는 SQLite로 백엔드를 실행할 수 있습니다. 터미널을 두 개 사용합니다.
+
+먼저 의존성을 설치합니다.
+
+```bash
+cd clinical-reasoning-coach
+cp .env.example .env
+
+python3 -m venv backend/.venv
+backend/.venv/bin/pip install -r backend/requirements.txt
+npm --prefix frontend install
+```
+
+첫 번째 터미널에서 무료 백엔드를 시작합니다.
+
+```bash
+cd clinical-reasoning-coach
+PYTHONPATH=backend \
+DATABASE_URL=sqlite+aiosqlite:////tmp/clinical-reasoning-coach-demo.db \
+DATABASE_AUTO_CREATE_TABLES=true \
+RATE_LIMIT_ENABLED=false \
+ADMIN_BOOTSTRAP_TOKEN=local-demo-bootstrap-token \
+LLM_PROVIDER=curated \
+backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+두 번째 터미널에서 프론트엔드를 시작합니다.
+
+```bash
+cd clinical-reasoning-coach
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000 \
+npm --prefix frontend run dev -- --hostname 127.0.0.1 --port 3000
+```
+
+브라우저에서 [http://127.0.0.1:3000](http://127.0.0.1:3000)을 열면 됩니다. 이 경로는 PostgreSQL과 Redis 없이도 시연할 수 있으며, 데이터는 `/tmp/clinical-reasoning-coach-demo.db`에만 저장됩니다.
+
+## 시연 순서
+
+1. 회원가입 후 교육 전용 사용 동의에 체크합니다.
+2. **Generate Demo Case**를 눌러 케이스를 만듭니다.
+3. 케이스를 시작하고, 학생의 추론을 입력합니다.
+4. 고정된 소크라테스 질문, 추론 지도, 점수와 인지 편향 분석을 확인합니다.
+5. API 문서는 [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)에서 확인합니다.
 
 ## LLM Provider 선택
 
 | Provider | 비용 | 설정 |
 |----------|------|------|
-| `mock` (기본) | **무료, 오프라인** | 개발/데모 전용 |
-| `curated` | **무료, 오프라인** | 검토된 케이스용 결정론적 질문 은행 |
+| `curated` (기본) | **무료, 오프라인** | 검토된 케이스용 결정론적 질문 은행 |
+| `mock` | **무료, 오프라인** | 개발·테스트 전용 |
 | `ollama` | 로컬 또는 Ollama Cloud | Ollama 서버 또는 API 키 필요 |
 | `claude` | 유료 (Anthropic) | API 키 필요 |
 
@@ -62,7 +133,11 @@ LLM_PROVIDER=claude
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-## Production 설정 체크리스트
+## 실제 운영 배포 (포트폴리오 시연에는 불필요)
+
+아래 내용은 공개 서버를 운영하려는 경우에만 필요합니다. 실제 환자 진료 기능을 표방하려면 별도의 임상 검토와 규제 검토가 필요합니다.
+
+### Production 설정 체크리스트
 
 운영 환경에서는 기본 개발 설정으로 시작하지 않도록 앱 시작 시 guard가 동작합니다.
 
@@ -212,24 +287,25 @@ PostgreSQL 16
 | **Availability** | 최근 본 케이스로 편향 |
 | **Framing effect** | 문제 제시 방식에 끌려감 |
 
-## 개발
+## 검증 재실행
 
 ```bash
-# 백엔드 테스트
-(cd backend && pip install -r requirements.txt)
-(cd backend && python -m pytest tests/ -v)
+# 전체 백엔드 회귀 테스트 (약 8분)
+backend/.venv/bin/python -m pytest --no-cov backend/tests -q
 
 # 프론트엔드 테스트
-(cd frontend && npm install && npm test)
+npm --prefix frontend test
 
-# API smoke test (백엔드가 localhost:8000에서 실행 중이어야 함)
-# 최초 관리자 설정 토큰이 .env의 ADMIN_BOOTSTRAP_TOKEN과 같아야 합니다.
-SMOKE_ADMIN_BOOTSTRAP_TOKEN=<ADMIN_BOOTSTRAP_TOKEN> node scripts/smoke-api.mjs
+# API smoke test (비어 있는 개발 DB와 localhost:8000 백엔드가 필요)
+SMOKE_API_URL=http://127.0.0.1:8000 \
+SMOKE_ADMIN_BOOTSTRAP_TOKEN=local-demo-bootstrap-token \
+SMOKE_EXPECT_INDEPENDENT_REVIEW=true \
+node scripts/smoke-api.mjs
 ```
 
-운영 공개 검토 조건을 함께 검증하려면 backend를 `CLINICAL_REVIEW_MINIMUM_DISTINCT_REVIEWERS=2`로 시작한 뒤 `SMOKE_EXPECT_INDEPENDENT_REVIEW=true`를 추가해 실행하세요.
+스모크 테스트는 관리자 계정을 처음 만들기 때문에 빈 DB에서 실행해야 합니다. 이미 관리자 계정이 있으면 새 SQLite 파일로 백엔드를 다시 시작하거나 `SMOKE_ADMIN_EMAIL=<existing-admin-email>`을 지정하세요.
 
-스모크 테스트는 빈 개발 DB에서 관리자 생성/토큰 갱신 → 데모 케이스 생성 → 독립된 임상 검토 승인 → 학습자 세션/SSE → 코치 출력 가드레일 검토 → 완료까지를 검증합니다. 또한 실제 환자 신호를 입력했을 때 학생 메시지 저장 없이 세션을 잠그고, 검토자만 고위험 감사 이벤트를 해결할 수 있는지도 검증합니다. 이미 만든 테스트 관리자를 재사용해 반복 실행하려면 `SMOKE_ADMIN_EMAIL=<existing-admin-email>`을 함께 지정하세요.
+스모크 테스트는 관리자 생성/토큰 갱신 → 데모 케이스 생성 → **테스트용** 독립 검토 승인 → 학습자 세션/SSE → 코치 출력 가드레일 검토 → 완료까지를 검증합니다. 실제 환자 신호를 입력했을 때 학생 메시지 저장 없이 세션을 잠그고, 검토자만 고위험 감사 이벤트를 해결할 수 있는지도 확인합니다. 테스트용 검토자 승인은 실제 임상의 검토를 뜻하지 않습니다.
 
 ## API
 
