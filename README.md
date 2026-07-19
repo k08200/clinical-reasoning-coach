@@ -154,15 +154,16 @@ docker compose --env-file .env.production -f docker-compose.production.yml up --
 
 회원가입 후 **"Generate Demo Case"** 클릭 → 5가지 케이스 중 랜덤 선택
 
-AI는 절대 진단명을 말하지 않습니다. 케이스별 전문 소크라틱 질문으로만 유도합니다:
+`curated` 엔진은 진단명, 처방, 용량, 직접 처치를 제시하지 않습니다. 다음처럼
+교육용 소크라테스 질문으로만 추론을 유도하며, 실제 환자 진료에는 사용하지 않습니다:
 
-**패혈증 케이스 예시:**
-- "Lactate 수치가 조직 관류에 대해 무엇을 말해주나요?"
-- "배양 검체를 신속히 채취하되 항균제 투여를 지연하지 않으려면 어떻게 하겠나요?"
+**시간 민감한 증례 예시:**
+- "활력징후나 진찰 소견 중 가장 우려되는 것은 무엇이며 그 이유는 무엇인가요?"
+- "생명 위협 가능성 중 덜 위험한 원인보다 먼저 고려해야 할 것은 무엇인가요?"
 
-**뇌졸중 케이스 예시:**
-- "Last Known Normal 시간과 증상 발견 시간의 차이가 왜 중요한가요?"
-- "재관류 치료 적격성을 위해 어떤 시간 기준, 영상 소견, 지역 프로토콜을 확인하겠나요?"
+**추론 점검 예시:**
+- "현재 가장 앞선 가설을 가장 크게 약화할 소견은 무엇인가요?"
+- "감별을 더 좁히기 전에 무엇을 확인해야 하나요?"
 
 ## 아키텍처
 
@@ -180,6 +181,7 @@ PostgreSQL 16
 
 | 파일 | 역할 |
 |------|------|
+| `backend/app/services/curated_provider.py` | 검토된 케이스용 결정론적 질문 은행 (무료) |
 | `backend/app/services/mock_provider.py` | 룰 기반 소크라틱 코치 (무료) |
 | `backend/app/services/claude_provider.py` | Claude adaptive thinking + 스트리밍 |
 | `backend/app/services/ollama_provider.py` | 로컬 Ollama LLM |
@@ -196,7 +198,7 @@ PostgreSQL 16
 
 ```
 학생 메시지 입력
-    → Claude/Ollama/Mock: 소크라틱 질문 스트리밍 (SSE)
+    → Curated/Claude/Ollama/Mock: 소크라틱 질문 스트리밍 (SSE)
     → 스트림 완료 전: 추론 품질 분석 + 인지 편향 감지
     → DB 저장: 점수, 추론 맵, 편향 이벤트
 ```
